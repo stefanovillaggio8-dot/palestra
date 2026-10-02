@@ -137,6 +137,56 @@ function spotterCambiato(vecchie, nuove) {
   return a.some((v, i) => v !== b[i]);
 }
 
+/**
+ * Quante ripetizioni hai fatto con lo spotter in questa seduta.
+ * Te lo dice a parole, perche' il numero da solo non si capisce:
+ * conta le serie, le ripetizioni totali di quelle serie, e quante di queste
+ * sono state assistite davvero (se non le hai segnate, resta "non specificato").
+ */
+export function riassuntoSpotter(seriePerEsercizio, nomiEsercizi = new Map()) {
+  let serie = 0;
+  let ripetizioni = 0;
+  let assistite = 0;
+  let assistiteDette = 0;
+  let nonSpecificato = 0;
+  const dettaglio = [];
+
+  for (const [esercizioId, lista] of (seriePerEsercizio || new Map())) {
+    const conSpotter = (lista || []).filter((s) => serieRegistrata(s) && s.spotter === true);
+    if (!conSpotter.length) continue;
+    serie += conSpotter.length;
+    for (const s of conSpotter) {
+      const rip = numeroOppure(s.ripetizioni);
+      if (rip !== null) ripetizioni += rip;
+      const ass = numeroOppure(s.rip_assistite);
+      if (ass === null) nonSpecificato++;
+      else { assistite += ass; assistiteDette++; }
+    }
+    dettaglio.push({
+      esercizio_id: esercizioId,
+      nome: nomiEsercizi.get(esercizioId) || esercizioId,
+      serie: conSpotter.length,
+      ripetizioni: conSpotter.reduce((a, s) => a + (numeroOppure(s.ripetizioni) || 0), 0),
+      assistite: conSpotter.reduce((a, s) => a + (numeroOppure(s.rip_assistite) || 0), 0),
+    });
+  }
+
+  const frasi = [];
+  if (!serie) return { serie: 0, ripetizioni: 0, assistite: 0, nonSpecificato: 0, frase: 'Nessuna serie con lo spotter.', dettaglio };
+
+  frasi.push(`${serie} ${serie === 1 ? 'serie' : 'serie'} con lo spotter, ${formattaNumero(ripetizioni)} ripetizioni in tutto`);
+  if (assistiteDette) {
+    frasi.push(`${formattaNumero(assistite)} ${assistite === 1 ? 'assistita' : 'assistite'}`);
+  }
+  if (nonSpecificato) {
+    frasi.push(`${nonSpecificato} ${nonSpecificato === 1 ? 'serie senza' : 'serie senza'} il numero delle assistite`);
+  }
+  return {
+    serie, ripetizioni, assistite, nonSpecificato, dettaglio,
+    frase: frasi.join(', ') + '.',
+  };
+}
+
 /** Frase pronta da leggere: "Chest Press: 35x8, 35x7, 35x6 -> 35x8, 35x7, 35x8". */
 export function fraseCambiamento(c) {
   return `${c.nome}: ${c.prima} → ${c.dopo}`;

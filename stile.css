@@ -294,14 +294,15 @@ a { color: var(--blu); text-decoration: none; }
 }
 /* spunta: segna la serie come fatta */
 .bottone-spunta {
-  width: 38px; height: 38px; flex: 0 0 auto;
+  width: 46px; height: 46px; flex: 0 0 auto;
   border-radius: 50%; border: 2px solid var(--bordo);
   background: var(--nero); color: transparent;
-  font-size: 1.25rem; font-weight: 900; line-height: 1;
+  font-size: 1.5rem; font-weight: 900; line-height: 1;
   display: flex; align-items: center; justify-content: center;
   cursor: pointer; padding: 0;
 }
-.bottone-spunta:active { transform: scale(.92); }
+.numero-serie-bottone { cursor: pointer; font-family: inherit; }
+.bottone-spunta:active, .numero-serie-bottone:active { transform: scale(.9); }
 .bottone-spunta.attiva {
   background: var(--verde); border-color: var(--verde); color: #04180f;
 }
@@ -321,6 +322,12 @@ a { color: var(--blu); text-decoration: none; }
   border-left-color: var(--arancio);
   background: linear-gradient(90deg, #10301f 0%, #2a2016 70%);
 }
+.riga-spotter {
+  background: #2a2016; border: 1px solid #4a3a1c;
+  border-radius: 11px; padding: 9px 12px; margin: 10px 0; font-size: .86rem;
+}
+.riga-spotter strong { color: var(--arancio); }
+.riga-spotter.fatta:empty { display: none; }
 .badge-spotter {
   background: #3a2a10; color: var(--arancio);
   font-size: .68rem; font-weight: 800; padding: 4px 8px;

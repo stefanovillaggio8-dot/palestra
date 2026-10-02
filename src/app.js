@@ -1,4 +1,4 @@
-// app.js -- interfaccia e navigazione.
+﻿// app.js -- interfaccia e navigazione.
 // Tutto in italiano, tema scuro, pulsanti grandi, fatto per essere usato
 // in palestra con le mani occupate.
 
@@ -12,9 +12,10 @@ import {
   ETICHETTE_CONVENZIONE, CONVENZIONI, convenzioneMisuraCarico, etichettaUnita, campoCarico,
 } from './numeri.js';
 import { confrontaEsercizio, riassuntoEsercizio, NON_DISPONIBILE } from './confronto.js';
-import { prossimoOrdine, apriSeduta, nuovaSerie, seduteFinite, eFatta, commutaFatta, pulsa } from './sedute.js';
+import { prossimoOrdine, apriSeduta, nuovaSerie, seduteFinite, eFatta, commutaFatta, pulsa, segnaAspettoFatto } from './sedute.js';
 import {
   MODALITA, raccogliPerEsercizio, proposta as propostaAggiornamento, notaSulNumeroSerie,
+  riassuntoSpotter,
 } from './aggiornamento.js';
 import { testoProgresso, serieARipetizioniCostanti } from './progressi.js';
 import { creaPacchetto, validaPacchetto, unisci, csvSerie, csvSedute, csvEsercizi } from './backup.js';
@@ -89,6 +90,7 @@ async function proponiAggiornamentoScheda(sedutaId) {
   const perEsercizio = raccogliPerEsercizio(V.serie, sedutaId);
   const perId = new Map(V.esercizi.map((e) => [e.id, e]));
   const res = propostaAggiornamento(versione.snapshot, seduta.giorno_id, perEsercizio, perId);
+  const spotterInfo = riassuntoSpotter(perEsercizio, perId);
   if (res.nessunaNovita) {
     return { fatto: false, motivo: 'nessuna novita' };
   }
@@ -112,6 +114,10 @@ async function proponiAggiornamentoScheda(sedutaId) {
     el('p', { class: 'testo-dialogo', testo: `${res.cambiamenti.length} ${res.cambiamenti.length === 1 ? 'esercizio cambia' : 'esercizi cambiano'} nel ${seduta.nome_giorno || 'giorno'}.` }),
     el('ul', { class: 'lista-cambi' }, righe),
     el('p', { class: 'testo-dialogo legenda-cambi', testo: 'S = fatta con lo spotter · D = dropset' }),
+    el('p', { class: 'testo-dialogo riga-spotter' }, [
+      el('strong', { testo: 'Con lo spotter: ' }),
+      el('span', { testo: spotterInfo.frase }),
+    ]),
     testoSpotter ? el('p', { class: 'testo-dialogo testo-spotter', testo: testoSpotter }) : null,
     el('p', { class: 'testo-dialogo testo-attenzione', testo: 'Nasce una versione nuova della scheda. Le sedute gia\' registrate restano esattamente come sono.' }),
     el('div', { class: 'dialogo-azioni' }, [
@@ -504,6 +510,18 @@ async function vistaSeduta(zona, sedutaId) {
   });
   zona.appendChild(notaSeduta);
 
+  // quante ripetizioni hai fatto con lo spotter: lo vedi mentre alleni
+  const riepilogoSpotter = el('div', { class: 'riga-spotter fatta' });
+  const scriviRiepilogoSpotter = () => {
+    const info = riassuntoSpotter(raccogliPerEsercizio(V.serie, s.id), new Map(V.esercizi.map((e) => [e.id, e])));
+    svuota(riepilogoSpotter);
+    if (!info.serie) return;
+    riepilogoSpotter.appendChild(el('strong', { testo: 'Con lo spotter: ' }));
+    riepilogoSpotter.appendChild(el('span', { testo: info.frase }));
+  };
+  scriviRiepilogoSpotter();
+  zona.appendChild(riepilogoSpotter);
+
   const snap = (versioneCorrente() || {}).snapshot || { giorni: [] };
   const giorno = (snap.giorni || []).find((g) => g.id === s.giorno_id);
   if (!giorno) { zona.appendChild(el('p', { testo: 'Non trovo il giorno di questa seduta.' })); return; }
@@ -621,21 +639,39 @@ function rigaSerie(serie, numero, confronto, seduta) {
   if (eFatta(serie)) riga.classList.add('serie-fatta');
 
   // la spunta: segna che la serie l'hai fatta. Premendola di nuovo la togli.
+  // Nota: cambio l'aspetto SUBITO, prima di qualsiasi attesa, cosi' non
+  // sembra mai un pulsante morto. Il salvataggio va dopo.
   const spunta = el('button', {
     type: 'button',
     class: 'bottone-spunta' + (eFatta(serie) ? ' attiva' : ''),
     title: eFatta(serie) ? 'Serie fatta: tocca per togliere la spunta' : 'Segna questa serie come fatta',
     'aria-pressed': eFatta(serie) ? 'true' : 'false',
-    onClick: async () => {
-      const nuova = commutaFatta(serie);
-      await aggiornaSerie(serie, { stato: nuova.stato });
-      if (nuova.stato === 'fatta') pulsa(); // vibrazione sotto il dito, niente audio
-      disegna();
+    onClick: () => {
+      const fatta = !eFatta(serie);
+      segnaAspettoFatto(riga, spunta, fatta);
+      if (fatta) pulsa();
+      aggiornaSerie(serie, { stato: fatta ? 'fatta' : 'da_fare' })
+        .catch((e) => mostraErroreBreve('Non sono riuscito a salvare la spunta: ' + (e && e.message ? e.message : e)))
+        .then(() => { disegna(); });
     },
   }, [el('span', { class: 'segno-spunta', testo: eFatta(serie) ? '✓' : '' })]);
   riga.appendChild(spunta);
 
-  riga.appendChild(el('div', { class: 'numero-serie', testo: String(numero) }));
+  // anche il numero della serie si puo' toccare: area piu' grande col dito
+  riga.appendChild(el('button', {
+    type: 'button',
+    class: 'numero-serie numero-serie-bottone',
+    title: eFatta(serie) ? 'Segnata come fatta: tocca per toglierla' : 'Segna come fatta',
+    'aria-pressed': eFatta(serie) ? 'true' : 'false',
+    onClick: () => {
+      const fatta = !eFatta(serie);
+      segnaAspettoFatto(riga, spunta, fatta);
+      if (fatta) pulsa();
+      aggiornaSerie(serie, { stato: fatta ? 'fatta' : 'da_fare' })
+        .catch((e) => mostraErroreBreve('Non sono riuscito a salvare: ' + (e && e.message ? e.message : e)))
+        .then(() => { disegna(); });
+    },
+  }, [el('span', { testo: String(numero) })]));
 
   const peso = campoNumero(serie[chiave], {
     etichetta: assistenza ? 'kg di assistenza' : 'kg',

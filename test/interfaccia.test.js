@@ -23,7 +23,7 @@ globalThis.clearInterval = () => {};
 
 const db = await import('../src/db.js');
 const { apriSeduta, prossimoOrdine, serieDiEsercizio, cambiaSerie, chiudiSeduta } = await import('../src/sedute.js');
-const { proposta: propostaAggiornamento, notaSulNumeroSerie } = await import('../src/aggiornamento.js');
+const { proposta: propostaAggiornamento, notaSulNumeroSerie, riassuntoSpotter } = await import('../src/aggiornamento.js');
 const { ESERCIZI, SCHEDA_ID, costruisciSnapshot } = await import('../src/dati-iniziali.js');
 
 /** Il modulo dell'app tiene i dati in memoria; qui si usa il database. */
@@ -613,6 +613,55 @@ test('16. mettere solo lo spotter fa comunque comparire la conferma', async () =
   const chest = versioni.sort((a, b) => b.numero - a.numero)[0]
     .snapshot.giorni[1].esercizi.find((e) => e.esercizio_id === 'ex-dumbbell-bench-pull');
   assert.equal(chest.serie[0].spotter, false, 'la scheda e\' rimasta come prima');
+});
+
+test('17. la spunta si vede SUBITO, anche prima che il database risponda', async () => {
+  await assicuratiSeduta();
+  const blocco = perClasse(app, 'blocco-esercizio').find((b) => (b.textContent || '').includes('Leg Extension'));
+  const riga = perClasse(blocco, 'riga-serie')[0];
+  const spunta = perClasse(riga, 'bottone-spunta')[0];
+  assert.equal(spunta.classList.contains('attiva'), false);
+
+  // NON aspetto nessuna promise: guardo lo stato subito dopo aver premuto
+  spunta.listeners.get('click')[0]({ type: 'click', preventDefault() {}, stopPropagation() {} });
+  assert.ok(riga.classList.contains('serie-fatta'), 'la riga diventa verde all\'istante');
+  assert.ok(spunta.classList.contains('attiva'), 'la spunta si accende all\'istante');
+  assert.match(spunta.textContent, /✓/, 'il segno di spunta compare subito');
+  await new Promise((r) => setTimeout(r, 250));
+});
+
+test('18. anche il numero della serie si puo\' toccare per spuntare', async () => {
+  await assicuratiSeduta();
+  const blocco = perClasse(app, 'blocco-esercizio').find((b) => (b.textContent || '').includes('Lat Pulldown'));
+  const riga = perClasse(blocco, 'riga-serie')[0];
+  const numero = perClasse(riga, 'numero-serie-bottone')[0];
+  assert.ok(numero, 'il numero e\' un bottone: area piu\' grande col dito');
+  numero.listeners.get('click')[0]({ type: 'click', preventDefault() {}, stopPropagation() {} });
+  assert.ok(riga.classList.contains('serie-fatta'), 'la riga diventa verde anche toccando il numero');
+  await new Promise((r) => setTimeout(r, 250));
+});
+
+test('19. ti dice quante ripetizioni hai fatto con lo spotter', () => {
+  const serie = new Map([['ex-chest-press', [
+    { seduta_id: 's', ordine: 1, peso: 35, ripetizioni: 8, spotter: true, rip_assistite: 2 },
+    { seduta_id: 's', ordine: 2, peso: 35, ripetizioni: 7.5, spotter: true, rip_assistite: null },
+    { seduta_id: 's', ordine: 3, peso: 35, ripetizioni: 6, spotter: false, rip_assistite: null },
+  ]]]);
+  const info = riassuntoSpotter(serie, new Map([['ex-chest-press', 'Chest Press']]));
+  assert.equal(info.serie, 2, 'due serie con lo spotter');
+  assert.equal(info.ripetizioni, 15.5, '8 + 7,5 = 15,5 ripetizioni con lo spotter');
+  assert.equal(info.assistite, 2, '2 assistite dichiarate');
+  assert.equal(info.nonSpecificato, 1, 'una serie senza numero di assistite');
+  assert.match(info.frase, /2 serie con lo spotter/);
+  assert.match(info.frase, /15,5 ripetizioni/);
+  assert.match(info.frase, /2 assistite/);
+  assert.match(info.frase, /1 serie senza il numero delle assistite/);
+});
+
+test('20. nessuna serie con spotter: lo dice senza drama', () => {
+  const info = riassuntoSpotter(new Map([['x', [{ peso: 35, ripetizioni: 8, spotter: false }]]]));
+  assert.equal(info.serie, 0);
+  assert.match(info.frase, /Nessuna serie con lo spotter/);
 });
 
 test('Z. nessun errore JavaScript durante tutta la navigazione', () => {

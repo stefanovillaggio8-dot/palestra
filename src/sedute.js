@@ -19,6 +19,30 @@ export function commutaFatta(s) {
 }
 
 /**
+ * Cambia aspetto alla riga e alla spunta SENZA aspettare nessuna risposta.
+ * Serve perche\' la spunta deve spuntare all\'istante: se aspettassimo il
+ * database, sul telefono sembrerebbe che il pulsante non funzioni.
+ */
+export function segnaAspettoFatto(riga, bottoneSpunta, fatta) {
+  if (riga && riga.classList) {
+    if (fatta) riga.classList.add('serie-fatta');
+    else riga.classList.remove('serie-fatta');
+  }
+  if (bottoneSpunta && bottoneSpunta.classList) {
+    if (fatta) bottoneSpunta.classList.add('attiva');
+    else bottoneSpunta.classList.remove('attiva');
+  }
+  const segno = bottoneSpunta && bottoneSpunta.firstChild;
+  if (segno) segno.textContent = fatta ? '✓' : '';
+  if (bottoneSpunta && bottoneSpunta.setAttribute) {
+    bottoneSpunta.setAttribute('aria-pressed', fatta ? 'true' : 'false');
+    bottoneSpunta.title = fatta
+      ? 'Serie fatta: tocca per togliere la spunta'
+      : 'Segna questa serie come fatta';
+  }
+}
+
+/**
  * Vibrazione sotto il dito quando spunti una serie.
  * Non e\' audio: e\' un impulso tattile, silenzioso.
  * Se il telefono non la supporta, non succede niente e non da problemi.
