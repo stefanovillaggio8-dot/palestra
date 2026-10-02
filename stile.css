@@ -55,6 +55,16 @@ a { color: var(--blu); text-decoration: none; }
 
 .caricamento { padding: 60px 0; text-align: center; color: var(--testo-2); }
 
+.schermo-errore {
+  background: var(--card); border: 2px solid var(--rosso);
+  border-radius: var(--r); padding: 16px; margin: 16px 0;
+}
+.testo-errore {
+  background: var(--nero); border: 1px solid var(--bordo); border-radius: 10px;
+  padding: 11px; font-size: .82rem; white-space: pre-wrap; word-break: break-word;
+  color: #ffb4bb; max-height: 220px; overflow: auto;
+}
+
 .basso { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; }
 
 .menu-basso {

@@ -27,24 +27,51 @@ async function avvia() {
   svuota(radice);
   radice.appendChild(el('div', { class: 'caricamento', testo: 'Carico i tuoi dati...' }));
 
-  await db.apriDb();
-  await seminaSeVuoto();
+  try {
+    await db.apriDb();
+    await seminaSeVuoto();
 
-  V.esercizi = await db.tutti('esercizi');
-  V.schede = await db.tutti('schede');
-  V.versi = await db.tutti('versioni');
-  V.sedute = await db.tutti('sedute');
-  V.serie = await db.tutti('serie');
-  V.note = await db.tutti('note');
-  V.conflitti = await sync.conflittiDaScegliere();
+    await ricarcaTutto();
 
-  sync.iscrivisi(() => { aggiornaStatoSalvataggio(); });
-  sync.avvia();
-  window.addEventListener('hashchange', () => disegna());
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./sw.js').catch(() => { /* senza service worker funziona lo stesso, solo niente offline */ });
+    sync.iscriviti(() => { aggiornaStatoSalvataggio(); });
+    sync.avvia();
+    window.addEventListener('hashchange', () => disegna());
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js').catch(() => { /* senza service worker funziona lo stesso, solo niente offline */ });
+    }
+    disegna();
+    if (db.MOTORE_SCELTO.tipo === 'memoria del browser') {
+      avviso('Attenzione: questo browser blocca il database veloce, sto usando la memoria del browser. Tutto funziona, ma esporta un backup ogni tanto.', { durata: 9000 });
+    }
+  } catch (errore) {
+    mostraErrore(radice, errore);
   }
-  disegna();
+}
+
+/** Se qualcosa va storto lo dico a schermo, invece di girare all'infinito. */
+function mostraErrore(radice, errore) {
+  console.error('Avvio non riuscito:', errore);
+  svuota(radice);
+  radice.appendChild(el('div', { class: 'schermo-errore' }, [
+    el('h1', { testo: 'L\'app non e\' partita' }),
+    el('p', { testo: 'Questo e\' il motivo, cosi\' lo vediamo subito invece di aspettare:' }),
+    el('pre', { class: 'testo-errore', testo: (errore && (errore.message || String(errore))) || 'errore sconosciuto' }),
+    el('p', { class: 'nota', testo: 'Motore scelto per i dati: ' + db.MOTORE_SCELTO.tipo + '. Browser: ' + navigator.userAgent }),
+    el('div', { class: 'riga-pulsanti' }, [
+      bottone('Riprova', { onClick: () => location.reload(), classe: 'principale grande' }),
+      bottone('Prova con la memoria del browser', {
+        onClick: async () => {
+          try {
+            await db.svuotaTutto();
+            for (const t of TABELLE) { try { localStorage.removeItem('palestra-mem-' + t); } catch { /* pazienza */ } }
+            try { localStorage.removeItem('palestra-mem-meta'); } catch { /* pazienza */ }
+            location.reload();
+          } catch (e) { avviso('Non sono riuscito a cancellare: ' + e.message, { tipo: 'errore' }); }
+        },
+        classe: 'fantasma',
+      }),
+    ]),
+  ]));
 }
 
 /** Ricarica tutto quello che serve per la vista corrente. */
@@ -88,13 +115,24 @@ function vai(percorso) { window.location.hash = percorso; }
 
 function disegna() {
   const zona = document.getElementById('app');
+  if (!zona) return;
   svuota(zona);
-  const rotta = (window.location.hash || '#/').replace(/^#/, '');
+  try {
+    disegnaDentro(zona);
+  } catch (errore) {
+    console.error('Disegno non riuscito:', errore);
+    svuota(zona);
+    mostraErrore(zona, errore);
+  }
+}
+
+function disegnaDentro(zona) {
   zona.appendChild(cornice());
   const contenuto = el('main', { class: 'contenuto', id: 'contenuto' });
   zona.appendChild(contenuto);
   disegnaStatoSalvataggio();
 
+  const rotta = (window.location.hash || '#/').replace(/^#/, '');
   if (rotta === '/' || rotta === '') vistaHome(contenuto);
   else if (rotta.startsWith('/giorno/')) vistaGiorno(contenuto, rotta.split('/')[2]);
   else if (rotta.startsWith('/seduta/')) vistaSeduta(contenuto, rotta.split('/')[2]);
