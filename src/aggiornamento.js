@@ -88,12 +88,20 @@ export function proposta(snapshot, giornoId, seriePerEsercizio, eserciziPerId) {
     const nuove = registrate.map((s) => aPrevista(s, esercizio));
     const prima = descriviSerie(es.serie, esercizio);
     const dopo = descriviSerie(nuove, esercizio);
-    if (prima === dopo) continue;
+    const primaN = (es.serie || []).length;
+    const dopoN = nuove.length;
+    if (prima === dopo && primaN === dopoN) continue;
+    const aggiunta = dopoN > primaN;
+    const tolta = dopoN < primaN;
     cambiamenti.push({
       esercizio_id: es.esercizio_id,
       nome: (esercizio && esercizio.nome) || es.esercizio_id,
       prima,
       dopo,
+      aggiunta,
+      tolta,
+      serieAggiunte: Math.max(0, dopoN - primaN),
+      serieTolte: Math.max(0, primaN - dopoN),
       pesoCambiato: pesoCambiato(es.serie, nuove, esercizio),
       ripCambiate: ripCambiate(es.serie, nuove),
     });
@@ -121,6 +129,25 @@ function ripCambiate(vecchie, nuove) {
 /** Frase pronta da leggere: "Chest Press: 35x8, 35x7, 35x6 -> 35x8, 35x7, 35x8". */
 export function fraseCambiamento(c) {
   return `${c.nome}: ${c.prima} → ${c.dopo}`;
+}
+
+/**
+ * Come spiegare il cambiamento quando cambiano le SERIE e non solo i numeri.
+ * Se aggiungi una serie durante l'allenamento, qui si vede che ne hai
+ * aggiunta una: cosi' non ti scappa che stai allungando la scheda.
+ */
+export function notaSulNumeroSerie(c) {
+  if (c.aggiunta) {
+    return c.serieAggiunte === 1
+      ? 'hai aggiunto 1 serie a quelle previste'
+      : `hai aggiunto ${c.serieAggiunte} serie a quelle previste`;
+  }
+  if (c.tolta) {
+    return c.serieTolte === 1
+      ? 'questa volta hai fatto 1 serie in meno del previsto'
+      : `questa volta hai fatto ${c.serieTolte} serie in meno del previsto`;
+  }
+  return '';
 }
 
 /** Quanti kg/ripetizioni in piu' o in meno, per dirlo con le parole. */

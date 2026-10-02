@@ -23,7 +23,7 @@ globalThis.clearInterval = () => {};
 
 const db = await import('../src/db.js');
 const { apriSeduta, prossimoOrdine, serieDiEsercizio, cambiaSerie, chiudiSeduta } = await import('../src/sedute.js');
-const { proposta: propostaAggiornamento } = await import('../src/aggiornamento.js');
+const { proposta: propostaAggiornamento, notaSulNumeroSerie } = await import('../src/aggiornamento.js');
 const { ESERCIZI, SCHEDA_ID, costruisciSnapshot } = await import('../src/dati-iniziali.js');
 
 /** Il modulo dell'app tiene i dati in memoria; qui si usa il database. */
@@ -67,8 +67,9 @@ async function assicuratiSeduta() {
     const v = (await db.tutti('versioni'))[0];
     aperta = await apriSeduta({ scheda_id: SCHEDA_ID, versione: v, giorno: v.snapshot.giorni[0] });
   }
-  globalThis.window.location.hash = '#/seduta/' + aperta.id;
-  await attendiChe(() => perClasse(app, 'cronometro').length === 1);
+globalThis.window.location.hash = '#/seduta/' + aperta.id;
+  // non basta il cronometro: aspetto che siano disegnati anche gli esercizi
+  await attendiChe(() => perClasse(app, 'cronometro').length === 1 && perClasse(app, 'blocco-esercizio').length >= 4);
   return aperta;
 }
 
@@ -492,6 +493,89 @@ test('1e. gli esercizi assistiti mostrano "kg di assistenza"', async () => {
   assert.match(testo, /Dropset/i, 'il Wrist Curl e\' segnato dropset');
   globalThis.window.location.hash = '#/';
   await new Promise((r) => setTimeout(r, 150));
+});
+
+test('13. la spunta segna la serie come fatta, verde la riga, e si toglie', async () => {
+  const rimasta = await db.sedutaInCorso();
+  if (!rimasta) await assicuratiSeduta();
+  const seduta = await assicuratiSeduta();
+  const serie = serieDiEsercizio(await db.tutti('serie'), seduta.id, 'ex-chest-press');
+  const prima = serie[0];
+
+  const blocco = perClasse(app, 'blocco-esercizio').find((b) => (b.textContent || '').includes('Chest Press'));
+  const rigaPrima = perClasse(blocco, 'riga-serie')[0];
+  const spunta = perClasse(rigaPrima, 'bottone-spunta')[0];
+  assert.ok(spunta, 'c\'e\' il bottone della spunta');
+  assert.equal(spunta.classList.contains('attiva'), false, 'all\'inizio non e\' spuntata');
+
+  await spunta.click();
+  await new Promise((r) => setTimeout(r, 250));
+
+  // salvata nel database
+  const dopo = await db.prendi('serie', prima.id);
+  assert.equal(dopo.stato, 'fatta', 'lo stato "fatta" e\' salvato');
+
+  // tutta la riga e\' verde
+  const rigaNuova = perClasse(perClasse(app, 'blocco-esercizio')
+    .find((b) => (b.textContent || '').includes('Chest Press')), 'riga-serie')[0];
+  assert.ok(rigaNuova.classList.contains('serie-fatta'), 'la riga e\' verde');
+  const spuntaNuova = perClasse(rigaNuova, 'bottone-spunta')[0];
+  assert.ok(spuntaNuova.classList.contains('attiva'), 'la spunta e\' verde con la spunta');
+  assert.match(spuntaNuova.textContent, /✓/, 'c\'e\' il segno di spunta');
+
+  // e si puo\' togliere
+  await spuntaNuova.click();
+  await new Promise((r) => setTimeout(r, 250));
+  const tolta = await db.prendi('serie', prima.id);
+  assert.equal(tolta.stato, 'da_fare', 'togliendo la spunta torna da_fare');
+  const rigaFinale = perClasse(perClasse(app, 'blocco-esercizio')
+    .find((b) => (b.textContent || '').includes('Chest Press')), 'riga-serie')[0];
+  assert.equal(rigaFinale.classList.contains('serie-fatta'), false, 'la riga non e\' piu\' verde');
+});
+
+test('14. lo spotter resta salvato ed e\' segnato', async () => {
+  const seduta = await assicuratiSeduta();
+  const serie = serieDiEsercizio(await db.tutti('serie'), seduta.id, 'ex-chest-press')[0];
+
+  const blocco = perClasse(app, 'blocco-esercizio').find((b) => (b.textContent || '').includes('Chest Press'));
+  const riga = perClasse(blocco, 'riga-serie')[0];
+  const bot = pulsanti(riga).find((b) => /Spotter/.test(b.textContent || ''));
+  assert.ok(bot, 'il bottone dello spotter c\'e\'');
+
+  await bot.click();
+  await new Promise((r) => setTimeout(r, 250));
+  const salvata = await db.prendi('serie', serie.id);
+  assert.equal(salvata.spotter, true, 'lo spotter e\' salvato nel database');
+
+  const rigaNuova = perClasse(perClasse(app, 'blocco-esercizio')
+    .find((b) => (b.textContent || '').includes('Chest Press')), 'riga-serie')[0];
+  assert.ok(rigaNuova.classList.contains('serie-spotter'), 'la riga e\' segnata come con spotter');
+  assert.ok(perClasse(rigaNuova, 'badge-spotter').length === 1, 'c\'e\' scritto "fatta con lo spotter"');
+  const botNuovo = pulsanti(rigaNuova).find((b) => /Spotter/.test(b.textContent || ''));
+  assert.match(botNuovo.textContent, /✓/, 'il bottone ha la spunta');
+
+  // e si può togliere
+  await botNuovo.click();
+  await new Promise((r) => setTimeout(r, 250));
+  assert.equal((await db.prendi('serie', serie.id)).spotter, false);
+});
+
+test('15. se aggiungi una serie la proposta dice che ne hai aggiunta una', async () => {
+  const v = (await db.tutti('versioni')).sort((a, b) => b.numero - a.numero)[0];
+  const g1 = v.snapshot.giorni[0];
+  const per = new Map([['ex-chest-press', [
+    { seduta_id: 'x', ordine: 1, esercizio_id: 'ex-chest-press', peso: 35, ripetizioni: 8 },
+    { seduta_id: 'x', ordine: 2, esercizio_id: 'ex-chest-press', peso: 35, ripetizioni: 7 },
+    { seduta_id: 'x', ordine: 3, esercizio_id: 'ex-chest-press', peso: 35, ripetizioni: 6 },
+    { seduta_id: 'x', ordine: 4, esercizio_id: 'ex-chest-press', peso: 35, ripetizioni: 6 },
+  ]]]);
+  const res = versioneAggiornata(v.snapshot, 'giorno-1', per);
+  assert.equal(res.nessunaNovita, false);
+  const c = res.cambiamenti.find((x) => x.esercizio_id === 'ex-chest-press');
+  assert.ok(c, 'la proposta include Chest Press');
+  assert.equal(c.aggiunta, true);
+  assert.equal(c.serieAggiunte, 1);
+  assert.equal(notaSulNumeroSerie(c), 'hai aggiunto 1 serie a quelle previste');
 });
 
 test('Z. nessun errore JavaScript durante tutta la navigazione', () => {

@@ -9,6 +9,26 @@ import { convenzioneMisuraCarico } from './numeri.js';
 export const GIRI_DROPSET = 3;
 export const STATI_SERIE = ['da_fare', 'fatta', 'saltata'];
 
+/** La serie e\' stata fatta? */
+export function eFatta(s) { return !!s && s.stato === 'fatta'; }
+
+/** Una serie da mostrare in verde e con la spunta. */
+export function commutaFatta(s) {
+  const nuova = eFatta(s) ? 'da_fare' : 'fatta';
+  return { ...s, stato: nuova };
+}
+
+/**
+ * Vibrazione sotto il dito quando spunti una serie.
+ * Non e\' audio: e\' un impulso tattile, silenzioso.
+ * Se il telefono non la supporta, non succede niente e non da problemi.
+ */
+export function pulsa() {
+  try {
+    if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(25);
+  } catch { /* pazienza */ }
+}
+
 /** I campi di una serie vuota, gia' pronti per il database. */
 export function nuovaSerie({ seduta_id, esercizio_id, ordine, esercizio, prevista = {} }) {
   const assistito = !!esercizio && !convenzioneMisuraCarico(esercizio.convenzione);

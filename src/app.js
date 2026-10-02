@@ -12,9 +12,9 @@ import {
   ETICHETTE_CONVENZIONE, CONVENZIONI, convenzioneMisuraCarico, etichettaUnita, campoCarico,
 } from './numeri.js';
 import { confrontaEsercizio, riassuntoEsercizio, NON_DISPONIBILE } from './confronto.js';
-import { prossimoOrdine, apriSeduta, nuovaSerie, seduteFinite } from './sedute.js';
+import { prossimoOrdine, apriSeduta, nuovaSerie, seduteFinite, eFatta, commutaFatta, pulsa } from './sedute.js';
 import {
-  MODALITA, raccogliPerEsercizio, proposta as propostaAggiornamento,
+  MODALITA, raccogliPerEsercizio, proposta as propostaAggiornamento, notaSulNumeroSerie,
 } from './aggiornamento.js';
 import { testoProgresso, serieARipetizioniCostanti } from './progressi.js';
 import { creaPacchetto, validaPacchetto, unisci, csvSerie, csvSedute, csvEsercizi } from './backup.js';
@@ -95,10 +95,15 @@ async function proponiAggiornamentoScheda(sedutaId) {
   }
 
   const righe = res.cambiamenti.map((c) => el('li', { class: 'riga-cambio' }, [
-    el('strong', { testo: c.nome }),
-    el('span', { class: 'prima', testo: c.prima }),
-    el('span', { class: 'freccia', testo: '→' }),
-    el('span', { class: 'dopo', testo: c.dopo }),
+    el('div', { class: 'cambio-testa' }, [
+      el('strong', { testo: c.nome }),
+      notaSulNumeroSerie(c) ? el('span', { class: 'tag-numero-serie', testo: notaSulNumeroSerie(c) }) : null,
+    ]),
+    el('div', { class: 'cambio-riga' }, [
+      el('span', { class: 'prima', testo: c.prima }),
+      el('span', { class: 'freccia', testo: '→' }),
+      el('span', { class: 'dopo', testo: c.dopo }),
+    ]),
   ]));
   const box = el('div', { class: 'sfondo-dialogo' }, el('div', { class: 'dialogo dialogo-largo' }, [
     el('h3', { testo: 'Aggiorno la scheda con quello che hai fatto?' }),
@@ -458,6 +463,12 @@ async function vistaSeduta(zona, sedutaId) {
   }
   if (s.stato !== 'in_corso') { vai('/storico/' + s.id); return; }
 
+  // Se non ho ancora in memoria le serie di questa seduta (per esempio se la
+  // schermata viene aperta dopo un salvataggio fatto altrove), le carico:
+  // senza questo le righe delle serie non verrebbero disegnate.
+  const hoLeSerie = V.serie.some((x) => x.seduta_id === s.id);
+  if (!hoLeSerie) V.serie = await db.tutti('serie');
+
   zona.appendChild(el('a', { href: '#/', class: 'indietro', testo: '← tutti i giorni' }));
 
   const cronometro = el('div', { class: 'cronometro', id: 'cronometro', testo: '00:00' });
@@ -602,6 +613,22 @@ function rigaSerie(serie, numero, confronto, seduta) {
   const riga = el('div', { class: 'riga-serie', dati: { serieId: serie.id } });
   if (serie.spotter) riga.classList.add('serie-spotter');
   if (serie.ripetizioni !== null && Number(serie.ripetizioni) % 1 !== 0) riga.classList.add('serie-decimale');
+  if (eFatta(serie)) riga.classList.add('serie-fatta');
+
+  // la spunta: segna che la serie l'hai fatta. Premendola di nuovo la togli.
+  const spunta = el('button', {
+    type: 'button',
+    class: 'bottone-spunta' + (eFatta(serie) ? ' attiva' : ''),
+    title: eFatta(serie) ? 'Serie fatta: tocca per togliere la spunta' : 'Segna questa serie come fatta',
+    'aria-pressed': eFatta(serie) ? 'true' : 'false',
+    onClick: async () => {
+      const nuova = commutaFatta(serie);
+      await aggiornaSerie(serie, { stato: nuova.stato });
+      if (nuova.stato === 'fatta') pulsa(); // vibrazione sotto il dito, niente audio
+      disegna();
+    },
+  }, [el('span', { class: 'segno-spunta', testo: eFatta(serie) ? '✓' : '' })]);
+  riga.appendChild(spunta);
 
   riga.appendChild(el('div', { class: 'numero-serie', testo: String(numero) }));
 
@@ -621,11 +648,20 @@ function rigaSerie(serie, numero, confronto, seduta) {
   rip.classList.add('campo-rip');
   riga.appendChild(el('label', { class: 'campetto' }, [rip, el('span', { class: 'sotto-campo', testo: 'RIP' })]));
 
-  const botSpotter = bottone(serie.spotter ? 'Spotter' : 'Spotter', {
-    onClick: () => aggiornaSerie(serie, { spotter: !serie.spotter }),
+  // lo spotter: resta salvato e si vede chiaramente
+  const botSpotter = bottone(serie.spotter ? '✓ Spotter' : 'Spotter', {
+    onClick: async () => {
+      const nuovo = !serie.spotter;
+      await aggiornaSerie(serie, { spotter: nuovo });
+      if (nuovo) pulsa();
+      disegna();
+    },
     classe: serie.spotter ? 'spotter attivo' : 'fantasma',
   });
   riga.appendChild(botSpotter);
+  if (serie.spotter) {
+    riga.appendChild(el('span', { class: 'badge-spotter', testo: 'fatta con lo spotter' }));
+  }
 
   const campiAssistite = el('div', { class: 'gruppo-assistite' });
   if (serie.spotter) {
@@ -903,9 +939,21 @@ async function vistaSedutaPassata(zona, sedutaId) {
 function rigaStorico(serie, numero, e, s) {
   const assistenza = !convenzioneMisuraCarico(e.convenzione);
   const chiave = assistenza ? 'peso_assistenza' : 'peso';
-  const riga = el('div', { class: 'riga-serie' });
+  const riga = el('div', { class: 'riga-serie', dati: { serieId: serie.id } });
   if (serie.spotter) riga.classList.add('serie-spotter');
   if (serie.ripetizioni !== null && Number(serie.ripetizioni) % 1 !== 0) riga.classList.add('serie-decimale');
+  if (eFatta(serie)) riga.classList.add('serie-fatta');
+  // nello storico la spunta c\'e\' anche lei, e si puo\' togglare come in palestra
+  riga.appendChild(el('button', {
+    type: 'button',
+    class: 'bottone-spunta' + (eFatta(serie) ? ' attiva' : ''),
+    title: eFatta(serie) ? 'Segnata come fatta: tocca per toglierla' : 'Segna come fatta',
+    'aria-pressed': eFatta(serie) ? 'true' : 'false',
+    onClick: async () => {
+      await aggiornaSerie(serie, { stato: commutaFatta(serie).stato });
+      disegna();
+    },
+  }, [el('span', { class: 'segno-spunta', testo: eFatta(serie) ? '✓' : '' })]));
   riga.appendChild(el('div', { class: 'numero-serie', testo: String(numero) }));
   riga.appendChild(el('label', { class: 'campetto' }, [
     campoNumero(serie[chiave], {

@@ -288,6 +288,41 @@ a { color: var(--blu); text-decoration: none; }
   0% { background: #12402e; }
   100% { background: var(--card-2); }
 }
+/* spunta: segna la serie come fatta */
+.bottone-spunta {
+  width: 38px; height: 38px; flex: 0 0 auto;
+  border-radius: 50%; border: 2px solid var(--bordo);
+  background: var(--nero); color: transparent;
+  font-size: 1.25rem; font-weight: 900; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; padding: 0;
+}
+.bottone-spunta:active { transform: scale(.92); }
+.bottone-spunta.attiva {
+  background: var(--verde); border-color: var(--verde); color: #04180f;
+}
+.segno-spunta { pointer-events: none; }
+
+/* serie fatta: tutta la riga verde */
+.riga-serie.serie-fatta {
+  border-left-color: var(--verde);
+  background: linear-gradient(90deg, #10301f 0%, var(--card-2) 60%);
+  box-shadow: inset 0 0 0 1px rgba(55, 209, 139, .35);
+}
+.riga-serie.serie-fatta .numero-serie { background: #1c5e3f; color: #eafff5; }
+.riga-serie.serie-fatta .sotto-campo { color: #7fe0b0; }
+
+/* spotter e fatta insieme: resta leggibile il fatto che c\'e\' stato lo spotter */
+.riga-serie.serie-fatta.serie-spotter {
+  border-left-color: var(--arancio);
+  background: linear-gradient(90deg, #10301f 0%, #2a2016 70%);
+}
+.badge-spotter {
+  background: #3a2a10; color: var(--arancio);
+  font-size: .68rem; font-weight: 800; padding: 4px 8px;
+  border-radius: 99px; white-space: nowrap;
+}
+
 .dropset { width: 100%; border-top: 1px dashed var(--bordo); padding-top: 9px; margin-top: 6px; display: flex; flex-direction: column; gap: 8px; }
 .etichetta-dropset { font-size: .78rem; font-weight: 800; color: var(--arancio); }
 .riga-dropset { display: flex; gap: 9px; align-items: flex-end; }
@@ -403,6 +438,12 @@ a { color: var(--blu); text-decoration: none; }
 .riga-cambio .prima { color: var(--testo-3); text-decoration: line-through; font-size: .86rem; }
 .riga-cambio .freccia { color: var(--viola); font-weight: 800; }
 .riga-cambio .dopo { color: var(--verde); font-weight: 800; }
+.cambio-testa { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; }
+.cambio-riga { display: flex; flex-wrap: wrap; align-items: baseline; gap: 7px; margin-top: 4px; }
+.tag-numero-serie {
+  background: var(--blu-scuro); color: #a9c3ff;
+  font-size: .68rem; font-weight: 700; padding: 3px 8px; border-radius: 99px;
+}
 .testo-attenzione { color: var(--giallo); }
 
 .avviso {
