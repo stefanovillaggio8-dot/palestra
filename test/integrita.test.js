@@ -99,10 +99,24 @@ test('nessun modulo importa librerie esterne: zero dipendenze', () => {
 
 test('i nomi delle foto degli esercizi corrispondono ai file sul disco', () => {
   const dati = readFileSync(join(SRC, 'dati-iniziali.js'), 'utf8');
-  const foto = [...dati.matchAll(/img\/esercizi\/([a-z0-9-]+)\.png/g)].map((m) => m[1]);
+  const foto = [...dati.matchAll(/img\/esercizi\/([a-z0-9-]+\.png)/g)].map((m) => m[1]);
   const sw = readFileSync(join(QUI, '..', 'sw.js'), 'utf8');
   for (const f of new Set(foto)) {
-    assert.ok(sw.includes(f + '.png'), `il service worker non mette in cache ${f}.png`);
+    assert.ok(sw.includes(f), `il service worker non mette in cache ${f}`);
   }
   assert.ok(foto.length >= 23, 'le foto citate sono almeno 23');
+});
+
+test('ogni file .js di src e\' nella lista del service worker (altrimenti offline si rompe)', () => {
+  const sw = readFileSync(join(QUI, '..', 'sw.js'), 'utf8');
+  for (const f of readdirSync(SRC).filter((x) => x.endsWith('.js'))) {
+    assert.ok(sw.includes(`./src/${f}`), `sw.js non precarica src/${f}`);
+  }
+});
+
+test('sw.js precarica anche index.html, stile.css e il manifest', () => {
+  const sw = readFileSync(join(QUI, '..', 'sw.js'), 'utf8');
+  for (const f of ['./index.html', './stile.css', './manifest.webmanifest']) {
+    assert.ok(sw.includes(f), `sw.js non precarica ${f}`);
+  }
 });

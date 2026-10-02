@@ -245,6 +245,15 @@ a { color: var(--blu); text-decoration: none; }
 .riga-confronto .prima { color: var(--testo-3); }
 .riga-confronto .dopo { color: var(--verde); font-weight: 700; }
 
+.riga-serie.appena-creata {
+  border-color: var(--verde);
+  box-shadow: 0 0 0 2px rgba(55, 209, 139, .55);
+  animation: lampeggio 1.5s ease-out;
+}
+@keyframes lampeggio {
+  0% { background: #12402e; }
+  100% { background: var(--card-2); }
+}
 .dropset { width: 100%; border-top: 1px dashed var(--bordo); padding-top: 9px; margin-top: 6px; display: flex; flex-direction: column; gap: 8px; }
 .etichetta-dropset { font-size: .78rem; font-weight: 800; color: var(--arancio); }
 .riga-dropset { display: flex; gap: 9px; align-items: flex-end; }

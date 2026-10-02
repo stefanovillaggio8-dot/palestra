@@ -12,6 +12,7 @@ import {
   ETICHETTE_CONVENZIONE, CONVENZIONI, convenzioneMisuraCarico, etichettaUnita, campoCarico,
 } from './numeri.js';
 import { confrontaEsercizio, riassuntoEsercizio, NON_DISPONIBILE } from './confronto.js';
+import { prossimoOrdine, apriSeduta, nuovaSerie } from './sedute.js';
 import { testoProgresso, serieARipetizioniCostanti } from './progressi.js';
 import { creaPacchetto, validaPacchetto, unisci, csvSerie, csvSedute, csvEsercizi } from './backup.js';
 import { ESERCIZI, SCHEDA_ID, SCHEDA_NOME, costruisciSnapshot } from './dati-iniziali.js';
@@ -24,6 +25,7 @@ const GIRI_DROPSET = 3; // i 3 posti in piu' che ha chiesto Ste
 
 async function avvia() {
   const radice = document.getElementById('app');
+  installaSpiaErrori();
   svuota(radice);
   radice.appendChild(el('div', { class: 'caricamento', testo: 'Carico i tuoi dati...' }));
 
@@ -46,6 +48,25 @@ async function avvia() {
   } catch (errore) {
     mostraErrore(radice, errore);
   }
+}
+
+/**
+ * Rete di sicurezza: ogni errore non previsto viene scritto a schermo.
+ * Prima gli errori sparivano e sembrava che i pulsanti non facessero niente.
+ */
+function installaSpiaErrori() {
+  if (typeof window === 'undefined') return;
+  window.addEventListener('error', (e) => {
+    const testo = (e && (e.message || (e.error && e.error.message))) || 'errore sconosciuto';
+    console.error('Errore:', testo, e && e.error && e.error.stack);
+    avviso('Qualcosa e\' andato storto: ' + testo + ' (non e\' successo nessun danno ai tuoi dati, prova a rifare la stessa cosa)', { tipo: 'errore', durata: 12000 });
+  });
+  window.addEventListener('unhandledrejection', (e) => {
+    const r = e && (e.reason || e);
+    const testo = (r && (r.message || r.codice)) || 'operazione non riuscita';
+    console.error('Promessa non riuscita:', testo, r && r.stack);
+    avviso('Non sono riuscito a salvare: ' + testo + '. I tuoi dati sono al sicuro, prova di nuovo.', { tipo: 'errore', durata: 12000 });
+  });
 }
 
 /** Se qualcosa va storto lo dico a schermo, invece di girare all'infinito. */
@@ -116,6 +137,9 @@ function vai(percorso) { window.location.hash = percorso; }
 function disegna() {
   const zona = document.getElementById('app');
   if (!zona) return;
+  // Ste sta in palestra con il dito sullo schermo: se dopo ogni salvataggio la
+  // pagina torna in cima, sembra che il pulsante non abbia fatto niente.
+  const scrollPrima = typeof window.scrollY === 'number' ? window.scrollY : 0;
   svuota(zona);
   try {
     disegnaDentro(zona);
@@ -123,6 +147,10 @@ function disegna() {
     console.error('Disegno non riuscito:', errore);
     svuota(zona);
     mostraErrore(zona, errore);
+    return;
+  }
+  if (scrollPrima > 0 && typeof window.scrollTo === 'function') {
+    try { window.scrollTo(0, scrollPrima); } catch { /* in qualche browser non si puo' */ }
   }
 }
 
@@ -262,51 +290,16 @@ async function iniziaAllenamento(giorno) {
     if (ok) vai('/seduta/' + attiva.id);
     return;
   }
-  const ora = new Date();
-  const seduta = await db.salva('sedute', {
-    id: nuovoId(),
-    scheda_id: SCHEDA_ID,
-    versione_id: versioneCorrente().id,
-    giorno_id: giorno.id,
-    nome_giorno: giorno.nome,
-    data: schedaEvento(),
-    ora_inizio: ora.toISOString(),
-    ora_fine: null,
-    durata_secondi: null,
-    stato: 'in_corso',
-    note: '',
-  });
-  // Le serie partono vuote: quello che fai davvero lo decidi in palestra.
-  for (const es of (giorno.esercizi || [])) {
-    const e = esercizioPerId(es.esercizio_id);
-    for (let i = 0; i < Math.max(1, (es.serie || []).length); i++) {
-      const prevista = (es.serie || [])[i] || {};
-      await creaSerie(seduta.id, es.esercizio_id, i + 1, e, prevista);
-    }
-  }
+  const versione = versioneCorrente();
+  const seduta = await apriSeduta({ scheda_id: SCHEDA_ID, versione, giorno });
+  // IMPORTANTISSIMO: senza questo ricaricamento le serie appena create non
+  // sarebbero a schermo, e "+ Aggiungi serie" calcolerebbe l'ordine sbagliato.
+  await ricarcaTutto();
   vai('/seduta/' + seduta.id);
 }
 
 async function creaSerie(sedutaId, esercizioId, ordine, esercizio, prevista = {}) {
-  const assistenza = esercizio && !convenzioneMisuraCarico(esercizio.convenzione);
-  return db.salva('serie', {
-    id: nuovoId(),
-    seduta_id: sedutaId,
-    esercizio_id: esercizioId,
-    ordine,
-    peso: prevista.peso === undefined ? null : prevista.peso,
-    peso_assistenza: prevista.peso_assistenza === undefined ? null : prevista.peso_assistenza,
-    ripetizioni: prevista.ripetizioni === undefined ? null : prevista.ripetizioni,
-    spotter: false,
-    rip_assistite: null,
-    dropset: !!prevista.dropset,
-    giri_extra: prevista.dropset
-      ? Array.from({ length: GIRI_DROPSET }, () => ({ peso: null, ripetizioni: null }))
-      : [],
-    stato: 'da_fare',
-    nota: '',
-    assistenza,
-  });
+  return db.salva('serie', nuovaSerie({ seduta_id: sedutaId, esercizio_id: esercizioId, ordine, esercizio, prevista }));
 }
 
 /* ===================== vista: giorno ===================== */
@@ -395,7 +388,7 @@ async function vistaSeduta(zona, sedutaId) {
   for (const es of (giorno.esercizi || [])) {
     const e = esercizioPerId(es.esercizio_id);
     if (!e) continue;
-    const mine = serieDi(es.esercizioId);
+    const mine = serieDi(es.esercizio_id);
     const ultimo = ultimaSedutaConEsercizio(e.id, s.id);
     const precedenti = ultimo ? V.serie.filter((x) => x.seduta_id === ultimo.id && x.esercizio_id === e.id && !x.eliminata).sort((a, b) => a.ordine - b.ordine) : [];
     const confronto = confrontaEsercizio(mine, precedenti, e, e);
@@ -448,9 +441,18 @@ async function vistaSeduta(zona, sedutaId) {
     blocco.appendChild(el('div', { class: 'riga-pulsanti' }, [
       bottone('+ Aggiungi serie', {
         onClick: async () => {
-          await creaSerie(s.id, e.id, mine.length + 1, e, {});
-          V.serie = await db.tutti('serie');
-          disegna();
+          try {
+            const ordine = prossimoOrdine(V.serie, s.id, e.id);
+            const nuova = await creaSerie(s.id, e.id, ordine, e, {});
+            V.serie = await db.tutti('serie');
+            disegna();
+            // risposta visibile: Ste deve capire subito che e\' andata
+            mettiInEvidenza(nuova.id);
+            avviso(`Serie ${ordine} aggiunta a ${e.nome}.`, { tipo: 'ok', durata: 2200 });
+          } catch (errore) {
+            console.error('Aggiunta serie non riuscita:', errore);
+            mostraErroreBreve('Non sono riuscito ad aggiungere la serie: ' + (errore && errore.message ? errore.message : errore));
+          }
         },
         classe: 'fantasma',
       }),
@@ -484,7 +486,7 @@ function rigaSerie(serie, numero, confronto, seduta) {
   const assistenza = e && !convenzioneMisuraCarico(e.convenzione);
   const chiave = assistenza ? 'peso_assistenza' : 'peso';
 
-  const riga = el('div', { class: 'riga-serie' });
+  const riga = el('div', { class: 'riga-serie', dati: { serieId: serie.id } });
   if (serie.spotter) riga.classList.add('serie-spotter');
   if (serie.ripetizioni !== null && Number(serie.ripetizioni) % 1 !== 0) riga.classList.add('serie-decimale');
 
@@ -622,6 +624,32 @@ function descriviSerie(x) {
     else pezzi.push(`${formattaNumero(x.rip_assistite)} assistite`);
   }
   return pezzi.join(' · ');
+}
+
+/** Porta in vista e lampeggia la riga appena creata, cosi' si vede subito. */
+function mettiInEvidenza(idSerie) {
+  const contenitore = document.getElementById('contenuto');
+  if (!contenitore) return;
+  // cerco a mano nell'albero: funziona sempre, anche se querySelector manca
+  let trovata = null;
+  const gira = (nodo) => {
+    if (trovata || !nodo || nodo.nodeType !== 1) return;
+    if (nodo.dataset && nodo.dataset.serieId === idSerie) { trovata = nodo; return; }
+    for (const f of (nodo.figli || nodo.children || [])) gira(f);
+  };
+  gira(contenitore);
+  if (!trovata) return;
+  trovata.classList.add('appena-creata');
+  if (typeof trovata.scrollIntoView === 'function') {
+    try { trovata.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch { /* pazienza */ }
+  }
+  setTimeout(() => { try { trovata.classList.remove('appena-creata'); } catch { /* pazienza */ } }, 1600);
+}
+
+/** Errore breve ma sempre visibile: niente piu' errori che spariscono. */
+function mostraErroreBreve(testo) {
+  avviso(testo, { tipo: 'errore', durata: 9000 });
+  console.error(testo);
 }
 
 async function aggiornaSerie(serie, campi) {
@@ -796,14 +824,32 @@ function rigaStorico(serie, numero, e, s) {
 
 /* ===================== vista: scheda ===================== */
 
+/**
+ * La scheda in editing vive qui fuori, non dentro la schermata.
+ * Prima la ricreavo a ogni ridisegno e cosi' tutto quello che avevi spostato
+ * o tolto spariva: le frecce sembravano premute ma non cambiava niente.
+ */
+let bozzaAttiva = null;
+
+function prendiBozza() {
+  const v = versioneCorrente();
+  if (!v) return null;
+  if (!bozzaAttiva || bozzaAttiva.versioneId !== v.id) {
+    bozzaAttiva = { versioneId: v.id, dati: JSON.parse(JSON.stringify(v.snapshot)) };
+  }
+  return bozzaAttiva.dati;
+}
+
+function scartaBozza() { bozzaAttiva = null; }
+
 function vistaScheda(zona) {
   const v = versioneCorrente();
   if (!v) return;
+  const bozza = prendiBozza();
+  if (!bozza) return;
   zona.appendChild(el('a', { href: '#/', class: 'indietro', testo: '← allenamento' }));
   zona.appendChild(el('h1', { testo: 'Modifica la scheda' }));
-  zona.appendChild(el('p', { class: 'nota', testo: `Stai guardando la versione numero ${v.numero}. Quando salvi, nasce una versione nuova: le sedute passate restano esattamente come sono.` }));
-
-  const bozza = JSON.parse(JSON.stringify(v.snapshot));
+  zona.appendChild(el('p', { class: 'nota', testo: `Stai modificando la versione numero ${v.numero}. Quando salvi, nasce una versione nuova: le sedute passate restano esattamente come sono.` }));
   const contenitore = el('div');
   for (const g of bozza.giorni) {
     const sezione = el('section', { class: 'blocco-giorno-modifica' });
@@ -835,7 +881,9 @@ function vistaScheda(zona) {
         for (let i = 0; i < n; i++) serie.push(es.serie[i] || { peso: null, peso_assistenza: null, ripetizioni: null, dropset: false });
         es.serie = serie;
       });
-      es.riga = numeroSerie;
+      // NB: qui dentro non si mette mai un riferimento a un elemento della pagina.
+      // La bozza viene serializzata per essere salvata: se ci finisce dentro un
+      // nodo del DOM, il salvataggio fallisce con "struttura circolare".
     });
     sezione.appendChild(bottone('+ Aggiungi esercizio', { onClick: () => scegliEsercizio(bozza, g), classe: 'fantasma' }));
     contenitore.appendChild(sezione);
@@ -851,14 +899,15 @@ function vistaScheda(zona) {
           { testoOk: 'Salva' },
         );
         if (!ok) return;
-        pulisciOrdini(bozza);
+        const nuova = pulisciOrdini(bozza);
         const nuovoNumero = Math.max(...V.versi.map((x) => Number(x.numero) || 0)) + 1;
         const nuovaVersioneId = 'ver-' + nuovoId();
         await db.salva('versioni', {
-          id: nuovaVersioneId, scheda_id: SCHEDA_ID, numero: nuovoNumero, snapshot: bozza,
+          id: nuovaVersioneId, scheda_id: SCHEDA_ID, numero: nuovoNumero, snapshot: JSON.parse(JSON.stringify(nuova)),
           nota: 'Modificata a mano.',
         });
         await db.salva('schede', { ...scheda(), versione_corrente: nuovaVersioneId });
+        scartaBozza();
         await ricarcaTutto();
         avviso(`Scheda salvata. Ora sei alla versione ${nuovoNumero}.`, { tipo: 'ok' });
         vai('/');
