@@ -360,6 +360,17 @@ a { color: var(--blu); text-decoration: none; }
   justify-content: flex-start; margin-top: 7px; font-weight: 600;
 }
 
+.lista-cambi { list-style: none; margin: 12px 0; padding: 0; }
+.riga-cambio {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 7px;
+  background: var(--nero-2); border: 1px solid var(--bordo);
+  border-radius: 10px; padding: 9px 11px; margin-top: 7px;
+}
+.riga-cambio .prima { color: var(--testo-3); text-decoration: line-through; font-size: .86rem; }
+.riga-cambio .freccia { color: var(--viola); font-weight: 800; }
+.riga-cambio .dopo { color: var(--verde); font-weight: 800; }
+.testo-attenzione { color: var(--giallo); }
+
 .avviso {
   position: fixed; left: 50%; transform: translateX(-50%);
   bottom: 90px; z-index: 120; max-width: 92vw;

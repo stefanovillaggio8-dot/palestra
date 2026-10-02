@@ -22,8 +22,14 @@ globalThis.setInterval = () => 0;
 globalThis.clearInterval = () => {};
 
 const db = await import('../src/db.js');
-const { apriSeduta, prossimoOrdine, serieDiEsercizio } = await import('../src/sedute.js');
+const { apriSeduta, prossimoOrdine, serieDiEsercizio, cambiaSerie, chiudiSeduta } = await import('../src/sedute.js');
+const { proposta: propostaAggiornamento } = await import('../src/aggiornamento.js');
 const { ESERCIZI, SCHEDA_ID, costruisciSnapshot } = await import('../src/dati-iniziali.js');
+
+/** Il modulo dell'app tiene i dati in memoria; qui si usa il database. */
+function versioneAggiornata(snapshot, giornoId, per) {
+  return propostaAggiornamento(snapshot, giornoId, per, new Map(ESERCIZI.map((e) => [e.id, e])));
+}
 
 const errori = [];
 process.on('uncaughtException', (e) => errori.push('uncaught: ' + e.message));
@@ -363,6 +369,70 @@ test('10. eliminare una serie la mette nel cestino', async () => {
   await new Promise((r) => setTimeout(r, 300));
   const dopo = (await db.perIndice('serie', 'seduta_id', seduta.id)).length;
   assert.equal(dopo, prima - 1, 'la serie e\' sparita dalla lista');
+});
+
+test('11. dopo l\'allenamento ti chiede se aggiornare la scheda, e funziona', async () => {
+  // chiudo qualsiasi seduta rimasta aperta dai test precedenti
+  const rimasta = await db.sedutaInCorso();
+  if (rimasta) await chiudiSeduta(rimasta.id);
+
+  const v = (await db.tutti('versioni')).sort((a, b) => b.numero - a.numero)[0];
+  const giorno1 = v.snapshot.giorni[0];
+  const seduta = await apriSeduta({ scheda_id: SCHEDA_ID, versione: v, giorno: giorno1 });
+  globalThis.window.location.hash = '#/seduta/' + seduta.id;
+  await attendiChe(() => perClasse(app, 'cronometro').length === 1);
+
+  // faccio la terza serie con una ripetizione in piu'
+  const daCambiare = serieDiEsercizio(await db.tutti('serie'), seduta.id, 'ex-chest-press')[2];
+  await cambiaSerie(daCambiare.id, { ripetizioni: 7 });
+
+  pulsante(app, 'Allenamento finito').clickNonAspettando();
+  await attendiChe(() => perClasse(document.body, 'dialogo').length === 1);
+  pulsanti(perClasse(document.body, 'dialogo')[0]).find((b) => /Confermo/.test(b.textContent || '')).click();
+  await new Promise((r) => setTimeout(r, 500));
+
+  // deve comparire la proposta di aggiornamento
+  await attendiChe(() => perClasse(document.body, 'dialogo').length === 1);
+  const propostaBox = perClasse(document.body, 'dialogo')[0];
+  const testo = propostaBox.textContent;
+  assert.match(testo, /aggiorno la scheda/i, 'ti chiede se aggiornare la scheda');
+  assert.match(testo, /Chest Press/, 'dice quale esercizio cambia');
+  assert.match(testo, /35x6/, 'mostra com\'era prima');
+  assert.match(testo, /35x7/, 'mostra cosa mette');
+
+  const versioniPrima = (await db.tutti('versioni')).length;
+  pulsanti(propostaBox).find((b) => (b.textContent || '').includes('Aggiorna la scheda')).click();
+  await new Promise((r) => setTimeout(r, 600));
+
+  const versioni = await db.tutti('versioni');
+  assert.equal(versioni.length, versioniPrima + 1, 'nasce una versione nuova');
+  const nuova = versioni.sort((a, b) => b.numero - a.numero)[0];
+  const chest = nuova.snapshot.giorni[0].esercizi.find((e) => e.esercizio_id === 'ex-chest-press');
+  assert.deepEqual(chest.serie.map((s) => s.ripetizioni), [8, 7, 7],
+    'la scheda ora ha la ripetizione in piu\'');
+
+  // e le sedute vecchie non si sono toccate
+  const riletta = await db.prendi('sedute', seduta.id);
+  assert.equal(riletta.versione_id, v.id, 'la seduta continua a puntare alla versione di quando l\'ho fatta');
+  const serieRilette = await db.perIndice('serie', 'seduta_id', seduta.id);
+  assert.equal(serieRilette.length, 17, 'le serie della seduta sono ancora 17');
+});
+
+test('12. gli esercizi assistiti finiscono col peso di assistenza', async () => {
+  const v = (await db.tutti('versioni')).sort((a, b) => b.numero - a.numero)[0];
+  const giorno4 = v.snapshot.giorni.find((g) => g.id === 'giorno-4');
+  const snapPrima = JSON.stringify(giorno4);
+  const per = new Map([['ex-pull-ups', [
+    { seduta_id: 'x', ordine: 1, peso: null, peso_assistenza: 8, ripetizioni: 9 },
+  ]]]);
+  const res = versioneAggiornata(v.snapshot, 'giorno-4', per);
+  const es = res.snapshot.giorni.find((g) => g.id === 'giorno-4')
+    .esercizi.find((e) => e.esercizio_id === 'ex-pull-ups');
+  assert.equal(es.serie.length, 1);
+  assert.equal(es.serie[0].peso, null);
+  assert.equal(es.serie[0].peso_assistenza, 8);
+  assert.equal(JSON.stringify(v.snapshot.giorni.find((g) => g.id === 'giorno-4')), snapPrima,
+    'lo snapshot di partenza non e\' stato toccato');
 });
 
 test('Z. nessun errore JavaScript durante tutta la navigazione', () => {

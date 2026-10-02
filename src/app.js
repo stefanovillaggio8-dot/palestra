@@ -12,7 +12,10 @@ import {
   ETICHETTE_CONVENZIONE, CONVENZIONI, convenzioneMisuraCarico, etichettaUnita, campoCarico,
 } from './numeri.js';
 import { confrontaEsercizio, riassuntoEsercizio, NON_DISPONIBILE } from './confronto.js';
-import { prossimoOrdine, apriSeduta, nuovaSerie } from './sedute.js';
+import { prossimoOrdine, apriSeduta, nuovaSerie, seduteFinite } from './sedute.js';
+import {
+  MODALITA, raccogliPerEsercizio, proposta as propostaAggiornamento,
+} from './aggiornamento.js';
 import { testoProgresso, serieARipetizioniCostanti } from './progressi.js';
 import { creaPacchetto, validaPacchetto, unisci, csvSerie, csvSedute, csvEsercizi } from './backup.js';
 import { ESERCIZI, SCHEDA_ID, SCHEDA_NOME, costruisciSnapshot } from './dati-iniziali.js';
@@ -67,6 +70,80 @@ function installaSpiaErrori() {
     console.error('Promessa non riuscita:', testo, r && r.stack);
     avviso('Non sono riuscito a salvare: ' + testo + '. I tuoi dati sono al sicuro, prova di nuovo.', { tipo: 'errore', durata: 12000 });
   });
+}
+
+/**
+ * "Quello che hai fatto diventa la scheda".
+ * Ti mostra cosa cambia e ti chiede conferma: la scheda non si riscrive mai
+ * di nascosto. Le sedute gia' fatte restano quelle che sono.
+ */
+async function proponiAggiornamentoScheda(sedutaId) {
+  const modalita = await db.leggiMeta('aggiornamento_scheda', MODALITA.CHIEDI);
+  if (modalita === MODALITA.MAI) return { fatto: false, motivo: 'disattivato' };
+
+  const seduta = await db.prendi('sedute', sedutaId);
+  if (!seduta || seduta.stato !== 'completata') return { fatto: false, motivo: 'seduta non valida' };
+  const versione = V.versi.find((v) => v.id === seduta.versione_id) || versioneCorrente();
+  if (!versione || !versione.snapshot) return { fatto: false, motivo: 'versione non trovata' };
+
+  const perEsercizio = raccogliPerEsercizio(V.serie, sedutaId);
+  const perId = new Map(V.esercizi.map((e) => [e.id, e]));
+  const res = propostaAggiornamento(versione.snapshot, seduta.giorno_id, perEsercizio, perId);
+  if (res.nessunaNovita) {
+    if (modalita === MODALITA.SEMPRE) return { fatto: false, motivo: 'nessuna novita' };
+    return { fatto: false, motivo: 'nessuna novita' };
+  }
+
+  const righe = res.cambiamenti.map((c) => el('li', { class: 'riga-cambio' }, [
+    el('strong', { testo: c.nome }),
+    el('span', { class: 'prima', testo: c.prima }),
+    el('span', { class: 'freccia', testo: '→' }),
+    el('span', { class: 'dopo', testo: c.dopo }),
+  ]));
+  const box = el('div', { class: 'sfondo-dialogo' }, el('div', { class: 'dialogo dialogo-largo' }, [
+    el('h3', { testo: 'Aggiorno la scheda con quello che hai fatto?' }),
+    el('p', { class: 'testo-dialogo', testo: `${res.cambiamenti.length} ${res.cambiamenti.length === 1 ? 'esercizio cambia' : 'esercizi cambiano'} nel ${seduta.nome_giorno || 'giorno'}.` }),
+    el('ul', { class: 'lista-cambi' }, righe),
+    el('p', { class: 'testo-dialogo testo-attenzione', testo: 'Nasce una versione nuova della scheda. Le sedute gia\' registrate restano esattamente come sono.' }),
+    el('p', { class: 'testo-dialogo', testo: 'Vuoi anche che le prossime volte te lo chieda sempre o che lo faccia senza chiedere? Lo decidi in Impostazioni.' }),
+    el('div', { class: 'dialogo-azioni' }, [
+      bottone('Lascia la scheda cosi\'', { onClick: () => box.remove(), classe: 'fantasma' }),
+      bottone('Aggiorna la scheda', {
+        onClick: async () => {
+          box.remove();
+          await applicaAggiornamento(res, seduta);
+        },
+        classe: 'principale',
+      }),
+    ]),
+  ]));
+  document.body.appendChild(box);
+  return { fatto: false, proposta: res };
+}
+
+async function applicaAggiornamento(res, seduta) {
+  const nuovoNumero = Math.max(...V.versi.map((x) => Number(x.numero) || 0)) + 1;
+  const nuovaVersioneId = 'ver-' + nuovoId();
+  const pulita = JSON.parse(JSON.stringify(res.snapshot));
+  for (const g of pulita.giorni) {
+    g.esercizi.forEach((e, i) => { e.ordine = i + 1; });
+    g.ordine = pulita.giorni.indexOf(g) + 1;
+  }
+  await db.salva('versioni', {
+    id: nuovaVersioneId, scheda_id: SCHEDA_ID, numero: nuovoNumero, snapshot: pulita,
+    nota: `Aggiornata con la seduta del ${seduta.data}`,
+  });
+  await db.salva('schede', { ...scheda(), versione_corrente: nuovaVersioneId });
+  scartaBozza();
+  await ricarcaTutto();
+  avviso(`Scheda aggiornata: ora sei alla versione ${nuovoNumero}.`, { tipo: 'ok' });
+  return nuovaVersioneId;
+}
+
+async function aggiornaSchedaDaUltimaSeduta() {
+  const finite = seduteFinite(V.sedute);
+  if (!finite.length) { avviso('Non ci sono sedute finite da cui prendere i dati.'); return; }
+  await proponiAggiornamentoScheda(finite[0].id);
 }
 
 /** Se qualcosa va storto lo dico a schermo, invece di girare all'infinito. */
@@ -678,6 +755,8 @@ async function finisceAllenamento(s) {
   });
   await ricarcaTutto();
   vai('/storico/' + s.id);
+  // adesso la scheda: quello che hai fatto diventa la scheda per la prossima volta
+  await proponiAggiornamentoScheda(s.id);
 }
 
 /* ===================== vista: storico ===================== */
@@ -1145,6 +1224,36 @@ function vistaImpostazioni(zona) {
     }
   }
   zona.appendChild(conflittiBox);
+
+  const schedaBox = el('section', { class: 'blocco' });
+  schedaBox.appendChild(el('h2', { testo: 'La scheda si aggiorna da sola?' }));
+  schedaBox.appendChild(el('p', { class: 'nota', testo: 'Se durante un allenamento fai una ripetizione in piu\' o aumenti i kg, puoi far salire quei numeri nella scheda, cosi\' la prossima volta li trovi gia\' cosi\'. Si aggiorna solo il giorno che hai allenato e le sedute gia\' registrate non cambiano mai.' }));
+  const scelteScheda = el('div', { class: 'chip-scelte' });
+  const descrizioni = {
+    [MODALITA.CHIEDI]: 'Chiedimi',
+    [MODALITA.SEMPRE]: 'Sempre, senza chiedere',
+    [MODALITA.MAI]: 'Mai, lascia la scheda come sta',
+  };
+  db.leggiMeta('aggiornamento_scheda', MODALITA.CHIEDI).then((attuale) => {
+    scelteScheda.innerHTML = '';
+    for (const modo of [MODALITA.CHIEDI, MODALITA.SEMPRE, MODALITA.MAI]) {
+      scelteScheda.appendChild(bottone(descrizioni[modo], {
+        onClick: async () => {
+          await db.scriviMeta('aggiornamento_scheda', modo);
+          disegna();
+          avviso('Impostazione salvata: ' + descrizioni[modo].toLowerCase() + '.', { tipo: 'ok' });
+        },
+        classe: 'chip' + (modo === attuale ? ' attivo' : ''),
+      }));
+    }
+  });
+  schedaBox.appendChild(scelteScheda);
+  schedaBox.appendChild(el('div', { class: 'riga-pulsanti' }, [
+    bottone('Aggiorna la scheda con l\'ultima seduta', {
+      onClick: () => aggiornaSchedaDaUltimaSeduta(), classe: 'fantasma',
+    }),
+  ]));
+  zona.appendChild(schedaBox);
 
   const accountBox = el('section', { class: 'blocco' });
   accountBox.appendChild(el('h2', { testo: 'Account e database online' }));

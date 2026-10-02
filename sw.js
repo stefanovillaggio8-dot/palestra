@@ -18,6 +18,7 @@ const FILE = [
   './src/backup.js',
   './src/dati-iniziali.js',
   './src/sedute.js',
+  './src/aggiornamento.js',
   './src/db.js',
   './src/supabase.js',
   './src/sync.js',
