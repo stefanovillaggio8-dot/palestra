@@ -90,7 +90,6 @@ async function proponiAggiornamentoScheda(sedutaId) {
   const perId = new Map(V.esercizi.map((e) => [e.id, e]));
   const res = propostaAggiornamento(versione.snapshot, seduta.giorno_id, perEsercizio, perId);
   if (res.nessunaNovita) {
-    if (modalita === MODALITA.SEMPRE) return { fatto: false, motivo: 'nessuna novita' };
     return { fatto: false, motivo: 'nessuna novita' };
   }
 
@@ -105,12 +104,16 @@ async function proponiAggiornamentoScheda(sedutaId) {
       el('span', { class: 'dopo', testo: c.dopo }),
     ]),
   ]));
+  const testoSpotter = res.cambiamenti.some((c) => c.spotterCambiato)
+    ? 'In questo esercizio hai cambiato lo spotter: la prossima volta la serie te la trovi gia\' segnata.'
+    : '';
   const box = el('div', { class: 'sfondo-dialogo' }, el('div', { class: 'dialogo dialogo-largo' }, [
     el('h3', { testo: 'Aggiorno la scheda con quello che hai fatto?' }),
     el('p', { class: 'testo-dialogo', testo: `${res.cambiamenti.length} ${res.cambiamenti.length === 1 ? 'esercizio cambia' : 'esercizi cambiano'} nel ${seduta.nome_giorno || 'giorno'}.` }),
     el('ul', { class: 'lista-cambi' }, righe),
+    el('p', { class: 'testo-dialogo legenda-cambi', testo: 'S = fatta con lo spotter · D = dropset' }),
+    testoSpotter ? el('p', { class: 'testo-dialogo testo-spotter', testo: testoSpotter }) : null,
     el('p', { class: 'testo-dialogo testo-attenzione', testo: 'Nasce una versione nuova della scheda. Le sedute gia\' registrate restano esattamente come sono.' }),
-    el('p', { class: 'testo-dialogo', testo: 'Vuoi anche che le prossime volte te lo chieda sempre o che lo faccia senza chiedere? Lo decidi in Impostazioni.' }),
     el('div', { class: 'dialogo-azioni' }, [
       bottone('Lascia la scheda cosi\'', { onClick: () => box.remove(), classe: 'fantasma' }),
       bottone('Aggiorna la scheda', {
@@ -273,6 +276,8 @@ function disegnaStatoSalvataggio() {
     svuota(contenitore);
     contenitore.appendChild(el('span', { class: 'pallino-stato pallino-' + s.colore }));
     contenitore.appendChild(el('span', { class: 'testo-stato', testo: s.testo }));
+    // la versione sempre in vista: se non cambia, il telefono ha la copia vecchia
+    contenitore.appendChild(el('span', { class: 'versione-app', testo: 'v' + (window.PALESTRA_VERSIONE || '?'), title: 'Se la spunta non ti parte, chiudi l\'app e la riapri' }));
     contenitore.title = s.dettaglio;
   });
   const conflitti = document.getElementById('avviso-conflitti');

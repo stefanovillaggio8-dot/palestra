@@ -1,4 +1,4 @@
-// dom-minimo.js -- un DOM piccolo ma vero, per provare l'interfaccia nei test.
+﻿// dom-minimo.js -- un DOM piccolo ma vero, per provare l'interfaccia nei test.
 // Non e' un browser: e' abbastanza per far partire l'app, costruire le schermate
 // e cliccare i pulsanti. Serve a NON dichiarare "funziona" cose che non ho
 // mai fatto funzionare.
@@ -232,7 +232,7 @@ export function montaDom() {
   };
 
   globalThis.window = {
-    PALESTRA_VERSIONE: 'test',
+    PALESTRA_VERSIONE: '6',
     get scrollY() { return scroller.y; },
     scrollTo: (x, y) => { scroller.y = Number(y) || 0; },
     addEventListener(tipo, fn) {

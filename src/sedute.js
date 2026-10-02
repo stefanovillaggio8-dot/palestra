@@ -40,7 +40,7 @@ export function nuovaSerie({ seduta_id, esercizio_id, ordine, esercizio, previst
     peso: prevista.peso === undefined ? null : prevista.peso,
     peso_assistenza: prevista.peso_assistenza === undefined ? null : prevista.peso_assistenza,
     ripetizioni: prevista.ripetizioni === undefined ? null : prevista.ripetizioni,
-    spotter: false,
+    spotter: !!prevista.spotter,
     // null vuol dire "non specificato", che e' diverso da zero
     rip_assistite: null,
     dropset: !!prevista.dropset,

@@ -106,6 +106,7 @@ export function costruisciSnapshot() {
           peso: x.peso === undefined ? null : x.peso,
           peso_assistenza: x.peso_assistenza === undefined ? null : x.peso_assistenza,
           ripetizioni: x.ripetizioni === undefined ? null : x.ripetizioni,
+          spotter: !!x.spotter,
           dropset: !!x.dropset,
         })),
       })),

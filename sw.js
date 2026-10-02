@@ -1,9 +1,9 @@
-// sw.js -- service worker.
+﻿// sw.js -- service worker.
 // Pre-carica tutto quello che serve, cosi' la seconda volta l'app parte
 // anche senza rete. I dati NON stanno qui: stanno in IndexedDB, quindi
 // cancellare la cache non cancella niente del tuo allenamento.
 
-const VERSIONE = 'palestra-v5';
+const VERSIONE = 'palestra-v6';
 
 const FILE = [
   './',

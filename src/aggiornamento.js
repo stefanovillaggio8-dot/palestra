@@ -46,6 +46,9 @@ export function aPrevista(s, esercizio) {
     peso: assistito ? null : numeroOppure(s.peso),
     peso_assistenza: assistito ? numeroOppure(s.peso_assistenza) : null,
     ripetizioni: numeroOppure(s.ripetizioni),
+    // lo spotter finisce nella scheda: se l'hai fatto cosi' una volta, la
+    // prossima volta la serie e' gia' segnata come "da fare con lo spotter"
+    spotter: !!s.spotter,
     dropset: !!s.dropset,
   };
 }
@@ -56,7 +59,7 @@ function numeroOppure(v) {
   return Number.isFinite(n) ? n : null;
 }
 
-/** "35×8, 35×7, 35×6" per capire subito cosa c'era e cosa mettiamo. */
+/** "35x8, 35x7S, 35x6" per capire subito cosa c'era e cosa mettiamo. */
 export function descriviSerie(serie, esercizio) {
   const assistito = !!esercizio && !convenzioneMisuraCarico(esercizio.convenzione);
   return (serie || [])
@@ -64,8 +67,8 @@ export function descriviSerie(serie, esercizio) {
       const p = assistito ? s.peso_assistenza : s.peso;
       const peso = p === null || p === undefined ? '?' : formattaNumero(p);
       const rip = s.ripetizioni === null || s.ripetizioni === undefined ? '?' : formattaNumero(s.ripetizioni);
-      const segno = s.dropset ? 'D' : '';
-      return `${segno}${peso}x${rip}`;
+      const segni = (s.spotter ? 'S' : '') + (s.dropset ? 'D' : '');
+      return `${segni}${peso}x${rip}`;
     })
     .join(', ');
 }
@@ -104,6 +107,7 @@ export function proposta(snapshot, giornoId, seriePerEsercizio, eserciziPerId) {
       serieTolte: Math.max(0, primaN - dopoN),
       pesoCambiato: pesoCambiato(es.serie, nuove, esercizio),
       ripCambiate: ripCambiate(es.serie, nuove),
+      spotterCambiato: spotterCambiato(es.serie, nuove),
     });
     es.serie = nuove;
   }
@@ -124,6 +128,13 @@ function ripCambiate(vecchie, nuove) {
   const b = nuove.map((s) => s.ripetizioni);
   if (a.length !== b.length) return false;
   return a.some((v, i) => Number(v) !== Number(b[i]));
+}
+
+function spotterCambiato(vecchie, nuove) {
+  const a = vecchie.map((s) => !!s.spotter);
+  const b = nuove.map((s) => !!s.spotter);
+  if (a.length !== b.length) return a.some(Boolean) !== b.some(Boolean);
+  return a.some((v, i) => v !== b[i]);
 }
 
 /** Frase pronta da leggere: "Chest Press: 35x8, 35x7, 35x6 -> 35x8, 35x7, 35x8". */
@@ -155,6 +166,7 @@ export function riassuntoVoce(c) {
   const pezzi = [];
   if (c.pesoCambiato) pezzi.push('pesi aggiornati');
   if (c.ripCambiate) pezzi.push('ripetizioni aggiornate');
+  if (c.spotterCambiato) pezzi.push('spotter aggiornato');
   if (!pezzi.length) pezzi.push('serie da completare');
   return pezzi.join(' e ');
 }

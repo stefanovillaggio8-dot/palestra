@@ -578,6 +578,43 @@ test('15. se aggiungi una serie la proposta dice che ne hai aggiunta una', async
   assert.equal(notaSulNumeroSerie(c), 'hai aggiunto 1 serie a quelle previste');
 });
 
+test('16. mettere solo lo spotter fa comunque comparire la conferma', async () => {
+  const rimasta = await db.sedutaInCorso();
+  if (rimasta) await chiudiSeduta(rimasta.id);
+  const v = (await db.tutti('versioni')).sort((a, b) => b.numero - a.numero)[0];
+  const giorno2 = v.snapshot.giorni[1];
+  const seduta = await apriSeduta({ scheda_id: SCHEDA_ID, versione: v, giorno: giorno2 });
+  globalThis.window.location.hash = '#/seduta/' + seduta.id;
+  await attendiChe(() => perClasse(app, 'cronometro').length === 1 && perClasse(app, 'blocco-esercizio').length >= 4);
+
+  // same pesi e ripetizioni della scheda: l'unica cosa che cambio e' lo spotter
+  const blocco = perClasse(app, 'blocco-esercizio').find((b) => (b.textContent || '').includes('Dumbbell Bench Pull'));
+  const prima = perClasse(blocco, 'riga-serie')[0];
+  await pulsanti(prima).find((b) => /Spotter/.test(b.textContent || '')).click();
+  await new Promise((r) => setTimeout(r, 250));
+
+  pulsante(app, 'Allenamento finito').clickNonAspettando();
+  await attendiChe(() => perClasse(document.body, 'dialogo').length === 1);
+  pulsanti(perClasse(document.body, 'dialogo')[0]).find((b) => /Confermo/.test(b.textContent || '')).click();
+  await new Promise((r) => setTimeout(r, 500));
+
+  await attendiChe(() => perClasse(document.body, 'dialogo').length === 1);
+  const testo = perClasse(document.body, 'dialogo')[0].textContent;
+  assert.match(testo, /aggiorno la scheda/i, 'deve comparire la conferma anche solo per lo spotter');
+  assert.match(testo, /Dumbbell Bench Pull/);
+  assert.match(testo, /S45x7/, 'la serie col spotter e\' segnata con la S');
+  assert.match(testo, /spotter/i, 'e lo dice a parole');
+  assert.match(testo, /S = fatta con lo spotter/, 'c\'e\' anche la legenda');
+
+  // e non aggiorna niente se rifiuto
+  pulsanti(perClasse(document.body, 'dialogo')[0]).find((b) => /Lascia/.test(b.textContent || '')).click();
+  await new Promise((r) => setTimeout(r, 300));
+  const versioni = await db.tutti('versioni');
+  const chest = versioni.sort((a, b) => b.numero - a.numero)[0]
+    .snapshot.giorni[1].esercizi.find((e) => e.esercizio_id === 'ex-dumbbell-bench-pull');
+  assert.equal(chest.serie[0].spotter, false, 'la scheda e\' rimasta come prima');
+});
+
 test('Z. nessun errore JavaScript durante tutta la navigazione', () => {
   assert.deepEqual(errori, [], 'errori:\n' + errori.join('\n'));
 });

@@ -136,7 +136,39 @@ test('lo spotter e le ripetizioni assistite NON finiscono nella scheda', () => {
   const res = proposta(snap, 'giorno-1', per, perId);
   const g1 = res.snapshot.giorni.find((g) => g.id === 'giorno-1');
   const chiavi = Object.keys(g1.esercizi[0].serie[0]).sort();
-  assert.deepEqual(chiavi, ['dropset', 'peso', 'peso_assistenza', 'ripetizioni']);
+  // lo spotter c'e' (cosi' la conferma di fine allenamento salta anche per quello),
+  // ma le ripetizioni assistite restano solo nello storico
+  assert.deepEqual(chiavi, ['dropset', 'peso', 'peso_assistenza', 'ripetizioni', 'spotter']);
+});
+
+test('premere lo spotter cambia la scheda e quindi chiede la conferma', () => {
+  const snap = costruisciSnapshot();
+  const per = new Map([['ex-chest-press', [
+    serie(1, 35, 8, { spotter: true }),
+    serie(2, 35, 7),
+    serie(3, 35, 6),
+  ]]]);
+  const res = proposta(snap, 'giorno-1', per, perId);
+  assert.equal(res.nessunaNovita, false, 'deve comparire la conferma');
+  const c = res.cambiamenti[0];
+  assert.equal(c.spotterCambiato, true);
+  assert.equal(c.prima, '35x8, 35x7, 35x6');
+  assert.equal(c.dopo, 'S35x8, 35x7, 35x6', 'la serie col spotter e\' segnata con la S davanti');
+});
+
+test('togliere lo spotter riporta la scheda come prima', () => {
+  const snap = costruisciSnapshot();
+  const g1 = snap.giorni.find((g) => g.id === 'giorno-1');
+  g1.esercizi[0].serie[0].spotter = true;
+  const per = new Map([['ex-chest-press', [
+    serie(1, 35, 8),
+    serie(2, 35, 7),
+    serie(3, 35, 6),
+  ]]]);
+  const res = proposta(snap, 'giorno-1', per, perId);
+  const c = res.cambiamenti[0];
+  assert.equal(c.spotterCambiato, true);
+  assert.equal(c.dopo, '35x8, 35x7, 35x6');
 });
 
 test('il dropset resta un dropset nella scheda aggiornata', () => {
@@ -153,7 +185,7 @@ test('descriviSerie e aPrevista usano la convenzione giusta', () => {
   assert.equal(descriviSerie([{ peso: 45, ripetizioni: 7 }], CP), '45x7');
   assert.equal(descriviSerie([{ peso: null, peso_assistenza: 15, ripetizioni: 7 }], PULL), '15x7');
   const p = aPrevista({ peso: 45, ripetizioni: 7, dropset: false }, CP);
-  assert.deepEqual(p, { peso: 45, peso_assistenza: null, ripetizioni: 7, dropset: false });
+  assert.deepEqual(p, { peso: 45, peso_assistenza: null, ripetizioni: 7, spotter: false, dropset: false });
 });
 
 test('la proposta non tocca lo snapshot di partenza', () => {

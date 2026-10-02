@@ -108,6 +108,10 @@ a { color: var(--blu); text-decoration: none; }
 .pallino-errore { background: var(--rosso); }
 .pallino-neutro { background: var(--testo-3); }
 .testo-stato { color: var(--testo-2); }
+.versione-app {
+  margin-left: auto; color: var(--testo-3);
+  font-size: .7rem; font-weight: 800; letter-spacing: .04em;
+}
 .tape-conflitti {
   margin-left: auto; background: var(--arancio); color: #241300;
   padding: 2px 8px; border-radius: 99px; font-size: .72rem;
@@ -444,6 +448,8 @@ a { color: var(--blu); text-decoration: none; }
   background: var(--blu-scuro); color: #a9c3ff;
   font-size: .68rem; font-weight: 700; padding: 3px 8px; border-radius: 99px;
 }
+.legenda-cambi { font-size: .8rem; color: var(--testo-3); margin: 4px 0 0; }
+.testo-spotter { color: var(--arancio); }
 .testo-attenzione { color: var(--giallo); }
 
 .avviso {
