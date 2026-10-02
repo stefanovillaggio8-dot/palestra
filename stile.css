@@ -169,10 +169,44 @@ a { color: var(--blu); text-decoration: none; }
   background: var(--card); border: 1px solid var(--bordo);
   border-radius: var(--r); padding: 12px; margin-bottom: 9px;
 }
+/* la convenzione del carico sta SEMPRE su una riga sua:
+   attaccata al nome dell'esercizio sembrava un errore di scrittura */
+.riga-convenzione {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 7px;
+  margin: 6px 0 2px;
+}
 .badge-conv {
+  display: inline-block;
   background: var(--blu-scuro); color: #a9c3ff;
   font-size: .72rem; padding: 4px 9px; border-radius: 99px; font-weight: 700;
+  width: fit-content; align-self: flex-start; white-space: nowrap;
 }
+.serie-previste { display: flex; flex-wrap: wrap; gap: 7px; margin: 9px 0 2px; }
+.prevista {
+  display: inline-flex; align-items: baseline; gap: 5px;
+  background: var(--nero-2); border: 1px solid var(--bordo);
+  border-radius: 10px; padding: 6px 10px; font-weight: 700; font-size: .92rem;
+}
+.prevista-n {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 20px; height: 20px; border-radius: 6px;
+  background: var(--viola-scuro); font-size: .72rem; font-weight: 800;
+}
+.prevista-x { color: var(--testo-3); font-weight: 700; }
+.tag-dropset {
+  background: #3a2a10; color: var(--arancio);
+  font-size: .64rem; padding: 2px 6px; border-radius: 99px; font-weight: 800;
+  letter-spacing: .03em; text-transform: uppercase;
+}
+.titolo-collegabile { color: var(--testo); cursor: pointer; }
+.titolo-collegabile:active { color: var(--viola); }
+.bottone-guarda {
+  display: inline-flex; align-items: center;
+  background: transparent; border: 1px solid var(--bordo);
+  color: var(--testo); border-radius: 12px; padding: 11px 15px;
+  font-weight: 700; min-height: 46px;
+}
+.bottone-guarda:active { background: var(--card-2); }
 
 /* ---------- cronometro ---------- */
 

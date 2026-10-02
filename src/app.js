@@ -338,12 +338,16 @@ function vistaHome(zona) {
     }
     zona.appendChild(el('section', { class: 'scheda-giorno' }, [
       el('div', { class: 'riga-titoli' }, [
-        el('h2', { testo: g.nome }),
+        // il nome del giorno si puo' toccare per vedere la scheda senza allenarsi
+        el('a', { href: '#/giorno/' + g.id, class: 'titolo-collegabile', testo: g.nome }),
         el('span', { class: 'conteggio', testo: `${g.esercizi.length} esercizi · ${serie} serie` + (opzionali ? ` · ${opzionali} opzionali` : '') }),
       ]),
       griglia,
       el('div', { class: 'riga-pulsanti' }, [
         bottone('Inizia allenamento', { onClick: () => iniziaAllenamento(g), classe: 'principale grande' }),
+        el('a', { href: '#/giorno/' + g.id, class: 'bottone-guarda', testo: 'Vedi la scheda del giorno' }),
+      ]),
+      el('div', { class: 'riga-pulsanti piccolo' }, [
         el('span', { class: 'nota', testo: ultimo ? `Ultima volta: ${dataLeggibile(ultimo.data)}` : 'Non hai ancora allenato questo giorno.' }),
       ]),
     ]));
@@ -385,25 +389,56 @@ function vistaGiorno(zona, giornoId) {
   const v = versioneCorrente();
   const g = ((v && v.snapshot && v.snapshot.giorni) || []).find((x) => x.id === giornoId);
   if (!g) { zona.appendChild(el('p', { testo: 'Giorno non trovato.' })); return; }
+  const ultimo = ultimaSedutaDelGiorno(giornoId);
+  const opzionali = (g.esercizi || []).filter((x) => x.opzionale).length;
+  const totaleSerie = (g.esercizi || []).reduce((a, x) => a + ((x.serie || []).length), 0);
+
   zona.appendChild(el('a', { href: '#/', class: 'indietro', testo: '← tutti i giorni' }));
   zona.appendChild(el('h1', { testo: g.nome }));
+  zona.appendChild(el('p', { class: 'nota', testo: [
+    `${g.esercizi.length} esercizi · ${totaleSerie} serie`,
+    opzionali ? `${opzionali} opzionali` : null,
+    `versione scheda numero ${v.numero}`,
+  ].filter(Boolean).join(' · ') }));
+  zona.appendChild(el('p', { class: 'nota nota-chiaro', testo: 'Stai solo guardando: non parte nessun allenamento e il cronometro non si avvia.' }));
+
   const griglia = el('div', { class: 'griglia-esercizi' });
   for (const es of (g.esercizi || [])) {
     const e = esercizioPerId(es.esercizio_id);
     if (!e) continue;
+    const assistito = !convenzioneMisuraCarico(e.convenzione);
+    const seriePreviste = (es.serie || []).map((x, i) => {
+      const p = assistito ? x.peso_assistenza : x.peso;
+      return el('span', { class: 'prevista' }, [
+        el('span', { class: 'prevista-n', testo: String(i + 1) }),
+        el('span', { testo: `${formattaNumero(p)} kg` }),
+        el('span', { class: 'prevista-x', testo: '×' }),
+        el('span', { testo: `${formattaNumero(x.ripetizioni)} rip` }),
+        x.dropset ? el('span', { class: 'tag-dropset', testo: 'dropset' }) : null,
+      ]);
+    });
+
     griglia.appendChild(el('div', { class: 'scheda-esercizio' }, [
       el('img', { src: e.foto, alt: '', class: 'foto-esercizio grande' }),
-      el('div', {}, [
-        el('h3', { testo: e.nome }),
-        el('div', { class: 'nota', testo: ETICHETTE_CONVENZIONE[e.convenzione] || '' }),
-        el('div', { class: 'nota', testo: (es.serie || []).map((x) => `${x.peso ?? x.peso_assistenza ?? '?'} × ${x.ripetizioni ?? '?'}`).join(' · ') }),
+      el('div', { class: 'cresci' }, [
+        el('div', { class: 'riga-convenzione' }, [
+          el('h3', { testo: e.nome }),
+          es.opzionale ? el('span', { class: 'tag-opzionale', testo: 'opzionale' }) : null,
+        ]),
+        // la convenzione sta su una riga sua: non si attacca al nome
+        el('div', { class: 'riga-convenzione' }, [
+          el('span', { class: 'badge-conv', testo: ETICHETTE_CONVENZIONE[e.convenzione] || '' }),
+        ]),
+        el('div', { class: 'serie-previste' }, seriePreviste),
         e.nota_permanente ? el('p', { class: 'nota-permanente', testo: e.nota_permanente }) : null,
       ]),
     ]));
   }
   zona.appendChild(griglia);
-  zona.appendChild(el('div', { class: 'riga-pulsanti' }, [
+
+  zona.appendChild(el('div', { class: 'riga-pulsanti fisso' }, [
     bottone('Inizia allenamento', { onClick: () => iniziaAllenamento(g), classe: 'principale grande' }),
+    el('span', { class: 'nota', testo: ultimo ? `Ultima volta: ${dataLeggibile(ultimo.data)}` : 'Non hai ancora allenato questo giorno.' }),
   ]));
 }
 
@@ -471,12 +506,13 @@ async function vistaSeduta(zona, sedutaId) {
     const confronto = confrontaEsercizio(mine, precedenti, e, e);
 
     const blocco = el('section', { class: 'blocco-esercizio' });
-    blocco.appendChild(el('div', { class: 'riga-titoli' }, [
-      el('div', { class: 'titolo-esercizio' }, [
-        el('img', { src: e.foto, alt: '', class: 'foto-esercizio grande' }),
-        el('h2', { testo: e.nome }),
-      ]),
+    blocco.appendChild(el('div', { class: 'titolo-esercizio' }, [
+      el('img', { src: e.foto, alt: '', class: 'foto-esercizio grande' }),
+      el('h2', { testo: e.nome }),
+    ]));
+    blocco.appendChild(el('div', { class: 'riga-convenzione' }, [
       el('span', { class: 'badge-conv', testo: ETICHETTE_CONVENZIONE[e.convenzione] || '' }),
+      e.nota_permanente ? el('span', { class: 'nota', testo: 'nota permanente sotto' }) : null,
     ]));
 
     if (e.nota_permanente) {
@@ -820,11 +856,11 @@ async function vistaSedutaPassata(zona, sedutaId) {
     if (!serie.length) continue;
     const r = riassuntoEsercizio(serie, e);
     const blocco = el('section', { class: 'blocco-esercizio' });
-    blocco.appendChild(el('div', { class: 'riga-titoli' }, [
-      el('div', { class: 'titolo-esercizio' }, [
-        el('img', { src: e.foto, alt: '', class: 'foto-esercizio' }),
-        el('h3', { testo: e.nome }),
-      ]),
+    blocco.appendChild(el('div', { class: 'titolo-esercizio' }, [
+      el('img', { src: e.foto, alt: '', class: 'foto-esercizio' }),
+      el('h3', { testo: e.nome }),
+    ]));
+    blocco.appendChild(el('div', { class: 'riga-convenzione' }, [
       el('span', { class: 'badge-conv', testo: ETICHETTE_CONVENZIONE[e.convenzione] || '' }),
     ]));
     const chiave = convenzioneMisuraCarico(e.convenzione) ? 'pesoMassimo' : 'pesoAssistenzaMassimo';

@@ -435,6 +435,65 @@ test('12. gli esercizi assistiti finiscono col peso di assistenza', async () => 
     'lo snapshot di partenza non e\' stato toccato');
 });
 
+test('1b. ogni giorno si puo\' aprire senza iniziare l\'allenamento', async () => {
+  globalThis.window.location.hash = '#/';
+  await attendiChe(() => perClasse(app, 'scheda-giorno').length === 4);
+  const giorni = perClasse(app, 'scheda-giorno');
+  const link = perClasse(giorni[0], 'titolo-collegabile')[0];
+  assert.ok(link, 'il nome del giorno si puo\' toccare');
+  assert.equal(link.attributi.href, '#/giorno/giorno-1');
+
+  // non deve partire nessuna seduta
+  const prima = await db.tutti('sedute');
+  await link.click();
+  await new Promise((r) => setTimeout(r, 250));
+
+  // siamo sulla schermata del giorno
+  assert.match(app.textContent, /Stai solo guardando/, 'avvisa che non parte nessun allenamento');
+  assert.equal(await db.sedutaInCorso(), null, 'nessun allenamento aperto');
+  assert.equal(perClasse(app, 'cronometro').length, 0, 'il cronometro NON e\' partito');
+  assert.equal((await db.tutti('sedute')).length, prima.length, 'non e\' stata creata nessuna seduta');
+});
+
+test('1c. il kg non e\' attaccato al nome dell\'esercizio', async () => {
+  // la convenzione sta su un elemento separato, mai dentro lo stesso titolo
+  for (const nodo of perClasse(app, 'badge-conv')) {
+    assert.ok(!nodo.classList.contains('titolo-esercizio'), 'la convenzione non puo\' stare nel titolo');
+    const padre = nodo.padre;
+    assert.ok(padre && padre.classList.contains('riga-convenzione'),
+      'la convenzione sta dentro una riga tutta sua');
+  }
+  // ogni riga-convenzione non contiene il nome dell'esercizio
+  for (const riga of perClasse(app, 'riga-convenzione')) {
+    const nomi = perClasse(riga, 'h2').length + perClasse(riga, 'h3').length;
+    assert.equal(nomi, 0, 'il nome non deve stare nella riga della convenzione');
+  }
+});
+
+test('1d. la scheda del giorno mostra i kg in chiaro, con le ripetizioni', async () => {
+  globalThis.window.location.hash = '#/giorno/giorno-1';
+  await new Promise((r) => setTimeout(r, 250));
+  const previste = perClasse(app, 'prevista');
+  assert.ok(previste.length >= 17, 'si vedono tutte le serie previste del giorno: ' + previste.length);
+  const testo = previste[0].textContent;
+  assert.match(testo, /35 kg/, 'mostra i kg del primo esercizio');
+  assert.match(testo, /8 rip/, 'mostra le ripetizioni');
+  assert.match(previste[2].textContent, /7 rip/, 'la terza serie del Chest Press era 35 kg x 6');
+  assert.ok(pulsante(app, 'Inizia allenamento'), 'il bottone "Inizia allenamento" c\'e\'');
+  globalThis.window.location.hash = '#/';
+  await new Promise((r) => setTimeout(r, 150));
+});
+
+test('1e. gli esercizi assistiti mostrano "kg di assistenza"', async () => {
+  globalThis.window.location.hash = '#/giorno/giorno-4';
+  await new Promise((r) => setTimeout(r, 200));
+  const testo = app.textContent;
+  assert.match(testo, /kg di assistenza/, 'Pull Ups e Dips sono assistiti');
+  assert.match(testo, /Dropset/i, 'il Wrist Curl e\' segnato dropset');
+  globalThis.window.location.hash = '#/';
+  await new Promise((r) => setTimeout(r, 150));
+});
+
 test('Z. nessun errore JavaScript durante tutta la navigazione', () => {
   assert.deepEqual(errori, [], 'errori:\n' + errori.join('\n'));
 });

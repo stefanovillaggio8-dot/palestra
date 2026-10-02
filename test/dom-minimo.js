@@ -115,7 +115,14 @@ function creaNodo(tag, ns) {
     if (i >= 0) a.splice(i, 1);
   };
   /** clic finto: chiama i gestori e restituisce quello che hanno rimesso indietro */
-  nodo.click = () => nodo.dispatch('click', { type: 'click', target: nodo, currentTarget: nodo });
+  nodo.click = () => {
+    // un link con href="#qualcosa" nel browser vero cambia l'indirizzo
+    const href = nodo.attributi && nodo.attributi.href;
+    if (href && href.startsWith('#') && globalThis.window) {
+      globalThis.window.location.hash = href;
+    }
+    return nodo.dispatch('click', { type: 'click', target: nodo, currentTarget: nodo });
+  };
   /**
    * Clic "fire and forget": serve quando il pulsante apre una finestra di
    * conferma, perche' il suo gestore aspetta che tu prema "Confermo" e quindi
