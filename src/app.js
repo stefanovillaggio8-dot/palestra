@@ -1,0 +1,1251 @@
+// app.js -- interfaccia e navigazione.
+// Tutto in italiano, tema scuro, pulsanti grandi, fatto per essere usato
+// in palestra con le mani occupate.
+
+import * as db from './db.js';
+import * as sb from './supabase.js';
+import * as sync from './sync.js';
+import { el, svuota, campoNumero, campoTesto, bottone, chiediConferma, avviso, schedaEvento, oraLocale, dataLeggibile, conRitardo } from './ui.js';
+import { graficoLinea, graficoBarre } from './grafici.js';
+import {
+  formattaNumero, formattaPeso, formattaRipetizioni, formattaCronometro, formattaDurata,
+  ETICHETTE_CONVENZIONE, CONVENZIONI, convenzioneMisuraCarico, etichettaUnita, campoCarico,
+} from './numeri.js';
+import { confrontaEsercizio, riassuntoEsercizio, NON_DISPONIBILE } from './confronto.js';
+import { testoProgresso, serieARipetizioniCostanti } from './progressi.js';
+import { creaPacchetto, validaPacchetto, unisci, csvSerie, csvSedute, csvEsercizi } from './backup.js';
+import { ESERCIZI, SCHEDA_ID, SCHEDA_NOME, costruisciSnapshot } from './dati-iniziali.js';
+import { nuovoId, adesso, TABELLE } from './sincronizzazione.js';
+
+const V = {}; // stato dell'app
+const GIRI_DROPSET = 3; // i 3 posti in piu' che ha chiesto Ste
+
+/* ===================== avvio ===================== */
+
+async function avvia() {
+  const radice = document.getElementById('app');
+  svuota(radice);
+  radice.appendChild(el('div', { class: 'caricamento', testo: 'Carico i tuoi dati...' }));
+
+  await db.apriDb();
+  await seminaSeVuoto();
+
+  V.esercizi = await db.tutti('esercizi');
+  V.schede = await db.tutti('schede');
+  V.versi = await db.tutti('versioni');
+  V.sedute = await db.tutti('sedute');
+  V.serie = await db.tutti('serie');
+  V.note = await db.tutti('note');
+  V.conflitti = await sync.conflittiDaScegliere();
+
+  sync.iscrivisi(() => { aggiornaStatoSalvataggio(); });
+  sync.avvia();
+  window.addEventListener('hashchange', () => disegna());
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js').catch(() => { /* senza service worker funziona lo stesso, solo niente offline */ });
+  }
+  disegna();
+}
+
+/** Ricarica tutto quello che serve per la vista corrente. */
+async function ricarcaTutto() {
+  V.esercizi = await db.tutti('esercizi');
+  V.schede = await db.tutti('schede');
+  V.versi = await db.tutti('versioni');
+  V.sedute = await db.tutti('sedute');
+  V.serie = await db.tutti('serie');
+  V.note = await db.tutti('note');
+  V.conflitti = await sync.conflittiDaScegliere();
+}
+
+async function seminaSeVuoto() {
+  const gia = await db.tutti('esercizi');
+  if (gia.length) return;
+  for (const e of ESERCIZI) await db.salva('esercizi', e, { segna: false });
+  await db.salva('schede', {
+    id: SCHEDA_ID, nome: SCHEDA_NOME, versione_corrente: 'ver-1',
+  }, { segna: false });
+  await db.salva('versioni', {
+    id: 'ver-1', scheda_id: SCHEDA_ID, numero: 1,
+    snapshot: costruisciSnapshot(), nota: 'Versione iniziale, trascritta dalla scheda.',
+  }, { segna: false });
+  await db.scriviMeta('installato_il', adesso());
+}
+
+function scheda() { return V.schede.find((s) => s.id === SCHEDA_ID) || V.schede[0] || null; }
+
+function versioneCorrente() {
+  const s = scheda();
+  if (!s) return null;
+  return V.versi.find((v) => v.id === s.versione_corrente) || V.versi[0] || null;
+}
+
+function esercizioPerId(id) { return V.esercizi.find((e) => e.id === id) || null; }
+
+/* ===================== navigazione ===================== */
+
+function vai(percorso) { window.location.hash = percorso; }
+
+function disegna() {
+  const zona = document.getElementById('app');
+  svuota(zona);
+  const rotta = (window.location.hash || '#/').replace(/^#/, '');
+  zona.appendChild(cornice());
+  const contenuto = el('main', { class: 'contenuto', id: 'contenuto' });
+  zona.appendChild(contenuto);
+  disegnaStatoSalvataggio();
+
+  if (rotta === '/' || rotta === '') vistaHome(contenuto);
+  else if (rotta.startsWith('/giorno/')) vistaGiorno(contenuto, rotta.split('/')[2]);
+  else if (rotta.startsWith('/seduta/')) vistaSeduta(contenuto, rotta.split('/')[2]);
+  else if (rotta === '/scheda') vistaScheda(contenuto);
+  else if (rotta === '/storico') vistaStorico(contenuto);
+  else if (rotta.startsWith('/storico/')) vistaSedutaPassata(contenuto, rotta.split('/')[2]);
+  else if (rotta === '/progressi') vistaProgressi(contenuto);
+  else if (rotta === '/impostazioni') vistaImpostazioni(contenuto);
+  else vistaHome(contenuto);
+}
+
+function cornice() {
+  const resto = el('div', { class: 'basso' }, [
+    el('nav', { class: 'menu-basso' }, [
+      el('a', { href: '#/', class: 'voce-menu', testo: 'Allenamento' }),
+      el('a', { href: '#/storico', class: 'voce-menu', testo: 'Storico' }),
+      el('a', { href: '#/progressi', class: 'voce-menu', testo: 'Progressi' }),
+      el('a', { href: '#/impostazioni', class: 'voce-menu', testo: 'Impostazioni' }),
+    ]),
+  ]);
+  return resto;
+}
+
+function disegnaStatoSalvataggio() {
+  const contenitore = document.getElementById('stato-salvataggio');
+  if (!contenitore) return;
+  sync.stato().then((s) => {
+    svuota(contenitore);
+    contenitore.appendChild(el('span', { class: 'pallino-stato pallino-' + s.colore }));
+    contenitore.appendChild(el('span', { class: 'testo-stato', testo: s.testo }));
+    contenitore.title = s.dettaglio;
+  });
+  const conflitti = document.getElementById('avviso-conflitti');
+  if (conflitti) {
+    if (V.conflitti.length) {
+      const n = V.conflitti.length;
+      svuota(conflitti).appendChild(
+        el('a', {
+          href: '#/impostazioni', class: 'tape-conflitti',
+          testo: `${n} ${n === 1 ? 'conflitto da' : 'conflitti da'} scegliere`,
+        }),
+      );
+    } else {
+      svuota(conflitti);
+    }
+  }
+}
+async function aggiornaStatoSalvataggio() {
+  V.conflitti = await sync.conflittiDaScegliere();
+  disegnaStatoSalvataggio();
+}
+
+/* ===================== vista: home ===================== */
+
+function vistaHome(zona) {
+  const v = versioneCorrente();
+  if (!v) {
+    zona.appendChild(el('p', { testo: 'Nessuna scheda trovata.' }));
+    return;
+  }
+  const giorni = (v.snapshot && v.snapshot.giorni) || [];
+
+  db.sedutaInCorso().then((attiva) => {
+    if (attiva) {
+      const avvisoSeduta = document.getElementById('zona-avviso');
+      if (avvisoSeduta) {
+        svuota(avvisoSeduta).appendChild(el('div', { class: 'tape tape-viola' }, [
+          el('div', {}, [
+            el('strong', { testo: 'Hai un allenamento in corso' }),
+            el('div', { testo: `Iniziato alle ${oraLocale(attiva.ora_inizio)} del ${dataLeggibile(attiva.data)}` }),
+          ]),
+          bottone('Riprendi', { onClick: () => vai('/seduta/' + attiva.id), classe: 'principale grande' }),
+        ]));
+      }
+    }
+  });
+
+  zona.appendChild(el('div', { id: 'zona-avviso' }));
+  zona.appendChild(el('div', { class: 'riga-titoli' }, [
+    el('h1', { testo: scheda() ? scheda().nome : 'Palestra' }),
+    bottone('Modifica scheda', { onClick: () => vai('/scheda'), classe: 'fantasma' }),
+  ]));
+  zona.appendChild(el('p', { class: 'nota', testo: `Versione della scheda numero ${v.numero}. Se la modifichi le sedute passate non cambiano mai.` }));
+
+  for (const g of giorni) {
+    const ultimo = ultimaSedutaDelGiorno(g.id);
+    const opzionali = (g.esercizi || []).filter((e) => e.opzionale).length;
+    const serie = (g.esercizi || []).reduce((a, e) => a + (e.serie ? e.serie.length : 0), 0);
+    const griglia = el('div', { class: 'griglia-esercizi' });
+    for (const es of (g.esercizi || [])) {
+      const e = esercizioPerId(es.esercizio_id);
+      if (!e) continue;
+      griglia.appendChild(el('div', { class: 'pillola-esercizio' }, [
+        el('img', { src: e.foto, alt: '', class: 'foto-esercizio', loading: 'lazy' }),
+        el('span', { testo: e.nome }),
+        es.opzionale ? el('span', { class: 'tag-opzionale', testo: 'opzionale' }) : null,
+      ]));
+    }
+    zona.appendChild(el('section', { class: 'scheda-giorno' }, [
+      el('div', { class: 'riga-titoli' }, [
+        el('h2', { testo: g.nome }),
+        el('span', { class: 'conteggio', testo: `${g.esercizi.length} esercizi · ${serie} serie` + (opzionali ? ` · ${opzionali} opzionali` : '') }),
+      ]),
+      griglia,
+      el('div', { class: 'riga-pulsanti' }, [
+        bottone('Inizia allenamento', { onClick: () => iniziaAllenamento(g), classe: 'principale grande' }),
+        el('span', { class: 'nota', testo: ultimo ? `Ultima volta: ${dataLeggibile(ultimo.data)}` : 'Non hai ancora allenato questo giorno.' }),
+      ]),
+    ]));
+  }
+}
+
+function ultimaSedutaDelGiorno(giornoId) {
+  const proprie = V.sedute.filter((s) => s.giorno_id === giornoId && s.stato === 'completata' && !s.eliminata);
+  if (!proprie.length) return null;
+  return proprie.sort((a, b) => String(b.data).localeCompare(String(a.data)))[0];
+}
+
+async function iniziaAllenamento(giorno) {
+  const attiva = await db.sedutaInCorso();
+  if (attiva) {
+    const ok = await chiediConferma(
+      'C\'e\' gia\' un allenamento in corso',
+      'Puoi tenere una sola seduta aperta per volta. Vuoi continuare quella di prima?',
+      { testoOk: 'Continua quella', testoAnnulla: 'Annulla' },
+    );
+    if (ok) vai('/seduta/' + attiva.id);
+    return;
+  }
+  const ora = new Date();
+  const seduta = await db.salva('sedute', {
+    id: nuovoId(),
+    scheda_id: SCHEDA_ID,
+    versione_id: versioneCorrente().id,
+    giorno_id: giorno.id,
+    nome_giorno: giorno.nome,
+    data: schedaEvento(),
+    ora_inizio: ora.toISOString(),
+    ora_fine: null,
+    durata_secondi: null,
+    stato: 'in_corso',
+    note: '',
+  });
+  // Le serie partono vuote: quello che fai davvero lo decidi in palestra.
+  for (const es of (giorno.esercizi || [])) {
+    const e = esercizioPerId(es.esercizio_id);
+    for (let i = 0; i < Math.max(1, (es.serie || []).length); i++) {
+      const prevista = (es.serie || [])[i] || {};
+      await creaSerie(seduta.id, es.esercizio_id, i + 1, e, prevista);
+    }
+  }
+  vai('/seduta/' + seduta.id);
+}
+
+async function creaSerie(sedutaId, esercizioId, ordine, esercizio, prevista = {}) {
+  const assistenza = esercizio && !convenzioneMisuraCarico(esercizio.convenzione);
+  return db.salva('serie', {
+    id: nuovoId(),
+    seduta_id: sedutaId,
+    esercizio_id: esercizioId,
+    ordine,
+    peso: prevista.peso === undefined ? null : prevista.peso,
+    peso_assistenza: prevista.peso_assistenza === undefined ? null : prevista.peso_assistenza,
+    ripetizioni: prevista.ripetizioni === undefined ? null : prevista.ripetizioni,
+    spotter: false,
+    rip_assistite: null,
+    dropset: !!prevista.dropset,
+    giri_extra: prevista.dropset
+      ? Array.from({ length: GIRI_DROPSET }, () => ({ peso: null, ripetizioni: null }))
+      : [],
+    stato: 'da_fare',
+    nota: '',
+    assistenza,
+  });
+}
+
+/* ===================== vista: giorno ===================== */
+
+function vistaGiorno(zona, giornoId) {
+  const v = versioneCorrente();
+  const g = ((v && v.snapshot && v.snapshot.giorni) || []).find((x) => x.id === giornoId);
+  if (!g) { zona.appendChild(el('p', { testo: 'Giorno non trovato.' })); return; }
+  zona.appendChild(el('a', { href: '#/', class: 'indietro', testo: '← tutti i giorni' }));
+  zona.appendChild(el('h1', { testo: g.nome }));
+  const griglia = el('div', { class: 'griglia-esercizi' });
+  for (const es of (g.esercizi || [])) {
+    const e = esercizioPerId(es.esercizio_id);
+    if (!e) continue;
+    griglia.appendChild(el('div', { class: 'scheda-esercizio' }, [
+      el('img', { src: e.foto, alt: '', class: 'foto-esercizio grande' }),
+      el('div', {}, [
+        el('h3', { testo: e.nome }),
+        el('div', { class: 'nota', testo: ETICHETTE_CONVENZIONE[e.convenzione] || '' }),
+        el('div', { class: 'nota', testo: (es.serie || []).map((x) => `${x.peso ?? x.peso_assistenza ?? '?'} × ${x.ripetizioni ?? '?'}`).join(' · ') }),
+        e.nota_permanente ? el('p', { class: 'nota-permanente', testo: e.nota_permanente }) : null,
+      ]),
+    ]));
+  }
+  zona.appendChild(griglia);
+  zona.appendChild(el('div', { class: 'riga-pulsanti' }, [
+    bottone('Inizia allenamento', { onClick: () => iniziaAllenamento(g), classe: 'principale grande' }),
+  ]));
+}
+
+/* ===================== vista: seduta in corso ===================== */
+
+let timerSeduta = null;
+
+async function vistaSeduta(zona, sedutaId) {
+  if (timerSeduta) { clearInterval(timerSeduta); timerSeduta = null; }
+  const s = V.sedute.find((x) => x.id === sedutaId);
+  if (!s) {
+    const r = await db.prendi('sedute', sedutaId);
+    if (!r) { zona.appendChild(el('p', { testo: 'Seduta non trovata.' })); return; }
+    V.sedute.push(r);
+    disegna();
+    return;
+  }
+  if (s.stato !== 'in_corso') { vai('/storico/' + s.id); return; }
+
+  zona.appendChild(el('a', { href: '#/', class: 'indietro', testo: '← tutti i giorni' }));
+
+  const cronometro = el('div', { class: 'cronometro', id: 'cronometro', testo: '00:00' });
+  zona.appendChild(el('div', { class: 'banda-cronometro' }, [
+    el('div', {}, [
+      el('div', { class: 'etichetta-crono', testo: 'Allenamento iniziato alle ' + oraLocale(s.ora_inizio) }),
+      cronometro,
+      el('div', { class: 'nota', id: 'totale-sedute', testo: '' }),
+    ]),
+    bottone('Allenamento finito', { onClick: () => finisceAllenamento(s), classe: 'pericolo grande' }),
+  ]));
+
+  const aggiorna = () => {
+    const secondi = Math.floor((Date.now() - new Date(s.ora_inizio).getTime()) / 1000);
+    const c = document.getElementById('cronometro');
+    if (c) c.textContent = formattaCronometro(secondi);
+    const t = document.getElementById('totale-sedute');
+    if (t) t.textContent = `Durata totale: ${formattaDurata(secondi)} · non si azzera cambiando esercizio`;
+  };
+  aggiorna();
+  timerSeduta = setInterval(aggiorna, 1000);
+
+  zona.appendChild(el('label', { class: 'nota-seduta' }, ['Note della seduta']));
+  const notaSeduta = campoTesto(s.note, {
+    segnaposto: 'Come ti sei sentito, cosa hai cambiato...',
+    righe: 2,
+    onCambio: conRitardo((v) => { db.salva('sedute', { ...s, note: v }); }),
+  });
+  zona.appendChild(notaSeduta);
+
+  const snap = (versioneCorrente() || {}).snapshot || { giorni: [] };
+  const giorno = (snap.giorni || []).find((g) => g.id === s.giorno_id);
+  if (!giorno) { zona.appendChild(el('p', { testo: 'Non trovo il giorno di questa seduta.' })); return; }
+
+  // Non e' async: filtra solo l'elenco che hai gia' in memoria.
+  const serieDi = (esercizioId) => V.serie
+    .filter((x) => x.seduta_id === s.id && x.esercizio_id === esercizioId && !x.eliminata)
+    .sort((a, b) => a.ordine - b.ordine);
+
+  for (const es of (giorno.esercizi || [])) {
+    const e = esercizioPerId(es.esercizio_id);
+    if (!e) continue;
+    const mine = serieDi(es.esercizioId);
+    const ultimo = ultimaSedutaConEsercizio(e.id, s.id);
+    const precedenti = ultimo ? V.serie.filter((x) => x.seduta_id === ultimo.id && x.esercizio_id === e.id && !x.eliminata).sort((a, b) => a.ordine - b.ordine) : [];
+    const confronto = confrontaEsercizio(mine, precedenti, e, e);
+
+    const blocco = el('section', { class: 'blocco-esercizio' });
+    blocco.appendChild(el('div', { class: 'riga-titoli' }, [
+      el('div', { class: 'titolo-esercizio' }, [
+        el('img', { src: e.foto, alt: '', class: 'foto-esercizio grande' }),
+        el('h2', { testo: e.nome }),
+      ]),
+      el('span', { class: 'badge-conv', testo: ETICHETTE_CONVENZIONE[e.convenzione] || '' }),
+    ]));
+
+    if (e.nota_permanente) {
+      blocco.appendChild(el('details', { class: 'nota-permanente-box' }, [
+        el('summary', { testo: 'Nota permanente' }),
+        el('p', { testo: e.nota_permanente }),
+      ]));
+    }
+
+    // nota della seduta per questo esercizio (livello 2)
+    const notaEsercizioId = 'nota-' + s.id + '-' + e.id;
+    const notaE = V.note.find((n) => n.id === notaEsercizioId);
+    blocco.appendChild(el('details', { class: 'nota-seduta-box' }, [
+      el('summary', { testo: notaE && notaE.testo ? 'Nota di oggi' : 'Aggiungi una nota per questa seduta' }),
+      campoTesto(notaE ? notaE.testo : '', {
+        segnaposto: 'Es: oggi il cavo era diverso',
+        righe: 2,
+        onCambio: conRitardo(async (v) => {
+          await db.salva('note', { id: notaEsercizioId, livello: 'esercizio_seduta', esercizio_id: e.id, seduta_id: s.id, testo: v });
+        }),
+      }),
+    ]));
+
+    if (!confronto.disponibile) {
+      blocco.appendChild(el('p', { class: 'tape tape-giallo', testo: NON_DISPONIBILE + ': ' + confronto.motivo }));
+    } else if (!ultimo) {
+      blocco.appendChild(el('p', { class: 'nota', testo: 'Prima volta che registri questo esercizio: niente da confrontare.' }));
+    } else if (confronto.assistito) {
+      blocco.appendChild(el('p', { class: 'nota', testo: `Ultima volta (${dataLeggibile(ultimo.data)}): ${riassuntoTesto(ultimo, e)} — con gli esercizi assistiti conta la assistenza: meno kg in aiuto significa più lavoro.` }));
+    } else {
+      blocco.appendChild(el('p', { class: 'nota', testo: `Ultima volta (${dataLeggibile(ultimo.data)}): ${riassuntoTesto(ultimo, e)}` }));
+    }
+
+    const tabella = el('div', { class: 'serie' });
+    mine.forEach((serie, i) => {
+      tabella.appendChild(rigaSerie(serie, i + 1, confronto.righe[i], s));
+    });
+    blocco.appendChild(tabella);
+    blocco.appendChild(el('div', { class: 'riga-pulsanti' }, [
+      bottone('+ Aggiungi serie', {
+        onClick: async () => {
+          await creaSerie(s.id, e.id, mine.length + 1, e, {});
+          V.serie = await db.tutti('serie');
+          disegna();
+        },
+        classe: 'fantasma',
+      }),
+    ]));
+    zona.appendChild(blocco);
+  }
+}
+
+function riassuntoTesto(seduta, esercizio) {
+  const serie = V.serie.filter((x) => x.seduta_id === seduta.id && x.esercizio_id === esercizio.id && !x.eliminata);
+  const r = riassuntoEsercizio(serie, esercizio);
+  const parti = [];
+  const chiave = convenzioneMisuraCarico(esercizio.convenzione) ? 'pesoMassimo' : 'pesoAssistenzaMassimo';
+  const etichetta = convenzioneMisuraCarico(esercizio.convenzione) ? 'carico max' : 'assistenza';
+  if (r[chiave] !== null) parti.push(`${etichetta} ${formattaNumero(r[chiave])} kg`);
+  if (r.ripetizioniMedie !== null) parti.push(`rip. medie ${formattaNumero(r.ripetizioniMedie)}`);
+  if (r.serieConSpotter) parti.push(`${r.serieConSpotter} con spotter`);
+  return parti.length ? parti.join(' · ') : 'nessun dato';
+}
+
+function ultimaSedutaConEsercizio(esercizioId, escludiSedutaId) {
+  const candidate = V.sedute.filter((s) => s.stato === 'completata' && s.id !== escludiSedutaId && !s.eliminata);
+  for (const s of candidate.sort((a, b) => String(b.data + b.ora_inizio).localeCompare(String(a.data + a.ora_inizio)))) {
+    if (V.serie.some((x) => x.seduta_id === s.id && x.esercizio_id === esercizioId && !x.eliminata)) return s;
+  }
+  return null;
+}
+
+function rigaSerie(serie, numero, confronto, seduta) {
+  const e = esercizioPerId(serie.esercizio_id);
+  const assistenza = e && !convenzioneMisuraCarico(e.convenzione);
+  const chiave = assistenza ? 'peso_assistenza' : 'peso';
+
+  const riga = el('div', { class: 'riga-serie' });
+  if (serie.spotter) riga.classList.add('serie-spotter');
+  if (serie.ripetizioni !== null && Number(serie.ripetizioni) % 1 !== 0) riga.classList.add('serie-decimale');
+
+  riga.appendChild(el('div', { class: 'numero-serie', testo: String(numero) }));
+
+  const peso = campoNumero(serie[chiave], {
+    etichetta: assistenza ? 'kg di assistenza' : 'kg',
+    onCambio: conRitardo((v) => aggiornaSerie(serie, { [chiave]: Number(String(v).replace(',', '.')) })),
+    onInvalido: (v) => avviso('Non riesco a capire il numero "' + v + '". Il campo com\'era com\'era rimane com\'era.', { tipo: 'errore' }),
+  });
+  peso.classList.add('campo-peso');
+  riga.appendChild(el('label', { class: 'campetto' }, [peso, el('span', { class: 'sotto-campo', testo: assistenza ? 'ASSISTENZA' : 'KG' })]));
+
+  const rip = campoNumero(serie.ripetizioni, {
+    etichetta: 'ripetizioni',
+    onCambio: conRitardo((v) => aggiornaSerie(serie, { ripetizioni: Number(String(v).replace(',', '.')) })),
+    onInvalido: (v) => avviso('Le ripetizioni dev\'essere un numero. Provo a lasciare com\'era.', { tipo: 'errore' }),
+  });
+  rip.classList.add('campo-rip');
+  riga.appendChild(el('label', { class: 'campetto' }, [rip, el('span', { class: 'sotto-campo', testo: 'RIP' })]));
+
+  const botSpotter = bottone(serie.spotter ? 'Spotter' : 'Spotter', {
+    onClick: () => aggiornaSerie(serie, { spotter: !serie.spotter }),
+    classe: serie.spotter ? 'spotter attivo' : 'fantasma',
+  });
+  riga.appendChild(botSpotter);
+
+  const campiAssistite = el('div', { class: 'gruppo-assistite' });
+  if (serie.spotter) {
+    const ass = campoNumero(serie.rip_assistite, {
+      etichetta: 'ripetizioni assistite',
+      onCambio: conRitardo((v) => aggiornaSerie(serie, { rip_assistite: v === null ? null : Number(String(v).replace(',', '.')) })),
+    });
+    ass.classList.add('piccolo');
+    campiAssistite.appendChild(el('label', { class: 'campetto' }, [
+      ass, el('span', { class: 'sotto-campo', testo: 'ASSISTITE' }),
+    ]));
+    if (serie.rip_assistite === null || serie.rip_assistite === undefined) {
+      campiAssistite.appendChild(el('span', { class: 'tag-grigio', testo: 'non specificato' }));
+    }
+  }
+  riga.appendChild(campiAssistite);
+
+  riga.appendChild(el('div', { class: 'riga-pulsanti piccolo' }, [
+    bottone('Nota', {
+      onClick: () => {
+        const t = prompt('Nota della serie ' + numero + (e ? ' di ' + e.nome : ''), serie.nota || '');
+        if (t !== null) aggiornaSerie(serie, { nota: t });
+      },
+      classe: 'fantasma piccolo-b',
+    }),
+    bottone('Elimina', {
+      onClick: async () => {
+        const ok = await chiediConferma('Eliminare la serie?', 'La serie va nel cestino e puoi recuperarla. La seduta non viene toccata.', { testoOk: 'Nel cestino', pericolo: true });
+        if (ok) { await db.cestino('serie', serie.id); V.serie = await db.tutti('serie'); disegna(); }
+      },
+      classe: 'fantasma piccolo-b pericolo-b',
+    }),
+  ]));
+
+  // dropset: 3 giri extra
+  if (serie.dropset) {
+    const extra = el('div', { class: 'dropset' });
+    extra.appendChild(el('div', { class: 'etichetta-dropset', testo: 'Dropset: aggiungi i giri successivi' }));
+    const giri = Array.isArray(serie.giri_extra) ? serie.giri_extra.slice() : [];
+    while (giri.length < GIRI_DROPSET) giri.push({ peso: null, ripetizioni: null });
+    giri.slice(0, GIRI_DROPSET).forEach((g, idx) => {
+      const gp = campoNumero(g.peso, {
+        etichetta: 'giro peso',
+        onCambio: conRitardo((v) => aggiornaSerie(serie, { giri_extra: aggiornaGiro(giri, idx, 'peso', v) })),
+      });
+      const gr = campoNumero(g.ripetizioni, {
+        etichetta: 'giro ripetizioni',
+        onCambio: conRitardo((v) => aggiornaSerie(serie, { giri_extra: aggiornaGiro(giri, idx, 'ripetizioni', v) })),
+      });
+      extra.appendChild(el('div', { class: 'riga-dropset' }, [
+        el('span', { class: 'etichetta-giro', testo: `giro ${idx + 2}` }),
+        el('label', { class: 'campetto' }, [gp, el('span', { class: 'sotto-campo', testo: 'KG' })]),
+        el('label', { class: 'campetto' }, [gr, el('span', { class: 'sotto-campo', testo: 'RIP' })]),
+      ]));
+    });
+    riga.appendChild(extra);
+  }
+
+  if (confronto) {
+    if (!confronto.haConfronto) {
+      riga.appendChild(el('div', { class: 'riga-confronto', testo: confronto.messaggio || NON_DISPONIBILE }));
+    } else {
+      const pezzi = [];
+      if (confronto.differenzaPeso !== null && confronto.differenzaPeso !== undefined) {
+        const segno = confronto.differenzaPeso > 0 ? '+' : confronto.differenzaPeso < 0 ? '−' : '=';
+        pezzi.push(`${segno}${formattaNumero(Math.abs(confronto.differenzaPeso))} kg`);
+        if (confronto.differenzaPesoPerc !== null && confronto.differenzaPesoPerc !== undefined) {
+          const ps = confronto.differenzaPesoPerc > 0 ? '+' : '−';
+          pezzi.push(`${ps}${formattaNumero(Math.abs(confronto.differenzaPesoPerc))}%`);
+        }
+      }
+      if (confronto.differenzaRip !== null && confronto.differenzaRip !== undefined && confronto.differenzaRip !== 0) {
+        const segno = confronto.differenzaRip > 0 ? '+' : '−';
+        pezzi.push(`rip ${segno}${formattaNumero(Math.abs(confronto.differenzaRip))}`);
+      }
+      if (confronto.differenzaAssistenza !== undefined && confronto.differenzaAssistenza !== null) {
+        const d = confronto.differenzaAssistenza;
+        pezzi.push(d === 0 ? 'assistenza uguale' : d < 0 ? `${formattaNumero(Math.abs(d))} kg di assistenza in meno` : `${formattaNumero(d)} kg di assistenza in piu'`);
+      }
+      if (serie.spotter && confronto.attuale && confronto.attuale.spotter === false) {
+        pezzi.push('oggi con lo spotter (prima senza)');
+      }
+      if (serie.rip_assistite !== null && serie.rip_assistite !== undefined) {
+        pezzi.push(`${formattaNumero(serie.rip_assistite)} assistite incluse nelle ${formattaNumero(serie.ripetizioni)}`);
+      }
+      const rigaC = el('div', { class: 'riga-confronto' });
+      rigaC.appendChild(el('span', { class: 'prima', testo: 'prima: ' + (confronto.precedente ? descriviSerie(confronto.precedente) : '—') }));
+      if (pezzi.length) rigaC.appendChild(el('span', { class: 'dopo', testo: ' · oggi: ' + pezzi.join(' · ') }));
+      riga.appendChild(rigaC);
+    }
+  }
+  return riga;
+}
+
+function aggiornaGiro(giri, idx, campo, valore) {
+  const copia = giri.map((g) => ({ ...g }));
+  copia[idx] = { ...copia[idx], [campo]: valore === '' || valore === null ? null : Number(String(valore).replace(',', '.')) };
+  return copia.slice(0, GIRI_DROPSET);
+}
+
+function descriviSerie(x) {
+  const e = esercizioPerId(x.esercizio_id);
+  const assistenza = !!(e && !convenzioneMisuraCarico(e.convenzione));
+  const valore = assistenza ? x.peso_assistenza : x.peso;
+  const pezzi = [`${formattaNumero(valore)} kg`, `${formattaNumero(x.ripetizioni)} rip`];
+  if (x.spotter) {
+    pezzi.push('spotter');
+    if (x.rip_assistite === null || x.rip_assistite === undefined) pezzi.push('assistite non specificate');
+    else pezzi.push(`${formattaNumero(x.rip_assistite)} assistite`);
+  }
+  return pezzi.join(' · ');
+}
+
+async function aggiornaSerie(serie, campi) {
+  const nuova = { ...serie, ...campi };
+  const salvata = await db.salva('serie', nuova);
+  const idx = V.serie.findIndex((x) => x.id === serie.id);
+  if (idx >= 0) V.serie[idx] = salvata;
+  disegnaStatoSalvataggio();
+  return salvata;
+}
+
+async function finisceAllenamento(s) {
+  const secondi = Math.floor((Date.now() - new Date(s.ora_inizio).getTime()) / 1000);
+  const ok = await chiediConferma(
+    'Allenamento finito?',
+    `Durata totale: ${formattaDurata(secondi)}. Salvando non potrai piu\' modificare l\'ora di inizio e fine, ma i dati delle serie restano modificabili.`,
+    { testoOk: 'Confermo, allenamento finito', testoAnnulla: 'Continua ad allenarmi' },
+  );
+  if (!ok) return;
+  if (timerSeduta) { clearInterval(timerSeduta); timerSeduta = null; }
+  await db.salva('sedute', {
+    ...s,
+    ora_fine: new Date().toISOString(),
+    durata_secondi: secondi,
+    stato: 'completata',
+  });
+  await ricarcaTutto();
+  vai('/storico/' + s.id);
+}
+
+/* ===================== vista: storico ===================== */
+
+function vistaStorico(zona) {
+  zona.appendChild(el('h1', { testo: 'Storico' }));
+  const completate = V.sedute.filter((s) => s.stato === 'completata' && !s.eliminata)
+    .sort((a, b) => String(b.data).localeCompare(String(a.data)));
+  if (!completate.length) {
+    zona.appendChild(el('p', { class: 'nota', testo: 'Nessuna seduta registrata. Quando finisci il primo allenamento lo troverai qui.' }));
+    return;
+  }
+  zona.appendChild(el('p', { class: 'nota', testo: `${completate.length} sedute. Nessun dato inventato: qui ci sono solo allenamenti che hai chiuso davvero.` }));
+  const elenco = el('div', { class: 'elenco-sedute' });
+  for (const s of completate) {
+    const serie = V.serie.filter((x) => x.seduta_id === s.id && !x.eliminata);
+    const r = el('a', { href: '#/storico/' + s.id, class: 'riga-seduta' }, [
+      el('img', { src: 'img/logo.png', alt: '', class: 'logo-seduta' }),
+      el('div', {}, [
+        el('strong', { testo: `${s.nome_giorno || 'Seduta'} — ${dataLeggibile(s.data)}` }),
+        el('div', { class: 'nota', testo: `${oraLocale(s.ora_inizio)} → ${oraLocale(s.ora_fine)} · durata ${formattaDurata(s.durata_secondi)} · ${serie.length} serie` }),
+      ]),
+    ]);
+    elenco.appendChild(r);
+  }
+  zona.appendChild(elenco);
+}
+
+async function vistaSedutaPassata(zona, sedutaId) {
+  const s = V.sedute.find((x) => x.id === sedutaId) || await db.prendi('sedute', sedutaId);
+  if (!s) { zona.appendChild(el('p', { testo: 'Seduta non trovata.' })); return; }
+  zona.appendChild(el('a', { href: '#/storico', class: 'indietro', testo: '← storico' }));
+  zona.appendChild(el('h1', { testo: `${s.nome_giorno || 'Seduta'} — ${dataLeggibile(s.data)}` }));
+  zona.appendChild(el('div', { class: 'riepilogo-seduta' }, [
+      el('span', { testo: `Inizio ${oraLocale(s.ora_inizio)}` }),
+      el('span', { testo: `Fine ${s.ora_fine ? oraLocale(s.ora_fine) : '—'}` }),
+      el('span', { class: 'durata', testo: `Durata ${formattaDurata(s.durata_secondi)}` }),
+  ]));
+
+  if (s.stato === 'in_corso') {
+    zona.appendChild(el('div', { class: 'tape tape-viola' }, [
+      el('span', { testo: 'Questa seduta e\' ancora aperta.' }),
+      bottone('Riapri', { onClick: () => vai('/seduta/' + s.id), classe: 'principale' }),
+    ]));
+  }
+
+  const snap = V.versi.find((v) => v.id === s.versione_id);
+  const giorni = (snap && snap.snapshot && snap.snapshot.giorni) || [];
+  const g = giorni.find((x) => x.id === s.giorno_id);
+  const eserciziDelGiorno = g ? (g.esercizi || []) : [];
+
+  if (eserciziDelGiorno.length) {
+    zona.appendChild(el('p', { class: 'nota', testo: `Usata la versione ${snap.numero} della scheda. Le modifiche alla scheda fatte dopo non l'hanno toccata.` }));
+  }
+
+  const ordine = eserciziDelGiorno.length ? eserciziDelGiorno.map((x) => x.esercizio_id) : [...new Set(V.serie.filter((x) => x.seduta_id === s.id).map((x) => x.esercizio_id))];
+  for (const esercizioId of ordine) {
+    const e = esercizioPerId(esercizioId);
+    if (!e) continue;
+    const serie = V.serie.filter((x) => x.seduta_id === s.id && x.esercizio_id === esercizioId && !x.eliminata).sort((a, b) => a.ordine - b.ordine);
+    if (!serie.length) continue;
+    const r = riassuntoEsercizio(serie, e);
+    const blocco = el('section', { class: 'blocco-esercizio' });
+    blocco.appendChild(el('div', { class: 'riga-titoli' }, [
+      el('div', { class: 'titolo-esercizio' }, [
+        el('img', { src: e.foto, alt: '', class: 'foto-esercizio' }),
+        el('h3', { testo: e.nome }),
+      ]),
+      el('span', { class: 'badge-conv', testo: ETICHETTE_CONVENZIONE[e.convenzione] || '' }),
+    ]));
+    const chiave = convenzioneMisuraCarico(e.convenzione) ? 'pesoMassimo' : 'pesoAssistenzaMassimo';
+    const riq = el('p', { class: 'nota', testo: [
+      r[chiave] !== null ? `massimo ${formattaNumero(r[chiave])} kg` : null,
+      r.ripetizioniMedie !== null ? `ripetizioni medie ${formattaNumero(r.ripetizioniMedie)}` : null,
+      r.volume !== null ? `volume ${formattaNumero(r.volume)} kg` : null,
+      r.serieConSpotter ? `${r.serieConSpotter} serie con spotter` : null,
+    ].filter(Boolean).join(' · ') });
+    blocco.appendChild(riq);
+    if (!convenzioneMisuraCarico(e.convenzione)) {
+      blocco.appendChild(el('p', { class: 'nota nota-chiaro', testo: 'Esercizio assistito: il numero e\' il peso di assistenza, piu\' basso = piu\' lavoro. Il volume non si calcola.' }));
+    }
+    const tabella = el('div', { class: 'storico-serie' });
+    serie.forEach((serie, i) => tabella.appendChild(rigaStorico(serie, i + 1, e, s)));
+    blocco.appendChild(tabella);
+    zona.appendChild(blocco);
+  }
+
+  zona.appendChild(el('div', { class: 'riga-pulsanti' }, [
+    bottone('Scarica questa seduta in CSV', {
+      onClick: () => scarica('seduta-' + s.data + '.csv', csvSedute([s])),
+      classe: 'fantasma',
+    }),
+    bottone('Elimina la seduta', {
+      onClick: async () => {
+        const ok = await chiediConferma('Eliminare tutta la seduta?', 'La seduta e tutte le sue serie vanno nel cestino. Puoi recuperarle.', { testoOk: 'Nel cestino', pericolo: true });
+        if (!ok) return;
+        for (const serie of V.serie.filter((x) => x.seduta_id === s.id)) await db.cestino('serie', serie.id);
+        await db.cestino('sedute', s.id);
+        await ricarcaTutto();
+        vai('/storico');
+      },
+      classe: 'fantasma pericolo-b',
+    }),
+  ]));
+}
+
+/** Riga modificabile dello storico: si cambia un numero e si salva da solo. */
+function rigaStorico(serie, numero, e, s) {
+  const assistenza = !convenzioneMisuraCarico(e.convenzione);
+  const chiave = assistenza ? 'peso_assistenza' : 'peso';
+  const riga = el('div', { class: 'riga-serie' });
+  if (serie.spotter) riga.classList.add('serie-spotter');
+  if (serie.ripetizioni !== null && Number(serie.ripetizioni) % 1 !== 0) riga.classList.add('serie-decimale');
+  riga.appendChild(el('div', { class: 'numero-serie', testo: String(numero) }));
+  riga.appendChild(el('label', { class: 'campetto' }, [
+    campoNumero(serie[chiave], {
+      onCambio: conRitardo((v) => aggiornaSerie(serie, { [chiave]: v === '' ? null : Number(String(v).replace(',', '.')) })),
+    }),
+    el('span', { class: 'sotto-campo', testo: assistenza ? 'ASSISTENZA' : 'KG' }),
+  ]));
+  riga.appendChild(el('label', { class: 'campetto' }, [
+    campoNumero(serie.ripetizioni, {
+      onCambio: conRitardo((v) => aggiornaSerie(serie, { ripetizioni: v === '' ? null : Number(String(v).replace(',', '.')) })),
+    }),
+    el('span', { class: 'sotto-campo', testo: 'RIP' }),
+  ]));
+  riga.appendChild(bottone('Spotter', {
+    onClick: () => aggiornaSerie(serie, { spotter: !serie.spotter }),
+    classe: serie.spotter ? 'spotter attivo' : 'fantasma',
+  }));
+  const assistite = el('div', { class: 'gruppo-assistite' });
+  if (serie.spotter) {
+    assistite.appendChild(el('label', { class: 'campetto' }, [
+      campoNumero(serie.rip_assistite, {
+        onCambio: conRitardo((v) => aggiornaSerie(serie, { rip_assistite: v === '' ? null : Number(String(v).replace(',', '.')) })),
+      }),
+      el('span', { class: 'sotto-campo', testo: 'ASSISTITE' }),
+    ]));
+  }
+  riga.appendChild(assistite);
+  if (serie.nota) riga.appendChild(el('div', { class: 'nota-serie', testo: serie.nota }));
+  return riga;
+}
+
+/* ===================== vista: scheda ===================== */
+
+function vistaScheda(zona) {
+  const v = versioneCorrente();
+  if (!v) return;
+  zona.appendChild(el('a', { href: '#/', class: 'indietro', testo: '← allenamento' }));
+  zona.appendChild(el('h1', { testo: 'Modifica la scheda' }));
+  zona.appendChild(el('p', { class: 'nota', testo: `Stai guardando la versione numero ${v.numero}. Quando salvi, nasce una versione nuova: le sedute passate restano esattamente come sono.` }));
+
+  const bozza = JSON.parse(JSON.stringify(v.snapshot));
+  const contenitore = el('div');
+  for (const g of bozza.giorni) {
+    const sezione = el('section', { class: 'blocco-giorno-modifica' });
+    sezione.appendChild(el('h2', { testo: g.nome }));
+    g.esercizi.forEach((es, idx) => {
+      const e = esercizioPerId(es.esercizio_id);
+      if (!e) return;
+      const numeroSerie = el('input', { type: 'number', min: '0', max: '12', class: 'campo-serie', value: String(es.serie.length) });
+      sezione.appendChild(el('div', { class: 'riga-modifica' }, [
+        el('img', { src: e.foto, alt: '', class: 'foto-esercizio' }),
+        el('div', { class: 'cresci' }, [
+          el('strong', { testo: e.nome }),
+          el('span', { class: 'nota', testo: ETICHETTE_CONVENZIONE[e.convenzione] || '' }),
+        ]),
+        el('label', { class: 'campetto' }, [numeroSerie, el('span', { class: 'sotto-campo', testo: 'SERIE' })]),
+        bottone('↑', { onClick: () => sposta(bozza, g, idx, -1), classe: 'fantasma piccolo-b' }),
+        bottone('↓', { onClick: () => sposta(bozza, g, idx, 1), classe: 'fantasma piccolo-b' }),
+        bottone('Togli', {
+          onClick: async () => {
+            const ok = await chiediConferma('Togliere l\'esercizio?', `"${e.nome}" verra\' tolto da ${g.nome} nelle sedute future. Nello storico resta com\'era.`, { testoOk: 'Togli', pericolo: true });
+            if (ok) { g.esercizi.splice(idx, 1); disegna(); }
+          },
+          classe: 'fantasma piccolo-b pericolo-b',
+        }),
+      ]));
+      numeroSerie.addEventListener('change', () => {
+        const n = Math.max(0, Math.min(12, Number(numeroSerie.value) || 0));
+        const serie = [];
+        for (let i = 0; i < n; i++) serie.push(es.serie[i] || { peso: null, peso_assistenza: null, ripetizioni: null, dropset: false });
+        es.serie = serie;
+      });
+      es.riga = numeroSerie;
+    });
+    sezione.appendChild(bottone('+ Aggiungi esercizio', { onClick: () => scegliEsercizio(bozza, g), classe: 'fantasma' }));
+    contenitore.appendChild(sezione);
+  }
+  zona.appendChild(contenitore);
+
+  zona.appendChild(el('div', { class: 'riga-pulsanti fisso' }, [
+    bottone('Salva come nuova versione', {
+      onClick: async () => {
+        const ok = await chiediConferma(
+          'Salvare la nuova scheda?',
+          'Le sedute che hai gia\' fatto restano intatte: loro conservano la versione con cui sono state fatte. Le prossime useranno quella nuova.',
+          { testoOk: 'Salva' },
+        );
+        if (!ok) return;
+        pulisciOrdini(bozza);
+        const nuovoNumero = Math.max(...V.versi.map((x) => Number(x.numero) || 0)) + 1;
+        const nuovaVersioneId = 'ver-' + nuovoId();
+        await db.salva('versioni', {
+          id: nuovaVersioneId, scheda_id: SCHEDA_ID, numero: nuovoNumero, snapshot: bozza,
+          nota: 'Modificata a mano.',
+        });
+        await db.salva('schede', { ...scheda(), versione_corrente: nuovaVersioneId });
+        await ricarcaTutto();
+        avviso(`Scheda salvata. Ora sei alla versione ${nuovoNumero}.`, { tipo: 'ok' });
+        vai('/');
+      },
+      classe: 'principale grande',
+    }),
+  ]));
+
+  const storicoVersioni = el('details', { class: 'storico-versioni' }, [el('summary', { testo: 'Versioni della scheda' })]);
+  for (const ver of V.versi.sort((a, b) => b.numero - a.numero)) {
+    const conta = ((ver.snapshot && ver.snapshot.giorni) || []).reduce((a, g) => a + (g.esercizi || []).length, 0);
+    storicoVersioni.appendChild(el('p', { testo: `Versione ${ver.numero}: ${conta} esercizi — ${ver.nota || ''}` }));
+  }
+  zona.appendChild(storicoVersioni);
+}
+
+function sposta(bozza, g, idx, dir) {
+  const a = idx + dir;
+  if (a < 0 || a >= g.esercizi.length) return;
+  const tmp = g.esercizi[idx];
+  g.esercizi[idx] = g.esercizi[a];
+  g.esercizi[a] = tmp;
+  disegna();
+}
+
+function pulisciOrdini(bozza) {
+  for (const g of bozza.giorni) {
+    g.esercizi.forEach((e, i) => { e.ordine = i + 1; });
+    g.ordine = bozza.giorni.indexOf(g) + 1;
+  }
+  return bozza;
+}
+
+function scegliEsercizio(bozza, g) {
+  const usati = new Set(g.esercizi.map((x) => x.esercizio_id));
+  const liberi = V.esercizi.filter((e) => !usati.has(e.id));
+  if (!liberi.length) { avviso('In questo giorno ci sono gia\' tutti gli esercizi.'); return; }
+  const box = el('div', { class: 'sfondo-dialogo' });
+  const lista = el('div', { class: 'dialogo dialogo-largo' }, [el('h3', { testo: 'Aggiungi a ' + g.nome })]);
+  for (const e of liberi) {
+    lista.appendChild(bottone('', {
+      onClick: () => {
+        g.esercizi.push({
+          id: 'es-' + nuovoId(), ordine: g.esercizi.length + 1, esercizio_id: e.id,
+          opzionale: false, nota: '', serie: [{ peso: null, peso_assistenza: null, ripetizioni: null, dropset: false }],
+        });
+        box.remove();
+        disegna();
+      },
+      classe: 'voce-scelta',
+      figli: [el('img', { src: e.foto, alt: '', class: 'foto-esercizio' }), el('span', { testo: e.nome })],
+    }));
+  }
+  lista.appendChild(bottone('Annulla', { onClick: () => box.remove(), classe: 'fantasma' }));
+  box.appendChild(lista);
+  box.addEventListener('click', (ev) => { if (ev.target === box) box.remove(); });
+  document.body.appendChild(box);
+}
+
+/* ===================== vista: progressi ===================== */
+
+function vistaProgressi(zona) {
+  zona.appendChild(el('h1', { testo: 'Progressi' }));
+  zona.appendChild(el('p', { class: 'nota', testo: 'Gli esercizi sono divisi per variante: Chest Press e Chest Press su un\'altra macchina non vengono mai messi a confronto.' }));
+
+  const v = versioneCorrente();
+  const eserciziNellaScheda = [];
+  for (const g of ((v && v.snapshot && v.snapshot.giorni) || [])) {
+    for (const es of (g.esercizi || [])) {
+      if (!eserciziNellaScheda.includes(es.esercizio_id)) eserciziNellaScheda.push(es.esercizio_id);
+    }
+  }
+  const conDati = eserciziNellaScheda.filter((id) => V.serie.some((x) => x.esercizio_id === id && !x.eliminata));
+  if (!conDati.length) {
+    zona.appendChild(el('p', { class: 'nota', testo: 'Nessun dato registrato. Chiudi un allenamento e qui compaiono i tuoi progressi.' }));
+    return;
+  }
+
+  let selezionato = conDati[0];
+  let periodo = 'tutto';
+
+  const contenitoreGrafici = el('div');
+  const contenitoreTesto = el('div');
+
+  const periodi = [
+    { k: 'tutto', t: 'Tutto' },
+    { k: '30', t: 'Ultimi 30 giorni' },
+    { k: '90', t: 'Ultimi 3 mesi' },
+    { k: '180', t: 'Ultimi 6 mesi' },
+    { k: '365', t: 'Ultimo anno' },
+  ];
+
+  const selettoreEsercizio = el('select', { class: 'selettore' },
+    conDati.map((id) => el('option', { value: id, testo: (esercizioPerId(id) || {}).nome || id })));
+  selettoreEsercizio.addEventListener('change', () => { selezionato = selettoreEsercizio.value; aggiorna(); });
+
+  const selettorePeriodo = el('div', { class: 'chip-scelte' },
+    periodi.map((p) => bottone(p.t, {
+      onClick: (ev) => {
+        periodo = p.k;
+        for (const b of selettorePeriodo.children) b.classList.remove('attivo');
+        ev.currentTarget.classList.add('attivo');
+        aggiorna();
+      },
+      classe: 'chip' + (p.k === 'tutto' ? ' attivo' : ''),
+    })));
+
+  zona.appendChild(el('label', { class: 'nota', testo: 'Esercizio' }));
+  zona.appendChild(selettoreEsercizio);
+  zona.appendChild(el('div', { class: 'nota', testo: 'Periodo' }));
+  zona.appendChild(selettorePeriodo);
+  zona.appendChild(contenitoreTesto);
+  zona.appendChild(contenitoreGrafici);
+
+  function storicoEsercizio() {
+    const seduteRilevanti = V.sedute
+      .filter((s) => s.stato === 'completata' && !s.eliminata)
+      .sort((a, b) => String(a.data).localeCompare(String(b.data)));
+    const punti = [];
+    for (const s of seduteRilevanti) {
+      const serie = V.serie.filter((x) => x.seduta_id === s.id && x.esercizio_id === selezionato && !x.eliminata);
+      if (!serie.length) continue;
+      punti.push({ data: s.data, seduta: s, serie });
+    }
+    if (periodo !== 'tutto') {
+      const limite = new Date();
+      limite.setDate(limite.getDate() - Number(periodo));
+      const iso = limite.toISOString().slice(0, 10);
+      return punti.filter((p) => p.data >= iso);
+    }
+    return punti;
+  }
+
+  function aggiorna() {
+    const e = esercizioPerId(selezionato);
+    const punti = storicoEsercizio();
+    svuota(contenitoreTesto);
+    svuota(contenitoreGrafici);
+
+    const descrizionePeriodo = periodo === 'tutto' ? '' : (periodi.find((p) => p.k === periodo) || {}).t.replace('Ultimi ', '').replace('Ultimo ', '');
+    const res = testoProgresso(e.nome, e, punti, descrizionePeriodo);
+
+    const box = el('div', { class: 'spiegazione' });
+    box.appendChild(el('h3', { testo: e.nome }));
+    box.appendChild(el('p', { class: 'nota', testo: res.convenzione }));
+    for (const riga of res.linee) box.appendChild(el('p', { class: 'riga-spiegazione', testo: riga }));
+    contenitoreTesto.appendChild(box);
+
+    if (!res.dati.length) return;
+
+    const etichettaBreve = (d) => {
+      const x = new Date(d + 'T12:00:00');
+      return x.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' });
+    };
+    const assistito = !convenzioneMisuraCarico(e.convenzione);
+    const chiave = assistito ? 'assistenza' : 'pesoMassimo';
+
+    contenitoreGrafici.appendChild(el('h3', { testo: assistito ? 'Andamento del peso di assistenza' : 'Andamento del carico massimo' }));
+    contenitoreGrafici.appendChild(graficoLinea(
+      res.dati.map((d) => ({ etichetta: etichettaBreve(d.data), ...d })),
+      {
+        chiaveY: chiave,
+        titoloY: assistito ? 'kg di assistenza (meno = meglio)' : 'kg',
+        larghezza: 680,
+        altezza: 220,
+        nota: assistito
+          ? 'Con il corpo libero questo numero non e\' un record: piu\' assistenza = lavoro piu\' leggero.'
+          : 'Il carico massimo di ogni seduta. Ricorda che piu\' kg non vuol dire automaticamente meglio.',
+      },
+    ));
+
+    const ripCostanti = serieARipetizioniCostanti(punti, e);
+    if (ripCostanti.punti.length >= 2) {
+      contenitoreGrafici.appendChild(el('h3', { testo: `Ripetizioni a parita\' di peso (${formattaNumero(ripCostanti.peso)} kg)` }));
+      contenitoreGrafici.appendChild(graficoLinea(
+        ripCostanti.punti.map((p) => ({ etichetta: etichettaBreve(p.data), ...p })),
+        { chiaveY: 'ripetizioniMedie', titoloY: 'ripetizioni medie', larghezza: 680, altezza: 220 },
+      ));
+    }
+
+    const conVolume = res.dati.filter((d) => d.volume !== null);
+    if (!assistito && conVolume.length) {
+      contenitoreGrafici.appendChild(el('h3', { testo: 'Volume della seduta' }));
+      contenitoreGrafici.appendChild(graficoBarre(
+        conVolume.map((d) => ({ etichetta: etichettaBreve(d.data), ...d })),
+        { chiaveY: 'volume', titoloY: 'volume (kg)', larghezza: 680, altezza: 220 },
+      ));
+    }
+  }
+  aggiorna();
+}
+
+/* ===================== vista: impostazioni ===================== */
+
+function vistaImpostazioni(zona) {
+  zona.appendChild(el('h1', { testo: 'Impostazioni' }));
+
+  const statoBox = el('section', { class: 'blocco' });
+  statoBox.appendChild(el('h2', { testo: 'Salvataggio e sincronizzazione' }));
+  const lineaStato = el('p', { class: 'nota', id: 'stato-dettaglio', testo: 'Sto controllando...' });
+  statoBox.appendChild(lineaStato);
+  statoBox.appendChild(el('div', { class: 'riga-pulsanti' }, [
+    bottone('Sincronizza adesso', { onClick: async () => { const r = await sync.sincronizza(); await aggiornaStatoSalvataggio(); avviso(r.messaggio || 'Sincronizzazione fatta.', { tipo: 'ok' }); }, classe: 'fantasma' }),
+    bottone('Riprova dopo un errore', { onClick: async () => { await sync.riprovaOra(); await aggiornaStatoSalvataggio(); }, classe: 'fantasma' }),
+  ]));
+  sync.stato().then((s) => { lineaStato.textContent = `${s.testo} — ${s.dettaglio}`; });
+  zona.appendChild(statoBox);
+
+  const conflittiBox = el('section', { class: 'blocco' });
+  conflittiBox.appendChild(el('h2', { testo: 'Conflitti fra dispositivi' }));
+  if (!V.conflitti.length) {
+    conflittiBox.appendChild(el('p', { class: 'nota', testo: 'Nessun conflitto. Se lo stesso esercizio viene modificato su due dispositivi senza che si parlino, qui trovi le due versioni e scegli tu quale tenere.' }));
+  } else {
+    for (const c of V.conflitti) {
+      const riga = el('div', { class: 'riga-conflitto' });
+      riga.appendChild(el('p', { class: 'nota', testo: `${c.tabella} · ${c.riga_id} · scelta fatta il ${dataLeggibile(c.creato_il)}` }));
+      for (const lato of ['locale', 'remoto']) {
+        const v = c[lato];
+        const campi = Object.entries(v).filter(([k]) => !k.startsWith('_') && !['rev', 'updated_at', 'device_id', 'tabella', 'base_rev'].includes(k))
+          .map(([k, val]) => `${k}: ${val === null ? '—' : val}`).join(', ');
+        riga.appendChild(el('div', { class: 'versione-conflitto' }, [
+          el('strong', { testo: v._etichetta || lato }),
+          el('p', { class: 'nota', testo: campi || '(nessun dato)' }),
+          bottone('Teni questa', {
+            onClick: async () => {
+              await sync.risolvi(c.id, lato);
+              await ricarcaTutto();
+              disegna();
+            },
+            classe: 'fantasma',
+          }),
+        ]));
+      }
+      conflittiBox.appendChild(riga);
+    }
+  }
+  zona.appendChild(conflittiBox);
+
+  const accountBox = el('section', { class: 'blocco' });
+  accountBox.appendChild(el('h2', { testo: 'Account e database online' }));
+  const cfg = sb.leggiConfig();
+  if (!cfg.attivo) {
+    accountBox.appendChild(el('p', { class: 'nota', testo: 'Il database online non e\' ancora collegato. Intanto l\'app funziona tutto: i tuoi dati si salvano su questo dispositivo e puoi usare l\'app anche senza rete.' }));
+    const url = el('input', { type: 'url', class: 'campo-testo', placeholder: 'https://xxxxxxxxxxxx.supabase.co' });
+    const chiave = el('input', { type: 'text', class: 'campo-testo', placeholder: 'chiave publishable anon' });
+    const mail = el('input', { type: 'email', class: 'campo-testo', placeholder: 'la tua email' });
+    const pass = el('input', { type: 'password', class: 'campo-testo', placeholder: 'password' });
+    accountBox.appendChild(el('div', { class: 'campi-account' }, [url, chiave, mail, pass]));
+    accountBox.appendChild(el('div', { class: 'riga-pulsanti' }, [
+      bottone('Collega il database', {
+        onClick: () => {
+          if (!url.value || !chiave.value) { avviso('Mancano l\'indirizzo del database o la chiave.', { tipo: 'errore' }); return; }
+          sb.scriviConfig({ url: url.value.replace(/\/$/, ''), anonKey: chiave.value });
+          avviso('Database collegato. Ora accedi.', { tipo: 'ok' });
+          disegna();
+        },
+        classe: 'principale',
+      }),
+    ]));
+  } else {
+    const s = sb.sessione();
+    accountBox.appendChild(el('p', { class: 'nota', testo: s ? `Collegato come ${s.user && s.user.email ? s.user.email : 'account tuo'}.` : 'Database collegato ma non hai ancora fatto l\'accesso.' }));
+    if (!s) {
+      const mail = el('input', { type: 'email', class: 'campo-testo', placeholder: 'la tua email' });
+      const pass = el('input', { type: 'password', class: 'campo-testo', placeholder: 'password' });
+      accountBox.appendChild(el('div', { class: 'campi-account' }, [mail, pass]));
+      accountBox.appendChild(el('div', { class: 'riga-pulsanti' }, [
+        bottone('Accedi', {
+          onClick: async () => {
+            try { await sb.accedi(mail.value, pass.value); avviso('Accesso riuscito.', { tipo: 'ok' }); await ricarcaTutto(); disegna(); }
+            catch (e) { avviso('Accesso non riuscito: ' + e.message, { tipo: 'errore', durata: 8000 }); }
+          },
+          classe: 'principale',
+        }),
+      ]));
+    } else {
+      accountBox.appendChild(el('div', { class: 'riga-pulsanti' }, [
+        bottone('Esci', {
+          onClick: async () => { await sb.esci(); avviso('Sei uscito.'); disegna(); },
+          classe: 'fantasma',
+        }),
+      ]));
+    }
+  }
+  zona.appendChild(accountBox);
+
+  const backupBox = el('section', { class: 'blocco' });
+  backupBox.appendChild(el('h2', { testo: 'Backup' }));
+  backupBox.appendChild(el('p', { class: 'nota', testo: 'Il backup e\' un file tuo, salvato dove vuoi tu. E\' separato dalla sincronizzazione: cancellare una cosa dall\'account non cancella il backup.' }));
+  backupBox.appendChild(el('div', { class: 'riga-pulsanti' }, [
+    bottone('Scarica il backup JSON', { onClick: () => esportaJson(), classe: 'principale' }),
+    bottone('Scarica CSV esercizi', { onClick: () => scarica('esercizi.csv', csvEsercizi(V.esercizi)), classe: 'fantasma' }),
+    bottone('Scarica CSV sedute', { onClick: () => scarica('sedute.csv', csvSedute(V.sedute)), classe: 'fantasma' }),
+    bottone('Scarica CSV serie', { onClick: () => scarica('serie.csv', csvSerie(V.serie, V.esercizi, V.sedute)), classe: 'fantasma' }),
+  ]));
+  const fileInput = el('input', { type: 'file', accept: 'application/json', class: 'nascosto' });
+  fileInput.addEventListener('change', async () => {
+    const f = fileInput.files && fileInput.files[0];
+    if (!f) return;
+    try { await importaJson(f); } catch (e) { avviso('Importazione non riuscita: ' + e.message, { tipo: 'errore', durata: 8000 }); }
+    fileInput.value = '';
+  });
+  backupBox.appendChild(fileInput);
+  backupBox.appendChild(el('div', { class: 'riga-pulsanti' }, [
+    bottone('Importa un backup JSON', { onClick: () => fileInput.click(), classe: 'fantasma' }),
+  ]));
+  zona.appendChild(backupBox);
+
+  const zonaPericolo = el('section', { class: 'blocco' });
+  zonaPericolo.appendChild(el('h2', { testo: 'Zona pericolosa' }));
+  zonaPericolo.appendChild(el('p', { class: 'nota', testo: 'I dati offline non ancora sincronizzati si perdono se cancelli i dati del browser o disinstalli l\'app. Fai un backup prima.' }));
+  zonaPericolo.appendChild(el('div', { class: 'riga-pulsanti' }, [
+    bottone('Cancella tutti i dati di questo dispositivo', {
+      onClick: async () => {
+        const ok = await chiediConferma('Cancellare tutto?', 'Tutte le sedute di questo dispositivo vanno via. Fai prima un backup.', { testoOk: 'Cancella tutto', pericolo: true });
+        if (!ok) return;
+        await db.svuotaTutto();
+        localStorage.removeItem('palestra-ultimo-pull');
+        location.reload();
+      },
+      classe: 'pericolo',
+    }),
+  ]));
+  zona.appendChild(zonaPericolo);
+
+  zona.appendChild(el('p', { class: 'nota nota-piccola', testo: `Versione dell'app: ${window.PALESTRA_VERSIONE || '1'} · dispositivo: ${db.idDispositivo().slice(0, 13)}` }));
+}
+
+function scarica(nomeFile, contenuto) {
+  const blob = new Blob(['﻿' + contenuto], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = el('a', { href: url, download: nomeFile });
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  avviso('File scaricato: ' + nomeFile, { tipo: 'ok' });
+}
+
+async function esportaJson() {
+  const dati = await db.esportaTutto();
+  const pacchetto = creaPacchetto({
+    esercizi: dati.esercizi, schede: dati.schede, versioni: dati.versioni,
+    sedute: dati.sedute, serie: dati.serie, note: dati.note, conflitti: dati.conflitti,
+  }, { note: 'Backup dell\'app Palestra' });
+  const testo = JSON.stringify(pacchetto, null, 2);
+  const blob = new Blob([testo], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const nome = `palestra-backup-${schedaEvento()}.json`;
+  const a = el('a', { href: url, download: nome });
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  avviso('Backup scaricato: ' + nome, { tipo: 'ok' });
+}
+
+/** Importazione: valida, mostra anteprima, chiede conferma, protegge i dati. */
+async function importaJson(file) {
+  const testo = await file.text();
+  let oggetto;
+  try { oggetto = JSON.parse(testo); }
+  catch { avviso('Questo file non e\' un JSON valido.', { tipo: 'errore' }); return; }
+
+  const esito = validaPacchetto(oggetto);
+  if (!esito.valido) {
+    const box = el('div', { class: 'sfondo-dialogo' }, el('div', { class: 'dialogo' }, [
+      el('h3', { testo: 'Questo file non si puo\' importare' }),
+      ...esito.problemi.map((p) => el('p', { class: 'testo-dialogo', testo: '• ' + p })),
+      bottone('Chiudi', { onClick: () => box.remove(), classe: 'fantasma' }),
+    ]));
+    document.body.appendChild(box);
+    return;
+  }
+  const a = esito.anteprima;
+  const box = el('div', { class: 'sfondo-dialogo' }, el('div', { class: 'dialogo dialogo-largo' }, [
+    el('h3', { testo: 'Anteprima importazione' }),
+    el('p', { class: 'testo-dialogo', testo: `Esercizi: ${a.esercizi} · Schede: ${a.schede} · Versioni scheda: ${a.versioni} · Sedute: ${a.sedute} (di cui ${a.seduteCompletate} finite) · Serie: ${a.serie} · Note: ${a.note}` }),
+    el('p', { class: 'testo-dialogo', testo: a.primaData ? `Periodo: dal ${dataLeggibile(a.primaData)} al ${dataLeggibile(a.ultimaData)}.` : 'Nessuna data nelle sedute.' }),
+    el('p', { class: 'testo-dialogo testo-attenzione', testo: 'Scegli "Unione" se vuoi aggiungere a quello che hai gia\' senza perdere niente. Scegli "Sostituzione" solo per un ripristino completo: mette via tutto quello che c\'e\' ora.' }),
+    el('div', { class: 'dialogo-azioni' }, [
+      bottone('Annulla', { onClick: () => box.remove(), classe: 'fantasma' }),
+      bottone('Unione (consigliata)', {
+        onClick: async () => {
+          await applicaImportazione(oggetto, 'unione');
+          box.remove();
+        },
+        classe: 'principale',
+      }),
+      bottone('Sostituzione completa', {
+        onClick: async () => {
+          const ok = await chiediConferma('Sostituzione completa', 'Tutti i dati attuali di questo dispositivo vengono rimpiazzati da quelli del backup. Sei sicuro?', { testoOk: 'Sostituisci tutto', pericolo: true });
+          if (!ok) return;
+          await esportaJson();
+          await applicaImportazione(oggetto, 'sostituzione');
+          box.remove();
+        },
+        classe: 'pericolo',
+      }),
+    ]),
+  ]));
+  document.body.appendChild(box);
+}
+
+async function applicaImportazione(oggetto, modo) {
+  const t = oggetto.tabelle;
+  for (const tabella of ['esercizi', 'schede', 'versioni', 'sedute', 'serie', 'note']) {
+    const righe = t[tabella] || [];
+    if (modo === 'sostituzione') {
+      for (const riga of await db.tutti(tabella, { includiEliminati: true })) {
+        await db.salva(tabella, { ...riga, eliminata: true });
+      }
+    } else {
+      const esito = unisci(await db.tutti(tabella, { includiEliminati: true }), righe, tabella);
+      for (const riga of esito.righe) {
+        const giaPresente = await db.prendi(tabella, riga.id);
+        await db.salva(tabella, riga, { segna: !giaPresente || riga.sync !== 'pulito' });
+      }
+    }
+  }
+  await ricarcaTutto();
+  avviso(`Importazione finita (${modo}).`, { tipo: 'ok' });
+  disegna();
+}
+
+/* ===================== avvio app ===================== */
+
+avvia();

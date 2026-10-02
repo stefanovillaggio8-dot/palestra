@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Palestra</title>
+<meta name="description" content="La mia scheda di palestra: giorni, serie, pesi, spotter e progressi.">
+<meta name="theme-color" content="#0b0910">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="./img/logo.png">
+<link rel="apple-touch-icon" href="./img/logo.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="stylesheet" href="./stile.css">
+</head>
+<body>
+<div class="stato-save" id="stato-salvataggio">
+  <span class="pallino-stato pallino-neutro"></span>
+  <span class="testo-stato">Avvio...</span>
+  <span id="avviso-conflitti"></span>
+</div>
+<div id="app">
+  <div class="caricamento">Carico i tuoi dati...</div>
+</div>
+<script>window.PALESTRA_VERSIONE = '1';</script>
+<script type="module" src="./src/app.js"></script>
+</body>
+</html>
