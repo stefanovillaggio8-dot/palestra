@@ -42,9 +42,18 @@ async function avvia() {
     sync.iscriviti(() => { aggiornaStatoSalvataggio(); });
     sync.avvia();
     window.addEventListener('hashchange', () => disegna());
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js').catch(() => { /* senza service worker funziona lo stesso, solo niente offline */ });
-    }
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js').catch(() => { /* senza service worker funziona lo stesso, solo niente offline */ });
+    // se il browser prende una versione nuova mentre l'app e' aperta, lo dico
+    try {
+      navigator.serviceWorker.addEventListener('message', (e) => {
+        if (e && e.data && e.data.tipo === 'aggiornata') {
+          disegnaStatoSalvataggio();
+          avviso('C\'e\' una versione nuova dell\'app. Chiudi e riapri per prenderla.', { durata: 9000 });
+        }
+      });
+    } catch { /* pazienza */ }
+  }
     disegna();
     if (db.MOTORE_SCELTO.tipo === 'memoria del browser') {
       avviso('Attenzione: questo browser blocca il database veloce, sto usando la memoria del browser. Tutto funziona, ma esporta un backup ogni tanto.', { durata: 9000 });
@@ -1380,6 +1389,17 @@ function vistaImpostazioni(zona) {
   ]));
   zona.appendChild(schedaBox);
 
+  const versioneBox = el('section', { class: 'blocco' });
+  versioneBox.appendChild(el('h2', { testo: 'Versione dell\'app' }));
+  versioneBox.appendChild(el('p', { class: 'nota', testo: `Stai usando la versione v${window.PALESTRA_VERSIONE || '?'}. Se una cosa non ti funziona, prova a scaricare la versione nuova: cancella i file salvati dal browser e ricarica tutto. I tuoi allenamenti NON vengono toccati.` }));
+  versioneBox.appendChild(el('div', { class: 'riga-pulsanti' }, [
+    bottone('Scarica la versione nuova', { onClick: () => aggiornaDavvero(), classe: 'principale' }),
+    bottone('Ho chiuso e riaperto, non cambia niente', { onClick: () => diagnostica(esitoDiagnostica), classe: 'fantasma' }),
+  ]));
+  const esitoDiagnostica = el('pre', { class: 'testo-errore', testo: '' });
+  versioneBox.appendChild(esitoDiagnostica);
+  zona.appendChild(versioneBox);
+
   const accountBox = el('section', { class: 'blocco' });
   accountBox.appendChild(el('h2', { testo: 'Account e database online' }));
   const cfg = sb.leggiConfig();
@@ -1468,6 +1488,49 @@ function vistaImpostazioni(zona) {
   zona.appendChild(zonaPericolo);
 
   zona.appendChild(el('p', { class: 'nota nota-piccola', testo: `Versione dell'app: ${window.PALESTRA_VERSIONE || '1'} · dispositivo: ${db.idDispositivo().slice(0, 13)}` }));
+}
+
+/**
+ * Cancella davvero tutto quello che il browser ha salvato dell'app
+ * (service worker e cache) e ricarica. Non tocca i dati dei tuoi allenamenti.
+ */
+async function aggiornaDavvero() {
+  avviso('Sto cancellando i file vecchi e ricarico...', { tipo: 'info' });
+  try {
+    if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations) {
+      const tutte = await navigator.serviceWorker.getRegistrations();
+      for (const r of tutte) await r.unregister();
+    }
+  } catch { /* pazienza */ }
+  try {
+    if (typeof caches !== 'undefined' && caches.keys) {
+      const chiavi = await caches.keys();
+      for (const k of chiavi) await caches.delete(k);
+    }
+  } catch { /* pazienza */ }
+  location.reload();
+}
+
+/** Racconta com'e\' messa l'app: se qualcosa non gira, qui lo vedo. */
+async function diagnostica(suDove) {
+  const righe = [];
+  righe.push('versione dichiarata: v' + (window.PALESTRA_VERSIONE || '?'));
+  righe.push('indirizzo: ' + (typeof location !== 'undefined' ? location.href : '?'));
+  righe.push('online: ' + (typeof navigator !== 'undefined' ? String(navigator.onLine) : '?'));
+  righe.push('motore dati: ' + db.MOTORE_SCELTO.tipo);
+  righe.push('vibrazione: ' + (typeof navigator !== 'undefined' && navigator.vibrate ? 'si' : 'no'));
+  righe.push('service worker: ' + ('serviceWorker' in navigator ? 'presente' : 'assente'));
+  try {
+    const res = await fetch('./src/sedute.js?t=' + Date.now());
+    const testo = await res.text();
+    righe.push('sedute.js dal server ha il codice della spunta: '
+      + (testo.includes('segnaAspettoFatto') ? 'SI (sei aggiornato)' : 'NO, hai ancora la versione vecchia'));
+  } catch (e) {
+    righe.push('prova di rete fallita: ' + (e && e.message ? e.message : e));
+  }
+  if (suDove) suDove.textContent = righe.join('\n');
+  console.log('diagnostica:\n' + righe.join('\n'));
+  return righe;
 }
 
 function scarica(nomeFile, contenuto) {

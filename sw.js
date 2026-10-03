@@ -3,7 +3,7 @@
 // anche senza rete. I dati NON stanno qui: stanno in IndexedDB, quindi
 // cancellare la cache non cancella niente del tuo allenamento.
 
-const VERSIONE = 'palestra-v7';
+const VERSIONE = 'palestra-v8';
 
 const FILE = [
   './',
@@ -66,29 +66,41 @@ self.addEventListener('activate', (evento) => {
   evento.waitUntil(
     caches.keys()
       .then((chiavi) => Promise.all(chiavi.filter((k) => k !== VERSIONE).map((k) => caches.delete(k))))
-      .then(() => self.clients.claim()),
+      .then(() => self.clients.claim())
+      .then(() => self.clients.matchAll())
+      .then((clienti) => {
+        for (const c of clienti) {
+          try { c.postMessage({ tipo: 'aggiornata', versione: VERSIONE }); } catch { /* pazienza */ }
+        }
+      }),
   );
 });
 
+// PRIMA LA RETE, poi la cache.
+// Prima facevo il contrario (prima la cache) e il telefono continuava a usare
+// i file vecchi anche dopo che avevo pubblicato quelli nuovi: la spunta non
+// spuntava perche' quella versione proprio non c'era.
+// Se non c'e' rete si usa la cache: l'app funziona lo stesso offline.
 self.addEventListener('fetch', (evento) => {
   const richiesta = evento.request;
   if (richiesta.method !== 'GET') return;
   const url = new URL(richiesta.url);
-  if (url.origin !== self.location.origin) return; // il database lo gestisce chiama per chiamata
+  if (url.origin !== self.location.origin) return; // il database lo gestisce a parte
 
   evento.respondWith(
-    caches.match(richiesta).then((inCache) => {
-      // prima la cache (cosi' parte subito anche offline), poi si aggiorna in fondo
-      const dallaRete = fetch(richiesta)
-        .then((risposta) => {
-          if (risposta && risposta.status === 200) {
-            const copia = risposta.clone();
-            caches.open(VERSIONE).then((c) => c.put(richiesta, copia));
-          }
-          return risposta;
-        })
-        .catch(() => inCache || caches.match('./index.html'));
-      return inCache || dallaRete;
-    }),
+    fetch(richiesta)
+      .then((risposta) => {
+        if (risposta && risposta.status === 200 && risposta.type === 'basic') {
+          const copia = risposta.clone();
+          caches.open(VERSIONE).then((c) => c.put(richiesta, copia));
+        }
+        return risposta;
+      })
+      .catch(async () => {
+        const inCache = await caches.match(richiesta);
+        if (inCache) return inCache;
+        if (richiesta.mode === 'navigate') return caches.match('./index.html');
+        return new Response('Offline', { status: 503, statusText: 'Offline' });
+      }),
   );
 });
