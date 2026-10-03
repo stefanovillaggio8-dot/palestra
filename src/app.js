@@ -352,22 +352,26 @@ function vistaHome(zona) {
   }
   const giorni = (v.snapshot && v.snapshot.giorni) || [];
 
+  zona.appendChild(el('div', { id: 'zona-avviso' }));
+
+  // Se c'e' una seduta aperta, questa e' la cosa piu' importante della schermata:
+  // la metto in cima, grossa, prima ancora del titolo. Se chiudi l'app a meta'
+  // allenamento la trovi subito e la riprendi.
   db.sedutaInCorso().then((attiva) => {
-    if (attiva) {
-      const avvisoSeduta = document.getElementById('zona-avviso');
-      if (avvisoSeduta) {
-        svuota(avvisoSeduta).appendChild(el('div', { class: 'tape tape-viola' }, [
-          el('div', {}, [
-            el('strong', { testo: 'Hai un allenamento in corso' }),
-            el('div', { testo: `Iniziato alle ${oraLocale(attiva.ora_inizio)} del ${dataLeggibile(attiva.data)}` }),
-          ]),
-          bottone('Riprendi', { onClick: () => vai('/seduta/' + attiva.id), classe: 'principale grande' }),
-        ]));
-      }
-    }
+    const avvisoSeduta = document.getElementById('zona-avviso');
+    if (!attiva || !avvisoSeduta) return;
+    const quante = V.serie.filter((x) => x.seduta_id === attiva.id && !x.eliminata).length;
+    const fatte = V.serie.filter((x) => x.seduta_id === attiva.id && !x.eliminata && eFatta(x)).length;
+    svuota(avvisoSeduta).appendChild(el('div', { class: 'tape tape-viola tape-grande' }, [
+      el('div', { class: 'cresci' }, [
+        el('strong', { testo: 'Allenamento in corso' }),
+        el('div', { class: 'nota', testo: `${attiva.nome_giorno || 'Seduta'} del ${dataLeggibile(attiva.data)} · iniziato alle ${oraLocale(attiva.ora_inizio)}` }),
+        el('div', { class: 'nota nota-chiaro', testo: quante ? `${fatte} serie fatte su ${quante}` : 'Nessuna serie ancora' }),
+      ]),
+      bottone('Riprendi', { onClick: () => vai('/seduta/' + attiva.id), classe: 'principale grande' }),
+    ]));
   });
 
-  zona.appendChild(el('div', { id: 'zona-avviso' }));
   zona.appendChild(el('div', { class: 'riga-titoli' }, [
     el('h1', { testo: scheda() ? scheda().nome : 'Palestra' }),
     bottone('Modifica scheda', { onClick: () => vai('/scheda'), classe: 'fantasma' }),
@@ -639,8 +643,11 @@ zona.appendChild(riepilogoSpotter);
     }
 
     const tabella = el('div', { class: 'serie' });
+    const chiavePrev = convenzioneMisuraCarico(e.convenzione) ? 'peso' : 'peso_assistenza';
     mine.forEach((serie, i) => {
-      tabella.appendChild(rigaSerie(serie, i + 1, confronto.righe[i], s));
+      // il peso della serie precedente: serve al bottone "come sopra"
+      const prima = i > 0 ? mine[i - 1][chiavePrev] : null;
+      tabella.appendChild(rigaSerie(serie, i + 1, confronto.righe[i], s, prima));
     });
     blocco.appendChild(tabella);
     blocco.appendChild(el('div', { class: 'riga-pulsanti' }, [
@@ -678,6 +685,15 @@ function riassuntoTesto(seduta, esercizio) {
   return parti.length ? parti.join(' · ') : 'nessun dato';
 }
 
+/** Salva le note di una seduta e le tiene in memoria subito. */
+async function aggiornaNotaSeduta(sedutaId, testo) {
+  const s = V.sedute.find((x) => x.id === sedutaId);
+  if (!s) return;
+  const idx = V.sedute.indexOf(s);
+  await db.salva('sedute', { ...s, note: testo });
+  if (idx >= 0) V.sedute[idx] = { ...s, note: testo };
+}
+
 function ultimaSedutaConEsercizio(esercizioId, escludiSedutaId) {
   const candidate = V.sedute.filter((s) => s.stato === 'completata' && s.id !== escludiSedutaId && !s.eliminata);
   for (const s of candidate.sort((a, b) => String(b.data + b.ora_inizio).localeCompare(String(a.data + a.ora_inizio)))) {
@@ -686,7 +702,7 @@ function ultimaSedutaConEsercizio(esercizioId, escludiSedutaId) {
   return null;
 }
 
-function rigaSerie(serie, numero, confronto, seduta) {
+function rigaSerie(serie, numero, confronto, seduta, pesoRigaSorella = null) {
   const e = esercizioPerId(serie.esercizio_id);
   const assistenza = e && !convenzioneMisuraCarico(e.convenzione);
   const chiave = assistenza ? 'peso_assistenza' : 'peso';
@@ -748,7 +764,37 @@ function rigaSerie(serie, numero, confronto, seduta) {
     onInvalido: (v) => avviso('Non riesco a capire il numero "' + v + '". Il campo com\'era com\'era rimane com\'era.', { tipo: 'errore' }),
   });
   peso.classList.add('campo-peso');
-  riga.appendChild(el('label', { class: 'campetto' }, [peso, el('span', { class: 'sotto-campo', testo: assistenza ? 'ASSISTENZA' : 'KG' })]));
+
+  // In palestra non si scrive: si tocca. I bottoni + e - fanno i passi da 2,5 kg
+  // (i piatti) e "come sopra" copia il peso della serie precedente, che e' la
+  // cosa che serve il 90% delle volte.
+  const scriviPeso = (valore) => {
+    const tondo = Math.round(valore * 100) / 100;
+    peso.value = String(tondo).replace('.', ',');
+    perView[chiave] = tondo;
+    aggiornaSerie(serie, { [chiave]: tondo });
+  };
+  const passo = (segno) => {
+    const attuale = Number(String(peso.value).replace(',', '.'));
+    const base = Number.isFinite(attuale) && peso.value !== '' ? attuale : 0;
+    scriviPeso(base + segno * 2.5);
+  };
+  const rigaPeso = el('div', { class: 'gruppo-peso' }, [
+    peso,
+    el('span', { class: 'sotto-campo', testo: assistenza ? 'ASSISTENZA' : 'KG' }),
+    el('div', { class: 'passi-peso' }, [
+      bottone('−', { onClick: () => passo(-1), classe: 'passo', titolo: 'Togli 2,5 kg' }),
+      bottone('+', { onClick: () => passo(1), classe: 'passo passo-piu', titolo: 'Aggiungi 2,5 kg' }),
+      pesoRigaSorella !== null && pesoRigaSorella !== undefined
+        ? bottone('come sopra', {
+          onClick: () => scriviPeso(pesoRigaSorella),
+          classe: 'passo passo-largo',
+          titolo: `Copia ${formattaNumero(pesoRigaSorella)} kg dalla serie precedente`,
+        })
+        : null,
+    ]),
+  ]);
+  riga.appendChild(el('label', { class: 'campetto' }, [rigaPeso]));
 
   const rip = campoNumero(serie.ripetizioni, {
     etichetta: 'ripetizioni',
@@ -984,6 +1030,8 @@ function vistaStorico(zona) {
       el('div', {}, [
         el('strong', { testo: `${s.nome_giorno || 'Seduta'} — ${dataLeggibile(s.data)}` }),
         el('div', { class: 'nota', testo: `${oraLocale(s.ora_inizio)} → ${oraLocale(s.ora_fine)} · durata ${formattaDurata(s.durata_secondi)} · ${serie.length} serie` }),
+        // l'anteprima delle note: cosi' le ritrovi senza aprire ogni seduta
+        s.note ? el('div', { class: 'anteprima-nota', testo: '“' + String(s.note).slice(0, 90).replace(/\s+/g, ' ') + '”' }) : null,
       ]),
     ]);
     elenco.appendChild(r);
@@ -1007,6 +1055,23 @@ async function vistaSedutaPassata(zona, sedutaId) {
       el('span', { testo: 'Questa seduta e\' ancora aperta.' }),
       bottone('Riapri', { onClick: () => vai('/seduta/' + s.id), classe: 'principale' }),
     ]));
+  }
+
+  // Le note della seduta: durante l'allenamento le scivi qui, e adesso tornano
+  // qui sotto. Prima sparivano: le scrivevi e non le ritrovavi piu'.
+  if (s.note || s.stato === 'in_corso') {
+    const boxNote = el('div', { class: 'box-note-seduta' });
+    boxNote.appendChild(el('h3', { testo: 'Note della seduta' }));
+    if (s.note) boxNote.appendChild(el('p', { class: 'testo-note-seduta', testo: s.note }));
+    const campoNote = campoTesto(s.note || '', {
+      segnaposto: 'Come ti sei sentito, cosa hai cambiato...',
+      righe: 2,
+      onCambio: conRitardo((v) => { aggiornaNotaSeduta(s.id, v); }),
+    });
+    campoNote.classList.add('campo-note-seduta');
+    boxNote.appendChild(el('div', { class: 'nota nota-piccola' , testo: s.note ? 'Puoi correggerle qui sotto.' : 'Non hai scritto niente.' }));
+    boxNote.appendChild(campoNote);
+    zona.appendChild(boxNote);
   }
 
   const snap = V.versi.find((v) => v.id === s.versione_id);
@@ -1045,7 +1110,11 @@ async function vistaSedutaPassata(zona, sedutaId) {
       blocco.appendChild(el('p', { class: 'nota nota-chiaro', testo: 'Esercizio assistito: il numero e\' il peso di assistenza, piu\' basso = piu\' lavoro. Il volume non si calcola.' }));
     }
     const tabella = el('div', { class: 'storico-serie' });
-    serie.forEach((serie, i) => tabella.appendChild(rigaStorico(serie, i + 1, e, s)));
+    const chiavePrev = convenzioneMisuraCarico(e.convenzione) ? 'peso' : 'peso_assistenza';
+    serie.forEach((unaSerie, i) => {
+      const prima = i > 0 ? serie[i - 1][chiavePrev] : null;
+      tabella.appendChild(rigaStorico(unaSerie, i + 1, e, s, prima));
+    });
     blocco.appendChild(tabella);
     zona.appendChild(blocco);
   }
@@ -1070,48 +1139,121 @@ async function vistaSedutaPassata(zona, sedutaId) {
 }
 
 /** Riga modificabile dello storico: si cambia un numero e si salva da solo. */
-function rigaStorico(serie, numero, e, s) {
+function rigaStorico(serie, numero, e, s, pesoRigaSorella = null) {
   const assistenza = !convenzioneMisuraCarico(e.convenzione);
   const chiave = assistenza ? 'peso_assistenza' : 'peso';
   const riga = el('div', { class: 'riga-serie', dati: { serieId: serie.id } });
   if (serie.spotter) riga.classList.add('serie-spotter');
   if (serie.ripetizioni !== null && Number(serie.ripetizioni) % 1 !== 0) riga.classList.add('serie-decimale');
   if (eFatta(serie)) riga.classList.add('serie-fatta');
-  // nello storico la spunta c\'e\' anche lei, e si puo\' togglare come in palestra
-  riga.appendChild(el('button', {
+
+  // copia di comodo: come nella seduta attiva, aggiorno subito quello che
+  // vedo e poi salvo. Prima qui non si aggiornava niente, e per questo
+  // premendo lo spotter sembrava che si fosse spuntata la serie (e viceversa).
+  const perView = { ...serie };
+  const etichettaFatta = el('span', { class: 'etichetta-fatta', testo: '' });
+  riga.appendChild(etichettaFatta);
+
+  const spunta = el('button', {
     type: 'button',
     class: 'bottone-spunta' + (eFatta(serie) ? ' attiva' : ''),
     title: eFatta(serie) ? 'Segnata come fatta: tocca per toglierla' : 'Segna come fatta',
     'aria-pressed': eFatta(serie) ? 'true' : 'false',
+    onClick: () => {
+      const fatta = !eFatta(perView);
+      perView.stato = fatta ? 'fatta' : 'da_fare';
+      segnaAspettoFatto(riga, spunta, fatta, etichettaFatta);
+      if (fatta) pulsa();
+      aggiornaSerie(serie, { stato: perView.stato })
+        .then(() => disegna())
+        .catch(() => mostraErroreBreve('Non sono riuscito a salvare la spunta.'));
+    },
+  }, [el('span', { class: 'segno-spunta', testo: eFatta(serie) ? '✓' : '' })]);
+  riga.appendChild(spunta);
+
+  riga.appendChild(el('button', {
+    type: 'button',
+    class: 'numero-serie numero-serie-bottone',
+    title: 'Segna come fatta',
+    'aria-pressed': eFatta(serie) ? 'true' : 'false',
+    onClick: () => {
+      const fatta = !eFatta(perView);
+      perView.stato = fatta ? 'fatta' : 'da_fare';
+      segnaAspettoFatto(riga, spunta, fatta, etichettaFatta);
+      if (fatta) pulsa();
+      aggiornaSerie(serie, { stato: perView.stato })
+        .then(() => disegna())
+        .catch(() => mostraErroreBreve('Non sono riuscito a salvare la spunta.'));
+    },
+  }, [el('span', { testo: String(numero) })]));
+
+  const peso = campoNumero(serie[chiave], {
+    onCambio: conRitardo((v) => aggiornaSerie(serie, { [chiave]: v === '' ? null : Number(String(v).replace(',', '.')) })),
+  });
+  peso.classList.add('campo-peso');
+  const scriviPeso = (valore) => {
+    const tondo = Math.round(valore * 100) / 100;
+    peso.value = String(tondo).replace('.', ',');
+    perView[chiave] = tondo;
+    aggiornaSerie(serie, { [chiave]: tondo });
+  };
+  const passo = (segno) => {
+    const attuale = Number(String(peso.value).replace(',', '.'));
+    const base = peso.value !== '' && Number.isFinite(attuale) ? attuale : 0;
+    scriviPeso(base + segno * 2.5);
+  };
+  riga.appendChild(el('label', { class: 'campetto' }, [
+    el('div', { class: 'gruppo-peso' }, [
+      peso,
+      el('span', { class: 'sotto-campo', testo: assistenza ? 'ASSISTENZA' : 'KG' }),
+      el('div', { class: 'passi-peso' }, [
+        bottone('−', { onClick: () => passo(-1), classe: 'passo', titolo: 'Togli 2,5 kg' }),
+        bottone('+', { onClick: () => passo(1), classe: 'passo passo-piu', titolo: 'Aggiungi 2,5 kg' }),
+        pesoRigaSorella !== null && pesoRigaSorella !== undefined
+          ? bottone('come sopra', {
+            onClick: () => scriviPeso(pesoRigaSorella),
+            classe: 'passo passo-largo',
+            titolo: `Copia ${formattaNumero(pesoRigaSorella)} kg dalla serie precedente`,
+          })
+          : null,
+      ]),
+    ]),
+  ]));
+
+  const rip = campoNumero(serie.ripetizioni, {
+    onCambio: conRitardo((v) => aggiornaSerie(serie, { ripetizioni: v === '' ? null : Number(String(v).replace(',', '.')) })),
+  });
+  rip.classList.add('campo-rip');
+  riga.appendChild(el('label', { class: 'campetto' }, [rip, el('span', { class: 'sotto-campo', testo: 'RIP' })]));
+
+  // lo spotter: come in palestra, si vede subito e si può togliere
+  const badgeSpotter = el('span', { class: 'badge-spotter' });
+  const scriviBadge = () => {
+    const testo = etichettaSpotterSerie(perView);
+    badgeSpotter.textContent = testo ? 'fatta con lo spotter · ' + testo : '';
+  };
+  scriviBadge();
+  const botSpotter = bottone(perView.spotter ? '✓ Spotter' : 'Spotter', {
     onClick: async () => {
-      await aggiornaSerie(serie, { stato: commutaFatta(serie).stato });
+      const nuovo = !perView.spotter;
+      perView.spotter = nuovo;
+      await aggiornaSerie(serie, { spotter: nuovo });
+      if (nuovo) pulsa();
       disegna();
     },
-  }, [el('span', { class: 'segno-spunta', testo: eFatta(serie) ? '✓' : '' })]));
-  riga.appendChild(el('div', { class: 'numero-serie', testo: String(numero) }));
-  riga.appendChild(el('label', { class: 'campetto' }, [
-    campoNumero(serie[chiave], {
-      onCambio: conRitardo((v) => aggiornaSerie(serie, { [chiave]: v === '' ? null : Number(String(v).replace(',', '.')) })),
-    }),
-    el('span', { class: 'sotto-campo', testo: assistenza ? 'ASSISTENZA' : 'KG' }),
-  ]));
-  riga.appendChild(el('label', { class: 'campetto' }, [
-    campoNumero(serie.ripetizioni, {
-      onCambio: conRitardo((v) => aggiornaSerie(serie, { ripetizioni: v === '' ? null : Number(String(v).replace(',', '.')) })),
-    }),
-    el('span', { class: 'sotto-campo', testo: 'RIP' }),
-  ]));
-  riga.appendChild(bottone('Spotter', {
-    onClick: () => aggiornaSerie(serie, { spotter: !serie.spotter }),
-    classe: serie.spotter ? 'spotter attivo' : 'fantasma',
-  }));
+    classe: perView.spotter ? 'spotter attivo' : 'fantasma',
+  });
+  riga.appendChild(botSpotter);
+  riga.appendChild(badgeSpotter);
+
   const assistite = el('div', { class: 'gruppo-assistite' });
-  if (serie.spotter) {
+  if (perView.spotter) {
+    const ass = campoNumero(serie.rip_assistite, {
+      onCambio: conRitardo((v) => aggiornaSerie(serie, { rip_assistite: v === '' ? null : Number(String(v).replace(',', '.')) })),
+    });
+    ass.classList.add('piccolo');
     assistite.appendChild(el('label', { class: 'campetto' }, [
-      campoNumero(serie.rip_assistite, {
-        onCambio: conRitardo((v) => aggiornaSerie(serie, { rip_assistite: v === '' ? null : Number(String(v).replace(',', '.')) })),
-      }),
-      el('span', { class: 'sotto-campo', testo: 'ASSISTITE' }),
+      ass, el('span', { class: 'sotto-campo', testo: 'ASSISTITE' }),
     ]));
   }
   riga.appendChild(assistite);

@@ -36,9 +36,15 @@ export function campoNumero(valore, { onCambio, onInvalido, id, etichetta, extra
     autocomplete: 'off',
     class: 'campo-num',
     'data-etichetta': etichetta || '',
-    value: valore === null || valore === undefined ? '' : String(valore).replace('.', ','),
     ...extra,
   });
+  // il valore va impostato come PROPRIETA' del campo, non come attributo:
+  // e' il modo giusto, e cosi' il bottone "+" o "come sopra" parte sempre dal
+  // numero giusto invece di trovare il campo vuoto.
+  const iniziale = (extra && extra.value !== undefined)
+    ? extra.value
+    : (valore === null || valore === undefined ? '' : String(valore).replace('.', ','));
+  input.value = iniziale === null || iniziale === undefined ? '' : String(iniziale);
   if (id) input.id = id;
   input.addEventListener('input', () => {
     const grezzo = input.value;

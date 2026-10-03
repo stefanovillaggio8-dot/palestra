@@ -176,6 +176,24 @@ a { color: var(--blu); text-decoration: none; }
 .avanzamento strong { color: var(--verde); font-size: 1.05rem; font-weight: 800; }
 .avanzamento span { color: var(--testo-3); font-size: .74rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
 
+/* note della seduta: finalmente si vedono anche dopo, nello storico */
+.anteprima-nota {
+  color: var(--arancio); font-size: .8rem; font-style: italic;
+  margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.box-note-seduta {
+  background: var(--card); border: 1px solid #4a3a1c;
+  border-left: 4px solid var(--arancio);
+  border-radius: var(--r); padding: 13px; margin: 14px 0;
+}
+.box-note-seduta h3 { color: var(--arancio); font-size: .95rem; margin-bottom: 6px; }
+.testo-note-seduta {
+  white-space: pre-wrap; color: var(--testo); line-height: 1.6;
+  background: var(--nero-2); border: 1px solid var(--bordo);
+  border-radius: 10px; padding: 11px 12px; margin: 0 0 8px;
+}
+.campo-note-seduta { margin-top: 4px; }
+
 /* torna in cima: compare solo quando sei sceso */
 .bottone-su {
   position: fixed; right: 14px; z-index: 45;
@@ -330,6 +348,17 @@ a { color: var(--blu); text-decoration: none; }
 .campo-testo:focus { outline: 2px solid var(--viola); }
 .sotto-campo { font-size: .62rem; font-weight: 800; color: var(--testo-3); letter-spacing: .06em; }
 .gruppo-assistite { display: flex; flex-direction: column; gap: 3px; align-items: center; }
+/* i bottoni dei kg: in palestra si tocca, non si scrive */
+.gruppo-peso { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.passi-peso { display: flex; gap: 4px; margin-top: 2px; }
+.bot.passo {
+  min-height: 32px; min-width: 34px; padding: 3px 8px;
+  font-size: 1.05rem; font-weight: 900; line-height: 1;
+  border-radius: 9px; background: var(--nero-2); color: var(--testo-2);
+}
+.bot.passo:active { background: var(--card-2); }
+.bot.passo-piu { color: var(--verde); border-color: #2c5c44; }
+.bot.passo-largo { font-size: .68rem; font-weight: 800; letter-spacing: .02em; color: var(--blu); border-color: #2c3f6b; }
 .tag-grigio { font-size: .62rem; color: var(--testo-3); font-weight: 700; }
 .nota-serie { width: 100%; color: var(--testo-2); font-size: .82rem; }
 
@@ -517,6 +546,13 @@ a { color: var(--blu); text-decoration: none; }
   display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
 }
 .tape-viola { background: var(--viola-scuro); border: 1px solid #3a2c5e; }
+/* l'allenamento in corso e' la cosa piu' importante: si vede da lontano */
+.tape-grande {
+  padding: 16px; margin: 0 0 14px;
+  border: 2px solid var(--viola);
+  box-shadow: 0 10px 30px rgba(124, 92, 255, .22);
+}
+.tape-grande strong { font-size: 1.15rem; display: block; margin-bottom: 2px; }
 .tape-giallo { background: #332a10; border: 1px solid #5c4a1c; color: var(--giallo); font-size: .88rem; }
 
 .sfondo-dialogo {

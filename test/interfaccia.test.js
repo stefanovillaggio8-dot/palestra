@@ -856,6 +856,111 @@ test('29. durante la seduta vedi a che punto sei e dove ti trovi', async () => {
   assert.equal((attive[0].textContent || '').trim(), 'Allenamento', 'e\' quella giusta');
 });
 
+test('30. le note della seduta si ritrovano dopo, nello storico', async () => {
+  // Ste: "che senso ha la parte con scritto note della seduta se tanto poi non
+  // spuntano". Ora la nota si vede aprendo la seduta, e in anteprima nell'elenco.
+  const finite = (await db.tutti('sedute')).filter((s) => s.stato === 'completata' && !s.eliminata);
+  assert.ok(finite.length >= 1, 'c\'e\' almeno una seduta finita');
+  const s = finite[0];
+  const frase = 'Mi sono sentito forte oggi';
+  await db.salva('sedute', { ...s, note: frase }, { segna: false });
+  await rilanciaAvvio();
+
+  // nell'elenco dello storico c'e' l'anteprima
+  globalThis.window.location.hash = '#/storico';
+  await attendiChe(() => perClasse(app, 'riga-seduta').length >= 1);
+  assert.match(app.textContent || '', /Mi sono sentito forte oggi/, 'l\'elenco mostra l\'anteprima della nota');
+
+  // e aprendo la seduta la nota c\'e\' per intero, con la possibili\' di correggerla
+  globalThis.window.location.hash = '#/storico/' + s.id;
+  await attendiChe(() => perClasse(app, 'box-note-seduta').length >= 1);
+  const box = perClasse(app, 'box-note-seduta')[0];
+  assert.match(box.textContent || '', /Note della seduta/);
+  assert.match(box.textContent || '', /Mi sono sentito forte oggi/);
+  assert.ok(perClasse(box, 'campo-note-seduta').length === 1, 'e la puoi correggere');
+
+  // ripulisco, cosi\' gli altri test non trovano la nota
+  await db.salva('sedute', { ...(await db.prendi('sedute', s.id)), note: '' }, { segna: false });
+});
+
+test('31. i kg si cambiano coi bottoni, senza scrivere', async () => {
+  const seduta = await db.sedutaInCorso() || await assicuratiSeduta();
+  globalThis.window.location.hash = '#/seduta/' + seduta.id;
+  await attendiChe(() => perClasse(app, 'cronometro').length === 1 && perClasse(app, 'riga-serie').length >= 2);
+
+  const righe = perClasse(app, 'riga-serie');
+  const leggi = async (riga) => {
+    const inDb = await db.prendi('serie', riga.dataset.serieId);
+    return inDb.peso !== null && inDb.peso !== undefined ? inDb.peso : inDb.peso_assistenza;
+  };
+
+  const iniziale = await leggi(righe[1]);
+  const valorePrima = await leggi(righe[0]);
+
+  // il bottone + aggiunge 2,5 kg (i piatti)
+  const piu = pulsanti(righe[1]).find((b) => (b.textContent || '').trim() === '+');
+  assert.ok(piu, 'il bottone + c\'e\'');
+  await piu.click();
+  await new Promise((r) => setTimeout(r, 200));
+  assert.equal(await leggi(righe[1]), Math.round((Number(iniziale) + 2.5) * 100) / 100, '+ aggiunge 2,5 kg');
+
+  // il bottone "come sopra" copia il peso della serie di prima
+  const comeSopra = pulsanti(righe[1]).find((b) => /come sopra/i.test(b.textContent || ''));
+  assert.ok(comeSopra, 'il bottone "come sopra" c\'e\' dalla seconda serie in poi');
+  await comeSopra.click();
+  await new Promise((r) => setTimeout(r, 200));
+  assert.equal(await leggi(righe[1]), valorePrima, 'copia il peso della serie precedente');
+
+  // e nella PRIMA serie non c\'e\' "come sopra": non ha niente sopra da copiare
+  assert.equal(pulsanti(righe[0]).filter((b) => /come sopra/i.test(b.textContent || '')).length, 0,
+    'nella prima serie il bottone "come sopra" non c\'e\'');
+});
+
+test('32. nello storico spotter e spunta non si confondono', async () => {
+  // Ste: "se premo che ho fatto lo spotter si bugga, e se premo che ho fatto la
+  // serie dice che ho fatto lo spotter". Il motivo: il bottone dello spotter non
+  // ridisegnava, quindi il cambio compariva solo quando premevi la spunta.
+  const finite = (await db.tutti('sedute')).filter((s) => s.stato === 'completata' && !s.eliminata);
+  assert.ok(finite.length >= 1, 'c\'e\' una seduta passata');
+  const s = finite[0];
+  globalThis.window.location.hash = '#/storico/' + s.id;
+  await attendiChe(() => perClasse(app, 'riga-serie').length >= 1);
+
+  const apriRiga = () => perClasse(app, 'riga-serie')[0];
+
+  // 1) premo lo spotter: deve accendersi SUBITO e restare acceso
+  const prima = apriRiga();
+  const botSpotter = pulsanti(prima).find((b) => /Spotter/.test(b.textContent || ''));
+  await botSpotter.click();
+  await new Promise((r) => setTimeout(r, 250));
+  assert.equal((await db.prendi('serie', prima.dataset.serieId)).spotter, true, 'lo spotter e\' salvato');
+
+  let dopo = apriRiga();
+  assert.match(pulsanti(dopo).find((b) => /Spotter/.test(b.textContent || '')).textContent, /✓/,
+    'il bottone dello spotter risulta acceso');
+  const badgePieno = perClasse(dopo, 'badge-spotter')[0];
+  assert.match(badgePieno.textContent || '', /fatta con lo spotter/, 'e c\'e\' la scritta con le ripetizioni');
+
+  // 2) e si puo\' TOGLIERE: prima non si poteva, perche\' leggeva una copia vecchia
+  const bot2 = pulsanti(dopo).find((b) => /Spotter/.test(b.textContent || ''));
+  await bot2.click();
+  await new Promise((r) => setTimeout(r, 250));
+  assert.equal((await db.prendi('serie', prima.dataset.serieId)).spotter, false, 'lo spotter si toglie di nuovo');
+  dopo = apriRiga();
+  assert.doesNotMatch(pulsanti(dopo).find((b) => /Spotter/.test(b.textContent || '')).textContent, /✓/,
+    'il bottone torna spento');
+  assert.equal((perClasse(dopo, 'badge-spotter')[0] || {}).textContent || '', '',
+    'e la scritta dello spotter si svuota (il CSS la nasconde)');
+
+  // 3) la spunta non tocca lo spotter
+  const spunta = perClasse(dopo, 'bottone-spunta')[0];
+  await spunta.click();
+  await new Promise((r) => setTimeout(r, 250));
+  const fin = await db.prendi('serie', prima.dataset.serieId);
+  assert.equal(fin.spotter, false, 'spuntare la serie lascia lo spotter come era');
+  assert.equal(fin.stato, 'fatta', 'e la serie risulta fatta');
+});
+
 test('Z. nessun errore JavaScript durante tutta la navigazione', () => {
   assert.deepEqual(errori, [], 'errori:\n' + errori.join('\n'));
 });
