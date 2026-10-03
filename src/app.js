@@ -12,7 +12,7 @@ import {
   ETICHETTE_CONVENZIONE, CONVENZIONI, convenzioneMisuraCarico, etichettaUnita, campoCarico,
 } from './numeri.js';
 import { confrontaEsercizio, riassuntoEsercizio, NON_DISPONIBILE } from './confronto.js';
-import { prossimoOrdine, apriSeduta, nuovaSerie, seduteFinite, eFatta, commutaFatta, pulsa, segnaAspettoFatto, registra, REGISTRO, cambiaSerie, etichettaSpotterSerie } from './sedute.js';
+import { prossimoOrdine, apriSeduta, nuovaSerie, seduteFinite, eFatta, commutaFatta, pulsa, segnaAspettoFatto, registra, REGISTRO, cambiaSerie, etichettaSpotterSerie, aspettaSalvataggi } from './sedute.js';
 import {
   MODALITA, raccogliPerEsercizio, proposta as propostaAggiornamento, notaSulNumeroSerie,
   riassuntoSpotter,
@@ -434,12 +434,16 @@ function vistaGiorno(zona, giornoId) {
     const assistito = !convenzioneMisuraCarico(e.convenzione);
     const seriePreviste = (es.serie || []).map((x, i) => {
       const p = assistito ? x.peso_assistenza : x.peso;
-      return el('span', { class: 'prevista' }, [
+      return el('span', { class: 'prevista' + (x.spotter ? ' prevista-spotter' : '') }, [
         el('span', { class: 'prevista-n', testo: String(i + 1) }),
         el('span', { testo: `${formattaNumero(p)} kg` }),
         el('span', { class: 'prevista-x', testo: '×' }),
         el('span', { testo: `${formattaNumero(x.ripetizioni)} rip` }),
         x.dropset ? el('span', { class: 'tag-dropset', testo: 'dropset' }) : null,
+        // Ste: "deve spuntarmi pure se ho fatto delle rep con lo spotter".
+        // Nella scheda la serie che l\'ultima volta hai fatto col spotter resta
+        // segnata, cosi\' prima di iniziare lo vedi e sai cosa aspettarti.
+        x.spotter ? el('span', { class: 'tag-spotter', testo: '✓ spotter' }) : null,
       ]);
     });
 
@@ -900,6 +904,11 @@ async function finisceAllenamento(s) {
   );
   if (!ok) return;
   if (timerSeduta) { clearInterval(timerSeduta); timerSeduta = null; }
+  // Aspetto che finiscano i salvataggi ancora in volo: se l\'ultima cosa che
+  // ho toccato e\' stato lo spotter (o i kg) e premo subito "Allenamento finito",
+  // senza questo la scheda risulterebbe "niente di nuovo" e la conferma di
+  // aggiornarla non comparirebbe.
+  await aspettaSalvataggi();
   await db.salva('sedute', {
     ...s,
     ora_fine: new Date().toISOString(),
@@ -1313,11 +1322,56 @@ function vistaProgressi(zona) {
       punti: storicoDi(id),
     })));
     if (generale.numeri.length) {
-      spazioGenerale.appendChild(el('div', { class: 'numeri-riepilogo' },
-        generale.numeri.map((n) => el('div', { class: 'numero-riepilogo ' + (n.etichetta === 'migliorati' ? 'verde' : n.etichetta === 'indietro' ? 'rosso' : 'neutro') }, [
+      // I riquadri si toccano: premendo "migliorati" (o "fermi", o "indietro")
+      // sotto compare la lista esercizio per esercizio con di quanto e' cambiato.
+      const dettaglio = el('div', { class: 'dettaglio-riepilogo' });
+      const colori = { migliorati: 'verde', indietro: 'rosso', fermi: 'neutro' };
+      const riquadri = [];
+
+      const chiudiTutti = () => {
+        for (const b of riquadri) b.setAttribute('aria-pressed', 'false');
+      };
+
+      const scriviDettaglio = (chiave) => {
+        svuota(dettaglio);
+        const voci = (generale.gruppi && generale.gruppi[chiave]) || [];
+        chiudiTutti();
+        for (const b of riquadri) {
+          if (b.dataset.gruppo === chiave) b.setAttribute('aria-pressed', 'true');
+        }
+        if (!voci.length) {
+          dettaglio.appendChild(el('p', { class: 'nota', testo: 'Nessun esercizio in questo gruppo.' }));
+          return;
+        }
+        for (const v of voci) {
+          dettaglio.appendChild(el('p', { class: 'riga-variazione ' + (colori[chiave] || 'neutro'), testo: v.frase }));
+        }
+      };
+
+      for (const n of generale.numeri) {
+        const b = bottone('', {
+          onClick: () => {
+            const giaAperto = riquadri.find((x) => x.getAttribute('aria-pressed') === 'true');
+            if (giaAperto && giaAperto.dataset.gruppo === n.etichetta) {
+              svuota(dettaglio); // secondo tocco: richiudi
+              chiudiTutti();
+              return;
+            }
+            scriviDettaglio(n.etichetta);
+          },
+          classe: 'numero-riepilogo ' + (colori[n.etichetta] || 'neutro'),
+        }, [
           el('strong', { testo: String(n.valore) }),
           el('span', { testo: n.etichetta }),
-        ]))));
+        ]);
+        b.dataset.gruppo = n.etichetta;
+        b.setAttribute('aria-pressed', 'false');
+        riquadri.push(b);
+      }
+
+      spazioGenerale.appendChild(el('div', { class: 'numeri-riepilogo' }, riquadri));
+      spazioGenerale.appendChild(dettaglio);
+      spazioGenerale.appendChild(el('p', { class: 'nota nota-piccola', testo: 'Tocca un riquadro per vedere gli esercizi uno per uno e di quanto sono cambiati.' }));
     }
     for (const riga of generale.linee) {
       spazioGenerale.appendChild(el('p', { class: 'riga-spiegazione', testo: riga }));

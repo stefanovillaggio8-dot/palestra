@@ -163,6 +163,40 @@ export function testoProgresso(nomeEsercizio, esercizio, storico, periodoDescriz
 }
 
 /**
+ * Frase con la differenza di UN esercizio: da dove a dove e di quanto.
+ * E' quella che appare quando Ste preme su "migliorati", "fermi" o "indietro".
+ */
+export function fraseVariazione(v) {
+  if (!v) return '';
+  const numero = formattaNumero(Math.abs(v.delta));
+  const perc = differenzaPercentuale(v.da, v.a);
+  const eta = (perc === null ? '' : ` (${frasePercentuale(perc)})`);
+  const numeroSedute = v.punti === 2 ? '2 sedute' : `${v.punti} sedute`;
+
+  if (v.migliore === 0) {
+    const stessa = v.assistito
+      ? `sempre ${formattaNumero(v.a)} kg di assistenza`
+      : `sempre ${formattaNumero(v.a)} kg`;
+    return `${v.nome}: ${stessa}, niente cambiato in ${numeroSedute}.`;
+  }
+  if (v.assistito) {
+    const segno = v.migliore > 0 ? '−' : '+';
+    const per = v.migliore > 0 ? 'meno' : 'piu\'';
+    const spiegazione = v.migliore > 0
+      ? 'quindi hai fatto piu\' lavoro da solo'
+      : 'quindi il lavoro e\' stato piu\' leggero';
+    return `${v.nome}: assistenza da ${formattaNumero(v.da)} a ${formattaNumero(v.a)} kg, ${segno}${numero} kg in ${per}${eta}, ${spiegazione}.`;
+  }
+  const segno = v.migliore > 0 ? '+' : '−';
+  return `${v.nome}: da ${formattaNumero(v.da)} a ${formattaNumero(v.a)} kg, ${segno}${numero} kg${eta}, in ${numeroSedute}.`;
+}
+
+/** Elenco dei due gruppi estremi, dal cambiamento piu' grande al piu' piccolo. */
+function ordinaPerImportanza(lista) {
+  return lista.slice().sort((x, y) => Math.abs(y.migliore) - Math.abs(x.migliore));
+}
+
+/**
  * Riepilogo GENERALE: quanto sei migliorato in tutto, scritto a parole.
  *
  * Ste ha detto: "non solo con i grafici, ma anche scritto, perche' coi grafici
@@ -198,16 +232,22 @@ export function riepilogoGenerale(esercizi) {
     });
   }
 
-  const migliorati = voci.filter((v) => v.migliore > 0);
+  const migliorati = ordinaPerImportanza(voci.filter((v) => v.migliore > 0));
   const fermi = voci.filter((v) => v.migliore === 0);
-  const indietro = voci.filter((v) => v.migliore < 0);
+  const indietro = ordinaPerImportanza(voci.filter((v) => v.migliore < 0));
+
+  const gruppi = {
+    migliorati: migliorati.map((v) => ({ ...v, frase: fraseVariazione(v) })),
+    fermi: fermi.map((v) => ({ ...v, frase: fraseVariazione(v) })),
+    indietro: indietro.map((v) => ({ ...v, frase: fraseVariazione(v) })),
+  };
 
   const linee = [];
   const numeri = [];
   if (!voci.length) {
     return {
       linee: ['Per un riepilogo generale servono almeno due sedute sugli stessi esercizi: finche\' c\'e\' una seduta sola non c\'e\' niente da confrontare.'],
-      numeri: [], migliorati: 0, fermi: 0, indietro: 0, analizzati: 0,
+      numeri: [], gruppi, migliorati: 0, fermi: 0, indietro: 0, analizzati: 0,
     };
   }
 
@@ -256,7 +296,7 @@ export function riepilogoGenerale(esercizi) {
   linee.push('Ricorda che un peso piu\' alto non vuol dire automaticamente meglio: contano anche le ripetizioni e quanto hai spinto.');
 
   return {
-    linee, numeri,
+    linee, numeri, gruppi,
     migliorati: migliorati.length,
     fermi: fermi.length,
     indietro: indietro.length,

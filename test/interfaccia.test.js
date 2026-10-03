@@ -743,6 +743,72 @@ test('24. il bottone della spunta e\' grande abbastanza per il dito', async () =
   assert.ok(numero, 'e si puo\' premere anche sul numero, che e\' ancora piu\' grande');
 });
 
+test('25. dopo aver allenato col spotter, la scheda lo segna con la spunta', async () => {
+  // Ste: "quando vado per vedere la mia scheda deve spuntarmi pure se ho fatto
+  // delle rep con lo spotter". La scheda iniziale NON ha lo spotter: il tag
+  // compare solo DOPO che hai allenato col spotter e confermato l'aggiornamento.
+  const rimasta = await db.sedutaInCorso();
+  if (rimasta) await chiudiSeduta(rimasta.id);
+  const v = (await db.tutti('versioni')).sort((a, b) => b.numero - a.numero)[0];
+  const giorno = v.snapshot.giorni[1];
+  const seduta = await apriSeduta({ scheda_id: SCHEDA_ID, versione: v, giorno });
+  globalThis.window.location.hash = '#/seduta/' + seduta.id;
+  await attendiChe(() => perClasse(app, 'cronometro').length === 1 && perClasse(app, 'blocco-esercizio').length >= 1);
+
+  const blocco = perClasse(app, 'blocco-esercizio').find((b) => (b.textContent || '').includes('Dumbbell Bench Pull'));
+  const riga = perClasse(blocco, 'riga-serie')[0];
+  await pulsanti(riga).find((b) => /Spotter/.test(b.textContent || '')).click();
+  await new Promise((r) => setTimeout(r, 250));
+
+  // finisco l'allenamento e CONFERMO l'aggiornamento della scheda
+  pulsante(app, 'Allenamento finito').clickNonAspettando();
+  await attendiChe(() => perClasse(document.body, 'dialogo').length === 1);
+  pulsanti(perClasse(document.body, 'dialogo')[0]).find((b) => /Confermo/.test(b.textContent || '')).click();
+  await attendiChe(() => perClasse(document.body, 'dialogo').length === 1, 4000);
+  pulsanti(perClasse(document.body, 'dialogo')[0]).find((b) => /Aggiorna la scheda/.test(b.textContent || '')).click();
+  await new Promise((r) => setTimeout(r, 500));
+
+  // ora vado a vedere la scheda di quel giorno: la serie col spotter e' segnata
+  globalThis.window.location.hash = '#/giorno/' + giorno.id;
+  await attendiChe(() => perClasse(app, 'scheda-esercizio').length >= 1);
+
+  const tag = perClasse(app, 'tag-spotter');
+  assert.ok(tag.length >= 1, 'nella scheda c\'e\' il tag dello spotter');
+  assert.match(tag[0].textContent, /spotter/i);
+  assert.match(tag[0].textContent, /✓/, 'e con la spunta, come chiedeva Ste');
+  const previste = perClasse(app, 'prevista');
+  assert.ok(previste.some((p) => perClasse(p, 'tag-spotter').length > 0), 'la serie col spotter e\' segnata');
+  assert.ok(previste.some((p) => perClasse(p, 'tag-spotter').length === 0), 'le altre serie non sono segnate a caso');
+});
+
+test('26. spotter e "Allenamento finito" di fila: la conferma compare lo stesso', async () => {
+  // Il caso reale: si tocca lo spotter e subito si preme "finito", senza
+  // aspettare. Il salvataggio e' ancora in volo: senza aspettaSalvataggi la
+  // scheda risulterebbe "niente di nuovo" e la conferma non arriverebbe.
+  const rimasta = await db.sedutaInCorso();
+  if (rimasta) await chiudiSeduta(rimasta.id);
+  const v = (await db.tutti('versioni')).sort((a, b) => b.numero - a.numero)[0];
+  const giorno = v.snapshot.giorni[1];
+  const seduta = await apriSeduta({ scheda_id: SCHEDA_ID, versione: v, giorno });
+  globalThis.window.location.hash = '#/seduta/' + seduta.id;
+  await attendiChe(() => perClasse(app, 'cronometro').length === 1 && perClasse(app, 'blocco-esercizio').length >= 1);
+
+  const blocco = perClasse(app, 'blocco-esercizio')
+    .find((b) => perClasse(b, 'riga-serie').some((r) => pulsanti(r).some((b2) => /Spotter/.test(b2.textContent || '') && !/✓/.test(b2.textContent || ''))));
+  const riga = perClasse(blocco, 'riga-serie')[0];
+  // premo lo spotter e NON aspetto: passo subito al pulsante "finito"
+  pulsanti(riga).find((b) => /Spotter/.test(b.textContent || '')).clickNonAspettando();
+  pulsante(app, 'Allenamento finito').clickNonAspettando();
+
+  await attendiChe(() => perClasse(document.body, 'dialogo').length === 1, 4000);
+  pulsanti(perClasse(document.body, 'dialogo')[0]).find((b) => /Confermo/.test(b.textContent || '')).click();
+  await attendiChe(() => perClasse(document.body, 'dialogo').length === 1, 4000);
+  const conferma = perClasse(document.body, 'dialogo')[0].textContent || '';
+  assert.match(conferma, /aggiorno la scheda/i, 'deve chiedere se aggiornare la scheda');
+  pulsanti(conferma ? perClasse(document.body, 'dialogo')[0] : perClasse(app, 'blocco'))
+    .find((b) => /Lascia la scheda/.test(b.textContent || '')).click();
+});
+
 test('Z. nessun errore JavaScript durante tutta la navigazione', () => {
   assert.deepEqual(errori, [], 'errori:\n' + errori.join('\n'));
 });

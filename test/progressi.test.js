@@ -221,3 +221,44 @@ test('riepilogo: un esercizio con una seduta sola viene ignorato', () => {
   assert.equal(r.analizzati, 0, 'con una seduta non c\'e\' confronto');
   assert.match(testo(r), /almeno due sedute/);
 });
+
+test('riepilogo: ogni gruppo sa dire di quanto e\' cambiato ogni esercizio', () => {
+  const r = riepilogoGenerale([
+    voce('Chest Press', CP, 30, 35),
+    voce('Leg Extension', CP, 40, 40),
+    voce('Lat Pulldown', CP, 45, 40),
+  ]);
+  // ogni gruppo ha la sua frase con la differenza esatta
+  assert.equal(r.gruppi.migliorati.length, 1);
+  assert.match(r.gruppi.migliorati[0].frase, /Chest Press: da 30 a 35 kg, \+5 kg/);
+  assert.equal(r.gruppi.fermi.length, 1);
+  assert.match(r.gruppi.fermi[0].frase, /Leg Extension: sempre 40 kg, niente cambiato/);
+  assert.equal(r.gruppi.indietro.length, 1);
+  assert.match(r.gruppi.indietro[0].frase, /Lat Pulldown: da 45 a 40 kg, −5 kg/);
+});
+
+test('riepilogo: la percentuale c\'e\' solo se ha un senso', () => {
+  // base 0: la percentuale non si calcola, e non viene inventata
+  const r = riepilogoGenerale([voce('Chest Press', CP, 0, 35)]);
+  assert.match(r.gruppi.migliorati[0].frase, /da 0 a 35 kg, \+35 kg, in 2 sedute\./);
+  assert.doesNotMatch(r.gruppi.migliorati[0].frase, /%/);
+});
+
+test('riepilogo: con l\'assistenza spiega il verso della differenza', () => {
+  const sAss = (o, assistenza) => ({ ordine: o, peso: null, peso_assistenza: assistenza, ripetizioni: 6, spotter: false });
+  const r = riepilogoGenerale([{
+    nome: 'Pull Ups', esercizio: PULL,
+    punti: [punto('2026-09-01', [sAss(1, 10)]), punto('2026-10-01', [sAss(1, 5)])],
+  }]);
+  assert.match(r.gruppi.migliorati[0].frase, /assistenza da 10 a 5 kg, −5 kg in meno/);
+  assert.match(r.gruppi.migliorati[0].frase, /hai fatto piu\' lavoro da solo/);
+});
+
+test('riepilogo: i gruppi sono ordinati dal cambiamento piu\' grande', () => {
+  const r = riepilogoGenerale([
+    voce('Piccolo', CP, 30, 32),
+    voce('Grande', CP, 30, 50),
+    voce('Medio', CP, 30, 37),
+  ]);
+  assert.deepEqual(r.gruppi.migliorati.map((v) => v.nome), ['Grande', 'Medio', 'Piccolo']);
+});

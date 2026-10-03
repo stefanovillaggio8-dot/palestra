@@ -202,6 +202,14 @@ a { color: var(--blu); text-decoration: none; }
   font-size: .64rem; padding: 2px 6px; border-radius: 99px; font-weight: 800;
   letter-spacing: .03em; text-transform: uppercase;
 }
+/* la serie della scheda che l'hai fatta con lo spotter: spunta visibile */
+.tag-spotter {
+  background: #3a2a10; color: var(--arancio);
+  font-size: .64rem; padding: 2px 7px; border-radius: 99px; font-weight: 800;
+  letter-spacing: .03em; text-transform: uppercase;
+  border: 1px solid var(--arancio);
+}
+.prevista-spotter { border-color: var(--arancio); background: #241a0e; }
 .titolo-collegabile { color: var(--testo); cursor: pointer; }
 .titolo-collegabile:active { color: var(--viola); }
 .bottone-guarda {
@@ -393,18 +401,34 @@ a { color: var(--blu); text-decoration: none; }
 .spiegazione.generale { border-color: #4a3a78; }
 .spiegazione.generale h3 { margin-top: 0; }
 #riepilogo-generale .riga-spiegazione:first-child { font-size: 1.05rem; font-weight: 700; }
-.numeri-riepilogo { display: flex; gap: 8px; margin: 0 0 .8rem; flex-wrap: wrap; }
+.numeri-riepilogo { display: flex; gap: 8px; margin: 0 0 .6rem; flex-wrap: wrap; }
 .numero-riepilogo {
-  display: flex; flex-direction: column; align-items: center;
-  padding: 8px 14px; border-radius: var(--r); min-width: 76px;
-  background: var(--card); border: 1px solid var(--bordo);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 8px 14px; border-radius: var(--r); min-width: 82px; min-height: 58px;
+  background: var(--card); border: 1px solid var(--bordo); color: var(--testo);
+  font-family: inherit; cursor: pointer; text-align: center;
 }
+/* premuto: si vede qualcosa e' aperto (bordo piu' spesso + sfondo acceso) */
+.numero-riepilogo[aria-pressed='true'] { background: var(--viola-scuro); box-shadow: 0 0 0 2px var(--viola) inset; }
 .numero-riepilogo strong { font-size: 1.4rem; line-height: 1.1; }
 .numero-riepilogo span { font-size: .68rem; text-transform: uppercase; letter-spacing: .06em; color: var(--testo-3); }
 .numero-riepilogo.verde { border-color: var(--verde); }
 .numero-riepilogo.verde strong { color: var(--verde); }
 .numero-riepilogo.rosso { border-color: #b0485c; }
 .numero-riepilogo.rosso strong { color: #ff8098; }
+
+/* la lista che compare quando premi un riquadro */
+.dettaglio-riepilogo { margin: 0 0 .5rem; }
+.dettaglio-riepilogo:empty { display: none; }
+.riga-variazione {
+  background: var(--card); border-left: 3px solid var(--bordo);
+  border-radius: 6px; padding: 8px 10px; margin-bottom: 6px;
+  font-size: .9rem; line-height: 1.5;
+}
+.riga-variazione:last-child { margin-bottom: 0; }
+.riga-variazione.verde { border-left-color: var(--verde); }
+.riga-variazione.rosso { border-left-color: #ff8098; }
+.riga-variazione.neutro { border-left-color: var(--testo-3); }
 
 .grafico { background: var(--card); border: 1px solid var(--bordo); border-radius: var(--r); padding: 12px; margin: 12px 0; }
 .grafico-svg { width: 100%; height: auto; display: block; }

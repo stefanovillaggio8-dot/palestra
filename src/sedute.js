@@ -191,6 +191,21 @@ export async function aggiungiSerie({ seduta_id, esercizio_id, esercizio, ordine
 // l'ultima che arriva cancella il cambiamento dell'altra. E' successo a Ste
 // sul telefono: spuntava la serie e un secondo dopo la spunta spariva.
 const codeSerie = new Map();
+// tutti i salvataggi ancora in volo: serve per aspettarli prima di chiudere
+// la seduta (vedi aspettaSalvataggi)
+const inVolo = new Set();
+
+/**
+ * Aspetta che tutti i salvataggi partiti finiscano.
+ *
+ * Serve quando finisci l'allenamento: se tocchi lo spotter e subito dopo
+ * premi "Allenamento finito", senza aspettare la scheda risulterebbe "niente di
+ * nuovo" e la conferma di aggiornarla non comparirebbe.
+ */
+export function aspettaSalvataggi() {
+  if (!inVolo.size) return Promise.resolve();
+  return Promise.all([...inVolo].map((p) => p.catch(() => {}))).then(() => {});
+}
 
 /** Cambia i campi di una serie esistente. */
 export async function cambiaSerie(idSerie, campi) {
@@ -204,6 +219,9 @@ export async function cambiaSerie(idSerie, campi) {
     }
     return db.salva('serie', { ...esistente, ...campi });
   });
+  inVolo.add(lavoro);
+  const pulito = () => { inVolo.delete(lavoro); };
+  lavoro.then(pulito, pulito);
   // anche se una scrittura fallisce, le successive devono poter andare avanti
   codeSerie.set(idSerie, lavoro.catch(() => {}));
   return lavoro;
