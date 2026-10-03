@@ -47,6 +47,12 @@ h3 { font-size: 1.05rem; margin: 0 0 .2rem; }
 p { margin: 0 0 .6rem; }
 a { color: var(--blu); text-decoration: none; }
 
+/* la barra di scorrimento discreta, non quella spessa di default */
+* { scrollbar-width: thin; scrollbar-color: #3d3358 transparent; }
+*::-webkit-scrollbar { width: 8px; height: 8px; }
+*::-webkit-scrollbar-thumb { background: #3d3358; border-radius: 99px; }
+*::-webkit-scrollbar-track { background: transparent; }
+
 /* ---------- struttura ---------- */
 
 #app { max-width: 780px; margin: 0 auto; padding: 0 14px 96px; }
@@ -79,8 +85,15 @@ a { color: var(--blu); text-decoration: none; }
   flex: 1; text-align: center; padding: 12px 4px;
   color: var(--testo-3); font-weight: 700; font-size: .85rem;
   border-radius: 12px; letter-spacing: .01em;
+  transition: color .15s, background-color .15s;
 }
 .voce-menu:active { background: var(--card); }
+/* la voce in cui sei: accesa, con una tacchetta sopra */
+.voce-menu.attiva { color: #fff; background: var(--viola-scuro); }
+.voce-menu.attiva::before {
+  content: ''; display: block; width: 18px; height: 3px; margin: 0 auto 5px;
+  border-radius: 99px; background: var(--viola);
+}
 .indietro { display: inline-block; margin: 8px 0 4px; color: var(--testo-2); font-weight: 600; }
 
 .riga-titoli { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
@@ -125,8 +138,14 @@ a { color: var(--blu); text-decoration: none; }
   background: var(--card-2); color: var(--testo);
   border-radius: 12px; padding: 11px 15px; cursor: pointer;
   min-height: 46px;
+  transition: transform .08s, background-color .15s, border-color .15s, opacity .15s;
 }
-.bot:active { transform: translateY(1px); }
+.bot:active { transform: translateY(1px) scale(.985); }
+/* tastiera: si vede dove sei, senza dipendere dai colori */
+.bot:focus-visible, .voce-menu:focus-visible, .bottone-spunta:focus-visible,
+.numero-riepilogo:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible {
+  outline: 3px solid var(--blu); outline-offset: 2px;
+}
 .bot:disabled { opacity: .5; }
 .bot.principale {
   background: linear-gradient(135deg, var(--viola), #5b3fd6);
@@ -146,6 +165,33 @@ a { color: var(--blu); text-decoration: none; }
 .riga-pulsanti.piccolo { margin: 6px 0 0; }
 .riga-pulsanti.fisso { position: sticky; bottom: 74px; padding: 10px 0; background: linear-gradient(to top, var(--nero) 60%, transparent); }
 
+/* quante serie hai spuntato: sta accanto al cronometro */
+.avanzamento {
+  display: inline-flex; align-items: baseline; gap: 6px;
+  margin: 6px 0 2px; padding: 5px 12px;
+  background: var(--card-2); border: 1px solid var(--bordo);
+  border-radius: 99px; align-self: flex-start;
+}
+.avanzamento:empty { display: none; }
+.avanzamento strong { color: var(--verde); font-size: 1.05rem; font-weight: 800; }
+.avanzamento span { color: var(--testo-3); font-size: .74rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
+
+/* torna in cima: compare solo quando sei sceso */
+.bottone-su {
+  position: fixed; right: 14px; z-index: 45;
+  bottom: calc(78px + env(safe-area-inset-bottom));
+  width: 48px; height: 48px; border-radius: 50%;
+  background: var(--card-2); color: var(--testo);
+  border: 1px solid var(--bordo); cursor: pointer;
+  font-size: 1.3rem; font-weight: 900; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; visibility: hidden; transform: translateY(8px);
+  transition: opacity .18s, transform .18s, visibility .18s;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, .4);
+}
+.bottone-su.visibile { opacity: 1; visibility: visible; transform: translateY(0); }
+.bottone-su:active { transform: scale(.92); }
+
 /* ---------- schede giorni ---------- */
 
 .scheda-giorno {
@@ -153,6 +199,7 @@ a { color: var(--blu); text-decoration: none; }
   border: 1px solid var(--bordo);
   border-radius: var(--r);
   padding: 14px; margin: 14px 0;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, .34);
 }
 .griglia-esercizi { display: flex; flex-wrap: wrap; gap: 7px; margin: 12px 0; }
 .pillola-esercizio {
@@ -275,6 +322,8 @@ a { color: var(--blu); text-decoration: none; }
 }
 .campo-num { width: 78px; font-size: 1.15rem; }
 .campo-num.piccolo { width: 62px; font-size: 1rem; min-height: 40px; }
+/* i campi che tocchi spesso: bordo un po' piu' vivo, si vedono subito */
+.campo-num { border-color: #3d3358; }
 .campo-num:focus, .campo-testo:focus { outline: 2px solid var(--viola); outline-offset: 1px; }
 .campo-num.errore { border-color: var(--rosso); background: #2a1114; }
 .campo-testo { width: 100%; text-align: left; }
@@ -313,11 +362,13 @@ a { color: var(--blu); text-decoration: none; }
   font-size: 1.5rem; font-weight: 900; line-height: 1;
   display: flex; align-items: center; justify-content: center;
   cursor: pointer; padding: 0;
+  transition: transform .1s, background-color .15s, border-color .15s;
 }
 .numero-serie-bottone { cursor: pointer; font-family: inherit; }
 .bottone-spunta:active, .numero-serie-bottone:active { transform: scale(.9); }
 .bottone-spunta.attiva {
   background: var(--verde); border-color: var(--verde); color: #04180f;
+  box-shadow: 0 0 14px rgba(55, 209, 139, .45);
 }
 .segno-spunta { pointer-events: none; }
 

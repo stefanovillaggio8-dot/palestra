@@ -107,6 +107,29 @@ export function avviso(testo, { tipo = 'info', durata = 4200 } = {}) {
   return n;
 }
 
+/**
+ * Bottone "torna su": in palestra si scorre con una mano sola, e le pagine sono
+ * lunghe. Appare solo quando sei sceso giu', e sparisce quando torni in cima.
+ */
+export function bottoneSu() {
+  if (typeof document === 'undefined') return null;
+  const b = el('button', {
+    type: 'button', class: 'bottone-su', titolo: 'Torna in cima', 'aria-label': 'Torna in cima',
+    onClick: () => { try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch { /* pazienza */ } },
+  }, [el('span', { testo: '↑' })]);
+  document.body.appendChild(b);
+
+  const aggiorna = () => {
+    const y = typeof window.scrollY === 'number' ? window.scrollY : 0;
+    b.classList.toggle('visibile', y > 500);
+  };
+  if (typeof window.addEventListener === 'function') {
+    window.addEventListener('scroll', aggiorna, { passive: true });
+  }
+  aggiorna();
+  return b;
+}
+
 export function schedaEvento() {
   const oggi = new Date();
   const mese = String(oggi.getMonth() + 1).padStart(2, '0');

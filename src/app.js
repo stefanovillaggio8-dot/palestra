@@ -5,7 +5,7 @@
 import * as db from './db.js';
 import * as sb from './supabase.js';
 import * as sync from './sync.js';
-import { el, svuota, campoNumero, campoTesto, bottone, chiediConferma, avviso, schedaEvento, oraLocale, dataLeggibile, conRitardo } from './ui.js';
+import { el, svuota, campoNumero, campoTesto, bottone, chiediConferma, avviso, schedaEvento, oraLocale, dataLeggibile, conRitardo, bottoneSu } from './ui.js';
 import { graficoLinea, graficoBarre } from './grafici.js';
 import {
   formattaNumero, formattaPeso, formattaRipetizioni, formattaCronometro, formattaDurata,
@@ -36,6 +36,7 @@ async function avvia() {
   try {
     await db.apriDb();
     await seminaSeVuoto();
+    bottoneSu();
 
     await ricarcaTutto();
 
@@ -208,7 +209,7 @@ async function ricarcaTutto() {
 
 async function seminaSeVuoto() {
   const gia = await db.tutti('esercizi');
-  if (gia.length) return;
+  if (gia.length) { await sistemaNomeScheda(); return; }
   for (const e of ESERCIZI) await db.salva('esercizi', e, { segna: false });
   await db.salva('schede', {
     id: SCHEDA_ID, nome: SCHEDA_NOME, versione_corrente: 'ver-1',
@@ -218,6 +219,20 @@ async function seminaSeVuoto() {
     snapshot: costruisciSnapshot(), nota: 'Versione iniziale, trascritta dalla scheda.',
   }, { segna: false });
   await db.scriviMeta('installato_il', adesso());
+}
+
+/**
+ * Ste ha chiesto di chiamare l'app "Palestra". La scheda gia' installata aveva
+ * dentro il nome vecchio ("gym 3"), quindi lo correggo una volta sola: se un
+ * giorno cambiera' di nuovo nome, qui non viene piu' toccato niente.
+ */
+const NOMI_SCHEDA_VECCHI = ['gym 3', 'Gym 3', 'GYM 3'];
+async function sistemaNomeScheda() {
+  const s = await db.prendi('schede', SCHEDA_ID);
+  if (!s) return;
+  const nome = String(s.nome || '').trim();
+  if (NOMI_SCHEDA_VECCHI.indexOf(nome) === -1) return;
+  await db.salva('schede', { ...s, nome: SCHEDA_NOME }, { segna: false });
 }
 
 function scheda() { return V.schede.find((s) => s.id === SCHEDA_ID) || V.schede[0] || null; }
@@ -273,12 +288,24 @@ function disegnaDentro(zona) {
 }
 
 function cornice() {
+  const rotta = (window.location.hash || '#/').replace(/^#/, '');
+  // la voce del menu in cui ti trovi viene accesa: cosi' sai sempre dove sei
+  const voceAttiva = (percorso) => {
+    if (percorso === '/') return rotta === '/' || rotta === '' || rotta.startsWith('/giorno') || rotta.startsWith('/seduta');
+    return rotta === percorso || rotta.startsWith(percorso + '/');
+  };
+  const voce = (href, etichetta, percorso) => el('a', {
+    href: '#' + percorso,
+    class: 'voce-menu' + (voceAttiva(percorso) ? ' attiva' : ''),
+    testo: etichetta,
+  });
+
   const resto = el('div', { class: 'basso' }, [
     el('nav', { class: 'menu-basso' }, [
-      el('a', { href: '#/', class: 'voce-menu', testo: 'Allenamento' }),
-      el('a', { href: '#/storico', class: 'voce-menu', testo: 'Storico' }),
-      el('a', { href: '#/progressi', class: 'voce-menu', testo: 'Progressi' }),
-      el('a', { href: '#/impostazioni', class: 'voce-menu', testo: 'Impostazioni' }),
+      voce('/', 'Allenamento', '/'),
+      voce('/storico', 'Storico', '/storico'),
+      voce('/progressi', 'Progressi', '/progressi'),
+      voce('/impostazioni', 'Impostazioni', '/impostazioni'),
     ]),
   ]);
   return resto;
@@ -496,10 +523,13 @@ async function vistaSeduta(zona, sedutaId) {
   zona.appendChild(el('a', { href: '#/', class: 'indietro', testo: '← tutti i giorni' }));
 
   const cronometro = el('div', { class: 'cronometro', id: 'cronometro', testo: '00:00' });
+  // quante serie hai spuntato: sta sempre in alto, cosi' vedi a che punto sei
+  const avanzamento = el('div', { class: 'avanzamento', id: 'avanzamento-serie', testo: '' });
   zona.appendChild(el('div', { class: 'banda-cronometro' }, [
     el('div', {}, [
       el('div', { class: 'etichetta-crono', testo: 'Allenamento iniziato alle ' + oraLocale(s.ora_inizio) }),
       cronometro,
+      avanzamento,
       el('div', { class: 'nota', id: 'totale-sedute', testo: '' }),
     ]),
     bottone('Allenamento finito', { onClick: () => finisceAllenamento(s), classe: 'pericolo grande' }),
@@ -511,7 +541,21 @@ async function vistaSeduta(zona, sedutaId) {
     if (c) c.textContent = formattaCronometro(secondi);
     const t = document.getElementById('totale-sedute');
     if (t) t.textContent = `Durata totale: ${formattaDurata(secondi)} · non si azzera cambiando esercizio`;
+    scriviAvanzamento();
   };
+  // Quante serie hai spuntato sul totale di questa seduta. Resta fermo nella
+  // banda col cronometro, quindi lo vedi senza scorrere.
+  const scriviAvanzamento = () => {
+    const box = document.getElementById('avanzamento-serie');
+    if (!box) return;
+    const mie = V.serie.filter((x) => x.seduta_id === s.id && !x.eliminata);
+    const fatte = mie.filter((x) => eFatta(x)).length;
+    svuota(box);
+    if (!mie.length) return;
+    box.appendChild(el('strong', { testo: `${fatte}/${mie.length}` }));
+    box.appendChild(el('span', { testo: fatte === mie.length ? 'serie fatte, tutte!' : 'serie fatte' }));
+  };
+
   aggiorna();
   timerSeduta = setInterval(aggiorna, 1000);
 
@@ -1753,3 +1797,7 @@ async function applicaImportazione(oggetto, modo) {
 /* ===================== avvio app ===================== */
 
 avvia();
+
+// Esportato solo per i test: serve a riavviare l'app e verificare che le correzioni
+// al nome della scheda vengano applicate anche a chi l'ha gia' installata.
+export { avvia };

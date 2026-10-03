@@ -5,7 +5,7 @@
 import { CONVENZIONI as C } from './numeri.js';
 
 export const SCHEDA_ID = 'scheda-gym-3';
-export const SCHEDA_NOME = 'gym 3';
+export const SCHEDA_NOME = 'Palestra';
 
 // Ogni riga e' una VARIANTA con id proprio: "Chest Press" e "Chest Press - macchina B"
 // hanno id diversi e quindi non verranno mai confrontati fra loro.

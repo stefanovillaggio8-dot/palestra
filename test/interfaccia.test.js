@@ -17,6 +17,7 @@ delete globalThis.indexedDB;
 
 const { montaDom, pulsante, pulsanti, perClasse, trova } = await import('./dom-minimo.js');
 const { app } = montaDom();
+const { avvia: rilanciaAvvio } = await import('../src/app.js');
 
 globalThis.setInterval = () => 0;
 globalThis.clearInterval = () => {};
@@ -807,6 +808,52 @@ test('26. spotter e "Allenamento finito" di fila: la conferma compare lo stesso'
   assert.match(conferma, /aggiorno la scheda/i, 'deve chiedere se aggiornare la scheda');
   pulsanti(conferma ? perClasse(document.body, 'dialogo')[0] : perClasse(app, 'blocco'))
     .find((b) => /Lascia la scheda/.test(b.textContent || '')).click();
+});
+
+test('27. il titolo si chiama "Palestra", anche per chi aveva "gym 3"', async () => {
+  // Ste ha chiesto di cambiare il titolo. Sulla sua installazione il nome
+  // vecchio era gia' dentro il database, quindi il nome si corregge da solo.
+  const prima = await db.prendi('schede', SCHEDA_ID);
+  await db.salva('schede', { ...prima, nome: 'gym 3' }, { segna: false });
+  globalThis.window.location.hash = '#/';
+  await rilanciaAvvio();
+
+  const dopo = await db.prendi('schede', SCHEDA_ID);
+  assert.equal(dopo.nome, 'Palestra', 'il nome vecchio viene corretto in "Palestra"');
+
+  await attendiChe(() => trova(app, (n) => n.tagName === 'H1').length >= 1);
+  const titolo = trova(app, (n) => n.tagName === 'H1')[0];
+  assert.equal((titolo.textContent || '').trim(), 'Palestra', 'in alto si legge "Palestra"');
+});
+
+test('28. se un giorno cambio nome non viene riscritto', async () => {
+  // la correzione deve valere solo per il nome vecchio: un nome scelto dopo
+  // non deve venire toccato al riavvio
+  const prima = await db.prendi('schede', SCHEDA_ID);
+  await db.salva('schede', { ...prima, nome: 'La mia palestra' }, { segna: false });
+  await rilanciaAvvio();
+  const dopo = await db.prendi('schede', SCHEDA_ID);
+  assert.equal(dopo.nome, 'La mia palestra', 'un nome nuovo viene lasciato stare');
+  await db.salva('schede', { ...dopo, nome: 'Palestra' }, { segna: false });
+});
+
+test('29. durante la seduta vedi a che punto sei e dove ti trovi', async () => {
+  const rimasta = await db.sedutaInCorso();
+  if (!rimasta) await assicuratiSeduta();
+  const seduta = await db.sedutaInCorso();
+  globalThis.window.location.hash = '#/seduta/' + seduta.id;
+  await attendiChe(() => perClasse(app, 'cronometro').length === 1 && perClasse(app, 'blocco-esercizio').length >= 1);
+
+  // il contatore delle serie fatte sta in alto, accanto al cronometro
+  const avanti = perClasse(app, 'avanzamento')[0];
+  assert.ok(avanti, 'il contatore delle serie c\'e\' nella banda del cronometro');
+  assert.match(avanti.textContent, /serie fatte/);
+  assert.match(avanti.textContent, /\d+\/\d+/, 'e dice quante ne hai fatte su quante sono');
+
+  // e la voce del menu in cui sei risulta accesa
+  const attive = perClasse(app, 'voce-menu').filter((v) => v.classList.contains('attiva'));
+  assert.equal(attive.length, 1, 'una sola voce di menu accesa');
+  assert.equal((attive[0].textContent || '').trim(), 'Allenamento', 'e\' quella giusta');
 });
 
 test('Z. nessun errore JavaScript durante tutta la navigazione', () => {
