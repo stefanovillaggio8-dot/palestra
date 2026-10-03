@@ -262,6 +262,13 @@ a { color: var(--blu); text-decoration: none; }
   background: var(--viola-scuro); font-size: .72rem; font-weight: 800;
 }
 .prevista-x { color: var(--testo-3); font-weight: 700; }
+/* campi piccoli per modificare la scheda direttamente dalla pagina del giorno */
+.mini-campo {
+  width: 58px; min-height: 38px; padding: 5px 6px;
+  font-size: .95rem; font-weight: 800; text-align: center;
+}
+.prevista .mini-campo { background: var(--nero); border-color: #3d3358; }
+.bot.passo-rosso { color: var(--rosso); border-color: #4a2028; }
 .tag-dropset {
   background: #3a2a10; color: var(--arancio);
   font-size: .64rem; padding: 2px 6px; border-radius: 99px; font-weight: 800;

@@ -1041,6 +1041,54 @@ test('35. c\'e\' il tasto per cancellare tutto lo storico, con conferma', async 
     'rispondendo no non cancella niente');
 });
 
+test('36. nella pagina del giorno posso modificare la scheda e salvare', async () => {
+  // Ste: "fai che quando apro soltanto la scheda posso anche modificarla,
+  // le rip, serie ecc..."
+  const v = (await db.tutti('versioni')).sort((a, b) => b.numero - a.numero)[0];
+  const giorno = v.snapshot.giorni[0];
+  globalThis.window.location.hash = '#/giorno/' + giorno.id;
+  await attendiChe(() => perClasse(app, 'scheda-esercizio').length >= 1);
+
+  // di base si guarda e basta: nessun campo scrivibile
+  assert.equal(perClasse(app, 'mini-campo').length, 0, 'senza modificare non ci sono campi da scrivere');
+  assert.ok(pulsante(app, 'Modifica questa scheda'), 'c\'e\' il bottone per modificare');
+
+  // entro in modifica
+  pulsante(app, 'Modifica questa scheda').clickNonAspettando();
+  await attendiChe(() => perClasse(app, 'mini-campo').length > 0);
+  assert.ok(perClasse(app, 'mini-campo').length >= 2, 'compaiono i campi per kg e rip');
+
+  // cambio il peso della prima serie
+  const primoCampo = perClasse(app, 'mini-campo')[0];
+  primoCampo.value = '99';
+  primoCampo.listeners.get('input')[0]({ type: 'input' });
+
+  // e salvo: deve nascere una versione nuova
+  const primaVersione = (await db.tutti('versioni')).length;
+  pulsante(app, 'Salva la scheda (nuova versione)').clickNonAspettando();
+  await attendiChe(() => perClasse(document.body, 'dialogo').length === 1);
+  pulsanti(perClasse(document.body, 'dialogo')[0]).find((b) => /Salva/.test(b.textContent || '')).click();
+  const versioniDopo = await (async () => {
+    for (let i = 0; i < 200; i++) {
+      if ((await db.tutti('versioni')).length > primaVersione) return true;
+      await new Promise((r) => setTimeout(r, 20));
+    }
+    return false;
+  })();
+  assert.ok(versioniDopo, 'la versione nuova e\' stata salvata');
+
+  const versioni = (await db.tutti('versioni')).sort((a, b) => b.numero - a.numero);
+  const nuova = versioni[0];
+  assert.equal(nuova.snapshot.giorni[0].esercizi[0].serie[0].peso, 99, 'il peso cambiato e\' nella versione nuova');
+  assert.ok(nuova.numero > v.numero, 'e la versione e\' davvero nuova');
+
+  // torno alla scheda del giorno: dopo aver salvato si torna a sola lettura
+  globalThis.window.location.hash = '#/giorno/' + giorno.id;
+  await rilanciaAvvio();
+  await attendiChe(() => perClasse(app, 'scheda-esercizio').length >= 1);
+  assert.equal(perClasse(app, 'mini-campo').length, 0, 'torniamo a sola lettura');
+});
+
 test('Z. nessun errore JavaScript durante tutta la navigazione', () => {
   assert.deepEqual(errori, [], 'errori:\n' + errori.join('\n'));
 });

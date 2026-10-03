@@ -441,9 +441,26 @@ async function creaSerie(sedutaId, esercizioId, ordine, esercizio, prevista = {}
 
 /* ===================== vista: giorno ===================== */
 
+/* ===================== vista: giorno ===================== */
+
+// id del giorno che sto modificando dalla pagina del giorno, oppure null
+let giornoInModifica = null;
+
 function vistaGiorno(zona, giornoId) {
   const v = versioneCorrente();
-  const g = ((v && v.snapshot && v.snapshot.giorni) || []).find((x) => x.id === giornoId);
+  if (!v) { zona.appendChild(el('p', { testo: 'Giorno non trovato.' })); return; }
+
+  // Ste ha chiesto di poter modificare la scheda anche da questa schermata
+  // ("quando apro soltanto la scheda posso anche modificarla"). Uso la stessa
+  // bozza e lo stesso "salva come nuova versione" della vista di modifica:
+  // le sedute gia' fatte restano intatte, non si riscrive mai la storia.
+  // La pagina parte SEMPRE da sola lettura: si entra in modifica solo se lo
+  // chiede lui con il bottone.
+  const inModifica = giornoInModifica === giornoId;
+  const bozza = inModifica ? prendiBozza() : null;
+  const g = inModifica
+    ? ((bozza.giorni || []).find((x) => x.id === giornoId))
+    : ((v && v.snapshot && v.snapshot.giorni) || []).find((x) => x.id === giornoId);
   if (!g) { zona.appendChild(el('p', { testo: 'Giorno non trovato.' })); return; }
   const ultimo = ultimaSedutaDelGiorno(giornoId);
   const opzionali = (g.esercizi || []).filter((x) => x.opzionale).length;
@@ -451,31 +468,82 @@ function vistaGiorno(zona, giornoId) {
 
   zona.appendChild(el('a', { href: '#/', class: 'indietro', testo: '← tutti i giorni' }));
   zona.appendChild(el('h1', { testo: g.nome }));
-  zona.appendChild(el('p', { class: 'nota', testo: [
-    `${g.esercizi.length} esercizi · ${totaleSerie} serie`,
-    opzionali ? `${opzionali} opzionali` : null,
-    `versione scheda numero ${v.numero}`,
-  ].filter(Boolean).join(' · ') }));
-  zona.appendChild(el('p', { class: 'nota nota-chiaro', testo: 'Stai solo guardando: non parte nessun allenamento e il cronometro non si avvia.' }));
+  zona.appendChild(el('div', { class: 'riga-titoli' }, [
+    el('p', { class: 'nota', testo: [
+      `${g.esercizi.length} esercizi · ${totaleSerie} serie`,
+      opzionali ? `${opzionali} opzionali` : null,
+      `versione scheda numero ${v.numero}`,
+    ].filter(Boolean).join(' · ') }),
+    inModifica
+      ? bottone('Ho finito di modificare', {
+        onClick: () => { giornoInModifica = null; disegna(); },
+        classe: 'fantasma',
+      })
+      : bottone('Modifica questa scheda', {
+        onClick: () => { giornoInModifica = giornoId; disegna(); },
+        classe: 'principale',
+      }),
+  ]));
+  if (!inModifica) {
+    zona.appendChild(el('p', { class: 'nota nota-chiaro', testo: 'Stai solo guardando: non parte nessun allenamento e il cronometro non si avvia.' }));
+  } else {
+    zona.appendChild(el('div', { class: 'tape tape-viola' }, [
+      el('div', { class: 'cresci' }, [
+        el('strong', { testo: 'Stai modificando la scheda' }),
+        el('div', { class: 'nota', testo: 'Cambia i kg, le rip e aggiungi o togli serie. Quando sei pronto salvi: nasce una versione nuova e le sedute gia\' fatte restano come sono.' }),
+      ]),
+    ]));
+  }
 
   const griglia = el('div', { class: 'griglia-esercizi' });
   for (const es of (g.esercizi || [])) {
     const e = esercizioPerId(es.esercizio_id);
     if (!e) continue;
     const assistito = !convenzioneMisuraCarico(e.convenzione);
+    const chiave = assistito ? 'peso_assistenza' : 'peso';
+
+    // In modifica ogni serie diventa un campo scrivibile; senza modifica resta
+    // come prima, cioe' solo da leggere.
     const seriePreviste = (es.serie || []).map((x, i) => {
-      const p = assistito ? x.peso_assistenza : x.peso;
-      return el('span', { class: 'prevista' + (x.spotter ? ' prevista-spotter' : '') }, [
+      const rigaPrevista = el('span', { class: 'prevista' + (x.spotter ? ' prevista-spotter' : '') }, [
         el('span', { class: 'prevista-n', testo: String(i + 1) }),
-        el('span', { testo: `${formattaNumero(p)} kg` }),
-        el('span', { class: 'prevista-x', testo: '×' }),
-        el('span', { testo: `${formattaNumero(x.ripetizioni)} rip` }),
-        x.dropset ? el('span', { class: 'tag-dropset', testo: 'dropset' }) : null,
-        // Ste: "deve spuntarmi pure se ho fatto delle rep con lo spotter".
-        // Nella scheda la serie che l\'ultima volta hai fatto col spotter resta
-        // segnata, cosi\' prima di iniziare lo vedi e sai cosa aspettarti.
-        x.spotter ? el('span', { class: 'tag-spotter', testo: '✓ spotter' }) : null,
       ]);
+      if (inModifica) {
+        const campoPeso = campoNumero(x[chiave], {
+          etichetta: 'kg',
+          onCambio: (val) => {
+            const n = val === null || val === '' ? null : Number(String(val).replace(',', '.'));
+            x[chiave] = Number.isFinite(n) ? n : null;
+          },
+        });
+        campoPeso.classList.add('mini-campo');
+        const campoRip = campoNumero(x.ripetizioni, {
+          etichetta: 'rip',
+          onCambio: (val) => {
+            const n = val === null || val === '' ? null : Number(String(val).replace(',', '.'));
+            x.ripetizioni = Number.isFinite(n) ? n : null;
+          },
+        });
+        campoRip.classList.add('mini-campo');
+        rigaPrevista.appendChild(campoPeso);
+        rigaPrevista.appendChild(el('span', { class: 'prevista-x', testo: '×' }));
+        rigaPrevista.appendChild(campoRip);
+        rigaPrevista.appendChild(el('span', { class: 'sotto-campo', testo: assistito ? 'ASSISTENZA' : 'KG / RIP' }));
+        rigaPrevista.appendChild(bottone('×', {
+          onClick: () => { es.serie.splice(i, 1); disegna(); },
+          classe: 'passo passo-rosso',
+          titolo: 'Togli questa serie dalla scheda',
+        }));
+      } else {
+        const p = assistito ? x.peso_assistenza : x.peso;
+        rigaPrevista.appendChild(el('span', { testo: `${formattaNumero(p)} kg` }));
+        rigaPrevista.appendChild(el('span', { class: 'prevista-x', testo: '×' }));
+        rigaPrevista.appendChild(el('span', { testo: `${formattaNumero(x.ripetizioni)} rip` }));
+      }
+      if (x.dropset) rigaPrevista.appendChild(el('span', { class: 'tag-dropset', testo: 'dropset' }));
+      // Ste: "deve spuntarmi pure se ho fatto delle rip con lo spotter".
+      if (x.spotter) rigaPrevista.appendChild(el('span', { class: 'tag-spotter', testo: '✓ spotter' }));
+      return rigaPrevista;
     });
 
     griglia.appendChild(el('div', { class: 'scheda-esercizio' }, [
@@ -490,11 +558,64 @@ function vistaGiorno(zona, giornoId) {
           el('span', { class: 'badge-conv', testo: ETICHETTE_CONVENZIONE[e.convenzione] || '' }),
         ]),
         el('div', { class: 'serie-previste' }, seriePreviste),
+        inModifica
+          ? el('div', { class: 'riga-pulsanti piccolo' }, [
+            bottone('+ Aggiungi serie', {
+              onClick: () => {
+                const ultimoS = (es.serie || [])[(es.serie || []).length - 1] || {};
+                es.serie.push({
+                  peso: ultimoS.peso === undefined ? null : ultimoS.peso,
+                  peso_assistenza: ultimoS.peso_assistenza === undefined ? null : ultimoS.peso_assistenza,
+                  ripetizioni: ultimoS.ripetizioni === undefined ? null : ultimoS.ripetizioni,
+                  spotter: false,
+                  dropset: false,
+                });
+                disegna();
+              },
+              classe: 'fantasma piccolo-b',
+            }),
+          ])
+          : null,
         e.nota_permanente ? el('p', { class: 'nota-permanente', testo: e.nota_permanente }) : null,
       ]),
     ]));
   }
   zona.appendChild(griglia);
+
+  if (inModifica) {
+    zona.appendChild(el('div', { class: 'riga-pulsanti' }, [
+      bottone('Salva la scheda (nuova versione)', {
+        onClick: async () => {
+          const ok = await chiediConferma(
+            'Salvare la nuova scheda?',
+            'Le sedute che hai gia\' fatto restano intatte: loro conservano la versione con cui sono state fatte. Le prossime useranno questa nuova.',
+            { testoOk: 'Salva' },
+          );
+          if (!ok) return;
+          const nuova = pulisciOrdini(bozza);
+          const nuovoNumero = Math.max(...V.versi.map((x) => Number(x.numero) || 0)) + 1;
+          const nuovaVersioneId = 'ver-' + nuovoId();
+          await db.salva('versioni', {
+            id: nuovaVersioneId, scheda_id: SCHEDA_ID, numero: nuovoNumero,
+            snapshot: JSON.parse(JSON.stringify(nuova)),
+            nota: `Modificata a mano il ${schedaEvento()}.`,
+          });
+          await db.salva('schede', { ...scheda(), versione_corrente: nuovaVersioneId });
+          scartaBozza();
+          giornoInModifica = null;
+          await ricarcaTutto();
+          avviso(`Scheda salvata. Ora sei alla versione ${nuovoNumero}.`, { tipo: 'ok' });
+          vai('/');
+        },
+        classe: 'principale grande',
+      }),
+      bottone('Butta le modifiche', {
+        onClick: () => { giornoInModifica = null; scartaBozza(); disegna(); },
+        classe: 'fantasma',
+      }),
+    ]));
+    return;
+  }
 
   zona.appendChild(el('div', { class: 'riga-pulsanti fisso' }, [
     bottone('Inizia allenamento', { onClick: () => iniziaAllenamento(g), classe: 'principale grande' }),
