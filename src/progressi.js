@@ -187,16 +187,27 @@ export function fraseVariazione(v) {
     const su = v.assistito ? '−' : '+';
     return `${v.nome}: da ${puntoPartenza} a ${formattaNumero(v.a)} kg, ${su}${numero} kg${eta}.`;
   }
+
+  // Le date contano: Ste non capiva perche' gli usciva fuori un numero che
+  // non era il suo. Mostrando WHICHI due sedute vengono confrontate, si vede
+  // subito se il confronto e\' quello giusto.
+  const quando = (v.dataDa && v.dataA) ? `seduta del ${v.dataDa} → seduta del ${v.dataA}: ` : '';
+  if (v.migliore === 0) {
+    const stessa = v.assistito
+      ? `sempre ${formattaNumero(v.a)} kg di assistenza`
+      : `sempre ${formattaNumero(v.a)} kg`;
+    return `${v.nome}: ${quando}${stessa}, come prima.`;
+  }
   if (v.assistito) {
     const segno = v.migliore > 0 ? '−' : '+';
     const per = v.migliore > 0 ? 'meno' : 'piu\'';
     const spiegazione = v.migliore > 0
       ? 'quindi hai fatto piu\' lavoro da solo'
       : 'quindi il lavoro e\' stato piu\' leggero';
-    return `${v.nome}: assistenza da ${formattaNumero(v.da)} a ${formattaNumero(v.a)} kg, ${segno}${numero} kg in ${per}${eta}, ${spiegazione}.`;
+    return `${v.nome}: ${quando}assistenza da ${formattaNumero(v.da)} a ${formattaNumero(v.a)} kg, ${segno}${numero} kg in ${per}${eta}, ${spiegazione}.`;
   }
   const segno = v.migliore > 0 ? '+' : '−';
-  return `${v.nome}: da ${formattaNumero(v.da)} a ${formattaNumero(v.a)} kg, ${segno}${numero} kg${eta}, in ${numeroSedute}.`;
+  return `${v.nome}: ${quando}da ${formattaNumero(v.da)} a ${formattaNumero(v.a)} kg, ${segno}${numero} kg${eta}, in ${numeroSedute}.`;
 }
 
 /** Elenco dei due gruppi estremi, dal cambiamento piu' grande al piu' piccolo. */
@@ -217,9 +228,11 @@ function ordinaPerImportanza(lista) {
  */
 export function riepilogoGenerale(esercizi) {
   const voci = [];
+  const saltati = [];
   for (const voce of (esercizi || [])) {
     const punti = ((voce && voce.punti) || []).filter((p) => p && (p.serie || []).length);
-    if (!punti.length) continue;
+    const nome = (voce && voce.nome) || 'esercizio';
+    if (!punti.length) { saltati.push({ nome, motivo: 'nessuna seduta registrata' }); continue; }
     const e = voce.esercizio || { convenzione: null };
     const assistito = !convenzioneMisuraCarico(e.convenzione);
     const chiave = assistito ? 'pesoAssistenzaMassimo' : 'pesoMassimo';
@@ -228,29 +241,42 @@ export function riepilogoGenerale(esercizi) {
     // esercizi migliorati". Con una sola seduta non c'era niente da confrontare,
     // quindi l'esercizio veniva saltato. Ora, se le sedute non bastano, confronto
     // l'ultima seduta con quello che c'era scritto nella scheda: e' comunque un
-    // confronto utile, e li dice da dove a dove.
-    let primaRiga; let aRiga; let contro; let da; let a;
+    // confronto utile, e gli dico da dove a dove.
+    let contro; let da; let a; let dataDa; let dataA;
     if (punti.length >= 2) {
-      primaRiga = punti[0];
-      aRiga = punti[punti.length - 1];
       contro = 'sessioni';
-      da = riassuntoEsercizio(primaRiga.serie, e)[chiave];
-      a = riassuntoEsercizio(aRiga.serie, e)[chiave];
+      da = riassuntoEsercizio(punti[0].serie, e)[chiave];
+      a = riassuntoEsercizio(punti[punti.length - 1].serie, e)[chiave];
+      dataDa = punti[0].data;
+      dataA = punti[punti.length - 1].data;
     } else {
       const prevista = voce.prevista === undefined ? null : voce.prevista;
-      if (prevista === null || prevista === undefined) continue;
+      if (prevista === null || prevista === undefined || !Number.isFinite(Number(prevista))) {
+        saltati.push({ nome, motivo: 'una sola seduta e nessun peso nella scheda da confrontare' });
+        continue;
+      }
       contro = 'scheda';
       da = Number(prevista);
       a = riassuntoEsercizio(punti[0].serie, e)[chiave];
     }
-    if (da === null || da === undefined || !Number.isFinite(Number(da))) continue;
+    if (da === null || da === undefined || !Number.isFinite(Number(da))) {
+      saltati.push({ nome, motivo: 'il peso non e\' confrontabile (manca il numero)' });
+      continue;
+    }
+    if (a === null || a === undefined || !Number.isFinite(Number(a))) {
+      saltati.push({ nome, motivo: 'non c\'e\' un peso registrato nella seduta' });
+      continue;
+    }
     const d = differenzaAssoluta(da, a);
-    if (d === null) continue;
+    if (d === null) {
+      saltati.push({ nome, motivo: 'numeri non confrontabili' });
+      continue;
+    }
 
     // nell'assistenza "meno assistenza" vuol dire meglio: quindi il segno va girato
     const migliore = assistito ? -d : d;
     voci.push({
-      nome: voce.nome, esercizio: e, assistito, chiave, contro,
+      nome, esercizio: e, assistito, chiave, contro, dataDa, dataA,
       da, a, delta: d, migliore, punti: punti.length,
       serie: punti.length,
     });
@@ -271,7 +297,7 @@ export function riepilogoGenerale(esercizi) {
   if (!voci.length) {
     return {
       linee: ['Per un riepilogo generale servono almeno due sedute sugli stessi esercizi: finche\' c\'e\' una seduta sola non c\'e\' niente da confrontare.'],
-      numeri: [], gruppi, migliorati: 0, fermi: 0, indietro: 0, analizzati: 0,
+      numeri: [], gruppi, saltati, migliorati: 0, fermi: 0, indietro: 0, analizzati: 0,
     };
   }
 
@@ -321,10 +347,17 @@ export function riepilogoGenerale(esercizi) {
     linee.push(`Poi ${fermi.length} esercizi sono fermi sullo stesso numero di prima.`);
   }
 
+  // Ste non capiva perche' il suo esercizio non compariva tra i migliorati.
+  // Meglio dirglielo esplicitamente invece di lasciare un buco silenzioso.
+  if (saltati.length) {
+    const quante = saltati.length;
+    linee.push(`Restano fuori ${quante} ${quante === 1 ? 'esercizio non e\' ancora confrontabile' : 'esercizi non sono ancora confrontabili'}: ${saltati.map((s) => `${s.nome} (${s.motivo})`).join(', ')}.`);
+  }
+
   linee.push('Ricorda che un peso piu\' alto non vuol dire automaticamente meglio: contano anche le ripetizioni e quanto hai spinto.');
 
   return {
-    linee, numeri, gruppi,
+    linee, numeri, gruppi, saltati,
     migliorati: migliorati.length,
     fermi: fermi.length,
     indietro: indietro.length,

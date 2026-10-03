@@ -567,7 +567,10 @@ async function vistaSeduta(zona, sedutaId) {
   const notaSeduta = campoTesto(s.note, {
     segnaposto: 'Come ti sei sentito, cosa hai cambiato...',
     righe: 2,
-    onCambio: conRitardo((v) => { db.salva('sedute', { ...s, note: v }); }),
+    // uso aggiornaNotaSeduta e non un salvataggio "grezzo": altrimenti la nota
+    // finiva nel database ma non in memoria, e quindi nelle schermate successive
+    // (storico, anteprima) risultava ancora vuota finche' non riavvii l'app.
+    onCambio: conRitardo((v) => { aggiornaNotaSeduta(s.id, v); }),
   });
   zona.appendChild(notaSeduta);
 
@@ -1053,17 +1056,28 @@ async function vistaSedutaPassata(zona, sedutaId) {
 
   // Le note della seduta: durante l'allenamento le scivi qui, e adesso tornano
   // qui sotto. Prima sparivano: le scrivevi e non le ritrovavi piu'.
+  // Se in memoria la nota e\' vuota la rileggo dal database: cosi\' la vedi
+  // anche se la nota e\' stata salvata da un\'altra schermata.
   if (s.note || s.stato === 'in_corso') {
+    let notaMostrata = s.note || '';
+    if (!notaMostrata) {
+      const fresca = await db.prendi('sedute', s.id);
+      if (fresca && fresca.note) {
+        notaMostrata = fresca.note;
+        const inMemoria = V.sedute.findIndex((x) => x.id === s.id);
+        if (inMemoria >= 0) V.sedute[inMemoria] = fresca;
+      }
+    }
     const boxNote = el('div', { class: 'box-note-seduta' });
     boxNote.appendChild(el('h3', { testo: 'Note della seduta' }));
-    if (s.note) boxNote.appendChild(el('p', { class: 'testo-note-seduta', testo: s.note }));
-    const campoNote = campoTesto(s.note || '', {
+    if (notaMostrata) boxNote.appendChild(el('p', { class: 'testo-note-seduta', testo: notaMostrata }));
+    const campoNote = campoTesto(notaMostrata, {
       segnaposto: 'Come ti sei sentito, cosa hai cambiato...',
       righe: 2,
       onCambio: conRitardo((v) => { aggiornaNotaSeduta(s.id, v); }),
     });
     campoNote.classList.add('campo-note-seduta');
-    boxNote.appendChild(el('div', { class: 'nota nota-piccola' , testo: s.note ? 'Puoi correggerle qui sotto.' : 'Non hai scritto niente.' }));
+    boxNote.appendChild(el('div', { class: 'nota nota-piccola' , testo: notaMostrata ? 'Puoi correggerle qui sotto.' : 'Non hai scritto niente.' }));
     boxNote.appendChild(campoNote);
     zona.appendChild(boxNote);
   }
@@ -1479,15 +1493,18 @@ function vistaProgressi(zona) {
     return storicoDi(selezionato);
   }
 
-  // Il peso piu' alto scritto nella scheda per questo esercizio. Serve quando
-  // hai una sola seduta registrata: in quel caso non c'e' nessun confronto
-  // seduta contro seduta, quindi confronto quello che hai fatto con quello che
-  // la scheda prescriveva.
-  function pesoPrevistoInScheda(esercizioId) {
+  // Il peso previsto dalla scheda NEL GIORNO IN CUI HAI ALLENATO.
+  //
+  // Ste ha fatto cosi': durante l'allenamento ha alzato di 3 kg e poi ha
+  // confermato "Aggiorna la scheda". A quel punto la scheda corrente contiene
+  // gia' 38 kg, quindi confrontare la seduta con lei dava zero e l'esercizio
+  // finiva fra i "fermi". Invece va confrontato con la scheda che hai usato
+  // mentre allenavi: e quella e' ancora salvata, e' la versione della seduta.
+  function pesoPrevistoPerSessione(esercizioId, seduta) {
     const e = esercizioPerId(esercizioId);
-    if (!e) return null;
+    if (!e || !seduta) return null;
     const assistito = !convenzioneMisuraCarico(e.convenzione);
-    const v = versioneCorrente();
+    const v = V.versi.find((x) => x.id === seduta.versione_id);
     const giorni = (v && v.snapshot && v.snapshot.giorni) || [];
     let massimo = null;
     for (const g of giorni) {
@@ -1513,12 +1530,17 @@ function vistaProgressi(zona) {
     const descrizionePeriodo = periodo === 'tutto' ? '' : (periodi.find((p) => p.k === periodo) || {}).t.replace('Ultimi ', '').replace('Ultimo ', '');
 
     // il riepilogo generale: tutti gli esercizi insieme, non uno solo
-    const generale = riepilogoGenerale(conDati.map((id) => ({
-      nome: (esercizioPerId(id) || {}).nome || id,
-      esercizio: esercizioPerId(id),
-      punti: storicoDi(id),
-      prevista: pesoPrevistoInScheda(id),
-    })));
+    const vociEsercizi = conDati.map((id) => {
+      const punti = storicoDi(id);
+      const ultima = punti.length ? punti[punti.length - 1] : null;
+      return {
+        nome: (esercizioPerId(id) || {}).nome || id,
+        esercizio: esercizioPerId(id),
+        punti,
+        prevista: pesoPrevistoPerSessione(id, ultima && ultima.seduta),
+      };
+    });
+    const generale = riepilogoGenerale(vociEsercizi);
     if (generale.numeri.length) {
       // I riquadri si toccano: premendo "migliorati" (o "fermi", o "indietro")
       // sotto compare la lista esercizio per esercizio con di quanto e' cambiato.

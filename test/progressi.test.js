@@ -228,13 +228,14 @@ test('riepilogo: ogni gruppo sa dire di quanto e\' cambiato ogni esercizio', () 
     voce('Leg Extension', CP, 40, 40),
     voce('Lat Pulldown', CP, 45, 40),
   ]);
-  // ogni gruppo ha la sua frase con la differenza esatta
+  // ogni gruppo ha la sua frase con la differenza esatta, e le date delle due
+  // sedute confrontate (cosi' si capisce quale confronto e' stato fatto)
   assert.equal(r.gruppi.migliorati.length, 1);
-  assert.match(r.gruppi.migliorati[0].frase, /Chest Press: da 30 a 35 kg, \+5 kg/);
+  assert.match(r.gruppi.migliorati[0].frase, /^Chest Press: seduta del 2026-09-01 → seduta del 2026-10-01: da 30 a 35 kg, \+5 kg/);
   assert.equal(r.gruppi.fermi.length, 1);
-  assert.match(r.gruppi.fermi[0].frase, /Leg Extension: sempre 40 kg, come prima/);
+  assert.match(r.gruppi.fermi[0].frase, /Leg Extension: .*sempre 40 kg, come prima/);
   assert.equal(r.gruppi.indietro.length, 1);
-  assert.match(r.gruppi.indietro[0].frase, /Lat Pulldown: da 45 a 40 kg, −5 kg/);
+  assert.match(r.gruppi.indietro[0].frase, /Lat Pulldown: seduta del .*da 45 a 40 kg, −5 kg/);
 });
 
 test('riepilogo: la percentuale c\'e\' solo se ha un senso', () => {
