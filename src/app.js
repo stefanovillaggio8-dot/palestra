@@ -19,11 +19,45 @@ import {
 } from './aggiornamento.js';
 import { testoProgresso, serieARipetizioniCostanti, riepilogoGenerale } from './progressi.js';
 import { creaPacchetto, validaPacchetto, unisci, csvSerie, csvSedute, csvEsercizi } from './backup.js';
-import { ESERCIZI, SCHEDA_ID, SCHEDA_NOME, costruisciSnapshot } from './dati-iniziali.js';
+import { ESERCIZI, SCHEDA_ID, SCHEDA_NOME, PERSONE, personaDallaUrl, costruisciSnapshot } from './dati-iniziali.js';
 import { nuovoId, adesso, TABELLE } from './sincronizzazione.js';
 
 const V = {}; // stato dell'app
 const GIRI_DROPSET = 3; // i 3 posti in piu' che ha chiesto Ste
+
+/* ===================== chi sta usando l'app ===================== */
+
+// Ognuno ha la sua scheda e i suoi allenamenti. La scelta sta nel link:
+// ?p=2 per la seconda persona, ?p=1 (o niente) per la prima.
+// TUTTO quello che segue e' gia' filtrato su questa persona: e' quello che
+// evita che gli allenamenti di uno finiscano nei progressi dell'altro.
+let persona = null;
+function personaAttiva() {
+  if (!persona) {
+    const ricerca = (typeof window !== 'undefined' && window.location && window.location.search) || '';
+    persona = personaDallaUrl(ricerca);
+  }
+  return persona;
+}
+function schedaAttivaId() { return personaAttiva().schedaId; }
+
+/** Le versioni della scheda della persona che sta usando l'app. */
+function versioniDellaPersona() {
+  const id = schedaAttivaId();
+  return V.versi.filter((v) => v.scheda_id === id);
+}
+
+/** Le sedute della persona che sta usando l'app (le altre non le vede). */
+function seduteDellaPersona() {
+  const miei = new Set(versioniDellaPersona().map((v) => v.id));
+  return V.sedute.filter((s) => miei.has(s.versione_id));
+}
+
+/** Le serie della persona che sta usando l'app. */
+function serieDellaPersona() {
+  const mie = new Set(seduteDellaPersona().map((s) => s.id));
+  return V.serie.filter((x) => mie.has(x.seduta_id));
+}
 
 /* ===================== avvio ===================== */
 
@@ -146,7 +180,7 @@ async function proponiAggiornamentoScheda(sedutaId) {
 }
 
 async function applicaAggiornamento(res, seduta) {
-  const nuovoNumero = Math.max(...V.versi.map((x) => Number(x.numero) || 0)) + 1;
+  const nuovoNumero = Math.max(0, ...versioniDellaPersona().map((x) => Number(x.numero) || 0)) + 1;
   const nuovaVersioneId = 'ver-' + nuovoId();
   const pulita = JSON.parse(JSON.stringify(res.snapshot));
   for (const g of pulita.giorni) {
@@ -165,7 +199,7 @@ async function applicaAggiornamento(res, seduta) {
 }
 
 async function aggiornaSchedaDaUltimaSeduta() {
-  const finite = seduteFinite(V.sedute);
+  const finite = seduteFinite(seduteDellaPersona());
   if (!finite.length) { avviso('Non ci sono sedute finite da cui prendere i dati.'); return; }
   await proponiAggiornamentoScheda(finite[0].id);
 }
@@ -209,16 +243,35 @@ async function ricarcaTutto() {
 
 async function seminaSeVuoto() {
   const gia = await db.tutti('esercizi');
-  if (gia.length) { await sistemaNomeScheda(); return; }
-  for (const e of ESERCIZI) await db.salva('esercizi', e, { segna: false });
-  await db.salva('schede', {
-    id: SCHEDA_ID, nome: SCHEDA_NOME, versione_corrente: 'ver-1',
-  }, { segna: false });
+  if (gia.length) {
+    await sistemaNomeScheda();
+  } else {
+    for (const e of ESERCIZI) await db.salva('esercizi', e, { segna: false });
+    await db.scriviMeta('installato_il', adesso());
+  }
+  await seminaPersona();
+}
+
+/**
+ * Ogni persona deve avere la sua scheda. Alla prima visita creo la scheda e la
+ * versione 1 se non ci sono ancora: NON tocco i dati di nessuno, e la scheda
+ * dell'altro parte come punto di partenza (gli esercizi sono gli stessi, poi
+ * ognuno la modifica come vuole).
+ */
+async function seminaPersona() {
+  const p = personaAttiva();
+  const gia = await db.prendi('schede', p.schedaId);
+  if (gia) return;
+  const versioneId = 'ver-' + p.schedaId + '-1';
   await db.salva('versioni', {
-    id: 'ver-1', scheda_id: SCHEDA_ID, numero: 1,
-    snapshot: costruisciSnapshot(), nota: 'Versione iniziale, trascritta dalla scheda.',
+    id: versioneId, scheda_id: p.schedaId, numero: 1,
+    snapshot: costruisciSnapshot(),
+    nota: 'Versione iniziale: punto di partenza, poi ognuno la modifica come vuole.',
   }, { segna: false });
-  await db.scriviMeta('installato_il', adesso());
+  await db.salva('schede', {
+    id: p.schedaId, nome: p.nomeScheda,
+    versione_corrente: versioneId,
+  }, { segna: false });
 }
 
 /**
@@ -235,12 +288,13 @@ async function sistemaNomeScheda() {
   await db.salva('schede', { ...s, nome: SCHEDA_NOME }, { segna: false });
 }
 
-function scheda() { return V.schede.find((s) => s.id === SCHEDA_ID) || V.schede[0] || null; }
+function scheda() { return V.schede.find((s) => s.id === schedaAttivaId()) || null; }
 
 function versioneCorrente() {
   const s = scheda();
   if (!s) return null;
-  return V.versi.find((v) => v.id === s.versione_corrente) || V.versi[0] || null;
+  const mie = versioniDellaPersona();
+  return V.versi.find((v) => v.id === s.versione_corrente) || mie[0] || null;
 }
 
 function esercizioPerId(id) { return V.esercizi.find((e) => e.id === id) || null; }
@@ -354,6 +408,27 @@ function vistaHome(zona) {
 
   zona.appendChild(el('div', { id: 'zona-avviso' }));
 
+  // Cambio persona: ogniuno ha il suo link. Non serve alcun account, e i dati
+  // non si mescolano: sono schede e storico separati.
+  if (PERSONE.length > 1) {
+    const boxPersone = el('div', { class: 'scelta-persona' });
+    boxPersone.appendChild(el('span', { class: 'nota', testo: 'Stai usando:' }));
+    const scelte = el('div', { class: 'chip-scelte' });
+    for (const p of PERSONE) {
+      const attiva = p.id === personaAttiva().id;
+      scelte.appendChild(bottone(p.nome, {
+        onClick: () => {
+          if (attiva) return;
+          try { window.location.href = window.location.pathname + '?p=' + p.id + window.location.hash; }
+          catch { vai('/'); }
+        },
+        classe: 'chip' + (attiva ? ' attivo' : ''),
+      }));
+    }
+    boxPersone.appendChild(scelte);
+    zona.appendChild(boxPersone);
+  }
+
   // Se c'e' una seduta aperta, questa e' la cosa piu' importante della schermata:
   // la metto in cima, grossa, prima ancora del titolo. Se chiudi l'app a meta'
   // allenamento la trovi subito e la riprendi.
@@ -411,7 +486,9 @@ function vistaHome(zona) {
 }
 
 function ultimaSedutaDelGiorno(giornoId) {
-  const proprie = V.sedute.filter((s) => s.giorno_id === giornoId && s.stato === 'completata' && !s.eliminata);
+  // filtrata sulla persona: i giorni si chiamano "giorno-1" per tutti, quindi
+  // senza questo filtro si vedrebbe anche la seduta dell'altra persona
+  const proprie = seduteDellaPersona().filter((s) => s.giorno_id === giornoId && s.stato === 'completata' && !s.eliminata);
   if (!proprie.length) return null;
   return proprie.sort((a, b) => String(b.data).localeCompare(String(a.data)))[0];
 }
@@ -593,7 +670,7 @@ function vistaGiorno(zona, giornoId) {
           );
           if (!ok) return;
           const nuova = pulisciOrdini(bozza);
-          const nuovoNumero = Math.max(...V.versi.map((x) => Number(x.numero) || 0)) + 1;
+          const nuovoNumero = Math.max(0, ...versioniDellaPersona().map((x) => Number(x.numero) || 0)) + 1;
           const nuovaVersioneId = 'ver-' + nuovoId();
           await db.salva('versioni', {
             id: nuovaVersioneId, scheda_id: SCHEDA_ID, numero: nuovoNumero,
@@ -820,7 +897,7 @@ async function aggiornaNotaSeduta(sedutaId, testo) {
 }
 
 function ultimaSedutaConEsercizio(esercizioId, escludiSedutaId) {
-  const candidate = V.sedute.filter((s) => s.stato === 'completata' && s.id !== escludiSedutaId && !s.eliminata);
+  const candidate = seduteDellaPersona().filter((s) => s.stato === 'completata' && s.id !== escludiSedutaId && !s.eliminata);
   for (const s of candidate.sort((a, b) => String(b.data + b.ora_inizio).localeCompare(String(a.data + a.ora_inizio)))) {
     if (V.serie.some((x) => x.seduta_id === s.id && x.esercizio_id === esercizioId && !x.eliminata)) return s;
   }
@@ -1141,7 +1218,7 @@ async function finisceAllenamento(s) {
 
 function vistaStorico(zona) {
   zona.appendChild(el('h1', { testo: 'Storico' }));
-  const completate = V.sedute.filter((s) => s.stato === 'completata' && !s.eliminata)
+  const completate = seduteDellaPersona().filter((s) => s.stato === 'completata' && !s.eliminata)
     .sort((a, b) => String(b.data).localeCompare(String(a.data)));
   if (!completate.length) {
     zona.appendChild(el('p', { class: 'nota', testo: 'Nessuna seduta registrata. Quando finisci il primo allenamento lo troverai qui.' }));
@@ -1471,7 +1548,7 @@ function vistaScheda(zona) {
         );
         if (!ok) return;
         const nuova = pulisciOrdini(bozza);
-        const nuovoNumero = Math.max(...V.versi.map((x) => Number(x.numero) || 0)) + 1;
+        const nuovoNumero = Math.max(0, ...versioniDellaPersona().map((x) => Number(x.numero) || 0)) + 1;
         const nuovaVersioneId = 'ver-' + nuovoId();
         await db.salva('versioni', {
           id: nuovaVersioneId, scheda_id: SCHEDA_ID, numero: nuovoNumero, snapshot: JSON.parse(JSON.stringify(nuova)),
@@ -1488,7 +1565,7 @@ function vistaScheda(zona) {
   ]));
 
   const storicoVersioni = el('details', { class: 'storico-versioni' }, [el('summary', { testo: 'Versioni della scheda' })]);
-  for (const ver of V.versi.sort((a, b) => b.numero - a.numero)) {
+  for (const ver of versioniDellaPersona().sort((a, b) => b.numero - a.numero)) {
     const conta = ((ver.snapshot && ver.snapshot.giorni) || []).reduce((a, g) => a + (g.esercizi || []).length, 0);
     storicoVersioni.appendChild(el('p', { testo: `Versione ${ver.numero}: ${conta} esercizi — ${ver.nota || ''}` }));
   }
@@ -1559,7 +1636,9 @@ function vistaProgressi(zona) {
       if (!eserciziNellaScheda.includes(es.esercizio_id)) eserciziNellaScheda.push(es.esercizio_id);
     }
   }
-  const conDati = eserciziNellaScheda.filter((id) => V.serie.some((x) => x.esercizio_id === id && !x.eliminata));
+  // solo le serie di questa persona: altrimenti i progressi mescolerebbero
+  const mieSerie = serieDellaPersona();
+  const conDati = eserciziNellaScheda.filter((id) => mieSerie.some((x) => x.esercizio_id === id && !x.eliminata));
   if (!conDati.length) {
     zona.appendChild(el('p', { class: 'nota', testo: 'Nessun dato registrato. Chiudi un allenamento e qui compaiono i tuoi progressi.' }));
     return;
@@ -1605,7 +1684,7 @@ function vistaProgressi(zona) {
     // ordino per data E per ora d'inizio: se due sedute cadono lo stesso
     // giorno, con la sola data l'ordine era arbitrario e le due sedute
     // potevano risultare scambiate (il peso vecchio e quello nuovo invertiti).
-    const seduteRilevanti = V.sedute
+    const seduteRilevanti = seduteDellaPersona()
       .filter((s) => s.stato === 'completata' && !s.eliminata)
       .sort((a, b) => (String(a.data) + ' ' + String(a.ora_inizio || ''))
         .localeCompare(String(b.data) + ' ' + String(b.ora_inizio || '')));
@@ -1932,8 +2011,8 @@ function vistaImpostazioni(zona) {
   backupBox.appendChild(el('div', { class: 'riga-pulsanti' }, [
     bottone('Scarica il backup JSON', { onClick: () => esportaJson(), classe: 'principale' }),
     bottone('Scarica CSV esercizi', { onClick: () => scarica('esercizi.csv', csvEsercizi(V.esercizi)), classe: 'fantasma' }),
-    bottone('Scarica CSV sedute', { onClick: () => scarica('sedute.csv', csvSedute(V.sedute)), classe: 'fantasma' }),
-    bottone('Scarica CSV serie', { onClick: () => scarica('serie.csv', csvSerie(V.serie, V.esercizi, V.sedute)), classe: 'fantasma' }),
+    bottone('Scarica CSV sedute', { onClick: () => scarica('sedute.csv', csvSedute(seduteDellaPersona())), classe: 'fantasma' }),
+    bottone('Scarica CSV serie', { onClick: () => scarica('serie.csv', csvSerie(serieDellaPersona(), V.esercizi, seduteDellaPersona())), classe: 'fantasma' }),
   ]));
   const fileInput = el('input', { type: 'file', accept: 'application/json', class: 'nascosto' });
   fileInput.addEventListener('change', async () => {

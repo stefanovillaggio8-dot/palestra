@@ -1,11 +1,33 @@
-// dati-iniziali.js -- la scheda "gym 3" trascritta dalle foto.
-// Non viene mai riscritta a runtime: se la modifichi, nasce una nuova versione
-// della scheda e lo storico resta quello che era.
+// dati-iniziali.js -- le schede e la lista degli esercizi.
+// Non viene mai riscritta a runtime: se modifichi una scheda, nasce una nuova
+// versione e lo storico resta quello che era.
+//
+// Ci sono due persone, ognuna con la sua scheda e i suoi allenamenti. Si
+// sceglie dalla URL: ?p=2 (oppure ?p=1, che e' il default). Ogni persona ha un
+// id scheda proprio, quindi niente si mescola.
 
 import { CONVENZIONI as C } from './numeri.js';
 
 export const SCHEDA_ID = 'scheda-gym-3';
 export const SCHEDA_NOME = 'Palestra';
+
+/** Le persone che usano l'app. L'ordine non conta, conta l'id nella URL. */
+export const PERSONE = [
+  { id: 1, nome: 'Stefano', nomeScheda: 'Palestra', schedaId: SCHEDA_ID, predefinita: true },
+  { id: 2, nome: 'Altro', nomeScheda: 'Palestra A', schedaId: 'scheda-altro-1', predefinita: false },
+];
+
+/** Quale persona si sta usando adesso, letta dalla URL (?p=2). */
+export function personaDallaUrl(ricerca) {
+  const qs = String(ricerca || '');
+  const m = /[?&]p=(\d+)/.exec(qs);
+  const richiesta = m ? Number(m[1]) : null;
+  if (richiesta !== null) {
+    const trovata = PERSONE.find((p) => p.id === richiesta);
+    if (trovata) return trovata;
+  }
+  return PERSONE.find((p) => p.predefinita) || PERSONE[0];
+}
 
 // Ogni riga e' una VARIANTA con id proprio: "Chest Press" e "Chest Press - macchina B"
 // hanno id diversi e quindi non verranno mai confrontati fra loro.
@@ -36,6 +58,12 @@ export const ESERCIZI = [
   { id: 'ex-pull-ups', nome: 'Pull Ups', gruppo: 'Pull Ups', convenzione: C.ASSISTENZA, foto: 'img/esercizi/pull-ups.png', tipo: 'assistente', nota_permanente: 'Zavorra: il numero e\' l\'assistenza che uso.' },
   { id: 'ex-dips', nome: 'Dips', gruppo: 'Dips', convenzione: C.ASSISTENZA, foto: 'img/esercizi/dips.png', tipo: 'assistente', nota_permanente: 'Zavorra: il numero e\' l\'assistenza che uso.' },
   { id: 'ex-wrist-curl', nome: 'Wrist Curl', gruppo: 'Wrist Curl', convenzione: C.BILANCIERE, foto: 'img/esercizi/wrist-curl.png', tipo: 'standard', nota_permanente: 'Dropset: prima serie fino a cedimento, poi si scende. Ci sono 3 giri extra da riempire.' },
+
+  // Esercizi AGGIUNTI, non ancora messi in nessuna scheda: sono disponibili
+  // nella lista cosi' ognuno puo' aggiungerli quando gli servono.
+  { id: 'ex-iso-lateral-row', nome: 'Iso-Lateral Row', gruppo: 'Row', convenzione: C.MACCHINA, foto: 'img/esercizi/iso-lateral-row.png', tipo: 'standard', nota_permanente: '' },
+  { id: 'ex-lat-pulldown-lats', nome: 'Lat Pulldown (lats)', gruppo: 'Lat Pulldown', convenzione: C.MACCHINA, foto: 'img/esercizi/lat-pulldown-lats.png', tipo: 'standard', nota_permanente: '' },
+  { id: 'ex-db-lateral-raise', nome: 'Dumbbell Lateral Raise', gruppo: 'Lateral Raise', convenzione: C.BILANCIERE, foto: 'img/esercizi/db-lateral-raise.png', tipo: 'standard', nota_permanente: '' },
 ];
 
 const s = (peso, rip, extra = {}) => ({ peso, ripetizioni: rip, ...extra });
