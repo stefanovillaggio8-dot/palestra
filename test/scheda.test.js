@@ -19,14 +19,14 @@ test('ogni esercizio ha foto, convenzione e gruppo', () => {
   }
 });
 
-test('23 esercizi della scheda + 3 aggiunti dopo, non ancora in nessuna scheda', () => {
-  // I primi 23 sono quelli trascritti dalle foto. I 3 successivi sono stati
-  // aggiunti dopo (Iso-Lateral Row, Lat Pulldown lats, Dumbbell Lateral Raise):
-  // sono disponibili nella lista ma NON devono essere finiti in nessuna scheda,
-  // altrimenti gli allenamenti di Ste cambierebbero da soli.
-  assert.equal(ESERCIZI.length, 26);
-  const aggiunti = ESERCIZI.filter((e) => ['ex-iso-lateral-row', 'ex-lat-pulldown-lats', 'ex-db-lateral-raise'].includes(e.id));
-  assert.equal(aggiunti.length, 3, 'i 3 esercizi aggiunti ci sono');
+test('23 esercizi della scheda + 4 aggiunti dopo, non ancora in nessuna scheda', () => {
+  // I primi 23 sono quelli trascritti dalle foto. I 4 successivi sono stati
+  // aggiunti dopo: sono disponibili nella lista ma NON devono essere finiti in
+  // nessuna scheda, altrimenti gli allenamenti di Ste cambierebbero da soli.
+  assert.equal(ESERCIZI.length, 27);
+  const aggiunti = ESERCIZI.filter((e) => ['ex-iso-lateral-row', 'ex-lat-pulldown-lats',
+    'ex-db-lateral-raise', 'ex-lying-cable-curl'].includes(e.id));
+  assert.equal(aggiunti.length, 4, 'i 4 esercizi aggiunti ci sono');
   for (const g of GIORNI) {
     for (const es of g.esercizi) {
       assert.ok(!aggiunti.some((a) => a.id === es.esercizio_id),

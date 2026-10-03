@@ -35,7 +35,7 @@ test('il motore di salvataggio parte e scrive davvero', async () => {
 
 test('la scheda viene seminata per intero', async () => {
   await semina();
-  assert.equal((await db.tutti('esercizi')).length, 26);
+  assert.equal((await db.tutti('esercizi')).length, 27);
   assert.equal((await db.tutti('schede')).length, 1);
   assert.equal((await db.tutti('versioni')).length, 1);
   const v = (await db.tutti('versioni'))[0];

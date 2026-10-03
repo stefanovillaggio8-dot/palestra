@@ -64,6 +64,7 @@ export const ESERCIZI = [
   { id: 'ex-iso-lateral-row', nome: 'Iso-Lateral Row', gruppo: 'Row', convenzione: C.MACCHINA, foto: 'img/esercizi/iso-lateral-row.png', tipo: 'standard', nota_permanente: '' },
   { id: 'ex-lat-pulldown-lats', nome: 'Lat Pulldown (lats)', gruppo: 'Lat Pulldown', convenzione: C.MACCHINA, foto: 'img/esercizi/lat-pulldown-lats.png', tipo: 'standard', nota_permanente: '' },
   { id: 'ex-db-lateral-raise', nome: 'Dumbbell Lateral Raise', gruppo: 'Lateral Raise', convenzione: C.BILANCIERE, foto: 'img/esercizi/db-lateral-raise.png', tipo: 'standard', nota_permanente: '' },
+  { id: 'ex-lying-cable-curl', nome: 'Lying Cable Curl', gruppo: 'Curl bilanciere', convenzione: C.CAVO, foto: 'img/esercizi/lying-cable-curl.png', tipo: 'standard', nota_permanente: 'Curl al cavo disteso su panca inclinata (quasi 90 gradi), quello che diciamo "liac".' },
 ];
 
 const s = (peso, rip, extra = {}) => ({ peso, ripetizioni: rip, ...extra });

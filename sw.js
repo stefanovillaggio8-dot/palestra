@@ -57,6 +57,7 @@ const FOTO = [
   './img/esercizi/iso-lateral-row.png',
   './img/esercizi/lat-pulldown-lats.png',
   './img/esercizi/db-lateral-raise.png',
+  './img/esercizi/lying-cable-curl.png',
 ];
 
 self.addEventListener('install', (evento) => {
