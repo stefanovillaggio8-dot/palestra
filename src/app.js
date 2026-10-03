@@ -12,12 +12,12 @@ import {
   ETICHETTE_CONVENZIONE, CONVENZIONI, convenzioneMisuraCarico, etichettaUnita, campoCarico,
 } from './numeri.js';
 import { confrontaEsercizio, riassuntoEsercizio, NON_DISPONIBILE } from './confronto.js';
-import { prossimoOrdine, apriSeduta, nuovaSerie, seduteFinite, eFatta, commutaFatta, pulsa, segnaAspettoFatto, registra, REGISTRO } from './sedute.js';
+import { prossimoOrdine, apriSeduta, nuovaSerie, seduteFinite, eFatta, commutaFatta, pulsa, segnaAspettoFatto, registra, REGISTRO, cambiaSerie, etichettaSpotterSerie } from './sedute.js';
 import {
   MODALITA, raccogliPerEsercizio, proposta as propostaAggiornamento, notaSulNumeroSerie,
   riassuntoSpotter,
 } from './aggiornamento.js';
-import { testoProgresso, serieARipetizioniCostanti } from './progressi.js';
+import { testoProgresso, serieARipetizioniCostanti, riepilogoGenerale } from './progressi.js';
 import { creaPacchetto, validaPacchetto, unisci, csvSerie, csvSedute, csvEsercizi } from './backup.js';
 import { ESERCIZI, SCHEDA_ID, SCHEDA_NOME, costruisciSnapshot } from './dati-iniziali.js';
 import { nuovoId, adesso, TABELLE } from './sincronizzazione.js';
@@ -707,13 +707,30 @@ function rigaSerie(serie, numero, confronto, seduta) {
     onCambio: conRitardo((v) => aggiornaSerie(serie, { ripetizioni: Number(String(v).replace(',', '.')) })),
     onInvalido: (v) => avviso('Le ripetizioni dev\'essere un numero. Provo a lasciare com\'era.', { tipo: 'errore' }),
   });
+  rip.addEventListener('input', () => {
+    const v = rip.value === '' ? null : Number(rip.value.replace(',', '.'));
+    if (v === null || Number.isFinite(v)) { perView.ripetizioni = v; scriviBadgeSpotter(); }
+  });
   rip.classList.add('campo-rip');
   riga.appendChild(el('label', { class: 'campetto' }, [rip, el('span', { class: 'sotto-campo', testo: 'RIP' })]));
 
   // lo spotter: resta salvato e si vede chiaramente
+  // tengo una copia "di comodo" della serie che aggiorno mentre digito: serve
+  // per ricalcolare la scritta dello spotter subito, senza aspettare il
+  // salvataggio e senza ridisegnare la pagina (il ridisegno farebbe perdere
+  // il posto nel campo dove stai scrivendo).
+  const perView = { ...serie };
+  const badgeSpotter = el('span', { class: 'badge-spotter' });
+  const scriviBadgeSpotter = () => {
+    const testo = etichettaSpotterSerie(perView);
+    badgeSpotter.textContent = testo ? 'fatta con lo spotter · ' + testo : '';
+  };
+  scriviBadgeSpotter();
+
   const botSpotter = bottone(serie.spotter ? '✓ Spotter' : 'Spotter', {
     onClick: async () => {
       const nuovo = !serie.spotter;
+      perView.spotter = nuovo;
       await aggiornaSerie(serie, { spotter: nuovo });
       if (nuovo) pulsa();
       disegna();
@@ -721,9 +738,7 @@ function rigaSerie(serie, numero, confronto, seduta) {
     classe: serie.spotter ? 'spotter attivo' : 'fantasma',
   });
   riga.appendChild(botSpotter);
-  if (serie.spotter) {
-    riga.appendChild(el('span', { class: 'badge-spotter', testo: 'fatta con lo spotter' }));
-  }
+  riga.appendChild(badgeSpotter);
 
   const campiAssistite = el('div', { class: 'gruppo-assistite' });
   if (serie.spotter) {
@@ -731,13 +746,15 @@ function rigaSerie(serie, numero, confronto, seduta) {
       etichetta: 'ripetizioni assistite',
       onCambio: conRitardo((v) => aggiornaSerie(serie, { rip_assistite: v === null ? null : Number(String(v).replace(',', '.')) })),
     });
+    ass.addEventListener('input', () => {
+      const v = ass.value === '' ? null : Number(ass.value.replace(',', '.'));
+      if (v === null || Number.isFinite(v)) { perView.rip_assistite = v; scriviBadgeSpotter(); }
+    });
     ass.classList.add('piccolo');
     campiAssistite.appendChild(el('label', { class: 'campetto' }, [
       ass, el('span', { class: 'sotto-campo', testo: 'ASSISTITE' }),
     ]));
-    if (serie.rip_assistite === null || serie.rip_assistite === undefined) {
-      campiAssistite.appendChild(el('span', { class: 'tag-grigio', testo: 'non specificato' }));
-    }
+    // il "non specificato" lo dice gia' il badge qui accordo alla serie
   }
   riga.appendChild(campiAssistite);
 
@@ -864,8 +881,10 @@ function mostraErroreBreve(testo) {
 }
 
 async function aggiornaSerie(serie, campi) {
-  const nuova = { ...serie, ...campi };
-  const salvata = await db.salva('serie', nuova);
+  // cambiaSerie rilegge la serie dal database e mette in fila i cambiamenti
+  // della stessa serie: e' quello che impedisce a un campo salvato in ritardo
+  // di cancellare la spunta o lo spotter appena messi.
+  const salvata = await cambiaSerie(serie.id, campi);
   const idx = V.serie.findIndex((x) => x.id === serie.id);
   if (idx >= 0) V.serie[idx] = salvata;
   disegnaStatoSalvataggio();
@@ -1196,6 +1215,14 @@ function scegliEsercizio(bozza, g) {
 
 function vistaProgressi(zona) {
   zona.appendChild(el('h1', { testo: 'Progressi' }));
+
+  // Il riepilogo generale viene PRIMA di tutto il resto: Ste ha detto che coi
+  // grafici da solo non capisce, quindi la risposta principale e' in parole.
+  const boxGenerale = el('div', { class: 'spiegazione generale' });
+  boxGenerale.appendChild(el('h3', { testo: 'In generale, quanto sei migliorato' }));
+  const spazioGenerale = el('div', { id: 'riepilogo-generale' });
+  boxGenerale.appendChild(spazioGenerale);
+  zona.appendChild(boxGenerale);
   zona.appendChild(el('p', { class: 'nota', testo: 'Gli esercizi sono divisi per variante: Chest Press e Chest Press su un\'altra macchina non vengono mai messi a confronto.' }));
 
   const v = versioneCorrente();
@@ -1247,13 +1274,13 @@ function vistaProgressi(zona) {
   zona.appendChild(contenitoreTesto);
   zona.appendChild(contenitoreGrafici);
 
-  function storicoEsercizio() {
+  function storicoDi(esercizioId) {
     const seduteRilevanti = V.sedute
       .filter((s) => s.stato === 'completata' && !s.eliminata)
       .sort((a, b) => String(a.data).localeCompare(String(b.data)));
     const punti = [];
     for (const s of seduteRilevanti) {
-      const serie = V.serie.filter((x) => x.seduta_id === s.id && x.esercizio_id === selezionato && !x.eliminata);
+      const serie = V.serie.filter((x) => x.seduta_id === s.id && x.esercizio_id === esercizioId && !x.eliminata);
       if (!serie.length) continue;
       punti.push({ data: s.data, seduta: s, serie });
     }
@@ -1266,13 +1293,36 @@ function vistaProgressi(zona) {
     return punti;
   }
 
+  function storicoEsercizio() {
+    return storicoDi(selezionato);
+  }
+
   function aggiorna() {
     const e = esercizioPerId(selezionato);
     const punti = storicoEsercizio();
     svuota(contenitoreTesto);
     svuota(contenitoreGrafici);
+    svuota(spazioGenerale);
 
     const descrizionePeriodo = periodo === 'tutto' ? '' : (periodi.find((p) => p.k === periodo) || {}).t.replace('Ultimi ', '').replace('Ultimo ', '');
+
+    // il riepilogo generale: tutti gli esercizi insieme, non uno solo
+    const generale = riepilogoGenerale(conDati.map((id) => ({
+      nome: (esercizioPerId(id) || {}).nome || id,
+      esercizio: esercizioPerId(id),
+      punti: storicoDi(id),
+    })));
+    if (generale.numeri.length) {
+      spazioGenerale.appendChild(el('div', { class: 'numeri-riepilogo' },
+        generale.numeri.map((n) => el('div', { class: 'numero-riepilogo ' + (n.etichetta === 'migliorati' ? 'verde' : n.etichetta === 'indietro' ? 'rosso' : 'neutro') }, [
+          el('strong', { testo: String(n.valore) }),
+          el('span', { testo: n.etichetta }),
+        ]))));
+    }
+    for (const riga of generale.linee) {
+      spazioGenerale.appendChild(el('p', { class: 'riga-spiegazione', testo: riga }));
+    }
+
     const res = testoProgresso(e.nome, e, punti, descrizionePeriodo);
 
     const box = el('div', { class: 'spiegazione' });

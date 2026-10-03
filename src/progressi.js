@@ -162,6 +162,108 @@ export function testoProgresso(nomeEsercizio, esercizio, storico, periodoDescriz
   };
 }
 
+/**
+ * Riepilogo GENERALE: quanto sei migliorato in tutto, scritto a parole.
+ *
+ * Ste ha detto: "non solo con i grafici, ma anche scritto, perche' coi grafici
+ * non capisco molto". Questo guarda TUTTI gli esercizi insieme e conta quanti
+ * sono migliorati, quanti fermi e quanti indietro, e dice anche le cose scomode
+ * (per esempio gli esercizi che sono peggiorati).
+ *
+ * esercizi = [{ nome, esercizio, punti }], dove punti = [{ data, serie }]
+ *            come li usa testoProgresso.
+ */
+export function riepilogoGenerale(esercizi) {
+  const voci = [];
+  for (const voce of (esercizi || [])) {
+    const punti = ((voce && voce.punti) || []).filter((p) => p && (p.serie || []).length);
+    if (punti.length < 2) continue;
+    const e = voce.esercizio || { convenzione: null };
+    const assistito = !convenzioneMisuraCarico(e.convenzione);
+    const chiave = assistito ? 'pesoAssistenzaMassimo' : 'pesoMassimo';
+
+    const rPrimo = riassuntoEsercizio(punti[0].serie, e);
+    const rUltimo = riassuntoEsercizio(punti[punti.length - 1].serie, e);
+    const da = rPrimo[chiave];
+    const a = rUltimo[chiave];
+    const d = differenzaAssoluta(da, a);
+    if (d === null) continue;
+
+    // nell'assistenza "meno assistenza" vuol dire meglio: quindi il segno va girato
+    const migliore = assistito ? -d : d;
+    voci.push({
+      nome: voce.nome, esercizio: e, assistito, chiave,
+      da, a, delta: d, migliore, punti: punti.length,
+      serie: punti.length,
+    });
+  }
+
+  const migliorati = voci.filter((v) => v.migliore > 0);
+  const fermi = voci.filter((v) => v.migliore === 0);
+  const indietro = voci.filter((v) => v.migliore < 0);
+
+  const linee = [];
+  const numeri = [];
+  if (!voci.length) {
+    return {
+      linee: ['Per un riepilogo generale servono almeno due sedute sugli stessi esercizi: finche\' c\'e\' una seduta sola non c\'e\' niente da confrontare.'],
+      numeri: [], migliorati: 0, fermi: 0, indietro: 0, analizzati: 0,
+    };
+  }
+
+  // il verdetto, prima di tutto, in una frase
+  const totale = voci.length;
+  if (migliorati.length > indietro.length) {
+    linee.push(`Guardando tutti gli esercizi insieme, sei migliorato: ${migliorati.length} su ${totale} sono andati avanti.`);
+  } else if (indietro.length > migliorati.length) {
+    linee.push(`Guardando tutti gli esercizi insieme, il quadro e\' misto: ${indietro.length} esercizi su ${totale} ti dicono che sei andato un po\' indietro.`);
+  } else {
+    linee.push(`Guardando tutti gli esercizi insieme, sei sostanzialmente fermo: ${migliorati.length} migliorati e ${indietro.length} indietro su ${totale}.`);
+  }
+
+  numeri.push({ etichetta: 'migliorati', valore: migliorati.length });
+  numeri.push({ etichetta: 'fermi', valore: fermi.length });
+  numeri.push({ etichetta: 'indietro', valore: indietro.length });
+
+  if (migliorati.length) {
+    // i tre migliori, cosi' vede subito dove sta andando bene
+    const top = migliorati.slice().sort((x, y) => y.migliore - x.migliore).slice(0, 3);
+    const frasi = top.map((v) => {
+      const perc = differenzaPercentuale(v.da, v.a);
+      const numero = formattaNumero(Math.abs(v.delta));
+      if (v.assistito) return `${v.nome} −${numero} kg di assistenza in meno${perc === null ? '' : ` (${frasePercentuale(perc)})`}`;
+      return `${v.nome} +${numero} kg${perc === null ? '' : ` (${frasePercentuale(perc)})`}`;
+    });
+    linee.push(`I progressi piu\' chiari: ${frasi.join(', ')}.`);
+  }
+
+  if (indietro.length) {
+    const peggiori = indietro.slice().sort((x, y) => x.migliore - y.migliore).slice(0, 3);
+    const frasi = peggiori.map((v) => {
+      const numero = formattaNumero(Math.abs(v.delta));
+      if (v.assistito) return `${v.nome} +${numero} kg di assistenza in piu\'`;
+      return `${v.nome} −${numero} kg`;
+    });
+    linee.push(`Attenzione, questi vanno indietro rispetto alla prima volta: ${frasi.join(', ')}.`);
+  }
+
+  if (fermi.length && fermi.length <= 5) {
+    linee.push(`Restano fermi (stesso numero di prima): ${fermi.map((v) => v.nome).join(', ')}.`);
+  } else if (fermi.length) {
+    linee.push(`Poi ${fermi.length} esercizi sono fermi sullo stesso numero di prima.`);
+  }
+
+  linee.push('Ricorda che un peso piu\' alto non vuol dire automaticamente meglio: contano anche le ripetizioni e quanto hai spinto.');
+
+  return {
+    linee, numeri,
+    migliorati: migliorati.length,
+    fermi: fermi.length,
+    indietro: indietro.length,
+    analizzati: totale,
+  };
+}
+
 /** Dati per il grafico "ripetizioni a parita' di peso". */
 export function serieARipetizioniCostanti(punti, esercizio) {
   const r = [];

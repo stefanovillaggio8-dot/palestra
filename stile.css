@@ -338,6 +338,8 @@ a { color: var(--blu); text-decoration: none; }
   font-size: .68rem; font-weight: 800; padding: 4px 8px;
   border-radius: 99px; white-space: nowrap;
 }
+/* quando non c'e' niente da dire (serie senza spotter) il badge sparisce */
+.badge-spotter:empty { display: none; }
 
 .dropset { width: 100%; border-top: 1px dashed var(--bordo); padding-top: 9px; margin-top: 6px; display: flex; flex-direction: column; gap: 8px; }
 .etichetta-dropset { font-size: .78rem; font-weight: 800; color: var(--arancio); }
@@ -386,6 +388,23 @@ a { color: var(--blu); text-decoration: none; }
 }
 .riga-spiegazione { margin-bottom: .5rem; line-height: 1.55; }
 .riga-spiegazione:last-child { margin-bottom: 0; }
+
+/* riepilogo generale: la parte scritta, quella che Ste legge per prima */
+.spiegazione.generale { border-color: #4a3a78; }
+.spiegazione.generale h3 { margin-top: 0; }
+#riepilogo-generale .riga-spiegazione:first-child { font-size: 1.05rem; font-weight: 700; }
+.numeri-riepilogo { display: flex; gap: 8px; margin: 0 0 .8rem; flex-wrap: wrap; }
+.numero-riepilogo {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 8px 14px; border-radius: var(--r); min-width: 76px;
+  background: var(--card); border: 1px solid var(--bordo);
+}
+.numero-riepilogo strong { font-size: 1.4rem; line-height: 1.1; }
+.numero-riepilogo span { font-size: .68rem; text-transform: uppercase; letter-spacing: .06em; color: var(--testo-3); }
+.numero-riepilogo.verde { border-color: var(--verde); }
+.numero-riepilogo.verde strong { color: var(--verde); }
+.numero-riepilogo.rosso { border-color: #b0485c; }
+.numero-riepilogo.rosso strong { color: #ff8098; }
 
 .grafico { background: var(--card); border: 1px solid var(--bordo); border-radius: var(--r); padding: 12px; margin: 12px 0; }
 .grafico-svg { width: 100%; height: auto; display: block; }

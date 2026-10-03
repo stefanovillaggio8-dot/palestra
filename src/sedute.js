@@ -4,7 +4,7 @@
 
 import * as db from './db.js';
 import { nuovoId, adesso } from './sincronizzazione.js';
-import { convenzioneMisuraCarico } from './numeri.js';
+import { convenzioneMisuraCarico, formattaNumero } from './numeri.js';
 
 export const GIRI_DROPSET = 3;
 export const STATI_SERIE = ['da_fare', 'fatta', 'saltata'];
@@ -100,6 +100,21 @@ export function pulsa() {
   } catch { /* pazienza */ }
 }
 
+/**
+ * Testo da mettere ACCANTO alla serie che ha lo spotter: quante ripetizioni
+ * hai fatto in totale e quante di queste erano assistite.
+ * Se le assistite non sono state scritte resta "non specificato" (non 0:
+ * 0 vuol dire che le hai fatte tutte da solo, che e\' una cosa diversa).
+ */
+export function etichettaSpotterSerie(s) {
+  if (!s || !s.spotter) return null;
+  const rip = s.ripetizioni === null || s.ripetizioni === undefined ? null : Number(s.ripetizioni);
+  const ass = s.rip_assistite === null || s.rip_assistite === undefined ? null : Number(s.rip_assistite);
+  const testoRip = rip === null ? 'rip non specificate' : `${formattaNumero(rip)} rip`;
+  const testoAss = ass === null ? 'assistite non specificate' : `${formattaNumero(ass)} assistite`;
+  return `${testoRip} · ${testoAss}`;
+}
+
 /** I campi di una serie vuota, gia' pronti per il database. */
 export function nuovaSerie({ seduta_id, esercizio_id, ordine, esercizio, prevista = {} }) {
   const assistito = !!esercizio && !convenzioneMisuraCarico(esercizio.convenzione);
@@ -170,15 +185,28 @@ export async function aggiungiSerie({ seduta_id, esercizio_id, esercizio, ordine
   return salvata;
 }
 
+// Una coda per ogni serie: i cambiamenti della stessa serie vanno in fila.
+// Senza questo, due scritture quasi contemporanee (per esempio i kg che
+// salvano in ritardo e la spunta) possono leggere la stessa versione vecchia e
+// l'ultima che arriva cancella il cambiamento dell'altra. E' successo a Ste
+// sul telefono: spuntava la serie e un secondo dopo la spunta spariva.
+const codeSerie = new Map();
+
 /** Cambia i campi di una serie esistente. */
 export async function cambiaSerie(idSerie, campi) {
-  const esistente = await db.prendi('serie', idSerie);
-  if (!esistente) {
-    const errore = new Error('Questa serie non esiste piu\'. Ricarico la pagina.');
-    errore.codice = 'serie_inesistente';
-    throw errore;
-  }
-  return db.salva('serie', { ...esistente, ...campi });
+  const precedente = codeSerie.get(idSerie) || Promise.resolve();
+  const lavoro = precedente.then(async () => {
+    const esistente = await db.prendi('serie', idSerie);
+    if (!esistente) {
+      const errore = new Error('Questa serie non esiste piu\'. Ricarico la pagina.');
+      errore.codice = 'serie_inesistente';
+      throw errore;
+    }
+    return db.salva('serie', { ...esistente, ...campi });
+  });
+  // anche se una scrittura fallisce, le successive devono poter andare avanti
+  codeSerie.set(idSerie, lavoro.catch(() => {}));
+  return lavoro;
 }
 
 /** Chiude la seduta: salvata ora di fine e durata, calcolata dall'inizio. */

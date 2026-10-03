@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { testoProgresso, serieARipetizioniCostanti } from '../src/progressi.js';
+import { testoProgresso, serieARipetizioniCostanti, riepilogoGenerale } from '../src/progressi.js';
 import { CONVENZIONI } from '../src/numeri.js';
 
 const CP = { id: 'ex-chest-press', nome: 'Chest Press', convenzione: CONVENZIONI.MACCHINA };
@@ -136,4 +136,88 @@ test('ripetizioni a parita\' di peso: solo i punti allo stesso peso', () => {
   assert.equal(out.punti[0].ripetizioniMedie, 8);
   assert.equal(out.punti[1].data, '2026-10-08');
   assert.equal(out.punti[1].ripetizioniMedie, 7);
+});
+
+/* ---------- il riepilogo generale scritto, senza grafici ---------- */
+
+const voce = (nome, esercizio, da, a, prima = 8, ultima = 8) => ({
+  nome, esercizio,
+  punti: [
+    punto('2026-09-01', [s(1, da, prima)]),
+    punto('2026-10-01', [s(1, a, ultima)]),
+  ],
+});
+
+test('riepilogo: dice in una frase che sei migliorato', () => {
+  const r = riepilogoGenerale([
+    voce('Chest Press', CP, 30, 35),
+    voce('Lat Pulldown', CP, 40, 45),
+    voce('Leg Extension', CP, 30, 30),
+  ]);
+  assert.equal(r.migliorati, 2);
+  assert.equal(r.fermi, 1);
+  assert.equal(r.indietro, 0);
+  assert.match(testo(r), /sei migliorato/i, 'la frase principale dice che e\' andato bene');
+  assert.match(testo(r), /Chest Press \+5 kg/);
+  assert.match(testo(r), /Lat Pulldown \+5 kg/);
+  assert.match(testo(r), /Leg Extension/);
+});
+
+test('riepilogo: i numeri da mettere in evidenza ci sono', () => {
+  const r = riepilogoGenerale([voce('Chest Press', CP, 30, 35), voce('Leg Extension', CP, 30, 30)]);
+  assert.deepEqual(r.numeri, [
+    { etichetta: 'migliorati', valore: 1 },
+    { etichetta: 'fermi', valore: 1 },
+    { etichetta: 'indietro', valore: 0 },
+  ]);
+});
+
+test('riepilogo: non nasconde gli esercizi andati indietro', () => {
+  const r = riepilogoGenerale([
+    voce('Chest Press', CP, 30, 35),
+    voce('Lat Pulldown', CP, 45, 40),
+  ]);
+  assert.equal(r.indietro, 1);
+  assert.match(testo(r), /Attenzione/);
+  assert.match(testo(r), /Lat Pulldown −5 kg/);
+});
+
+test('riepilogo: con l\'assistenza meno assistenza vuol dire meglio', () => {
+  // Pull Ups: se l'assistenza scende da 10 a 5 hai fatto PIU' lavoro da solo
+  const sAss = (o, assistenza) => ({ ordine: o, peso: null, peso_assistenza: assistenza, ripetizioni: 6, spotter: false });
+  const r = riepilogoGenerale([{
+    nome: 'Pull Ups', esercizio: PULL,
+    punti: [
+      punto('2026-09-01', [sAss(1, 10)]),
+      punto('2026-10-01', [sAss(1, 5)]),
+    ],
+  }]);
+  assert.equal(r.migliorati, 1, 'meno assistenza = meglio');
+  assert.match(testo(r), /Pull Ups −5 kg di assistenza in meno/);
+});
+
+test('riepilogo: il quadro misto non viene venduto come successo', () => {
+  const r = riepilogoGenerale([
+    voce('A', CP, 30, 35),
+    voce('B', CP, 45, 40),
+    voce('C', CP, 50, 45),
+  ]);
+  assert.match(testo(r), /misto/i, 'un migliorato e due indietro non e\' "sei migliorato"');
+  assert.doesNotMatch(testo(r), /sei migliorato/i);
+});
+
+test('riepilogo: senza dati non inventa niente', () => {
+  const r = riepilogoGenerale([]);
+  assert.equal(r.analizzati, 0);
+  assert.deepEqual(r.numeri, []);
+  assert.match(testo(r), /almeno due sedute/);
+});
+
+test('riepilogo: un esercizio con una seduta sola viene ignorato', () => {
+  const r = riepilogoGenerale([{
+    nome: 'Chest Press', esercizio: CP,
+    punti: [punto('2026-10-01', [s(1, 30, 8)])],
+  }]);
+  assert.equal(r.analizzati, 0, 'con una seduta non c\'e\' confronto');
+  assert.match(testo(r), /almeno due sedute/);
 });

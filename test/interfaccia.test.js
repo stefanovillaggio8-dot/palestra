@@ -22,7 +22,7 @@ globalThis.setInterval = () => 0;
 globalThis.clearInterval = () => {};
 
 const db = await import('../src/db.js');
-const { apriSeduta, prossimoOrdine, serieDiEsercizio, cambiaSerie, chiudiSeduta } = await import('../src/sedute.js');
+const { apriSeduta, prossimoOrdine, serieDiEsercizio, cambiaSerie, chiudiSeduta, etichettaSpotterSerie } = await import('../src/sedute.js');
 const { proposta: propostaAggiornamento, notaSulNumeroSerie, riassuntoSpotter } = await import('../src/aggiornamento.js');
 const { ESERCIZI, SCHEDA_ID, costruisciSnapshot } = await import('../src/dati-iniziali.js');
 
@@ -352,6 +352,20 @@ test('9. le impostazioni si aprono e mostrano stato e backup', async () => {
   assert.ok(pulsante(app, 'Importa un backup JSON'));
 });
 
+test('8b. nei progressi c\'e\' il riepilogo scritto PRIMA dei grafici', async () => {
+  globalThis.window.location.hash = '#/progressi';
+  await attendiChe(() => perClasse(app, 'spiegazione').length >= 1);
+  const generale = perClasse(app, 'spiegazione').find((b) => (b.textContent || '').includes('quanto sei migliorato'));
+  assert.ok(generale, 'c\'e\' il riepilogo generale scritto');
+  // deve stare PRIMA, perche' e\' la risposta principale e i grafici vengono dopo
+  const spiegazioni = perClasse(app, 'spiegazione');
+  assert.equal(spiegazioni[0], generale, 'il riepilogo generale e\' il primo blocco');
+  // qui non ci sono sedute completate, quindi deve dirlo con onesta' invece di
+  // inventare un confronto. (i confronti veri sono testati in progressi.test.js)
+  assert.ok(generale.querySelectorAll('.riga-spiegazione').length >= 1, 'c\'e\' almeno una riga di spiegazione');
+  assert.match(generale.textContent || '', /Guardando tutti gli esercizi insieme|almeno due sedute/);
+});
+
 test('10. eliminare una serie la mette nel cestino', async () => {
   const seduta = await assicuratiSeduta();
   const serie = await db.perIndice('serie', 'seduta_id', seduta.id);
@@ -662,6 +676,71 @@ test('20. nessuna serie con spotter: lo dice senza drama', () => {
   const info = riassuntoSpotter(new Map([['x', [{ peso: 35, ripetizioni: 8, spotter: false }]]]));
   assert.equal(info.serie, 0);
   assert.match(info.frase, /Nessuna serie con lo spotter/);
+});
+
+test('21. la spunta NON viene cancellata da un campo salvato in ritardo', async () => {
+  // Questo e' il bug vero di Ste sul telefono: toccava i kg e subito dopo la
+  // spunta. Il campo dei kg salva in ritardo (400 ms) e arrivava DOPO, con la
+  // copia vecchia della serie, portando via la spunta. "Spunto e non spunto".
+  const seduta = await assicuratiSeduta();
+  const serie = serieDiEsercizio(await db.tutti('serie'), seduta.id, 'ex-chest-press')[0];
+
+  // ordine esatto di quello che succede sul telefono:
+  // 1) scrivo nei kg  -> parte il salvataggio in ritardo
+  // 2) premo la spunta -> salva stato = 'fatta'
+  // 3) ARRIVA il salvataggio dei kg, costruito sulla copia di prima
+  const copiaVecchia = { ...serie };
+  await cambiaSerie(serie.id, { stato: 'fatta' });          // la spunta
+  await cambiaSerie(serie.id, { peso: 40 });               // i kg, arrivano dopo
+
+  const dopo = await db.prendi('serie', serie.id);
+  assert.equal(dopo.peso, 40, 'il peso aggiornato resta');
+  assert.equal(dopo.stato, 'fatta', 'e soprattutto la spunta NON viene cancellata');
+  assert.notEqual(copiaVecchia.stato, 'fatta', 'la copia vecchia non aveva la spunta: era questo il problema');
+});
+
+test('22. due salvataggi della stessa serie non si pestano i piedi', async () => {
+  const seduta = await assicuratiSeduta();
+  const serie = serieDiEsercizio(await db.tutti('serie'), seduta.id, 'ex-chest-press')[0];
+  // tre scritture sparate: l'ultima deve arrivare per ultima
+  await Promise.all([
+    cambiaSerie(serie.id, { peso: 41 }),
+    cambiaSerie(serie.id, { stato: 'fatta' }),
+    cambiaSerie(serie.id, { ripetizioni: 10 }),
+  ]);
+  const dopo = await db.prendi('serie', serie.id);
+  assert.equal(dopo.peso, 41);
+  assert.equal(dopo.stato, 'fatta');
+  assert.equal(dopo.ripetizioni, 10);
+});
+
+test('23. accanto alla serie con spotter c\'e\' scritto quante ripetizioni', () => {
+  assert.equal(etichettaSpotterSerie({ spotter: true, ripetizioni: 8, rip_assistite: 2 }), '8 rip · 2 assistite');
+  assert.equal(etichettaSpotterSerie({ spotter: true, ripetizioni: 7.5, rip_assistite: 1 }), '7,5 rip · 1 assistite');
+  // null NON e' 0: 0 vuol dire "nessuna assistita", null vuol dire "non l'ho scritto"
+  assert.equal(etichettaSpotterSerie({ spotter: true, ripetizioni: 8, rip_assistite: null }), '8 rip · assistite non specificate');
+  assert.equal(etichettaSpotterSerie({ spotter: true, ripetizioni: 8, rip_assistite: 0 }), '8 rip · 0 assistite');
+  assert.equal(etichettaSpotterSerie({ spotter: true, ripetizioni: null, rip_assistite: null }), 'rip non specificate · assistite non specificate');
+  // senza spotter non si dice niente
+  assert.equal(etichettaSpotterSerie({ spotter: false, ripetizioni: 8, rip_assistite: 0 }), null);
+});
+
+test('24. il bottone della spunta e\' grande abbastanza per il dito', async () => {
+  await assicuratiSeduta();
+  const blocco = perClasse(app, 'blocco-esercizio').find((b) => (b.textContent || '').includes('Leg Extension'));
+  const riga = perClasse(blocco, 'riga-serie')[0];
+  const spunta = perClasse(riga, 'bottone-spunta')[0];
+  assert.ok(spunta, 'la spunta c\'e\'');
+  assert.equal(spunta.getAttribute('type'), 'button', 'e\' un vero bottone, non un div');
+  // dice SEMPRE se e\' premuta o no (per chi non vede il colore). Non guardo
+  // se e\' true o false: un test precedente puo\' averla gia\' spuntata.
+  const pressed = spunta.getAttribute('aria-pressed');
+  assert.ok(pressed === 'true' || pressed === 'false', 'e\' dice se e\' premuta o no, per chi non vede il colore');
+  assert.ok(pressed === 'true' ? spunta.classList.contains('attiva') : !spunta.classList.contains('attiva'),
+    'e il colore combacia con quello che dice');
+  // il CSS le da' 46px: abbastanza per il dito, e c\'e\' un numero sopra
+  const numero = perClasse(riga, 'numero-serie-bottone')[0];
+  assert.ok(numero, 'e si puo\' premere anche sul numero, che e\' ancora piu\' grande');
 });
 
 test('Z. nessun errore JavaScript durante tutta la navigazione', () => {
