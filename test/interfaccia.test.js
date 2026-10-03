@@ -975,6 +975,72 @@ test('33. la parte tecnica del database online e\' chiusa e spiegata', async () 
   assert.ok(pulsante(app, 'Scarica la versione nuova'), 'e si puo\' anche aggiornare l\'app');
 });
 
+test('34. la nota scritta in palestra si vede subito dopo, SENZA riavviare', async () => {
+  // Ste: "ancora non spunta la nota della seduta". Il flusso vero: scrivo la
+  // nota DENTRO la seduta (la textarea, non l'etichetta), chiudo l'allenamento
+  // e apro la seduta passata senza riavviare l'app.
+  const seduta = await assicuratiSeduta();
+  globalThis.window.location.hash = '#/seduta/' + seduta.id;
+  await attendiChe(() => perClasse(app, 'campo-testo').length >= 1);
+
+  // la textarea delle note e' il primo campo testo lungo della seduta
+  const area = perClasse(app, 'campo-testo').find((t) => (t.getAttribute('data-etichetta') || '') === '' && t.tagName === 'TEXTAREA')
+    || perClasse(app, 'campo-testo')[0];
+  assert.ok(area, 'c\'e\' il campo per le note della seduta');
+  assert.equal(area.tagName, 'TEXTAREA', 'ed e\' una textarea (piu\' righe)');
+
+  const frase = 'Oggi stanco ma ho spinto bene';
+  area.value = frase;
+  area.listeners.get('input')[0]({ type: 'input' });
+  await new Promise((r) => setTimeout(r, 700));
+
+  assert.equal((await db.prendi('sedute', seduta.id)).note, frase, 'la nota e\' salvata nel database');
+
+  // chiudo l\'allenamento
+  pulsante(app, 'Allenamento finito').clickNonAspettando();
+  await attendiChe(() => perClasse(document.body, 'dialogo').length === 1);
+  pulsanti(perClasse(document.body, 'dialogo')[0]).find((b) => /Confermo/.test(b.textContent || '')).click();
+  // il dialogo di aggiornamento scheda qui NON deve per forza comparire: in
+  // questo test non e\' cambiato nessun numero, quindi puo\' non esserci
+  await new Promise((r) => setTimeout(r, 700));
+  const dialogoAggiorna = perClasse(document.body, 'dialogo')[0];
+  if (dialogoAggiorna) {
+    pulsanti(dialogoAggiorna).find((b) => /Lascia la scheda/.test(b.textContent || '')).click();
+  }
+  await new Promise((r) => setTimeout(r, 300));
+
+  // SENZA riavviare i dati: apro la seduta passata e ridisegno
+  globalThis.window.location.hash = '#/storico/' + seduta.id;
+  await rilanciaAvvio();
+  await attendiChe(() => perClasse(app, 'box-note-seduta').length >= 1, 200);
+  const noteViste = perClasse(app, 'box-note-seduta');
+  assert.ok(noteViste[0], 'la sezione delle note c\'e\' nella seduta passata');
+  assert.match(perClasse(app, 'box-note-seduta')[0].textContent || '', /Oggi stanco ma ho spinto bene/,
+    'la nota si vede nello storico senza riavviare l\'app');
+
+  await db.salva('sedute', { ...(await db.prendi('sedute', seduta.id)), note: '' }, { segna: false });
+});
+
+test('35. c\'e\' il tasto per cancellare tutto lo storico, con conferma', async () => {
+  globalThis.window.location.hash = '#/impostazioni';
+  await attendiChe(() => perClasse(app, 'blocco').length >= 3);
+
+  const bottone = pulsante(app, 'Cancella tutto lo storico (la scheda resta)');
+  assert.ok(bottone, 'il tasto c\'e\' nelle Impostazioni');
+
+  // chiede conferma e, se dico di no, non cancella niente
+  const sedutePrima = (await db.tutti('sedute')).filter((s) => !s.eliminata).length;
+  bottone.clickNonAspettando();
+  await attendiChe(() => perClasse(document.body, 'dialogo').length === 1);
+  const testo = perClasse(document.body, 'dialogo')[0].textContent || '';
+  assert.match(testo, /Cancellare tutto lo storico/, 'chiede conferma');
+  assert.match(testo, /NON viene toccata/, 'e dice che la scheda resta');
+  pulsanti(perClasse(document.body, 'dialogo')[0]).find((b) => /Lascia tutto com/.test(b.textContent || '')).click();
+  await new Promise((r) => setTimeout(r, 200));
+  assert.equal((await db.tutti('sedute')).filter((s) => !s.eliminata).length, sedutePrima,
+    'rispondendo no non cancella niente');
+});
+
 test('Z. nessun errore JavaScript durante tutta la navigazione', () => {
   assert.deepEqual(errori, [], 'errori:\n' + errori.join('\n'));
 });

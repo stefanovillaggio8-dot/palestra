@@ -242,13 +242,19 @@ export function riepilogoGenerale(esercizi) {
     // quindi l'esercizio veniva saltato. Ora, se le sedute non bastano, confronto
     // l'ultima seduta con quello che c'era scritto nella scheda: e' comunque un
     // confronto utile, e gli dico da dove a dove.
-    let contro; let da; let a; let dataDa; let dataA;
+    let contro; let da; let a; let dataDa; let dataA; let sequenza = null;
     if (punti.length >= 2) {
       contro = 'sessioni';
       da = riassuntoEsercizio(punti[0].serie, e)[chiave];
       a = riassuntoEsercizio(punti[punti.length - 1].serie, e)[chiave];
       dataDa = punti[0].data;
       dataA = punti[punti.length - 1].data;
+      // tutti i valori in ordine cronologico: cosi' si vede subito qual e' il
+      // peso vecchio e qual e' quello nuovo, senza dover fidarsi del riassunto
+      sequenza = punti.map((p) => {
+        const r = riassuntoEsercizio(p.serie, e)[chiave];
+        return r === null || r === undefined ? null : `${formattaNumero(r)} kg del ${p.data}`;
+      });
     } else {
       const prevista = voce.prevista === undefined ? null : voce.prevista;
       if (prevista === null || prevista === undefined || !Number.isFinite(Number(prevista))) {
@@ -276,7 +282,7 @@ export function riepilogoGenerale(esercizi) {
     // nell'assistenza "meno assistenza" vuol dire meglio: quindi il segno va girato
     const migliore = assistito ? -d : d;
     voci.push({
-      nome, esercizio: e, assistito, chiave, contro, dataDa, dataA,
+      nome, esercizio: e, assistito, chiave, contro, dataDa, dataA, sequenza,
       da, a, delta: d, migliore, punti: punti.length,
       serie: punti.length,
     });

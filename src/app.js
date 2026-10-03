@@ -692,9 +692,10 @@ function riassuntoTesto(seduta, esercizio) {
 async function aggiornaNotaSeduta(sedutaId, testo) {
   const s = V.sedute.find((x) => x.id === sedutaId);
   if (!s) return;
-  const idx = V.sedute.indexOf(s);
+  // aggiorno l'oggetto DENTRO l'array, invece di sostituirlo: cosi' anche le
+  // schermate aperte (che tengono il riferimento vecchio) vedono la nota nuova
+  s.note = testo;
   await db.salva('sedute', { ...s, note: testo });
-  if (idx >= 0) V.sedute[idx] = { ...s, note: testo };
 }
 
 function ultimaSedutaConEsercizio(esercizioId, escludiSedutaId) {
@@ -996,12 +997,19 @@ async function finisceAllenamento(s) {
   // senza questo la scheda risulterebbe "niente di nuovo" e la conferma di
   // aggiornarla non comparirebbe.
   await aspettaSalvataggi();
+  // IMPORTANTE: rileggo la seduta dal database invece di usare la copia che
+  // avevo in mano. Se nel frattempo hai scritto qualcosa (per esempio le note
+  // della seduta), con la copia vecchia verrebbe cancellato: era successo, la
+  // nota spariva appena finivi l'allenamento.
+  const fresca = (await db.prendi('sedute', s.id)) || s;
+  const secondiRivalutati = Math.floor((Date.now() - new Date(fresca.ora_inizio).getTime()) / 1000);
   await db.salva('sedute', {
-    ...s,
+    ...fresca,
     ora_fine: new Date().toISOString(),
-    durata_secondi: secondi,
+    durata_secondi: secondiRivalutati,
     stato: 'completata',
   });
+  s.note = fresca.note;
   await ricarcaTutto();
   vai('/storico/' + s.id);
   // adesso la scheda: quello che hai fatto diventa la scheda per la prossima volta
@@ -1056,18 +1064,20 @@ async function vistaSedutaPassata(zona, sedutaId) {
 
   // Le note della seduta: durante l'allenamento le scivi qui, e adesso tornano
   // qui sotto. Prima sparivano: le scrivevi e non le ritrovavi piu'.
-  // Se in memoria la nota e\' vuota la rileggo dal database: cosi\' la vedi
-  // anche se la nota e\' stata salvata da un\'altra schermata.
-  if (s.note || s.stato === 'in_corso') {
-    let notaMostrata = s.note || '';
-    if (!notaMostrata) {
-      const fresca = await db.prendi('sedute', s.id);
-      if (fresca && fresca.note) {
-        notaMostrata = fresca.note;
-        const inMemoria = V.sedute.findIndex((x) => x.id === s.id);
-        if (inMemoria >= 0) V.sedute[inMemoria] = fresca;
-      }
+  //
+  // IMPORTANTE: rileggo dal database PRIMA di decidere se mostrare la sezione.
+  // Prima il controllo veniva prima, quindi se la nota non era ancora in memoria
+  // la sezione non compariva affatto e il ricaricamento non arrivava a eseguire.
+  let notaMostrata = s.note || '';
+  if (!notaMostrata) {
+    const fresca = await db.prendi('sedute', s.id);
+    if (fresca && fresca.note) {
+      notaMostrata = fresca.note;
+      const inMemoria = V.sedute.findIndex((x) => x.id === s.id);
+      if (inMemoria >= 0) V.sedute[inMemoria] = fresca;
     }
+  }
+  if (notaMostrata || s.stato === 'in_corso') {
     const boxNote = el('div', { class: 'box-note-seduta' });
     boxNote.appendChild(el('h3', { testo: 'Note della seduta' }));
     if (notaMostrata) boxNote.appendChild(el('p', { class: 'testo-note-seduta', testo: notaMostrata }));
@@ -1471,14 +1481,18 @@ function vistaProgressi(zona) {
   zona.appendChild(contenitoreGrafici);
 
   function storicoDi(esercizioId) {
+    // ordino per data E per ora d'inizio: se due sedute cadono lo stesso
+    // giorno, con la sola data l'ordine era arbitrario e le due sedute
+    // potevano risultare scambiate (il peso vecchio e quello nuovo invertiti).
     const seduteRilevanti = V.sedute
       .filter((s) => s.stato === 'completata' && !s.eliminata)
-      .sort((a, b) => String(a.data).localeCompare(String(b.data)));
+      .sort((a, b) => (String(a.data) + ' ' + String(a.ora_inizio || ''))
+        .localeCompare(String(b.data) + ' ' + String(b.ora_inizio || '')));
     const punti = [];
     for (const s of seduteRilevanti) {
       const serie = V.serie.filter((x) => x.seduta_id === s.id && x.esercizio_id === esercizioId && !x.eliminata);
       if (!serie.length) continue;
-      punti.push({ data: s.data, seduta: s, serie });
+      punti.push({ data: s.data, ora: s.ora_inizio, seduta: s, serie });
     }
     if (periodo !== 'tutto') {
       const limite = new Date();
@@ -1817,6 +1831,28 @@ function vistaImpostazioni(zona) {
   zonaPericolo.appendChild(el('h2', { testo: 'Zona pericolosa' }));
   zonaPericolo.appendChild(el('p', { class: 'nota', testo: 'I dati offline non ancora sincronizzati si perdono se cancelli i dati del browser o disinstalli l\'app. Fai un backup prima.' }));
   zonaPericolo.appendChild(el('div', { class: 'riga-pulsanti' }, [
+    bottone('Cancella tutto lo storico (la scheda resta)', {
+      onClick: async () => {
+        const sedute = (await db.tutti('sedute')).filter((s) => !s.eliminata);
+        const serie = (await db.tutti('serie')).filter((x) => !x.eliminata);
+        const ok = await chiediConferma(
+          'Cancellare tutto lo storico?',
+          `${sedute.length} sedute e ${serie.length} serie vanno via. La scheda con i tuoi 4 giorni NON viene toccata, e i progressi ripartono da zero. Non si puo\' annullare: se vuoi, scarica prima un backup.`,
+          { testoOk: 'Cancella lo storico', testoAnnulla: 'Lascia tutto com\'e\'', pericolo: true },
+        );
+        if (!ok) return;
+        // serie, sedute e note di seduta: la scheda e gli esercizi restano
+        for (const x of serie) await db.cestino('serie', x.id);
+        for (const x of sedute) await db.cestino('sedute', x.id);
+        for (const n of V.note) await db.cestino('note', n.id);
+        await db.scriviMeta('aggiornamento_scheda', MODALITA.CHIEDI);
+        await ricaricaTutto();
+        avviso(`Cancellate ${sedute.length} sedute. La scheda e\' rimasta.`, { tipo: 'ok', durata: 6000 });
+        vai('/storico');
+        disegna();
+      },
+      classe: 'pericolo',
+    }),
     bottone('Cancella tutti i dati di questo dispositivo', {
       onClick: async () => {
         const ok = await chiediConferma('Cancellare tutto?', 'Tutte le sedute di questo dispositivo vanno via. Fai prima un backup.', { testoOk: 'Cancella tutto', pericolo: true });
@@ -1983,4 +2019,4 @@ avvia();
 
 // Esportato solo per i test: serve a riavviare l'app e verificare che le correzioni
 // al nome della scheda vengano applicate anche a chi l'ha gia' installata.
-export { avvia };
+export { avvia, V };
