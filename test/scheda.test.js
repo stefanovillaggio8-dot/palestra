@@ -27,6 +27,11 @@ test('23 esercizi della scheda + 4 aggiunti dopo, non ancora in nessuna scheda',
   const aggiunti = ESERCIZI.filter((e) => ['ex-iso-lateral-row', 'ex-lat-pulldown-lats',
     'ex-db-lateral-raise', 'ex-lying-cable-curl'].includes(e.id));
   assert.equal(aggiunti.length, 4, 'i 4 esercizi aggiunti ci sono');
+  // il "liac" e' per il dorso: braccio singolo col cavo alto, NON un curl
+  const liac = ESERCIZI.find((e) => e.id === 'ex-lying-cable-curl');
+  assert.equal(liac.gruppo, 'Lat Pulldown', 'il liac sta nel gruppo del dorso');
+  assert.equal(liac.convenzione, CONVENZIONI.CAVO, 'e si carica col cavo');
+  assert.match(liac.nota_permanente, /Braccio singolo/i);
   for (const g of GIORNI) {
     for (const es of g.esercizi) {
       assert.ok(!aggiunti.some((a) => a.id === es.esercizio_id),

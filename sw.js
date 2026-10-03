@@ -3,7 +3,7 @@
 // anche senza rete. I dati NON stanno qui: stanno in IndexedDB, quindi
 // cancellare la cache non cancella niente del tuo allenamento.
 
-const VERSIONE = 'palestra-v19';
+const VERSIONE = 'palestra-v20';
 
 const FILE = [
   './',
@@ -57,7 +57,7 @@ const FOTO = [
   './img/esercizi/iso-lateral-row.png',
   './img/esercizi/lat-pulldown-lats.png',
   './img/esercizi/db-lateral-raise.png',
-  './img/esercizi/lying-cable-curl.png',
+  './img/esercizi/incline-single-arm-pulldown.png',
 ];
 
 self.addEventListener('install', (evento) => {
