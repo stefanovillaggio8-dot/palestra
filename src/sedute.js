@@ -19,27 +19,74 @@ export function commutaFatta(s) {
 }
 
 /**
- * Cambia aspetto alla riga e alla spunta SENZA aspettare nessuna risposta.
- * Serve perche\' la spunta deve spuntare all\'istante: se aspettassimo il
- * database, sul telefono sembrerebbe che il pulsante non funzioni.
+ * Cambia aspetto alla riga e alla spunta SUBITO, senza aspettare nessuna
+ * risposta e senza dipendere dai nomi delle classi CSS: lo stile lo metto
+ * direttamente sul nodo. Cosi' la spunta spunta anche se il CSS del browser
+ * e\' vecchio o non e\' arrivato.
  */
-export function segnaAspettoFatto(riga, bottoneSpunta, fatta) {
-  if (riga && riga.classList) {
-    if (fatta) riga.classList.add('serie-fatta');
-    else riga.classList.remove('serie-fatta');
+export function segnaAspettoFatto(riga, bottoneSpunta, fatta, etichetta = null) {
+  const VERDE = '#37d18b';
+  const ARANCIO = '#ff9f45';
+  const stile = (nodo, campi) => {
+    if (!nodo || !nodo.style) return;
+    for (const [k, v] of Object.entries(campi)) nodo.style[k] = v;
+  };
+  const st = (nodo) => (nodo && nodo.getAttribute && nodo.getAttribute('style')) || '';
+
+  if (riga) {
+    // doppio sistema: classe (per il CSS) e stile diretto (per non dipendere dal CSS)
+    if (riga.classList) {
+      if (fatta) riga.classList.add('serie-fatta');
+      else riga.classList.remove('serie-fatta');
+    }
+    if (fatta) {
+      const conSpotter = riga.classList && riga.classList.contains('serie-spotter');
+      stile(riga, {
+        background: conSpotter
+          ? 'linear-gradient(90deg, #10301f 0%, #2a2016 70%)'
+          : 'linear-gradient(90deg, #10301f 0%, #221b33 60%)',
+        borderLeftColor: conSpotter ? ARANCIO : VERDE,
+        boxShadow: 'inset 0 0 0 1px rgba(55,209,139,.45)',
+      });
+    } else {
+      stile(riga, {
+        background: '',
+        borderLeftColor: '',
+        boxShadow: '',
+      });
+    }
   }
-  if (bottoneSpunta && bottoneSpunta.classList) {
-    if (fatta) bottoneSpunta.classList.add('attiva');
-    else bottoneSpunta.classList.remove('attiva');
+  if (bottoneSpunta) {
+    if (bottoneSpunta.classList) {
+      if (fatta) bottoneSpunta.classList.add('attiva');
+      else bottoneSpunta.classList.remove('attiva');
+    }
+    stile(bottoneSpunta, fatta
+      ? { background: VERDE, borderColor: VERDE, color: '#04180f' }
+      : { background: '#0b0910', borderColor: '#2e2745', color: 'transparent' });
+    const segno = bottoneSpunta.firstChild;
+    if (segno) segno.textContent = fatta ? '✓' : '';
+    if (bottoneSpunta.setAttribute) {
+      bottoneSpunta.setAttribute('aria-pressed', fatta ? 'true' : 'false');
+      bottoneSpunta.title = fatta
+        ? 'Serie fatta: tocca per togliere la spunta'
+        : 'Segna questa serie come fatta';
+    }
   }
-  const segno = bottoneSpunta && bottoneSpunta.firstChild;
-  if (segno) segno.textContent = fatta ? '✓' : '';
-  if (bottoneSpunta && bottoneSpunta.setAttribute) {
-    bottoneSpunta.setAttribute('aria-pressed', fatta ? 'true' : 'false');
-    bottoneSpunta.title = fatta
-      ? 'Serie fatta: tocca per togliere la spunta'
-      : 'Segna questa serie come fatta';
+  if (etichetta) {
+    etichetta.textContent = fatta ? 'FATTA' : '';
+    stile(etichetta, fatta
+      ? { color: VERDE, fontSize: '.7rem', fontWeight: '800', display: 'inline-block' }
+      : { display: 'none' });
   }
+}
+
+/** Tenuta delle ultime azioni: serve a capire cosa succede sul telefono. */
+export const REGISTRO = [];
+export function registra(riga) {
+  REGISTRO.push({ quando: new Date().toLocaleTimeString('it-IT'), ...riga });
+  if (REGISTRO.length > 40) REGISTRO.shift();
+  return REGISTRO;
 }
 
 /**

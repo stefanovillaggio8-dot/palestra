@@ -12,7 +12,7 @@ import {
   ETICHETTE_CONVENZIONE, CONVENZIONI, convenzioneMisuraCarico, etichettaUnita, campoCarico,
 } from './numeri.js';
 import { confrontaEsercizio, riassuntoEsercizio, NON_DISPONIBILE } from './confronto.js';
-import { prossimoOrdine, apriSeduta, nuovaSerie, seduteFinite, eFatta, commutaFatta, pulsa, segnaAspettoFatto } from './sedute.js';
+import { prossimoOrdine, apriSeduta, nuovaSerie, seduteFinite, eFatta, commutaFatta, pulsa, segnaAspettoFatto, registra, REGISTRO } from './sedute.js';
 import {
   MODALITA, raccogliPerEsercizio, proposta as propostaAggiornamento, notaSulNumeroSerie,
   riassuntoSpotter,
@@ -519,17 +519,18 @@ async function vistaSeduta(zona, sedutaId) {
   });
   zona.appendChild(notaSeduta);
 
-  // quante ripetizioni hai fatto con lo spotter: lo vedi mentre alleni
-  const riepilogoSpotter = el('div', { class: 'riga-spotter fatta' });
-  const scriviRiepilogoSpotter = () => {
-    const info = riassuntoSpotter(raccogliPerEsercizio(V.serie, s.id), new Map(V.esercizi.map((e) => [e.id, e])));
-    svuota(riepilogoSpotter);
-    if (!info.serie) return;
-    riepilogoSpotter.appendChild(el('strong', { testo: 'Con lo spotter: ' }));
-    riepilogoSpotter.appendChild(el('span', { testo: info.frase }));
-  };
-  scriviRiepilogoSpotter();
-  zona.appendChild(riepilogoSpotter);
+// quante ripetizioni hai fatto con lo spotter: lo vedi mentre alleni.
+// Resta sempre visibile, anche quando non hai usato lo spotter: cosi' sai
+// che il conteggio c'e' e ti azzera, e non ti chiedi se manca.
+const riepilogoSpotter = el('div', { class: 'riga-spotter' });
+const scriviRiepilogoSpotter = () => {
+  const info = riassuntoSpotter(raccogliPerEsercizio(V.serie, s.id), new Map(V.esercizi.map((e) => [e.id, e])));
+  svuota(riepilogoSpotter);
+  riepilogoSpotter.appendChild(el('strong', { testo: 'Con lo spotter: ' }));
+  riepilogoSpotter.appendChild(el('span', { testo: info.frase }));
+};
+scriviRiepilogoSpotter();
+zona.appendChild(riepilogoSpotter);
 
   const snap = (versioneCorrente() || {}).snapshot || { giorni: [] };
   const giorno = (snap.giorni || []).find((g) => g.id === s.giorno_id);
@@ -647,21 +648,31 @@ function rigaSerie(serie, numero, confronto, seduta) {
   if (serie.ripetizioni !== null && Number(serie.ripetizioni) % 1 !== 0) riga.classList.add('serie-decimale');
   if (eFatta(serie)) riga.classList.add('serie-fatta');
 
+  const etichettaFatta = el('span', { class: 'etichetta-fatta', testo: '' });
+  riga.appendChild(etichettaFatta);
+
   // la spunta: segna che la serie l'hai fatta. Premendola di nuovo la togli.
-  // Nota: cambio l'aspetto SUBITO, prima di qualsiasi attesa, cosi' non
-  // sembra mai un pulsante morto. Il salvataggio va dopo.
+  // Nota: cambio l'aspetto SUBITO e con stili scritti direttamente sul nodo,
+  // cosi' non dipende dal ridisegno della pagina ne' dai nomi delle classi CSS.
   const spunta = el('button', {
     type: 'button',
     class: 'bottone-spunta' + (eFatta(serie) ? ' attiva' : ''),
     title: eFatta(serie) ? 'Serie fatta: tocca per togliere la spunta' : 'Segna questa serie come fatta',
     'aria-pressed': eFatta(serie) ? 'true' : 'false',
-    onClick: () => {
+    onClick: (ev) => {
+      registra({ cosa: 'spunta premuta', serie: serie.id, ordine: numero, esercizio: e && e.nome });
       const fatta = !eFatta(serie);
-      segnaAspettoFatto(riga, spunta, fatta);
+      segnaAspettoFatto(riga, spunta, fatta, etichettaFatta);
       if (fatta) pulsa();
       aggiornaSerie(serie, { stato: fatta ? 'fatta' : 'da_fare' })
-        .catch((e) => mostraErroreBreve('Non sono riuscito a salvare la spunta: ' + (e && e.message ? e.message : e)))
-        .then(() => { disegna(); });
+        .then((salvata) => {
+          registra({ cosa: 'salvataggio ok', stato: salvata && salvata.stato });
+          disegna();
+        })
+        .catch((err) => {
+          registra({ cosa: 'salvataggio FALLITO', errore: String((err && err.message) || err) });
+          mostraErroreBreve('Non sono riuscito a salvare la spunta: ' + (err && err.message ? err.message : err));
+        });
     },
   }, [el('span', { class: 'segno-spunta', testo: eFatta(serie) ? '✓' : '' })]);
   riga.appendChild(spunta);
@@ -673,12 +684,13 @@ function rigaSerie(serie, numero, confronto, seduta) {
     title: eFatta(serie) ? 'Segnata come fatta: tocca per toglierla' : 'Segna come fatta',
     'aria-pressed': eFatta(serie) ? 'true' : 'false',
     onClick: () => {
+      registra({ cosa: 'numero premuto', serie: serie.id });
       const fatta = !eFatta(serie);
-      segnaAspettoFatto(riga, spunta, fatta);
+      segnaAspettoFatto(riga, spunta, fatta, etichettaFatta);
       if (fatta) pulsa();
       aggiornaSerie(serie, { stato: fatta ? 'fatta' : 'da_fare' })
-        .catch((e) => mostraErroreBreve('Non sono riuscito a salvare: ' + (e && e.message ? e.message : e)))
-        .then(() => { disegna(); });
+        .then(() => { registra({ cosa: 'salvataggio ok da numero' }); disegna(); })
+        .catch((err) => { registra({ cosa: 'salvataggio FALLITO', errore: String((err && err.message) || err) }); });
     },
   }, [el('span', { testo: String(numero) })]));
 
@@ -1523,11 +1535,15 @@ async function diagnostica(suDove) {
   try {
     const res = await fetch('./src/sedute.js?t=' + Date.now());
     const testo = await res.text();
-    righe.push('sedute.js dal server ha il codice della spunta: '
-      + (testo.includes('segnaAspettoFatto') ? 'SI (sei aggiornato)' : 'NO, hai ancora la versione vecchia'));
+    righe.push('codice della spunta presente sul server: '
+      + (testo.includes('registra') ? 'SI, sei aggiornato' : 'NO, hai ancora la versione vecchia'));
   } catch (e) {
     righe.push('prova di rete fallita: ' + (e && e.message ? e.message : e));
   }
+  righe.push('sessioni aperte: ' + (V.sedute.filter((s) => s.stato === 'in_corso').length));
+  righe.push('serie a schermo: ' + (V.serie ? V.serie.length : 0));
+  righe.push('ultime azioni (' + REGISTRO.length + '):');
+  for (const r of REGISTRO.slice(-12)) righe.push('  ' + r.quando + ' - ' + r.cosa + (r.errore ? ': ' + r.errore : '') + (r.serie ? ' [' + String(r.serie).slice(0, 8) + ']' : '') + (r.stato ? ' -> ' + r.stato : ''));
   if (suDove) suDove.textContent = righe.join('\n');
   console.log('diagnostica:\n' + righe.join('\n'));
   return righe;

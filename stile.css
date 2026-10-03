@@ -293,6 +293,11 @@ a { color: var(--blu); text-decoration: none; }
   100% { background: var(--card-2); }
 }
 /* spunta: segna la serie come fatta */
+.etichetta-fatta {
+  color: var(--verde); font-size: .7rem; font-weight: 800;
+  align-self: center; letter-spacing: .05em;
+}
+.etichetta-fatta:empty { display: none; }
 .bottone-spunta {
   width: 46px; height: 46px; flex: 0 0 auto;
   border-radius: 50%; border: 2px solid var(--bordo);
