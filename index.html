@@ -7,6 +7,20 @@
 <meta name="description" content="La mia scheda di palestra: giorni, serie, pesi, spotter e progressi.">
 <meta name="theme-color" content="#0b0910">
 <link rel="manifest" href="./manifest.webmanifest">
+<script>
+// Ogni persona installa la SUA app, quindi ognuna ha il suo manifesto.
+// ?p=2 -> "Palestra A", tutto il resto -> la scheda di Stefano.
+// Prima avevamo un manifesto solo: installando "Palestra A" si apriva sulla
+// scheda di Stefano e sul telefono la seconda installazione sovrascriveva la prima.
+(function () {
+  try {
+    var m = /[?&]p=(\d+)/.exec(window.location.search || '');
+    var nome = m && m[1] === '2' ? 'p2' : 'p1';
+    var link = document.querySelector('link[rel="manifest"]');
+    if (link) link.setAttribute('href', './manifest-' + nome + '.webmanifest');
+  } catch (e) { /* pazienza: resta il manifesto di base */ }
+})();
+</script>
 <link rel="icon" href="./img/logo.png">
 <link rel="apple-touch-icon" href="./img/logo.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -23,7 +37,7 @@
 <div id="app">
   <div class="caricamento">Carico i tuoi dati...</div>
 </div>
-<script>window.PALESTRA_VERSIONE = '18';</script>
+<script>window.PALESTRA_VERSIONE = '19';</script>
 <script type="module" src="./src/app.js"></script>
 </body>
 </html>

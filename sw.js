@@ -3,13 +3,15 @@
 // anche senza rete. I dati NON stanno qui: stanno in IndexedDB, quindi
 // cancellare la cache non cancella niente del tuo allenamento.
 
-const VERSIONE = 'palestra-v18';
+const VERSIONE = 'palestra-v19';
 
 const FILE = [
   './',
   './index.html',
   './stile.css',
   './manifest.webmanifest',
+  './manifest-p1.webmanifest',
+  './manifest-p2.webmanifest',
   './src/app.js',
   './src/numeri.js',
   './src/confronto.js',
