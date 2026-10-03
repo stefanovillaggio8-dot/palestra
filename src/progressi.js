@@ -171,13 +171,21 @@ export function fraseVariazione(v) {
   const numero = formattaNumero(Math.abs(v.delta));
   const perc = differenzaPercentuale(v.da, v.a);
   const eta = (perc === null ? '' : ` (${frasePercentuale(perc)})`);
-  const numeroSedute = v.punti === 2 ? '2 sedute' : `${v.punti} sedute`;
+  const numeroSedute = v.punti === 1 ? 'una seduta' : `${v.punti} sedute`;
+  // da dove viene il confronto: dalla prima volta o dalla scheda scritta
+  const puntoPartenza = v.contro === 'scheda'
+    ? `la scheda diceva ${formattaNumero(v.da)} kg`
+    : (v.assistito ? `${formattaNumero(v.da)} kg di assistenza` : `${formattaNumero(v.da)} kg`);
 
   if (v.migliore === 0) {
     const stessa = v.assistito
       ? `sempre ${formattaNumero(v.a)} kg di assistenza`
       : `sempre ${formattaNumero(v.a)} kg`;
-    return `${v.nome}: ${stessa}, niente cambiato in ${numeroSedute}.`;
+    return `${v.nome}: ${stessa}, come prima (${puntoPartenza}).`;
+  }
+  if (v.contro === 'scheda') {
+    const su = v.assistito ? '−' : '+';
+    return `${v.nome}: da ${puntoPartenza} a ${formattaNumero(v.a)} kg, ${su}${numero} kg${eta}.`;
   }
   if (v.assistito) {
     const segno = v.migliore > 0 ? '−' : '+';
@@ -211,22 +219,38 @@ export function riepilogoGenerale(esercizi) {
   const voci = [];
   for (const voce of (esercizi || [])) {
     const punti = ((voce && voce.punti) || []).filter((p) => p && (p.serie || []).length);
-    if (punti.length < 2) continue;
+    if (!punti.length) continue;
     const e = voce.esercizio || { convenzione: null };
     const assistito = !convenzioneMisuraCarico(e.convenzione);
     const chiave = assistito ? 'pesoAssistenzaMassimo' : 'pesoMassimo';
 
-    const rPrimo = riassuntoEsercizio(punti[0].serie, e);
-    const rUltimo = riassuntoEsercizio(punti[punti.length - 1].serie, e);
-    const da = rPrimo[chiave];
-    const a = rUltimo[chiave];
+    // Ste ha detto: "ho messo che ho aumentato di 3 kg ma non spunta negli
+    // esercizi migliorati". Con una sola seduta non c'era niente da confrontare,
+    // quindi l'esercizio veniva saltato. Ora, se le sedute non bastano, confronto
+    // l'ultima seduta con quello che c'era scritto nella scheda: e' comunque un
+    // confronto utile, e li dice da dove a dove.
+    let primaRiga; let aRiga; let contro; let da; let a;
+    if (punti.length >= 2) {
+      primaRiga = punti[0];
+      aRiga = punti[punti.length - 1];
+      contro = 'sessioni';
+      da = riassuntoEsercizio(primaRiga.serie, e)[chiave];
+      a = riassuntoEsercizio(aRiga.serie, e)[chiave];
+    } else {
+      const prevista = voce.prevista === undefined ? null : voce.prevista;
+      if (prevista === null || prevista === undefined) continue;
+      contro = 'scheda';
+      da = Number(prevista);
+      a = riassuntoEsercizio(punti[0].serie, e)[chiave];
+    }
+    if (da === null || da === undefined || !Number.isFinite(Number(da))) continue;
     const d = differenzaAssoluta(da, a);
     if (d === null) continue;
 
     // nell'assistenza "meno assistenza" vuol dire meglio: quindi il segno va girato
     const migliore = assistito ? -d : d;
     voci.push({
-      nome: voce.nome, esercizio: e, assistito, chiave,
+      nome: voce.nome, esercizio: e, assistito, chiave, contro,
       da, a, delta: d, migliore, punti: punti.length,
       serie: punti.length,
     });
@@ -253,12 +277,16 @@ export function riepilogoGenerale(esercizi) {
 
   // il verdetto, prima di tutto, in una frase
   const totale = voci.length;
+  const confrontiConScheda = voci.filter((v) => v.contro === 'scheda').length;
   if (migliorati.length > indietro.length) {
     linee.push(`Guardando tutti gli esercizi insieme, sei migliorato: ${migliorati.length} su ${totale} sono andati avanti.`);
   } else if (indietro.length > migliorati.length) {
     linee.push(`Guardando tutti gli esercizi insieme, il quadro e\' misto: ${indietro.length} esercizi su ${totale} ti dicono che sei andato un po\' indietro.`);
   } else {
     linee.push(`Guardando tutti gli esercizi insieme, sei sostanzialmente fermo: ${migliorati.length} migliorati e ${indietro.length} indietro su ${totale}.`);
+  }
+  if (confrontiConScheda) {
+    linee.push(`${confrontiConScheda} ${confrontiConScheda === 1 ? 'esercizio e\' confrontato con quello scritto nella scheda' : 'esercizi sono confrontati con quello scritto nella scheda'}, perche\' di quelli hai una sola seduta: due sedute non ci sono ancora da confrontare.`);
   }
 
   numeri.push({ etichetta: 'migliorati', valore: migliorati.length });

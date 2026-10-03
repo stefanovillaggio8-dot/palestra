@@ -546,6 +546,22 @@ a { color: var(--blu); text-decoration: none; }
   display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
 }
 .tape-viola { background: var(--viola-scuro); border: 1px solid #3a2c5e; }
+
+/* sezioni che si aprono solo se ti servono (la parte tecnica) */
+.blocco-chiuso { padding: 0; overflow: hidden; }
+.blocco-chiuso > summary {
+  padding: 14px; cursor: pointer; list-style: none;
+  display: flex; align-items: center; gap: 8px;
+}
+.blocco-chiuso > summary::-webkit-details-marker { display: none; }
+.blocco-chiuso > summary::after {
+  content: '+'; margin-left: auto; color: var(--testo-3);
+  font-size: 1.3rem; font-weight: 700; line-height: 1;
+}
+.blocco-chiuso[open] > summary::after { content: '−'; }
+.blocco-chiuso > summary h2 { margin: 0; font-size: 1.05rem; }
+.blocco-chiuso > div { padding: 0 14px 14px; }
+.blocco-chiuso[open] > summary { border-bottom: 1px solid var(--bordo); margin-bottom: 10px; }
 /* l'allenamento in corso e' la cosa piu' importante: si vede da lontano */
 .tape-grande {
   padding: 16px; margin: 0 0 14px;

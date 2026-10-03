@@ -765,34 +765,28 @@ function rigaSerie(serie, numero, confronto, seduta, pesoRigaSorella = null) {
   });
   peso.classList.add('campo-peso');
 
-  // In palestra non si scrive: si tocca. I bottoni + e - fanno i passi da 2,5 kg
-  // (i piatti) e "come sopra" copia il peso della serie precedente, che e' la
-  // cosa che serve il 90% delle volte.
+  // In palestra non si scrive: si tocca. Ste ha detto che i +/- 2,5 kg non gli
+  // servono (li fa a mano), quindi lascio solo "come sopra", che copia il peso
+  // della serie precedente: e' il caso piu' comune e non si puo' fare a mano
+  // senza rileggere il numero.
   const scriviPeso = (valore) => {
     const tondo = Math.round(valore * 100) / 100;
     peso.value = String(tondo).replace('.', ',');
     perView[chiave] = tondo;
     aggiornaSerie(serie, { [chiave]: tondo });
   };
-  const passo = (segno) => {
-    const attuale = Number(String(peso.value).replace(',', '.'));
-    const base = Number.isFinite(attuale) && peso.value !== '' ? attuale : 0;
-    scriviPeso(base + segno * 2.5);
-  };
   const rigaPeso = el('div', { class: 'gruppo-peso' }, [
     peso,
     el('span', { class: 'sotto-campo', testo: assistenza ? 'ASSISTENZA' : 'KG' }),
-    el('div', { class: 'passi-peso' }, [
-      bottone('−', { onClick: () => passo(-1), classe: 'passo', titolo: 'Togli 2,5 kg' }),
-      bottone('+', { onClick: () => passo(1), classe: 'passo passo-piu', titolo: 'Aggiungi 2,5 kg' }),
-      pesoRigaSorella !== null && pesoRigaSorella !== undefined
-        ? bottone('come sopra', {
+    pesoRigaSorella !== null && pesoRigaSorella !== undefined
+      ? el('div', { class: 'passi-peso' }, [
+        bottone('come sopra', {
           onClick: () => scriviPeso(pesoRigaSorella),
           classe: 'passo passo-largo',
           titolo: `Copia ${formattaNumero(pesoRigaSorella)} kg dalla serie precedente`,
-        })
-        : null,
-    ]),
+        }),
+      ])
+      : null,
   ]);
   riga.appendChild(el('label', { class: 'campetto' }, [rigaPeso]));
 
@@ -1197,26 +1191,19 @@ function rigaStorico(serie, numero, e, s, pesoRigaSorella = null) {
     perView[chiave] = tondo;
     aggiornaSerie(serie, { [chiave]: tondo });
   };
-  const passo = (segno) => {
-    const attuale = Number(String(peso.value).replace(',', '.'));
-    const base = peso.value !== '' && Number.isFinite(attuale) ? attuale : 0;
-    scriviPeso(base + segno * 2.5);
-  };
   riga.appendChild(el('label', { class: 'campetto' }, [
     el('div', { class: 'gruppo-peso' }, [
       peso,
       el('span', { class: 'sotto-campo', testo: assistenza ? 'ASSISTENZA' : 'KG' }),
-      el('div', { class: 'passi-peso' }, [
-        bottone('−', { onClick: () => passo(-1), classe: 'passo', titolo: 'Togli 2,5 kg' }),
-        bottone('+', { onClick: () => passo(1), classe: 'passo passo-piu', titolo: 'Aggiungi 2,5 kg' }),
-        pesoRigaSorella !== null && pesoRigaSorella !== undefined
-          ? bottone('come sopra', {
+      pesoRigaSorella !== null && pesoRigaSorella !== undefined
+        ? el('div', { class: 'passi-peso' }, [
+          bottone('come sopra', {
             onClick: () => scriviPeso(pesoRigaSorella),
             classe: 'passo passo-largo',
             titolo: `Copia ${formattaNumero(pesoRigaSorella)} kg dalla serie precedente`,
-          })
-          : null,
-      ]),
+          }),
+        ])
+        : null,
     ]),
   ]));
 
@@ -1492,6 +1479,30 @@ function vistaProgressi(zona) {
     return storicoDi(selezionato);
   }
 
+  // Il peso piu' alto scritto nella scheda per questo esercizio. Serve quando
+  // hai una sola seduta registrata: in quel caso non c'e' nessun confronto
+  // seduta contro seduta, quindi confronto quello che hai fatto con quello che
+  // la scheda prescriveva.
+  function pesoPrevistoInScheda(esercizioId) {
+    const e = esercizioPerId(esercizioId);
+    if (!e) return null;
+    const assistito = !convenzioneMisuraCarico(e.convenzione);
+    const v = versioneCorrente();
+    const giorni = (v && v.snapshot && v.snapshot.giorni) || [];
+    let massimo = null;
+    for (const g of giorni) {
+      for (const es of (g.esercizi || [])) {
+        if (es.esercizio_id !== esercizioId) continue;
+        for (const ser of (es.serie || [])) {
+          const p = assistito ? ser.peso_assistenza : ser.peso;
+          if (p === null || p === undefined || !Number.isFinite(Number(p))) continue;
+          massimo = massimo === null ? Number(p) : Math.max(massimo, Number(p));
+        }
+      }
+    }
+    return massimo;
+  }
+
   function aggiorna() {
     const e = esercizioPerId(selezionato);
     const punti = storicoEsercizio();
@@ -1506,6 +1517,7 @@ function vistaProgressi(zona) {
       nome: (esercizioPerId(id) || {}).nome || id,
       esercizio: esercizioPerId(id),
       punti: storicoDi(id),
+      prevista: pesoPrevistoInScheda(id),
     })));
     if (generale.numeri.length) {
       // I riquadri si toccano: premendo "migliorati" (o "fermi", o "indietro")
@@ -1702,17 +1714,24 @@ function vistaImpostazioni(zona) {
   versioneBox.appendChild(esitoDiagnostica);
   zona.appendChild(versioneBox);
 
-  const accountBox = el('section', { class: 'blocco' });
-  accountBox.appendChild(el('h2', { testo: 'Account e database online' }));
+  // La parte tecnica (database online) sta in una sezione CHIUSA: Ste l'ha
+  // vista e non ha capito a che cosa serviva, con dentro pure un indirizzo
+  // finto. Non serve a niente per usarlo, quindi non la metto in primo piano.
+  const accountBox = el('details', { class: 'blocco blocco-chiuso' });
+  accountBox.appendChild(el('summary', {}, [
+    el('h2', { testo: 'Sincronizzazione online (opzione avanzata)' }),
+  ]));
+  const dentroAccount = el('div');
+  accountBox.appendChild(dentroAccount);
   const cfg = sb.leggiConfig();
   if (!cfg.attivo) {
-    accountBox.appendChild(el('p', { class: 'nota', testo: 'Il database online non e\' ancora collegato. Intanto l\'app funziona tutto: i tuoi dati si salvano su questo dispositivo e puoi usare l\'app anche senza rete.' }));
-    const url = el('input', { type: 'url', class: 'campo-testo', placeholder: 'https://xxxxxxxxxxxx.supabase.co' });
-    const chiave = el('input', { type: 'text', class: 'campo-testo', placeholder: 'chiave publishable anon' });
+    dentroAccount.appendChild(el('p', { class: 'nota', testo: 'Questa parte serve solo se vuoi gli stessi allenamenti su due dispositivi. Non ti serve: cosi\' com\'e, l\'app funziona tutto e i tuoi dati restano su questo telefono, anche senza rete. Se un giorno la vuoi attivare, si fa con un account Supabase (gratis).' }));
+    const url = el('input', { type: 'url', class: 'campo-testo', placeholder: 'indirizzo del database' });
+    const chiave = el('input', { type: 'text', class: 'campo-testo', placeholder: 'chiave pubblica' });
     const mail = el('input', { type: 'email', class: 'campo-testo', placeholder: 'la tua email' });
     const pass = el('input', { type: 'password', class: 'campo-testo', placeholder: 'password' });
-    accountBox.appendChild(el('div', { class: 'campi-account' }, [url, chiave, mail, pass]));
-    accountBox.appendChild(el('div', { class: 'riga-pulsanti' }, [
+    dentroAccount.appendChild(el('div', { class: 'campi-account' }, [url, chiave, mail, pass]));
+    dentroAccount.appendChild(el('div', { class: 'riga-pulsanti' }, [
       bottone('Collega il database', {
         onClick: () => {
           if (!url.value || !chiave.value) { avviso('Mancano l\'indirizzo del database o la chiave.', { tipo: 'errore' }); return; }
@@ -1725,12 +1744,12 @@ function vistaImpostazioni(zona) {
     ]));
   } else {
     const s = sb.sessione();
-    accountBox.appendChild(el('p', { class: 'nota', testo: s ? `Collegato come ${s.user && s.user.email ? s.user.email : 'account tuo'}.` : 'Database collegato ma non hai ancora fatto l\'accesso.' }));
+    dentroAccount.appendChild(el('p', { class: 'nota', testo: s ? `Collegato come ${s.user && s.user.email ? s.user.email : 'account tuo'}.` : 'Database collegato ma non hai ancora fatto l\'accesso.' }));
     if (!s) {
       const mail = el('input', { type: 'email', class: 'campo-testo', placeholder: 'la tua email' });
       const pass = el('input', { type: 'password', class: 'campo-testo', placeholder: 'password' });
-      accountBox.appendChild(el('div', { class: 'campi-account' }, [mail, pass]));
-      accountBox.appendChild(el('div', { class: 'riga-pulsanti' }, [
+      dentroAccount.appendChild(el('div', { class: 'campi-account' }, [mail, pass]));
+      dentroAccount.appendChild(el('div', { class: 'riga-pulsanti' }, [
         bottone('Accedi', {
           onClick: async () => {
             try { await sb.accedi(mail.value, pass.value); avviso('Accesso riuscito.', { tipo: 'ok' }); await ricarcaTutto(); disegna(); }
@@ -1740,7 +1759,7 @@ function vistaImpostazioni(zona) {
         }),
       ]));
     } else {
-      accountBox.appendChild(el('div', { class: 'riga-pulsanti' }, [
+      dentroAccount.appendChild(el('div', { class: 'riga-pulsanti' }, [
         bottone('Esci', {
           onClick: async () => { await sb.esci(); avviso('Sei uscito.'); disegna(); },
           classe: 'fantasma',

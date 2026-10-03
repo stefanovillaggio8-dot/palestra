@@ -883,7 +883,7 @@ test('30. le note della seduta si ritrovano dopo, nello storico', async () => {
   await db.salva('sedute', { ...(await db.prendi('sedute', s.id)), note: '' }, { segna: false });
 });
 
-test('31. i kg si cambiano coi bottoni, senza scrivere', async () => {
+test('31. "come sopra" copia il peso della serie precedente', async () => {
   const seduta = await db.sedutaInCorso() || await assicuratiSeduta();
   globalThis.window.location.hash = '#/seduta/' + seduta.id;
   await attendiChe(() => perClasse(app, 'cronometro').length === 1 && perClasse(app, 'riga-serie').length >= 2);
@@ -894,17 +894,11 @@ test('31. i kg si cambiano coi bottoni, senza scrivere', async () => {
     return inDb.peso !== null && inDb.peso !== undefined ? inDb.peso : inDb.peso_assistenza;
   };
 
-  const iniziale = await leggi(righe[1]);
+  // Ste ha detto che i +/- 2,5 kg non servono: devono essere spariti
+  const tutti = righe.flatMap((r) => pulsanti(r).map((b) => (b.textContent || '').trim()));
+  assert.equal(tutti.filter((t) => t === '+' || t === '−').length, 0, 'non ci sono piu\' i bottoni +/- 2,5 kg');
+
   const valorePrima = await leggi(righe[0]);
-
-  // il bottone + aggiunge 2,5 kg (i piatti)
-  const piu = pulsanti(righe[1]).find((b) => (b.textContent || '').trim() === '+');
-  assert.ok(piu, 'il bottone + c\'e\'');
-  await piu.click();
-  await new Promise((r) => setTimeout(r, 200));
-  assert.equal(await leggi(righe[1]), Math.round((Number(iniziale) + 2.5) * 100) / 100, '+ aggiunge 2,5 kg');
-
-  // il bottone "come sopra" copia il peso della serie di prima
   const comeSopra = pulsanti(righe[1]).find((b) => /come sopra/i.test(b.textContent || ''));
   assert.ok(comeSopra, 'il bottone "come sopra" c\'e\' dalla seconda serie in poi');
   await comeSopra.click();
@@ -959,6 +953,26 @@ test('32. nello storico spotter e spunta non si confondono', async () => {
   const fin = await db.prendi('serie', prima.dataset.serieId);
   assert.equal(fin.spotter, false, 'spuntare la serie lascia lo spotter come era');
   assert.equal(fin.stato, 'fatta', 'e la serie risulta fatta');
+});
+
+test('33. la parte tecnica del database online e\' chiusa e spiegata', async () => {
+  // Ste: "e cosa è questo? Account e database online... https://xxx.supabase.co".
+  // Non serve per usare l'app: quindi sta chiusa, e senza indirizzi finti.
+  globalThis.window.location.hash = '#/impostazioni';
+  await attendiChe(() => perClasse(app, 'blocco').length >= 3);
+
+  const chiusa = perClasse(app, 'blocco-chiuso')[0];
+  assert.ok(chiusa, 'la sezione tecnica c\'e\' ma in una sezione a parte');
+  assert.equal(chiusa.getAttribute('open'), null, 'e non e\' aperta: non ti mette in confusione');
+
+  const testo = chiusa.textContent || '';
+  assert.match(testo, /opzione avanzata/i, 'si capisce che e\' una cosa opzionale');
+  assert.match(testo, /Non ti serve/, 'e che per usare l\'app non serve');
+  assert.doesNotMatch(testo, /xxx+/, 'e non mostra piu\' indirizzi finti');
+
+  // e per usare l\'app i pulsanti veri ci sono comunque
+  assert.ok(pulsante(app, 'Scarica il backup JSON'), 'il backup si scarica normalmente');
+  assert.ok(pulsante(app, 'Scarica la versione nuova'), 'e si puo\' anche aggiornare l\'app');
 });
 
 test('Z. nessun errore JavaScript durante tutta la navigazione', () => {

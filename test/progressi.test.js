@@ -232,7 +232,7 @@ test('riepilogo: ogni gruppo sa dire di quanto e\' cambiato ogni esercizio', () 
   assert.equal(r.gruppi.migliorati.length, 1);
   assert.match(r.gruppi.migliorati[0].frase, /Chest Press: da 30 a 35 kg, \+5 kg/);
   assert.equal(r.gruppi.fermi.length, 1);
-  assert.match(r.gruppi.fermi[0].frase, /Leg Extension: sempre 40 kg, niente cambiato/);
+  assert.match(r.gruppi.fermi[0].frase, /Leg Extension: sempre 40 kg, come prima/);
   assert.equal(r.gruppi.indietro.length, 1);
   assert.match(r.gruppi.indietro[0].frase, /Lat Pulldown: da 45 a 40 kg, −5 kg/);
 });
@@ -261,4 +261,29 @@ test('riepilogo: i gruppi sono ordinati dal cambiamento piu\' grande', () => {
     voce('Medio', CP, 30, 37),
   ]);
   assert.deepEqual(r.gruppi.migliorati.map((v) => v.nome), ['Grande', 'Medio', 'Piccolo']);
+});
+
+test('riepilogo: con una sola seduta confronta con quello scritto nella scheda', () => {
+  // Ste: "ho messo che ho aumentato di 3 kg ma non spunta negli esercizi
+  // migliorati". Con una seduta sola non c'era confronto e l'esercizio veniva
+  // saltato. Ora si confronta con il peso previsto dalla scheda.
+  const r = riepilogoGenerale([{
+    nome: 'Chest Press', esercizio: CP,
+    prevista: 35,
+    punti: [punto('2026-10-01', [s(1, 38, 8)])],
+  }]);
+  assert.equal(r.analizzati, 1, 'l\'esercizio non viene piu\' saltato');
+  assert.equal(r.migliorati, 1);
+  assert.match(testo(r), /confrontato con quello scritto nella scheda/);
+  assert.match(r.gruppi.migliorati[0].frase, /Chest Press: da la scheda diceva 35 kg a 38 kg, \+3 kg/);
+  assert.match(testo(r), /una sola seduta/, 'e gli dice perche\' ha confrontato con la scheda');
+});
+
+test('riepilogo: una sola seduta senza scheda resta esclusa', () => {
+  const r = riepilogoGenerale([{
+    nome: 'Chest Press', esercizio: CP,
+    punti: [punto('2026-10-01', [s(1, 38, 8)])],
+  }]);
+  assert.equal(r.analizzati, 0, 'senza un confronto possibile non si inventa niente');
+  assert.match(testo(r), /almeno due sedute/);
 });
