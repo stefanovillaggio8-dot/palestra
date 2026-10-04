@@ -25,11 +25,12 @@ import { nuovoId, adesso, TABELLE } from './sincronizzazione.js';
 import { statoAccount, ricompenseAllenamento, gruppiDaSerie } from './gioco.js';
 import { recordEsercizio, recordAccount, classificaEsercizio, storicoMiglioramenti, giudizioPerformance } from './rank.js';
 import { confrontoGiorno, confrontiMensili, GIORNI_UN_MESE } from './confronto-mensile.js';
-import { profiloEsercizio, profiloPerPesoCorporeo, RANK, ETICHETTE_MISURA, descriviPunteggio, descrizioneLivello, livelloEsercizio } from './rank-config.js';
+import { profiloEsercizio, profiloPerPesoCorporeo, RANK, ETICHETTE_MISURA, descriviPunteggio, descrizioneLivello, livelloEsercizio, impostaLivelliImparati, livelliImparati } from './rank-config.js';
 import { formattaAura } from './aura.js';
 import { elencoAvatar, avatarPerId, gradienteAvatar, iniziali } from './avatar.js';
-import { amiciDi, confronta, classifichePerEsercizio, privacyDi, campiVisibili, PRIVACY_PREDEFINITE, CODICE_SCHEDE, codiceCorretto } from './sociale.js';
+import { amiciDi, confronta, classifichePerEsercizio, privacyDi, campiVisibili, PRIVACY_PREDEFINITE } from './sociale.js';
 import { classificaEsercizio as riconosciEsercizio } from './esercizi-classificatore.js';
+import { quantoEPesantePerTe, correggiLivello, dimenticaLivello, livelloImparato, paroleDaChiedere, imparaParola } from './esercizi-personali.js';
 import { controllaAggiornamento, applicaAggiornamento as prendiVersioneNuova, registraAggiornamentoRapido } from './update-via-sw.js';
 import {
   pesoAttuale, pesiCronologici, segnaPeso, togliPeso, pesoCorporeoValido,
@@ -109,6 +110,21 @@ function serieDellaPersona() {
 
 /* ===================== avvio ===================== */
 
+/**
+ * Carica in memoria le correzioni che Ste ha fatto ai livelli.
+ *
+ * Il Rank calcola il livello di un esercizio migliaia di volte mentre disegna
+ * una schermata: leggerlo dal database ogni volta sarebbe lentissimo, quindi
+ * lo tengo qui e lo aggiorno solo quando lui corregge qualcosa.
+ */
+async function caricaLivelliImparati() {
+  try {
+    impostaLivelliImparati(await livelliImparati(accountAttivo()));
+  } catch {
+    impostaLivelliImparati({});
+  }
+}
+
 async function avvia() {
   const radice = document.getElementById('app');
   installaSpiaErrori();
@@ -125,6 +141,9 @@ async function avvia() {
     sync.iscriviti(() => { aggiornaStatoSalvataggio(); });
     // il peso corporeo serve al Rank: lo carico in memoria subito all'avvio
     await aggiornaPesoInMemoria();
+    // le correzioni che Ste ha fatto ai livelli: il Rank deve usarle subito,
+    // altrimenti per qualche secondo mostrerebbe il livello vecchio
+    await caricaLivelliImparati();
     sync.avvia();
     window.addEventListener('hashchange', () => disegna());
 if ('serviceWorker' in navigator) {
@@ -3078,6 +3097,41 @@ function vistaEsercizio(zona, esercizioId) {
     ]));
   }
 
+  // QUANTO E' PESANTE PER TE. Il giudizio qui sopra guarda il NOME
+  // dell'esercizio; questo guarda il TUO numero: se spingi 40 kg in chest press
+  // e 4 kg qui, per te questo esercizio e' leggero anche se il nome sembra duro.
+  const perTe = quantoEPesantePerTe({
+    serie: serieMie(), esercizi: V.esercizi, esercizioId: e.id, peso: pesoCorporeoOra(),
+  });
+  if (perTe && perTe.scelto) {
+    zona.appendChild(el('div', { class: 'riga-giudizio giud-personale' }, [
+      el('strong', { testo: 'QUANTO È PESANTE PER TE' }),
+      el('span', { testo: perTe.scelto.frase }),
+      el('span', { class: 'nota nota-piccola', testo: `Il tuo massimo è su ${perTe.nomeMassimo}.` }),
+    ]));
+  }
+
+  // LE TUE CORREZIONI. Se il livello è sbagliato, lo correggi tu e vale per
+  // sempre: non devi più aspettare che io metta una parola chiave.
+  zona.appendChild(el('div', { class: 'box-correzione' }, [
+    el('p', { class: 'nota nota-piccola', testo: 'L\'app ha riconosciuto questo esercizio. Se ha sbagliato, correggilo qui e non lo chiederà più.' }),
+    (() => {
+      const riga = el('div', { class: 'riga-livelli' });
+      for (const [id, testo] of [['grande', 'GRANDE'], ['composto', 'COMPOSTO'], ['isolamento', 'ISOLAMENTO'], ['assistito', 'RIPETIZIONI']]) {
+        riga.appendChild(bottone(testo, {
+          onClick: async () => {
+            await correggiLivello(accountAttivo(), e.id, id);
+            await caricaLivelliImparati();
+            avviso(`Ok: ${testo}. Da ora questo esercizio è così.`, { tipo: 'ok' });
+            disegna();
+          },
+          classe: 'chip' + (profilo.livello === id ? ' attivo' : ''),
+        }));
+      }
+      return riga;
+    })(),
+  ]));
+
   if (record.pesoCorporeo) {
     zona.appendChild(el('p', { class: 'nota nota-chiaro', testo: `Questa prestazione l'hai fatta quando pesavi ${formattaNumero(record.pesoCorporeo)} kg.` }));
   }
@@ -3212,16 +3266,12 @@ function vistaAmico(zona, idAmico) {
 
   zona.appendChild(el('a', { href: '#/amici', class: 'indietro', testo: 'Torna agli amici' }));
 
-  const aperto = codiceRiconosciuto();
-
-  // Ste: "serve il codice solo per entrare negli account, non anche per
-  // confrontarmi con lui".
+  // Ste (04/10/2026): "elimina il codice 030226, quel codice serve solo per
+  // modificare la scheda che non è propria, ma non penso servi".
   //
-  // Quindi il confronto è SEMPRE visibile: è la parte divertente e non
-  // contiene niente di privato (solo esercizio, kg e ripetizioni). Il codice
-  // protegge invece la scheda vera e propria: gli allenamenti uno per uno, le
-  // sedute, i dettagli. E continua a valere anche se l'altro ha lasciato
-  // everything pubblico: il codice è una protezione in più, non un di meno.
+  // Quindi qui non c'è più nessuna porta: il profilo dell'amico e la sua
+  // scheda si vedono come prima, e la privacy normale (privato o pubblico)
+  // decide cosa è nascosto. Il confronto resta sempre qui sotto.
   zona.appendChild(el('div', { class: 'testa-amico' }, [
     avatarNodo(amico, { grande: true, dimensione: 84 }),
     el('div', {}, [
@@ -3230,24 +3280,15 @@ function vistaAmico(zona, idAmico) {
     ]),
   ]));
 
-  // --- la scheda vera: serve il codice ---
-  if (!aperto) {
-    zona.appendChild(el('div', { class: 'blocco' }, [
-      el('h2', { testo: 'La sua scheda è chiusa' }),
-      el('p', { class: 'nota', testo: `Per entrare nella scheda di ${amico.username} e vedere i suoi allenamenti serve il codice. Il confronto qui sotto si vede comunque.` }),
-      bottone('INSERISCI IL CODICE', { onClick: () => chiediCodiceSchede(() => disegna()), classe: 'principale grande' }),
-    ]));
-  } else {
-    zona.appendChild(el('section', { class: 'blocco' }, [
-      el('h2', { testo: 'I suoi allenamenti' }),
-      voce.sedute.length
-        ? el('ul', { class: 'lista-sedute-amico' }, voce.sedute.slice(0, 20).map((s) => el('li', {
-          testo: `${s.nome_giorno || 'Allenamento'} · ${s.data} · ${s.serie_fatte || 0} serie`,
-        })))
-        : el('p', { class: 'nota', testo: 'Nessun allenamento finito.' }),
-      el('a', { href: '#/amico/' + voce.account + '/storico', class: 'bottone-guarda', testo: 'Vedi tutta la scheda' }),
-    ]));
-  }
+  // --- i suoi allenamenti: senza codice, quindi semplicemente qui ---
+  zona.appendChild(el('section', { class: 'blocco' }, [
+    el('h2', { testo: 'I suoi allenamenti' }),
+    voce.sedute.length
+      ? el('ul', { class: 'lista-sedute-amico' }, voce.sedute.slice(0, 20).map((s) => el('li', {
+        testo: `${s.nome_giorno || 'Allenamento'} · ${s.data} · ${s.serie_fatte || 0} serie`,
+      })))
+      : el('p', { class: 'nota', testo: 'Nessun allenamento finito.' }),
+  ]));
 
   // --- il confronto: sempre aperto ---
   const confronto = confronta(
@@ -3274,81 +3315,9 @@ function puoVedereAmico(mio, altro) {
 }
 
 // ---------------------------------------------------------------------------
-// Il codice per entrare nelle schede degli altri.
-//
-// Ste: "non dare il permesso a nessuno di andare nelle schede degli altri se
-// non immettendo un codice: 030226".
-//
-// Il codice si ricorda per questa sessione, e può restare salvato sul
-// dispositivo se Ste sceglie di lasciarlo (è una sua scelta, non il default).
-// Non viene mai scritto dentro i dati del profilo e non viene mai mandato
-// da nessuna parte.
-// ---------------------------------------------------------------------------
-const CODICE_CHIAVE = 'codice_schede';
-
-function codiceRiconosciuto() {
-  try {
-    const scelto = String(localStorage.getItem(CODICE_CHIAVE + '_ricordato') || '');
-    return scelto === CODICE_SCHEDE;
-  } catch {
-    return false;
-  }
-}
-
-function ricordaCodice(siRicorda) {
-  try {
-    if (siRicorda) localStorage.setItem(CODICE_CHIAVE + '_ricordato', CODICE_SCHEDE);
-    else localStorage.removeItem(CODICE_CHIAVE + '_ricordato');
-  } catch { /* se il browser non lascia salvare, resta aperto solo per questa volta */ }
-}
-
-/**
- * Il blocco che chiede il codice. Restituisce true se il codice era giusto.
- * `prova` viene chiamata di nuovo quando si sbaglia, così la schermata si
- * aggiorna e i dati compaiono senza ricaricare la pagina.
- */
-function chiediCodiceSchede(prova) {
-  const campo = el('input', {
-    type: 'password', inputMode: 'numeric', maxlength: '6',
-    class: 'campo-testo', placeholder: 'codice a 6 cifre',
-  });
-  const ricorda = el('input', { type: 'checkbox' });
-  const errore = el('p', { class: 'nota' });
-
-  const box = el('div', { class: 'sfondo-dialogo' }, el('div', { class: 'dialogo' }, [
-    el('h3', { testo: 'Serve il codice' }),
-    el('p', { class: 'testo-dialogo', testo: 'Le schede degli altri sono chiuse. Scrivi il codice per guardarle.' }),
-    campo,
-    el('label', { class: 'nota' }, [ricorda, el('span', { testo: ' Ricordalo su questo dispositivo' })]),
-    errore,
-    el('div', { class: 'dialogo-azioni' }, [
-      bottone('Annulla', { onClick: () => box.remove(), classe: 'fantasma' }),
-      bottone('ENTRA', {
-        onClick: async () => {
-          if (!codiceCorretto(campo.value)) {
-            errore.textContent = 'Codice sbagliato.';
-            campo.value = '';
-            return;
-          }
-          ricordaCodice(!!(ricorda.checked && ricorda.checked));
-          box.remove();
-          await prova();
-        },
-        classe: 'principale',
-      }),
-    ]),
-  ]));
-
-  campo.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      const entra = box.querySelector('.principale');
-      if (entra && entra.click) entra.click();
-    }
-  });
-
-  document.body.appendChild(box);
-  campo.focus();
-}
+// (Il codice 030226 è stato tolto il 04/10/2026: serviva solo per modificare
+// una scheda che non era sua e non gli serviva. Qui ora non c'è nessuna porta
+// segreta: la privacy normale decide cosa è nascosto.)
 
 async function vistaProfilo(zona) {
   const st = statoMio();
@@ -3491,13 +3460,11 @@ async function vistaProfilo(zona) {
     el('p', { class: 'nota', testo: 'Scegli cosa gli altri possono vedere. Quando chiudi una cosa, non la vedono piu\': non viene solo nascosta.' }),
   ]);
   const scelte = el('div', { class: 'chip-scelte' });
-  // Tre stati invece di due. 'chiuso' è il default per i dati personali e si
-// apre col codice; 'privato' non si apre con nessun codice; 'pubblico' è aperto
-// a tutti. Il codice è un'informazione di accesso, non una chiave che
-// aggira la privacy.
-  const DOPO_CLIC = { chiuso: 'privato', privato: 'pubblico', pubblico: 'chiuso' };
+  // Due stati, come prima: o si vede da tutti o da nessuno. Il codice 030226
+  // è stato tolto, quindi non c'è più lo stato "chiuso" (visibile solo a chi
+  // aveva il codice): resta la privacy normale.
+  const DOPO_CLIC = { privato: 'pubblico', pubblico: 'privato' };
   const SPIEGA = {
-    chiuso: 'chiuso: si vede solo con il codice',
     privato: 'privato: non lo vede nessuno',
     pubblico: 'pubblico: lo vede tutto il mondo',
   };
@@ -3506,7 +3473,7 @@ async function vistaProfilo(zona) {
     scelte.appendChild(bottone(campo.nome, {
       onClick: async () => {
         const nuova = { ...privacyDi(profiloDi(accountAttivo())) };
-        nuova[campo.id] = DOPO_CLIC[attuale] || 'chiuso';
+        nuova[campo.id] = DOPO_CLIC[attuale] || 'pubblico';
         await salvaProfilo({ privacy: nuova });
         avviso(`${campo.nome}: ${SPIEGA[nuova[campo.id]]}.`, { tipo: 'ok' });
       },
@@ -3516,7 +3483,7 @@ async function vistaProfilo(zona) {
   boxPrivacy.appendChild(scelte);
   boxPrivacy.appendChild(el('p', {
     class: 'nota nota-piccola',
-    testo: 'Tocca per cambiare: privato (mai), chiuso (solo col codice), pubblico (tutti).',
+    testo: 'Tocca per cambiare: privato (nessuno) o pubblico (tutti).',
   }));
   for (const campo of campiVisibili) {
     boxPrivacy.appendChild(el('p', {
@@ -3525,6 +3492,37 @@ async function vistaProfilo(zona) {
     }));
   }
   zona.appendChild(boxPrivacy);
+
+  // LE PAROLE CHE L'APP NON CONOSCE. Ste: "implementa una sorta di IA che
+  // capisce bene... fai qualcosa che capisca che esercizio è". Qui l'app
+  // guarda i nomi di tutti i tuoi esercizi, trova le parole che nel suo
+  // vocabolario non compaiono e te le chiede UNA volta sola. Dopo non te le
+  // chiede più, e quei nomi li capisce da soli.
+  const daChiedere = await paroleDaChiedere(accountAttivo(), V.esercizi);
+  if (daChiedere.length) {
+    const boxParole = el('div', { class: 'box-parole' }, [
+      el('h3', { testo: 'Parole che non conosco' }),
+      el('p', { class: 'nota nota-piccola', testo: 'Non ti chiedo niente che già so: solo le parole che mi sfuggono. Rispondi una volta sola e non te lo chiedo più.' }),
+    ]);
+    for (const voce of daChiedere) {
+      const riga = el('div', { class: 'riga-parola-da-chiedere' }, [
+        el('span', { class: 'parola', testo: voce.parole.join(', ') }),
+        el('span', { class: 'nota', testo: voce.nome }),
+      ]);
+      for (const [id, testo] of [['grande', 'GRANDE'], ['composto', 'COMPOSTO'], ['isolamento', 'ISOLAMENTO'], ['assistito', 'RIPETIZIONI']]) {
+        riga.appendChild(bottone(testo, {
+          onClick: async () => {
+            for (const parola of voce.parole) await imparaParola(accountAttivo(), parola, id);
+            avviso('Ok, imparato. Non te lo chiedo più.', { tipo: 'ok' });
+            disegna();
+          },
+          classe: 'chip' + (voce.livoloIndovinato === id ? ' attivo' : ''),
+        }));
+      }
+      boxParole.appendChild(riga);
+    }
+    zona.appendChild(boxParole);
+  }
 
   zona.appendChild(el('div', { class: 'riga-pulsanti' }, [
     el('a', { href: '#/storico', class: 'bot fantasma', testo: 'Storico' }),

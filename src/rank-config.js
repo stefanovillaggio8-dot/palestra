@@ -207,16 +207,41 @@ export function descrizioneLivello(livello) {
  *      verificata una per una e so che e' giusta);
  *   2) altrimenti lo RICONOSCO dal nome, con il classificatore.
  */
+/**
+ * Le correzioni che Ste ha fatto dal telefono: esercizio -> livello.
+ *
+ * Ste: "imparare dalle tue correzioni... la correzione resta salvata e vale per
+ * sempre". Quando corregge un livello, la correzione entra qui dentro e da quel
+ * momento vince su tutto il resto.
+ *
+ * Vive in memoria perche' il Rank lo calcola mille volte mentre disegna una
+ * schermata: leggerlo dal database ogni volta sarebbe lentissimo. Lo carico una
+ * volta sola all'avvio dell'app.
+ */
+let LIVELLI_IMPARATI = {};
+
+export function impostaLivelliImparati(mappa) {
+  LIVELLI_IMPARATI = (mappa && typeof mappa === 'object') ? mappa : {};
+}
+
+export function livelliImparati() {
+  return { ...LIVELLI_IMPARATI };
+}
+
 export function livelloEsercizio(esercizio) {
   const id = (esercizio && esercizio.id) || '';
+  const nome = (esercizio && esercizio.nome) || id;
   const convenzione = (esercizio && esercizio.convenzione) || null;
-  const noto = LIVELLO_ESERCIZI[id];
-  if (noto) return noto;
+
+  // 1) se l'ha imparato, vale quello che ha detto Ste
+  const imparato = LIVELLI_IMPARATI[id];
+  if (imparato) return imparato;
+
+  // 2) se e' scritto "corpo libero", si contano le ripetizioni
   if (convenzione === 'corpo_libero' || convenzione === 'assistenza') return 'assistito';
-  return classificaEsercizio({
-    nome: (esercizio && esercizio.nome) || id,
-    convenzione,
-  }).livello;
+
+  // 3) altrimenti lo riconosce dal nome
+  return classificaEsercizio({ nome, convenzione }).livello;
 }
 
 /** Anche il gruppo muscolare, quando serve saperlo. */

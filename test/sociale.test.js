@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 
 import {
   privacyDi, puoVedere, amiciDi, propostaAmicizia, confronta, classifichePerEsercizio,
-  PRIVACY_PREDEFINITE, campiVisibili, CODICE_SCHEDE, codiceCorretto, codiceAperto,
+  PRIVACY_PREDEFINITE, campiVisibili,
 } from '../src/sociale.js';
 import { gradienteAvatar, iniziali, avatarPerId, elencoAvatar, avatarPredefinito } from '../src/avatar.js';
 import { recordEsercizio } from '../src/rank.js';
@@ -35,63 +35,44 @@ const marco = { id: 'p3', username: 'Marco', amici: [] };
 // e seguenti, che verificano il codice.
 // ---------------------------------------------------------------------------
 
-test('1. di default i dati personali sono chiusi, le classifiche restano pubbliche', () => {
+test('1. di default tutto è pubblico (il codice 030226 è stato tolto)', () => {
   const p = privacyDi({ id: 'p1' });
   assert.deepEqual(p, PRIVACY_PREDEFINITE);
   assert.equal(campiVisibili.length, 4);
-  assert.equal(p.profilo, 'chiuso', 'il profilo non si vede');
-  assert.equal(p.performance, 'chiuso', 'i record non si vedono');
-  assert.equal(p.statistiche, 'chiuso', 'le statistiche non si vedono');
-  assert.equal(p.leaderboard, 'pubblico', 'le classifiche restano pubbliche');
+  assert.equal(p.profilo, 'pubblico');
+  assert.equal(p.performance, 'pubblico');
+  assert.equal(p.statistiche, 'pubblico');
+  assert.equal(p.leaderboard, 'pubblico');
 });
 
-test('2. senza codice non si vede niente degli altri', () => {
-  // nemmeno se sono "amici": il codice è l'unico modo
-  assert.equal(puoVedere(stefano, andrea, 'record'), false, 'i record restano chiusi');
-  assert.equal(puoVedere(stefano, andrea, 'profilo'), false, 'il profilo resta chiuso');
-  assert.equal(puoVedere(stefano, andrea, 'statistiche'), false);
-  // le classifiche invece si vedono: sono il punto della sfida
-  assert.equal(puoVedere(stefano, andrea, 'leaderboard'), true, 'la classifica è pubblica');
+test('2. un amico vede i dati pubblici, senza codici in mezzo', () => {
+  // Ste ha tolto il codice 030226: non esiste più nessuna porta segreta,
+  // quindi la privacy normale (privato o pubblico) basta e avanza
+  assert.equal(puoVedere(stefano, andrea, 'record'), true);
+  assert.equal(puoVedere(stefano, andrea, 'profilo'), true);
+  assert.equal(puoVedere(stefano, andrea, 'statistiche'), true);
+  assert.equal(puoVedere(stefano, andrea, 'leaderboard'), true);
 });
 
-test('3. col codice giusto si vede tutto quello che non è chiuso per scelta', () => {
-  assert.equal(puoVedere(stefano, andrea, 'record', true), true);
-  assert.equal(puoVedere(stefano, andrea, 'profilo', true), true);
-  assert.equal(puoVedere(stefano, andrea, 'statistiche', true), true);
-});
-
-test('3b. privacy privata = dato non visibile, e non basta nasconderlo a schermo', () => {
-  // "privato" è la scelta forte: nessuno lo vede, nemmeno con il codice.
-  // "chiuso" invece è il default e si apre col codice (test 3).
+test('2b. se è privato, nessuno lo vede: non basta nasconderlo a schermo', () => {
   const privato = { id: 'p2', username: 'Andrea', privacy: { performance: 'privato' } };
   assert.equal(puoVedere(stefano, privato, 'record'), false, 'chiuso a tutti');
-  assert.equal(puoVedere(stefano, privato, 'record', true), false, 'e resta chiuso anche col codice');
-  assert.equal(puoVedere(stefano, privato, 'profilo', true), true, 'il profilo si vede col codice');
+  // e gli altri campi restano aperti: la privacy lavora campo per campo
+  assert.equal(puoVedere(stefano, privato, 'profilo'), true);
+  assert.equal(puoVedere(stefano, privato, 'leaderboard'), true);
 });
 
-test('3c. il codice è 030226 e viene confrontato carattere per carattere', () => {
-  assert.equal(CODICE_SCHEDE, '030226', 'il codice deve essere proprio questo');
-  assert.equal(codiceCorretto('030226'), true);
-  assert.equal(codiceCorretto(' 030226 '), true, 'gli spazi non contano');
-  assert.equal(codiceCorretto('030227'), false, 'una cifra sbagliata non apre');
-  assert.equal(codiceCorretto('30226'), false, 'gli zeri iniziali contano');
-  assert.equal(codiceCorretto('0302260'), false, 'non si accettano cifre in più');
-  assert.equal(codiceCorretto(''), false);
-  assert.equal(codiceCorretto(null), false);
-  assert.equal(codiceCorretto(undefined), false);
-});
-
-test('3d. il codice ricordato vale anche nelle visite dopo', () => {
-  assert.equal(codiceAperto(true, false), true, 'aperto per questa sessione');
-  assert.equal(codiceAperto(false, true), true, 'ricordato sul dispositivo');
-  assert.equal(codiceAperto(false, false), false, 'senza codice resta chiuso');
-  assert.equal(codiceAperto(undefined, undefined), false);
+test('3b. lo stato "chiuso" non esiste più', () => {
+  // con il codice tolto non c'è più "visibile solo a chi ha il codice":
+  // se un profilo ha ancora quel valore da qualche versione vecchia, viene
+  // letto come privato, che è la scelta più prudente
+  const vecchio = { id: 'p9', username: 'Vecchio', privacy: { profilo: 'chiuso' } };
+  assert.equal(puoVedere(stefano, vecchio, 'profilo'), false, 'il "chiuso" di prima ora è privato');
 });
 
 test('4. l\'account privato non si vede nella lista', () => {
-  const privato = { id: 'p3', username: 'Marco', privacy: { profilo: 'chiuso' } };
+  const privato = { id: 'p3', username: 'Marco', privacy: { profilo: 'privato' } };
   assert.equal(puoVedere(stefano, privato, 'profilo'), false);
-  assert.equal(puoVedere(stefano, privato, 'profilo', true), true, 'ma il codice lo apre');
 });
 
 test('5. ognuno vede sempre i propri dati', () => {
@@ -170,9 +151,8 @@ test('13. le iniziali si ricavano dal nome', () => {
 
 test('14. la privacy chiusa di un campo non impedisce di vedere gli altri', () => {
   // le statistiche sono private, quindi chiuse a tutti; i record restano
-  // "chiuso" (il default) e si aprono col codice
+  // pubblici, perché la privacy lavora campo per campo
   const mezzo = { id: 'p2', username: 'Andrea', privacy: { statistiche: 'privato' } };
   assert.equal(puoVedere(stefano, mezzo, 'statistiche'), false, 'le statistiche restano chiuse');
-  assert.equal(puoVedere(stefano, mezzo, 'record'), false, 'i record senza codice no');
-  assert.equal(puoVedere(stefano, mezzo, 'record', true), true, 'ma col codice sì');
+  assert.equal(puoVedere(stefano, mezzo, 'record'), true, 'i record si vedono: sono pubblici');
 });

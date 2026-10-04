@@ -113,12 +113,13 @@ const MOVIMENTI = [
 const MODIFICATORI = [
   // --- attrezzatura ---
   { peso: -6, parole: ['macchina', 'machine', 'apparato'], perche: 'la macchina ti guida: il percorso e\' fisso' },
-  { peso: -5, parole: ['cavo', 'cavi', 'pulley'], perche: 'il cavo ti aiuta: regoli il carico come vuoi' },
-  { peso: -4, parole: ['smith'], perche: 'lo smith ti d\' stabilita' },
-  { peso: 0, parole: ['bilanciere', 'barbell', 'olimpico'], perche: 'il bilanciere e\' lo strumento piu\' stabile' },
+  { peso: -5, parole: ['cavo', 'cavi', 'cable', 'pulley', 'pulleys'], perche: 'il cavo ti aiuta: regoli il carico come vuoi' },
+  { peso: -4, parole: ['smith'], perche: 'lo smith ti dà stabilità' },
+  { peso: 0, parole: ['bilanciere', 'barbell', 'olimpico'], perche: 'il bilanciere è lo strumento più stabile' },
   { peso: 5, parole: ['manubrio', 'manubri', 'dumbbell'], perche: 'i manubri sono instabili: tengono anche i polsi' },
-  { peso: 6, parole: ['kettlebell'], perche: 'il kettlebell e\' instabile e\' difficile da fermare' },
+  { peso: 6, parole: ['kettlebell'], perche: 'il kettlebell è instabile e difficile da fermare' },
   { peso: -3, parole: ['elastico', 'band', 'banda'], perche: 'l\'elastico ti scarica il peso' },
+  { peso: -2, parole: ['macchina', 'machine', 'apparato', 'leg press', 'pressa'], perche: 'la macchina ti guida: il percorso è fisso' },
 
   // --- simmetria: una cosa sola e\' molto piu\' difficile ---
   { peso: 8, parole: ['single arm', 'single-arm', 'singolo braccio', 'un braccio', 'monoarticolare'],
@@ -420,6 +421,43 @@ export function classificaEsercizio({ nome = '', descrizione = '', convenzione =
 
 function normalizz(s) {
   return normalizza(String(s).replace(/_/g, ' '));
+}
+
+/** Una parola senza accenti, per confrontarla con il vocabolario. */
+function spoglia(testo) {
+  return normalizza(testo)
+    // "bilanciere" e "bilanciore" (come la scrive Ste) diventano la stessa
+    // parola: tolgo la desinenza finale, non cambio nient'altro
+    .replace(/(ere|ore|ica|iche|he)$/, '')
+    .replace(/ai$/, 'o');
+}
+
+/**
+ * Tutte le parole che il classificatore conosce.
+ *
+ * Serve per chiedere a Ste solo le parole che NON riconosce: se gli chiedessi
+ * anche quelle che sa già, gli romperei le scatole.
+ *
+ * Le parole sono anche "svestite" dagli accenti e dalle desinenze sbagliate:
+ * "bilanciore" (che è come la scrive lui) deve valere come "bilanciere",
+ * altrimenti gli chiederei di insegnarmi ogni volta la stessa cosa.
+ */
+export function paroleConosciute() {
+  const tutte = new Set();
+  const aggiungi = (frase) => {
+    for (const w of normalizza(frase).split(' ')) {
+      if (w.length > 2) { tutte.add(w); tutte.add(spoglia(w)); }
+    }
+  };
+  for (const m of MOVIMENTI) for (const p of m.parole) aggiungi(p);
+  for (const mod of MODIFICATORI) for (const p of mod.parole) aggiungi(p);
+  for (const s of SIGLE) aggiungi(s.nome);
+  return tutte;
+}
+
+/** Una sola parola: l'app la conosce davvero? */
+export function parolaConosciuta(parola) {
+  return paroleConosciute().has(spoglia(parola));
 }
 
 export const MOVIMENTI_CONOSCIUTI = MOVIMENTI.map((m) => ({ id: m.id, livello: m.livello, gruppo: m.gruppo }));

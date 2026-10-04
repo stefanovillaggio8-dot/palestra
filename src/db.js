@@ -11,7 +11,7 @@
 import { nuovoId, segnaDaSalvare, adesso } from './sincronizzazione.js';
 
 export const TABELLE = ['esercizi', 'schede', 'versioni', 'sedute', 'serie', 'note', 'conflitti',
-  'profili', 'missioni', 'ricompense', 'pesi'];
+  'profili', 'missioni', 'ricompense', 'pesi', 'appreso'];
 const INDICI = {
   sedute: ['giorno_id', 'data', 'stato', 'scheda_id'],
   serie: ['seduta_id', 'esercizio_id'],
@@ -24,6 +24,8 @@ const INDICI = {
   // lo storico dei pesi corporei: serve per sapere quanto pesavi il giorno
   // in cui hai fatto una certa performance
   pesi: ['data'],
+  // cio' che l'app ha imparato da Ste: correzioni sui livelli e parole nuove
+  appreso: ['account_id', 'tipo'],
 };
 export const MOTORE_SCELTO = { tipo: 'non-aperto' };
 

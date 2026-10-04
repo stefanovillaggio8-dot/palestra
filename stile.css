@@ -900,6 +900,31 @@ a { color: var(--blu); text-decoration: none; }
   border: 1px solid #1f5e42; border-radius: 6px; padding: 3px 7px;
 }
 
+/* --- quanto è pesante per TE, e la correzione dei livelli --- */
+.riga-giudizio.giud-personale { border-left-color: var(--blu); }
+.riga-giudizio.giud-personale .nota-piccola { font-size: .74rem; }
+
+.box-correzione {
+  margin: 4px 0 14px; padding: 11px 12px;
+  border: 1px dashed var(--bordo); border-radius: 12px;
+  background: rgba(255, 255, 255, .02);
+}
+.riga-livelli { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 8px; }
+.riga-livelli .chip { font-size: .64rem; padding: 5px 9px; }
+.riga-livelli .chip.attivo { color: var(--giallo); border-color: var(--giallo); }
+
+/* --- parole che l'app non conosce: te le chiede una volta sola --- */
+.box-parole { margin: 0 0 12px; padding: 11px 12px; border: 1px solid #3a2c5e; border-radius: 12px; background: linear-gradient(155deg, var(--viola-scuro), var(--card) 70%); }
+.riga-parola-da-chiedere { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 7px 0; border-top: 1px solid var(--bordo); }
+.riga-parola-da-chiedere .parola { font-weight: 800; color: var(--giallo); }
+.riga-parola-da-chiedere .nota { flex: 1 1 120px; font-size: .74rem; }
+.riga-parola-da-chiedere .chip { font-size: .6rem; padding: 4px 7px; }
+.livello-interrogativo { margin-top: 16px; }
+.livello-interrogativo > summary { cursor: pointer; list-style: none; font-size: .74rem; font-weight: 900; letter-spacing: .1em; color: var(--viola); }
+.livello-interrogativo > summary::-webkit-details-marker { display: none; }
+.livello-interrogativo > summary::after { content: '  ▾'; color: var(--testo-2); }
+.livello-interrogativo[open] > summary::after { content: '  ▴'; }
+
 /* --- confronto mensile: "un mese fa su questo esercizio come stavo?" --- */
 .blocco-mensile {
   border: 1px solid #3a2c5e; border-left: 3px solid var(--blu);
