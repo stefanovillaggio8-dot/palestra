@@ -1,4 +1,4 @@
-// dati-iniziali.js -- le schede e la lista degli esercizi.
+﻿// dati-iniziali.js -- le schede e la lista degli esercizi.
 // Non viene mai riscritta a runtime: se modifichi una scheda, nasce una nuova
 // versione e lo storico resta quello che era.
 //
@@ -71,20 +71,20 @@ export const ESERCIZI = [
   { id: 'ex-cable-hammer-curl', nome: 'Cable Hammer Curl', gruppo: 'Cable Hammer Curl', convenzione: C.CAVO, foto: 'img/esercizi/cable-hammer-curl.png', tipo: 'standard', nota_permanente: 'Cavo basso, alla cavigliera.' },
   { id: 'ex-cable-lateral-raise', nome: 'Cable Lateral Raise', gruppo: 'Cable Lateral Raise', convenzione: C.CAVO, foto: 'img/esercizi/cable-lateral-raise.png', tipo: 'standard', nota_permanente: 'Fatte bene, alla cavigliera.' },
   { id: 'ex-cable-overhead-tricep', nome: 'Cable Overhead Tricep Extension', gruppo: 'Cable Overhead Tricep Extension', convenzione: C.CAVO, foto: 'img/esercizi/cable-overhead-tricep-extension.png', tipo: 'standard', nota_permanente: 'Devo raggiungerlo di nuovo: altezza 4 del cavo.' },
-  { id: 'ex-leg-extension', nome: 'Leg Extension', gruppo: 'Leg Extension', convenzione: C.MACCHINA, foto: 'img/esercizi/leg-extension.png', tipo: 'opzionale', nota_permanente: 'Monogamba (esercizio opzionale).' },
-  { id: 'ex-neutral-grip-lat-pulldown', nome: 'Lat Pulldown macchina', gruppo: 'Lat Pulldown', convenzione: C.MACCHINA, foto: 'img/esercizi/neutral-grip-lat-pulldown.png', tipo: 'standard', nota_permanente: 'Impugnatura a triangolo, uso gli straps.' },
+  { id: 'ex-leg-extension', nome: 'Leg Extension', gruppo: 'Leg Extension', convenzione: C.MACCHINA_STACK, foto: 'img/esercizi/leg-extension.png', tipo: 'opzionale', nota_permanente: 'Monogamba (esercizio opzionale).' },
+  { id: 'ex-neutral-grip-lat-pulldown', nome: 'Lat Pulldown macchina', gruppo: 'Lat Pulldown', convenzione: C.MACCHINA_STACK, foto: 'img/esercizi/neutral-grip-lat-pulldown.png', tipo: 'standard', nota_permanente: 'Impugnatura a triangolo, uso gli straps.' },
 
   { id: 'ex-dumbbell-bench-pull', nome: 'Dumbbell Bench Pull', gruppo: 'Bench Press', convenzione: C.PER_MANUBRIO, foto: 'img/esercizi/dumbbell-bench-pull.png', tipo: 'standard', nota_permanente: '26 gradi.' },
   { id: 'ex-seated-db-shoulder-press', nome: 'Seated Dumbbell Shoulder Press', gruppo: 'Shoulder Press', convenzione: C.PER_MANUBRIO, foto: 'img/esercizi/seated-dumbbell-shoulder-press.png', tipo: 'standard', nota_permanente: '3 gancio.' },
   { id: 'ex-cable-fly', nome: 'Cable Fly', gruppo: 'Cable Fly', convenzione: C.CAVO, foto: 'img/esercizi/cable-fly.png', tipo: 'standard', nota_permanente: '12 gradi cavi, primo gancio panca.' },
   { id: 'ex-scott-bench-curl', nome: 'Scott Bench Curl seduto al contrario', gruppo: 'Curl bilanciere', convenzione: C.PER_MANUBRIO, foto: 'img/esercizi/scott-bench-curl.png', tipo: 'standard', nota_permanente: 'Panca Scott normale, mi siedo al contrario con i gomiti sul cuscino e faccio il curl a due braccia con manubri singoli.' },
   { id: 'ex-single-arm-tricep-pushdown', nome: 'Single Arm Tricep Pushdown', gruppo: 'Pushdown', convenzione: C.CAVO, foto: 'img/esercizi/single-arm-tricep-pushdown.png', tipo: 'standard', nota_permanente: 'Alla cavigliera.' },
-  { id: 'ex-seated-leg-curl', nome: 'Seated Leg Curl', gruppo: 'Leg Curl', convenzione: C.MACCHINA, foto: 'img/esercizi/seated-leg-curl.png', tipo: 'opzionale', nota_permanente: 'Opzionale.' },
+  { id: 'ex-seated-leg-curl', nome: 'Seated Leg Curl', gruppo: 'Leg Curl', convenzione: C.MACCHINA_STACK, foto: 'img/esercizi/seated-leg-curl.png', tipo: 'opzionale', nota_permanente: 'Opzionale.' },
 
   { id: 'ex-smith-incline-bench', nome: 'Smith Machine Incline Bench Press', gruppo: 'Bench Press', convenzione: C.DISCHI, foto: 'img/esercizi/smith-machine-incline-bench-press.png', tipo: 'standard', nota_permanente: '30 gradi. Conto solo i dischi, il bilanciere no.' },
   { id: 'ex-seated-cable-row', nome: 'Seated Cable Row', gruppo: 'Row', convenzione: C.CAVO, foto: 'img/esercizi/seated-cable-row.png', tipo: 'standard', nota_permanente: 'Il coso nero e grigio.' },
   { id: 'ex-chest-supported-shrug', nome: 'Chest Supported Dumbbell Shrug', gruppo: 'Shrug', convenzione: C.PER_MANUBRIO, foto: 'img/esercizi/chest-supported-dumbbell-shrug.png', tipo: 'standard', nota_permanente: '54 gradi.' },
-  { id: 'ex-sled-press-calf-raise', nome: 'Sled Press Calf Raise', gruppo: 'Calf Raise', convenzione: C.MACCHINA, foto: 'img/esercizi/sled-press-calf-raise.png', tipo: 'standard', nota_permanente: 'Monogamba, pressa orizzontale.' },
+  { id: 'ex-sled-press-calf-raise', nome: 'Sled Press Calf Raise', gruppo: 'Calf Raise', convenzione: C.MACCHINA_STACK, foto: 'img/esercizi/sled-press-calf-raise.png', tipo: 'standard', nota_permanente: 'Monogamba, pressa orizzontale.' },
   { id: 'ex-single-leg-press', nome: 'Single Leg Press', gruppo: 'Leg Press', convenzione: C.PER_GAMBA, foto: 'img/esercizi/single-leg-press.png', tipo: 'standard', nota_permanente: 'Obliqua, altrimenti lavorano due gambe. 17 kg per gamba (prima facevo la leg press normale con 100 kg per lato).' },
   { id: 'ex-one-arm-preacher-curl', nome: 'One Arm Dumbbell Preacher Curl', gruppo: 'Curl bilanciere', convenzione: C.PER_MANUBRIO, foto: 'img/esercizi/one-arm-dumbbell-preacher-curl.png', tipo: 'standard', nota_permanente: '' },
   { id: 'ex-bodyweight-overhead-tricep', nome: 'Bodyweight Overhead Tricep Extension', gruppo: 'Overhead Tricep Extension', convenzione: C.ASSISTENZA, foto: 'img/esercizi/bodyweight-overhead-tricep-ext.png', tipo: 'assistente', nota_permanente: 'Al cavo, altezza sopra il culo. Il numero e\' il peso di assistenza che aggiungo.' },
@@ -96,8 +96,8 @@ export const ESERCIZI = [
 
   // Esercizi AGGIUNTI, non ancora messi in nessuna scheda: sono disponibili
   // nella lista cosi' ognuno puo' aggiungerli quando gli servono.
-  { id: 'ex-iso-lateral-row', nome: 'Iso-Lateral Row', gruppo: 'Row', convenzione: C.MACCHINA, foto: 'img/esercizi/iso-lateral-row.png', tipo: 'standard', nota_permanente: '' },
-  { id: 'ex-lat-pulldown-lats', nome: 'Lat Pulldown (lats)', gruppo: 'Lat Pulldown', convenzione: C.MACCHINA, foto: 'img/esercizi/lat-pulldown-lats.png', tipo: 'standard', nota_permanente: '' },
+  { id: 'ex-iso-lateral-row', nome: 'Iso-Lateral Row', gruppo: 'Row', convenzione: C.MACCHINA_STACK, foto: 'img/esercizi/iso-lateral-row.png', tipo: 'standard', nota_permanente: '' },
+  { id: 'ex-lat-pulldown-lats', nome: 'Lat Pulldown (lats)', gruppo: 'Lat Pulldown', convenzione: C.MACCHINA_STACK, foto: 'img/esercizi/lat-pulldown-lats.png', tipo: 'standard', nota_permanente: '' },
   { id: 'ex-db-lateral-raise', nome: 'Dumbbell Lateral Raise', gruppo: 'Lateral Raise', convenzione: C.BILANCIERE, foto: 'img/esercizi/db-lateral-raise.png', tipo: 'standard', nota_permanente: '' },
   { id: 'ex-lying-cable-curl', nome: 'Incline Single Arm Pulldown', gruppo: 'Lat Pulldown', convenzione: C.CAVO, foto: 'img/esercizi/incline-single-arm-pulldown.png', tipo: 'standard', nota_permanente: 'Braccio singolo: sto sulla panca inclinata col petto appoggiato e tiro il cavo alto verso di me con la presa piccola. Dorso. Quello che diciamo "liac".' },
 ];
