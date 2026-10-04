@@ -234,22 +234,28 @@ test('10. gli Amici si vedono e si aprono', async () => {
   assert.ok(link, 'il link al profilo dell\'amico c\'e\'');
 });
 
-test('11. la scheda di un altro chiede il codice, e col codice si apre', async () => {
-  // Ste: "non dare il permesso a nessuno di andare nelle schede degli altri
-  // se non immettendo un codice". Senza codice non si vede nulla.
+test('11. il confronto si vede sempre, la scheda chiede il codice', async () => {
+  // Ste: "serve il codice solo per entrare negli account, non anche per
+  // confrontarmi con lui".
+  //
+  // Quindi senza codice: il confronto c'è già, ma gli allenamenti dell'altro
+  // no. Col codice: anche la scheda si apre.
   globalThis.localStorage.removeItem('codice_schede_ricordato');
-  await vai('#/amico/account-2', () => app.textContent.includes('Scheda privata'));
-  assert.match(app.textContent, /Scheda privata/, 'senza codice dice che è privata');
-  assert.ok(!app.textContent.includes('allenamenti finiti'), 'e NON mostra i suoi dati');
-  assert.ok(perClasse(app, 'testa-amico').length === 0, 'niente profilo dell\'amico');
+  await vai('#/amico/account-2', () => app.textContent.includes('la sua scheda è chiusa'));
 
-  // col codice giusto si apre e compare il confronto esercizio per esercizio
+  assert.match(app.textContent, /Essercizio per esercizio/, 'il confronto si vede SENZA il codice');
+  assert.match(app.textContent, /la sua scheda è chiusa/i, 'la scheda invece è chiusa');
+  assert.match(app.textContent, /INSERISCI IL CODICE/, 'c\'è il bottone per mettere il codice');
+  assert.ok(!app.textContent.includes('I suoi allenamenti'), 'NON si vedono i suoi allenamenti');
+
+  // col codice giusto si apre anche la scheda
   globalThis.localStorage.setItem('codice_schede_ricordato', CODICE_SCHEDE);
   // torno su un'altra schermata e poi rientro: il router ridisegna solo se la
   // rotta cambia davvero, quindi restare sulla stessa non aggiornerebbe nulla
   await vai('#/casa', () => app.textContent.includes('Casa'));
-  await vai('#/amico/account-2', () => app.textContent.includes('allenamenti finiti'));
-  assert.match(app.textContent, /allenamenti finiti/, 'col codice i dati si vedono');
+  await vai('#/amico/account-2', () => app.textContent.includes('I suoi allenamenti'));
+  assert.match(app.textContent, /I suoi allenamenti/, 'col codice i suoi allenamenti si vedono');
+  assert.match(app.textContent, /Essercizio per esercizio/, 'e il confronto resta');
   assert.ok(perClasse(app, 'testa-amico').length === 1, 'compare il profilo dell\'amico');
   globalThis.localStorage.removeItem('codice_schede_ricordato');
 });

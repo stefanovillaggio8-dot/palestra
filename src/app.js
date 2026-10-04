@@ -24,7 +24,7 @@ import { nuovoId, adesso, TABELLE } from './sincronizzazione.js';
 // --- il gioco: rank, LP, streak, Aura, missioni, amici ---
 import { statoAccount, ricompenseAllenamento, gruppiDaSerie } from './gioco.js';
 import { recordEsercizio, recordAccount, classificaEsercizio, storicoMiglioramenti } from './rank.js';
-import { profiloEsercizio, RANK, ETICHETTE_MISURA, descriviPunteggio } from './rank-config.js';
+import { profiloEsercizio, profiloPerPesoCorporeo, RANK, ETICHETTE_MISURA, descriviPunteggio } from './rank-config.js';
 import { formattaAura } from './aura.js';
 import { elencoAvatar, avatarPerId, gradienteAvatar, iniziali } from './avatar.js';
 import { amiciDi, confronta, classifichePerEsercizio, privacyDi, campiVisibili, PRIVACY_PREDEFINITE, CODICE_SCHEDE, codiceCorretto } from './sociale.js';
@@ -194,7 +194,6 @@ async function proponiAggiornamentoScheda(sedutaId) {
   const perEsercizio = raccogliPerEsercizio(V.serie, sedutaId);
   const perId = new Map(V.esercizi.map((e) => [e.id, e]));
   const res = propostaAggiornamento(versione.snapshot, seduta.giorno_id, perEsercizio, perId);
-  const spotterInfo = riassuntoSpotter(perEsercizio, perId);
   if (res.nessunaNovita) {
     return { fatto: false, motivo: 'nessuna novita' };
   }
@@ -210,6 +209,10 @@ async function proponiAggiornamentoScheda(sedutaId) {
       el('span', { class: 'dopo', testo: c.dopo }),
     ]),
   ]));
+  // Nel dialogo di aggiornamento la riga "Con lo spotter: ..." è stata tolta
+  // per lo stesso motivo (diceva le stesse cose delle singole serie, e usciva
+  // anche quando non avevi fatto nessuna serie con lo spotter). Resta solo
+  // l'avviso utile, quello sullo spotter cambiato, e compare solo se è vero.
   const testoSpotter = res.cambiamenti.some((c) => c.spotterCambiato)
     ? 'In questo esercizio hai cambiato lo spotter: la prossima volta la serie te la trovi gia\' segnata.'
     : '';
@@ -218,10 +221,6 @@ async function proponiAggiornamentoScheda(sedutaId) {
     el('p', { class: 'testo-dialogo', testo: `${res.cambiamenti.length} ${res.cambiamenti.length === 1 ? 'esercizio cambia' : 'esercizi cambiano'} nel ${seduta.nome_giorno || 'giorno'}.` }),
     el('ul', { class: 'lista-cambi' }, righe),
     el('p', { class: 'testo-dialogo legenda-cambi', testo: 'S = fatta con lo spotter · D = dropset' }),
-    el('p', { class: 'testo-dialogo riga-spotter' }, [
-      el('strong', { testo: 'Con lo spotter: ' }),
-      el('span', { testo: spotterInfo.frase }),
-    ]),
     testoSpotter ? el('p', { class: 'testo-dialogo testo-spotter', testo: testoSpotter }) : null,
     el('p', { class: 'testo-dialogo testo-attenzione', testo: 'Nasce una versione nuova della scheda. Le sedute gia\' registrate restano esattamente come sono.' }),
     el('div', { class: 'dialogo-azioni' }, [
@@ -871,18 +870,17 @@ async function vistaSeduta(zona, sedutaId) {
   });
   zona.appendChild(notaSeduta);
 
-// quante ripetizioni hai fatto con lo spotter: lo vedi mentre alleni.
-// Resta sempre visibile, anche quando non hai usato lo spotter: cosi' sai
-// che il conteggio c'e' e ti azzera, e non ti chiedi se manca.
-const riepilogoSpotter = el('div', { class: 'riga-spotter' });
-const scriviRiepilogoSpotter = () => {
-  const info = riassuntoSpotter(raccogliPerEsercizio(V.serie, s.id), new Map(V.esercizi.map((e) => [e.id, e])));
-  svuota(riepilogoSpotter);
-  riepilogoSpotter.appendChild(el('strong', { testo: 'Con lo spotter: ' }));
-  riepilogoSpotter.appendChild(el('span', { testo: info.frase }));
-};
-scriviRiepilogoSpotter();
-zona.appendChild(riepilogoSpotter);
+// Il riepilogo dello spotter è stato tolto da qui.
+  //
+  // Ste (04/10/2026): "togli questo non ha senso", e poi "ancora spunta
+  // quella cosa dello spotter". Aveva ragione due volte: la riga compariva
+  // SEMPRE, anche con zero serie fatte con lo spotter, e ripeteva le stesse
+  // informazioni che sono già scritte su ogni singola serie (il tag "fatta
+  // con lo spotter" e le ripetizioni assistite).
+  //
+  // Ora ogni serie mostra da sola se è stata fatta con lo spotter e quante
+  // ripetizioni sono state assistite: niente da mettere qui sotto.
+  // Il conteggio si vede nella pagina dell'esercizio e nei Progressi.
 
   const snap = (versioneCorrente() || {}).snapshot || { giorni: [] };
   const giorno = (snap.giorni || []).find((g) => g.id === s.giorno_id);
@@ -3080,19 +3078,18 @@ function vistaAmico(zona, idAmico) {
   if (!voce) { zona.appendChild(el('p', { testo: 'Account non trovato.' })); return; }
   const amico = { ...voce.profilo, id: voce.account };
 
-  // Ste: nessuno entra nelle schede degli altri senza il codice. Se non c'è
-  // ancora, chiedo il codice e poi disegnò di nuovo questa pagina.
-  if (!codiceRiconosciuto()) {
-    zona.appendChild(el('a', { href: '#/amici', class: 'indietro', testo: 'Torna agli amici' }));
-    zona.appendChild(el('div', { class: 'blocco' }, [
-      el('h2', { testo: 'Scheda privata' }),
-      el('p', { class: 'nota', testo: `La scheda di ${amico.username} è chiusa. Serve il codice per guardarla.` }),
-      bottone('INSERISCI IL CODICE', { onClick: () => chiediCodiceSchede(() => disegna()), classe: 'principale grande' }),
-    ]));
-    return;
-  }
-
   zona.appendChild(el('a', { href: '#/amici', class: 'indietro', testo: 'Torna agli amici' }));
+
+  const aperto = codiceRiconosciuto();
+
+  // Ste: "serve il codice solo per entrare negli account, non anche per
+  // confrontarmi con lui".
+  //
+  // Quindi il confronto è SEMPRE visibile: è la parte divertente e non
+  // contiene niente di privato (solo esercizio, kg e ripetizioni). Il codice
+  // protegge invece la scheda vera e propria: gli allenamenti uno per uno, le
+  // sedute, i dettagli. E continua a valere anche se l'altro ha lasciato
+  // everything pubblico: il codice è una protezione in più, non un di meno.
   zona.appendChild(el('div', { class: 'testa-amico' }, [
     avatarNodo(amico, { grande: true, dimensione: 84 }),
     el('div', {}, [
@@ -3101,7 +3098,26 @@ function vistaAmico(zona, idAmico) {
     ]),
   ]));
 
-  const mioStato = statoMio();
+  // --- la scheda vera: serve il codice ---
+  if (!aperto) {
+    zona.appendChild(el('div', { class: 'blocco' }, [
+      el('h2', { testo: 'La sua scheda è chiusa' }),
+      el('p', { class: 'nota', testo: `Per entrare nella scheda di ${amico.username} e vedere i suoi allenamenti serve il codice. Il confronto qui sotto si vede comunque.` }),
+      bottone('INSERISCI IL CODICE', { onClick: () => chiediCodiceSchede(() => disegna()), classe: 'principale grande' }),
+    ]));
+  } else {
+    zona.appendChild(el('section', { class: 'blocco' }, [
+      el('h2', { testo: 'I suoi allenamenti' }),
+      voce.sedute.length
+        ? el('ul', { class: 'lista-sedute-amico' }, voce.sedute.slice(0, 20).map((s) => el('li', {
+          testo: `${s.nome_giorno || 'Allenamento'} · ${s.data} · ${s.serie_fatte || 0} serie`,
+        })))
+        : el('p', { class: 'nota', testo: 'Nessun allenamento finito.' }),
+      el('a', { href: '#/amico/' + voce.account + '/storico', class: 'bottone-guarda', testo: 'Vedi tutta la scheda' }),
+    ]));
+  }
+
+  // --- il confronto: sempre aperto ---
   const confronto = confronta(
     profiloAttivo(),
     amico,
@@ -3422,7 +3438,51 @@ function finestraCreaEsercizio() {
     el('option', { value: 'corpo_libero', testo: 'corpo libero' }),
     el('option', { value: 'assistenza', testo: 'kg di assistenza' }),
   ]);
-  const riferimento = campoNumero(60, { etichetta: 'riferimento' });
+  // Il riferimento ora si CALCOLA da solo.
+  //
+  // Ste (04/10/2026): "non si puo' rendere automatica sta cosa?".
+  //
+  // Prima doveva scrivere a mano "il punteggio PLATINUM" e non sapeva cosa
+  // mettere. Ora il campo è FACOLTATIVO: se lo lascia vuoto l'app sceglie da
+  // sola un riferimento sensato in base al tipo di misura, e poi lo scala sul
+  // peso corporeo di chi lo usa (un esercizio pesante resta pesante per
+  // tutti, ma il livello PLATINUM si alza con il peso della persona).
+  //
+  // Se invece scrive un numero, quello vince: serve per gli esercizi particolari
+  // dove il default non è adatto.
+  const riferimento = campoNumero('', { etichetta: 'punteggio PLATINUM (facoltativo)' });
+  const anteprimaRiferimento = el('div', { class: 'anteprima-riferimento' });
+
+  /** Ricalcola l'anteprima ogni volta che cambia qualcosa. */
+  const aggiornaAnteprima = () => {
+    const scritto = Number(String(riferimento.value || '').replace(',', '.'));
+    const usaQuelloScrittto = Number.isFinite(scritto) && scritto > 0;
+    const peso = pesoCorporeoOra();
+    const profilo = profiloEsercizio(
+      { id: 'ex-nuovo', nome: nome.value || 'Nuovo esercizio', convenzione: convenzione.value, misura: tipo.value },
+      usaQuelloScrittto ? { riferimento: scritto } : {},
+    );
+    const conPeso = profiloPerPesoCorporeo(profilo, peso);
+    const s = conPeso.soglie;
+    svuota(anteprimaRiferimento);
+    anteprimaRiferimento.appendChild(el('p', {
+      class: 'nota nota-piccola',
+      testo: usaQuelloScrittto
+        ? 'Stai usando il numero che hai scritto.'
+        : (peso
+          ? `Numero scelto automaticamente sul tuo peso (${formattaNumero(peso)} kg).`
+          : 'Numero scelto automaticamente sul peso di riferimento. Se metti il tuo peso nel Profilo, si ricalcola anche da solo.'),
+    }));
+    anteprimaRiferimento.appendChild(el('p', {
+      class: 'nota nota-piccola scala-anteprima',
+      testo: `Bronzo ${formattaNumero(Math.round(s[0] * 10) / 10)} · Silver ${formattaNumero(Math.round(s[1] * 10) / 10)} · Gold ${formattaNumero(Math.round(s[2] * 10) / 10)} · Platinum ${formattaNumero(Math.round(s[3] * 10) / 10)} ${conPeso.unita}`,
+    }));
+  };
+  riferimento.addEventListener('input', aggiornaAnteprima);
+  tipo.addEventListener('change', aggiornaAnteprima);
+  convenzione.addEventListener('change', aggiornaAnteprima);
+  aggiornaAnteprima();
+
   const immagine = el('input', { type: 'file', accept: 'image/*', class: 'campo-testo' });
   let fotoData = null;
   immagine.addEventListener('change', () => {
@@ -3448,17 +3508,22 @@ function finestraCreaEsercizio() {
         el('p', { testo: 'Ogni esercizio ha una scala di Rank tutta sua, come i gradini di una scala: Bronzo, Silver, Gold, Platinum, Diamond, Titan, Olympian. Non conta il peso grezzo, conta quanto sei forte in quel movimento.' }),
 
         el('h4', { testo: 'Il campo "punteggio PLATINUM"' }),
-        el('p', { testo: 'È il numero che vale PLATINUM su quell\'esercizio. Tutti gli altri gradini nascono da qui, con questi scarti:' }),
+        el('p', { testo: 'Non devi preoccupartene: lo sceglie l\'app al posto tuo. Lascia il campo vuoto e fa tutto da sola.' }),
+        el('p', { testo: 'Come funziona: il PLATINUM è il livello di riferimento, e gli altri gradini nascono da lì con questi scarti:' }),
         el('ul', {}, [
-          el('li', { testo: 'Bronzo = 55% del punteggio PLATINUM' }),
+          el('li', { testo: 'Bronzo = 55% del riferimento' }),
           el('li', { testo: 'Silver = 72%' }),
           el('li', { testo: 'Gold = 88%' }),
-          el('li', { testo: 'Platinum = 100% (è il numero che scrivi tu)' }),
+          el('li', { testo: 'Platinum = 100%' }),
           el('li', { testo: 'Diamond = 118%, Titan = 145%, Olympian = 185%' }),
         ]),
-        el('p', { testo: 'Esempio: se per il Chest Press metti 60, il PLATINUM lo raggiungi con una performance stimata di 60 e il BRONZE con circa 33.' }),
-        el('p', { testo: 'Attenzione: se l\'esercizio si misura in kg e ripetizioni, il numero NON è il peso che alzi. È il massimale stimato, cioè quanto peseresti se riuscissi a fare una ripetizione sola. Se fai 60 kg per 10 ripetizioni, la stima è circa 80.' }),
-        el('p', { testo: 'Per gli esercizi a sole ripetizioni (trazioni, dip) il numero sono le ripetizioni vere. Per quelli a tempo, i secondi.' }),
+        el('p', { testo: 'Sotto la riga del campo vedi già la scala vera che verrà usata, quindi sai cosa aspettarti prima di salvare.' }),
+        el('p', { testo: 'Il numero si sceglie in base al tipo di misura che hai messo sopra (kg e ripetizioni, solo ripetizioni, tempo, distanza) e poi si scala sul peso corporeo di chi si allena: se sei più pesante e più forte, il tuo PLATINUM sale. Eccolo per i due casi più comuni:' }),
+        el('ul', {}, [
+          el('li', { testo: 'Se l\'esercizio si misura in kg e ripetizioni, il numero NON è il peso che alzi: è il massimale stimato, cioè quanto peseresti facendo una ripetizione sola. Se fai 60 kg per 10 ripetizioni, la stima è circa 80.' }),
+          el('li', { testo: 'Se l\'esercizio è a sole ripetizioni (trazioni, dip), il numero sono le ripetizioni vere. Se è a tempo, i secondi.' }),
+        ]),
+        el('p', { testo: 'Quando serve un numero tutto tuo? Solo per esercizi particolari, dove il numero scelto dall\'app non è adatto. In quel caso scrivilo tu e vince quello.' }),
 
         el('h4', { testo: 'Il campo "Descrizione"' }),
         el('p', { testo: 'È una nota che vede chi usa l\'esercizio, scritta sotto il nome. Serve a spiegare COME si fa, non a descrivere il nome.' }),
@@ -3481,7 +3546,8 @@ function finestraCreaEsercizio() {
     el('label', { class: 'nota', testo: 'Immagine' }), immagine,
     el('label', { class: 'nota', testo: 'Tipo' }), tipo,
     el('label', { class: 'nota', testo: 'Convenzione del carico' }), convenzione,
-    el('label', { class: 'nota', testo: 'Punteggio PLATINUM (i\' gradini gli fa l\'app)' }), riferimento,
+    el('label', { class: 'nota', testo: 'Punteggio PLATINUM (facoltativo: se lo lasci vuoto lo sceglie l\'app)' }), riferimento,
+    anteprimaRiferimento,
     el('label', { class: 'nota', testo: 'Descrizione (come si fa: facoltativa)' }), descrizione,
     el('div', { class: 'dialogo-azioni' }, [
       bottone('Annulla', { onClick: () => box.remove(), classe: 'fantasma' }),
@@ -3491,9 +3557,14 @@ function finestraCreaEsercizio() {
           if (!nomeValore) { avviso('Scrivi il nome dell\'esercizio.', { tipo: 'errore' }); return; }
           const id = 'ex-' + nuovoId();
           const misura = tipo.value;
-          const profilo = profiloEsercizio({ id, nome: nomeValore, convenzione: convenzione.value, misura }, {
-            riferimento: Number(String(riferimento.value || '').replace(',', '.')) || undefined,
-          });
+          // Il riferimento si salva solo se Ste lo ha scritto. Se è vuoto non mettiamo
+          // nulla: così profiloEsercizio usa il default giusto per il tipo di
+          // misura e le soglie si ricalcolano da sole sul peso di chi le usa.
+          const scritto = Number(String(riferimento.value || '').replace(',', '.'));
+          const profilo = profiloEsercizio(
+            { id, nome: nomeValore, convenzione: convenzione.value, misura },
+            Number.isFinite(scritto) && scritto > 0 ? { riferimento: scritto } : {},
+          );
           await db.salva('esercizi', {
             id,
             nome: nomeValore,
