@@ -30,7 +30,8 @@ import { formattaAura } from './aura.js';
 import { elencoAvatar, avatarPerId, gradienteAvatar, iniziali } from './avatar.js';
 import { amiciDi, confronta, classifichePerEsercizio, privacyDi, campiVisibili, PRIVACY_PREDEFINITE } from './sociale.js';
 import { classificaEsercizio as riconosciEsercizio } from './esercizi-classificatore.js';
-import { parteDiMuscolo, AVVERTIMENTO_PARTI, stessoLavoro } from './muscoli-parti.js';
+import { parteDiMuscolo, AVVERTIMENTO_PARTI, stessoLavoro, livelloConMuscolo, ordinePerMuscolo }
+  from './muscoli-parti.js';
 import { quantoEPesantePerTe, correggiLivello, dimenticaLivello, livelloImparato, paroleDaChiedere, imparaParola } from './esercizi-personali.js';
 import { controllaAggiornamento, applicaAggiornamento as prendiVersioneNuova, registraAggiornamentoRapido } from './update-via-sw.js';
 import {
@@ -726,6 +727,22 @@ function vistaGiorno(zona, giornoId) {
       el('strong', { testo: 'Attenzione: due esercizi fanno lo stesso lavoro' }),
       el('p', {}, doppioni.map((d) => `${d[0]} e ${d[1]} lavorano entrambi: ${d[2]}.`)),
       el('p', { class: 'nota nota-piccola', testo: AVVERTIMENTO_PARTI }),
+    ]));
+  }
+  // Ste: "deve capire cosa lavora quell'esercizio e quindi capire se e'
+  // difficile o facile". Ecco il secondo pezzo: se due esercizi sono sullo
+  // stesso muscolo, l'app li mette in fila dal facile al duro. Serve piu'
+  // del livello, perche' il livello dice "isolamento" e non dice quale dei
+  // due ti fa sudare di piu'.
+  const ordini = ordinePerMuscolo(g.esercizi);
+  if (ordini.length) {
+    zona.appendChild(el('div', { class: 'tape-duplicati' }, [
+      el('strong', { testo: 'Dal piu\' facile al piu\' duro' }),
+      el('p', {}, ordini.map((o) => o.frase)),
+      el('p', {
+        class: 'nota nota-piccola',
+        testo: 'Il muscolo e\' piccolo e instabile? La difficolta\' sale anche con poco peso.',
+      }),
     ]));
   }
   // finisci l'esercizio di tutte le serie con gli stessi esercizi di un mese
@@ -3114,6 +3131,20 @@ function vistaEsercizio(zona, esercizioId) {
       el('span', { testo: parte.nome }),
       el('span', { class: 'nota nota-piccola', testo: parte.nota }),
       el('span', { class: 'nota nota-piccola', testo: AVVERTIMENTO_PARTI }),
+    ]));
+
+    // Ste: "deve capire cosa lavora quell'esercizio e quindi capire se e'
+    // difficile o facile". Sapere il muscolo serve proprio a questo: un
+    // carico bassissimo sul deltoide laterale e' piu duro di uno medio sul
+    // quadricipite, e senza saperlo l'app darebbe un giudizio sbagliato.
+    const conMuscolo = livelloConMuscolo({
+      nome: e.nome,
+      descrizione: e.nota_permanente || '',
+      livelloDalMovimento: riconosciEsercizio({ nome: e.nome }).livello,
+    });
+    zona.appendChild(el('div', { class: 'riga-giudizio giud-parte' }, [
+      el('strong', { testo: 'PERCHE\' E\' DIFFICILE' }),
+      el('span', { testo: conMuscolo.frase }),
     ]));
   }
 

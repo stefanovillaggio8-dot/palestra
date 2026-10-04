@@ -1,4 +1,4 @@
-// muscoli-parti.js -- QUALE pezzo di muscolo stai lavorando.
+﻿// muscoli-parti.js -- QUALE pezzo di muscolo stai lavorando.
 //
 // Ste (04/10/2026): "deve capire pure che il petto come il bicipite e le altre
 // parti sono formati da diverse fibre muscolari e ci sono esercizi che per
@@ -45,7 +45,8 @@ export const PARTI = [
   {
     id: 'petto_centrale', muscolo: 'petto', parte: 'petto nel mezzo',
     parole: ['chest press', 'panca', 'pecorino', 'macchina', 'cable fly', 'fly', 'cross over',
-      'crossover', 'crucifix', 'incline single arm pulldown', 'bench pull', 'dumbbell bench pull'],
+      'crossover', 'crucifix', 'incline single arm pulldown', 'bench pull', 'dumbbell bench pull',
+      'bench press', 'bench', 'pressione petto', 'horizontal press'],
     nota: 'Il lavoro è distribuito: il petto lavora in modo abbastanza uniforme. Il fly lavora soprattutto il centro del petto.',
   },
   // ---- dorso ----
@@ -216,6 +217,112 @@ export function parteDiMuscolo({ nome = '', descrizione = '' } = {}) {
   };
 }
 
+/**
+ * 'Sul petto', 'Sulle spalle': una frase suona bene solo se lo sai. Senza
+ * questo l'app scriveva "Sul spalle", che fa capire subito che la cosa e'
+ * fatta a pezzi invece che pensata.
+ */
+export const PREP = {
+  petto: 'Sul petto',
+  dorso: 'Sul dorso',
+  spalle: 'Sulle spalle',
+  braccio: 'Sul braccio',
+  gambe: 'Sulle gambe',
+  addome: "Sull'addome",
+};
+
+export function preposizioneMuscolo(muscolo) {
+  return PREP[muscolo] || 'Nel muscolo ' + muscolo;
+}
+
+/**
+ * Quanto è duro quel pezzo di muscolo da lavorare, a parità di carico.
+ *
+ * Ste: "deve capire cosa lavora quell'esercizio e quindi capire se è
+ * difficile o facile". Ecco il pezzo che mancava: il giudizio non veniva solo
+ * dal nome, ma anche dal muscolo. Un carico bassissimo sul deltoide laterale
+ * è più difficile di uno medio sul quadricipite, perché il muscolo è piccolo
+ * e ti tiene in equilibrio.
+ *
+ * Il numero è quanto pesa il muscolo, da 0 (facile) a 6 (arduo).
+ */
+export const INTRINSECO = {
+  "petto_alto": 1,
+  "petto_centrale": 0,
+  "petto_basso": 2,
+  "dorso_alto": 3,
+  "dorso_centrale": 0,
+  "dorso_lati": 2,
+  "spalle_laterali": 6,
+  "spalle_posteriori": 4,
+  "spalle_frontali": 1,
+  braccio_alto: 5, // il bicipite in alto lavora in posizione corta: è il caso difficile
+  braccio_basso: 0, // in basso è in posizione lunga: il modo più facile di arrivare a fare i bicipiti
+  "spalla_gomito": 1,
+  "avambraccio": 2,
+  "quadricipite": 0,
+  "femorale": 1,
+  "polpaccio": 2,
+  "glutei": 1,
+  "addome": 3
+};
+
+/** Quanto è duro questo pezzo di muscolo (0-6). */
+export function intrinsecoDi(parte) {
+  if (!parte || !parte.trovata) return null;
+  return INTRINSECO[parte.parte] === undefined ? null : INTRINSECO[parte.parte];
+}
+
+export function livelloConMuscolo({
+  nome = '', descrizione = '', convenzione = null,
+  livelloDalMovimento = 'composto',
+} = {}) {
+  const parte = parteDiMuscolo({ nome, descrizione });
+  const intrinseco = intrinsecoDi(parte);
+  const base = livelloDalMovimento;
+  const ordine = ['isolamento', 'composto', 'grande'];
+  let i = Math.max(0, ordine.indexOf(base === 'assistito' ? 'composto' : base));
+  const spinta = intrinseco === null ? 0 : intrinseco - 2;
+  let livello = base;
+  const motivi = [];
+  if (base === 'assistito') {
+    livello = 'assistito';
+    motivi.push('è un esercizio col peso del corpo: si contano le ripetizioni');
+  } else if (spinta >= 3) {
+    // Un muscolo piccolo e instabile su un movimento di forza: e' piu' duro di
+    // quanto sembra. Il lateral raise e' il caso limite: 4 kg li' sono duri.
+    //
+    // Il muscolo puo' solo ALZARE la difficolta', mai abbassarla: se la
+    // macchina ti aiuta, lo sa gia' il classificatore dagli accorgimenti.
+    // Qui altrimenti si contava due volte e il giudizio finiva sotto terra.
+    livello = ordine[Math.min(ordine.length - 1, i + 1)];
+    motivi.push(parte.nome + ': muscolo piccolo e instabile, più duro di quanto sembra');
+  } else {
+    motivi.push('movimento ' + base + ', muscolo ' + parte.nome + ': difficoltà normale');
+  }
+  return { livello, livelloDalMovimento: base, parte, intrinseco, spinta, frase: motivi.join(' | ') };
+}
+export function ordinePerMuscolo(esercizi) {
+  const perMuscolo = new Map();
+  for (const e of (esercizi || [])) {
+    const p = parteDiMuscolo({ nome: e.nome, descrizione: e.nota_permanente || '' });
+    const intr = intrinsecoDi(p);
+    if (!p.trovata || intr === null) continue;
+    if (!perMuscolo.has(p.muscolo)) perMuscolo.set(p.muscolo, []);
+    perMuscolo.get(p.muscolo).push({ nome: e.nome, parte: p, intrinseco: intr });
+  }
+  const fuori = [];
+  for (const [muscolo, lista] of perMuscolo) {
+    if (lista.length < 2) continue;
+    lista.sort((a, b) => a.intrinseco - b.intrinseco);
+    fuori.push({
+      muscolo, esercizi: lista,
+      frase: preposizioneMuscolo(muscolo) + ': il più facile è ' + lista[0].nome
+        + ', il più duro è ' + lista[lista.length - 1].nome + '.',
+    });
+  }
+  return fuori;
+}
 /**
  * L'avvertimento che va detto ogni volta, perché il nome "parte alta" fa
  * pensare a un muscolo separato e non è così.
