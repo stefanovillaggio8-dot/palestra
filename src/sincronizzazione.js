@@ -1,7 +1,8 @@
 // sincronizzazione.js -- regole di sincronizzazione, isolate dal database.
 // Qui non c'e' nessuna chiamata di rete: solo decisioni, cosi' sono testabili.
 
-export const TABELLE = ['esercizi', 'schede', 'versioni', 'sedute', 'serie', 'note'];
+export const TABELLE = ['esercizi', 'schede', 'versioni', 'sedute', 'serie', 'note',
+  'profili', 'missioni', 'ricompense'];
 
 /** Campi che non vengono mai scritti sul server (sono solo del dispositivo). */
 export const CAMPI_LOCALI = ['sync', 'base_rev', 'ultimo_errore', 'tentativi', 'in_flight'];

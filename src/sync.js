@@ -13,7 +13,8 @@ import {
 } from './sincronizzazione.js';
 
 const CHIAVE_ULTIMO_PULL = 'palestra-ultimo-pull';
-const TABELLE_SINCRONIZZATE = ['esercizi', 'schede', 'versioni', 'sedute', 'serie', 'note'];
+const TABELLE_SINCRONIZZATE = ['esercizi', 'schede', 'versioni', 'sedute', 'serie', 'note',
+  'profili', 'missioni', 'ricompense'];
 
 let inCorso = false;
 const ascoltatori = new Set();

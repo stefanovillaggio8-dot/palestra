@@ -20,6 +20,9 @@ export function creaPacchetto(dati, meta = {}) {
       serie: dati.serie || [],
       note: dati.note || [],
       conflitti: dati.conflitti || [],
+      profili: dati.profili || [],
+      missioni: dati.missioni || [],
+      ricompense: dati.ricompense || [],
     },
   };
 }
@@ -72,6 +75,8 @@ export function riepilogo(t) {
   const conta = (arr) => (Array.isArray(arr) ? arr.length : 0);
   const sedute = Array.isArray(t.sedute) ? t.sedute : [];
   const completate = sedute.filter((s) => s && s.stato === 'completata').length;
+  const ricompense = Array.isArray(t.ricompense) ? t.ricompense : [];
+  const aura = ricompense.reduce((a, r) => a + Number((r && r.aura) || 0), 0);
   return {
     esercizi: conta(t.esercizi),
     schede: conta(t.schede),
@@ -80,6 +85,10 @@ export function riepilogo(t) {
     seduteCompletate: completate,
     serie: conta(t.serie),
     note: conta(t.note),
+    profili: conta(t.profili),
+    missioniCompletate: (Array.isArray(t.missioni) ? t.missioni : []).filter((m) => m && m.completata_il).length,
+    ricompense: ricompense.length,
+    aura,
     primaData: sedute.map((s) => s.data).filter(Boolean).sort()[0] || null,
     ultimaData: sedute.map((s) => s.data).filter(Boolean).sort().slice(-1)[0] || null,
   };

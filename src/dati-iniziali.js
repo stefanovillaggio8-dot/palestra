@@ -11,11 +11,42 @@ import { CONVENZIONI as C } from './numeri.js';
 export const SCHEDA_ID = 'scheda-gym-3';
 export const SCHEDA_NOME = 'Palestra';
 
-/** Le persone che usano l'app. L'ordine non conta, conta l'id nella URL. */
+/**
+ * Le persone che usano l'app. L'ordine non conta, conta l'id nella URL.
+ *
+ * Ogni riga e' un ACCOUNT a se' stante: ha il suo username, il suo avatar, la
+ * sua scheda, i suoi allenamenti e i suoi rank. Quello che si vede nelle
+ * classifiche e' il record MIGLIORE di ciascuno su ciascun esercizio.
+ *
+ * Per aggiungere un amico basta mettere una riga qui dentro (o usare
+ * l'elenco CONTATTI): nient'altro da cambiare.
+ */
 export const PERSONE = [
-  { id: 1, nome: 'Stefano', nomeScheda: 'Palestra', schedaId: SCHEDA_ID, predefinita: true },
-  { id: 2, nome: 'Altro', nomeScheda: 'Palestra A', schedaId: 'scheda-altro-1', predefinita: false },
+  {
+    id: 1, nome: 'Stefano', username: 'Stefano', nomeScheda: 'Palestra', schedaId: SCHEDA_ID,
+    predefinita: true, amministratore: true, avatar: 'fiamma', amici: [2], colore: '#ff9f45',
+  },
+  {
+    id: 2, nome: 'Altro', username: 'Altro', nomeScheda: 'Palestra A', schedaId: 'scheda-altro-1',
+    predefinita: false, amministratore: false, avatar: 'ciano', amici: [1], colore: '#00e5ff',
+  },
 ];
+
+/**
+ * La lista degli amici che ancora non hanno un account con una scheda.
+ * Serve per la sezione Amici: sono account "da collegare", quindi non hanno
+ * record e non compaiono in nessuna classifica (niente dati inventati).
+ */
+export const CONTATTI = [
+  { username: 'Andrea', avatar: 'viola', stato: 'da collegare' },
+  { username: 'Marco', avatar: 'verde', stato: 'da collegare' },
+  { username: 'Luca', avatar: 'oro', stato: 'da collegare' },
+];
+
+/** L'id dell'account (stringa) a partire dal numero della persona. */
+export function accountId(numero) {
+  return 'account-' + numero;
+}
 
 /** Quale persona si sta usando adesso, letta dalla URL (?p=2). */
 export function personaDallaUrl(ricerca) {

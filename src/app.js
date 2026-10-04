@@ -19,8 +19,15 @@ import {
 } from './aggiornamento.js';
 import { testoProgresso, serieARipetizioniCostanti, riepilogoGenerale } from './progressi.js';
 import { creaPacchetto, validaPacchetto, unisci, csvSerie, csvSedute, csvEsercizi } from './backup.js';
-import { ESERCIZI, SCHEDA_ID, SCHEDA_NOME, PERSONE, personaDallaUrl, costruisciSnapshot } from './dati-iniziali.js';
+import { ESERCIZI, SCHEDA_ID, SCHEDA_NOME, PERSONE, CONTATTI, accountId, personaDallaUrl, costruisciSnapshot } from './dati-iniziali.js';
 import { nuovoId, adesso, TABELLE } from './sincronizzazione.js';
+// --- il gioco: rank, LP, streak, Aura, missioni, amici ---
+import { statoAccount, ricompenseAllenamento, gruppiDaSerie } from './gioco.js';
+import { recordEsercizio, recordAccount, classificaEsercizio, storicoMiglioramenti } from './rank.js';
+import { profiloEsercizio, RANK, ETICHETTE_MISURA, descriviPunteggio } from './rank-config.js';
+import { formattaAura } from './aura.js';
+import { elencoAvatar, avatarPerId, gradienteAvatar, iniziali } from './avatar.js';
+import { amiciDi, confronta, classifichePerEsercizio, privacyDi, campiVisibili, PRIVACY_PREDEFINITE } from './sociale.js';
 
 const V = {}; // stato dell'app
 const GIRI_DROPSET = 3; // i 3 posti in piu' che ha chiesto Ste
@@ -72,7 +79,7 @@ async function avvia() {
     await seminaSeVuoto();
     bottoneSu();
 
-    await ricarcaTutto();
+    await ricaricaTutto();
 
     sync.iscriviti(() => { aggiornaStatoSalvataggio(); });
     sync.avvia();
@@ -193,7 +200,7 @@ async function applicaAggiornamento(res, seduta) {
   });
   await db.salva('schede', { ...scheda(), versione_corrente: nuovaVersioneId });
   scartaBozza();
-  await ricarcaTutto();
+  await ricaricaTutto();
   avviso(`Scheda aggiornata: ora sei alla versione ${nuovoNumero}.`, { tipo: 'ok' });
   return nuovaVersioneId;
 }
@@ -231,13 +238,16 @@ function mostraErrore(radice, errore) {
 }
 
 /** Ricarica tutto quello che serve per la vista corrente. */
-async function ricarcaTutto() {
+async function ricaricaTutto() {
   V.esercizi = await db.tutti('esercizi');
   V.schede = await db.tutti('schede');
   V.versi = await db.tutti('versioni');
   V.sedute = await db.tutti('sedute');
   V.serie = await db.tutti('serie');
   V.note = await db.tutti('note');
+  V.profili = await db.tutti('profili');
+  V.missioni = await db.tutti('missioni');
+  V.ricompense = await db.tutti('ricompense');
   V.conflitti = await sync.conflittiDaScegliere();
 }
 
@@ -261,7 +271,10 @@ async function seminaSeVuoto() {
 async function seminaPersona() {
   const p = personaAttiva();
   const gia = await db.prendi('schede', p.schedaId);
-  if (gia) return;
+  if (gia) {
+    await seminaProfilo(p);
+    return;
+  }
   const versioneId = 'ver-' + p.schedaId + '-1';
   await db.salva('versioni', {
     id: versioneId, scheda_id: p.schedaId, numero: 1,
@@ -271,6 +284,28 @@ async function seminaPersona() {
   await db.salva('schede', {
     id: p.schedaId, nome: p.nomeScheda,
     versione_corrente: versioneId,
+  }, { segna: false });
+  await seminaProfilo(p);
+}
+
+/**
+ * Il profilo di ogni account: username, avatar, privacy e amici.
+ * Nasce gia' compilato, ma i campi si possono cambiare dopo dal Profilo:
+ * quello che finisce nel database e' l'ID dell'avatar, non l'immagine, quindi
+ * lo stesso avatar si vede su tutti i dispositivi.
+ */
+async function seminaProfilo(p) {
+  const id = accountId(p.id);
+  const gia = await db.prendi('profili', id);
+  if (gia) return;
+  await db.salva('profili', {
+    id,
+    username: p.username || p.nome,
+    avatar_id: p.avatar || 'vuoto',
+    amministratore: !!p.amministratore,
+    amici: Array.isArray(p.amici) ? p.amici.map((n) => accountId(n)) : [],
+    privacy: { ...PRIVACY_PREDEFINITE },
+    colore: p.colore || '#7c5cff',
   }, { segna: false });
 }
 
@@ -331,6 +366,12 @@ function disegnaDentro(zona) {
 
   const rotta = (window.location.hash || '#/').replace(/^#/, '');
   if (rotta === '/' || rotta === '') vistaHome(contenuto);
+  else if (rotta === '/casa') vistaCasa(contenuto);
+  else if (rotta === '/rank' || rotta === '/ranki') vistaRank(contenuto);
+  else if (rotta.startsWith('/esercizio/')) vistaEsercizio(contenuto, rotta.split('/')[2]);
+  else if (rotta === '/amici') vistaAmici(contenuto);
+  else if (rotta.startsWith('/amico/')) vistaAmico(contenuto, rotta.split('/')[2]);
+  else if (rotta === '/profilo') vistaProfilo(contenuto);
   else if (rotta.startsWith('/giorno/')) vistaGiorno(contenuto, rotta.split('/')[2]);
   else if (rotta.startsWith('/seduta/')) vistaSeduta(contenuto, rotta.split('/')[2]);
   else if (rotta === '/scheda') vistaScheda(contenuto);
@@ -345,7 +386,7 @@ function cornice() {
   const rotta = (window.location.hash || '#/').replace(/^#/, '');
   // la voce del menu in cui ti trovi viene accesa: cosi' sai sempre dove sei
   const voceAttiva = (percorso) => {
-    if (percorso === '/') return rotta === '/' || rotta === '' || rotta.startsWith('/giorno') || rotta.startsWith('/seduta');
+    if (percorso === '/') return rotta === '/' || rotta === '' || rotta.startsWith('/giorno') || rotta.startsWith('/seduta') || rotta.startsWith('/scheda');
     return rotta === percorso || rotta.startsWith(percorso + '/');
   };
   const voce = (href, etichetta, percorso) => el('a', {
@@ -354,12 +395,16 @@ function cornice() {
     testo: etichetta,
   });
 
+  // La barra in basso e' quella che c'era prima, con tre voci nuove. Storico,
+  // Progressi e Impostazioni restano raggiungibili dalla Casa e dal Profilo:
+  // niente di quello che c'era e' sparito.
   const resto = el('div', { class: 'basso' }, [
     el('nav', { class: 'menu-basso' }, [
       voce('/', 'Allenamento', '/'),
-      voce('/storico', 'Storico', '/storico'),
-      voce('/progressi', 'Progressi', '/progressi'),
-      voce('/impostazioni', 'Impostazioni', '/impostazioni'),
+      voce('/casa', 'Casa', '/casa'),
+      voce('/rank', 'Rank', '/rank'),
+      voce('/amici', 'Amici', '/amici'),
+      voce('/profilo', 'Profilo', '/profilo'),
     ]),
   ]);
   return resto;
@@ -375,6 +420,7 @@ function disegnaStatoSalvataggio() {
     // la versione sempre in vista: se non cambia, il telefono ha la copia vecchia
     contenitore.appendChild(el('span', { class: 'versione-app', testo: 'v' + (window.PALESTRA_VERSIONE || '?'), title: 'Se la spunta non ti parte, chiudi l\'app e la riapri' }));
     contenitore.title = s.dettaglio;
+    disegnaBarraGioco(contenitore);
   });
   const conflitti = document.getElementById('avviso-conflitti');
   if (conflitti) {
@@ -508,7 +554,7 @@ async function iniziaAllenamento(giorno) {
   const seduta = await apriSeduta({ scheda_id: SCHEDA_ID, versione, giorno });
   // IMPORTANTISSIMO: senza questo ricaricamento le serie appena create non
   // sarebbero a schermo, e "+ Aggiungi serie" calcolerebbe l'ordine sbagliato.
-  await ricarcaTutto();
+  await ricaricaTutto();
   vai('/seduta/' + seduta.id);
 }
 
@@ -680,7 +726,7 @@ function vistaGiorno(zona, giornoId) {
           await db.salva('schede', { ...scheda(), versione_corrente: nuovaVersioneId });
           scartaBozza();
           giornoInModifica = null;
-          await ricarcaTutto();
+          await ricaricaTutto();
           avviso(`Scheda salvata. Ora sei alla versione ${nuovoNumero}.`, { tipo: 'ok' });
           vai('/');
         },
@@ -806,6 +852,8 @@ zona.appendChild(riepilogoSpotter);
     blocco.appendChild(el('div', { class: 'titolo-esercizio' }, [
       el('img', { src: e.foto, alt: '', class: 'foto-esercizio grande' }),
       el('h2', { testo: e.nome }),
+      // il rank di questo esercizio: record, LP e progressione
+      el('a', { href: '#/esercizio/' + e.id, class: 'bottone-guarda piccolo-b', testo: 'Il suo Rank' }),
     ]));
     blocco.appendChild(el('div', { class: 'riga-convenzione' }, [
       el('span', { class: 'badge-conv', testo: ETICHETTE_CONVENZIONE[e.convenzione] || '' }),
@@ -1208,7 +1256,10 @@ async function finisceAllenamento(s) {
     stato: 'completata',
   });
   s.note = fresca.note;
-  await ricarcaTutto();
+  await ricaricaTutto();
+  // il gioco: record, rank, LP, streak, Aura e traguardi. Tutto calcolato
+  // dai dati appena salvati e passato dal database, mai scritto a mano.
+  await assegnaRicompense(s.id);
   vai('/storico/' + s.id);
   // adesso la scheda: quello che hai fatto diventa la scheda per la prossima volta
   await proponiAggiornamentoScheda(s.id);
@@ -1346,7 +1397,7 @@ async function vistaSedutaPassata(zona, sedutaId) {
         if (!ok) return;
         for (const serie of V.serie.filter((x) => x.seduta_id === s.id)) await db.cestino('serie', serie.id);
         await db.cestino('sedute', s.id);
-        await ricarcaTutto();
+        await ricaricaTutto();
         vai('/storico');
       },
       classe: 'fantasma pericolo-b',
@@ -1556,7 +1607,7 @@ function vistaScheda(zona) {
         });
         await db.salva('schede', { ...scheda(), versione_corrente: nuovaVersioneId });
         scartaBozza();
-        await ricarcaTutto();
+        await ricaricaTutto();
         avviso(`Scheda salvata. Ora sei alla versione ${nuovoNumero}.`, { tipo: 'ok' });
         vai('/');
       },
@@ -1897,7 +1948,7 @@ function vistaImpostazioni(zona) {
           bottone('Teni questa', {
             onClick: async () => {
               await sync.risolvi(c.id, lato);
-              await ricarcaTutto();
+              await ricaricaTutto();
               disegna();
             },
             classe: 'fantasma',
@@ -1988,7 +2039,7 @@ function vistaImpostazioni(zona) {
       dentroAccount.appendChild(el('div', { class: 'riga-pulsanti' }, [
         bottone('Accedi', {
           onClick: async () => {
-            try { await sb.accedi(mail.value, pass.value); avviso('Accesso riuscito.', { tipo: 'ok' }); await ricarcaTutto(); disegna(); }
+            try { await sb.accedi(mail.value, pass.value); avviso('Accesso riuscito.', { tipo: 'ok' }); await ricaricaTutto(); disegna(); }
             catch (e) { avviso('Accesso non riuscito: ' + e.message, { tipo: 'errore', durata: 8000 }); }
           },
           classe: 'principale',
@@ -2194,7 +2245,7 @@ async function importaJson(file) {
 
 async function applicaImportazione(oggetto, modo) {
   const t = oggetto.tabelle;
-  for (const tabella of ['esercizi', 'schede', 'versioni', 'sedute', 'serie', 'note']) {
+  for (const tabella of ['esercizi', 'schede', 'versioni', 'sedute', 'serie', 'note', 'profili', 'missioni', 'ricompense']) {
     const righe = t[tabella] || [];
     if (modo === 'sostituzione') {
       for (const riga of await db.tutti(tabella, { includiEliminati: true })) {
@@ -2208,9 +2259,912 @@ async function applicaImportazione(oggetto, modo) {
       }
     }
   }
-  await ricarcaTutto();
+  await ricaricaTutto();
   avviso(`Importazione finita (${modo}).`, { tipo: 'ok' });
   disegna();
+}
+
+/* =====================================================================
+   IL GIOCO: rank, LP, streak, Aura, missioni, amici, profilo.
+   Tutto appoggiato ai moduli puri (rank.js, streak.js, missioni.js,
+   aura.js, sociale.js, gioco.js): qui ci sono solo schermate e bottoni.
+   ===================================================================== */
+
+function accountAttivo() { return accountId(personaAttiva().id); }
+
+function profili() { return V.profili || []; }
+
+function profiloDi(idAccount) {
+  return profili().find((p) => p && p.id === idAccount) || null;
+}
+
+function profiloAttivo() {
+  const salvato = profiloDi(accountAttivo());
+  const p = personaAttiva();
+  return {
+    id: accountAttivo(),
+    username: (salvato && salvato.username) || p.username || p.nome,
+    avatar_id: (salvato && salvato.avatar_id) || p.avatar || 'vuoto',
+    amministratore: salvato && salvato.amministratore !== undefined
+      ? !!salvato.amministratore
+      : !!p.amministratore,
+    amici: (salvato && salvato.amici) || (p.amici || []).map((n) => accountId(n)),
+    privacy: privacyDi(salvato || {}),
+  };
+}
+
+function seduteMie() { return seduteDellaPersona(); }
+function serieMie() { return serieDellaPersona(); }
+function missioniMie() {
+  const io = accountAttivo();
+  return (V.missioni || []).filter((m) => m && m.account_id === io);
+}
+function ricompenseMie() {
+  const io = accountAttivo();
+  return (V.ricompense || []).filter((r) => r && r.account_id === io);
+}
+
+/** Le serie di ogni esercizio, per l'account che sta usando l'app. */
+function mieiGruppi() {
+  return gruppiDaSerie(
+    seduteMie().filter((s) => s.stato === 'completata'),
+    serieMie(),
+    V.esercizi,
+  );
+}
+
+/** Lo stato di gioco completo, ricalcolato da zero (niente valori salvati a mano). */
+function statoMio(oggi = null) {
+  return statoAccount({
+    account: accountAttivo(),
+    sedute: seduteMie(),
+    serie: serieMie(),
+    esercizi: V.esercizi,
+    completamenti: missioniMie(),
+    ricompense: ricompenseMie(),
+    oggi,
+  });
+}
+
+/** I record di ogni account che ha allenato qualcosa su questo dispositivo. */
+function vociPerClassifica() {
+  const voci = [];
+  for (const p of PERSONE) {
+    const id = accountId(p.id);
+    const profilo = profiloDi(id) || { id, username: p.username || p.nome, avatar_id: p.avatar || 'vuoto', amici: (p.amici || []).map((n) => accountId(n)), privacy: PRIVACY_PREDEFINITE };
+    const miei = seduteDellaPersonaPer(p);
+    const completate = miei.filter((s) => s && !s.eliminata && s.stato === 'completata');
+    const mieiId = new Set(completate.map((s) => s.id));
+    const mie = (V.serie || []).filter((x) => x && !x.eliminata && mieiId.has(x.seduta_id));
+    const record = recordAccount(V.esercizi, gruppiDaSerie(completate, mie, V.esercizi));
+    voci.push({
+      account: id,
+      username: profilo.username,
+      avatar_id: profilo.avatar_id,
+      privacy: privacyDi(profilo),
+      record,
+      sedute: completate,
+      profilo,
+    });
+  }
+  return voci;
+}
+
+/** Le sedute di una persona precisa (non solo di quella attiva). */
+function seduteDellaPersonaPer(p) {
+  const idScheda = p.schedaId;
+  const versioni = (V.versi || []).filter((v) => v.scheda_id === idScheda);
+  const miei = new Set(versioni.map((v) => v.id));
+  return (V.sedute || []).filter((s) => miei.has(s.versione_id));
+}
+
+/* ---------- mattoni visivi del gioco ---------- */
+
+function badgeRank(rankId, lp, divisione) {
+  const r = RANK.find((x) => x.id === rankId);
+  if (!r) return el('span', { class: 'badge-rank badge-nessuno', testo: 'SENZA RANK' });
+  const secondario = rankId === 'olympian' ? ' #4fc3ff' : '';
+  return el('span', {
+    class: 'badge-rank badge-' + rankId,
+    testo: r.nome + (divisione ? ' ' + divisione.nome : '') + (lp ? ' · ' + lp + ' LP' : ''),
+    style: `--rank-colore:${r.colore};--rank-ombra:${r.ombra}${secondario}`,
+  });
+}
+
+function barraProgresso(frazione, etichetta) {
+  const f = Math.max(0, Math.min(1, Number(frazione) || 0));
+  return el('div', { class: 'barra-progresso' }, [
+    el('div', { class: 'barra-piena', style: `width:${Math.round(f * 1000) / 10}%` }),
+    etichetta ? el('span', { class: 'barra-etichetta', testo: etichetta }) : null,
+  ]);
+}
+
+function avatarNodo(profilo, { grande = false, dimensione = 46 } = {}) {
+  const a = avatarPerId(profilo && (profilo.avatar_id || (profilo.avatar)));
+  const nome = (profilo && (profilo.username || profilo.nome)) || '??';
+  const stile = `background:${gradienteAvatar(a.id)};width:${dimensione}px;height:${dimensione}px;font-size:${Math.round(dimensione / 3.2)}px`;
+  return el('span', { class: 'avatar' + (grande ? ' avatar-grande' : ''), style: stile, titolo: nome }, [
+    iniziali(nome),
+  ]);
+}
+
+function teschioStreak(st) {
+  const f = st.fuoco;
+  const n = f.acceso ? `${f.giorni} ${f.giorni === 1 ? 'giorno' : 'giorni'}` : 'spenta';
+  return el('div', {
+    class: 'teschio-streak' + (f.acceso ? ' acceso' : ' spenta'),
+    style: `--fuoco:${f.colore}`,
+  }, [
+    el('span', { class: 'fuoco', testo: '🔥' }),
+    el('div', {}, [
+      el('strong', { testo: String(f.giorni) }),
+      el('span', { class: 'nota', testo: n + ' · ' + f.nome }),
+    ]),
+  ]);
+}
+
+function teschioAura(st) {
+  return el('div', { class: 'teschio-aura' }, [
+    el('span', { class: 'simbolo', testo: 'AURA' }),
+    el('strong', { testo: formattaAura(st.aura) }),
+    el('span', { class: 'nota', testo: `livello ${st.livello.livello} · ${formattaNumero(st.livello.xp)} XP` }),
+  ]);
+}
+
+/** La card grossa di un esercizio: rank, LP, record e barra verso il prossimo. */
+function cardRank(record, { compatta = false } = {}) {
+  const r = record;
+  const nome = r.esercizio ? r.esercizio.nome : 'esercizio';
+  if (!r.valido) {
+    return el('div', { class: 'card-rank card-rank-none' }, [
+      el('div', { class: 'card-rank-alto' }, [el('strong', { testo: nome })]),
+      el('p', { class: 'nota', testo: r.motivo || 'Nessuna prestazione registrata.' }),
+      el('a', { href: '#/esercizio/' + (r.esercizio ? r.esercizio.id : ''), class: 'bottone-guarda', testo: 'Vedi il dettaglio' }),
+    ]);
+  }
+  const profilo = r.profilo;
+  const verso = r.inTop
+    ? 'Sei nel rank piu' + ' alto: gli LP continuano a crescere.'
+    : `${formattaNumero(r.sogliaSuccessiva)} ${profilo.unita} per ${r.prossimoRank.nome}`;
+  return el('div', { class: 'card-rank card-' + r.rankId + (compatta ? ' compatta' : '') }, [
+    el('div', { class: 'card-rank-alto' }, [
+      el('div', {}, [
+        el('span', { class: 'nota', testo: nome }),
+        el('strong', { class: 'card-rank-nome', testo: r.testo }),
+      ]),
+      badgeRank(r.rankId, r.lp, r.divisione),
+    ]),
+    el('div', { class: 'card-rank-basso' }, [
+      barraProgresso(r.progresso, r.inTop ? 'TOP' : `${r.lp} LP / 100`),
+      el('span', { class: 'nota', testo: verso }),
+      el('a', { href: '#/esercizio/' + (r.esercizio ? r.esercizio.id : ''), class: 'bottone-guarda', testo: 'Dettaglio' }),
+    ]),
+  ]);
+}
+
+/* ---------- azioni ---------- */
+
+/**
+ * Salva le ricompense guadagnate dopo un allenamento.
+ * Nessun numero viene scritto dal frontend: il motore gioco.js decide cosa e'
+ * stato guadagnato, qui si salvano solo le righe nuove.
+ */
+async function assegnaRicompense(sedutaId) {
+  try {
+    const nuove = ricompenseAllenamento({
+      account: accountAttivo(),
+      sedute: seduteMie(),
+      serie: serieMie(),
+      esercizi: V.esercizi,
+      ricompense: ricompenseMie(),
+    });
+    if (!nuove.length) return [];
+    for (const r of nuove) await db.salva('ricompense', { ...r, quando: r.quando || adesso() });
+    await ricaricaTutto();
+    const aura = nuove.reduce((a, r) => a + (r.aura || 0), 0);
+    const xp = nuove.reduce((a, r) => a + (r.xp || 0), 0);
+    if (aura > 0 || xp > 0) {
+      avviso(`Allenamento finito: +${formattaAura(aura)} Aura, +${formattaNumero(xp)} XP.`, { tipo: 'ok', durata: 6000 });
+    }
+    return nuove;
+  } catch (e) {
+    console.error('Ricompense non assegnate:', e);
+    return [];
+  }
+}
+
+/** Completa una missione: una volta sola per giorno o per settimana. */
+async function completaMissione(voce) {
+  if (!voce || voce.completata) return;
+  const ok = await chiediConferma(
+    'Missione completata?',
+    `${voce.missione.titolo}\n\n${voce.missione.testo}\n\nRicompensa: +${voce.ricompensa.aura} AURA.`,
+    { testoOk: 'Sì, l\'ho fatta', testoAnnulla: 'Ancora no' },
+  );
+  if (!ok) return;
+  await salvaMissione(voce, { completata: true });
+}
+
+/** Rivela una Secret Mission: resta registrata anche se non la completi. */
+async function rivelaMissione(voce) {
+  if (!voce || voce.rivelata) return;
+  await salvaMissione(voce, { rivelata: true });
+}
+
+async function salvaMissione(voce, { completata = false, rivelata = false } = {}) {
+  const riga = {
+    id: voce.chiave,
+    account_id: accountAttivo(),
+    missione_id: voce.missione.id,
+    categoria: voce.categoria,
+    titolo: voce.missione.titolo,
+    difficolta: voce.missione.difficolta,
+    data: voce.categoria === 'daily' ? schedaEvento() : null,
+    settimana: voce.categoria === 'daily' ? null : statoMio().settimana,
+    aura: voce.ricompensa.aura,
+    xp: voce.ricompensa.xp,
+    rivelata: rivelata || voce.rivelata,
+    completata_il: completata ? adesso() : null,
+  };
+  await db.salva('missioni', riga);
+  if (completata) {
+    await db.salva('ricompense', {
+      id: riga.id + ':premio',
+      account_id: accountAttivo(),
+      tipo: 'missione',
+      fonte: riga.missione_id,
+      aura: riga.aura,
+      xp: riga.xp,
+      dettaglio: riga.titolo,
+      quando: adesso(),
+    });
+    await ricaricaTutto();
+    avviso(`+${formattaAura(riga.aura)} AURA · ${riga.titolo}`, { tipo: 'ok', durata: 6000 });
+  } else {
+    await ricaricaTutto();
+  }
+  disegna();
+}
+
+async function salvaProfilo(campi) {
+  const attuale = profiloDi(accountAttivo());
+  await db.salva('profili', {
+    ...(attuale || { id: accountAttivo() }),
+    ...campi,
+  });
+  await ricaricaTutto();
+  disegna();
+}
+
+/* ---------- schermate ---------- */
+
+function vistaCasa(zona) {
+  const st = statoMio();
+  const profilo = profiloAttivo();
+  zona.appendChild(el('div', { class: 'riga-titoli' }, [
+    el('h1', { testo: 'Casa' }),
+    el('span', { class: 'conteggio', testo: `${profilo.username} · livello ${st.livello.livello}` }),
+  ]));
+
+  // --- riepilogo: fuoco, aura, livello, rank principale ---
+  const riepilogo = el('div', { class: 'riga-teschio' }, [
+    teschioStreak(st),
+    teschioAura(st),
+    el('div', { class: 'teschio-rank' }, [
+      el('span', { class: 'simbolo', testo: 'RANK' }),
+      st.rankPrincipale
+        ? badgeRank(st.rankPrincipale.rankId, st.rankPrincipale.lp, st.rankPrincipale.divisione)
+        : el('strong', { testo: '—' }),
+      el('span', { class: 'nota', testo: st.rankPrincipale && st.rankPrincipale.esercizio
+        ? st.rankPrincipale.esercizio.nome : 'nessun record ancora' }),
+    ]),
+  ]);
+  zona.appendChild(riepilogo);
+  zona.appendChild(el('div', { class: 'blocco-progresso-livello' }, [
+    barraProgresso(st.livello.progresso, `livello ${st.livello.livello} → ${st.livello.livello + 1}`),
+    el('span', { class: 'nota', testo: `mancano ${formattaNumero(st.livello.mancano)} XP al livello ${st.livello.livello + 1}` }),
+  ]));
+
+  // --- ultimo allenamento ---
+  const finite = seduteMie().filter((s) => s && !s.eliminata && s.stato === 'completata')
+    .sort((a, b) => String(b.data).localeCompare(String(a.data)));
+  const ultimo = finite[0] || null;
+  zona.appendChild(el('section', { class: 'blocco' }, [
+    el('h2', { testo: 'Ultimo allenamento' }),
+    ultimo
+      ? el('div', {}, [
+        el('p', { class: 'nota', testo: `${ultimo.nome_giorno || 'Allenamento'} del ${dataLeggibile(ultimo.data)} · ${formattaDurata(ultimo.durata_secondi || 0)}` }),
+        el('a', { href: '#/storico/' + ultimo.id, class: 'bottone-guarda', testo: 'Rivedi la seduta' }),
+      ])
+      : el('p', { class: 'nota', testo: 'Non hai ancora finito un allenamento. La streak parte dal primo.' }),
+  ]));
+
+  // --- daily mission ---
+  zona.appendChild(el('h2', { testo: 'Daily Mission' }));
+  zona.appendChild(el('p', { class: 'nota', testo: 'Una missione al giorno, diversa per ciascuno. Si completa una volta sola.' }));
+  zona.appendChild(tesseraMissione(st.missioni.daily));
+
+  // --- weekly ---
+  zona.appendChild(el('h2', { testo: `Weekly Missions · ${st.settimana}` }));
+  zona.appendChild(el('p', { class: 'nota', testo: 'Le stesse per tutti, e cambiano ogni settimana. Restano nel tuo storico.' }));
+  for (const voce of st.missioni.weekly) zona.appendChild(tesseraMissione(voce));
+
+  // --- secret ---
+  zona.appendChild(el('h2', { testo: 'Secret Missions' }));
+  zona.appendChild(el('p', { class: 'nota', testo: 'Coperti finche\' non li riveli. Valgono di piu\'.' }));
+  for (const voce of st.missioni.secret) zona.appendChild(tesseraMissione(voce));
+
+  // --- scorciatoie verso quello che c\'era già ---
+  zona.appendChild(el('h2', { testo: 'Allenamento e storico' }));
+  zona.appendChild(el('div', { class: 'riga-pulsanti' }, [
+    el('a', { href: '#/', class: 'bot fantasma', testo: 'Allenamento' }),
+    el('a', { href: '#/storico', class: 'bot fantasma', testo: 'Storico' }),
+    el('a', { href: '#/progressi', class: 'bot fantasma', testo: 'Progressi' }),
+    el('a', { href: '#/impostazioni', class: 'bot fantasma', testo: 'Impostazioni' }),
+  ]));
+
+  // --- solo per l'amministratore ---
+  if (profilo.amministratore) {
+    zona.appendChild(el('section', { class: 'bloco' }, [
+      el('h2', { testo: 'Amministratore' }),
+      el('p', { class: 'nota', testo: 'Gli esercizi che crei qui sono globali: valgono per tutti gli account, non solo per il tuo.' }),
+      bottone('+ CREA ESERCIZIO', { onClick: () => finestraCreaEsercizio(), classe: 'principale grande' }),
+    ]));
+  }
+}
+
+function tesseraMissione(voce) {
+  if (!voce) return el('p', { class: 'nota', testo: 'Missione non disponibile.' });
+  const d = voce.ricompensa.difficolta;
+  const secretCoverta = voce.segreta && !voce.rivelata;
+  const box = el('div', { class: 'tessera-missione' + (voce.completata ? ' fatta' : '') + (secretCoverta ? ' coperta' : '') });
+  box.appendChild(el('div', { class: 'missione-alto' }, [
+    el('span', { class: 'tag-difficolta', style: `--diff:${d.colore}`, testo: d.nome }),
+    el('strong', { testo: secretCoverta ? 'SECRET MISSION' : voce.missione.titolo }),
+    el('span', { class: 'aura-premio', testo: '+' + voce.ricompensa.aura + ' AURA' }),
+  ]));
+  box.appendChild(el('p', {
+    class: 'missione-testo',
+    testo: secretCoverta
+      ? 'Questa missione richiede coraggio.'
+      : voce.missione.testo,
+  }));
+  if (secretCoverta && !voce.completata) {
+    box.appendChild(bottone('[ REVEAL ]', { onClick: () => rivelaMissione(voce), classe: 'fantasma' }));
+  } else if (voce.completata) {
+    box.appendChild(el('span', { class: 'tag-fatto', testo: 'COMPLETATA' }));
+  } else {
+    box.appendChild(bottone('L\'ho fatta', { onClick: () => completaMissione(voce), classe: 'principale' }));
+  }
+  return box;
+}
+
+function vistaRank(zona) {
+  const st = statoMio();
+  zona.appendChild(el('h1', { testo: 'Rank' }));
+  const contenitore = el('div');
+  zona.appendChild(contenitore);
+  let scheda = 'miei';
+
+  const bottoni = el('div', { class: 'chip-scelte' });
+  const voci = [
+    ['miei', 'MY RANKS'],
+    ['classifica', 'LEADERBOARD'],
+    ['amici', 'FRIENDS'],
+  ];
+  for (const [k, t] of voci) {
+    bottoni.appendChild(bottone(t, {
+      onClick: (ev) => {
+        scheda = k;
+        for (const b of bottoni.children) b.classList.remove('attivo');
+        ev.currentTarget.classList.add('attivo');
+        disegnaSezione();
+      },
+      classe: 'chip' + (k === scheda ? ' attivo' : ''),
+    }));
+  }
+  zona.appendChild(bottoni);
+
+  function disegnaSezione() {
+    svuota(contenitore);
+    if (scheda === 'miei') sezioneMieiRank(st);
+    else if (scheda === 'classifica') sezioneClassifica(st);
+    else sezioneConfronto(st);
+  }
+
+  function sezioneMieiRank(stato) {
+    contenitore.appendChild(el('p', { class: 'nota', testo: 'Il rank di ogni esercizio e\' tuo e basta: le soglie sono diverse per ogni esercizio, quindi 50 kg di una cosa non valgono 50 kg di un\'altra.' }));
+    if (!stato.record.length) {
+      contenitore.appendChild(el('p', { class: 'nota', testo: 'Nessun record ancora: chiudi un allenamento e i rank compaiono qui.' }));
+      return;
+    }
+    for (const r of stato.record) contenitore.appendChild(cardRank(r, { compatta: true }));
+  }
+
+  function sezioneClassifica(stato) {
+    contenitore.appendChild(el('p', { class: 'nota', testo: 'Una classifica per esercizio: si confrontano SOLO numeri dello stesso esercizio, mai pesi di muscoli diversi.' }));
+    const classifiche = classifichePerEsercizio(vociPerClassifica(), V.esercizi);
+    if (!classifiche.length) {
+      contenitore.appendChild(el('p', { class: 'nota', testo: 'Nessuna classifica ancora: servono almeno due account con un record sullo stesso esercizio.' }));
+      return;
+    }
+    let selezionato = classifiche[0].esercizio_id;
+    const lista = el('div');
+    const selettore = el('select', { class: 'selettore' },
+      classifiche.map((c) => el('option', { value: c.esercizio_id, testo: c.esercizio.nome })));
+    selettore.addEventListener('change', () => { selezionato = selettore.value; disegnaLista(); });
+    contenitore.appendChild(el('label', { class: 'nota', testo: 'Esercizio' }));
+    contenitore.appendChild(selettore);
+    contenitore.appendChild(lista);
+
+    function disegnaLista() {
+      svuota(lista);
+      const c = classifiche.find((x) => x.esercizio_id === selezionato);
+      if (!c) return;
+      const profilo = profiloEsercizio(c.esercizio);
+      const ordinata = classificaEsercizio(
+        c.voci.map((v) => ({ ...v, punteggioCalcolato: v.punteggio, testo: v.testo })),
+        profilo,
+      );
+      const privata = ordinata.filter((v) => {
+        const profiloAltro = (vociPerClassifica().find((x) => x.account === v.account) || {}).profilo;
+        return !profiloAltro || privacyDi(profiloAltro).leaderboard === 'pubblico';
+      });
+      if (!privata.length) {
+        lista.appendChild(el('p', { class: 'nota', testo: 'Nessuno ha reso pubblica la classifica di questo esercizio.' }));
+        return;
+      }
+      for (const v of privata) {
+        const mio = v.account === accountAttivo();
+        lista.appendChild(el('div', { class: 'riga-classifica' + (mio ? ' mia' : '') }, [
+          el('span', { class: 'posizione', testo: v.posizione + '.' }),
+          el('div', { class: 'cresci' }, [
+            el('strong', { testo: v.username + (mio ? ' (tu)' : '') }),
+            el('span', { class: 'nota', testo: v.testo }),
+          ]),
+          badgeRank(v.rankId, v.lp, v.divisione),
+        ]));
+      }
+    }
+    disegnaLista();
+  }
+
+  function sezioneConfronto(stato) {
+    contenitore.appendChild(el('p', { class: 'nota', testo: 'Il tuo conto con quello degli amici, esercizio per esercizio.' }));
+    const amici = amiciDi(profiloAttivo(), vociPerClassifica().map((v) => ({ ...v.profilo, id: v.account })));
+    if (!amici.length) {
+      contenitore.appendChild(el('p', { class: 'nota', testo: 'Non hai ancora amici. Vai su Amici per aggiungerne.' }));
+      return;
+    }
+    for (const a of amici) {
+      contenitore.appendChild(el('a', { href: '#/amico/' + a.id, class: 'riga-amico' }, [
+        avatarNodo(a),
+        el('div', { class: 'cresci' }, [
+          el('strong', { testo: a.username }),
+          el('span', { class: 'nota', testo: 'Confronta i miei rank con i suoi' }),
+        ]),
+      ]));
+    }
+  }
+
+  disegnaSezione();
+}
+
+function vistaEsercizio(zona, esercizioId) {
+  const e = esercizioPerId(esercizioId);
+  if (!e) { zona.appendChild(el('p', { testo: 'Esercizio non trovato.' })); return; }
+  const serie = (V.serie || []).filter((x) => x && !x.eliminata && x.esercizio_id === e.id);
+  const record = recordEsercizio(serie, e);
+  const profilo = profiloEsercizio(e);
+
+  zona.appendChild(el('a', { href: '#/rank', class: 'indietro', testo: 'Torna ai Rank' }));
+  zona.appendChild(el('h1', { testo: e.nome }));
+  zona.appendChild(el('p', { class: 'nota', testo: `${ETICHETTE_MISURA[profilo.misura]} · soglie di questo esercizio: ${profilo.soglie.map((s, i) => `${RANK[i].nome} da ${formattaNumero(s)}`).join(' · ')}` }));
+
+  if (!record.valido) {
+    zona.appendChild(el('p', { class: 'nota', testo: 'Nessuna prestazione registrata su questo esercizio: ancora nessun rank.' }));
+    return;
+  }
+
+  zona.appendChild(el('div', { class: 'card-rank card-' + record.rankId + ' card-grande' }, [
+    el('div', { class: 'card-rank-alto' }, [
+      el('div', {}, [
+        el('span', { class: 'nota', testo: record.inTop ? 'Record personale · rank massimo' : 'Record personale' }),
+        el('strong', { class: 'card-rank-nome', testo: record.testo }),
+      ]),
+      badgeRank(record.rankId, record.lp, record.divisione),
+    ]),
+    el('div', { class: 'card-rank-basso' }, [
+      barraProgresso(record.progresso, `${record.lp} LP`),
+      el('span', {
+        class: 'nota',
+        testo: record.inTop
+          ? 'Sei sul rank piu\' alto: gli LP crescono senza tetto.'
+          : `${formattaNumero(record.sogliaSuccessiva)} ${profilo.unita} per ${record.prossimoRank.nome}.`,
+      }),
+    ]),
+  ]));
+
+  // posizione nella classifica di questo esercizio
+  const classifiche = classifichePerEsercizio(vociPerClassifica(), V.esercizi);
+  const mia = classifiche.find((c) => c.esercizio_id === e.id);
+  if (mia) {
+    const profiloPrivacy = privacyDi(profiloAttivo());
+    if (profiloPrivacy.leaderboard === 'pubblico') {
+      const ordinata = classificaEsercizio(mia.voci.map((v) => ({ ...v, punteggioCalcolato: v.punteggio })), profilo);
+      const posizione = ordinata.find((v) => v.account === accountAttivo());
+      zona.appendChild(el('section', { class: 'blocco' }, [
+        el('h2', { testo: 'Nella classifica di questo esercizio' }),
+        el('p', { class: 'nota', testo: posizione ? `Sei ${posizione.posizione}o su ${ordinata.length}.` : 'Non compari in classifica.' }),
+        el('a', { href: '#/rank', class: 'bottone-guarda', testo: 'Vedi la classifica' }),
+      ]));
+    }
+  }
+
+  // storico dei miglioramenti
+  const tappe = storicoMiglioramenti(serie, e, seduteMie());
+  zona.appendChild(el('section', { class: 'blocco' }, [
+    el('h2', { testo: 'Storico dei miglioramenti' }),
+    tappe.length
+      ? el('div', {}, tappe.slice().reverse().map((t) => el('div', { class: 'riga-tappa' }, [
+        el('span', { class: 'nota', testo: dataLeggibile(t.data) }),
+        el('span', { class: 'cresci', testo: t.testoSerie }),
+        badgeRank(t.rankId, t.lp),
+      ])))
+      : el('p', { class: 'nota', testo: 'Ancora nessun miglioramento registrato.' }),
+  ]));
+
+  // confronto con gli amici su questo esercizio
+  const amici = amiciDi(profiloAttivo(), vociPerClassifica().map((v) => ({ ...v.profilo, id: v.account })));
+  if (amici.length) {
+    const box = el('section', { class: 'blocco' }, [el('h2', { testo: 'Con gli amici' })]);
+    for (const a of amici) {
+      const voce = vociPerClassifica().find((v) => v.account === a.id);
+      const suo = voce ? voce.record.find((r) => r.esercizio && r.esercizio.id === e.id) : null;
+      if (!suo || !suo.valido) continue;
+      if (privacyDi(voce.profilo).performance !== 'pubblico') continue;
+      box.appendChild(el('div', { class: 'riga-confronto' }, [
+        el('span', { class: 'nota', testo: a.username }),
+        el('span', { class: 'cresci', testo: suo.testo }),
+        record.valido && suo.punteggio > record.punteggio
+          ? el('span', { class: 'nota', testo: 'ti precede' })
+          : el('span', { class: 'nota', testo: 'sei davanti' }),
+      ]));
+    }
+    if (box.children.length > 1) zona.appendChild(box);
+  }
+
+  zona.appendChild(el('p', { class: 'nota nota-piccola', testo: `Le soglie sono calcolate sul riferimento di questo esercizio (${descriviPunteggio(profilo, profilo.riferimento)} = PLATINUM), non su quelle degli altri.` }));
+}
+
+function vistaAmici(zona) {
+  zona.appendChild(el('h1', { testo: 'Amici' }));
+  const profilo = profiloAttivo();
+  const voci = vociPerClassifica();
+  const amici = amiciDi(profilo, voci.map((v) => ({ ...v.profilo, id: v.account })));
+
+  zona.appendChild(el('p', { class: 'nota', testo: 'Vedi solo gli account che hai autorizzato. Ognuno vede solo quello che ha deciso di mostrare.' }));
+
+  if (!amici.length) {
+    zona.appendChild(el('p', { class: 'nota', testo: 'Non hai ancora amici.' }));
+  } else {
+    for (const a of amici) {
+      const voce = voci.find((v) => v.account === a.id);
+      const suoStato = voce ? statoAccount({
+        account: voce.account,
+        sedute: voce.sedute,
+        serie: (V.serie || []).filter((x) => x && new Set(voce.sedute.map((s) => s.id)).has(x.seduta_id)),
+        esercizi: V.esercizi,
+        completamenti: [],
+        ricompense: (V.ricompense || []).filter((r) => r && r.account_id === voce.account),
+      }) : null;
+      zona.appendChild(el('div', { class: 'riga-amico' }, [
+        avatarNodo(a, { dimensione: 54 }),
+        el('div', { class: 'cresci' }, [
+          el('strong', { testo: a.username }),
+          el('span', { class: 'nota', testo: suoStato
+            ? `livello ${suoStato.livello.livello} · ${formattaAura(suoStato.aura)} Aura · ${suoStato.streak.attiva ? suoStato.streak.giorni + ' giorni di fila' : 'streak spenta'}`
+            : 'nessun allenamento registrato' }),
+          el('span', { class: 'nota', testo: suoStato && suoStato.rankPrincipale
+            ? 'rank migliore: ' + suoStato.rankPrincipale.rank.nome : '' }),
+        ]),
+        el('a', { href: '#/amico/' + a.id, class: 'bottone-guarda', testo: 'Confronta' }),
+      ]));
+    }
+  }
+
+  // amici che ancora non hanno un account con una scheda
+  if (CONTATTI && CONTATTI.length) {
+    zona.appendChild(el('h2', { testo: 'Persone che puoi aggiungere' }));
+    for (const c of CONTATTI) {
+      zona.appendChild(el('div', { class: 'riga-amico' }, [
+        avatarNodo({ avatar_id: c.avatar, username: c.username }, { dimensione: 44 }),
+        el('div', { class: 'cresci' }, [
+          el('strong', { testo: c.username }),
+          el('span', { class: 'nota', testo: 'Non ha ancora un account con una scheda: appena ne crea uno lo vedrai qui e in classifica.' }),
+        ]),
+      ]));
+    }
+  }
+}
+
+function vistaAmico(zona, idAmico) {
+  const voci = vociPerClassifica();
+  const voce = voci.find((v) => v.account === idAmico);
+  if (!voce) { zona.appendChild(el('p', { testo: 'Account non trovato.' })); return; }
+  const amico = { ...voce.profilo, id: voce.account };
+  if (!puoVedereAmico(profiloAttivo(), amico)) {
+    zona.appendChild(el('p', { class: 'nota', testo: 'Questo account ha scelto di non mostrare il profilo.' }));
+    return;
+  }
+  zona.appendChild(el('a', { href: '#/amici', class: 'indietro', testo: 'Torna agli amici' }));
+  zona.appendChild(el('div', { class: 'testa-amico' }, [
+    avatarNodo(amico, { grande: true, dimensione: 84 }),
+    el('div', {}, [
+      el('h1', { testo: amico.username }),
+      el('p', { class: 'nota', testo: `${voce.sedute.length} allenamenti finiti · ${voce.record.filter((r) => r.valido).length} esercizi con record` }),
+    ]),
+  ]));
+
+  const privato = privacyDi(amico);
+  if (privato.performance !== 'pubblico') {
+    zona.appendChild(el('p', { class: 'nota', testo: 'Le performance di questo account sono private: niente da confrontare.' }));
+    return;
+  }
+  const mioStato = statoMio();
+  const confronto = confronta(
+    profiloAttivo(),
+    amico,
+    recordAccount(V.esercizi, mieiGruppi()),
+    voce.record,
+  );
+  zona.appendChild(el('p', { class: 'nota', testo: `Essercizio per esercizio: vince ${confronto.vinti}, ne perdi ${confronto.persi}, pari ${confronto.pari}.` }));
+  for (const r of confronto.righe) {
+    if (!r.mio && !r.suo) continue;
+    zona.appendChild(el('div', { class: 'riga-confronto' + (r.esito === 'mio' ? ' mia' : r.esito === 'suo' ? ' sua' : '') }, [
+      el('span', { class: 'nota', testo: r.nome }),
+      el('span', { class: 'cresci', testo: (r.mio ? r.mio.testo : '—') }),
+      el('span', { class: 'nota', testo: (r.suo ? r.suo.testo : '—') }),
+    ]));
+  }
+}
+
+function puoVedereAmico(mio, altro) {
+  const privacy = privacyDi(altro);
+  if (privacy.profilo === 'pubblico') return true;
+  return !!(mio && altro && mio.id === altro.id);
+}
+
+function vistaProfilo(zona) {
+  const st = statoMio();
+  const profilo = profiloAttivo();
+  zona.appendChild(el('h1', { testo: 'Profilo' }));
+
+  // l'avatar grande e centrale, come nei giochi
+  const testa = el('div', { class: 'testa-profilo' }, [
+    avatarNodo(profilo, { grande: true, dimensione: 120 }),
+    el('h2', { testo: profilo.username }),
+    el('p', { class: 'nota', testo: `Livello ${st.livello.livello} · ${formattaAura(st.aura)} Aura` }),
+    el('div', { class: 'riga-teschio piccolo' }, [teschioStreak(st)]),
+  ]);
+  zona.appendChild(testa);
+
+  zona.appendChild(el('div', { class: 'blocco-progresso-livello' }, [
+    barraProgresso(st.livello.progresso, `livello ${st.livello.livello}`),
+    el('span', { class: 'nota', testo: `al livello ${st.livello.livello + 1} mancano ${formattaNumero(st.livello.mancano)} XP` }),
+  ]));
+
+  // cambio avatar e username
+  const boxAvatar = el('section', { class: 'blocco' }, [
+    el('h2', { testo: 'Il tuo avatar' }),
+    el('p', { class: 'nota', testo: 'Scegli un avatar: viene salvato con l\'account, quindi lo vedi uguale su un altro dispositivo.' }),
+  ]);
+  const grigliaAvatar = el('div', { class: 'griglia-avatar' });
+  for (const a of elencoAvatar()) {
+    grigliaAvatar.appendChild(bottone('', {
+      onClick: () => salvaProfilo({ avatar_id: a.id }),
+      classe: 'avatar-scelta' + (profilo.avatar_id === a.id ? ' attiva' : ''),
+    }, [avatarNodo({ avatar_id: a.id, username: profilo.username }, { dimensione: 52 })]));
+  }
+  boxAvatar.appendChild(grigliaAvatar);
+  const campoNome = campoTesto(profilo.username, {
+    segnaposto: 'il tuo nome',
+    onCambio: null,
+  });
+  boxAvatar.appendChild(el('div', { class: 'riga-pulsanti' }, [
+    campoNome,
+    bottone('Salva il nome', {
+      onClick: async () => {
+        const valore = String(campoNome.value || '').trim();
+        if (!valore) { avviso('Scrivi un nome prima.', { tipo: 'errore' }); return; }
+        await salvaProfilo({ username: valore });
+        avviso('Nome salvato.', { tipo: 'ok' });
+      },
+      classe: 'fantasma',
+    }),
+  ]));
+  zona.appendChild(boxAvatar);
+
+  // statistiche vere
+  zona.appendChild(el('section', { class: 'blocco' }, [
+    el('h2', { testo: 'Statistiche' }),
+    el('div', { class: 'griglia-numeri' }, [
+      numeroGrande('Allenamenti', st.statistiche.seduteCompletate),
+      numeroGrande('Giorni allenati', st.statistiche.giorniAllenati),
+      numeroGrande('Esercizi con record', st.statistiche.eserciziConRecord),
+      numeroGrande('Missioni fatte', st.missioniCompletate),
+      numeroGrande('Aura', st.aura),
+      numeroGrande('Livello', st.livello.livello),
+    ]),
+  ]));
+
+  // rank principali
+  zona.appendChild(el('h2', { testo: 'I tuoi rank' }));
+  if (!st.record.length) {
+    zona.appendChild(el('p', { class: 'nota', testo: 'Nessun record ancora.' }));
+  } else {
+    for (const r of st.record.slice(0, 6)) zona.appendChild(cardRank(r, { compatta: true }));
+    zona.appendChild(el('a', { href: '#/rank', class: 'bottone-guarda', testo: 'Vedi tutti i Rank' }));
+  }
+
+  // medaglie
+  zona.appendChild(el('section', { class: 'blocco' }, [
+    el('h2', { testo: `Medaglie (${st.medaglieOttenute.length} su ${st.medaglie.length})` }),
+    el('div', { class: 'griglia-medaglie' }, st.medaglie.map((m) => el('div', {
+      class: 'medaglia' + (m.ottenuta ? ' ottenuta' : ''),
+      title: m.descrizione,
+    }, [
+      el('strong', { testo: m.nome }),
+      el('span', { class: 'nota', testo: m.ottenuta ? 'ottenuta' : `mancano ${m.mancano}` }),
+    ]))),
+  ]));
+
+  // privacy
+  const boxPrivacy = el('section', { class: 'blocco' }, [
+    el('h2', { testo: 'Privacy' }),
+    el('p', { class: 'nota', testo: 'Scegli cosa gli altri possono vedere. Quando chiudi una cosa, non la vedono piu\': non viene solo nascosta.' }),
+  ]);
+  const scelte = el('div', { class: 'chip-scelte' });
+  for (const campo of campiVisibili) {
+    const attuale = privacyDi(profiloDi(accountAttivo()))[campo.id];
+    scelte.appendChild(bottone(campo.nome, {
+      onClick: async () => {
+        const nuova = { ...privacyDi(profiloDi(accountAttivo())) };
+        nuova[campo.id] = attuale === 'pubblico' ? 'privato' : 'pubblico';
+        await salvaProfilo({ privacy: nuova });
+        avviso(`${campo.nome}: ${nuova[campo.id] === 'pubblico' ? 'pubblico' : 'privato'}.`, { tipo: 'ok' });
+      },
+      classe: 'chip' + (attuale === 'pubblico' ? ' attivo' : ''),
+    }));
+  }
+  boxPrivacy.appendChild(scelte);
+  for (const campo of campiVisibili) {
+    boxPrivacy.appendChild(el('p', { class: 'nota nota-piccola', testo: `${campo.nome}: ${campo.descrizione}` }));
+  }
+  zona.appendChild(boxPrivacy);
+
+  zona.appendChild(el('div', { class: 'riga-pulsanti' }, [
+    el('a', { href: '#/storico', class: 'bot fantasma', testo: 'Storico' }),
+    el('a', { href: '#/progressi', class: 'bot fantasma', testo: 'Progressi' }),
+    el('a', { href: '#/impostazioni', class: 'bot fantasma', testo: 'Impostazioni' }),
+  ]));
+  if (profilo.amministratore) {
+    zona.appendChild(el('div', { class: 'riga-pulsanti' }, [
+      bottone('+ CREA ESERCIZIO', { onClick: () => finestraCreaEsercizio(), classe: 'principale' }),
+    ]));
+  }
+}
+
+function numeroGrande(nome, valore) {
+  return el('div', { class: 'numero-grande' }, [
+    el('strong', { testo: typeof valore === 'number' ? formattaNumero(valore) : String(valore) }),
+    el('span', { class: 'nota', testo: nome }),
+  ]);
+}
+
+/* ---------- la finestra dell'amministratore per creare un esercizio ---------- */
+
+function finestraCreaEsercizio() {
+  if (!profiloAttivo().amministratore) {
+    avviso('Questa sezione e\' solo per l\'amministratore.', { tipo: 'errore' });
+    return;
+  }
+  const nome = campoTesto('', { segnaposto: 'Nome' });
+  const descrizione = campoTesto('', { segnaposto: 'Descrizione' });
+  const tipo = el('select', { class: 'selettore' }, [
+    el('option', { value: 'kg_reps', testo: 'KG + REPS' }),
+    el('option', { value: 'solo_reps', testo: 'SOLO REPS' }),
+    el('option', { value: 'tempo', testo: 'TEMPO' }),
+    el('option', { value: 'distanza', testo: 'DISTANZA' }),
+    el('option', { value: 'kg_tempo', testo: 'KG + TEMPO' }),
+  ]);
+  const convenzione = el('select', { class: 'selettore' }, [
+    el('option', { value: 'macchina', testo: 'kg piastre macchina' }),
+    el('option', { value: 'cavo_totali', testo: 'kg totali del cavo' }),
+    el('option', { value: 'per_manubrio', testo: 'kg per manubrio' }),
+    el('option', { value: 'dischi', testo: 'kg dischi' }),
+    el('option', { value: 'bilanciere', testo: 'kg bilanciere' }),
+    el('option', { value: 'corpo_libero', testo: 'corpo libero' }),
+    el('option', { value: 'assistenza', testo: 'kg di assistenza' }),
+  ]);
+  const riferimento = campoNumero(60, { etichetta: 'riferimento' });
+  const immagine = el('input', { type: 'file', accept: 'image/*', class: 'campo-testo' });
+  let fotoData = null;
+  immagine.addEventListener('change', () => {
+    const f = immagine.files && immagine.files[0];
+    if (!f) return;
+    try {
+      const lettore = new FileReader();
+      lettore.onload = () => { fotoData = String(lettore.result || ''); };
+      lettore.readAsDataURL(f);
+    } catch { avviso('Non sono riuscito a leggere l\'immagine.', { tipo: 'errore' }); }
+  });
+
+  const box = el('div', { class: 'sfondo-dialogo' }, el('div', { class: 'dialogo dialogo-largo' }, [
+    el('h3', { testo: 'Crea un esercizio (per tutti)' }),
+    el('p', { class: 'testo-dialogo', testo: 'L\'esercizio viene salvato nel database e diventa disponibile per TUTTI gli account: si potra\' usare nelle schede, negli allenamenti, avere un rank e comparire nelle classifiche.' }),
+    el('label', { class: 'nota', testo: 'Nome' }), nome,
+    el('label', { class: 'nota', testo: 'Immagine' }), immagine,
+    el('label', { class: 'nota', testo: 'Tipo' }), tipo,
+    el('label', { class: 'nota', testo: 'Convenzione del carico' }), convenzione,
+    el('label', { class: 'nota', testo: 'Riferimento (il punteggio PLATINUM di questo esercizio)' }), riferimento,
+    el('label', { class: 'nota', testo: 'Descrizione' }), descrizione,
+    el('div', { class: 'dialogo-azioni' }, [
+      bottone('Annulla', { onClick: () => box.remove(), classe: 'fantasma' }),
+      bottone('CREA ESERCIZIO', {
+        onClick: async () => {
+          const nomeValore = String(nome.value || '').trim();
+          if (!nomeValore) { avviso('Scrivi il nome dell\'esercizio.', { tipo: 'errore' }); return; }
+          const id = 'ex-' + nuovoId();
+          const misura = tipo.value;
+          const profilo = profiloEsercizio({ id, nome: nomeValore, convenzione: convenzione.value, misura }, {
+            riferimento: Number(String(riferimento.value || '').replace(',', '.')) || undefined,
+          });
+          await db.salva('esercizi', {
+            id,
+            nome: nomeValore,
+            gruppo: nomeValore,
+            convenzione: convenzione.value,
+            misura,
+            tipo: 'standard',
+            foto: fotoData || 'img/esercizi/chest-press.png',
+            nota_permanente: String(descrizione.value || '').trim(),
+            // globale: questo esercizio non appartiene a un solo account
+            globale: true,
+            creato_da: accountAttivo(),
+            amministratore: true,
+            soglie_rank: profilo.soglie,
+            riferimento: profilo.riferimento,
+          });
+          box.remove();
+          await ricaricaTutto();
+          avviso(`Esercizio creato: ${nomeValore}. Ora e\' disponibile per tutti.`, { tipo: 'ok', durata: 7000 });
+          disegna();
+        },
+        classe: 'principale',
+      }),
+    ]),
+  ]));
+  box.addEventListener('click', (ev) => { if (ev.target === box) box.remove(); });
+  document.body.appendChild(box);
+}
+
+/* ---------- la barra in alto con i numeri del giorno ---------- */
+
+function disegnaBarraGioco(contenitore) {
+  try {
+    const st = statoMio();
+    const riga = el('div', { class: 'barra-gioco' }, [
+      el('span', { class: 'chip-gioco', title: 'Streak', testo: `fuoco ${st.fuoco.acceso ? st.fuoco.giorni : '0'}` }),
+      el('span', { class: 'chip-gioco', testo: `aura ${formattaAura(st.aura)}` }),
+      el('span', { class: 'chip-gioco', testo: `livello ${st.livello.livello}` }),
+    ]);
+    riga.children[0].setAttribute('style', `--fuoco:${st.fuoco.colore}`);
+    contenitore.appendChild(riga);
+  } catch (e) {
+    // la barra e' un extra: se qualcosa va storto non deve bloccare l'app
+    console.warn('Barra del gioco non disegnata:', e);
+  }
 }
 
 /* ===================== avvio app ===================== */

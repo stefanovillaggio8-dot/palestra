@@ -643,3 +643,205 @@ a { color: var(--blu); text-decoration: none; }
   .banda-cronometro { flex-direction: column; align-items: stretch; }
   .banda-cronometro .bot { width: 100%; }
 }
+
+/* ===================================================================
+   IL GIOCO: barra in alto, card dei rank, missioni, profilo.
+   Stesso tema dell'app (viola scuro, viola acceso, ciano, oro, rosso)
+   ma con la sensazione di un gioco: bordi che brillano, glow, badge.
+   =================================================================== */
+
+/* --- la barra in alto: fuoco, aura, livello --- */
+.barra-gioco { display: flex; gap: 6px; flex-wrap: wrap; margin-left: 4px; }
+.chip-gioco {
+  background: var(--card-2); border: 1px solid var(--bordo);
+  border-radius: 99px; padding: 2px 9px;
+  font-size: .68rem; font-weight: 800; letter-spacing: .04em;
+  text-transform: uppercase; color: var(--testo-2);
+}
+.chip-gioco:first-child {
+  color: var(--fuoco, var(--arancio));
+  border-color: color-mix(in srgb, var(--fuoco, var(--arancio)) 55%, var(--bordo));
+  text-shadow: 0 0 10px var(--fuoco, var(--arancio));
+}
+.stato-save { flex-wrap: wrap; }
+
+/* --- i teschio di riepilogo (Casa e Profilo) --- */
+.riga-teschio { display: flex; gap: 9px; flex-wrap: wrap; margin: 12px 0; }
+.riga-teschio.piccolo { margin: 6px 0 0; }
+.teschio-streak, .teschio-aura, .teschio-rank {
+  flex: 1 1 120px; min-width: 118px;
+  background: linear-gradient(160deg, var(--card-2) 0%, var(--card) 100%);
+  border: 1px solid var(--bordo); border-radius: var(--r);
+  padding: 10px 12px; display: flex; flex-direction: column; gap: 2px;
+}
+.teschio-streak { border-color: color-mix(in srgb, var(--fuoco) 60%, var(--bordo)); }
+.teschio-streak.acceso { box-shadow: 0 0 22px -6px var(--fuoco), inset 0 0 24px -18px var(--fuoco); }
+.teschio-streak.spenta { opacity: .62; filter: grayscale(.65); }
+.teschio-streak .fuoco { font-size: 1.5rem; line-height: 1; filter: drop-shadow(0 0 8px var(--fuoco)); }
+.teschio-streak.spenta .fuoco { filter: grayscale(1) brightness(.6); }
+.teschio-streak strong { font-size: 1.5rem; line-height: 1; }
+.teschio-aura strong { font-size: 1.5rem; line-height: 1.1; color: var(--giallo); text-shadow: 0 0 16px rgba(255, 209, 102, .35); }
+.teschio-rank .simbolo, .teschio-aura .simbolo {
+  font-size: .66rem; font-weight: 800; letter-spacing: .12em; color: var(--testo-3);
+}
+.teschio-rank .badge-rank { margin: 3px 0; }
+
+.blocco-progresso-livello { margin: 6px 0 16px; }
+.blocco-progresso-livello .nota { display: block; margin-top: 5px; }
+
+/* --- la barra di avanzamento (LP, livello) --- */
+.barra-progresso {
+  position: relative; height: 12px; border-radius: 99px;
+  background: var(--nero-2); border: 1px solid var(--bordo); overflow: hidden;
+}
+.barra-piena {
+  height: 100%; border-radius: 99px;
+  background: linear-gradient(90deg, var(--viola) 0%, var(--blu) 100%);
+  box-shadow: 0 0 14px -2px var(--viola);
+  transition: width .35s ease;
+}
+.barra-etichetta {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  font-size: .62rem; font-weight: 800; letter-spacing: .06em; color: var(--testo);
+  text-shadow: 0 1px 3px #000;
+}
+
+/* --- le card dei rank --- */
+.card-rank {
+  background: linear-gradient(155deg, var(--card-2) 0%, var(--card) 100%);
+  border: 1px solid var(--bordo); border-radius: 18px;
+  padding: 13px 14px; margin: 10px 0;
+  display: flex; flex-direction: column; gap: 9px;
+}
+.card-rank .card-rank-alto { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.card-rank .card-rank-nome { display: block; font-size: 1.06rem; line-height: 1.25; margin-top: 2px; }
+.card-rank .card-rank-basso { display: flex; flex-direction: column; gap: 6px; }
+.card-rank.compatta { padding: 11px 12px; margin: 8px 0; }
+.card-grande { padding: 18px; border-radius: 20px; }
+.card-grande .card-rank-nome { font-size: 1.5rem; }
+.card-rank-none { opacity: .85; border-style: dashed; }
+.card-rank-none .card-rank-alto { justify-content: space-between; align-items: center; }
+
+/* i colori per rank: ogni livello ha il suo, con il bordo che brilla */
+.card-bronze   { border-color: #7a4a22; box-shadow: inset 0 0 30px -22px #c9743a; }
+.card-silver   { border-color: #6c7689; box-shadow: inset 0 0 30px -22px #c3ccdb; }
+.card-gold     { border-color: #8a6a12; box-shadow: inset 0 0 30px -20px #ffc93c, 0 0 22px -14px #ffc93c; }
+.card-platinum { border-color: #1f6d5c; box-shadow: inset 0 0 30px -20px #4fe3c1, 0 0 22px -14px #4fe3c1; }
+.card-diamond  { border-color: #1d5f8c; box-shadow: inset 0 0 30px -20px #8ad6ff, 0 0 22px -14px #8ad6ff; }
+.card-titan    { border-color: #7d1b28; box-shadow: inset 0 0 30px -20px #ff4d5e, 0 0 24px -12px #ff4d5e; }
+.card-olympian {
+  border-color: #b8860b;
+  box-shadow: inset 0 0 34px -18px #ffd166, inset 0 0 34px -18px #4fc3ff, 0 0 26px -12px #ffd166;
+}
+
+/* --- il badge del rank --- */
+.badge-rank {
+  --rank-colore: var(--testo-3);
+  --rank-ombra: #2e2745;
+  display: inline-block; white-space: nowrap;
+  font-size: .68rem; font-weight: 900; letter-spacing: .09em;
+  padding: 5px 10px; border-radius: 9px;
+  color: var(--rank-colore);
+  background: linear-gradient(150deg, color-mix(in srgb, var(--rank-colore) 26%, transparent) 0%, transparent 65%);
+  border: 1px solid var(--rank-colore);
+  box-shadow: 0 0 16px -6px var(--rank-colore), inset 0 0 14px -10px var(--rank-colore);
+  text-shadow: 0 0 10px color-mix(in srgb, var(--rank-colore) 70%, transparent);
+}
+.badge-nessuno { color: var(--testo-3); border-color: var(--bordo); box-shadow: none; text-shadow: none; }
+
+/* --- le missioni --- */
+.tessera-missione {
+  background: linear-gradient(155deg, var(--card-2) 0%, var(--card) 100%);
+  border: 1px solid var(--bordo); border-left: 4px solid var(--viola);
+  border-radius: 14px; padding: 12px 13px; margin: 9px 0;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.tessera-missione .missione-alto { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.tessera-missione .missione-alto strong { flex: 1 1 auto; font-size: .98rem; letter-spacing: .02em; }
+.tessera-missione .missione-testo { margin: 0; color: var(--testo-2); font-size: .9rem; line-height: 1.5; }
+.tessera-missione.fatta { opacity: .72; border-left-color: var(--verde); }
+.tessera-missione.coperta {
+  border-left-color: var(--giallo);
+  background: repeating-linear-gradient(135deg, #1a1526 0 12px, #1f1930 12px 24px);
+}
+.tag-difficolta {
+  --diff: var(--verde);
+  font-size: .6rem; font-weight: 900; letter-spacing: .1em;
+  color: var(--diff); border: 1px solid var(--diff);
+  border-radius: 6px; padding: 2px 6px;
+  box-shadow: 0 0 12px -6px var(--diff);
+}
+.aura-premio {
+  font-size: .74rem; font-weight: 900; color: var(--giallo);
+  text-shadow: 0 0 12px rgba(255, 209, 102, .45); white-space: nowrap;
+}
+.tag-fatto {
+  font-size: .64rem; font-weight: 900; letter-spacing: .1em; color: var(--verde);
+  border: 1px solid #1f5e42; border-radius: 6px; padding: 3px 7px;
+}
+
+/* --- le classifiche --- */
+.riga-classifica, .riga-amico, .riga-confronto, .riga-tappa {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--card); border: 1px solid var(--bordo);
+  border-radius: 12px; padding: 10px 12px; margin: 7px 0;
+}
+.riga-classifica .posizione {
+  font-size: 1.15rem; font-weight: 900; color: var(--giallo);
+  min-width: 30px; text-align: center;
+}
+.riga-classifica.mia { border-color: var(--viola); box-shadow: 0 0 18px -10px var(--viola); }
+.riga-confronto.mia { border-left: 4px solid var(--verde); }
+.riga-confronto.sua { border-left: 4px solid var(--rosso); }
+.riga-amico { text-decoration: none; color: var(--testo); }
+.riga-tappa .nota { min-width: 92px; }
+
+/* --- gli avatar --- */
+.avatar {
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 50%; font-weight: 900; color: #fff; flex: 0 0 auto;
+  border: 2px solid var(--bordo); text-shadow: 0 1px 3px rgba(0, 0, 0, .6);
+  letter-spacing: .02em;
+}
+.avatar-grande {
+  border-width: 3px;
+  box-shadow: 0 0 34px -10px var(--viola), inset 0 0 22px -12px #fff;
+  margin: 0 auto 8px;
+}
+.griglia-avatar { display: flex; flex-wrap: wrap; gap: 9px; margin: 10px 0; }
+.avatar-scelta {
+  padding: 3px; border-radius: 50%; background: transparent; border: 1px solid transparent;
+  min-height: 0;
+}
+.avatar-scelta.attiva { border-color: var(--viola); box-shadow: 0 0 18px -6px var(--viola); }
+
+/* --- il profilo --- */
+.testa-profilo { text-align: center; margin: 14px 0 6px; }
+.testa-profilo h2 { margin: 6px 0 2px; }
+.testa-profilo .riga-teschio { justify-content: center; }
+.testa-amico { display: flex; align-items: center; gap: 14px; margin: 12px 0; }
+
+/* --- numeri e medaglie --- */
+.griglia-numeri { display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 8px; }
+.numero-grande {
+  background: var(--card); border: 1px solid var(--bordo); border-radius: 12px;
+  padding: 10px; text-align: center;
+}
+.numero-grande strong { display: block; font-size: 1.35rem; color: var(--testo); }
+.numero-grande .nota { font-size: .74rem; }
+.griglia-medaglie { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; }
+.medaglia {
+  background: var(--card); border: 1px solid var(--bordo); border-radius: 12px;
+  padding: 9px 11px; opacity: .5;
+}
+.medaglia strong { display: block; font-size: .88rem; }
+.medaglia.ottenuta {
+  opacity: 1; border-color: #8a6a12;
+  background: linear-gradient(150deg, rgba(255, 201, 60, .14) 0%, var(--card) 70%);
+  box-shadow: 0 0 18px -12px #ffc93c;
+}
+
+@media (max-width: 430px) {
+  .card-grande .card-rank-nome { font-size: 1.25rem; }
+  .teschio-streak, .teschio-aura, .teschio-rank { flex: 1 1 100%; }
+}

@@ -10,13 +10,17 @@
 
 import { nuovoId, segnaDaSalvare, adesso } from './sincronizzazione.js';
 
-export const TABELLE = ['esercizi', 'schede', 'versioni', 'sedute', 'serie', 'note', 'conflitti'];
+export const TABELLE = ['esercizi', 'schede', 'versioni', 'sedute', 'serie', 'note', 'conflitti',
+  'profili', 'missioni', 'ricompense'];
 const INDICI = {
   sedute: ['giorno_id', 'data', 'stato', 'scheda_id'],
   serie: ['seduta_id', 'esercizio_id'],
   note: ['esercizio_id', 'seduta_id', 'serie_id'],
   versioni: ['scheda_id'],
   conflitti: ['stato'],
+  profili: ['username'],
+  missioni: ['account_id', 'categoria', 'settimana', 'data'],
+  ricompense: ['account_id', 'tipo', 'fonte'],
 };
 export const MOTORE_SCELTO = { tipo: 'non-aperto' };
 
@@ -70,7 +74,9 @@ export function idDispositivo() {
 
 function apriIdb() {
   return new Promise((risolvi, rifiuta) => {
-    const richiesta = indexedDB.open('palestra', 1);
+    // il numero si alza solo quando aggiungiamo tabelle nuove: chi ha gia'
+    // l'app installata le prende al prossimo avvio, senza perdere niente
+    const richiesta = indexedDB.open('palestra', 2);
     richiesta.onupgradeneeded = () => {
       const db = richiesta.result;
       for (const t of TABELLE.concat(['meta'])) {
