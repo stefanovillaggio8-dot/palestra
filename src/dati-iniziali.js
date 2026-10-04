@@ -38,9 +38,13 @@ export const PERSONE = [
  * record e non compaiono in nessuna classifica (niente dati inventati).
  */
 export const CONTATTI = [
-  { username: 'Andrea', avatar: 'viola', stato: 'da collegare' },
-  { username: 'Marco', avatar: 'verde', stato: 'da collegare' },
-  { username: 'Luca', avatar: 'oro', stato: 'da collegare' },
+  // Ste (04/10/2026): "chiama il profilo 'altro' 'Andrea' e mettilo nella tua
+  // lista". Il contatto si chiama Andrea e il gruppo in cui finisce è "altro",
+  // quindi non viene trattato come un amico con cui confrontare i rank: è solo
+  // una persona da aggiungere, con la sua scheda chiusa dietro il codice.
+  { username: 'Andrea', gruppo: 'altro', avatar: 'viola', stato: 'da collegare' },
+  { username: 'Marco', gruppo: 'altro', avatar: 'verde', stato: 'da collegare' },
+  { username: 'Luca', gruppo: 'altro', avatar: 'oro', stato: 'da collegare' },
 ];
 
 /** L'id dell'account (stringa) a partire dal numero della persona. */

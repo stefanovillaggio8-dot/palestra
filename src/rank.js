@@ -192,6 +192,7 @@ export function recordEsercizio(serie, esercizio, profilo = null, pesoAttuale = 
     return {
       esercizio, profilo: res.profilo, valido: false, motivo: 'nessuna prestazione registrata',
       punteggio: null, rank: null, lp: 0, testo: '', pesoCorporeo: null,
+      sottoSoglia: false, mancaAlPrimo: null, prossimoObiettivo: null,
     };
   }
   const r = calcolaRank(res.migliore.punteggio, res.profilo);
@@ -203,14 +204,21 @@ export function recordEsercizio(serie, esercizio, profilo = null, pesoAttuale = 
     testo: res.migliore.testo,
     serie: res.migliore.serie,
     pesoCorporeo: res.migliore.pesoCorporeo,
+    // tutto quello che calcola calcolaRank, così le schermate non perdono
+    // campi (prima "prossimoObiettivo" non arrivava e la frase del Rank
+    // ricadeva sul nome del rank sbagliato)
     rank: r.rank,
     rankId: r.rankId,
     lp: r.lp,
     divisione: r.divisione,
     progresso: r.progresso,
     prossimoRank: r.prossimoRank,
+    prossimaDivisione: r.prossimaDivisione,
+    prossimoObiettivo: r.prossimoObiettivo,
     sogliaAttuale: r.sogliaAttuale,
     sogliaSuccessiva: r.sogliaSuccessiva,
+    sottoSoglia: r.sottoSoglia,
+    mancaAlPrimo: r.mancaAlPrimo,
     inTop: r.inTop,
     quanteSerieValide: res.tutte.length,
   };
@@ -235,10 +243,18 @@ export function calcolaRank(punteggio, profilo) {
   const p = profilo || profiloEsercizio(null);
   const soglie = p.soglie || [];
   const valore = numero(punteggio);
+  const primo = R[0] || null;
   const vuoto = {
     rank: null, rankId: null, lp: 0, divisione: null, progresso: 0,
-    sogliaAttuale: soglie[0], sogliaSuccessiva: soglie[1] || null, inTop: false,
-    prossimoRank: R[0] || null, punteggio: valore === null ? null : valore,
+    sogliaAttuale: soglie[0], sogliaSuccessiva: soglie[0], inTop: false,
+    prossimoRank: primo, prossimaDivisione: null,
+    // qui si sa ancora quanto manca per il PRIMO rank. Prima questo caso non
+    // diceva niente e la card restava vuota: Ste vedeva "nessuna prestazione
+    // registrata" anche avendo allenato, e pensava che il Rank fosse rotto.
+    sottoSoglia: true,
+    mancaAlPrimo: valore === null ? null : Math.max(0, soglie[0] - valore),
+    prossimoObiettivo: primo ? { etichetta: `${primo.nome} ${DIVISIONI[0].nome}`, solaDivisione: false } : null,
+    punteggio: valore === null ? null : valore,
   };
   if (valore === null || valore <= soglie[0]) return vuoto;
 

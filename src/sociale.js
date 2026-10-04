@@ -15,18 +15,54 @@ import { recordEsercizio } from './rank.js';
  * volessimo aggiungerne un quinto.
  */
 export const PRIVACY_PREDEFINITE = {
-  profilo: 'pubblico',
-  performance: 'pubblico',
+  profilo: 'chiuso',
+  performance: 'chiuso',
   leaderboard: 'pubblico',
-  statistiche: 'pubblico',
+  statistiche: 'chiuso',
 };
+
+/**
+ * Il codice per aprire le schede degli altri.
+ *
+ * Ste: "non dare il permesso a nessuno di andare nelle schede degli altri se
+ * non immettendo un codice: 030226".
+ *
+ * Quindi i dati personali (profilo, record, statistiche) sono CHIUSI per
+ * default e per guardare quelli di un altro serve questo codice. Le
+ * classifiche restano pubbliche: sono il punto della sfida e non dicono
+ * nulla sulla persona (si vede solo l'esercizio e il punteggio).
+ *
+ * Il codice si controlla con `codiceAperto` e si ricorda con `ricordaCodice`.
+ */
+export const CODICE_SCHEDE = '030226';
+
+/**
+ * Il codice è sbagliato?
+ * Confronto a carattere per carattere: "030226" e "030227" non devono
+ * aprire. Uso il confronto diretto e non un numero, per non perdere gli zeri
+ * iniziali.
+ */
+export function codiceCorretto(scritto) {
+  return String(scritto == null ? '' : scritto).trim() === CODICE_SCHEDE;
+}
+
+/**
+ * L'account ha scritto il codice (adesso o in una visita precedente)?
+ *
+ * `ricordato` e' quello che resta scritto dopo averlo dato una volta: se è
+ * vero non si chiede più. `sessione` copre il caso in cui Ste non vuole
+ * lasciare il codice salvato.
+ */
+export function codiceAperto(sessione, ricordato) {
+  return sessione === true || ricordato === true;
+}
 
 /** Come si chiamano e cosa coprono, per il pannello delle impostazioni. */
 export const campiVisibili = [
-  { id: 'profilo',      nome: 'Profilo',      descrizione: 'Nome, avatar, livello, Aura e streak.' },
-  { id: 'performance',  nome: 'Performance',  descrizione: 'I tuoi record e le tue migliori serie.' },
-  { id: 'leaderboard',  nome: 'Classifiche',  descrizione: 'La tua posizione nelle classifiche per esercizio.' },
-  { id: 'statistiche',  nome: 'Statistiche',  descrizione: 'Medaglie, achievement e numeri.' },
+  { id: 'profilo',      nome: 'Profilo',      descrizione: 'Nome, avatar, livello, Aura e streak.', nota: 'Chiuso: serve il codice per vederlo.' },
+  { id: 'performance',  nome: 'Performance',  descrizione: 'I tuoi record e le tue migliori serie.', nota: 'Chiuso: serve il codice per vederli.' },
+  { id: 'leaderboard',  nome: 'Classifiche',  descrizione: 'La tua posizione nelle classifiche per esercizio.', nota: 'Pubblico.' },
+  { id: 'statistiche',  nome: 'Statistiche',  descrizione: 'Medaglie, achievement e numeri.', nota: 'Chiuso: serve il codice per vederle.' },
 ];
 
 /** La privacy di un profilo, con i valori mancanti riempiti. */
@@ -36,18 +72,32 @@ export function privacyDi(profilo) {
 }
 
 /**
- * Un account puo' vedere un pezzo di dati di un altro?
- * se stesso: sempre. altrimenti: solo se il dato e' pubblico.
+ * Un account puo' vedere un pezzo di dato di un altro?
+ *
+ * se stesso: sempre.
+ * altrimenti: i dati sono chiusi per default, e serve il CODICE. Non basta
+ * la privacy "pubblica" di quel profilo: senza il codice non si vede nulla,
+ * cosi' nessuno puo' spiare la scheda di un altro aprendo un link.
  */
-export function puoVedere(mio, altro, campo) {
+export function puoVedere(mio, altro, campo, codiceRiconosciuto = false) {
   if (!altro) return false;
   if (mio && altro.id && mio.id === altro.id) return true;
   const privacy = privacyDi(altro);
-  if (campo === 'profilo') return privacy.profilo === 'pubblico';
-  if (campo === 'statistiche') return privacy.statistiche === 'pubblico';
-  if (campo === 'record') return privacy.performance === 'pubblico';
-  if (campo === 'leaderboard') return privacy.leaderboard === 'pubblico';
-  return false;
+if (campo === 'leaderboard') return privacy.leaderboard === 'pubblico';
+
+  // Gli altri campi hanno tre stati, ed è importante distinguerli:
+  //   'chiuso'  = valgono per gli amici ma servono il CODICE (il default)
+  //   'privato' = non li vede nessuno, nemmeno con il codice
+  //   'pubblico'= aperti a tutti
+  // Il codice serve a entrare, non a ignorare una scelta 'privato'.
+  const stato = campo === 'profilo' ? privacy.profilo
+    : campo === 'statistiche' ? privacy.statistiche
+    : campo === 'record' ? privacy.performance
+    : null;
+  if (stato === null) return false;
+  if (stato === 'privato') return false;
+  if (stato === 'pubblico') return true;
+  return codiceRiconosciuto;
 }
 
 /** L'elenco degli amici autorizzati, in ordine di nome. */

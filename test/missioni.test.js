@@ -49,13 +49,27 @@ test('2b. con chi non conosci mai nessun contatto fisico', () => {
   }
 });
 
+/**
+ * Una frase e' chiusa bene se l'ultimo carattere UTILE e' un punto, un punto
+ * esclamativo o un punto interrogativo.
+ *
+ * Se la missione finisce con una domanda dentro le virgolette
+ * ("Commento tecnico?") l'ultimo carattere e' la virgoletta, non il punto.
+ * Quindi tolgo virgolette e parentesi finali prima di guardare: altrimenti
+ * costringevo a aggiungere una frase in fondo solo per mettere un punto e
+ * finiva con un "Commento tecnico?." che sembrava un refuso.
+ */
+function fraseChiusa(testo) {
+  return /[.!?]$/.test(String(testo).trim().replace(/["'»)\]]+$/, ''));
+}
+
 test('2c. le sfide con gli sconosciuti esistono e sono scritte semplici', () => {
   const conSconosciuto = POOL.filter((m) => /sconosciut|non\s+conosci/i.test(m.testo));
   assert.ok(conSconosciuto.length >= 6, 'ci sono le sfide che vedono sconosciuti');
   for (const m of conSconosciuto) {
     // frasi corte e parole comuni: niente linguaggio complicato
-    assert.ok(m.testo.length < 170, 'frase non troppo lunga: ' + m.id);
-    assert.ok(/[.!]$/.test(m.testo.trim()), 'la frase finisce con un punto: ' + m.id);
+    assert.ok(m.testo.length < 190, 'frase non troppo lunga: ' + m.id);
+    assert.ok(fraseChiusa(m.testo), 'la frase finisce con un punto: ' + m.id);
   }
 });
 
@@ -70,10 +84,10 @@ test('2d. nessuna missione si ripete per la stessa persona', () => {
   const d1 = dailyDi('io', '2026-10-05', giaFatte);
   if (d1) assert.ok(!giaFatte.includes(d1.id), 'la daily non deve essere gia\' fatta: ' + d1.id);
 
-  // un'altra persona, senza storico, vede ancora il set uguale
+// la stessa persona, senza storico, vede lo stesso set: il set e' stabile
   const setAltro = setSettimanale('2026-W40', []);
   assert.deepEqual(setAltro.weekly.map((m) => m.id), setSettimanale('2026-W40', []).weekly.map((m) => m.id),
-    'senza storico il set resta uguale per tutti');
+    'senza storico la persona vede sempre le stesse missioni');
 });
 
 test('2e. la daily non si ripete nemmeno giorno dopo giorno', () => {
@@ -106,13 +120,45 @@ test('3. l\'identificatore di settimana e\' nel formato giusto', () => {
   assert.notEqual(idSettimana('2026-10-12'), idSettimana('2026-10-05'), 'la settimana dopo cambia');
 });
 
-test('4. il set settimanale e\' UGUALE PER TUTTI', () => {
-  const a = setSettimanale(SETTIMANA);
-  const b = setSettimanale(SETTIMANA);
-  assert.deepEqual(a.weekly.map((m) => m.id), b.weekly.map((m) => m.id));
-  assert.deepEqual(a.secret.map((m) => m.id), b.secret.map((m) => m.id));
+test('4. il set settimanale e\' DIVERSO per ciascuno', () => {
+  // Ste: "fai anche le missioni settimanali diverse per tutti. Le secret
+  // mission invece sono uguali? se sì falle diverse per tutti".
+  // Prima erano uguali per tutti: adesso ogni persona ha le sue.
+  const a = setSettimanale(SETTIMANA, [], 'persona-1');
+  const b = setSettimanale(SETTIMANA, [], 'persona-2');
+
+  // ... ma per la STESSA persona il set è stabile, altrimenti ogni volta che
+  // apri l'app ti spuntano missioni diverse e non capisci cosa hai già fatto
+  const a2 = setSettimanale(SETTIMANA, [], 'persona-1');
+  assert.deepEqual(a.weekly.map((m) => m.id), a2.weekly.map((m) => m.id), 'stessa persona, stesso set');
+
+  // e le secret devono essere diverse, non uguali
+  const idSecretA = a.secret.map((m) => m.id);
+  const idSecretB = b.secret.map((m) => m.id);
+  assert.notDeepEqual(idSecretA, idSecretB, 'le secret di persona-1 e persona-2 non possono essere uguali');
+
   assert.equal(a.weekly.length, NUMERO_WEEKLY);
   assert.equal(a.secret.length, NUMERO_SECRET);
+  assert.equal(b.weekly.length, NUMERO_WEEKLY);
+  assert.equal(b.secret.length, NUMERO_SECRET);
+});
+
+test('4b. persone diverse ricevono davvero set diversi (non solo per caso)', () => {
+  // non basta che due persone abbiano set diversi: la maggior parte deve
+  // essere diversa davvero, altrimenti il gioco non ha senso
+  const set = ['a', 'b', 'c', 'd', 'e', 'f'].map((p) => setSettimanale('2026-W40', [], p));
+  const idDi = (s) => s.weekly.map((m) => m.id).sort().join(',');
+  const unici = new Set(set.map(idDi));
+  assert.equal(unici.size, set.length, 'le 6 persone devono avere 6 set tutti diversi');
+
+  // nessuno deve ricevere la stessa missione settimanale di un altro
+  for (let i = 0; i < set.length; i++) {
+    for (let j = i + 1; j < set.length; j++) {
+      const comune = set[i].weekly.filter((m) => set[j].weekly.some((x) => x.id === m.id));
+      assert.ok(comune.length < set[i].weekly.length,
+        'le persone ' + i + ' e ' + j + ' non possono avere le stesse 5 weekly');
+    }
+  }
 });
 
 test('5. la settimana dopo ha un set diverso', () => {
@@ -264,4 +310,60 @@ test('20. ogni missione del pool e\' usabile: settimana diverse coprono tutto', 
     for (const m of set.weekly) viste.add(m.id);
   }
   assert.ok(viste.size >= 35, 'in 40 settimane devono comparire quasi tutte le missioni normali');
+});
+// ---------------------------------------------------------------------------
+// Le regole che Ste ha detto esplicitamente. Servono a non dimenticarsene
+// quando fra un mese aggiungo altre missioni.
+// ---------------------------------------------------------------------------
+
+test('2g. nessuna missione ti fa uscire dalla palestra', () => {
+  // Ste: "la mia palestra non puoi uscire fuori e non ha senso che non saprei
+  // cosa dire". Alla palestra non si esce: quindi niente "esci", niente
+  // "vado in strada", niente cortile, bar, scale o doccia.
+  const vietate = /\b(esci|uscire|uscita|fuori dalla palestra|in strada|la strada|cortile|piazza|il bar|la bar|le scale|la doccia|le docce|vado a)\b/i;
+  for (const m of POOL) {
+    assert.ok(!vietate.test(m.testo), 'la missione ' + m.id + ' ti fa uscire: ' + m.testo);
+  }
+});
+
+test('2h. se la missione parla con qualcuno, dice a chi e fa una domanda', () => {
+  // Ste: "non e\' scritto a chi si riferisce e deve sempre dire una domanda a
+  // chi si riferisce". Quindi: se c\'e\' qualcuno a cui parli, la missione
+  // nomina il destinatario E contiene un punto interrogativo.
+  // "parla con qualcuno" vuol dire che gli parli DIRETTAMENTE: gli fai una
+  // domanda, gli dai del tu, gli annunci qualcosa. Non basta che la missione
+  // nomini una terza persona ("una persona che si arrende"): quella e' solo
+  // un pensiero e non richiede nessuna domanda.
+  const parlaConQualcuno = /(sconosciut|un amico|ai tuoi amici|agli amici|amici\b|dagli una|digli|diglielo|chiedigli|chiedi a|guarda negli occhi|verso un amico|alla persona|al ragazzo|alla ragazza)/i;
+  for (const m of POOL) {
+    if (!parlaConQualcuno.test(m.testo)) continue;
+    assert.ok(m.testo.includes('?'),
+      'parla con qualcuno ma non fa nessuna domanda: ' + m.id);
+  }
+});
+
+test('2i. ogni missione con sconosciuti e\' difficile, nessuna facile', () => {
+  // Ste: "quelle con gli sconosciuti sono piu\' difficili, perche\' ti mettono
+  // piu\' in imbarazzo"
+  const conSconosciuto = POOL.filter((m) => /sconosciut/i.test(m.testo));
+  assert.ok(conSconosciuto.length >= 10, 'ci sono abbastanza sfide con gli sconosciuti');
+  for (const m of conSconosciuto) {
+    assert.notEqual(m.difficolta, 'easy', 'non deve essere facile: ' + m.id);
+    assert.ok(['unhinged', 'insane', 'legendary'].includes(m.difficolta),
+      'difficolta\' non ammessa per ' + m.id + ': ' + m.difficolta);
+  }
+});
+
+test('2l. ogni missione spiega con chiarezza cosa fare', () => {
+  // Ste: "non si capisce bene puoi fare una descrizione che si capisce di piu\'"
+  // Le missioni devono dire un\'azione concreta, non solo una situazione vaga.
+  for (const m of POOL) {
+    assert.ok(m.testo.length >= 60, 'troppo corta per capire: ' + m.id);
+    assert.ok(fraseChiusa(m.testo), 'deve finire con un punto: ' + m.id);
+// almeno un verbo d'azione concreto.
+    // niente \b sulle parole accentate: "ì" non e' un carattere di parola in
+    // JavaScript, quindi \b non aggancia e il test passerebbe buggerato
+    const azione = /(fai|chiedi|guarda|metti|spiega|annuncia|presenta|conta|saluta|racconta|ripeti|mostra|scegli|scrivi|leggi|cambia|annuisci|sorridi|scrolla|porta|prova|continua|parti|chiama|urla|canticchia|trombone|dirigi|incoraggia|festeggia|cita|segna|alza)/i;
+    assert.ok(azione.test(m.testo), 'non dice cosa fare: ' + m.id);
+  }
 });

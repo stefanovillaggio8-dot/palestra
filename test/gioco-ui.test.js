@@ -23,6 +23,7 @@ globalThis.clearInterval = () => {};
 const db = await import('../src/db.js');
 const { apriSeduta, chiudiSeduta } = await import('../src/sedute.js');
 const { ESERCIZI, SCHEDA_ID, PERSONE, accountId } = await import('../src/dati-iniziali.js');
+const { CODICE_SCHEDE } = await import('../src/sociale.js');
 
 const errori = [];
 // gli errori dentro un gestore di clic non devono sparire: li raccolgo qui
@@ -233,10 +234,24 @@ test('10. gli Amici si vedono e si aprono', async () => {
   assert.ok(link, 'il link al profilo dell\'amico c\'e\'');
 });
 
-test('11. il profilo dell\'amico confronta esercizio per esercizio', async () => {
-  await vai('#/amico/account-2', () => app.textContent.includes('Palestra A') || app.textContent.includes('Allenamenti finiti'));
-  assert.match(app.textContent, /allenamenti finiti/);
-  assert.ok(perClasse(app, 'testa-amico').length === 1);
+test('11. la scheda di un altro chiede il codice, e col codice si apre', async () => {
+  // Ste: "non dare il permesso a nessuno di andare nelle schede degli altri
+  // se non immettendo un codice". Senza codice non si vede nulla.
+  globalThis.localStorage.removeItem('codice_schede_ricordato');
+  await vai('#/amico/account-2', () => app.textContent.includes('Scheda privata'));
+  assert.match(app.textContent, /Scheda privata/, 'senza codice dice che è privata');
+  assert.ok(!app.textContent.includes('allenamenti finiti'), 'e NON mostra i suoi dati');
+  assert.ok(perClasse(app, 'testa-amico').length === 0, 'niente profilo dell\'amico');
+
+  // col codice giusto si apre e compare il confronto esercizio per esercizio
+  globalThis.localStorage.setItem('codice_schede_ricordato', CODICE_SCHEDE);
+  // torno su un'altra schermata e poi rientro: il router ridisegna solo se la
+  // rotta cambia davvero, quindi restare sulla stessa non aggiornerebbe nulla
+  await vai('#/casa', () => app.textContent.includes('Casa'));
+  await vai('#/amico/account-2', () => app.textContent.includes('allenamenti finiti'));
+  assert.match(app.textContent, /allenamenti finiti/, 'col codice i dati si vedono');
+  assert.ok(perClasse(app, 'testa-amico').length === 1, 'compare il profilo dell\'amico');
+  globalThis.localStorage.removeItem('codice_schede_ricordato');
 });
 
 test('12. il Profilo ha avatar grande, statistiche, medaglie e privacy', async () => {
@@ -265,7 +280,9 @@ test('14. la privacy si chiude e si riapre', async () => {
   await vai('#/profilo', () => app.textContent.includes('Privacy'));
   const chip = perClasse(app, 'chip').find((c) => c.textContent.trim() === 'Performance');
   assert.ok(chip, 'l\'interruttore delle performance c\'e\'');
-  assert.ok(chip.className.includes('attivo'), 'le performance sono pubbliche');
+  // il default non è più "pubblico": i dati personali sono chiusi e si aprono
+  // col codice. Quindi il chip non deve partire attivo.
+  assert.ok(!chip.className.includes('attivo'), 'le performance non partono pubbliche');
   await chip.click();
   await attendiChe(() => true);
   const mio = (await db.tutti('profili')).find((p) => p.id === accountId(1));

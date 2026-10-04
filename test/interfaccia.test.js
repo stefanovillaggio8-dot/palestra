@@ -669,8 +669,14 @@ test('19. ti dice quante ripetizioni hai fatto con lo spotter', () => {
   assert.equal(info.nonSpecificato, 1, 'una serie senza numero di assistite');
   assert.match(info.frase, /2 serie con lo spotter/);
   assert.match(info.frase, /15,5 ripetizioni/);
-  assert.match(info.frase, /2 assistite/);
-  assert.match(info.frase, /1 serie senza il numero delle assistite/);
+  // "2 assistite" e "1 serie senza il numero delle assistite" erano due frasi
+  // diverse nella stessa frase e non si capiva quale delle due contasse.
+  // Ora c'e' una riga sola, con i due numeri ("2 assistite" dentro "1 serie").
+  assert.match(info.frase, /2 ripetizioni assistite/);
+  assert.match(info.frase, /Non hai scritto quante ripetizioni sono state assistite in 1 serie/);
+  assert.equal((info.frase.match(/assistit/gi) || []).length >= 1, true, 'parla delle assistite una volta sola per concetto');
+  // e non deve più esistere la frase illeggibile
+  assert.ok(!/serie senza il numero delle assistite/.test(info.frase), 'la frase illeggibile non deve più esserci');
 });
 
 test('20. nessuna serie con spotter: lo dice senza drama', () => {

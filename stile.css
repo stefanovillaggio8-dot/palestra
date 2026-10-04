@@ -609,6 +609,40 @@ a { color: var(--blu); text-decoration: none; }
 }
 .dialogo-largo { max-width: 620px; }
 .dialogo-azioni { display: flex; gap: 9px; flex-wrap: wrap; margin-top: 16px; justify-content: flex-end; }
+
+/* --- tutorial amministratore dentro il dialogo "crea esercizio" --- */
+.tutorial {
+  margin: 14px 0 16px; border: 1px solid var(--bordo); border-radius: 13px;
+  background: linear-gradient(155deg, var(--card-2) 0%, var(--card) 100%);
+  overflow: hidden;
+}
+.tutorial > summary {
+  cursor: pointer; padding: 12px 14px; list-style: none;
+  font-size: .78rem; font-weight: 900; letter-spacing: .1em;
+  color: var(--viola); user-select: none;
+}
+.tutorial > summary::-webkit-details-marker { display: none; }
+.tutorial > summary::after { content: '  ▾'; color: var(--testo-2); }
+.tutorial[open] > summary { border-bottom: 1px solid var(--bordo); }
+.tutorial[open] > summary::after { content: '  ▴'; }
+.tutorial-corpo {
+  padding: 12px 14px 15px; display: flex; flex-direction: column; gap: 9px;
+}
+.tutorial-corpo p {
+  margin: 0; color: var(--testo-2); font-size: .87rem; line-height: 1.55;
+}
+.tutorial-corpo h4 {
+  margin: 8px 0 0; font-size: .74rem; font-weight: 900;
+  letter-spacing: .08em; color: var(--giallo);
+}
+.tutorial-corpo ul {
+  margin: 2px 0 0; padding-left: 20px;
+  color: var(--testo-2); font-size: .85rem; line-height: 1.5;
+}
+.tutorial-corpo li { margin: 3px 0; }
+@media (max-width: 380px) {
+  .tutorial-corpo p, .tutorial-corpo ul { font-size: .83rem; }
+}
 .testo-dialogo { color: var(--testo-2); line-height: 1.5; }
 .testo-attenzione { color: var(--giallo); }
 .voce-scelta {
@@ -785,9 +819,32 @@ a { color: var(--blu); text-decoration: none; }
   font-size: .74rem; font-weight: 900; color: var(--giallo);
   text-shadow: 0 0 12px rgba(255, 209, 102, .45); white-space: nowrap;
 }
+.tag-difficolta.piccolo { font-size: .54rem; padding: 1px 5px; align-self: flex-start; }
+.aura-premio.piccolo { font-size: .68rem; }
 .tag-fatto {
   font-size: .64rem; font-weight: 900; letter-spacing: .1em; color: var(--verde);
   border: 1px solid #1f5e42; border-radius: 6px; padding: 3px 7px;
+}
+
+/* --- cronologia delle sfide fatte (schermata Casa) --- */
+.cronologia-sfide { display: flex; flex-direction: column; gap: 6px; }
+.riga-cronologia {
+  display: flex; align-items: center; gap: 9px;
+  background: var(--card); border: 1px solid var(--bordo);
+  border-left: 3px solid var(--viola);
+  border-radius: 11px; padding: 9px 11px;
+}
+.riga-cronologia-alto {
+  flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 2px;
+}
+.riga-cronologia-alto strong {
+  font-size: .9rem; line-height: 1.25;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.riga-cronologia-alto .nota { font-size: .7rem; }
+@media (max-width: 380px) {
+  .riga-cronologia { gap: 7px; padding: 8px 9px; }
+  .riga-cronologia-alto strong { font-size: .84rem; }
 }
 
 /* --- le classifiche --- */

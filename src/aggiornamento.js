@@ -174,16 +174,28 @@ export function riassuntoSpotter(seriePerEsercizio, nomiEsercizi = new Map()) {
   const frasi = [];
   if (!serie) return { serie: 0, ripetizioni: 0, assistite: 0, nonSpecificato: 0, frase: 'Nessuna serie con lo spotter.', dettaglio };
 
-  frasi.push(`${serie} ${serie === 1 ? 'serie' : 'serie'} con lo spotter, ${formattaNumero(ripetizioni)} ripetizioni in tutto`);
-  if (assistiteDette) {
-    frasi.push(`${formattaNumero(assistite)} ${assistite === 1 ? 'assistita' : 'assistite'}`);
-  }
+  // Prima diceva una cosa sola tre volte: "1 serie con lo spotter, 6
+  // ripetizioni in tutto, 1 serie senza il numero delle assistite". Ste:
+  // "togli questo non ha senso". Ora e' una frase sola, e le assistite sono
+  // un'informazione a se' invece di una frase che sembra un errore.
+  const capi = [];
+  capi.push(`${serie} ${serie === 1 ? 'serie' : 'serie'} con lo spotter`);
+  if (ripetizioni) capi.push(`${formattaNumero(ripetizioni)} ${ripetizioni === 1 ? 'ripetizione' : 'ripetizioni'} in tutto`);
+
+  let frase = capi.join(', ') + '.';
+  // vanno mostrate SEMPRE entrambe le informazioni: anche quando in una serie
+  // non hai scritto quante ripetizioni erano assistite, le altre serie le hai
+  // scelte e quel numero non deve sparire. Prima era un if/else if e quindi
+  // spariva.
   if (nonSpecificato) {
-    frasi.push(`${nonSpecificato} ${nonSpecificato === 1 ? 'serie senza' : 'serie senza'} il numero delle assistite`);
+    frase += ` Non hai scritto quante ripetizioni sono state assistite in ${nonSpecificato} ${nonSpecificato === 1 ? 'serie' : 'serie'}.`;
+  }
+  if (assistiteDette) {
+    frase += ` In tutto ${formattaNumero(assistite)} ${assistite === 1 ? 'ripetizione assistita' : 'ripetizioni assistite'}.`;
   }
   return {
     serie, ripetizioni, assistite, nonSpecificato, dettaglio,
-    frase: frasi.join(', ') + '.',
+    frase,
   };
 }
 

@@ -27,7 +27,7 @@ import { recordEsercizio, recordAccount, classificaEsercizio, storicoMiglioramen
 import { profiloEsercizio, RANK, ETICHETTE_MISURA, descriviPunteggio } from './rank-config.js';
 import { formattaAura } from './aura.js';
 import { elencoAvatar, avatarPerId, gradienteAvatar, iniziali } from './avatar.js';
-import { amiciDi, confronta, classifichePerEsercizio, privacyDi, campiVisibili, PRIVACY_PREDEFINITE } from './sociale.js';
+import { amiciDi, confronta, classifichePerEsercizio, privacyDi, campiVisibili, PRIVACY_PREDEFINITE, CODICE_SCHEDE, codiceCorretto } from './sociale.js';
 import { controllaAggiornamento, applicaAggiornamento as prendiVersioneNuova, registraAggiornamentoRapido } from './update-via-sw.js';
 import {
   pesoAttuale, pesiCronologici, segnaPeso, togliPeso, pesoCorporeoValido,
@@ -2493,6 +2493,37 @@ function cardRank(record, { compatta = false } = {}) {
     ]);
   }
   const profilo = r.profilo;
+
+  // Hai allenato, ma sei ancora sotto la soglia del primo rank: non e' un
+  // errore e non e' "nessuna prestazione". Lo dico con le parole giuste e
+  // faccio vedere quanto manca, cosi' Ste vede che il Rank funziona e che
+  // il prossimo obiettivo e' vicino.
+  if (r.sottoSoglia) {
+    const manca = r.mancaAlPrimo;
+    return el('div', { class: 'card-rank card-rank-none' }, [
+      el('div', { class: 'card-rank-alto' }, [
+        el('div', {}, [
+          el('span', { class: 'nota', testo: nome }),
+          el('strong', { class: 'card-rank-nome', testo: r.testo }),
+        ]),
+        el('span', { class: 'badge-rank vuoto', testo: '—' }),
+      ]),
+      el('div', { class: 'card-rank-basso' }, [
+        barraProgresso(
+          r.sogliaAttuale ? Math.max(0, Math.min(1, (r.punteggio || 0) / r.sogliaAttuale)) : 0,
+          (r.prossimoObiettivo || {}).etichetta || 'BRONZE',
+        ),
+        el('span', {
+          class: 'nota',
+          testo: manca === null || manca === undefined
+            ? 'Ti manca ancora un po\' per il primo rank.'
+            : `Ti mancano ${formattaNumero(manca)} ${profilo.unita} per il ${(r.prossimoObiettivo || {}).etichetta || 'BRONZE'}.`,
+        }),
+        el('a', { href: '#/esercizio/' + (r.esercizio ? r.esercizio.id : ''), class: 'bottone-guarda', testo: 'Vedi il dettaglio' }),
+      ]),
+    ]);
+  }
+
   const verso = r.inTop
     ? 'Sei nel rank piu' + ' alto: gli LP continuano a crescere.'
     : `${formattaNumero(r.sogliaSuccessiva)} ${profilo.unita} per ${(r.prossimoObiettivo || {}).etichetta || r.prossimoRank.nome}`;
@@ -2656,13 +2687,57 @@ function vistaCasa(zona) {
 
   // --- weekly ---
   zona.appendChild(el('h2', { testo: `Weekly Missions · ${st.settimana}` }));
-  zona.appendChild(el('p', { class: 'nota', testo: 'Le stesse per tutti, e cambiano ogni settimana. Restano nel tuo storico.' }));
+  zona.appendChild(el('p', { class: 'nota', testo: 'Diverse per ciascuno, e cambiano ogni settimana. Nessuna sfida ti viene riproposta.' }));
   for (const voce of st.missioni.weekly) zona.appendChild(tesseraMissione(voce));
 
   // --- secret ---
   zona.appendChild(el('h2', { testo: 'Secret Missions' }));
   zona.appendChild(el('p', { class: 'nota', testo: 'Coperti finche\' non li riveli. Valgono di piu\'.' }));
   for (const voce of st.missioni.secret) zona.appendChild(tesseraMissione(voce));
+
+  // --- cronologia delle sfide fatte ---
+  // Ste l'ha chiesto: com'e' che si fa a vedere tutte le sfide che hai
+  // finito? Prima i dati c'erano (st.storicoMissioni) ma non erano mostrati.
+  const finiteSfide = (st.storicoMissioni || []).filter((v) => v && v.missione);
+  zona.appendChild(el('section', { class: 'blocco' }, [
+    el('h2', { testo: 'Cronologia sfide' }),
+    finiteSfide.length
+      ? el('p', { class: 'nota', testo: `${finiteSfide.length} sfide fatte in tutto.` })
+      : el('p', { class: 'nota', testo: 'Qui vedrai tutte le sfide che finisci, giorno per giorno.' }),
+  ]));
+  if (finiteSfide.length) {
+    const listaCronologia = el('div', { class: 'cronologia-sfide' });
+    let quanti = 10;
+    const disegnaCronologia = () => {
+      // uso svuota() e non replaceChildren(): replaceChildren non esiste nel
+      // DOM finto dei test e faceva esplodere l'app intera
+      svuota(listaCronologia);
+      for (const voce of finiteSfide.slice(0, quanti)) listaCronologia.appendChild(rigaCronologiaMissione(voce));
+      if (finiteSfide.length > quanti) {
+        listaCronologia.appendChild(bottone(`Vedi tutte (${finiteSfide.length})`, {
+          onClick: () => { quanti = finiteSfide.length; disegnaCronologia(); },
+          classe: 'fantasma',
+        }));
+      }
+    };
+    disegnaCronologia();
+    zona.appendChild(listaCronologia);
+  }
+
+  // --- dove mettere il peso corporeo ---
+  // Ste: "dove si mette il peso?". Il peso sta gia' nel Profilo, ma non si
+  // capiva. Qui lo dico con parole chiare e ci metto il link per andarlo a
+  // mettere, cosi' si trova in due secondi.
+  const pesoOra = pesoCorporeoOra();
+  zona.appendChild(el('section', { class: 'blocco' }, [
+    el('h2', { testo: 'Il tuo peso corporeo' }),
+    el('p', { class: 'nota', testo: pesoOra
+      ? 'Il Rank usa il tuo peso per capire quanto sei forte davvero, non solo i kg che sollevi. Vuoi cambiarlo?'
+      : 'Il Rank usa il tuo peso per capire quanto sei forte davvero, non solo i kg che sollevi. Non l\'hai ancora messo.' }),
+    el('a', { href: '#/profilo', class: 'bottone-guarda', testo: pesoOra
+      ? `Vai nel Profilo (ora ${formattaNumero(pesoOra)} kg)`
+      : 'Metti il peso nel Profilo' }),
+  ]));
 
   // --- scorciatoie verso quello che c\'era già ---
   zona.appendChild(el('h2', { testo: 'Allenamento e storico' }));
@@ -2681,6 +2756,31 @@ function vistaCasa(zona) {
       bottone('+ CREA ESERCIZIO', { onClick: () => finestraCreaEsercizio(), classe: 'principale grande' }),
     ]));
   }
+}
+
+/** Come si chiama ogni tipo di sfida, in italiano semplice. */
+const ETICHETTE_CATEGORIA = {
+  daily: 'Daily',
+  weekly: 'Settimanale',
+  secret: 'Segreta',
+};
+
+/**
+ * Una riga della cronologia sfide: quando l'hai fatta, quale, quanto ti ha
+ * dato di Aura e quanto era difficile.
+ */
+function rigaCronologiaMissione(voce) {
+  const d = voce.missione.difficolta;
+  const quando = voce.quando ? String(voce.quando) : '';
+  const giorno = quando.slice(0, 10);
+  return el('div', { class: 'riga-cronologia' }, [
+    el('span', { class: 'tag-difficolta piccolo', style: `--diff:${d.colore}`, testo: d.nome }),
+    el('div', { class: 'riga-cronologia-alto' }, [
+      el('strong', { testo: voce.titolo }),
+      el('span', { class: 'nota', testo: `${dataLeggibile(giorno)} · ${ETICHETTE_CATEGORIA[voce.categoria] || voce.categoria}` }),
+    ]),
+    el('span', { class: 'aura-premio piccolo', testo: '+' + formattaNumero(voce.aura) }),
+  ]);
 }
 
 function tesseraMissione(voce) {
@@ -2967,7 +3067,7 @@ function vistaAmici(zona) {
         avatarNodo({ avatar_id: c.avatar, username: c.username }, { dimensione: 44 }),
         el('div', { class: 'cresci' }, [
           el('strong', { testo: c.username }),
-          el('span', { class: 'nota', testo: 'Non ha ancora un account con una scheda: appena ne crea uno lo vedrai qui e in classifica.' }),
+          el('span', { class: 'nota', testo: (c.gruppo ? 'Gruppo: ' + c.gruppo + ' · ' : '') + 'Non ha ancora un account con una scheda: appena ne crea uno lo vedrai qui e in classifica.' }),
         ]),
       ]));
     }
@@ -2979,10 +3079,19 @@ function vistaAmico(zona, idAmico) {
   const voce = voci.find((v) => v.account === idAmico);
   if (!voce) { zona.appendChild(el('p', { testo: 'Account non trovato.' })); return; }
   const amico = { ...voce.profilo, id: voce.account };
-  if (!puoVedereAmico(profiloAttivo(), amico)) {
-    zona.appendChild(el('p', { class: 'nota', testo: 'Questo account ha scelto di non mostrare il profilo.' }));
+
+  // Ste: nessuno entra nelle schede degli altri senza il codice. Se non c'è
+  // ancora, chiedo il codice e poi disegnò di nuovo questa pagina.
+  if (!codiceRiconosciuto()) {
+    zona.appendChild(el('a', { href: '#/amici', class: 'indietro', testo: 'Torna agli amici' }));
+    zona.appendChild(el('div', { class: 'blocco' }, [
+      el('h2', { testo: 'Scheda privata' }),
+      el('p', { class: 'nota', testo: `La scheda di ${amico.username} è chiusa. Serve il codice per guardarla.` }),
+      bottone('INSERISCI IL CODICE', { onClick: () => chiediCodiceSchede(() => disegna()), classe: 'principale grande' }),
+    ]));
     return;
   }
+
   zona.appendChild(el('a', { href: '#/amici', class: 'indietro', testo: 'Torna agli amici' }));
   zona.appendChild(el('div', { class: 'testa-amico' }, [
     avatarNodo(amico, { grande: true, dimensione: 84 }),
@@ -2992,11 +3101,6 @@ function vistaAmico(zona, idAmico) {
     ]),
   ]));
 
-  const privato = privacyDi(amico);
-  if (privato.performance !== 'pubblico') {
-    zona.appendChild(el('p', { class: 'nota', testo: 'Le performance di questo account sono private: niente da confrontare.' }));
-    return;
-  }
   const mioStato = statoMio();
   const confronto = confronta(
     profiloAttivo(),
@@ -3019,6 +3123,83 @@ function puoVedereAmico(mio, altro) {
   const privacy = privacyDi(altro);
   if (privacy.profilo === 'pubblico') return true;
   return !!(mio && altro && mio.id === altro.id);
+}
+
+// ---------------------------------------------------------------------------
+// Il codice per entrare nelle schede degli altri.
+//
+// Ste: "non dare il permesso a nessuno di andare nelle schede degli altri se
+// non immettendo un codice: 030226".
+//
+// Il codice si ricorda per questa sessione, e può restare salvato sul
+// dispositivo se Ste sceglie di lasciarlo (è una sua scelta, non il default).
+// Non viene mai scritto dentro i dati del profilo e non viene mai mandato
+// da nessuna parte.
+// ---------------------------------------------------------------------------
+const CODICE_CHIAVE = 'codice_schede';
+
+function codiceRiconosciuto() {
+  try {
+    const scelto = String(localStorage.getItem(CODICE_CHIAVE + '_ricordato') || '');
+    return scelto === CODICE_SCHEDE;
+  } catch {
+    return false;
+  }
+}
+
+function ricordaCodice(siRicorda) {
+  try {
+    if (siRicorda) localStorage.setItem(CODICE_CHIAVE + '_ricordato', CODICE_SCHEDE);
+    else localStorage.removeItem(CODICE_CHIAVE + '_ricordato');
+  } catch { /* se il browser non lascia salvare, resta aperto solo per questa volta */ }
+}
+
+/**
+ * Il blocco che chiede il codice. Restituisce true se il codice era giusto.
+ * `prova` viene chiamata di nuovo quando si sbaglia, così la schermata si
+ * aggiorna e i dati compaiono senza ricaricare la pagina.
+ */
+function chiediCodiceSchede(prova) {
+  const campo = el('input', {
+    type: 'password', inputMode: 'numeric', maxlength: '6',
+    class: 'campo-testo', placeholder: 'codice a 6 cifre',
+  });
+  const ricorda = el('input', { type: 'checkbox' });
+  const errore = el('p', { class: 'nota' });
+
+  const box = el('div', { class: 'sfondo-dialogo' }, el('div', { class: 'dialogo' }, [
+    el('h3', { testo: 'Serve il codice' }),
+    el('p', { class: 'testo-dialogo', testo: 'Le schede degli altri sono chiuse. Scrivi il codice per guardarle.' }),
+    campo,
+    el('label', { class: 'nota' }, [ricorda, el('span', { testo: ' Ricordalo su questo dispositivo' })]),
+    errore,
+    el('div', { class: 'dialogo-azioni' }, [
+      bottone('Annulla', { onClick: () => box.remove(), classe: 'fantasma' }),
+      bottone('ENTRA', {
+        onClick: async () => {
+          if (!codiceCorretto(campo.value)) {
+            errore.textContent = 'Codice sbagliato.';
+            campo.value = '';
+            return;
+          }
+          ricordaCodice(!!(ricorda.checked && ricorda.checked));
+          box.remove();
+          await prova();
+        },
+        classe: 'principale',
+      }),
+    ]),
+  ]));
+
+  campo.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      const entra = box.querySelector('.principale');
+      if (entra && entra.click) entra.click();
+    }
+  });
+
+  document.body.appendChild(box);
+  campo.focus();
 }
 
 async function vistaProfilo(zona) {
@@ -3162,21 +3343,38 @@ async function vistaProfilo(zona) {
     el('p', { class: 'nota', testo: 'Scegli cosa gli altri possono vedere. Quando chiudi una cosa, non la vedono piu\': non viene solo nascosta.' }),
   ]);
   const scelte = el('div', { class: 'chip-scelte' });
+  // Tre stati invece di due. 'chiuso' è il default per i dati personali e si
+// apre col codice; 'privato' non si apre con nessun codice; 'pubblico' è aperto
+// a tutti. Il codice è un'informazione di accesso, non una chiave che
+// aggira la privacy.
+  const DOPO_CLIC = { chiuso: 'privato', privato: 'pubblico', pubblico: 'chiuso' };
+  const SPIEGA = {
+    chiuso: 'chiuso: si vede solo con il codice',
+    privato: 'privato: non lo vede nessuno',
+    pubblico: 'pubblico: lo vede tutto il mondo',
+  };
   for (const campo of campiVisibili) {
     const attuale = privacyDi(profiloDi(accountAttivo()))[campo.id];
     scelte.appendChild(bottone(campo.nome, {
       onClick: async () => {
         const nuova = { ...privacyDi(profiloDi(accountAttivo())) };
-        nuova[campo.id] = attuale === 'pubblico' ? 'privato' : 'pubblico';
+        nuova[campo.id] = DOPO_CLIC[attuale] || 'chiuso';
         await salvaProfilo({ privacy: nuova });
-        avviso(`${campo.nome}: ${nuova[campo.id] === 'pubblico' ? 'pubblico' : 'privato'}.`, { tipo: 'ok' });
+        avviso(`${campo.nome}: ${SPIEGA[nuova[campo.id]]}.`, { tipo: 'ok' });
       },
       classe: 'chip' + (attuale === 'pubblico' ? ' attivo' : ''),
     }));
   }
   boxPrivacy.appendChild(scelte);
+  boxPrivacy.appendChild(el('p', {
+    class: 'nota nota-piccola',
+    testo: 'Tocca per cambiare: privato (mai), chiuso (solo col codice), pubblico (tutti).',
+  }));
   for (const campo of campiVisibili) {
-    boxPrivacy.appendChild(el('p', { class: 'nota nota-piccola', testo: `${campo.nome}: ${campo.descrizione}` }));
+    boxPrivacy.appendChild(el('p', {
+      class: 'nota nota-piccola',
+      testo: `${campo.nome}: ${campo.descrizione}${campo.nota ? ' — ' + campo.nota : ''}`,
+    }));
   }
   zona.appendChild(boxPrivacy);
 
@@ -3240,12 +3438,51 @@ function finestraCreaEsercizio() {
   const box = el('div', { class: 'sfondo-dialogo' }, el('div', { class: 'dialogo dialogo-largo' }, [
     el('h3', { testo: 'Crea un esercizio (per tutti)' }),
     el('p', { class: 'testo-dialogo', testo: 'L\'esercizio viene salvato nel database e diventa disponibile per TUTTI gli account: si potra\' usare nelle schede, negli allenamenti, avere un rank e comparire nelle classifiche.' }),
+
+    // Ste: "fai un tutorial proprio nell'app dove spieghi come funziona
+    // questa modalita' amministratore". I due campi che non capiva
+    // ("punteggio PLATINUM" e "descrizione") sono spiegati sotto.
+    el('details', { class: 'tutorial' }, [
+      el('summary', { testo: 'Come funziona (leggi prima)' }),
+      el('div', { class: 'tutorial-corpo' }, [
+        el('p', { testo: 'Ogni esercizio ha una scala di Rank tutta sua, come i gradini di una scala: Bronzo, Silver, Gold, Platinum, Diamond, Titan, Olympian. Non conta il peso grezzo, conta quanto sei forte in quel movimento.' }),
+
+        el('h4', { testo: 'Il campo "punteggio PLATINUM"' }),
+        el('p', { testo: 'È il numero che vale PLATINUM su quell\'esercizio. Tutti gli altri gradini nascono da qui, con questi scarti:' }),
+        el('ul', {}, [
+          el('li', { testo: 'Bronzo = 55% del punteggio PLATINUM' }),
+          el('li', { testo: 'Silver = 72%' }),
+          el('li', { testo: 'Gold = 88%' }),
+          el('li', { testo: 'Platinum = 100% (è il numero che scrivi tu)' }),
+          el('li', { testo: 'Diamond = 118%, Titan = 145%, Olympian = 185%' }),
+        ]),
+        el('p', { testo: 'Esempio: se per il Chest Press metti 60, il PLATINUM lo raggiungi con una performance stimata di 60 e il BRONZE con circa 33.' }),
+        el('p', { testo: 'Attenzione: se l\'esercizio si misura in kg e ripetizioni, il numero NON è il peso che alzi. È il massimale stimato, cioè quanto peseresti se riuscissi a fare una ripetizione sola. Se fai 60 kg per 10 ripetizioni, la stima è circa 80.' }),
+        el('p', { testo: 'Per gli esercizi a sole ripetizioni (trazioni, dip) il numero sono le ripetizioni vere. Per quelli a tempo, i secondi.' }),
+
+        el('h4', { testo: 'Il campo "Descrizione"' }),
+        el('p', { testo: 'È una nota che vede chi usa l\'esercizio, scritta sotto il nome. Serve a spiegare COME si fa, non a descrivere il nome.' }),
+        el('p', { testo: 'Esempi giusti: "Panca con bilanciere, scendi con i piedi piatti e senza rimbalzare." Oppure: "Cavo basso, gomiti piegati dietro la schiena, solo avambracci."' }),
+        el('p', { testo: 'Se non ti serve, lascialo vuoto: non è obbligatorio.' }),
+
+        el('h4', { testo: 'Il campo "Convenzione del carico"' }),
+        el('p', { testo: 'Dice come si leggono i kg che l\'utente scrive.' }),
+        el('ul', {}, [
+          el('li', { testo: 'Per manubrio = ogni mano (quello che scrive di solito chi si allena)' }),
+          el('li', { testo: 'kg piastre macchina = il peso delle piastre, senza bilanciere' }),
+          el('li', { testo: 'kg totali del cavo = la somma dei due lati del cavo' }),
+          el('li', { testo: 'kg bilanciere = il bilanciere completo' }),
+          el('li', { testo: 'assistenza = i kg con cui ti aiutano' }),
+        ]),
+      ]),
+    ]),
+
     el('label', { class: 'nota', testo: 'Nome' }), nome,
     el('label', { class: 'nota', testo: 'Immagine' }), immagine,
     el('label', { class: 'nota', testo: 'Tipo' }), tipo,
     el('label', { class: 'nota', testo: 'Convenzione del carico' }), convenzione,
-    el('label', { class: 'nota', testo: 'Riferimento (il punteggio PLATINUM di questo esercizio)' }), riferimento,
-    el('label', { class: 'nota', testo: 'Descrizione' }), descrizione,
+    el('label', { class: 'nota', testo: 'Punteggio PLATINUM (i\' gradini gli fa l\'app)' }), riferimento,
+    el('label', { class: 'nota', testo: 'Descrizione (come si fa: facoltativa)' }), descrizione,
     el('div', { class: 'dialogo-azioni' }, [
       bottone('Annulla', { onClick: () => box.remove(), classe: 'fantasma' }),
       bottone('CREA ESERCIZIO', {
