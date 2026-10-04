@@ -30,6 +30,7 @@ import { formattaAura } from './aura.js';
 import { elencoAvatar, avatarPerId, gradienteAvatar, iniziali } from './avatar.js';
 import { amiciDi, confronta, classifichePerEsercizio, privacyDi, campiVisibili, PRIVACY_PREDEFINITE } from './sociale.js';
 import { classificaEsercizio as riconosciEsercizio } from './esercizi-classificatore.js';
+import { parteDiMuscolo, AVVERTIMENTO_PARTI, stessoLavoro } from './muscoli-parti.js';
 import { quantoEPesantePerTe, correggiLivello, dimenticaLivello, livelloImparato, paroleDaChiedere, imparaParola } from './esercizi-personali.js';
 import { controllaAggiornamento, applicaAggiornamento as prendiVersioneNuova, registraAggiornamentoRapido } from './update-via-sw.js';
 import {
@@ -699,7 +700,34 @@ function vistaGiorno(zona, giornoId) {
   zona.appendChild(el('a', { href: '#/', class: 'indietro', testo: '← tutti i giorni' }));
   zona.appendChild(el('h1', { testo: g.nome }));
 
-  // IL CONFRONTO MENSILE. Ste (04/10/2026): "ogni mese fai il confronto appena
+  // SE DUE ESERCIZI FANNO LO STESSO LAVORO. Ste: "ci sono esercizi che per
+  // esempio servono per la parte alta e altri esercizi che servono per la
+  // parte bassa del petto". E' anche vero il contrario: due esercizi spesso
+  // finiscono per lavorare lo stesso pezzo di muscolo. Se è il caso te lo
+  // dico, così non scopri dopo due mesi che era tutto lo stesso.
+  const pezzi = (g.esercizi || [])
+    .map((es) => {
+      const e2 = esercizioPerId(es.esercizio_id);
+      if (!e2) return null;
+      const p = parteDiMuscolo({ nome: e2.nome, descrizione: e2.nota_permanente || '' });
+      return p.trovata ? { nome: e2.nome, parte: p } : null;
+    })
+    .filter(Boolean);
+  const doppioni = [];
+  for (let i = 0; i < pezzi.length; i++) {
+    for (let j = i + 1; j < pezzi.length; j++) {
+      if (stessoLavoro(pezzi[i].parte, pezzi[j].parte)) {
+        doppioni.push([pezzi[i].nome, pezzi[j].nome, pezzi[i].parte.nome]);
+      }
+    }
+  }
+  if (doppioni.length) {
+    zona.appendChild(el('div', { class: 'tape-duplicati' }, [
+      el('strong', { testo: 'Attenzione: due esercizi fanno lo stesso lavoro' }),
+      el('p', {}, doppioni.map((d) => `${d[0]} e ${d[1]} lavorano entrambi: ${d[2]}.`)),
+      el('p', { class: 'nota nota-piccola', testo: AVVERTIMENTO_PARTI }),
+    ]));
+  }
   // finisci l'esercizio di tutte le serie con gli stessi esercizi di un mese
   // prima, fai questa cosa per giorno 1 giorno 2 giorno 3 e giorno 4".
   // Vale per tutti e quattro i giorni: qui mostro quello di questo giorno.
@@ -3071,6 +3099,23 @@ function vistaEsercizio(zona, esercizioId) {
   zona.appendChild(el('div', { class: 'riga-livello' }, [
     el('span', { class: 'tag-livello liv-' + (profilo.livello || 'composto'), testo: descrizioneLivello(profilo.livello) }),
   ]));
+
+  // QUALE PEZZO DI MUSCOLO. Ste: "il petto come il bicipite e le altre parti
+  // sono formati da diverse fibre muscolari e ci sono esercizi che servono
+  // per la parte alta e altri per la parte bassa del petto".
+  //
+  // (Con un aggiustamento: non sono fibre diverse ma capi diversi dello stesso
+  // muscolo. Infatti qui sotto c'e' l'avvertimento, che spiega la cosa come si
+  // sta davvero invece di dirgli una cosa che non e' vera.)
+  const parte = parteDiMuscolo({ nome: e.nome, descrizione: e.nota_permanente || '' });
+  if (parte.trovata) {
+    zona.appendChild(el('div', { class: 'riga-giudizio giud-parte' }, [
+      el('strong', { testo: 'DOVE LAVORA' }),
+      el('span', { testo: parte.nome }),
+      el('span', { class: 'nota nota-piccola', testo: parte.nota }),
+      el('span', { class: 'nota nota-piccola', testo: AVVERTIMENTO_PARTI }),
+    ]));
+  }
 
   // spiego sempre come sono fatte le soglie di questo esercizio, e dico se il
   // peso corporeo lo sta cambiando

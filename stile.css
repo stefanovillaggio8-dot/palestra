@@ -862,6 +862,13 @@ a { color: var(--blu); text-decoration: none; }
 .riga-giudizio.giud-discreto { border-left-color: #9db4ff; }
 .riga-giudizio.giud-tanto { border-left-color: #ffc93c; }
 .riga-giudizio.giud-molto { border-left-color: #ff8fab; }
+.riga-giudizio.giud-parte { border-left-color: var(--verde); }
+.tape-duplicati {
+  margin: 0 0 12px; padding: 10px 12px;
+  border: 1px solid #6b4d00; border-left: 3px solid var(--giallo);
+  border-radius: 11px; background: rgba(255, 209, 102, .07);
+  font-size: .86rem; line-height: 1.5; color: var(--testo-2);
+}
 .card-rank .card-rank-alto .nota-piccola { font-size: .72rem; line-height: 1.4; }
 @media (max-width: 380px) {
   .riga-giudizio span { font-size: .84rem; }
