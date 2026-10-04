@@ -91,11 +91,26 @@ export const CAMPO_MISURA = {
  *    poco argento 3 o no?"  -> l'argento deve arrivare con una serie normale
  *  - poi, sapendo che pesa 66 kg: la stessa 35x8 doveva dargli ARGENTO 3
  *
- * Quindi: l'oro resta impegnativo (88%), il platino è il traguardo (100%), e
+* Quindi: l'oro resta impegnativo (88%), il platino è il traguardo (100%), e
  * l'argento è il salto vero ma raggiungibile con una serie onesta. Il bronzo
  * è il gradino d'ingresso, non un premio.
+ *
+ * Ste (04/10/2026): "per essere olympian 110 kg? manco Ronnie Coleman
+ * riuscirebbe, devi renderla realistica". Aveva ragione: sopra il platino la
+ * scala cresceva a multiplicative (1.22, 1.52, 1.90) e l'OLYMPIAN finiva a
+ * 1.9 volte il platino. Su una chest press, a 66 kg di persona, voleva dire
+ * 113 kg di massimale, cioe' 89 kg x 8: non e' un obiettivo, e' un numero
+ * inventato.
+ *
+ * Quindi sopra il platino i gradini sono ravvicinati: il diamondo e' un passo
+ * oltre, il titan e' il serio, l'olympian e' il vertice. E resta un tetto:
+ * nessun rank puo' chiedere piu' di 2.2 volte il peso della persona, che
+ * sarebbe gia' fuori scala umana.
  */
-export const MOLTIPLICATORI_SOGLIA = [0.50, 0.72, 0.88, 1.00, 1.22, 1.52, 1.90];
+export const MOLTIPLICATORI_SOGLIA = [0.50, 0.72, 0.88, 1.00, 1.10, 1.22, 1.35];
+
+/** Oltre questo multiplo del peso, il rank non e' piu' realistico. */
+export const TETTO_PER_PESO = 2.2;
 
 /** Sotto questa soglia non c'e' rank: l'esercizio e' "non ancora valutato". */
 export const SOGLIA_MINIMA_ASSOLUTA = 0.0001;
@@ -348,7 +363,30 @@ export function profiloPerPesoCorporeo(profilo, pesoCorporeo) {
     soglie = p.soglie.map((s) => Math.round(s * (peso / PESO_RIFERIMENTO) * 100) / 100);
   } else {
     riferimento = riferimentoPerEsercizio({ id: p.id, convenzione: p.assistito ? 'assistenza' : null }, peso);
-    soglie = soglieDaRiferimento(riferimento);
+    // tetto di realismo: l'OLYMPIAN non puo' valere piu' di 2.2 volte il peso,
+    // altrimenti si arriva a numeri che nessuno umano puo' spingere
+    const tetto = peso * TETTO_PER_PESO;
+    const alto = soglieDaRiferimento(riferimento);
+    if (alto[alto.length - 1] > tetto) {
+      // stringo i gradini alti per farlo entrare sotto il tetto, restando
+      // strettamente crescenti: la prima volta li avevo scalati e senza
+      // ricontrollare l'ordine, cosi' il diamondo era piu' basso del platino
+      const fattore = tetto / alto[alto.length - 1];
+      for (let i = 4; i < alto.length; i++) {
+        alto[i] = Math.round(Math.max(alto[i] * fattore, alto[i - 1] + 0.5) * 100) / 100;
+      }
+      // se il tetto e' talmente streto da starci sotto il platino, il platino
+      // stesso si abbassa: meglio una scala piccola che una scala rotta
+      if (alto[4] <= alto[3]) {
+        for (let i = 1; i < alto.length; i++) {
+          alto[i] = Math.round(alto[i] * fattore * 100) / 100;
+        }
+        for (let i = 1; i < alto.length; i++) {
+          if (alto[i] <= alto[i - 1]) alto[i] = Math.round((alto[i - 1] + 0.5) * 100) / 100;
+        }
+      }
+    }
+    soglie = alto;
   }
   if (!peso) {
     // nessun peso: il profilo resta come com'e'

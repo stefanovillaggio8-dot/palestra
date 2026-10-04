@@ -113,7 +113,25 @@ a { color: var(--blu); text-decoration: none; }
   background: rgba(11, 9, 16, 0.9);
   border-bottom: 1px solid var(--bordo);
 }
-#app { padding-top: 30px; }
+/* La barra in alto era a `position: fixed` senza limiti di altezza e il testo
+   non andava a capo: sul telefono restava schiacciata in due righe sovrapposte e
+   copriva il contenuto. Il padding di #app era fisso (30px) e non teneva conto
+   della barra alta, quindi il primo titolo finiva sotto. Ora e' alta un
+   minimo, va a capo, e il margine sotto la barra e' variabile. */
+.stato-save {
+  min-height: 30px;
+  height: auto;
+  line-height: 1.35;
+  flex-wrap: wrap;
+}
+#app {
+  /* la barra puo' crescere se il messaggio va a capo: il padding la segue */
+  padding-top: max(30px, calc(env(safe-area-inset-top) + 30px));
+  scroll-padding-top: max(30px, calc(env(safe-area-inset-top) + 30px));
+}
+/* Se il messaggio e' lungo la barra cresce: il contenuto deve scendere con
+   lei. Misuro l'altezza vera in app.js (misuraBarraInAlto) e la metto qui. */
+#app.sotto-barra-alta { padding-top: var(--altezza-barra-in-alto, 34px); }
 .pallino-stato { width: 9px; height: 9px; border-radius: 50%; flex: 0 0 auto; }
 .pallino-ok { background: var(--verde); }
 .pallino-attesa { background: var(--giallo); }
@@ -309,7 +327,10 @@ a { color: var(--blu); text-decoration: none; }
   background: linear-gradient(135deg, var(--viola-scuro), var(--blu-scuro));
   border: 1px solid #3a2c5e;
   border-radius: var(--r); padding: 14px; margin: 12px 0;
-  position: sticky; top: 34px; z-index: 20;
+  /* La barra di stato in alto e' alta piu' di 34px quando il messaggio va a
+     capo: il cronometro si infilava sotto e finiva tagliato. Uso una variabile
+     che chi la imposta calcola l'altezza vera della barra. */
+  position: sticky; top: var(--altezza-barra-in-alto, 34px); z-index: 20;
   backdrop-filter: blur(8px);
 }
 .cronometro {
@@ -879,7 +900,23 @@ a { color: var(--blu); text-decoration: none; }
   border: 1px solid #1f5e42; border-radius: 6px; padding: 3px 7px;
 }
 
-/* --- cronologia delle sfide fatte (schermata Casa) --- */
+/* --- confronto mensile: "un mese fa su questo esercizio come stavo?" --- */
+.blocco-mensile {
+  border: 1px solid #3a2c5e; border-left: 3px solid var(--blu);
+  background: linear-gradient(155deg, var(--viola-scuro), var(--card) 70%);
+}
+.riga-mensile {
+  display: flex; align-items: center; gap: 9px; flex-wrap: wrap;
+  padding: 8px 0; border-top: 1px solid var(--bordo);
+  font-size: .86rem;
+}
+.riga-mensile .nota { flex: 0 1 auto; }
+.riga-mensile .cresci { flex: 1 1 190px; font-size: .82rem; color: var(--testo-2); }
+.riga-mensile.megliore .cresci { color: var(--verde); }
+.riga-mensile.peggio .cresci { color: var(--arancio); }
+@media (max-width: 380px) {
+  .riga-mensile { font-size: .82rem; gap: 6px; }
+}
 .cronologia-sfide { display: flex; flex-direction: column; gap: 6px; }
 .riga-cronologia {
   display: flex; align-items: center; gap: 9px;

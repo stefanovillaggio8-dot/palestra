@@ -24,6 +24,7 @@ import { nuovoId, adesso, TABELLE } from './sincronizzazione.js';
 // --- il gioco: rank, LP, streak, Aura, missioni, amici ---
 import { statoAccount, ricompenseAllenamento, gruppiDaSerie } from './gioco.js';
 import { recordEsercizio, recordAccount, classificaEsercizio, storicoMiglioramenti, giudizioPerformance } from './rank.js';
+import { confrontoGiorno, confrontiMensili, GIORNI_UN_MESE } from './confronto-mensile.js';
 import { profiloEsercizio, profiloPerPesoCorporeo, RANK, ETICHETTE_MISURA, descriviPunteggio, descrizioneLivello, livelloEsercizio } from './rank-config.js';
 import { formattaAura } from './aura.js';
 import { elencoAvatar, avatarPerId, gradienteAvatar, iniziali } from './avatar.js';
@@ -465,6 +466,36 @@ function cornice() {
   return resto;
 }
 
+/**
+ * Misura la barra di stato in alto e dice al CSS quanto e' alta.
+ *
+ * Senza questo, tutto quello che sta "appiccicato" sotto (il cronometro della
+ * seduta) finiva sotto la barra o la tagliava: la barra cresce quando il
+ * messaggio va a capo, e a seconda del telefono cresce di piu' o di meno.
+ * Quindi invece di indovinare un numero fisso nei CSS, lo calcolo qui.
+ */
+function misuraBarraInAlto(barra) {
+  if (!barra) return;
+  const applica = () => {
+    const h = Math.ceil(barra.getBoundingClientRect ? barra.getBoundingClientRect().height : 0);
+    if (h <= 0) return;
+    document.documentElement.style.setProperty('--altezza-barra-in-alto', h + 'px');
+    // anche il contenuto deve scendere di altrettanto, altrimenti il primo
+    // titolo finisce sotto la barra
+    const app = document.getElementById('app');
+    if (app) app.classList.toggle('sotto-barra-alta', h > 34);
+  };
+  applica();
+  if (typeof ResizeObserver === 'function') {
+    try {
+      if (!barra.__osservato) {
+        barra.__osservato = new ResizeObserver(applica);
+        barra.__osservato.observe(barra);
+      }
+    } catch { /* se il browser non collabora, resta il valore del primo giro */ }
+  }
+}
+
 function disegnaStatoSalvataggio() {
   const contenitore = document.getElementById('stato-salvataggio');
   if (!contenitore) return;
@@ -476,6 +507,7 @@ function disegnaStatoSalvataggio() {
     contenitore.appendChild(el('span', { class: 'versione-app', testo: 'v' + (window.PALESTRA_VERSIONE || '?'), title: 'Se la spunta non ti parte, chiudi l\'app e la riapri' }));
     contenitore.title = s.dettaglio;
     disegnaBarraGioco(contenitore);
+    misuraBarraInAlto(contenitore);
   });
   const conflitti = document.getElementById('avviso-conflitti');
   if (conflitti) {
@@ -646,6 +678,35 @@ function vistaGiorno(zona, giornoId) {
 
   zona.appendChild(el('a', { href: '#/', class: 'indietro', testo: '← tutti i giorni' }));
   zona.appendChild(el('h1', { testo: g.nome }));
+
+  // IL CONFRONTO MENSILE. Ste (04/10/2026): "ogni mese fai il confronto appena
+  // finisci l'esercizio di tutte le serie con gli stessi esercizi di un mese
+  // prima, fai questa cosa per giorno 1 giorno 2 giorno 3 e giorno 4".
+  // Vale per tutti e quattro i giorni: qui mostro quello di questo giorno.
+  const sedutaDelGiorno = ultimaSedutaDelGiorno(giornoId);
+  if (sedutaDelGiorno && sedutaDelGiorno.stato === 'completata') {
+    const mensile = confrontoGiorno({
+      seduta: sedutaDelGiorno,
+      serie: serieMie(),
+      esercizi: V.esercizi,
+      sedute: seduteMie(),
+      peso: pesoCorporeoOra(),
+    });
+    if (mensile) {
+      zona.appendChild(el('section', { class: 'blocco blocco-mensile' }, [
+        el('h2', { testo: `Un mese fa (${dataLeggibile(mensile.dataRiferimento)})` }),
+        el('p', { class: 'nota', testo: mensile.frase }),
+        ...mensile.righe.map((r) => el('div', { class: 'riga-mensile' + (r.meglio ? ' meglio' : (r.peggio ? ' peggio' : '')) }, [
+          el('span', { class: 'nota', testo: r.nome }),
+          el('span', { class: 'cresci', testo: `${r.prima.testo} → ${r.ora.testo}` }),
+          el('span', {
+            class: 'nota',
+            testo: r.stessa ? 'uguale' : (r.meglio ? '+' + r.differenzaLegibile : r.differenzaLegibile),
+          }),
+        ])),
+      ]));
+    }
+  }
   zona.appendChild(el('div', { class: 'riga-titoli' }, [
     el('p', { class: 'nota', testo: [
       `${g.esercizi.length} esercizi · ${totaleSerie} serie`,
@@ -2465,15 +2526,21 @@ function avatarNodo(profilo, { grande = false, dimensione = 46 } = {}) {
 
 function teschioStreak(st) {
   const f = st.fuoco;
+  // Ste: "sul profilo dove c'e' la streak c'e' scritto 2 2 giorni, ripete il
+  // numero 2 volte". Il numero grande e la parola "giorni" dicevano la stessa
+  // cosa: "2 giorni" due volte di fila. Ora il numero sta nel badge e la
+  // parola nella nota, ma senza ripeterlo.
   const n = f.acceso ? `${f.giorni} ${f.giorni === 1 ? 'giorno' : 'giorni'}` : 'spenta';
   return el('div', {
     class: 'teschio-streak' + (f.acceso ? ' acceso' : ' spenta'),
     style: `--fuoco:${f.colore}`,
   }, [
-    el('span', { class: 'fuoco', testo: '🔥' }),
+    el('span', { class: 'fuoco', testo: f.acceso ? String(f.giorni) : '·' }),
     el('div', {}, [
-      el('strong', { testo: String(f.giorni) }),
-      el('span', { class: 'nota', testo: n + ' · ' + f.nome }),
+      // nel badge grande il numero non serve (c'e' gia' a sinistra): metto il
+      // nome dello stato, cosi' non si ripete
+      el('strong', { testo: f.acceso ? f.nome : 'spenta' }),
+      el('span', { class: 'nota', testo: n }),
     ]),
   ]);
 }

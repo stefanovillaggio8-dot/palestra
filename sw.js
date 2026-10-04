@@ -3,7 +3,7 @@
 // anche senza rete. I dati NON stanno qui: stanno in IndexedDB, quindi
 // cancellare la cache non cancella niente del tuo allenamento.
 
-const VERSIONE = 'palestra-v30';
+const VERSIONE = 'palestra-v31';
 
 const FILE = [
   './',
@@ -15,6 +15,7 @@ const FILE = [
   './src/app.js',
   './src/numeri.js',
   './src/confronto.js',
+  './src/confronto-mensile.js',
   './src/progressi.js',
   './src/sincronizzazione.js',
   './src/backup.js',

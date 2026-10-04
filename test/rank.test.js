@@ -1,4 +1,4 @@
-// rank.test.js -- il motore del Rank: soglie diverse per esercizio, la
+﻿// rank.test.js -- il motore del Rank: soglie diverse per esercizio, la
 // performance migliore (non l'ultima), gli LP calcolati e la classifica.
 
 import { test } from 'node:test';
@@ -11,7 +11,7 @@ import {
 } from '../src/rank.js';
 import {
   RANK, MISURE, profiloEsercizio, soglieDaRiferimento, ETICHETTE_MISURA, divisioneDaLp,
-  profiloPerPesoCorporeo,
+  profiloPerPesoCorporeo, MOLTIPLICATORI_SOGLIA,
 } from '../src/rank-config.js';
 
 const chest = { id: 'ex-chest-press', nome: 'Chest Press', convenzione: 'macchina' };
@@ -356,7 +356,40 @@ test('R15. il giudizio "quanto ho fatto" tiene conto del livello', async () => {
   assert.equal(vuoto.giudizio, null);
 });
 
-test('R16. la scala si adatta al tipo di esercizio', () => {
+test('R17. nessun rank chiede numeri fuori scala umana', async () => {
+  // Ste: "per essere olympian 110 kg? manco Ronnie Coleman riuscirebbe, devi
+  // renderla realistica". Prima l'olympian valeva 1.9 volte il platino.
+  const { ESERCIZI } = await import('../src/dati-iniziali.js');
+  for (const e of ESERCIZI) {
+    for (const peso of [55, 66, 80, 100]) {
+      const p = profiloPerPesoCorporeo(profiloEsercizio(e), peso);
+      if (!MOLTIPLICATORI_SOGLIA.length) continue;
+      const alto = p.soglie[p.soglie.length - 1];
+      if (!alto) continue;
+      // nessun rank puo' valere piu' di 2.2 volte il peso della persona
+      assert.ok(alto / peso <= 2.25,
+        e.nome + ' a ' + peso + ' kg chiede un rank alto troppo (' + Math.round(alto / peso * 100) / 100 + 'x il peso)');
+      // e la scala deve salire sempre: un tetto troppo stretto l'aveva resa rotta
+      for (let i = 1; i < p.soglie.length; i++) {
+        assert.ok(p.soglie[i] > p.soglie[i - 1],
+          e.nome + ' a ' + peso + ' kg: il gradino ' + i + ' non sale (' + p.soglie.join('/') + ')');
+      }
+    }
+  }
+});
+
+test('R18. sopra il platino i gradini sono vicini, non sparati', () => {
+  const s = soglieDaRiferimento(100);
+  // il platino e' il 100, e l'olympian non deve essere il doppio: prima era
+  // 1.9 volte e servivano numeri assurdi
+  assert.ok(s[6] <= 140, 'l\'olympian non deve superare il 140% del platino, trovato ' + s[6]);
+  // e nessun gradino alto vale piu' di un quarto del platino
+  for (let i = 4; i < s.length; i++) {
+    assert.ok(s[i] - s[i - 1] <= 25, 'il gradino ' + i + ' non deve essere un salto');
+  }
+});
+
+test('R19. la scala si adatta al tipo di esercizio', () => {
   // Ste: "i rank per ogni esercizio devono adattarsi al tipo di esercizio,
   // se e' difficile, facile, medio. Tipo alzate laterali e' difficile quindi
   // anche un carico basso puo' essere tanto".
