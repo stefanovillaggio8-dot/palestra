@@ -158,41 +158,21 @@ export const LIVELLI_DIFFICOLTA = {
 };
 
 /**
- * Il livello di ogni esercizio.
- *   grande     = carichi pesanti, movimento facilitato (leg press, sled, row)
- *   composto   = i veri esercizi di palestra (press, pulldown, shoulder press)
- *   isolamento = un muscolo solo e carico basso (lateral raise, curl, pushdown)
- *   assistito  = trazioni e dip: il riferimento sono le ripetizioni pulite
+ * Il livello NON e' piu' scritto a mano.
+ *
+ * Ste: "deve capire il livello di difficolta', deve essere molto forte questo
+ * classificatore, e' la cosa piu' importante quindi falla bene".
+ *
+ * Prima c'era una lista di 27 righe scritte da me. Adesso l'unica fonte e' il
+ * classificatore, che guarda che movimento e', come e' fatto e con che cosa, e
+ * la lista e' sparita. Motivo: due elenchi che possono andare in disaccordo
+ * sono due risposte diverse alla stessa domanda, e quello che conta e' che la
+ * risposta sia sempre la stessa.
+ *
+ * Se un giorno un esercizio va corretto, si corregge UNA parola chiave nel
+ * classificatore, e vale per tutti quelli che sembrano a lui.
  */
-export const LIVELLO_ESERCIZI = {
-  'ex-chest-press': 'composto',
-  'ex-cable-hammer-curl': 'isolamento',
-  'ex-cable-lateral-raise': 'isolamento',
-  'ex-cable-overhead-tricep': 'isolamento',
-  'ex-leg-extension': 'isolamento',
-  'ex-neutral-grip-lat-pulldown': 'grande',
-  'ex-dumbbell-bench-pull': 'isolamento',
-  'ex-seated-db-shoulder-press': 'composto',
-  'ex-cable-fly': 'isolamento',
-  'ex-scott-bench-curl': 'isolamento',
-  'ex-single-arm-tricep-pushdown': 'isolamento',
-  'ex-seated-leg-curl': 'grande',
-  'ex-smith-incline-bench': 'composto',
-  'ex-seated-cable-row': 'grande',
-  'ex-chest-supported-shrug': 'isolamento',
-  'ex-sled-press-calf-raise': 'grande',
-  'ex-single-leg-press': 'isolamento',
-  'ex-one-arm-preacher-curl': 'isolamento',
-  'ex-one-arm-cable-reverse-fly': 'isolamento',
-  'ex-wrist-curl': 'isolamento',
-  'ex-iso-lateral-row': 'grande',
-  'ex-lat-pulldown-lats': 'grande',
-  'ex-db-lateral-raise': 'isolamento',
-  'ex-lying-cable-curl': 'composto',
-  'ex-bodyweight-overhead-tricep': 'assistito',
-  'ex-pull-ups': 'assistito',
-  'ex-dips': 'assistito',
-};
+export const LIVELLO_ESERCIZI = {};
 
 /**
  * Come si spiega il livello di un esercizio, in italiano semplice.

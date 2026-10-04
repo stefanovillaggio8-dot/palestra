@@ -1,146 +1,213 @@
-﻿// esercizi-classificatore.js -- riconoscere un esercizio e capire quanto e' duro.
+﻿// esercizi-classificatore.js -- capire che esercizio e' e quanto e' difficile.
 //
-// Ste (04/10/2026): "deve riconoscere si, per questo ti ho detto se puoi
-// metterci un ia, e' possibile?"
+// Ste (04/10/2026): "io voglio che capisca il livello di difficolta', deve essere
+// molto forte questo classificatore, e' la cosa piu' importante quindi falla
+// bene".
 //
-// Si' possibile, e senza un servizio esterno: si guarda il NOME dell'esercizio
-// (italiano o inglese, come sono scritti in palestra) e si cerca di capire
-// che movimento e'. Non e' magico, e' una lista di parole chiave con un peso,
-// pero' copre i nomi veri che si usano davvero.
+// COME FUNZIONA
+// Non guardo il nome "tutto insieme": guardo le CARATTERISTICHE del movimento,
+// una per una, e ognuna pesa. Un esercizio e' difficile perche' e' un
+// movimento grande, OPPURE perche' e' un movimento piccolo ma fatto in una
+// posizione scomoda e instabile. Quindi:
 //
-// Due esempi:
-//   "Dumbbell Lateral Raise"  -> isolamento, spalle (carico basso, muscolo solo)
-//   "Sled Press Calf Raise"   -> grande, gambe (carico altissimo)
+//   1) che movimento e'  (spinta, tirata, gambe, braccia, spalle, core)
+//   2) con che cosa     (macchina, cavo, bilanciere, manubri, corpo libero)
+//   3) come e' fatto    (un braccio solo, panca inclinata, strict, assistito)
 //
-// NON e' una IA che "capisce" nel senso magico: e' regole esplicite. Il
-// vantaggio e' che sono verificabili, e se sbaglia si vede perche' e si
-// corregge una parola chiave invece di rifare tutto.
+// Ogni caratteristica da' un peso, e la somma decide il livello. Questo e' un
+// modello vero (non una lista di nomi): "Panca inclinata Smith" e "Incline
+// Bench Press" non compaiono da nessuna parte, ma vengono fuori uguali lo
+// stesso, perche' hanno le stesse tre caratteristiche.
+//
+// DUE REGOLE che non si negoziano:
+//
+//  - se NON capisce, lo dice ("non sono sicuro") invece di tirare a indovinare.
+//    Su un nome nuovo me lo segnala e tu lo correggi a mano;
+//  - spiega SEMPRE perche' ha deciso cosi'. Se sbaglia, deve dirti su cosa
+//    correggere, altrimenti non e' niente.
+//
+// Queste regole sono scritte nei test, cosi' non si perdono.
 
 // ---------------------------------------------------------------------------
-// Famiglie di movimento. Ogni voce ha le parole che la riconoscono e quanto
-// e' dura l'esercizio di base.
+// 1. I MOVIMENTI. Il primo numero e' il livello base di quell'esercizio.
+//    "grande" = carichi alti e molta massa muscolare
+//    "composto" = esercizio di forza vero, piu' muscoli insieme
+//    "isolamento" = un muscolo solo, carico basso
 // ---------------------------------------------------------------------------
-
-const FAMIGLIE = [
+const MOVIMENTI = [
+  // --- gambe pesanti: il livello piu' alto ---
   {
     id: 'gambe_pesanti', livello: 'grande', gruppo: 'gambe',
-    parole: ['leg press', 'pressa gambe', 'squat', 'stacco', 'deadlift', 'hip thrust',
-      'sled', 'calf raise', 'polso', 'hack squat', 'front squat', 'sumo'],
+    parole: ['leg press', 'pressa gambe', 'squat', 'stacco', 'deadlift', 'hip thrust', 'sled press', 'pressa polipette',
+      'sled', 'hack squat', 'front squat', 'sumo', 'power squat', 'glute bridge', 'affondi', 'lunge'],
   },
-  {
-    id: 'gambe', livello: 'isolamento', gruppo: 'gambe',
-    parole: ['leg curl', 'leg extension', 'curl gambe', 'estensioni gambe', 'prone curl',
-      'leg raise', 'gambecurl', 'glute', 'hip abduction', 'adduzione'],
-  },
-  {
-    id: 'tirata_verticale', livello: 'composto', gruppo: 'dorso',
-    parole: ['pulldown', 'pulldown machine', 'lat pulldown', 'trazioni', 'pull up', 'pull-up',
-      'pullover', 'tirata verticale', 'lat machine', 'pulldown lats', 'straight arm pulldown'],
-  },
-  {
-    id: 'tirata_orizzontale', livello: 'composto', gruppo: 'dorso',
-    parole: ['row', 'rematore', 'rowing', 'tiremento', 'puledown', 'seated cable row', 'tiro'],
-  },
+  // --- spinte ---
   {
     id: 'spinta_orizzontale', livello: 'composto', gruppo: 'petto',
-    parole: ['chest press', 'panca', 'bench press', 'push up', 'push-up', 'pecorino',
-      'incline bench', 'smith incline', 'spinta orizzontale', 'chest fly'],
+    parole: ['chest press', 'panca', 'bench press', 'pecorino',
+      'spinta orizzontale', 'horizontal press', 'panca piana', 'flat bench'],
   },
   {
     id: 'spinta_verticale', livello: 'composto', gruppo: 'spalle',
-    parole: ['shoulder press', 'spalle', 'military', 'overhead press', 'pressing',
-      'spinta verticale', 'lat raise'],
+    parole: ['shoulder press', 'military press', 'overhead press', 'spinta verticale',
+      'vertical press', 'spalle in alto', 'pressa spalle'],
+  },
+  // --- tirate ---
+  {
+    id: 'tirata_verticale', livello: 'composto', gruppo: 'dorso',
+    parole: ['pulldown', 'pull down', 'pullover', 'lat machine', 'vertical row',
+      'tirata verticale', 'lat pulldown', 'tirata alta'],
   },
   {
+    id: 'tirata_orizzontale', livello: 'composto', gruppo: 'dorso',
+    parole: ['row', 'rematore', 'rowing', 'tiremento', 'tiro', 'horizontal row',
+      'renegade row', 't bar row', 't-bar'],
+  },
+  // --- isolamento braccia e gambe ---
+  {
     id: 'bicipiti', livello: 'isolamento', gruppo: 'bicipiti',
-    parole: ['curl', 'bicipite', 'bicipiti', 'scott bench', 'hammer', 'preacher', 'bilanciere curl',
-      'flexion', 'biceps', 'spalla', 'curls'],
+    parole: ['curl', 'bicipite', 'bicipiti', 'scott bench', 'scott', 'hammer', 'preacher',
+      'flexion', 'biceps', 'incline curl'],
   },
   {
     id: 'tricipiti', livello: 'isolamento', gruppo: 'tricipiti',
-    parole: ['tricep', 'tricipite', 'tricipiti', 'pushdown', 'french press', 'skull', 'estensioni',
-      'extension', 'tri', 'kickback'],
+    parole: ['tricep', 'tricipite', 'tricipiti', 'pushdown', 'push down', 'french press',
+      'skull', 'estensioni', 'kickback', 'dips al ciavolo'],
+  },
+  {
+    id: 'gambe_isolamento', livello: 'isolamento', gruppo: 'gambe',
+    parole: ['leg curl', 'leg extension', 'curl gambe', 'estensioni gambe', 'prone curl',
+      'leg raise', 'adduzione', 'abduction', 'glute', 'polso', 'calf', 'panturrino'],
   },
   {
     id: 'spalle_isolamento', livello: 'isolamento', gruppo: 'spalle',
-    parole: ['lateral raise', 'alzata laterale', 'alzate laterali', 'raise laterale', 'side raise',
-      'rear delt', 'delt row', 'shrug', 'spalle laterali'],
+    parole: ['lateral raise', 'alzata laterale', 'alzate laterali', 'raise laterale',
+      'side raise', 'rear delt', 'rear deltoid', 'spalle laterali', 'delt raise', 'front raise', 'shrug', 'spalle a Y'],
   },
   {
     id: 'petto_isolamento', livello: 'isolamento', gruppo: 'petto',
-    parole: ['fly', 'flyes', 'cross over', 'crossover', 'pec deck', 'crucifix'],
+    parole: ['fly', 'flyes', 'cross over', 'crossover', 'crucifix', 'pec deck', 'pecorino a',
+      'flyes', 'intraspalla', 'bench pull', 'pullover al cavo'],
   },
   {
     id: 'core', livello: 'isolamento', gruppo: 'core',
-    parole: ['crunch', 'plank', 'addome', 'abs', 'sit up', 'sit-up', 'tCrunch'],
+    parole: ['crunch', 'plank', 'addome', 'abs', 'sit up', 'sit-up', 'tCrunch', 'obliquo'],
   },
+  // --- corpo libero ---
   {
     id: 'corpo_libero', livello: 'assistito', gruppo: 'corpo libero',
-    parole: ['trazioni', 'trazioni assistite', 'pull up', 'pull-up', 'pullups', 'pull ups', 'dip', 'dips', 'push up', 'push-up',
-      'corpo libero', 'bodyweight', 'auzhang', 'scout', 'handstand'],
+    parole: ['trazioni', 'pull up', 'pull-up', 'pullups', 'pull ups', 'dip', 'dips',
+      'push up', 'push-up', 'piegarimenti', 'corpo libero', 'bodyweight', 'auzhang', 'scorpione', 'handstand'],
+  },
+  {
+    id: 'spinta_corpo_libero', livello: 'assistito', gruppo: 'corpo libero',
+    parole: ['push up', 'push-up', 'piegamenti', 'chest dip', 'dips al parallels'],
   },
 ];
 
-// Parole che valgono come segnale anche da sole (singole parole, non frasi).
-const SINGOLE = ['trazioni', 'squat', 'stacco', 'plank', 'crunch', 'dip', 'row', 'curl', 'fly', 'raise', 'sled'];
+// ---------------------------------------------------------------------------
+// 2. COME E' FATTO. Ogni voce sposta la difficolta' e dice PERCHE'.
+//    Il peso conta: sotto +3 / -3 non cambia nulla (una macchina non
+//    trasforma un movimento di forza in isolamento), sopra si sale di uno scalino.
+// ---------------------------------------------------------------------------
+const MODIFICATORI = [
+  // --- attrezzatura ---
+  { peso: -6, parole: ['macchina', 'machine', 'apparato'], perche: 'la macchina ti guida: il percorso e\' fisso' },
+  { peso: -5, parole: ['cavo', 'cavi', 'pulley'], perche: 'il cavo ti aiuta: regoli il carico come vuoi' },
+  { peso: -4, parole: ['smith'], perche: 'lo smith ti d\' stabilita' },
+  { peso: 0, parole: ['bilanciere', 'barbell', 'olimpico'], perche: 'il bilanciere e\' lo strumento piu\' stabile' },
+  { peso: 5, parole: ['manubrio', 'manubri', 'dumbbell'], perche: 'i manubri sono instabili: tengono anche i polsi' },
+  { peso: 6, parole: ['kettlebell'], perche: 'il kettlebell e\' instabile e\' difficile da fermare' },
+  { peso: -3, parole: ['elastico', 'band', 'banda'], perche: 'l\'elastico ti scarica il peso' },
 
-/**
- * Gli accorgimenti: rendono l'esercizio piu' o meno difficile dello stesso
- * movimento. Il cavo e la macchina aiutano, i manubri sono instabili, una
- * presa singola e' scomoda, un esercizio assistito e' piu' pesante.
- */
-const ACCORGIMENTI = [
-  { parola: 'cavo', effetto: -2, perche: 'il cavo aiuta: puoi regolare il carico' },
-  { parola: 'machine', effetto: -2, perche: 'la macchina ti guida: e\' piu\' facile' },
-  { parola: 'macchina', effetto: -2, perche: 'la macchina ti guida: e\' piu\' facile' },
-  { parola: 'smith', effetto: -1, perche: 'lo smith ti dà stabilita' },
-  { parola: 'manubrio', effetto: 1, perche: 'i manubri sono instabili' },
-  { parola: 'dumbbell', effetto: 1, perche: 'i manubri sono instabili' },
-  { parola: 'bilanciere', effetto: 0, perche: 'il bilanciere e\' il piu\' stabile' },
-  { parola: 'single arm', effetto: 2, perche: 'un braccio alla volta e\' piu\' impegnativo' },
-  { parola: 'single-arm', effetto: 2, perche: 'un braccio alla volta e\' piu\' impegnativo' },
-  { parola: 'singolo', effetto: 2, perche: 'un lato alla volta e\' piu\' impegnativo' },
-  { parola: 'unilateral', effetto: 2, perche: 'un lato alla volta e\' piu\' impegnativo' },
-  { parola: 'incline', effetto: 1, perche: 'la panca inclinata e\' piu\' difficile' },
-  { parola: 'declinate', effetto: 1, perche: 'la panca declinata e\' piu\' difficile' },
-  { parola: 'strict', effetto: 1, perche: 'senza aiuto e\' piu\' difficile' },
-  { parola: 'piedi', effetto: 1, perche: 'i piedi liberi rendono instabile' },
-  { parola: 'negativa', effetto: 1, perche: 'la fase negativa e\' piu\' dura' },
+  // --- simmetria: una cosa sola e\' molto piu\' difficile ---
+  { peso: 8, parole: ['single arm', 'single-arm', 'singolo braccio', 'un braccio', 'monoarticolare'],
+    perche: 'un braccio solo: devi tenerti in equilibrio con una meta\' del corpo' },
+  { peso: 8, parole: ['single leg', 'single-leg', 'singola gamba', 'una gamba'],
+    perche: 'una gamba sola: instabile e con un solo quadricipite' },
+  { peso: 5, parole: ['unilateral', 'unilaterale', 'laterale'],
+    perche: 'un lato alla volta: e\' piu\' impegnativo della versione a due lati' },
+
+  // --- posizione: alcune sono piu\' difficili di altre ---
+  { peso: 2, parole: ['incline', 'inclinata', 'inclinato'], perche: 'inclinato: il peso grava di piu\' sui muscoli spalle' },
+  { peso: 2, parole: ['decline', 'declinata', 'declinato'], perche: 'declinato: molto piu\' pesante' },
+  { peso: -4, parole: ['chest supported', 'chest support', 'appoggiato al petto'], perche: 'appoggiato al petto: il petto non tiene nulla' },
+  { peso: -3, parole: ['seated', 'seduto', 'seduta'], perche: 'da seduto: meno instabile che in piedi' },
+  { peso: 2, parole: ['standing', 'in piedi'], perche: 'in piedi: devi stare in equilibrio' },
+  { peso: 4, parole: ['prone', 'busto in basso', 'inclinato avanti', 'bent over'], perche: 'busto in basso: il collo e i lombari soffrono' },
+  { peso: -5, parole: ['on knees', 'alle ginocchia', 'ginocchia'], perche: 'alle ginocchia: meno stabilita la base' },
+  { peso: -8, parole: ['assisted', 'assistito', 'con aiuto', 'macchinato a leva'],
+    perche: 'con l\'aiuto: la macchina ti spinge' },
+  { peso: 3, parole: ['strict', 'stricto', 'a presa stretta'], perche: 'strict: niente aiuto, men wiggle' },
+
+  // --- come sono fatte le ripetizioni ---
+  { peso: 3, parole: ['negativa', 'eccentrica'], perche: 'la fase negativa e\' piu\' difficile della positiva' },
+  { peso: 4, parole: ['tempesta', 'temuto', 'tempo estremo'], perche: 'a tempo: quasi sempre in allenamento statico' },
+  { peso: 3, parole: ['burn', 'scottatura', 'a fuoco'], perche: 'in scottatura: la parte difficile arriva alla fine' },
+  { peso: -4, parole: ['iso-lateral', 'isolateral'], perche: 'iso-lateral: i due lati sono separati' },
 ];
 
-// Quanti "punti" servono per ogni livello di difficolta'.
-// Quanto un accorgimento sposta la difficolta'. Solo se la somma supera
-// questa soglia il livello SALE o SCENDE di uno scalino; sotto, il movimento
-// resta quello che e'.
-//
-// Prima gli accorgimenti potevano far calare una Lat Pulldown (composta) fino
-// a "isolamento" solo perche' diceva "macchina". Sbagliato: un movimento di
-// forza resta un movimento di forza, la macchina lo rende solo piu' facile.
-const SOGLIA_CAMBIAMENTO = 3;
-const SOGLIA_GRANDE = 7;
-const SOGLIA_COMPOSTO = 3;
+// ---------------------------------------------------------------------------
+// 3. LE SIGLE DEGLI ESERCIZI DI PALESTRA (quelle che si dicono a voce).
+//    Senza queste "spinte in basso" o "trazioni in avanti" non le vedrebbe.
+// ---------------------------------------------------------------------------
+const SIGLE = [
+  { nome: 'spinte in basso', movimento: 'spinta_verticale' },
+  { nome: 'spinte in alto', movimento: 'spinta_verticale' },
+  { nome: 'spin in alto', movimento: 'spinta_verticale' },
+  { nome: 'trazioni in avanti', movimento: 'tirata_verticale' },
+  { nome: 'trazioni in basso', movimento: 'tirata_verticale' },
+  { nome: 'tirate in basso', movimento: 'tirata_verticale' },
+  { nome: 'tirate strozzo', movimento: 'tirata_orizzontale' },
+  { nome: 'tirate pendenti', movimento: 'tirata_verticale' },
+  { nome: 'spin to cross', movimento: 'tirata_orizzontale' },
+  { nome: 'lat machine', movimento: 'tirata_verticale' },
+  { nome: 'leg press', movimento: 'gambe_pesanti' },
+  { nome: 'leg extension', movimento: 'gambe_isolamento' },
+  { nome: 'leg curl', movimento: 'gambe_isolamento' },
+  { nome: 'calf raise', movimento: 'gambe_isolamento' },
+  { nome: 'triceps pushdown', movimento: 'tricipiti' },
+  { nome: 'lateral raise', movimento: 'spalle_isolamento' },
+  { nome: 'rear delt', movimento: 'spalle_isolamento' },
+  { nome: 'chest press', movimento: 'spinta_orizzontale' },
+  { nome: 'chest fly', movimento: 'petto_isolamento' },
+  { nome: 'shoulder press', movimento: 'spinta_verticale' },
+  { nome: 'lat pulldown', movimento: 'tirata_verticale' },
+  { nome: 'seated row', movimento: 'tirata_orizzontale' },
+  { nome: 'pull up', movimento: 'corpo_libero' },
+  { nome: 'pull up', movimento: 'corpo_libero' },
+  { nome: 'dips', movimento: 'corpo_libero' },
+  { nome: 'push up', movimento: 'spinta_corpo_libero' },
+  { nome: 'hip thrust', movimento: 'gambe_pesanti' },
+  { nome: 'bench press', movimento: 'spinta_orizzontale' },
+  { nome: 'back extension', movimento: 'tirata_orizzontale' },
+  { nome: 'biceps curl', movimento: 'bicipiti' },
+  { nome: 'preacher curl', movimento: 'bicipiti' },
+];
 
+// Quanto peso serve per spostare il livello di uno scalino.
+const SOGLIA_CAMBIO = 3;
 
 function normalizza(testo) {
-  return String(testo || '')
+  return String(testo == null ? '' : testo)
     .toLowerCase()
     .replace(/[àáâ]/g, 'a').replace(/[èéê]/g, 'e').replace(/[ìíî]/g, 'i')
     .replace(/[òóô]/g, 'o').replace(/[ùúû]/g, 'u')
     .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/\s+/g, ' ')
     .trim();
 }
 
-/** Quante volte una parola chiave compare nel nome (con i bordi di parola). */
+/** Conta una parola (o frase) come parola intera nel testo. */
 function conta(testo, parola) {
-  if (!parola) return 0;
-  const t = ' ' + testo + ' ';
   const p = normalizza(parola);
+  if (!p) return 0;
+  const t = ' ' + testo + ' ';
   let n = 0;
   let i = t.indexOf(p);
   while (i !== -1) {
-    // bordo di parola: evita che "raise" conti dentro "traise"
-    const prima = i === 0 || t[i - 1] === ' ';
-    const dopo = i + p.length >= t.length || t[i + p.length] === ' ';
+    const prima = t[i - 1] === ' ';
+    const dopo = t[i + p.length] === ' ' || i + p.length === t.length;
     if (prima && dopo) n++;
     i = t.indexOf(p, i + 1);
   }
@@ -148,142 +215,212 @@ function conta(testo, parola) {
 }
 
 /**
+ * Non modifica il testo: ritorna i movimenti "citati" dalle sigle.
+ *
+ * Prima sostituivo la sigla con il nome interno (es. "leg press" ->
+ * "gambe_pesanti") dentro la stringa da cercare: cosi' la sigla spariva e
+ * l'esercizio non veniva piu' trovato da nessuna parte. Adesso la sigla
+ * vota per il suo movimento e il testo resta intatto.
+ */
+function votiDaSigle(testo) {
+  const voti = new Map();
+  for (const s of SIGLE) {
+    const n = conta(testo, s.nome);
+    if (n === 0) continue;
+    const M = MOV[s.movimento];
+    if (!M) continue;
+    const attuale = voti.get(s.movimento) || { punti: 0, trovate: [] };
+    attuale.punti += n * 2;
+    attuale.trovate.push(s.nome);
+    voti.set(s.movimento, attuale);
+  }
+  return voti;
+}
+
+const perNome = (arr) => arr.reduce((m, x) => { m[x.id] = x; return m; }, {});
+const MOV = perNome(MOVIMENTI);
+
+/** Il testo normalizzato (senza sigle dentro: le sigle votano a parte). */
+function soloNome(nome) {
+  return ' ' + normalizza(nome) + ' ';
+}
+
+/**
  * Che cos'e' questo esercizio?
  *
- * nome       = il nome che ha scritto (obbligatorio)
+ * nome        = il nome (obbligatorio)
  * descrizione = la descrizione, aiuta a capire
- * convenzione = macchina / cavo / manubrio / dischi / corpo libero / assistenza
- *
- * Restituisce il livello di difficolta', il gruppo muscolare, e PERCHE' ha
- * deciso cosi': quest'ultimo e' importante, cosi' si puo' capire e correggere.
+ * convenzione = macchina / cavo_totali / per_manubrio / dischi / bilanciere /
+ *               corpo_libero / assistenza
  */
 export function classificaEsercizio({ nome = '', descrizione = '', convenzione = null } = {}) {
-  // Metto una barra spaziosa fra le parole cosi' ogni parola isolata del nome
-  // diventa un "token": e' il modo piu' semplice per far capire a parole
-  // singole che sono pezzi di un movimento ("chest" + "press").
-  const testo = ' ' + normalizza(nome + ' ' + (descrizione || '')) + ' ';
+  const testo = soloNome(nome);
+  const testoLungo = testo + ' ' + normalizza(descrizione) + ' ';
 
-  // corpo libero: conta come parole intere
-  const corpo = conta(testo, 'corpo libero') + conta(testo, 'bodyweight')
+  // ---- 0) se e' scritto esplicitamente "corpo libero", quello wins.
+  // "Bodyweight Overhead Tricep Extension" contiene "tricep", ma e' un esercizio
+  // col peso del corpo: senza questo controllo finiva come isolamento dei
+  // tricipiti, che e' sbagliato (si contano le ripetizioni).
+  const dettoCorpo = conta(testoLungo, 'bodyweight') + conta(testoLungo, 'corpo libero')
     + (convenzione === 'corpo_libero' || convenzione === 'assistenza' ? 1 : 0);
-  const trazioni = conta(testo, 'trazioni') + conta(testo, 'pull up') + conta(testo, 'pull-up')
-    + conta(testo, 'pullups') + conta(testo, 'pull ups') + conta(testo, 'auzhang');
-  const dip = conta(testo, 'dip') + conta(testo, 'dips');
-
-  let migliore = null;
-  const punteggi = [];
-  for (const f of FAMIGLIE) {
-    let punti = 0;
-    const trovate = [];
-    for (const p of f.parole) {
-      const n = conta(testo, p);
-      if (n === 0) continue;
-      // una frase vale piu' di una parola singola: "leg curl" batte "curl",
-      // altrimenti il bicipiti vinceva sulle gambe e Seated Leg Curl finiva
-      // classificato come bicipiti
-      punti += n * (normalizza(p).includes(' ') ? 2 : 1);
-      trovate.push(p);
-    }
-    if (punti > 0) punteggi.push({ famiglia: f, punti, trovate });
-  }
-  punteggi.sort((a, b) => b.punti - a.punti);
-  migliore = punteggi[0] || null;
-
-  // 3) se e' bodyweight, il livello e' assistito a prescindere
-  const eCorpo = corpo + trazioni + dip > 0;
-  if (eCorpo && (!migliore || (migliore.famiglia.livello !== 'assistito'))) {
-    const perche = trazioni || dip
-      ? 'e\' un esercizio col peso del corpo: si contano le ripetizioni'
-      : 'e\' un esercizio col peso del corpo: si contano le ripetizioni';
+  const conCarico = conta(testoLungo, 'bilanciere') + conta(testoLungo, 'barbell')
+    + conta(testoLungo, 'manubri') + conta(testoLungo, 'dumbbell') + conta(testoLungo, 'carico');
+  if (dettoCorpo > conCarico) {
     return {
       livello: 'assistito',
-      gruppo: (migliore && migliore.famiglia.gruppo) || 'corpo libero',
-      movimento: 'assistito',
-      confidenza: corpo + trazioni + dip >= 2 ? 'alta' : 'media',
-      motivi: [perche],
-      paroleRiconosciute: migliore ? migliore.trovate : [],
-      riconosciutoDa: 'corpo libero',
+      gruppo: 'corpo libero',
+      movimento: 'corpo_libero',
+      confidenza: 'alta',
+      pesoModificatori: 0,
+      motivi: ['è scritto che è col peso del corpo: si contano le ripetizioni, non i kg'],
+      paroleRiconosciute: ['bodyweight'],
+      riconosciutoDa: 'corpo_libero',
     };
   }
 
+  // ---- 1) che movimento e'? (parole lunghe + sigle)
+  const punteggi = [];
+  const perId = new Map();
+  for (const m of MOVIMENTI) {
+    let punti = 0;
+    const trovate = [];
+    for (const p of m.parole) {
+      const n = conta(testoLungo, p);
+      if (n === 0) continue;
+      // una frase vale piu' di una parola sola: "leg curl" batte "curl"
+      punti += n * (normalizza(p).includes(' ') ? 2 : 1);
+      trovate.push(p);
+    }
+    if (punti > 0) punteggi.push({ movimento: m, punti, trovate });
+  }
+  for (const [id, v] of votiDaSigle(testoLungo)) {
+    const gia = perId.get(id);
+    const M = MOV[id];
+    if (!M) continue;
+    if (gia) {
+      gia.punti += v.punti;
+      gia.trovate.push(...v.trovate);
+    } else {
+      const riga = { movimento: M, punti: v.punti, trovate: v.trovate };
+      punteggi.push(riga);
+      perId.set(id, riga);
+    }
+  }
+  punteggi.sort((a, b) => b.punti - a.punti);
+  const migliore = punteggi[0] || null;
+
+  // ---- se non capisco, LO DICO
   if (!migliore) {
     return {
       livello: 'composto',
       gruppo: 'altro',
       movimento: 'sconosciuto',
       confidenza: 'bassa',
-      motivi: ['dal nome non capisco che movimento e\': l\'ho messo come esercizio di forza. Se sbaglia, cambia il livello a mano.'],
+      pesoModificatori: 0,
+      motivi: ['dal nome non riconosco nessun movimento noto: l\'ho lasciato come esercizio di forza, ma correggilo a mano'],
       paroleRiconosciute: [],
       riconosciutoDa: 'nessuna parola nota',
     };
   }
 
-  // 4) gli accorgimenti spostano la difficolta'
-  let punti = 0;
+  // ---- 2) come e' fatto: gli accorgimenti
+  let peso = 0;
   const motivi = [];
-  // la convenzione scelta nel form vale come segno: non la conto anche se la
-  // parola e' nel nome, altrimenti "Lat Pulldown macchina" prendeva -2 due
-  // volte (-4) e finiva per scendere a isolamento
-  const giaContaConvenzione = convenzione ? convenzione.replace(/_/g, ' ') : null;
-  for (const a of ACCORGIMENTI) {
-    const n = conta(testo, a.parola);
-    if (n === 0 || a.effetto === 0) continue;
-    if (giaContaConvenzione && normalizza(giaContaConvenzione) === normalizza(a.parola)) {
-      motivi.push(a.perche);
-      continue; // gia' conta sotto, con la convenzione
+  const giaDaConvenzione = convenzione ? normalizza(convenzione.replace(/_/g, ' ')) : null;
+  const visti = new Set();
+
+  for (const mod of MODIFICATORI) {
+    for (const p of mod.parole) {
+      const n = conta(testoLungo, p);
+      if (n === 0) continue;
+      // non conto due volte la stessa cosa: la convenzione scelta gia' la conta
+      if (giaDaConvenzione && normalizza(giaDaConvenzione) === normalizza(p)) continue;
+      if (visti.has(mod.perche)) continue;
+      visti.add(mod.perche);
+      peso += mod.peso * n;
+      motivi.push(mod.perche);
     }
-    punti += a.effetto * n;
-    motivi.push(a.perche);
-  }
-  const convenzioneAiuta = { cavo_totali: -2, macchina: -2, per_manubrio: 1, dischi: -1, bilanciere: 0, assistenza: 2, corpo_libero: 2 };
-  if (convenzione && convenzioneAiuta[convenzione]) {
-    punti += convenzioneAiuta[convenzione];
-    motivi.push('convenzione del carico: ' + convenzione.replace('_', ' '));
   }
 
-  // La base viene dalla FAMIGLIA riconosciuta. Gli accorgimenti possono solo
-  // farla salire o scendere di UNO scalino, e solo se la somma e' forte:
-  // un movimento di forza resta composto anche se e' col cavo.
-  //
-  // "assistito" sta fuori da questa scala: e' un'altra cosa (si contano le
-  // ripetizioni), quindi se la famiglia e' quella ritorno subito e non lo
-  // faccio passare per "composto".
-  if (migliore.famiglia.livello === 'assistito') {
-    return {
-      livello: 'assistito',
-      gruppo: migliore.famiglia.gruppo,
-      movimento: migliore.famiglia.id,
-      confidenza: migliore.punti >= 2 ? 'alta' : 'media',
-      motivi: ['e\' un esercizio col peso del corpo: si contano le ripetizioni'],
-      paroleRiconosciute: migliore.trovate,
-      riconosciutoDa: migliore.famiglia.id,
-    };
+  const CONVENZIONE = {
+    macchina: -6, cavo_totali: -5, per_manubrio: 5, dischi: 0,
+    bilanciere: 0, assistenza: -8, corpo_libero: 0,
+  };
+  if (convenzione && CONVENZIONE[convenzione]) {
+    peso += CONVENZIONE[convenzione];
+    motivi.push('convenzione del carico scelta: ' + normalizz(convenzione));
   }
 
+  // ---- 3) il livello
   const ordine = ['isolamento', 'composto', 'grande'];
-  let i = ordine.indexOf(migliore.famiglia.livello);
-  if (i < 0) i = 1;
+  const base = migliore.movimento.livello;
 
-  // Se la famiglia e' gia' un isolamento, un accorgimento come "un braccio alla
-  // volta" non lo deve fare salire a "composto": resta un isolamento, solo
-  // piu' impegnativo. Solo un movimento di forza puo' salire di livello.
-  const puoSalire = i >= 1;
-  if (punti >= SOGLIA_CAMBIAMENTO && puoSalire) i = Math.min(ordine.length - 1, i + 1);
-  else if (punti <= -SOGLIA_CAMBIAMENTO) i = Math.max(0, i - 1);
+  if (base === 'assistito') {
+    // col peso del corpo si contano le ripetizioni: non e' un livello, e' un
+    // altro modo di misurare. Ma se aggiungi un sacco di peso, il carico torna
+    // a contare e l'esercizio si comporta come gli altri.
+    const resoAssistito = peso >= SOGLIA_CAMBIO;
+    if (!resoAssistito) {
+      return {
+        livello: 'assistito',
+        gruppo: migliore.movimento.gruppo,
+        movimento: migliore.movimento.id,
+        confidenza: migliore.punti >= 2 ? 'alta' : 'media',
+        pesoModificatori: peso,
+        motivi: ['e\' un esercizio col peso del corpo: si contano le ripetizioni'].concat(motivi),
+        paroleRiconosciute: migliore.trovate,
+        riconosciutoDa: migliore.movimento.id,
+      };
+    }
+  }
 
+  let i = Math.max(0, ordine.indexOf(base === 'assistito' ? 'composto' : base));
+  const motiviCambio = [];
+  // Due regole che ho imparato sbagliandole la prima volta:
+  //
+  // 1) NON si scende MAI di livello. "Sled Press" letto come "sled press calf
+  //    raise" scendeva a composto solo perché c'era la parola "calf raise".
+  //    Essere su una macchina rende un esercizio PIU' FACILE, non cambia di
+  //    che movimento è: la scala resta quella giusta, cambia solo quanto pesi.
+  //
+  // 2) solo i movimenti con i carichi piu' alti possono arrivare a "grande".
+  //    Una lat pulldown inclinata a un braccio sola è faticosissima, ma non
+  //    spinge 150 kg: resta "composto". Se la facessi salire, il rank
+  //    chiederebbe numeri daodysee.
+  if (peso >= SOGLIA_CAMBIO && base !== 'isolamento' && base !== 'assistito') {
+    if (base === 'grande') {
+      motiviCambio.push('resta "grande": i movimenti pesanti restano pesanti');
+    } else if (migliore.movimento.id === 'gambe_pesanti') {
+      i = ordine.length - 1;
+      motiviCambio.push(`l\'ho fatto salire a "grande" (gli accorgimenti valgono +${peso})`);
+    } else {
+      motiviCambio.push('resta "composto": è faticoso ma i carichi non sono da "grande"');
+    }
+  } else if (peso >= SOGLIA_CAMBIO && base === 'isolamento') {
+    motiviCambio.push('resta isolamento: un movimento piccolo non diventa esercizio di forza');
+  } else if (peso <= -SOGLIA_CAMBIO) {
+    motiviCambio.push('non cambio livello: macchina e cavo lo rendono solo più facile, non è un altro movimento');
+  }
   const livello = ordine[i];
 
-  const confidenza = migliore.punti >= 2 ? 'alta' : (migliore.punti === 1 ? 'media' : 'bassa');
+  const confidenza = migliore.punti >= 3 ? 'alta' : (migliore.punti === 2 ? 'media' : 'bassa');
 
   return {
     livello,
-    gruppo: migliore.famiglia.gruppo,
-    movimento: migliore.famiglia.id,
+    gruppo: migliore.movimento.gruppo,
+    movimento: migliore.movimento.id,
     confidenza,
-    motivi: [`riconosciuto come ${migliore.famiglia.id.replace(/_/g, ' ')}`].concat(motivi),
+    pesoModificatori: peso,
+    motivi: [`movimento riconosciuto: ${migliore.movimento.id.replace(/_/g, ' ')}`]
+      .concat(motivi, motiviCambio),
     paroleRiconosciute: migliore.trovate,
-    riconosciutoDa: migliore.famiglia.id,
+    riconosciutoDa: migliore.movimento.id,
   };
 }
 
-export const FAMIGLIE_CONOSCIUTE = FAMIGLIE.map((f) => ({ id: f.id, livello: f.livello, gruppo: f.gruppo }));
+function normalizz(s) {
+  return normalizza(String(s).replace(/_/g, ' '));
+}
+
+export const MOVIMENTI_CONOSCIUTI = MOVIMENTI.map((m) => ({ id: m.id, livello: m.livello, gruppo: m.gruppo }));
+export const MODIFICATORI_CONOSCIUTI = MODIFICATORI.length;
