@@ -280,23 +280,54 @@ export function rapportoDifficolta(esercizio) {
   if (!base || base.rapporto === null) return { rapporto: null, livello, spinta: 0, spiegazione: null };
 
   const nome = (esercizio && (esercizio.nome || esercizio.id)) || '';
+  const convenzione = (esercizio && esercizio.convenzione) || null;
   const parte = parteDiMuscolo({ nome });
   const intrinseco = intrinsecoDi(parte);
-  if (intrinseco === null) return { rapporto: base.rapporto, livello, spinta: 0, spiegazione: null };
 
-  const spinta = Math.max(0, intrinseco - 2);
-  if (spinta === 0) return { rapporto: base.rapporto, livello, spinta: 0, spiegazione: null };
+  // ---- l'attrezzatura
+  //
+  // Ste (04/10/2026), mostrando la foto: "ma non e' una panca, la chest press
+  // e' tipo questa". Ha ragione, e il difetto era grosso: il classificatore
+  // gia' sapeva che su una macchina e' piu' facile (pesoModificatori -6), ma
+  // quella informazione finiva in un cassetto. La soglia di una chest press a
+  // macchina era identica a quella di una panca con il bilanciere libero, ed e'
+  // falso: sulla macchina il busto e' appoggiato, il percorso e' guidato e la
+  // barra non ti puo' scivolare addosso. Lo stesso 44 kg li' sono piu' duri
+  // liberi che al cavo.
+  const riconosciuto = classificaEsercizio({ nome, convenzione });
+  const mod = riconosciuto.pesoModificatori || 0;
 
-  // ogni punto di spinta toglie il 6%: il laterale (spinta 4) scende del 24%
-  const rapporto = Math.round(base.rapporto * (1 - 0.06 * spinta) * 1000) / 1000;
+  // Ogni 10 punti di modificatore spostano la soglia del 4%. Il segno e'
+  // inverso rispetto al muscolo: un attrezzo che rende piu' facile (macchina,
+  // cavo, pesi -) ALZA la soglia, perche' impressionare e piu' difficile.
+  const correttivoAttrezzo = 1 - 0.004 * mod;
+
+  // ---- il muscolo
+  const spintaMuscolo = intrinseco === null ? 0 : Math.max(0, intrinseco - 2);
+
+  const spinta = spintaMuscolo;
+  const rapporto = Math.round(base.rapporto * correttivoAttrezzo * (1 - 0.06 * spintaMuscolo) * 1000) / 1000;
+
+  const spiegazioni = [];
+  if (mod !== 0) {
+    spiegazioni.push(mod < 0
+      ? `${nome}: attrezzo che aiuta, la soglia sale del ${Math.abs(Math.round(mod * 0.4))}%`
+      : `${nome}: attrezzo che rende più duro, la soglia scende del ${Math.round(mod * 0.4)}%`);
+  }
+  if (spintaMuscolo > 0) {
+    spiegazioni.push(`${parte.nome}: muscolo piccolo e instabile, la soglia scende del `
+      + `${Math.round(spintaMuscolo * 6)}%`);
+  }
+
   return {
     rapporto,
     livello,
     spinta,
+    spintaMuscolo,
+    modificatori: mod,
     intrinseco,
     parte,
-    spiegazione: `${parte.nome}: muscolo piccolo e instabile, la soglia scende del `
-      + `${Math.round(0.06 * spinta * 100)}%`,
+    spiegazione: spiegazioni.length ? spiegazioni.join(' · ') : null,
   };
 }
 

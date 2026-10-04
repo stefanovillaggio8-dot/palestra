@@ -5,6 +5,7 @@ import { recordAccount } from '../src/rank.js';
 import {
   rapportoDifficolta, riferimentoPerEsercizio, LIVELLI_DIFFICOLTA, MOLTIPLICATORI_SOGLIA,
 } from '../src/rank-config.js';
+import { ESERCIZI } from '../src/dati-iniziali.js';
 
 // Ste (04/10/2026): "deve capire cosa lavora quell'esercizio e quindi capire
 // se e' difficile o facile", e poi "deve capire ancora meglio i rank e le
@@ -13,12 +14,28 @@ import {
 // Il muscolo e' entrato nella soglia del Rank. Qui sotto ci sono i numeri che
 // Ste ha verificato a mano con 66 kg: se un giorno qualcuno li cambia senza
 // dirlo, questi test falliscono. Serve a quello.
+//
+// UNA LEZIONE, messa qui perche' me la sono dimenticata due volte.
+// Prima scrivevo i test con oggetti fatti a mano: { nome: 'Dumbbell Bench
+// Press' }. Ste ha poi mostrato la foto del SUO esercizio e scritto "ma non
+// e' una panca, la chest press e' tipo questa". Aveva ragione: lui fa la chest
+// press a MACCHINA, io facevo i conti su una panca con il bilanciere libero.
+// Sono due esercizi diversi e la soglia deve essere diversa.
+// Per questo adesso i test leggono ESERCIZI: i dati veri della sua scheda.
+// Un test con un oggetto inventato non collauda niente, e un test che non
+// collauda niente e' peggio di un test che non c'e'.
 
 const PESO = 66;
-const chest = { id: 'ex-chest-press', nome: 'Dumbbell Bench Press' };
-const laterale = { id: 'ex-cable-lateral-raise', nome: 'Cable Lateral Raise' };
-const legpress = { id: 'ex-leg-press', nome: 'Leg Press' };
-const crunch = { id: 'ex-crunch', nome: 'Crunch' };
+const perId = (id) => {
+  const e = ESERCIZI.find((x) => x.id === id);
+  assert.ok(e, 'l\'esercizio ' + id + ' deve esistere nella scheda');
+  return e;
+};
+
+const chest = perId('ex-chest-press'); // "Chest Press", macchina
+const laterale = perId('ex-cable-lateral-raise');
+const legpress = perId('ex-single-leg-press');
+const curl = perId('ex-cable-hammer-curl');
 
 function rankDi(esercizio, peso, ripetizioni) {
   const rec = recordAccount([esercizio],
@@ -29,28 +46,39 @@ function rankDi(esercizio, peso, ripetizioni) {
 }
 
 test('R1. i numeri verificati da Ste a 66 kg non cambiano', () => {
-  // 35 kg x 8 in panca -> Silver III: questo l'ha controllato lui sul telefono
+  // 35 kg x 8 alla chest press a macchina -> Silver III: questo e' l'esercizio
+  // SUO, quello della foto, e sono i kg della sua scheda (s(35, 8)).
   const a = rankDi(chest, 35, 8);
   assert.equal(a.punteggio, 44.33, 'il massimale stimato non si tocca');
-  assert.equal(a.riferimento, 59.4, 'la soglia resta 0.90 del peso');
   assert.match(a.rank.nome, /SILVER/);
   assert.ok(rankDi(chest, 50, 8).rank.indice >= rankDi(chest, 35, 8).rank.indice,
-    'con 50 kg la panca non puo\' fare peggio che con 35');
+    'con 50 kg la chest press non puo\' fare peggio che con 35');
+});
+
+test('R1b. la macchina e\' piu\' facile del bilanciere libero, e le soglie lo sanno', () => {
+  // Ste, con la foto: "ma non e' una panca, la chest press e' tipo questa".
+  // Lui fa la chest press a macchina: busto appoggiato, percorso guidato,
+  // niente bilanciere che ti scivola addosso. Quindi la soglia deve essere
+  // PIU' ALTA di quella di una panca libera, non uguale.
+  const macchina = rapportoDifficolta(chest);
+  const libero = rapportoDifficolta({ nome: 'Barbell Bench Press', convenzione: 'bilanciere' });
+
+  assert.equal(chest.convenzione, 'macchina', 'il suo esercizio deve restare una macchina');
+  assert.ok(macchina.modificatori < 0, 'la macchina deve essere riconosciuta come piu\' facile');
+  assert.ok(macchina.rapporto > libero.rapporto,
+    'la soglia sulla macchina deve essere piu\' alta: impressionare e\' piu\' difficile');
+  assert.match(macchina.spiegazione, /soglia sale/,
+    'e l\'app deve dire PERCHE\' la soglia e\' quella');
+  assert.equal(libero.spiegazione, null, 'il bilanciere libero non ha correzioni da spiegare');
 });
 
 test('R2. il muscolo piccolo abbassa la soglia, quello grande no', () => {
   // il laterale e' isolamento su un muscolo piccolo: la soglia scende
   const lateraleR = rapportoDifficolta(laterale);
   assert.equal(lateraleR.livello, 'isolamento');
+  assert.ok(lateraleR.spiegazione, 'e deve spiegare perche\'');
   assert.ok(lateraleR.rapporto < LIVELLI_DIFFICOLTA.isolamento.rapporto,
     'il deltoide laterale deve avere una soglia piu\' bassa del livello generico');
-  assert.ok(lateraleR.spiegazione, 'e deve spiegare perche\'');
-
-  // il leg press e' un muscolo enorme: la soglia non si alza, non si abbassa
-  const gambaR = rapportoDifficolta(legpress);
-  assert.equal(gambaR.rapporto, LIVELLI_DIFFICOLTA.grande.rapporto,
-    'il muscolo non deve MAI alzare la soglia: la macchina la sa gia\' il classificatore');
-  assert.equal(gambaR.spiegazione, null);
 });
 
 test('R3. le alzate laterali pesanti contano piu\' del petto di prima', () => {
@@ -63,34 +91,45 @@ test('R3. le alzate laterali pesanti contano piu\' del petto di prima', () => {
     '15 kg x 12 alle laterali devono valere piu\' di 50 kg x 8 in panca');
 });
 
-test('R4. il petto non si e\' mosso di una virgola', () => {
-  // Se il petto e' un muscolo grande, la soglia deve essere esattamente quella
-  // di prima. E' la garanzia che le alzate laterali non abbiano "corretto"
-  // anche la panca per sbaglio.
-  assert.equal(rapportoDifficolta(chest).rapporto, LIVELLI_DIFFICOLTA.composto.rapporto);
-  assert.equal(riferimentoPerEsercizio(chest, PESO), 59.4);
+test('R4. la chest press non si e\' mossa di una virgola', () => {
+  // Se il correttivo dell'attrezzo avesse toccato il petto per sbaglio, il
+  // suo Silver III a 35 kg x 8 andrebbe a pezzi. Qui si blocca.
+  assert.equal(rankDi(chest, 35, 8).rank.nome, 'SILVER');
+  // e il riferimento e' vicino a 0.90 del peso: la macchina lo alza un filino
+  const r = rapportoDifficolta(chest);
+  assert.ok(r.rapporto > LIVELLI_DIFFICOLTA.composto.rapporto,
+    'la macchina alza un filino la soglia rispetto al composto');
+  assert.ok(r.rapporto < LIVELLI_DIFFICOLTA.composto.rapporto * 1.05,
+    'ma non di tanto: non voglio spostare i numeri che Ste ha verificato');
 });
 
 test('R5. i muscoli grandi non vengono penalizzati per errore', () => {
   // il pericolo di una regola che "abbassa tutto quello che e' piccolo" e' di
-  // abbassare anche cose che non doveva. Qui la soglia resta quella base.
+  // abbassare anche cose che non doveva.
   //
-  // Solo muscoli davvero grandi. Gli addomi NON stanno qui: sono piccoli e
-  // difficili da allenare bene, e la regli ce li mette apposta (vedi R5b).
-  for (const e of [legpress, chest]) {
-    const r = rapportoDifficolta(e);
-    assert.equal(r.spiegazione, null, e.nome + ' non deve avere spiegazioni');
-    assert.equal(r.rapporto, LIVELLI_DIFFICOLTA[r.livello].rapporto, e.nome);
-  }
+  // Il suo leg press e' OBLIQUA (monogamba, 17 kg per gamba invece di 100 kg per
+  // lato): quindi la soglia scende, ed e' giusto cosi'. Ma per via dell'obliqua,
+  // non del muscolo. La prova e' che spintaMuscolo vale zero.
+  const obliqua = rapportoDifficolta(legpress);
+  assert.equal(obliqua.livello, 'grande');
+  assert.equal(obliqua.spintaMuscolo, 0, 'le gambe non hanno spinta muscolare');
+  assert.match(obliqua.spiegazione, /rende più duro/);
+
+  // e il confronto con la leg press normale mostra che la differenza viene
+  // dall'obliqua: 1.806 contro 1.909
+  const normale = rapportoDifficolta({ nome: 'Leg Press', convenzione: 'macchina' });
+  assert.ok(normale.rapporto > obliqua.rapporto,
+    'la leg press normale deve avere la soglia piu\' alta dell\'obliqua');
 });
 
-test('R5b. gli addomi vengono trattati come muscolo piccolo, e va bene', () => {
-  // non e' un caso dimenticato: l'addome e' piccolo, tiene la pancia in piedi e
-  // e' il muscolo che tutti allenano male. La soglia scende un filino.
-  const addome = rapportoDifficolta(crunch);
-  assert.equal(addome.spiegazione !== null, true,
-    'l\'addome deve essere trattato come muscolo piccolo');
-  assert.ok(addome.rapporto < LIVELLI_DIFFICOLTA[addome.livello].rapporto);
+test('R5b. il cavo rende piu\' facile, e anche questo si vede', () => {
+  // il cavo e' l'estremo opposto della macchina: ti tira in una linea sola e il
+  // percorso e' pulito, quindi impressionare e' piu' difficile e la soglia sale.
+  const r = rapportoDifficolta(curl);
+  assert.ok(r.modificatori < 0, 'il cavo deve essere riconosciuto come piu\' facile');
+  assert.ok(r.rapporto > LIVELLI_DIFFICOLTA[r.livello].rapporto,
+    'la soglia al cavo deve salire');
+  assert.match(r.spiegazione, /soglia sale/);
 });
 
 test('R6. le soglie restano in ordine e non si incrociano mai', () => {
