@@ -242,7 +242,7 @@ export function livelloEsercizio(esercizio) {
   if (convenzione === 'corpo_libero' || convenzione === 'assistenza') return 'assistito';
 
   // 3) altrimenti lo riconosce dal nome
-  return classificaEsercizio({ nome, convenzione }).livello;
+  return classificaEsercizio({ nome, convenzione, attrezzatura: (esercizio && esercizio.attrezzatura) || null }).livello;
 }
 
 /** Anche il gruppo muscolare, quando serve saperlo. */
@@ -294,7 +294,7 @@ export function rapportoDifficolta(esercizio) {
   // falso: sulla macchina il busto e' appoggiato, il percorso e' guidato e la
   // barra non ti puo' scivolare addosso. Lo stesso 44 kg li' sono piu' duri
   // liberi che al cavo.
-  const riconosciuto = classificaEsercizio({ nome, convenzione });
+  const riconosciuto = classificaEsercizio({ nome, convenzione, attrezzatura: (esercizio && esercizio.attrezzatura) || null });
   const mod = riconosciuto.pesoModificatori || 0;
 
   // Ogni 10 punti di modificatore spostano la soglia del 4%. Il segno e'
@@ -329,6 +329,29 @@ export function rapportoDifficolta(esercizio) {
     parte,
     spiegazione: spiegazioni.length ? spiegazioni.join(' · ') : null,
   };
+}
+
+// Ste (04/10/2026): "deve capire che sono 35kg per braccio per chest press di
+// petto, lo sa questo no?" No, e il buco era grosso.
+//
+// Su una macchina a dischi i dischi stanno su ENTRAMBI i bracci: 35 kg per
+// braccio sono 70 kg in tutto. Prima l'app prendeva 35 kg come se fossero 35 in
+// totale, quindi contava meta' del carico e il Rank veniva sotto. Non e' un
+// dettaglio da visualizzazione: e' il numero con cui l'app giudica quanto sei
+// forte, quindi sbagliarlo vuol dire sbagliare il Rank.
+//
+// Il totale si calcola una volta sola, qui, e non in mezzo ai calcoli: due posti
+// che moltiplicano per due sono due posti che possono dimenticarselo.
+const PER_CORPO = {
+  per_braccio: 2, // macchina a dischi: un disco per braccio
+  per_gamba: 2, // leg press obliqua: 17 kg per gamba
+  per_manubrio: 1, // 30 kg vuol dire 30 kg in UNA mano: li' il totale non e' il doppio
+  bilanciere: 1,
+};
+
+export function moltiplicatoreCarico(convenzione) {
+  const m = PER_CORPO[convenzione || ''];
+  return Number.isFinite(m) ? m : 1;
 }
 
 /**
@@ -574,9 +597,13 @@ export function profiloEsercizio(esercizio, extra = {}) {
     // tocca. Serve a profiloPerPesoCorporeo per non fare due calcoli diversi.
     riferimentoFisso: scritto,
     soglie,
-    coefficientAssistenza: Number.isFinite(Number(configurato.coefficientAssistenza))
+       coefficientAssistenza: Number.isFinite(Number(configurato.coefficientAssistenza))
       ? Number(configurato.coefficientAssistenza)
       : COEFFICIENTE_ASSISTENZA_DEFAULT,
+    // Ste: "35 kg per braccio". Il Rank usa il TOTALE, quindi qui c'e' il
+    // fattore da moltiplicare. Vedi moltiplicatoreCarico().
+    moltiplicatoreCarico: moltiplicatoreCarico(convenzione),
+    totaleDaMostrare: true,
   };
 }
 

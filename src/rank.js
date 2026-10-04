@@ -85,12 +85,25 @@ export function punteggioSerie(serie, profilo) {
   const assistenza = numero(serie.peso_assistenza);
 
   if (p.misura === M.KG_REPS) {
-    const stima = stimaMassimo(peso, rip);
+    // Ste (04/10/2026): "deve capire che sono 35 kg per braccio per chest press
+    // di petto, lo sa questo no?"
+    //
+    // No, e il conto era dimezzato. Su una macchina a dischi i dischi stanno su
+    // entrambi i bracci: 35 kg per braccio sono 70 kg, non 35. Il Rank usava 35.
+    //
+    // Il totale si calcola QUI e da nessun'altra parte: e' il numero che decide il
+    // Rank, quindi se il fattore lo moltiplicasse un altro pezzo di codice i due
+    // posti potrebbero non essere d'accordo, e il Rank dipenderebbe da quale dei
+    // due hai chiesto per primo.
+    const fattore = Number.isFinite(Number(p.moltiplicatoreCarico)) ? Number(p.moltiplicatoreCarico) : 1;
+    const totale = fattore > 1 ? Math.round(peso * fattore * 100) / 100 : peso;
+    const stima = stimaMassimo(totale, rip);
     if (stima === null) return { ...vuoto, motivo: 'mancano i kg o le ripetizioni' };
-    // Ste (04/10/2026): "vuol dire che il mio massimale e' 44.33? se si' scrivi
-    // massimale non stima". Aveva ragione: e' il massimale, e con un termine
-    // tecnico non si capisce cosa sia. Quindi: massimale.
-    return { valido: true, punteggio: stima, testo: `${serie.peso} kg x ${serie.ripetizioni} (massimale ${stima} kg)`, tipo: 'stima' };
+    // Ste: "vuol dire che il mio massimale e' 44.33? se si' scrivi massimale non
+    // stima". Aveva ragione: e' il massimale, e con un termine tecnico non si
+    // capisce cosa sia. Quindi: massimale.
+    const perLato = fattore > 1 ? ` per lato, totale ${totale} kg` : '';
+    return { valido: true, punteggio: stima, testo: `${serie.peso} kg${perLato} x ${serie.ripetizioni} (massimale ${stima} kg)`, tipo: 'stima' };
   }
 
   if (p.misura === M.SOLO_REPS) {

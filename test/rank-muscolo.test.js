@@ -45,14 +45,23 @@ function rankDi(esercizio, peso, ripetizioni) {
   return { punteggio: x.punteggio, riferimento: x.profilo.riferimento, rank: x.rank, testo: x.testo };
 }
 
-test('R1. i numeri verificati da Ste a 66 kg non cambiano', () => {
-  // 35 kg x 8 alla chest press a macchina -> Silver III: questo e' l'esercizio
-  // SUO, quello della foto, e sono i kg della sua scheda (s(35, 8)).
+test('R1. 35 kg per braccio sono 70 kg, e il Rank lo deve sapere', () => {
+  // Ste (04/10/2026): "ma deve capire che sono 35kg per braccio per chest press
+  // di petto, lo sa questo no?"
+  //
+  // No. E questo test era LA LEZIONE, perche' fino a un momento fa diceva
+  // l'opposto: "35 kg x 8 -> SILVER III, il massimale non si tocca". Quel numero
+  // era sbagliato, e non per un dettaglio: la macchina a dischi ha i dischi su
+  // ENTRAMBI i bracci, quindi 35 kg per braccio sono 70 kg. L'app contava 35 e
+  // dimezzava tutto.
+  //
+  // Quindi il test non puo' piu' dire "non si tocca": deve dire il numero vero.
   const a = rankDi(chest, 35, 8);
-  assert.equal(a.punteggio, 44.33, 'il massimale stimato non si tocca');
-  assert.match(a.rank.nome, /SILVER/);
-  assert.ok(rankDi(chest, 50, 8).rank.indice >= rankDi(chest, 35, 8).rank.indice,
-    'con 50 kg la chest press non puo\' fare peggio che con 35');
+  assert.equal(a.punteggio, 88.67, '70 kg x 8 -> il massimale e\' 88.67, non 44.33');
+  assert.match(a.testo, /totale 70 kg/, 'e la riga deve dire che il totale e\' 70');
+  assert.equal(a.rank.nome, 'OLYMPIAN');
+  assert.ok(rankDi(chest, 50, 8).rank.indice >= a.rank.indice,
+    'con 50 kg per braccio non puo\' fare peggio che con 35');
 });
 
 test('R1b. una macchina a DISCHI non e\' la macchina facile', () => {
@@ -64,16 +73,36 @@ test('R1b. una macchina a DISCHI non e\' la macchina facile', () => {
   // bilanciato.
   //
   // Nella v38 avevo dato -6 a TUTTE le macchine: quello gonfiava il suo Rank.
+  //
+  // Nota la convenzione: il suo esercizio ora ha convenzione per_braccio e
+  // attrezzatura macchina_dischi. Sono due campi apposta, perche' con uno solo
+  // dei due si perdeva: o la macchina, o il "per braccio".
   const dischi = rapportoDifficolta(chest);
-  const stack = rapportoDifficolta({ ...chest, convenzione: 'macchina_stack' });
-  const libero = rapportoDifficolta({ ...chest, convenzione: 'bilanciere' });
+  const stack = rapportoDifficolta({ ...chest, attrezzatura: 'macchina_stack', convenzione: 'macchina' });
+  const libero = rapportoDifficolta({ ...chest, convenzione: 'bilanciere', attrezzatura: null });
 
-  assert.equal(chest.convenzione, 'macchina_dischi', 'il suo esercizio e\' a dischi');
+  assert.equal(chest.convenzione, 'per_braccio', 'i kg sono per braccio');
+  assert.equal(chest.attrezzatura, 'macchina_dischi', 'e la macchina e\' a dischi');
   assert.ok(dischi.rapporto > libero.rapporto,
     'la macchina a dischi resta un filo piu\' facile del bilanciere, ma non di piu\'');
   assert.ok(stack.rapporto > dischi.rapporto,
     'lo stack deve avere la soglia piu\' alta della macchina a dischi');
   assert.ok(stack.modificatori < dischi.modificatori);
+});
+
+test('R1c. "per braccio" e "macchina a dischi" non si perdono a vicenda', () => {
+  // Il buco vero di oggi: la convenzione poteva dire SOLO "macchina a dischi"
+  // (e perdevi il totale) o SOLO "per braccio" (e perdevi il fatto che e' una
+  // macchina a dischi). Se tornassero a essere un campo solo, questi due assert
+  // fallirebbero: e devono fallire, perche' significa che la macchina si e'
+  // persa.
+  const prof = recordAccount([chest],
+    [{ esercizio_id: chest.id, serie: [{ id: 's', peso: 35, ripetizioni: 8, stato: 'fatta' }] }],
+    { pesoAttuale: PESO })[0].profilo;
+  assert.equal(prof.moltiplicatoreCarico, 2, 'deve sapere di raddoppiare per il Rank');
+  const r = rapportoDifficolta(chest);
+  assert.ok(r.spiegazione && /attrezzo/.test(r.spiegazione),
+    'e deve ancora spiegare che e\' una macchina a dischi, non un bilanciere');
 });
 
 test('R2. il muscolo piccolo abbassa la soglia, quello grande no', () => {
@@ -85,25 +114,33 @@ test('R2. il muscolo piccolo abbassa la soglia, quello grande no', () => {
     'il deltoide laterale deve avere una soglia piu\' bassa del livello generico');
 });
 
-test('R3. le alzate laterali pesanti contano piu\' del petto di prima', () => {
-  // Questa e' la cosa che Ste voleva. Prima 15 kg x 12 alle laterali valevano
-  // meno di 50 kg x 8 in panca, il che era assurdo: 15 kg su un muscolo che ti
-  // tiene in equilibrio sono piu' duri di 50 kg di panca.
-  const lateraleR = rankDi(laterale, 15, 12);
-  const chestR = rankDi(chest, 50, 8);
-  assert.ok(lateraleR.rank.indice > chestR.rank.indice,
-    '15 kg x 12 alle laterali devono valere piu\' di 50 kg x 8 in panca');
+test('R3. il laterale pesante conta piu\' di un petto leggero', () => {
+  // Prima questo test confrontava 15 kg x 12 alle laterali con 50 kg x 8 in
+  // panca. Ora non e' piu' confrontabile: la panca e' per braccio, quindi 50 kg
+  // per braccio sono 100 kg. Il confronto che volevo verificare era pero' un
+  // altro, e regge: il laterale e' un muscolo instabile, quindi a parita' di
+  // percentuale sul proprio riferimento va piu' in alto del petto, che e' un
+  // muscolo grande.
+  const lateraleR = rankDi(laterale, 25, 7); // i suoi kg veri dalla scheda
+  const pettoR = rankDi(chest, 35, 8);
+  const percLaterale = lateraleR.punteggio / lateraleR.riferimento;
+  const percPetto = pettoR.punteggio / pettoR.riferimento;
+  assert.ok(percLaterale > percPetto,
+    'sul laterale arriva piu\' in alto della soglia che sul petto: il muscolo conta');
+  assert.equal(lateraleR.rank.nome, 'OLYMPIAN');
 });
 
-test('R4. la chest press non si e\' mossa di una virgola', () => {
-  // Se il correttivo dell'attrezzo avesse toccato il petto per sbaglio, il
-  // suo Silver III a 35 kg x 8 andrebbe a pezzi. Qui si blocca.
-  assert.equal(rankDi(chest, 35, 8).rank.nome, 'SILVER');
+test('R4. la soglia della chest press e\' quella giusta', () => {
+  // Il correttivo dell'attrezzatura non deve spostare la soglia piu' del dovuto:
+  // la macchina a dischi vale -2, e il petto non aggiunge niente perche' e' un
+  // muscolo grande. Se un giorno questo test fallisce, o l'attrezzatura sta
+  // contando due volte, o il muscolo ha iniziato a penalizzare il petto.
   const r = rapportoDifficolta(chest);
   assert.ok(r.rapporto >= LIVELLI_DIFFICOLTA.composto.rapporto,
     'la macchina a dischi alza un filino la soglia rispetto al composto');
   assert.ok(r.rapporto < LIVELLI_DIFFICOLTA.composto.rapporto * 1.02,
-    'ma non di tanto: non voglio spostare i numeri che Ste ha verificato');
+    'ma non di tanto');
+  assert.equal(r.spintaMuscolo, 0, 'il petto non e\' un muscolo piccolo: zero spinta');
 });
 
 test('R5. i muscoli grandi non vengono penalizzati per errore', () => {
@@ -116,11 +153,20 @@ test('R5. i muscoli grandi non vengono penalizzati per errore', () => {
   const obliqua = rapportoDifficolta(legpress);
   assert.equal(obliqua.livello, 'grande');
   assert.equal(obliqua.spintaMuscolo, 0, 'le gambe non hanno spinta muscolare');
-  assert.match(obliqua.spiegazione, /rende più duro/);
 
-  // e il confronto con la leg press normale mostra che la differenza viene
-  // dall'obliqua: 1.806 contro 1.909
-  const normale = rapportoDifficolta({ nome: 'Leg Press', convenzione: 'macchina' });
+  // Qui c'e' una cancellazione, ed e' voluta. La leg press obliqua e' un
+  // movimento piu' difficile (+6 perche' una gamba sola), pero' e' su una
+  // macchina a stack (-6 perche' il cavo e' gia' bilanciato). +6 e -6 si
+  // annullano, quindi la soglia resta quella di base e non c'e' niente da
+  // spiegare. Non e' un bug: e' la stessa cosa che hai visto con la chest press
+  // a dischi, dove il percorso guidato (+ comodo) e l'equilibrio da fare si
+  // compensavano a meta'.
+  assert.equal(obliqua.modificatori, 0, 'obliqua e stack si compensano esattamente');
+  assert.equal(obliqua.spiegazione, null, 'quindi non c\'e\' niente da spiegare');
+
+  // il confronto con la leg press normale resta comunque utile: la differenza
+  // la fa l'obliqua piu' il carico, non il muscolo
+  const normale = rapportoDifficolta({ nome: 'Leg Press', attrezzatura: 'macchina_stack', convenzione: 'macchina' });
   assert.ok(normale.rapporto > obliqua.rapporto,
     'la leg press normale deve avere la soglia piu\' alta dell\'obliqua');
 });

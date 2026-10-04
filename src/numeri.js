@@ -10,21 +10,41 @@ export const MAX_DECIMALI = 2;
 
 export const CONVENZIONI = {
   MACCHINA: 'macchina',
-  // Ste (04/10/2026), con due foto: "il macchinario e' piu' facile solo se c'e'
-  // questo, nella mia chest press si mettono i pesi reali".
+  // Ste (04/10/2026): "ma deve capire che sono 35kg per braccio per chest press
+  // di petto, lo sa questo no?"
   //
-  // Ha ragione, ed e' una distinzione che mancava del tutto. Non tutte le
-  // macchine sono uguali, e una macchina con i DISCHI montati non e' la macchina
-  // facile: i dischi sono pesi veri e sbilanciati, se i due lati non sono uguali
-  // la macchina si stampa e ti devi arrangiare a tenere dritto. Quello che e'
-  // davvero facile e' lo STACK, il pacco di dischi piccoli con la linguetta: la
-  // resistenza e' un cavo, e' gia' bilanciata prima ancora che tu ti muovi.
+  // No, e il buco era grosso. Su una macchina a dischi i dischi si montano su
+  // ENTRAMBI i bracci: 35 kg per braccio vuol dire 70 kg in totale. L'app
+  // prendeva 35 kg come se fossero 35 in totale, quindi contava meta' del carico
+  // e il Rank veniva sotto. Non e' un dettaglio da visualizzazione: e' il numero
+  // con cui l'app giudica quanto sei forte, quindi sbagliarlo vuol dire
+  // sbagliare il Rank.
+  //
+  // Esiste gia' PER_GAMBA per lo stesso motivo (17 kg per gamba sulla leg press
+  // obliqua), ma mancava il caso del braccio, che e' quello delle macchine a
+  // dischi.
+  PER_BRACCIO: 'per_braccio',
+  // "macchina a dischi" non puo' stare in convenzione PERCHE' li' ci vuole anche
+  // "per braccio": due informazioni diverse, e prima che le ho separate la
+  // macchina si perdeva. Percio' l'attrezzatura e' un campo per conto suo.
   MACCHINA_DISCHI: 'macchina_dischi',
   MACCHINA_STACK: 'macchina_stack',
   CAVO: 'cavo_totali',
   PER_MANUBRIO: 'per_manubrio',
   DISCHI: 'dischi',
   PER_GAMBA: 'per_gamba',
+  // Ste (04/10/2026): "ma deve capire che sono 35kg per braccio per chest press
+  // di petto, lo sa questo no?"
+  //
+  // No, non lo sapeva, ed era un buco grosso. Su una macchina a dischi i
+  // dischi si montano su ENTRAMBI i bracci: 35 kg per braccio vuol dire 70 kg
+  // in totale. L'app prendeva 35 kg come se fossero 35 in totale, quindi
+  // contava metta' del carico e il Rank era sbagliato in basso.
+  //
+  // Esiste gia' PER_GAMBA per lo stesso motivo (17 kg per gamba sulla leg press
+  // obliqua), ma mancava il caso del braccio, che e' quello delle macchine a
+  // dischi.
+  PER_BRACCIO: 'per_braccio',
   BILANCIERE: 'bilanciere',
   ASSISTENZA: 'assistenza',
   CORPO_LIBERO: 'corpo_libero',
@@ -39,6 +59,7 @@ export const ETICHETTE_CONVENZIONE = {
   [CONVENZIONI.PER_MANUBRIO]: 'kg per manubrio',
   [CONVENZIONI.DISCHI]: 'kg dischi (senza bilanciere)',
   [CONVENZIONI.PER_GAMBA]: 'kg per gamba',
+  [CONVENZIONI.PER_BRACCIO]: 'kg per braccio (totale = doppio)',
   [CONVENZIONI.BILANCIERE]: 'kg bilanciere',
   [CONVENZIONI.ASSISTENZA]: 'kg di assistenza (corpo libero)',
   [CONVENZIONI.CORPO_LIBERO]: 'corpo libero',

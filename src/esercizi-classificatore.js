@@ -292,7 +292,7 @@ function ricorda(chiave, valore) {
   CACHE.set(chiave, valore);
 }
 
-export function classificaEsercizio({ nome = '', descrizione = '', convenzione = null } = {}) {
+export function classificaEsercizio({ nome = '', descrizione = '', convenzione = null, attrezzatura = null } = {}) {
   const chiave = nome + ' ' + descrizione + ' ' + (convenzione || '');
   const gia = CACHE.get(chiave);
   if (gia !== undefined) return gia;
@@ -399,13 +399,24 @@ export function classificaEsercizio({ nome = '', descrizione = '', convenzione =
   // o stack, la scelta onesta e' NON dare per scontato che sia facile. Prima
   // davo -6 e gli gonfiavo il Rank: peggio che sbagliarsi in eccesso.
   const CONVENZIONE = {
-    macchina: -2, macchina_dischi: -2, macchina_stack: -6,
+    // 'macchina' da sola vale 0 perche' da sola non dice niente: e' la
+    // convenzione che dice COME sono i kg (piastre, pacco, per braccio), e il
+    // campo attrezzatura dice che tipo di macchina e'. Se anche 'macchina'
+    // contasse un peso, sulle macchine a stack si conterebbe due volte.
+    macchina: 0, macchina_dischi: -2, macchina_stack: -6, per_braccio: 0,
     cavo_totali: -5, per_manubrio: 5, dischi: 0,
     bilanciere: 0, assistenza: -8, corpo_libero: 0,
   };
   if (convenzione && CONVENZIONE[convenzione]) {
     peso += CONVENZIONE[convenzione];
     motivi.push('convenzione del carico scelta: ' + normalizz(convenzione));
+  }
+  // L'attrezzatura sta in un campo separato perche' la convenzione dice gia'
+  // "per braccio": senza i due campi separati, o la macchina a dischi si perde o
+  // si perde il "35 kg per braccio". Uno dei due, non entrambi.
+  if (attrezzatura && CONVENZIONE[attrezzatura]) {
+    peso += CONVENZIONE[attrezzatura];
+    motivi.push('attrezzatura: ' + normalizz(attrezzatura));
   }
 
   // ---- 3) il livello
