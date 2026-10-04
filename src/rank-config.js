@@ -85,26 +85,17 @@ export const CAMPO_MISURA = {
 /**
  * x il riferimento: bronze, silver, gold, platinum(=1), diamond, titan, olympian.
  *
- * Ste (04/10/2026): "il posizionamento del grado deve variare per esercizio,
- * ci sono esercizi piu' difficili e piu' facili. Con la chest press 35 kg x 8
- * mi sembra poco argento 3, o no?"
+ * Ste (04/10/2026), due volte sulla stessa cosa:
+ *  - "il posizionamento del grado deve variare per esercizio, ci sono esercizi
+ *    piu' difficili e piu' facili tipo con la chest press 35 kg x 8 mi sembra
+ *    poco argento 3 o no?"  -> l'argento deve arrivare con una serie normale
+ *  - poi, sapendo che pesa 66 kg: la stessa 35x8 doveva dargli ARGENTO 3
  *
- * Aveva ragione: la scala era troppo ripida all'inizio. Con i vecchi valori
- * (0.55, 0.72, 0.88) una chest press 35x8 finiva a BRONZE, e per arrivare
- * all'ARGENTO serviva un salto grosso.
- *
- * Adesso i primi gradini sono piu' vicini fra loro e il platino resta lontano:
- *   - si entra in BRONZO presto (40% del riferimento), cosi' la prima medaglia
- *     arriva subito e non resta tutto grigio;
- *   - l'ARGENTO si prende con il 58%: e' il salto vero, e li arriva chi
- *     spinge con criterio (una chest press 35x8 ci arriva);
- *   - l'ORO richiede il 79%: è impegnativo ma non assurdo;
- *   - il PLATINUM resta al 100% del riferimento, e sopra crescono ancora.
- *
- * Ogni esercizio ha comunque il SUO riferimento (più difficile la chest press
- * di un raise), quindi la scala è diversa esercizio per esercizio.
+ * Quindi: l'oro resta impegnativo (88%), il platino è il traguardo (100%), e
+ * l'argento è il salto vero ma raggiungibile con una serie onesta. Il bronzo
+ * è il gradino d'ingresso, non un premio.
  */
-export const MOLTIPLICATORI_SOGLIA = [0.40, 0.58, 0.79, 1.00, 1.22, 1.52, 1.90];
+export const MOLTIPLICATORI_SOGLIA = [0.50, 0.72, 0.88, 1.00, 1.22, 1.52, 1.90];
 
 /** Sotto questa soglia non c'e' rank: l'esercizio e' "non ancora valutato". */
 export const SOGLIA_MINIMA_ASSOLUTA = 0.0001;
@@ -121,6 +112,117 @@ export function spessoreSoglia(profilo, indiceRank) {
   const sopra = soglie[i + 1];
   if (sopra === undefined || sopra <= sotto) return 1;
   return sopra - sotto;
+}
+
+// ---------------------------------------------------------------------------
+// 3 bis. Quanto e' difficile l'esercizio.
+//
+// Ste (04/10/2026): "i rank per ogni esercizio devono adattarsi al tipo di
+// esercizio, se e' difficile, facile, medio. Tipo alzate laterali e'
+// difficile quindi anche un carico basso puo' essere tanto".
+//
+// Ha ragione, ed e' il punto che mancava: avevo scritto 27 numeri a mano e non
+// si capiva da dove venissero. Ora ogni esercizio ha un LIVELLO di difficolta'
+// e il suo riferimento nasce da li'.
+//
+// I rapporti dicono quanto vale il PLATINUM in rapporto al peso della persona:
+// sull'esercizio grande e forte (leg press) vale circa il doppio del peso, su
+// un esercizio vero di palestra circa il peso, e su un isolamento circa un
+// quarto. E' esattamente il punto di Ste: sulle alzate laterali un carico
+// basso e' gia' tanto.
+// ---------------------------------------------------------------------------
+
+export const LIVELLI_DIFFICOLTA = {
+  grande:     { id: 'grande',     nome: 'GRANDE',     rapporto: 1.85 },
+  composto:   { id: 'composto',   nome: 'COMPOSTO',   rapporto: 0.90 },
+  isolamento: { id: 'isolamento', nome: 'ISOLAMENTO', rapporto: 0.34 },
+  assistito:  { id: 'assistito',  nome: 'ASSISTITO',  rapporto: null },
+};
+
+/**
+ * Il livello di ogni esercizio.
+ *   grande     = carichi pesanti, movimento facilitato (leg press, sled, row)
+ *   composto   = i veri esercizi di palestra (press, pulldown, shoulder press)
+ *   isolamento = un muscolo solo e carico basso (lateral raise, curl, pushdown)
+ *   assistito  = trazioni e dip: il riferimento sono le ripetizioni pulite
+ */
+export const LIVELLO_ESERCIZI = {
+  'ex-chest-press': 'composto',
+  'ex-cable-hammer-curl': 'isolamento',
+  'ex-cable-lateral-raise': 'isolamento',
+  'ex-cable-overhead-tricep': 'isolamento',
+  'ex-leg-extension': 'isolamento',
+  'ex-neutral-grip-lat-pulldown': 'grande',
+  'ex-dumbbell-bench-pull': 'isolamento',
+  'ex-seated-db-shoulder-press': 'composto',
+  'ex-cable-fly': 'isolamento',
+  'ex-scott-bench-curl': 'isolamento',
+  'ex-single-arm-tricep-pushdown': 'isolamento',
+  'ex-seated-leg-curl': 'grande',
+  'ex-smith-incline-bench': 'composto',
+  'ex-seated-cable-row': 'grande',
+  'ex-chest-supported-shrug': 'isolamento',
+  'ex-sled-press-calf-raise': 'grande',
+  'ex-single-leg-press': 'isolamento',
+  'ex-one-arm-preacher-curl': 'isolamento',
+  'ex-one-arm-cable-reverse-fly': 'isolamento',
+  'ex-wrist-curl': 'isolamento',
+  'ex-iso-lateral-row': 'grande',
+  'ex-lat-pulldown-lats': 'grande',
+  'ex-db-lateral-raise': 'isolamento',
+  'ex-lying-cable-curl': 'composto',
+  'ex-bodyweight-overhead-tricep': 'assistito',
+  'ex-pull-ups': 'assistito',
+  'ex-dips': 'assistito',
+};
+
+/**
+ * Come si spiega il livello di un esercizio, in italiano semplice.
+ *
+ * Serve perché il numero da solo non dice niente: 12 kg su un esercizio di
+ * isolamento sono tantissimi, e 12 kg su un leg press sono niente.
+ * Ste: "tipo alzate laterali e' difficile quindi anche un carico basso puo'
+ * essere tanto".
+ */
+export function descrizioneLivello(livello) {
+  const d = LIVELLI_DIFFICOLTA[livello] || LIVELLI_DIFFICOLTA.composto;
+  if (livello === 'isolamento') {
+    return 'ISOLAMENTO · carico basso, ma il muscolo lavora tanto';
+  }
+  if (livello === 'grande') {
+    return 'GRANDE · carichi alti, movimento facilitato';
+  }
+  if (livello === 'assistito') {
+    return 'ASSISTITO · contano le ripetizioni, non i kg';
+  }
+  return 'COMPOSTO · esercizio di forza vero, qui contano i kg';
+}
+
+/** Il livello di un esercizio; se non e' in elenco lo deduco dalla convenzione. */
+export function livelloEsercizio(esercizio) {
+  const id = (esercizio && esercizio.id) || '';
+  const convenzione = (esercizio && esercizio.convenzione) || null;
+  const noto = LIVELLO_ESERCIZI[id];
+  if (noto) return noto;
+  if (convenzione === 'corpo_libero' || convenzione === 'assistenza') return 'assistito';
+  return 'composto';
+}
+
+/**
+ * Il riferimento PLATINUM di un esercizio, legato al peso della persona.
+ *
+ * Se il peso non c'e' uso il numero storico (valutato su una persona da 70 kg),
+ * cosi' l'app resta usabile anche senza aver mai segnato il peso.
+ */
+export function riferimentoPerEsercizio(esercizio, pesoCorporeo = null, { storico = null } = {}) {
+  const rapporto = LIVELLI_DIFFICOLTA[livelloEsercizio(esercizio)].rapporto;
+  if (rapporto === null) {
+    return Number(storico) > 0 ? Number(storico) : (RIFERIMENTO_DEFAULT[MISURE.SOLO_REPS] || 12);
+  }
+  const peso = pesoCorporeoValido(pesoCorporeo);
+  if (peso) return Math.round(rapporto * peso * 100) / 100;
+  if (Number(storico) > 0) return Number(storico);
+  return Math.round(rapporto * PESO_RIFERIMENTO * 100) / 100;
 }
 
 // ---------------------------------------------------------------------------
@@ -147,42 +249,20 @@ export const RIFERIMENTO_DEFAULT = {
 export const COEFFICIENTE_ASSISTENZA_DEFAULT = 0.5;
 
 /**
- * I profili dei singoli esercizi.
- * Il numero e' il PUNTEGGIO di un livello PLATINUM per quell'esercizio:
- * per il Chest Press (kg + ripetizioni) il punteggio e' una stima del massimo
- * cheriesci a spingere in una ripetizione, quindi 65 vuol dire che 65 kg
- * stimati sono il livello platino.
- * Per un esercizio a sole ripetizioni il riferimento sono le ripetizioni.
+ * I profili dei singoli esercizio: qui ci sono solo le personalita' che NON
+ * si ricavano dal livello di difficolta'.
+ *
+ * Il riferimento PLATINUM NON e' piu' scritto qui: nasce da
+ * LIVELLO_ESERCIZI + il peso della persona (vedi riferimentoPerEsercizio).
+ * Ste: "i rank per ogni esercizio devono adattarsi al tipo di esercizio, se e'
+ * difficile, facile, medio. Tipo alzate laterali e' difficile quindi anche un
+ * carico basso puo' essere tanto".
+ *
+ * Se un giorno un esercizio ha bisogno di un numero suo, si mette qui
+ * `{ riferimento: 123 }` e vince lui.
  */
 export const PROFILI = {
-  'ex-chest-press':                 { riferimento: 65 },
-  'ex-cable-hammer-curl':           { riferimento: 70 },
-  'ex-cable-lateral-raise':         { riferimento: 30 },
-  'ex-cable-overhead-tricep':       { riferimento: 75 },
-  'ex-leg-extension':               { riferimento: 110 },
-  'ex-neutral-grip-lat-pulldown':   { riferimento: 130 },
-  'ex-dumbbell-bench-pull':         { riferimento: 70 },
-  'ex-seated-db-shoulder-press':    { riferimento: 50 },
-  'ex-cable-fly':                   { riferimento: 55 },
-  'ex-scott-bench-curl':            { riferimento: 32 },
-  'ex-single-arm-tricep-pushdown':  { riferimento: 65 },
-  'ex-seated-leg-curl':             { riferimento: 110 },
-  'ex-smith-incline-bench':         { riferimento: 55 },
-  'ex-seated-cable-row':            { riferimento: 135 },
-  'ex-chest-supported-shrug':       { riferimento: 70 },
-  'ex-sled-press-calf-raise':       { riferimento: 160 },
-  'ex-single-leg-press':            { riferimento: 35 },
-  'ex-one-arm-preacher-curl':       { riferimento: 30 },
-  'ex-one-arm-cable-reverse-fly':   { riferimento: 40 },
-  'ex-wrist-curl':                  { riferimento: 38 },
-  'ex-iso-lateral-row':             { riferimento: 110 },
-  'ex-lat-pulldown-lats':           { riferimento: 130 },
-  'ex-db-lateral-raise':            { riferimento: 20 },
-  'ex-lying-cable-curl':            { riferimento: 60 },
-  // assistiti: il riferimento sono le ripetizioni pulite
-  'ex-bodyweight-overhead-tricep':  { riferimento: 12 },
-  'ex-pull-ups':                    { riferimento: 12 },
-  'ex-dips':                        { riferimento: 15 },
+  // (nessun riferimento fisso: li decide il livello)
 };
 
 /** Le sette soglie di un esercizio, calcolate dal suo riferimento. */
@@ -239,17 +319,56 @@ export function profiloPerPesoCorporeo(profilo, pesoCorporeo) {
   const p = profilo || profiloEsercizio(null);
   const peso = pesoCorporeoValido(pesoCorporeo);
   const usa = !!MISURE_CON_PESO[p.misura];
-  if (!peso || !usa) {
-    return { ...p, soglie: p.soglie, pesoCorporeo: peso, pesoConsiderato: false };
+  const livello = livelloEsercizio({ id: p.id, convenzione: p.assistito ? 'assistenza' : null });
+
+  if (!usa) {
+    // trazioni, dip, plank: il riferimento sono le ripetizioni e non dipende
+    // dal peso, quindi le soglie restano quelle del profilo
+    return {
+      ...p,
+      livello,
+      soglie: p.soglie,
+      pesoCorporeo: peso,
+      pesoConsiderato: false,
+    };
   }
-  const fattore = peso / PESO_RIFERIMENTO;
+
+  // Due casi, e vanno tenuti separati (il bug che avevo: li tenevo uniti e il
+  // riferimento diceva 63 mentre le soglie erano fatte su 59.4, quindi il
+  // giudizio "quanto ho fatto" era sbagliato):
+  //
+  //  - riferimento FISSO: qualcuno l'ha scritto a mano. Vince lui, e le soglie
+  //    si riscalano sul peso come prima.
+  //  - riferimento DA LIVELLO: non l'ha scritto nessuno. Allora il riferimento
+  //    e' rapporto x peso della persona e le soglie nascono da quel numero.
+  let riferimento;
+  let soglie;
+  if (p.riferimentoFisso) {
+    riferimento = p.riferimento;
+    soglie = p.soglie.map((s) => Math.round(s * (peso / PESO_RIFERIMENTO) * 100) / 100);
+  } else {
+    riferimento = riferimentoPerEsercizio({ id: p.id, convenzione: p.assistito ? 'assistenza' : null }, peso);
+    soglie = soglieDaRiferimento(riferimento);
+  }
+  if (!peso) {
+    // nessun peso: il profilo resta come com'e'
+    return { ...p, livello, pesoCorporeo: null, pesoConsiderato: false };
+  }
+
   return {
     ...p,
-    soglie: p.soglie.map((s) => Math.round(s * fattore * 100) / 100),
+    riferimento,
+    soglie,
+    livello,
     pesoCorporeo: peso,
     pesoConsiderato: true,
-    fattorePeso: Math.round(fattore * 1000) / 1000,
+    fattorePeso: Math.round((peso / PESO_RIFERIMENTO) * 1000) / 1000,
   };
+}
+
+/** Il riferimento di riserva per una misura, quando nessuno lo ha scritto. */
+function defaultRiferimentoPerMisura(misura) {
+  return RIFERIMENTO_DEFAULT[misura] || 60;
 }
 
 /**
@@ -267,10 +386,28 @@ export function profiloEsercizio(esercizio, extra = {}) {
     || (esercizio && esercizio.misura)
     || (assistito ? MISURE.SOLO_REPS : MISURE.KG_REPS);
   const campo = CAMPO_MISURA[misura] || CAMPO_MISURA[MISURE.KG_REPS];
-  const defaultRiferimento = RIFERIMENTO_DEFAULT[misura] || 60;
-  const riferimento = Number(configurato.riferimento) > 0
-    ? Number(configurato.riferimento)
-    : defaultRiferimento;
+
+  // Il riferimento si distingue in due casi, ed e' importante non confonderli:
+  //  - "fisso": qualcuno l'ha scritto a mano (PROFILI o il form admin). Vince
+  //    sempre, e non viene toccato dal peso.
+  //  - "da livello": non l'ha scritto nessuno. Allora dipende da quanto e'
+  //    difficile l'esercizio (LIVELLO_ESERCIZI) e dal peso della persona.
+  //    Prima mettevo qui il default per misura (60 kg) e questo rendeva inutile
+  //    il livello: tutti gli esercizi avevano lo stesso riferimento.
+  const scritto = Number(configurato.riferimento) > 0;
+  const rapporto = LIVELLI_DIFFICOLTA[livelloEsercizio({ id, convenzione })].rapporto;
+  let riferimento;
+  if (scritto) {
+    riferimento = Number(configurato.riferimento);
+  } else if (rapporto === null) {
+    // assistito: il riferimento sono le ripetizioni, e non dipendono dal peso
+    riferimento = defaultRiferimentoPerMisura(misura);
+  } else {
+    // ancora senza peso: uso il rapporto sul peso di riferimento (70 kg).
+    // Poi profiloPerPesoCorporeo lo ricalcola sul peso vero della persona.
+    riferimento = Math.round(rapporto * PESO_RIFERIMENTO * 100) / 100;
+  }
+
   const soglie = Array.isArray(configurato.soglie) && configurato.soglie.length === RANK.length
     ? configurato.soglie.map((n) => Number(n))
     : soglieDaRiferimento(riferimento);
@@ -284,6 +421,9 @@ export function profiloEsercizio(esercizio, extra = {}) {
       ? configurato.campoSecondario
       : campo.secondario,
     riferimento,
+    // segnalo se il numero e' stato scritto a mano: se si', il peso non lo
+    // tocca. Serve a profiloPerPesoCorporeo per non fare due calcoli diversi.
+    riferimentoFisso: scritto,
     soglie,
     coefficientAssistenza: Number.isFinite(Number(configurato.coefficientAssistenza))
       ? Number(configurato.coefficientAssistenza)

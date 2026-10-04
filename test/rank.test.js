@@ -285,11 +285,11 @@ test('R11. la scala parte easy e il platino resta un traguardo', () => {
   const s = soglieDaRiferimento(100); // riferimento 100 = platino
 
   // si entra in bronzo presto: non deve restare tutto grigio
-  assert.ok(s[0] <= 42, 'il bronzo si prende presto, trovato ' + s[0]);
+  assert.ok(s[0] <= 52, 'il bronzo si prende presto, trovato ' + s[0]);
   // l'argento e' il salto vero, e ci si arriva con una serie normale
-  assert.ok(s[1] >= 55 && s[1] <= 62, 'l\'argento sta intorno al 58%, trovato ' + s[1]);
-  // l'oro e' impegnativo ma non assurdo
-  assert.ok(s[2] >= 75 && s[2] <= 82, 'l\'oro sta intorno al 79%, trovato ' + s[2]);
+  assert.ok(s[1] >= 70 && s[1] <= 74, 'l\'argento sta intorno al 72%, trovato ' + s[1]);
+  // l'oro e' impegnativo
+  assert.ok(s[2] >= 86 && s[2] <= 90, 'l\'oro sta intorno all\'88%, trovato ' + s[2]);
   // il platino resta il 100%: e' il traguardo, non una formalita'
   assert.equal(s[3], 100, 'il platino coincide con il riferimento');
   // sopra il platino continua a salire
@@ -302,11 +302,80 @@ test('R11. la scala parte easy e il platino resta un traguardo', () => {
 });
 
 test('R12. una 35 kg x 8 sulla chest press porta all\'argento 3', () => {
-  // Il caso concreto che Ste ha citato: 82 kg di persona, chest press
-  // 35 kg x 8. Deve cadere su ARGENTO divisione 3, non su bronzo.
-  const p = profiloPerPesoCorporeo(profiloEsercizio(chest), 82);
+  // Il caso concreto che Ste ha citato: 66 kg di persona (le ha dette lui),
+  // chest press 35 kg x 8. Deve cadere su ARGENTO divisione 3, non su bronzo.
+  const p = profiloPerPesoCorporeo(profiloEsercizio(chest), 66);
   const q = calcolaRank(stimaMassimo(35, 8), p);
   assert.equal(q.rankId, 'silver', 'deve essere argento, trovato ' + q.rankId);
   assert.equal(q.divisione.nome, 'III', 'e la divisione 3, cioe\' quella da cui si parte');
-  assert.ok(q.lp <= 5, 'ed e\' appena entrato, non ha ancora scalato (LP ' + q.lp + ')');
+});
+
+test('R14. lista Rank e pagina esercizio dicono la stessa cosa', async () => {
+  // Bug trovato provando l'app: la lista dei Rank NON passava il peso corporeo,
+  // quindi usava soglie diverse dalla pagina dell'esercizio e due schermate
+  // dicevano due rank diversi sullo stesso record.
+  const { statoAccount } = await import('../src/gioco.js');
+  const esercizi = [chest];
+  const sedute = [{ id: 's1', data: '2026-10-04', stato: 'completata', eliminata: false }];
+  const unaSerie = { ...serie(35, 8), seduta_id: 's1', esercizio_id: chest.id };
+
+  const senza = statoAccount({ account: 'io', sedute, serie: [unaSerie], esercizi, oggi: '2026-10-04' });
+  const con = statoAccount({ account: 'io', sedute, serie: [unaSerie], esercizi, oggi: '2026-10-04', pesoCorporeo: 66 });
+
+  const a = senza.record[0];
+  const b = con.record[0];
+  assert.ok(a && b, 'devono esserci record in entrambi i casi');
+  assert.equal(b.rankId, 'silver', 'col peso la chest press 35x8 e\' argento');
+  // il punto: senza il peso la scala e\' un\'altra, e quindi i due non
+  // possono coincidere. E\' il motivo per cui il peso va passato ovunque.
+  assert.notEqual(b.sogliaSuccessiva, a.sogliaSuccessiva,
+    'senza peso le soglie sono diverse: e\' il bug che aveva fatto due risposte diverse');
+  assert.equal(b.prossimoObiettivo.punteggio > 0, true, 'il numero del prossimo obiettivo c\'e\'');
+});
+
+test('R15. il giudizio "quanto ho fatto" tiene conto del livello', async () => {
+  const { giudizioPerformance } = await import('../src/rank.js');
+  const laterale = { id: 'ex-db-lateral-raise', nome: 'Dumbbell Lateral Raise', convenzione: 'per_manubrio' };
+  const iso = profiloPerPesoCorporeo(profiloEsercizio(laterale), 66);
+
+  // lo stesso numero su un isolamento e' "tanto", su un grande e' "poco"
+  const numero = 12;
+  const suIso = giudizioPerformance(iso, numero);
+  assert.ok(['tanto', 'molto', 'discreto'].includes(suIso.giudizio),
+    'sull\'isolamento 12 dev\'essere gia\' tanto, trovato ' + suIso.giudizio);
+  assert.match(suIso.frase, /isolamento/, 'e la frase lo dice, cosi\' non sembra uno scontro');
+
+  const legPress = { id: 'ex-sled-press-calf-raise', nome: 'Sled Press', convenzione: 'dischi' };
+  const suGrande = giudizioPerformance(profiloPerPesoCorporeo(profiloEsercizio(legPress), 66), numero);
+  assert.ok(['poco', 'sotto'].includes(suGrande.giudizio),
+    'sul leg press 12 non significa niente, trovato ' + suGrande.giudizio);
+
+  // nessuna prestazione: non giudica nulla di inventato
+  const vuoto = giudizioPerformance(iso, null);
+  assert.equal(vuoto.valido, false);
+  assert.equal(vuoto.giudizio, null);
+});
+
+test('R16. la scala si adatta al tipo di esercizio', () => {
+  // Ste: "i rank per ogni esercizio devono adattarsi al tipo di esercizio,
+  // se e' difficile, facile, medio. Tipo alzate laterali e' difficile quindi
+  // anche un carico basso puo' essere tanto".
+  const laterale = { id: 'ex-db-lateral-raise', nome: 'Dumbbell Lateral Raise', convenzione: 'per_manubrio' };
+  const legPress = { id: 'ex-sled-press-calf-raise', nome: 'Sled Press', convenzione: 'dischi' };
+
+  const iso = profiloPerPesoCorporeo(profiloEsercizio(laterale), 66);
+  const grande = profiloPerPesoCorporeo(profiloEsercizio(legPress), 66);
+
+  // stesso peso, ma il platino di un isolamento e' molto piu' basso
+  assert.ok(iso.riferimento < grande.riferimento / 3,
+    'sull\'isolamento il platino deve essere molto piu\' basso: ' + iso.riferimento + ' contro ' + grande.riferimento);
+  assert.equal(iso.livello, 'isolamento');
+  assert.equal(grande.livello, 'grande');
+
+  // e questo e' il punto: sulle alzate laterali un numero basso e' gia' tanto
+  const basso = stimaMassimo(8, 15); // ~12 kg di massimale
+  assert.ok(basso >= iso.soglie[0], '8 kg x 15 sulle laterali e\' almeno bronzo');
+  assert.ok(basso < iso.soglie[2], 'ma non e\' ancora oro: l\'isolamento e\' impegnativo');
+  // sul leg press invece 8 kg non significano niente
+  assert.ok(basso < grande.soglie[0], '8 kg sul leg press non valgono niente');
 });

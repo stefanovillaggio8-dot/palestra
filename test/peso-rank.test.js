@@ -157,14 +157,16 @@ test('13. sette rank, ognuno con tre divisioni', () => {
 test('14. senza scrivere nulla il riferimento esiste ed e giusto', () => {
   const es = { id: 'ex-nuovo', nome: 'Nuovo', convenzione: 'macchina', misura: MISURE.KG_REPS };
 
-  // nessun riferimento scritto: profiloEsercizio prende il default della misura
+  // Nessun riferimento scritto a mano: ora il numero NON viene piu' preso dal
+  // default per misura, ma nasce dal LIVELLO di difficolta' dell'esercizio.
+  // Ste: "i rank per ogni esercizio devono adattarsi al tipo di esercizio".
   const senzaNumero = profiloEsercizio(es, {});
-  assert.equal(senzaNumero.riferimento, RIFERIMENTO_DEFAULT[MISURE.KG_REPS],
-    'usa il riferimento di default per kg+reps');
+  assert.equal(senzaNumero.riferimentoFisso, false, 'il numero non e\' scritto a mano');
+  assert.ok(senzaNumero.riferimento > 0, 'ma un riferimento c\'e\' comunque');
   assert.ok(senzaNumero.soglie.length === RANK.length, 'la scala ha un gradino per ogni rank');
   assert.deepEqual(senzaNumero.soglie, soglieDaRiferimento(senzaNumero.riferimento));
 
-  // ogni misura ha il suo default, quindi nessun esercizio resta senza scala
+  // ogni misura ha una scala completa, quindi nessun esercizio resta senza
   for (const misura of Object.values(MISURE)) {
     const p = profiloEsercizio({ id: 'x', nome: 'X', convenzione: 'macchina', misura }, {});
     assert.ok(p.soglie.length === RANK.length, 'scala completa per ' + misura);
@@ -179,25 +181,37 @@ test('15. il riferimento automatico si scala sul peso corporeo', () => {
   const leggero = profiloPerPesoCorporeo(p, 60);
   const pesante = profiloPerPesoCorporeo(p, 90);
 
-  assert.ok(leggero.pesoConsiderato, 'il peso viene usato');
-// profiloPerPesoCorporeo arrotonda a due decimali, quindi confronto con una
-  // tolleranza: 51.43 non è "sbagliato", è 51.4285 arrotondato.
-  const vicino = (a, b) => Math.abs(a - b) < 0.02;
-  assert.ok(vicino(leggero.soglie[3], p.soglie[3] * 60 / PESO_RIFERIMENTO), 'il platino del peso basso e piu basso');
-  assert.ok(vicino(pesante.soglie[3], p.soglie[3] * 90 / PESO_RIFERIMENTO), 'il platino del peso alto e piu alto');
+assert.ok(leggero.pesoConsiderato, 'il peso viene usato');
+  // il riferimento ricalcola sul peso vero, quindi i due non sono piu' legati
+  // al numero di prima
   assert.ok(pesante.soglie[3] > leggero.soglie[3], 'chi pesa di piu ha il platino piu in alto');
+  // e soprattutto: il riferimento e' SEMPRE quello che ha generato le soglie
+  // (prima non era cosi': diceva 63 mentre le soglie erano fatte su 59.4, e il
+  // giudizio "quanto ho fatto" risultava sbagliato)
+  for (const q of [leggero, pesante]) {
+    assert.deepEqual(q.soglie, soglieDaRiferimento(q.riferimento),
+      'le soglie devono nascere dal riferimento dichiarato');
+  }
 });
 
 test('16. un numero scritto a mano vince sempre sul automatico', () => {
   const es = { id: 'ex-nuovo', nome: 'Nuovo', convenzione: 'macchina', misura: MISURE.KG_REPS };
   const manuale = profiloEsercizio(es, { riferimento: 25 });
   assert.equal(manuale.riferimento, 25, 'vale quello scritto a mano');
+  assert.equal(manuale.riferimentoFisso, true, 'e l\'app sa che e\' scritto a mano');
   assert.deepEqual(manuale.soglie, soglieDaRiferimento(25), 'e la scala nasce da quello');
 
-  // se il numero non e' valido si torna al default, senza rompere niente
-  const rotto = profiloEsercizio(es, { riferimento: 0 });
-  assert.equal(rotto.riferimento, RIFERIMENTO_DEFAULT[MISURE.KG_REPS], '0 non e un riferimento');
-  assert.equal(profiloEsercizio(es, { riferimento: -5 }).riferimento, RIFERIMENTO_DEFAULT[MISURE.KG_REPS]);
-  assert.equal(profiloEsercizio(es, { riferimento: 'abc' }).riferimento, RIFERIMENTO_DEFAULT[MISURE.KG_REPS]);
-  assert.equal(profiloEsercizio(es, { riferimento: null }).riferimento, RIFERIMENTO_DEFAULT[MISURE.KG_REPS]);
+  // e il peso NON lo tocca il numero: se hai scritto un numero, quello resta
+  const colPeso = profiloPerPesoCorporeo(manuale, 90);
+  assert.ok(colPeso.soglie[3] > 25, 'il peso scala le soglie');
+  const scalaManuale = profiloPerPesoCorporeo(manuale, 70);
+  assert.equal(Math.round(scalaManuale.soglie[3] * 100) / 100, 25,
+    'ma a 70 kg il platino torna esattamente al numero scritto');
+
+  // se il numero non e' valido si torna al calcolo automatico, senza rompere
+  for (const brutto of [0, -5, 'abc', null]) {
+    const p = profiloEsercizio(es, { riferimento: brutto });
+    assert.equal(p.riferimentoFisso, false, 'un numero brutto non e\' "fisso": ' + brutto);
+    assert.ok(p.riferimento > 0, 'e il profilo resta valido');
+  }
 });

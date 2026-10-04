@@ -1,4 +1,4 @@
-// gioco.js -- il collante: mette insieme rank, streak, Aura, missioni e
+﻿// gioco.js -- il collante: mette insieme rank, streak, Aura, missioni e
 // statistiche per un account, e dice che cosa guadagni quando finisci un
 // allenamento.
 //
@@ -46,6 +46,7 @@ export function statoAccount({
   ricompense = [],
   oggi = null,
   datiMissioni = null,
+  pesoCorporeo = null,
 } = {}) {
   const giorno = oggi || isoGiorno(new Date());
   const settimana = idSettimana(giorno);
@@ -55,7 +56,7 @@ export function statoAccount({
   const record = recordAccount(
     esercizi,
     gruppiDaSerie(completate, serie, esercizi),
-    { soloConDati: true },
+    { soloConDati: true, pesoAttuale: pesoCorporeo },
   );
   const principale = rankPrincipale(record);
   const distribuzione = distribuzioneRank(record);
@@ -126,6 +127,7 @@ export function ricompenseAllenamento({
   esercizi = [],
   ricompense = [],
   oggi = null,
+  pesoCorporeo = null,
 } = {}) {
   const giorno = oggi || isoGiorno(new Date());
   const completate = (sedute || []).filter((s) => s && !s.eliminata && s.stato === 'completata');
@@ -155,7 +157,7 @@ export function ricompenseAllenamento({
   const record = recordAccount(
     esercizi,
     gruppiDaSerie(completate, serie, esercizi),
-    { soloConDati: true },
+    { soloConDati: true, pesoAttuale: pesoCorporeo },
   );
   for (const r of record) {
     if (!r.valido || !r.esercizio) continue;

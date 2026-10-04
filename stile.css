@@ -807,6 +807,45 @@ a { color: var(--blu); text-decoration: none; }
 }
 .badge-nessuno { color: var(--testo-3); border-color: var(--bordo); box-shadow: none; text-shadow: none; }
 
+/* --- quanto e' difficile l'esercizio, e quanto hai fatto ---
+   Ste: "aggiungi un qualcosa che identifica se l'esercizio e' facile o
+   difficile e capisce se e' tanto quello che fai o poco". Il colore aiuta
+   l'occhio ma la parola e' quella che conta: si capisce anche senza colori. */
+.tag-livello {
+  display: inline-block; white-space: nowrap;
+  font-size: .6rem; font-weight: 900; letter-spacing: .08em;
+  padding: 3px 8px; border-radius: 7px;
+  border: 1px solid currentColor;
+  color: var(--testo-2); background: rgba(255, 255, 255, .03);
+}
+.tag-livello.piccolo { font-size: .54rem; padding: 2px 6px; }
+.tag-livello.liv-grande { color: #4fe3c1; }
+.tag-livello.liv-composto { color: #ffc93c; }
+.tag-livello.liv-isolamento { color: #ff8fab; }
+.tag-livello.liv-assistito { color: #9db4ff; }
+
+.riga-livello { margin: 0 0 10px; }
+
+.riga-giudizio {
+  display: flex; flex-direction: column; gap: 3px;
+  margin: 0 0 12px; padding: 10px 12px;
+  border: 1px solid var(--bordo); border-left: 3px solid var(--testo-3);
+  border-radius: 11px; background: rgba(255, 255, 255, .025);
+}
+.riga-giudizio strong {
+  font-size: .62rem; font-weight: 900; letter-spacing: .11em; color: var(--testo-3);
+}
+.riga-giudizio span { font-size: .88rem; line-height: 1.5; color: var(--testo-2); }
+.riga-giudizio.giud-sotto { border-left-color: var(--testo-3); }
+.riga-giudizio.giud-poco { border-left-color: #4fe3c1; }
+.riga-giudizio.giud-discreto { border-left-color: #9db4ff; }
+.riga-giudizio.giud-tanto { border-left-color: #ffc93c; }
+.riga-giudizio.giud-molto { border-left-color: #ff8fab; }
+.card-rank .card-rank-alto .nota-piccola { font-size: .72rem; line-height: 1.4; }
+@media (max-width: 380px) {
+  .riga-giudizio span { font-size: .84rem; }
+}
+
 /* --- le missioni --- */
 .tessera-missione {
   background: linear-gradient(155deg, var(--card-2) 0%, var(--card) 100%);

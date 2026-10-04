@@ -227,6 +227,98 @@ export function recordEsercizio(serie, esercizio, profilo = null, pesoAttuale = 
   };
 }
 
+/**
+ * QUANTO HO FATTO, in parole semplici.
+ *
+ * Ste (04/10/2026): "aggiungi un qualcosa che identifica se l'esercizio e'
+ * facile o difficile e capisce se e' tanto quello che fai o poco e stabilisce
+ * il tuo rank".
+ *
+ * Il numero da solo non basta: 12 kg su un esercizio di isolamento sono
+ * tantissimi, e 12 kg su un leg press non sono niente. Quindi qui si fa due
+ * cose insieme:
+ *   1) si guarda DOVE sei nella scala di quell'esercizio (e la scala cambia
+ *      per esercizio, per il suo livello di difficolta' e per il tuo peso);
+ *   2) si tiene conto del livello: sulle alzate laterali un numero basso e'
+ *      gia' tanto, quindi la frase lo dice, e il giudizio sale un gradino.
+ *
+ * Restituisce un giudizio con parole, non colori da capire: "poco", "discreto",
+ * "tanto", "molto".
+ */
+export function giudizioPerformance(profilo, punteggio) {
+  const p = profilo || profiloEsercizio(null);
+  const s = p.soglie || [];
+  const n = numero(punteggio);
+  const livello = p.livello || null;
+  if (!s.length || n === null) {
+    return { valido: false, livello, frase: 'Non c\'e\' ancora nessuna prestazione su questo esercizio.', giudizio: null };
+  }
+
+  // quanto vale, in percentuale, il riferimento (PLATINUM) di questo esercizio
+  const rif = p.riferimento || s[3] || 1;
+  const quota = Math.max(0, n / rif);
+
+  // il livello sposta la percezione: sull'isolamento gli stessi numeri valgono
+  // molto di piu' che su un esercizio grande, quindi il giudizio sale.
+  // Ste: "tipo alzate laterali e' difficile quindi anche un carico basso puo'
+  // essere tanto": quindi sull'isolamento la scala sale parecchio.
+  const alza = livello === 'isolamento' ? 0.28 : (livello === 'grande' ? -0.12 : 0);
+  const q = quota + alza;
+
+  let giudizio;
+  let fraseBase;
+  if (n < s[0]) {
+    giudizio = 'sotto';
+    fraseBase = 'sotto il bronzo: hai appena mosso i pesi su questo esercizio';
+  } else if (q < 0.72) {
+    giudizio = 'poco';
+    fraseBase = 'poco, ma e\' il primo gradino e l\'hai preso';
+  } else if (q < 0.88) {
+    giudizio = 'discreto';
+    fraseBase = 'discreto: e\' un buon livello per un esercizio';
+  } else if (q < 1.00) {
+    giudizio = 'tanto';
+    fraseBase = 'tanto: sei vicino al platino';
+  } else {
+    giudizio = 'molto';
+    fraseBase = 'molto: questo e\' un livello alto, guarda solo te';
+  }
+
+  // la frase finale tiene conto del livello dell'esercizio, che e' il punto
+  // che Ste ha chiesto esplicitamente
+  let frase = fraseBase;
+  if (livello === 'isolamento' && (giudizio === 'discreto' || giudizio === 'tanto' || giudizio === 'molto')) {
+    frase += '. E su un esercizio di isolamento il numero e\' basso ma il lavoro e\' vero';
+  } else if (livello === 'grande' && (giudizio === 'poco' || giudizio === 'sotto')) {
+    frase += '. Qui i numeri sono alti per natura, non ti preoccupare';
+  } else if (livello === 'assistito' && (giudizio === 'tanto' || giudizio === 'molto')) {
+    frase += '. E su questo esercizio contano le ripetizioni, non i kg';
+  }
+
+  return {
+    valido: true,
+    livello,
+    quota: Math.round(quota * 1000) / 1000,
+    giudizio,
+    frase,
+  };
+}
+
+/**
+ * Il rank e' SEMPRE il risultato della scala dell'esercizio: niente settaggi a
+ * mano, niente fudge. Questa funzione esiste solo per ricordarlo a chi legge
+ * il codice, e restituisce la scala usata.
+ */
+export function scalaDelGiudizio(profilo, punteggio) {
+  const p = profilo || profiloEsercizio(null);
+  return {
+    soglie: p.soglie || [],
+    riferimento: p.riferimento,
+    livello: p.livello || null,
+    giudizio: giudizioPerformance(p, punteggio),
+  };
+}
+
 // ---------------------------------------------------------------------------
 // 4. Il rank e gli LP.
 // ---------------------------------------------------------------------------
@@ -457,7 +549,7 @@ export function storicoMiglioramenti(serie, esercizio, sedute, profilo = null) {
  * Tutti i record di un account, dal rank piu' alto al piu' basso.
  * esercizi = catalogo, gruppi = [{esercizio_id, seduta_id, serie}]
  */
-export function recordAccount(esercizi, gruppi, { soloConDati = true } = {}) {
+export function recordAccount(esercizi, gruppi, { soloConDati = true, pesoAttuale = null } = {}) {
   const perEsercizio = new Map();
   for (const g of (gruppi || [])) {
     if (!g || !g.esercizio_id) continue;
@@ -468,7 +560,7 @@ export function recordAccount(esercizi, gruppi, { soloConDati = true } = {}) {
   for (const e of (esercizi || [])) {
     const serie = perEsercizio.get(e.id);
     if (soloConDati && (!serie || !serie.length)) continue;
-    const rec = recordEsercizio(serie || [], e);
+    const rec = recordEsercizio(serie || [], e, null, pesoAttuale);
     out.push(rec);
   }
   out.sort((a, b) => {

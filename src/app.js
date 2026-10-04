@@ -23,8 +23,8 @@ import { ESERCIZI, SCHEDA_ID, SCHEDA_NOME, PERSONE, CONTATTI, accountId, persona
 import { nuovoId, adesso, TABELLE } from './sincronizzazione.js';
 // --- il gioco: rank, LP, streak, Aura, missioni, amici ---
 import { statoAccount, ricompenseAllenamento, gruppiDaSerie } from './gioco.js';
-import { recordEsercizio, recordAccount, classificaEsercizio, storicoMiglioramenti } from './rank.js';
-import { profiloEsercizio, profiloPerPesoCorporeo, RANK, ETICHETTE_MISURA, descriviPunteggio } from './rank-config.js';
+import { recordEsercizio, recordAccount, classificaEsercizio, storicoMiglioramenti, giudizioPerformance } from './rank.js';
+import { profiloEsercizio, profiloPerPesoCorporeo, RANK, ETICHETTE_MISURA, descriviPunteggio, descrizioneLivello, livelloEsercizio } from './rank-config.js';
 import { formattaAura } from './aura.js';
 import { elencoAvatar, avatarPerId, gradienteAvatar, iniziali } from './avatar.js';
 import { amiciDi, confronta, classifichePerEsercizio, privacyDi, campiVisibili, PRIVACY_PREDEFINITE, CODICE_SCHEDE, codiceCorretto } from './sociale.js';
@@ -2393,6 +2393,10 @@ function statoMio(oggi = null) {
     esercizi: V.esercizi,
     completamenti: missioniMie(),
     ricompense: ricompenseMie(),
+    // il peso corporeo serve ANCHE qui: senza, la lista dei Rank usava soglie
+    // diverse da quelle della pagina dell'esercizio, e dicevano due cose
+    // diverse sullo stesso record (bug trovato provando l'app, non dai test)
+    pesoCorporeo: pesoCorporeoOra(),
     oggi,
   });
 }
@@ -2536,6 +2540,17 @@ function cardRank(record, { compatta = false } = {}) {
       ]),
       badgeRank(r.rankId, r.lp, r.divisione),
     ]),
+    // COME E' DIFFICILE l'esercizio e QUANTO ho fatto. Ste: "aggiungi un
+    // qualcosa che identifica se l'esercizio e' facile o difficile e capisce
+    // se e' tanto quello che fai o poco". Il numero da solo non basta: 12 kg
+    // su un isolamento sono tantissimi, su un leg press non sono niente.
+    el('div', { class: 'card-rank-alto' }, [
+      el('span', {
+        class: 'tag-livello piccolo liv-' + (r.profilo.livello || 'composto'),
+        testo: (r.profilo.livello || 'composto').toUpperCase(),
+      }),
+      el('span', { class: 'nota nota-piccola', testo: giudizioPerformance(r.profilo, r.punteggio).frase }),
+    ]),
     el('div', { class: 'card-rank-basso' }, [
       barraProgresso(r.progresso, r.inTop ? 'TOP' : `${r.lp} LP / 100`),
       el('span', { class: 'nota', testo: verso }),
@@ -2559,6 +2574,9 @@ async function assegnaRicompense(sedutaId) {
       serie: serieMie(),
       esercizi: V.esercizi,
       ricompense: ricompenseMie(),
+      // anche i premi usano il peso: senza, i Rank calcolati qui non
+      // corrispondono a quelli che vedi nella schermata Rank
+      pesoCorporeo: pesoCorporeoOra(),
     });
     if (!nuove.length) return [];
     for (const r of nuove) await db.salva('ricompense', { ...r, quando: r.quando || adesso() });
@@ -2960,6 +2978,13 @@ function vistaEsercizio(zona, esercizioId) {
   zona.appendChild(el('a', { href: '#/rank', class: 'indietro', testo: 'Torna ai Rank' }));
   zona.appendChild(el('h1', { testo: e.nome }));
 
+  // COME E' DIFFICILE questo esercizio. Ste: "aggiungi un qualcosa che
+  // identifica se l'esercizio e' facile o difficile". Il numero da solo non
+  // dice niente: 12 kg su un isolamento sono tanti, su un leg press sono niente.
+  zona.appendChild(el('div', { class: 'riga-livello' }, [
+    el('span', { class: 'tag-livello liv-' + (profilo.livello || 'composto'), testo: descrizioneLivello(profilo.livello) }),
+  ]));
+
   // spiego sempre come sono fatte le soglie di questo esercizio, e dico se il
   // peso corporeo lo sta cambiando
   const rigaSoglie = [ETICHETTE_MISURA[profilo.misura]];
@@ -2973,6 +2998,16 @@ function vistaEsercizio(zona, esercizioId) {
   if (!record.valido) {
     zona.appendChild(el('p', { class: 'nota', testo: 'Nessuna prestazione registrata su questo esercizio: ancora nessun rank.' }));
     return;
+  }
+
+  // QUANTO HO FATTO, in parole. Ste: "capisce se e' tanto quello che fai o
+  // poco". Il giudizio tiene conto anche del livello di difficolta'.
+  const giudizio = giudizioPerformance(profilo, record.punteggio);
+  if (giudizio.valido) {
+    zona.appendChild(el('div', { class: 'riga-giudizio giud-' + giudizio.giudizio }, [
+      el('strong', { testo: 'QUANTO HAI FATTO' }),
+      el('span', { testo: giudizio.frase }),
+    ]));
   }
 
   if (record.pesoCorporeo) {
