@@ -12,6 +12,8 @@ import {
   MISURE,
   divisioneDaLp,
   profiloEsercizio,
+  profiloPerPesoCorporeo,
+  pesoCorporeoValido,
   descriviPunteggio,
   spessoreSoglia,
 } from './rank-config.js';
@@ -131,36 +133,64 @@ export function punteggioSerie(serie, profilo) {
 // ---------------------------------------------------------------------------
 
 /**
+ * Il peso corporeo da usare per valutare una serie.
+ *
+ * Se la serie ha il peso salvato dentro (quando e' stata fatta), si usa QUELLO:
+ * e' il peso che avevi in quel momento, e il record storico resta giusto anche
+ * se poi ti sei pesato di nuovo. Se invece non c'e', si usa quello di adesso.
+ */
+export function pesoPerSerie(serie, pesoAttuale) {
+  const salvato = pesoCorporeoValido(serie && serie.peso_corpo);
+  if (salvato !== null) return salvato;
+  return pesoCorporeoValido(pesoAttuale);
+}
+
+/**
  * Tutte le serie valutabili di un esercizio, dalla migliore in giu'.
  * Non usa "l'ultima serie": vede tutto quello che e' stato registrato e sceglie
  * il numero piu' alto, che e' la performance migliore.
+ *
+ * Ogni serie e' valutata con il SUO peso corporeo (quello del giorno in cui l'hai
+ * fatta), quindi le performance vecchie non cambiano quando ti pesi di nuovo.
  */
-export function performanceEsercizio(serie, esercizio, profilo = null) {
-  const p = profilo || profiloEsercizio(esercizio);
+export function performanceEsercizio(serie, esercizio, profilo = null, pesoAttuale = null) {
+  const base = profilo || profiloEsercizio(esercizio);
   const tutte = [];
   for (const s of (serie || [])) {
     if (!s || s.eliminata) continue;
+    const peso = pesoPerSerie(s, pesoAttuale);
+    const p = profiloPerPesoCorporeo(base, peso);
     const res = punteggioSerie(s, p);
     if (!res.valido) continue;
-    tutte.push({ serie: s, punteggio: res.punteggio, testo: res.testo, ordine: Number(s.ordine || 0) });
+    tutte.push({
+      serie: s, punteggio: res.punteggio, testo: res.testo,
+      ordine: Number(s.ordine || 0),
+      pesoCorporeo: peso,
+      soglie: p.soglie,
+    });
   }
   tutte.sort((a, b) => {
     if (b.punteggio !== a.punteggio) return b.punteggio - a.punteggio;
     return a.ordine - b.ordine;
   });
-  return { profilo: p, tutte, migliore: tutte.length ? tutte[0] : null };
+  const migliore = tutte.length ? tutte[0] : null;
+  // il profilo del record e' quello con il peso del giorno in cui l'hai fatto
+  const profiloDelRecord = migliore
+    ? profiloPerPesoCorporeo(base, migliore.pesoCorporeo)
+    : profiloPerPesoCorporeo(base, pesoAttuale);
+  return { profilo: profiloDelRecord, tutte, migliore };
 }
 
 /**
  * Il record di un esercizio, con dentro il rank e gli LP corrispondenti.
  * Se non c'e' niente di registrato non viene inventato nessun record.
  */
-export function recordEsercizio(serie, esercizio, profilo = null) {
-  const res = performanceEsercizio(serie, esercizio, profilo);
+export function recordEsercizio(serie, esercizio, profilo = null, pesoAttuale = null) {
+  const res = performanceEsercizio(serie, esercizio, profilo, pesoAttuale);
   if (!res.migliore) {
     return {
       esercizio, profilo: res.profilo, valido: false, motivo: 'nessuna prestazione registrata',
-      punteggio: null, rank: null, lp: 0, testo: '',
+      punteggio: null, rank: null, lp: 0, testo: '', pesoCorporeo: null,
     };
   }
   const r = calcolaRank(res.migliore.punteggio, res.profilo);
@@ -171,6 +201,7 @@ export function recordEsercizio(serie, esercizio, profilo = null) {
     punteggio: res.migliore.punteggio,
     testo: res.migliore.testo,
     serie: res.migliore.serie,
+    pesoCorporeo: res.migliore.pesoCorporeo,
     rank: r.rank,
     rankId: r.rankId,
     lp: r.lp,

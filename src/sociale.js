@@ -103,8 +103,8 @@ export function confronta(mio, suo, mieiRecord = [], suoiRecord = []) {
       esercizio_id: id,
       esercizio,
       nome: esercizio ? esercizio.nome : id,
-      mio: a && a.valido ? { punteggio: a.punteggio, testo: a.testo, rank: a.rank, lp: a.lp } : null,
-      suo: b && b.valido ? { punteggio: b.punteggio, testo: b.testo, rank: b.rank, lp: b.lp } : null,
+      mio: a && a.valido ? { punteggio: a.punteggio, testo: a.testo, rank: a.rank, lp: a.lp, peso: a.pesoCorporeo || null } : null,
+      suo: b && b.valido ? { punteggio: b.punteggio, testo: b.testo, rank: b.rank, lp: b.lp, peso: b.pesoCorporeo || null } : null,
       esito: 'pareggio',
     };
     if (riga.mio && riga.suo) {
@@ -171,7 +171,13 @@ export function classifichePerEsercizio(voci, esercizi) {
   return out;
 }
 
-/** Il record di un account su un esercizio (una riga sola, comoda da usare). */
-export function recordSu(serie, esercizio) {
-  return recordEsercizio(serie || [], esercizio);
+/**
+ * Il record di un account su un esercizio (una riga sola, comoda da usare).
+ *
+ * Passa anche il peso corporeo: le classifiche devono usare lo stesso criterio
+ * del Rank, altrimenti un ragazzino di 60 kg e uno di 90 kg comparirebbero
+ * come se avessero sollevato la stessa identica cosa.
+ */
+export function recordSu(serie, esercizio, pesoCorporeo = null) {
+  return recordEsercizio(serie || [], esercizio, null, pesoCorporeo);
 }

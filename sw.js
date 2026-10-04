@@ -35,6 +35,7 @@ const FILE = [
   './src/avatar.js',
   './src/gioco.js',
   './src/grafici.js',
+  './src/peso-corporeo.js',
   './src/rank.js',
   './src/rank-config.js',
   './src/streak.js',

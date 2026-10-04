@@ -194,6 +194,16 @@ a { color: var(--blu); text-decoration: none; }
 }
 .campo-note-seduta { margin-top: 4px; }
 
+/* il peso corporeo nel profilo */
+.riga-peso-profilo { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 8px 0; }
+.campo-peso-profilo { width: 130px; font-size: 1.2rem; }
+.storico-pesi { display: flex; flex-direction: column; gap: 6px; }
+.riga-peso {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  background: var(--card-2); border: 1px solid var(--bordo);
+  border-radius: 10px; padding: 7px 11px;
+}
+
 /* torna in cima: compare solo quando sei sceso */
 .bottone-su {
   position: fixed; right: 14px; z-index: 45;

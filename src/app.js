@@ -29,6 +29,41 @@ import { formattaAura } from './aura.js';
 import { elencoAvatar, avatarPerId, gradienteAvatar, iniziali } from './avatar.js';
 import { amiciDi, confronta, classifichePerEsercizio, privacyDi, campiVisibili, PRIVACY_PREDEFINITE } from './sociale.js';
 import { controllaAggiornamento, applicaAggiornamento as prendiVersioneNuova, registraAggiornamentoRapido } from './update-via-sw.js';
+import {
+  pesoAttuale, pesiCronologici, segnaPeso, togliPeso, pesoCorporeoValido,
+  serveAggiornare, PESO_RIFERIMENTO,
+} from './peso-corporeo.js';
+
+// Il peso corporeo sta in una variabile semplice per non rileggerlo dal database
+// a ogni schermata: cambia raramente e il Rank lo usa spesso.
+let PESO_CACHE = { valore: null, pronto: false };
+async function aggiornaPesoInMemoria() {
+  PESO_CACHE = { valore: await pesoAttuale(), pronto: true };
+  return PESO_CACHE.valore;
+}
+function pesoCorporeoOra() {
+  return PESO_CACHE.pronto ? PESO_CACHE.valore : null;
+}
+
+/** Lo stato del peso per mostrarlo nel profilo e ricordare di aggiornarlo. */
+async function controlloPeso() {
+  const peso = await pesoAttuale();
+  if (!PESO_CACHE.pronto) await aggiornaPesoInMemoria();
+  const avviso_ = await serveAggiornare();
+  const pesi = await pesiCronologici();
+  const ultimo = pesi.length ? pesi[pesi.length - 1] : null;
+  let durata = '';
+  if (ultimo) {
+    const giorni = Math.max(0, Math.round((Date.now() - new Date(ultimo.data + 'T12:00:00').getTime()) / 86400000));
+    durata = giorni === 0 ? 'oggi' : (giorni === 1 ? 'ieri' : `${giorni} giorni fa`);
+  }
+  return { peso, serve: avviso_.serve, motivo: avviso_.motivo, durata };
+}
+
+function capitalizza(t) {
+  const s = String(t || '');
+  return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+}
 
 const V = {}; // stato dell'app
 const GIRI_DROPSET = 3; // i 3 posti in piu' che ha chiesto Ste
@@ -83,6 +118,8 @@ async function avvia() {
     await ricaricaTutto();
 
     sync.iscriviti(() => { aggiornaStatoSalvataggio(); });
+    // il peso corporeo serve al Rank: lo carico in memoria subito all'avvio
+    await aggiornaPesoInMemoria();
     sync.avvia();
     window.addEventListener('hashchange', () => disegna());
 if ('serviceWorker' in navigator) {
@@ -994,7 +1031,11 @@ function rigaSerie(serie, numero, confronto, seduta, pesoRigaSorella = null) {
       const fatta = !eFatta(serie);
       segnaAspettoFatto(riga, spunta, fatta, etichettaFatta);
       if (fatta) pulsa();
-      aggiornaSerie(serie, { stato: fatta ? 'fatta' : 'da_fare' })
+      const campi = { stato: fatta ? 'fatta' : 'da_fare' };
+      // Salvo dentro il peso che avevo quando l'ho fatta: cosi' il record resta
+      // legato al peso giusto anche se poi mi peso diversamente.
+      if (fatta && pesoCorporeoOra() !== null) campi.peso_corpo = pesoCorporeoOra();
+      aggiornaSerie(serie, campi)
         .then((salvata) => {
           registra({ cosa: 'salvataggio ok', stato: salvata && salvata.stato });
           disegna();
@@ -2783,16 +2824,32 @@ function vistaEsercizio(zona, esercizioId) {
   const e = esercizioPerId(esercizioId);
   if (!e) { zona.appendChild(el('p', { testo: 'Esercizio non trovato.' })); return; }
   const serie = (V.serie || []).filter((x) => x && !x.eliminata && x.esercizio_id === e.id);
-  const record = recordEsercizio(serie, e);
-  const profilo = profiloEsercizio(e);
+  // il peso corporeo di adesso serve per le prestazioni che non hanno ancora
+  // un peso salvato dentro; quelle vecchie mantengono il loro
+  const pesoOggi = pesoCorporeoOra();
+  const record = recordEsercizio(serie, e, null, pesoOggi);
+  const profilo = record.profilo || profiloEsercizio(e);
 
   zona.appendChild(el('a', { href: '#/rank', class: 'indietro', testo: 'Torna ai Rank' }));
   zona.appendChild(el('h1', { testo: e.nome }));
-  zona.appendChild(el('p', { class: 'nota', testo: `${ETICHETTE_MISURA[profilo.misura]} · soglie di questo esercizio: ${profilo.soglie.map((s, i) => `${RANK[i].nome} da ${formattaNumero(s)}`).join(' · ')}` }));
+
+  // spiego sempre come sono fatte le soglie di questo esercizio, e dico se il
+  // peso corporeo lo sta cambiando
+  const rigaSoglie = [ETICHETTE_MISURA[profilo.misura]];
+  if (profilo.pesoConsiderato) {
+    rigaSoglie.push(`soglie calcolate sul tuo peso: ${formattaNumero(profilo.pesoCorporeo)} kg`);
+  } else if (profilo.misura === 'kg_reps' || profilo.misura === 'kg_tempo') {
+    rigaSoglie.push('metti il tuo peso nel profilo e le soglie si adattano');
+  }
+  zona.appendChild(el('p', { class: 'nota', testo: `${rigaSoglie.join(' · ')}. Soglie: ${profilo.soglie.map((s, i) => `${RANK[i].nome} da ${formattaNumero(s)}`).join(' · ')}` }));
 
   if (!record.valido) {
     zona.appendChild(el('p', { class: 'nota', testo: 'Nessuna prestazione registrata su questo esercizio: ancora nessun rank.' }));
     return;
+  }
+
+  if (record.pesoCorporeo) {
+    zona.appendChild(el('p', { class: 'nota nota-chiaro', testo: `Questa prestazione l'hai fatta quando pesavi ${formattaNumero(record.pesoCorporeo)} kg.` }));
   }
 
   zona.appendChild(el('div', { class: 'card-rank card-' + record.rankId + ' card-grande' }, [
@@ -2964,7 +3021,7 @@ function puoVedereAmico(mio, altro) {
   return !!(mio && altro && mio.id === altro.id);
 }
 
-function vistaProfilo(zona) {
+async function vistaProfilo(zona) {
   const st = statoMio();
   const profilo = profiloAttivo();
   zona.appendChild(el('h1', { testo: 'Profilo' }));
@@ -2982,6 +3039,57 @@ function vistaProfilo(zona) {
     barraProgresso(st.livello.progresso, `livello ${st.livello.livello}`),
     el('span', { class: 'nota', testo: `al livello ${st.livello.livello + 1} mancano ${formattaNumero(st.livello.mancano)} XP` }),
   ]));
+
+  // ---- il peso corporeo: serve al Rank, quindi sta in alto ----
+  const boxPeso = el('section', { class: 'blocco' });
+  boxPeso.appendChild(el('h2', { testo: 'Il tuo peso' }));
+  const statoPeso = await controlloPeso();
+  if (statoPeso.serve) {
+    boxPeso.appendChild(el('div', { class: 'tape tape-giallo' }, [
+      el('span', { testo: `${capitalizza(statoPeso.motivo)}. Il Rank lo usa per capire quanto sei forte davvero, non solo i kg che sollevi.` }),
+    ]));
+  }
+  const rigaPeso = el('div', { class: 'riga-peso-profilo' });
+  const campoPeso = campoNumero(statoPeso.peso, { etichetta: 'peso corporeo in kg' });
+  campoPeso.classList.add('campo-peso-profilo');
+  rigaPeso.appendChild(campoPeso);
+  rigaPeso.appendChild(bottone('Salvo il peso', {
+    onClick: async () => {
+      const n = pesoCorporeoValido(campoPeso.value);
+      if (n === null) {
+        avviso('Scrivi un peso fra 25 e 300 kg.', { tipo: 'errore' });
+        return;
+      }
+      await segnaPeso(n);
+      avviso(`Peso salvato: ${formattaNumero(n)} kg. I Rank sono aggiornati.`, { tipo: 'ok' });
+      await aggiornaPesoInMemoria();
+      disegna();
+    },
+    classe: 'principale',
+  }));
+  boxPeso.appendChild(rigaPeso);
+  if (statoPeso.peso) {
+    boxPeso.appendChild(el('p', { class: 'nota', testo: `Ultima misurazione: ${formattaNumero(statoPeso.peso)} kg (${statoPeso.durata}). Ti si ricorda di aggiornarlo almeno una volta alla settimana.` }));
+  }
+  const pesi = await pesiCronologici();
+  if (pesi.length) {
+    const ultimi = pesi.slice(-8).reverse();
+    const lista = el('div', { class: 'storico-pesi' });
+    for (const p of ultimi) {
+      lista.appendChild(el('div', { class: 'riga-peso' }, [
+        el('span', { class: 'nota', testo: dataLeggibile(p.data) }),
+        el('strong', { testo: `${formattaNumero(p.kg)} kg` }),
+        bottone('×', {
+          onClick: async () => { await togliPeso(p.id); await aggiornaPesoInMemoria(); disegna(); },
+          classe: 'passo passo-rosso',
+          titolo: 'Togli questa misurazione',
+        }),
+      ]));
+    }
+    boxPeso.appendChild(el('div', { class: 'nota', testo: 'Il tuo storico' }));
+    boxPeso.appendChild(lista);
+  }
+  zona.appendChild(boxPeso);
 
   // cambio avatar e username
   const boxAvatar = el('section', { class: 'blocco' }, [

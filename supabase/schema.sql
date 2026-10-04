@@ -83,6 +83,9 @@ create table if not exists public.serie (
   peso               numeric(6,2),
   peso_assistenza    numeric(6,2),
   ripetizioni        numeric(6,2),
+  -- il peso corporeo che avevo quando ho fatto questa serie: il Rank usa questo
+  -- valore, cosi' un record di sei mesi fa non viene giudicato con il peso di oggi
+  peso_corpo         numeric(5,2),
   spotter            boolean not null default false,
   rip_assistite      numeric(6,2),
   dropset            boolean not null default false,
@@ -183,11 +186,29 @@ create table if not exists public.profili (
   amici         jsonb not null default '[]'::jsonb,
   privacy       jsonb not null default '{"profilo":"pubblico","performance":"pubblico","leaderboard":"pubblico","statistiche":"pubblico"}'::jsonb,
   colore        text default '#7c5cff',
+  peso_corporeo numeric(5,2),
   rev           integer not null default 1,
   created_at    timestamptz not null default now(),
   updated_at    timestamptz not null default now(),
   device_id     text
 );
+
+-- Lo storico dei pesi corporei. Serve per sapere quanto pesavo il giorno in
+-- cui ho fatto una certa performance: se mi peso fra un mese, i miei record
+-- vecchi devono restare valutati con il peso di allora.
+create table if not exists public.pesi (
+  id         text primary key,
+  user_id    uuid not null references auth.users on delete cascade,
+  data       date not null,
+  kg         numeric(5,2) not null,
+  nota       text default '',
+  rev        integer not null default 1,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  device_id  text
+);
+create unique index if not exists peso_un_giorno on public.pesi (user_id, data);
+create index if not exists peso_data on public.pesi (user_id, data desc);
 
 -- Gli esercizi creati dall'amministratore valgono per TUTTI: non hanno
 -- user_id perche' non appartengono a un account solo.
@@ -264,8 +285,14 @@ alter table public.profili         enable row level security;
 alter table public.esercizi_globali enable row level security;
 alter table public.missioni        enable row level security;
 alter table public.ricompense      enable row level security;
+alter table public.pesi            enable row level security;
 
 -- ---------- le regole: cosa puo' fare ciascuno ----------
+
+-- i miei pesi sono miei: nessuno li vede e nessuno li cambia
+drop policy if exists "propri pesi" on public.pesi;
+create policy "propri pesi" on public.pesi
+  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 -- un utente vede e tocca SOLO il proprio profilo
 drop policy if exists "propri profili" on public.profili;

@@ -171,6 +171,66 @@ export function soglieDaRiferimento(riferimento, moltiplicatori = MOLTIPLICATORI
   return moltiplicatori.map((m) => Math.round(r * m * 100) / 100);
 }
 
+// ---------------------------------------------------------------------------
+// 3. IL PESO DEL CORPO.
+//    Ste ha chiesto che il Rank tenga conto del peso corporeo: chi pesa 60 kg e
+//    chi pesa 90 kg non possono avere lo stesso Rank lifting gli stessi 60 kg.
+//
+//    Come funziona, senza creare un secondo sistema: le soglie di ogni
+//    esercizio sono gia' sue (nascono dal suo riferimento).Qui le riscalo in
+//    base al peso corporeo della persona. Un uno di 70 kg e' il "peso di
+//    riferimento": per lui le soglie sono quelle scritte nella configurazione.
+//    Chi pesa meno le soglie scendono, chi pesa piu' salgono.
+// ---------------------------------------------------------------------------
+
+export const PESO_RIFERIMENTO = 70;
+export const PESO_MINIMO = 25;
+export const PESO_MASSIMO = 300;
+
+/** Le misure dove il peso corporeo conta davvero. */
+export const MISURE_CON_PESO = {
+  [MISURE.KG_REPS]: true,    // forza relativa: 60 kg sollevati su 60 kg corporei
+  [MISURE.KG_TEMPO]: true,  // kg tenuti: conta quanto pesi rispetto a te
+  [MISURE.SOLO_REPS]: false, // trazioni e push-up: contano le ripetizioni, non il rapporto
+  [MISURE.TEMPO]: false,     // plank: 60 secondi sono 60 secondi per tutti
+  [MISURE.DISTANZA]: false,  // corsa: metri, non kg
+};
+
+/** Il peso corporeo e' sensato? */
+export function pesoCorporeoValido(peso) {
+  const n = Number(String(peso === null || peso === undefined ? '' : peso).replace(',', '.'));
+  if (!Number.isFinite(n) || n < PESO_MINIMO || n > PESO_MASSIMO) return null;
+  return Math.round(n * 100) / 100;
+}
+
+/**
+ * Il profilo di un esercizio con le soglie gia' adatte al peso corporeo.
+ *
+ * - se il peso non c'e' o non e' sensato, le soglie restano quelle scritte:
+ *   l'app continua a funzionare, semplicemente non si valuta la forza relativa.
+ * - se l'esercizio e' di tipo TEMPO o DISTANZA, il peso non entra: non ha
+ *   senso che un plank di 60 secondi valga di piu' per uno leggero.
+ *
+ * NON crea un sistema nuovo: restituisce lo stesso profilo con le soglie
+ * riscalate, quindi tutto il resto (rank, LP, progressione) resta identico.
+ */
+export function profiloPerPesoCorporeo(profilo, pesoCorporeo) {
+  const p = profilo || profiloEsercizio(null);
+  const peso = pesoCorporeoValido(pesoCorporeo);
+  const usa = !!MISURE_CON_PESO[p.misura];
+  if (!peso || !usa) {
+    return { ...p, soglie: p.soglie, pesoCorporeo: peso, pesoConsiderato: false };
+  }
+  const fattore = peso / PESO_RIFERIMENTO;
+  return {
+    ...p,
+    soglie: p.soglie.map((s) => Math.round(s * fattore * 100) / 100),
+    pesoCorporeo: peso,
+    pesoConsiderato: true,
+    fattorePeso: Math.round(fattore * 1000) / 1000,
+  };
+}
+
 /**
  * Il profilo completo di un esercizio: misura, soglie, unita'.
  * Se l'esercizio non ha un profilo scritto, si usa quello di default in base
