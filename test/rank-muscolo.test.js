@@ -55,21 +55,25 @@ test('R1. i numeri verificati da Ste a 66 kg non cambiano', () => {
     'con 50 kg la chest press non puo\' fare peggio che con 35');
 });
 
-test('R1b. la macchina e\' piu\' facile del bilanciere libero, e le soglie lo sanno', () => {
-  // Ste, con la foto: "ma non e' una panca, la chest press e' tipo questa".
-  // Lui fa la chest press a macchina: busto appoggiato, percorso guidato,
-  // niente bilanciere che ti scivola addosso. Quindi la soglia deve essere
-  // PIU' ALTA di quella di una panca libera, non uguale.
-  const macchina = rapportoDifficolta(chest);
-  const libero = rapportoDifficolta({ nome: 'Barbell Bench Press', convenzione: 'bilanciere' });
+test('R1b. una macchina a DISCHI non e\' la macchina facile', () => {
+  // Ste, con due foto (04/10/2026): "il macchinario e' piu' facile solo se c'e'
+  // questo, nella mia chest press si mettono i pesi reali quindi in teoria e' di
+  // piu' o no?". Ha ragione: la sua macchina ha dischi veri sui perni, quindi
+  // c'e' equilibrio da fare come sul bilanciere. La macchina davvero facile e'
+  // lo STACK, il pacco con la linguetta, perche' la resistenza e' un cavo gia'
+  // bilanciato.
+  //
+  // Nella v38 avevo dato -6 a TUTTE le macchine: quello gonfiava il suo Rank.
+  const dischi = rapportoDifficolta(chest);
+  const stack = rapportoDifficolta({ ...chest, convenzione: 'macchina_stack' });
+  const libero = rapportoDifficolta({ ...chest, convenzione: 'bilanciere' });
 
-  assert.equal(chest.convenzione, 'macchina', 'il suo esercizio deve restare una macchina');
-  assert.ok(macchina.modificatori < 0, 'la macchina deve essere riconosciuta come piu\' facile');
-  assert.ok(macchina.rapporto > libero.rapporto,
-    'la soglia sulla macchina deve essere piu\' alta: impressionare e\' piu\' difficile');
-  assert.match(macchina.spiegazione, /soglia sale/,
-    'e l\'app deve dire PERCHE\' la soglia e\' quella');
-  assert.equal(libero.spiegazione, null, 'il bilanciere libero non ha correzioni da spiegare');
+  assert.equal(chest.convenzione, 'macchina_dischi', 'il suo esercizio e\' a dischi');
+  assert.ok(dischi.rapporto > libero.rapporto,
+    'la macchina a dischi resta un filo piu\' facile del bilanciere, ma non di piu\'');
+  assert.ok(stack.rapporto > dischi.rapporto,
+    'lo stack deve avere la soglia piu\' alta della macchina a dischi');
+  assert.ok(stack.modificatori < dischi.modificatori);
 });
 
 test('R2. il muscolo piccolo abbassa la soglia, quello grande no', () => {
@@ -95,11 +99,10 @@ test('R4. la chest press non si e\' mossa di una virgola', () => {
   // Se il correttivo dell'attrezzo avesse toccato il petto per sbaglio, il
   // suo Silver III a 35 kg x 8 andrebbe a pezzi. Qui si blocca.
   assert.equal(rankDi(chest, 35, 8).rank.nome, 'SILVER');
-  // e il riferimento e' vicino a 0.90 del peso: la macchina lo alza un filino
   const r = rapportoDifficolta(chest);
-  assert.ok(r.rapporto > LIVELLI_DIFFICOLTA.composto.rapporto,
-    'la macchina alza un filino la soglia rispetto al composto');
-  assert.ok(r.rapporto < LIVELLI_DIFFICOLTA.composto.rapporto * 1.05,
+  assert.ok(r.rapporto >= LIVELLI_DIFFICOLTA.composto.rapporto,
+    'la macchina a dischi alza un filino la soglia rispetto al composto');
+  assert.ok(r.rapporto < LIVELLI_DIFFICOLTA.composto.rapporto * 1.02,
     'ma non di tanto: non voglio spostare i numeri che Ste ha verificato');
 });
 

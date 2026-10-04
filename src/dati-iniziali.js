@@ -67,7 +67,7 @@ export function personaDallaUrl(ricerca) {
 // Ogni riga e' una VARIANTA con id proprio: "Chest Press" e "Chest Press - macchina B"
 // hanno id diversi e quindi non verranno mai confrontati fra loro.
 export const ESERCIZI = [
-  { id: 'ex-chest-press', nome: 'Chest Press', gruppo: 'Chest Press', convenzione: C.MACCHINA, foto: 'img/esercizi/chest-press.png', tipo: 'standard', nota_permanente: '' },
+  { id: 'ex-chest-press', nome: 'Chest Press', gruppo: 'Chest Press', convenzione: C.MACCHINA_DISCHI, foto: 'img/esercizi/chest-press.png', tipo: 'standard', nota_permanente: 'Macchina a dischi veri sui perni, non e\' lo stack con la linguetta.' },
   { id: 'ex-cable-hammer-curl', nome: 'Cable Hammer Curl', gruppo: 'Cable Hammer Curl', convenzione: C.CAVO, foto: 'img/esercizi/cable-hammer-curl.png', tipo: 'standard', nota_permanente: 'Cavo basso, alla cavigliera.' },
   { id: 'ex-cable-lateral-raise', nome: 'Cable Lateral Raise', gruppo: 'Cable Lateral Raise', convenzione: C.CAVO, foto: 'img/esercizi/cable-lateral-raise.png', tipo: 'standard', nota_permanente: 'Fatte bene, alla cavigliera.' },
   { id: 'ex-cable-overhead-tricep', nome: 'Cable Overhead Tricep Extension', gruppo: 'Cable Overhead Tricep Extension', convenzione: C.CAVO, foto: 'img/esercizi/cable-overhead-tricep-extension.png', tipo: 'standard', nota_permanente: 'Devo raggiungerlo di nuovo: altezza 4 del cavo.' },

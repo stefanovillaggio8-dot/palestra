@@ -10,6 +10,17 @@ export const MAX_DECIMALI = 2;
 
 export const CONVENZIONI = {
   MACCHINA: 'macchina',
+  // Ste (04/10/2026), con due foto: "il macchinario e' piu' facile solo se c'e'
+  // questo, nella mia chest press si mettono i pesi reali".
+  //
+  // Ha ragione, ed e' una distinzione che mancava del tutto. Non tutte le
+  // macchine sono uguali, e una macchina con i DISCHI montati non e' la macchina
+  // facile: i dischi sono pesi veri e sbilanciati, se i due lati non sono uguali
+  // la macchina si stampa e ti devi arrangiare a tenere dritto. Quello che e'
+  // davvero facile e' lo STACK, il pacco di dischi piccoli con la linguetta: la
+  // resistenza e' un cavo, e' gia' bilanciata prima ancora che tu ti muovi.
+  MACCHINA_DISCHI: 'macchina_dischi',
+  MACCHINA_STACK: 'macchina_stack',
   CAVO: 'cavo_totali',
   PER_MANUBRIO: 'per_manubrio',
   DISCHI: 'dischi',
@@ -22,6 +33,8 @@ export const CONVENZIONI = {
 
 export const ETICHETTE_CONVENZIONE = {
   [CONVENZIONI.MACCHINA]: 'kg piastre macchina',
+  [CONVENZIONI.MACCHINA_DISCHI]: 'kg dischi sulla macchina',
+  [CONVENZIONI.MACCHINA_STACK]: 'kg pacco dischi (linguetta)',
   [CONVENZIONI.CAVO]: 'kg totali del cavo',
   [CONVENZIONI.PER_MANUBRIO]: 'kg per manubrio',
   [CONVENZIONI.DISCHI]: 'kg dischi (senza bilanciere)',

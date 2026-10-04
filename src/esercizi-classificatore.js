@@ -367,8 +367,23 @@ export function classificaEsercizio({ nome = '', descrizione = '', convenzione =
     }
   }
 
+  // Ste, con due foto (04/10/2026): "il macchinario e' piu' facile solo se c'e'
+  // questo, nella mia chest press si mettono i pesi reali quindi in teoria e' di
+  // piu' o no?".
+  //
+  // Aveva ragione, e la mia v38 aveva sbagliato: davo -6 a TUTTE le macchine.
+  // Ma una macchina a DISCHI non e' la macchina facile. I dischi sono pesi veri
+  // e se i due lati non sono uguali la macchina si stampa, quindi c'e' una
+  // parte di equilibrio da fare come sul bilanciere. Quello che e' davvero
+  // facile e' lo STACK: la resistenza e' un cavo ed e' gia' bilanciata prima
+  // che tu ti muovi, e tu scegli il peso con la linguetta.
+  //
+  // Perche' 'macchina' da sola vale -2 e non -6: senza sapere se ci sono dischi
+  // o stack, la scelta onesta e' NON dare per scontato che sia facile. Prima
+  // davo -6 e gli gonfiavo il Rank: peggio che sbagliarsi in eccesso.
   const CONVENZIONE = {
-    macchina: -6, cavo_totali: -5, per_manubrio: 5, dischi: 0,
+    macchina: -2, macchina_dischi: -2, macchina_stack: -6,
+    cavo_totali: -5, per_manubrio: 5, dischi: 0,
     bilanciere: 0, assistenza: -8, corpo_libero: 0,
   };
   if (convenzione && CONVENZIONE[convenzione]) {
