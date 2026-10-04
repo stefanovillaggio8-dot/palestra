@@ -230,6 +230,31 @@ export function performanceEsercizio(serie, esercizio, profilo = null, pesoAttua
  * Il record di un esercizio, con dentro il rank e gli LP corrispondenti.
  * Se non c'e' niente di registrato non viene inventato nessun record.
  */
+/**
+ * Bonus per le serie fatte, sul Rank e non sul massimale.
+ *
+ * Ste (04/10/2026): "se fai piu' serie, l'app ti da' un po' di merito in piu'.
+ * Sempre piccolo, al massimo l'8%".
+ *
+ * Perche' piccolo: se il bonus fosse grosso, salendo di livello il rank
+ * crescerebbe per due motivi insieme (carico che sale e serie che salgono), e
+ * non sapresti quale dei due ti abbia alzato. Con l'8% massimo il bonus non e'
+ * mai la spiegazione principale.
+ *
+ * Perche' non la media delle serie: punirebbe chi chiude le serie a cedimento,
+ * e il cedimento e' una buona abitudine. Il massimale resta quello della serie
+ * migliore, che e' come si misura in palestra.
+ */
+const FATTORE_SERIE = [1, 1.03, 1.06, 1.08];
+
+export function bonusSerie(serieFatte) {
+  const n = Number(serieFatte);
+  if (!Number.isFinite(n) || n <= 1) return { fattore: 1, bonus: 0 };
+  const i = Math.min(FATTORE_SERIE.length - 1, Math.floor(n) - 1);
+  const fattore = FATTORE_SERIE[i];
+  return { fattore, bonus: Math.round((fattore - 1) * 100) };
+}
+
 export function recordEsercizio(serie, esercizio, profilo = null, pesoAttuale = null) {
   const res = performanceEsercizio(serie, esercizio, profilo, pesoAttuale);
   if (!res.migliore) {
@@ -239,13 +264,25 @@ export function recordEsercizio(serie, esercizio, profilo = null, pesoAttuale = 
       sottoSoglia: false, mancaAlPrimo: null, prossimoObiettivo: null,
     };
   }
-  const r = calcolaRank(res.migliore.punteggio, res.profilo);
+  // Bonus serie: Ste "se fai piu' serie l'app ti da' un po' di merito in piu'".
+  // Va sul rank e non sul massimale, perche' il massimale deve restare quello
+  // della serie migliore: e' quello che si misura in palestra.
+  const bonus = bonusSerie(res.tutte.length);
+  const punteggioConSerie = bonus.fattore > 1
+    ? Math.round(res.migliore.punteggio * bonus.fattore * 100) / 100
+    : res.migliore.punteggio;
+  const r = calcolaRank(punteggioConSerie, res.profilo);
+  const testoSerie = bonus.bonus > 0
+    ? ` (+${bonus.bonus}% per ${res.tutte.length} serie)`
+    : '';
   return {
     esercizio,
     profilo: res.profilo,
     valido: true,
     punteggio: res.migliore.punteggio,
-    testo: res.migliore.testo,
+    testo: res.migliore.testo + testoSerie,
+    serieFatte: res.tutte.length,
+    bonusSerie: bonus.bonus,
     serie: res.migliore.serie,
     pesoCorporeo: res.migliore.pesoCorporeo,
     // tutto quello che calcola calcolaRank, così le schermate non perdono
