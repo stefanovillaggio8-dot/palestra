@@ -2495,7 +2495,7 @@ function cardRank(record, { compatta = false } = {}) {
   const profilo = r.profilo;
   const verso = r.inTop
     ? 'Sei nel rank piu' + ' alto: gli LP continuano a crescere.'
-    : `${formattaNumero(r.sogliaSuccessiva)} ${profilo.unita} per ${r.prossimoRank.nome}`;
+    : `${formattaNumero(r.sogliaSuccessiva)} ${profilo.unita} per ${(r.prossimoObiettivo || {}).etichetta || r.prossimoRank.nome}`;
   return el('div', { class: 'card-rank card-' + r.rankId + (compatta ? ' compatta' : '') }, [
     el('div', { class: 'card-rank-alto' }, [
       el('div', {}, [
@@ -2866,7 +2866,7 @@ function vistaEsercizio(zona, esercizioId) {
         class: 'nota',
         testo: record.inTop
           ? 'Sei sul rank piu\' alto: gli LP crescono senza tetto.'
-          : `${formattaNumero(record.sogliaSuccessiva)} ${profilo.unita} per ${record.prossimoRank.nome}.`,
+          : `${formattaNumero(record.sogliaSuccessiva)} ${profilo.unita} per ${(record.prossimoObiettivo || {}).etichetta || record.prossimoRank.nome}.`,
       }),
     ]),
   ]));

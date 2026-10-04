@@ -10,6 +10,7 @@ import {
   RANK,
   RANK_PER_ID,
   MISURE,
+  DIVISIONI,
   divisioneDaLp,
   profiloEsercizio,
   profiloPerPesoCorporeo,
@@ -266,25 +267,51 @@ export function calcolaRank(punteggio, profilo) {
     progresso = Math.max(0, Math.min(1, dentro / spessore));
   }
 
+  // "prossimoObiettivo" e' il pezzo successivo con il nome ESATTO che
+  // vede Ste. Prima scrivevamo solo "per il PLATINUM mancano 5 kg" anche se
+  // lui era a ORO 2, e non si capiva piu' niente. Ora se sei a ORO 2 la
+  // prossima divisione e' ORO 1, quindi dice "per l'ORO 1 mancano 5 kg".
+  // Solo quando sei al massimo della divisione (LP 90+) si passa al rank
+  // dopo, e in quel caso si riparte dalla terza divisione: "PLATINUM 3".
+  const divisioneCorrente = divisioneDaLp(lp);
+  let prossimoObiettivo = null;
+  if (!eTop) {
+    const prossima = prossimaDivisione(divisioneCorrente);
+    const seguente = R[indice + 1];
+    prossimoObiettivo = prossima
+      ? { etichetta: `${rank.nome} ${prossima.nome}`, solaDivisione: true }
+      : { etichetta: `${seguente.nome} ${DIVISIONI[0].nome}`, solaDivisione: false };
+  }
+
   return {
     rank: { ...rank, indice },
     rankId: rank.id,
     indice,
     lp,
-    divisione: eTop ? null : divisioneDaLp(lp),
+    divisione: eTop ? null : divisioneCorrente,
     progresso,
     sogliaAttuale: soglie[indice],
     sogliaSuccessiva: eTop ? null : soglie[indice + 1],
     inTop: eTop,
     prossimoRank: eTop ? null : R[indice + 1],
-    prossimaDivisione: (!eTop && lp >= 90 && id) ? prossimaDivisione(id) : null,
+    prossimaDivisione: (!eTop && lp >= 90) ? prossimaDivisione(divisioneCorrente) : null,
+    prossimoObiettivo,
     punteggio: valore,
   };
 }
 
-function prossimaDivisione(rank) {
+/**
+ * La divisione DOPO quella indicata.
+ *
+ * Prima questa funzione riceveva un oggetto rank, ma un rank non ha mai avuto
+ * la proprieta' "divisione": quindi non trovava nulla e restituiva sempre null.
+ * Ora riceve direttamente la divisione corrente ({ nome: 'II' }) e restituisce
+ * davvero la successiva ('I'), oppure null se sei gia' alla I.
+ */
+function prossimaDivisione(divisione) {
   const ordine = ['III', 'II', 'I'];
-  const i = ordine.indexOf(rank.divisione ? rank.divisione.nome : '');
+  const nome = divisione && divisione.nome ? String(divisione.nome).toUpperCase() : '';
+  const i = ordine.indexOf(nome);
   if (i < 0 || i >= ordine.length - 1) return null;
   return { nome: ordine[i + 1], aLp: 100 - 33 * (2 - i) };
 }

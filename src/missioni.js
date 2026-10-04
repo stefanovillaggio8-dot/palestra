@@ -37,7 +37,7 @@ export const POOL = [
   M('la-domanda-maledetta', 'LA DOMANDA MALEDETTA',
     'Durante una pausa chiedi con serietà al tuo amico: "Secondo te il pump è reale o siamo noi a crederci?" Non ridere e non spiegare.', 'easy'),
   M('annuncio-ufficiale', 'ANNUNCIO UFFICIALE',
-    'Dichiara ad alta voce, prima di iniziare, che oggi è il giorno in cui diventi leggenda. Poi allenati normalmente.', 'easy'),
+    'Prima di iniziare, dì ad alta voce, che oggi è il giorno in cui diventi leggenda. Poi allenati normalmente.', 'easy'),
   M('il-boss-finale', 'IL BOSS FINALE',
     'Prima di iniziare una serie guarda il tuo amico e digli con assoluta serietà: "Finalmente ci incontriamo." Poi fai la serie come se non fosse niente.', 'easy'),
   M('titolo-assurdo', 'IL TITOLO',
@@ -55,7 +55,7 @@ export const POOL = [
   M('il-ritorno-missione', 'IL RITORNO',
     'Esci per trenta secondi dalla zona in cui ti alleni. Rientra e comportati come se fossi appena tornato da una missione militare. "Non posso raccontarvi cosa è successo là fuori."', 'insane'),
   M('bro-ha-cambiato-vita', 'IL BRO HA CAMBIATO VITA',
-    'Dopo una serie normalissima annuncia ai tuoi amici: "Ragazzi, da oggi cambio completamente approccio." Non spiegare assolutamente nulla.', 'easy'),
+    'Dopo una serie normalissima dì ai tuoi amici: "Ragazzi, da oggi cambio completamente approccio." Non spiegare niente.', 'easy'),
   M('applauso-inutile', 'APPLAUSO INUTILE',
     'Dopo che un amico completa una serie normalissima, applaudilo lentamente per 5 secondi come se avesse appena stabilito un record mondiale.', 'easy'),
   M('personal-trainer-inutile', 'IL PERSONAL TRAINER',
@@ -93,7 +93,7 @@ export const POOL = [
   M('il-silenzio', 'IL SILENZIO',
     "Una serie intera in silenzio assoluto. Solo l'ultima ripetizione rompe il silenzio, e con una sola parola.", 'easy'),
   M('il-punto', 'IL PUNTO',
-    'Segna il punto come se fosse una partita di tennis: fallo con la mano e annuncialo. "PUNTO PER ME."', 'easy'),
+    'Segna il punto come se fosse una partita di tennis: fai il gesto con la mano e diglielo ad alta voce: "PUNTO PER ME."', 'easy'),
   M('la-fisica', 'LA FISICA',
     'Spiega la tua serie come se fosse un fenomeno fisico, con le formule. Tuo amico deve sembrare molto impressionato.', 'insane'),
   M('il-voto-assurdo', 'IL VOTO ASSURDO',
@@ -115,7 +115,7 @@ export const POOL = [
   M('la-rovescia', 'IL CONTO ALLA ROVESCIA',
     "Conta alla rovescia da dieci per ogni ripetizione del tuo amico, e sullo zero applaudi.", 'unhinged'),
   M('il-carico', 'A CARICO',
-    "Prima dell'ultima serie annuncia \"A CARICO!\" come se fosse il titolo di un film, e poi spingi come nel film.", 'easy'),
+    "Prima dell'ultima serie dì \"A CARICO!\" come se fosse il titolo di un film, e poi spingi come nel film.", 'easy'),
   M('il-segreto', 'IL SEGRETO',
     "Dici all'amico: \"Ho un segreto. Te lo dico solo se arrivi a 8 ripetizioni.\" Se le arriva, raccontagli che non hai davvero nessun segreto.", 'unhinged'),
   M('l-annuncio-duro', "L'ANNUNCIO DURO",
@@ -143,57 +143,68 @@ export const POOL = [
   M('il-dottore', 'IL MEDICO',
     "Conferma con serietà che con 5 kg in piu' starai meglio. Non dare spiegazioni, non ammettere dubbi.", 'unhinged'),
   M('il-mare-verso', 'IL MARE VERSO',
-    'Dopo la prima serie porta le mani alla fronte come se guardassi il mare, e annuncia: "Stiamo andando benissimo."', 'easy'),
+    'Dopo la prima serie porta le mani alla fronte come se guardassi il mare, e dì: "Stiamo andando benissimo."', 'easy'),
   M('la-lotta', 'LA LOTTA INTERNA',
-    'Dichiara ad alta voce, prima della serie, chi ti sta aspettando al di la\'. Poi vinci.', 'legendary'),
+    'Prima della serie, ad alta voce, di\' chi ti sta aspettando dall\'altra parte. Poi vinci.', 'legendary'),
 
-  // ---- sfide con gli sconosciuti: imbarazzo per te, mai per gli altri ----
-  // Regola di questo gruppo: fai passare solo TE per buffo. Con lo sconosciuto
-  // parli in modo gentile, non lo tocchi e non gli rovini la giornata.
+// ---- sfide con gli sconosciuti: imbarazzo per TE, mai per gli altri ----
+  // Ste ha chiesto che siano piu' difficili delle altre, perche' e' lo
+  // sconosciuto a metterti in imbarazzo. Per questo qui dentro non ci sono
+  // missioni "easy": si parte da "unhinged" e si sale fino a "legendary".
+  // Con lo sconosciuto parli in modo gentile, non lo tocchi e non gli rovini la
+  // giornata: di tutto il resto si fa passare solo TE.
+  M('la-domanda-sui-gammici', 'LA DOMANDA SUI GAMMICI',
+    'Chiedi a uno sconosciuto: "Mi scusi, questo esercizio fa bene agli addominali?" Ascolta la risposta con calma, annuisci e ringrazia. Poi allenati come se niente fosse.', 'unhinged'),
+  M('il-campione-assente', 'IL CAMPIONE ASSENTE',
+    'Guarda una persona che si allena e dì ad alta voce: "Quello è un vero campione!" Poi torna alla tua serie.', 'unhinged'),
+  M('l-orologio', 'L\'OROLOGIO',
+    'Chiedi a uno sconosciuto che ore sono. Ascolta la risposta, poi guarda l\'orologio al polso per cinque secondi in silenzio.', 'unhinged'),
+  M('il-nodo', 'IL NODO',
+    'Chiedi a uno sconosciuto: "Mi aiuti con un nodo?" In realtà non ti serve niente. Sorridi, ringrazia e vai.', 'unhinged'),
+  M('il-marchio', 'IL MARCHIO',
+    'Metti un dito sull\'esercizio e dì: "Da domani questo attrezzo porta il tuo nome."', 'unhinged'),
+  M('il-consiglio-gratuito', 'IL CONSIGIO GRATUITO',
+    'Avvicinati a uno sconosciuto e digli: "Attenzione, con quel peso conviene stringere di più." Poi alleni in silenzio.', 'unhinged'),
+  M('la-domanda-sul-peso', 'LA DOMANDA SUL PESO',
+    'Chiedi a uno sconosciuto: "Secondo te, quanto dovrei alzare?" Non gli dare consigli. Annuisci e basta.', 'insane'),
+  M('lo-sguardo', 'LO SGUARDO',
+    'Guarda negli occhi una persona che non conosci per tre secondi. Poi dì: "Ce la facciamo?" Se ride, devi chiedere scusa.', 'insane'),
+  M('la-lavagna', 'LA LAVAGNA',
+    'Spiega a uno sconosciuto come si fa un esercizio. Parla con calma e con sicurezza, come se insegnassi. Lui può anche dire di no.', 'insane'),
+  M('il-cameriere', 'IL CAMERIERE',
+    'Passa accanto a uno sconosciuto e chiedi: "Ha visto il mio allenatore?" Non spiegare chi è. Poi cammina via senza aggiungere niente.', 'insane'),
+  M('il-trombone-pubblico', 'IL TROMBONISTO',
+    'Nel mezzo della sala pesi fai il trombone senza suono per cinque secondi. Solo le labbra. Non spiegare niente a nessuno.', 'insane'),
+  M('la-sirena', 'LA SIRENA',
+    'Prima della tua serie fai una piccola sirena con la voce. Breve. Poi fai la serie come se non fosse successo niente.', 'insane'),
+  M('il-finto-pubblico', 'IL FINTO PUBBLICO',
+    'Prima della serie, rivolgendoti alla sala intera, dì: "Preparatevi. Tra un secondo vedrete qualcosa che nessuno ha mai visto." Poi fai la serie normalmente.', 'insane'),
+  M('la-domanda-sulla-scheda', 'LA DOMANDA SULLA SCHEDA',
+    'Chiedi a uno sconosciuto: "Tu come la fai la scheda?" Ascolta con faccia seria, come se fosse la domanda più importante della giornata.', 'legendary'),
+  M('il-portavoce-sconosciuto', 'IL PORTAVOCE',
+    'Avvicinati a uno sconosciuto e annuncia: "Sono il nuovo allenatore del lunedì." Non spiegare niente. Lui ti guarda, tu annuisci.', 'legendary'),
+  M('la-presentazione-sconosciuto', 'LA PRESENTAZIONE',
+    'Presentati a uno sconosciuto con il nome del campione di una finale. Poi allenati normalmente. Se ti chiede di che parlavi, cambia discorso.', 'legendary'),
+  M('il-consiglio-segreto', 'IL CONSIGLIO SEGRETO',
+    'Avvicinati a uno sconosciuto e sussurragli un consiglio tecnico assurdo. Poi scuoti la testa e digli: "Non posso, è un segreto." Poi zitto.', 'legendary'),
   M('la-posta', 'LA POSTA',
     'Fai il riscaldamento camminando per la palestra con la faccia seria, come se aspettassi una telefonata importante.', 'easy'),
   M('il-peso-annunciato', 'IL PESO ANNUNCIATO',
-    'Prima di iniziare, annuncia ad alta voce il peso che stai per alzare, con la voce di un campione del mondo.', 'easy'),
-  M('la-domanda-panca', 'LA DOMANDA SULLA PANCA',
-    'Chiedi a uno sconosciuto: "Mi scusi, questo esercizio fa bene alla panca?" Ascolta la risposta con serietà e ringrazia.', 'unhinged'),
-  M('il-campione-assente', 'IL CAMPIONE ASSENTE',
-    'Guarda una persona che si allena e annuncia a voce alta: "Quello è il vero campione." Poi torna alla tua serie.', 'unhinged'),
+    'Prima di iniziare, dì ad alta voce il peso che stai per alzare, con la voce di un campione del mondo.', 'easy'),
   M('la-camera-lenta', 'LA CAMERA LENTA',
-    'Fai tre ripetizioni a velocità metà, come una replay del campionato. Faccia seria.', 'easy'),
-  M('l-orologio', 'L\'OROLOGIO',
-    'Chiedi a uno sconosciuto che ore sono. Poi guarda l\'orologio per cinque secondi senza dire niente.', 'unhinged'),
-  M('la-spedizione', 'LA SPEDIZIONE',
-    'Fai una serie camminando di lato, come se stessiEntrando in campo. Non urtare nessuno.', 'unhinged'),
-  M('il-conteggio-dramma', 'IL CONTEGGIO DRAMMA',
+    'Fai tre ripetizioni a velocità metà, come un replay della finale. Faccia seria.', 'easy'),
+  M('il-conteggio-drama', 'IL CONTEGGIO DRAMA',
     'Prima della serie conta le ripetizioni ad alta voce, una alla volta, con la voce di un narratore.', 'easy'),
-  M('il-nodo', 'IL NODO',
-    'Chiedi a uno sconosciuto: "Mi aiuti con un nodo?" In realtà non ti serve. Ringrazia e vai.', 'unhinged'),
-  M('la-targa', 'LA TARGA',
-    'Metti la mano sull\'esercizio come se fosse un monumento. Di\': "Qui si allenano i campioni."', 'unhinged'),
-  M('lo-sguardo', 'LO SGUARDO',
-    'Guarda negli occhi una persona che non conosci per tre secondi. Poi annuncia: "Ce la facciamo?" Poi torna alla tua serie.', 'insane'),
   M('la-posa-vincitore', 'LA POSA',
     'Fai una posa da vincitore con un bilanciere in mano, come se qualcuno ti stesse fotografando.', 'easy'),
-  M('la-lavagna', 'LA LAVAGNA',
-    'Spiega a uno sconosciuto come si fa un esercizio. Parla con calma. Lui puo\' anche dire di no.', 'insane'),
   M('il-portavoce', 'IL PORTAVOCE',
     'Dopo la tua serie alza il pugno in alto come se avessi vinto. Non dire niente.', 'easy'),
   M('la-lente', 'LA LENTE',
     'Fai il riscaldamento con una lente d\'attenzione assurda: conta ogni ripetizione ad alta voce.', 'easy'),
-  M('il-trombone-pubblico', 'IL TROMBONISTO',
-    'Fai il trombone senza suono per cinque secondi, in mezzo alla sala pesi. Solo le labbra.', 'insane'),
-  M('la-conferenza-pubblica', 'LA CONFERENZA PUBBLICA',
-    'Prima della serie spiega alla sala intera, in dieci secondi, perché oggi alleni.', 'legendary'),
-  M('il-cameriere', 'IL CAMERIERE',
-    'Passa accanto a uno sconosciuto e chiedi: "Ha visto il mio allenatore?" Non spiegare chi è.', 'insane'),
-  M('il-marchio', 'IL MARCHIO',
-    'Metti un dito sull\'esercizio e annuncia: "Da domani questo attrezzo porta il tuo nome."', 'unhinged'),
   M('la-locandina', 'LA LOCANDINA',
     'Fai una posa da film. Luce in faccia, pugno chiuso. Resta tre secondi.', 'easy'),
-  M('il-consiglio-gratuito', 'IL CONSIGIO GRATUITO',
-    'Dì a uno sconosciuto: "Attenzione, con quel peso conviene stringere di piu\'." Poi alleni in silenzio.', 'unhinged'),
-  M('la-sirena', 'LA SIRENA',
-    'Prima della serie fai una piccola sirena con la voce. Breve. Poi fai la serie come se niente fosse.', 'insane'),
+  M('la-conferenza-pubblica', 'LA CONFERENZA PUBBLICA',
+    'Prima della serie spiega alla sala intera, in dieci secondi, perché oggi alleni.', 'legendary'),
   M('il-portale', 'IL PORTALE',
     'Studia un esercizio vuoto come se fosse un portale. Entra. Esci. Poi torna al lavoro.', 'legendary'),
   M('la-seduta-di-ascolto', 'LA SEDUTA DI ASCOLTO',
@@ -209,11 +220,11 @@ export const POOL = [
   M('il-giornale', 'IL GIORNALE',
     'Fai le pagine di testa di un giornale sportivo con le notizie della settimana, leggendole ad alta voce a tutti.', 'insane', { segreta: true }),
   M('la-grande-palestra', 'LA GRANDE PALESTRA',
-    'Per tutta la seduta descrivi la palestra come se fosse un tempio, e i pesi come se fossero statue. Nessuno ride.', 'legendary', { segreta: true }),
+    'Per tutta la seduta descrivi la palestra come se fosse un tempio. Esempio: quando prendi un bilanciere di 20 kg devi dire "Signori, avvicinatevi: questo peso ha requiem" e poi inchinarti davanti. Continua cosi\' con ogni macchina che usi.', 'legendary', { segreta: true }),
   M('il-messaggio-finale', 'IL MESSAGGIO FINALE',
-    "Consegna un messaggio importante a un amico che non c'e': una frase sola, drammatica, da ricordare per tutta la settimana.", 'insane', { segreta: true }),
+    "Consegna a un amico che non c'e' un messaggio importante. Deve essere una frase sola, drammatica, e lui deve ricordarsela per tutta la settimana. Esempio: \"Stef, dimentica tutto quello che hai fatto stasera.\"", 'insane', { segreta: true }),
   M('il-grande-giro', 'IL GRANDE GIRO',
-    'Fai un giro completo della sala pesi passando da ogni stazione, anche quelle libere, come se fosse una visita ufficiale.', 'legendary', { segreta: true }),
+    'Fai un giro della sala pesi passando da tutte le stazioni, anche quelle libere, come se fosse una visita ufficiale. Esempio: alzo ti presento la panca, e poi ti stringo la mano come se fossimo colleghi.', 'legendary', { segreta: true }),
 ];
 
 export const POOL_PER_ID = new Map(POOL.map((m) => [m.id, m]));
@@ -269,14 +280,30 @@ export function generatoreDa(seme) {
   };
 }
 
-function finestra(seme, pool, quanti, passo = 1) {
+/**
+ * Sceglie `quanti` missioni dal pool, saltando quelle gia' viste.
+ *
+ * Ste ha detto: "non possono spuntare piu' volte le stesse sfide, se e' gia'
+ * capitata a uno non puo' capitare la stessa cosa alla stessa persona".
+ * Quindi il filtro e' sull'elenco di cio' che quella persona ha gia' fatto,
+ * non sul caso: due utenti diversi possono vedere la stessa missione nello
+ * stesso momento, ma ognuno la vede una volta sola.
+ *
+ * Se il pool e' ormai finito (tutte gia' fatte) si ricomincia dal fondo: meglio
+ * riciclare che lasciare la persona senza missioni.
+ */
+function finestra(seme, pool, quanti, passo = 1, escludi = []) {
   if (!pool.length || quanti <= 0) return [];
+  const vietate = escludi instanceof Set ? escludi : new Set((escludi || []).map(String));
+  const utili = pool.filter((m) => !vietate.has(m.id));
+  // se non rimane niente, si ricade su tutto il pool
+  const base = utili.length ? utili : pool;
   const rnd = generatoreDa(seme);
-  const offset = Math.floor(rnd() * pool.length);
+  const offset = Math.floor(rnd() * base.length);
   const out = [];
-  for (let i = 0; i < pool.length && out.length < quanti; i++) {
-    const idx = (((offset + i * passo) % pool.length) + pool.length) % pool.length;
-    const m = pool[idx];
+  for (let i = 0; i < base.length && out.length < quanti; i++) {
+    const idx = (((offset + i * passo) % base.length) + base.length) % base.length;
+    const m = base[idx];
     if (m && !out.some((x) => x.id === m.id)) out.push(m);
   }
   return out;
@@ -284,13 +311,15 @@ function finestra(seme, pool, quanti, passo = 1) {
 
 /**
  * Il set della settimana: UGUALE PER TUTTI, perche' dipende solo dalla
- * settimana e dal pool, mai dall'utente.
+ * settimana e dal pool, mai dall'utente. Pero' salta le missioni che quella
+ * persona ha gia' completato: il set resta uguale per tutti, ognuno vede pero'
+ * solo quello che non gli e' capitato ancora.
  */
-export function setSettimanale(settimana) {
+export function setSettimanale(settimana, giaFatte = []) {
   const segrete = POOL.filter((m) => m.segreta);
   const normali = POOL.filter((m) => !m.segreta);
-  const weekly = finestra(`weekly:${settimana}`, normali, NUMERO_WEEKLY, 3);
-  const secret = finestra(`secret:${settimana}`, segrete, NUMERO_SECRET, 1);
+  const weekly = finestra(`weekly:${settimana}`, normali, NUMERO_WEEKLY, 3, giaFatte);
+  const secret = finestra(`secret:${settimana}`, segrete, NUMERO_SECRET, 1, giaFatte);
   return {
     settimana,
     weekly,
@@ -299,10 +328,13 @@ export function setSettimanale(settimana) {
   };
 }
 
-/** La Daily di oggi per un utente: diversa per ciascuno, una volta al giorno. */
-export function dailyDi(accountId, dataISO) {
+/**
+ * La Daily di oggi per un utente: diversa per ciascuno, una volta al giorno,
+ * e mai uguale a una missione che quella persona ha gia' fatto.
+ */
+export function dailyDi(accountId, dataISO, giaFatte = []) {
   const pool = POOL.filter((m) => !m.segreta);
-  const scelte = finestra(`daily:${accountId}:${dataISO}`, pool, 1, 1);
+  const scelte = finestra(`daily:${accountId}:${dataISO}`, pool, 1, 1, giaFatte);
   return scelte.length ? scelte[0] : null;
 }
 
@@ -320,9 +352,24 @@ export const CATEGORIE = {
  * Tutte le missioni di oggi e della settimana, con lo stato di ciascuna.
  * completamenti = le righe gia' salvate nella tabella "missioni".
  */
-export function quadroMissioni({ accountId, dataISO, settimana, completamenti = [] }) {
-  const set = setSettimanale(settimana);
-  const daily = dailyDi(accountId, dataISO);
+export function quadroMissioni({ accountId, dataISO, settimana, completamenti = [], giaFatte = [] }) {
+  // Cosa escludere. Attenzione: la missione che hai appena completato DEVE
+  // continuare a comparire, marcata come fatta. Quindi escludo solo cio' che
+  // hai completato in un PERIODO PASSATO (una daily di tre settimane fa, il set
+  // di due mesi fa), non quello di oggi o di questa settimana.
+  const chiaveDi = (riga) => {
+    const parti = String(riga.id || '').split(':');
+    return { missione: parti[1], periodo: parti.slice(2).join(':') };
+  };
+  const correnti = new Set([dataISO, settimana].map(String));
+  const daEscludere = new Set((giaFatte || []).map(String));
+  for (const c of (completamenti || [])) {
+    const { missione, periodo } = chiaveDi(c);
+    if (missione && periodo && !correnti.has(periodo)) daEscludere.add(missione);
+  }
+
+  const set = setSettimanale(settimana, daEscludere);
+  const daily = dailyDi(accountId, dataISO, daEscludere);
   const minei = new Set((completamenti || []).map((c) => c.id));
   const stato = (m, categoria) => {
     const chiave = `${accountId}:${m.id}:${categoria === 'daily' ? dataISO : settimana}`;

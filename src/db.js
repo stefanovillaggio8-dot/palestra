@@ -75,11 +75,22 @@ export function idDispositivo() {
 
 /* ---------- motore 1: IndexedDB ---------- */
 
+/**
+ * La versione del database si calcola da sola partendo dalle tabelle.
+ *
+ * Prima era scritta a mano (2) e non si alzava quando aggiungevo 'pesi',
+ * 'profili' e cosi' via: il gioco apriva la versione 2, non scattava nessun
+ * upgrade, la tabella nuova non veniva mai creata e sul telefono compariva
+ * "One of the specificied object stores was not found": l'app intera non
+ * partiva piu'. Ora basta aggiungere una tabella alla lista e la versione sale
+ * da sola, quindi le tabelle nuove vengono davvero create senza perdere i dati
+ * gia' salvati.
+ */
+export const VERSIONE_IDB = 1 + TABELLE.length;
+
 function apriIdb() {
   return new Promise((risolvi, rifiuta) => {
-    // il numero si alza solo quando aggiungiamo tabelle nuove: chi ha gia'
-    // l'app installata le prende al prossimo avvio, senza perdere niente
-    const richiesta = indexedDB.open('palestra', 2);
+    const richiesta = indexedDB.open('palestra', VERSIONE_IDB);
     richiesta.onupgradeneeded = () => {
       const db = richiesta.result;
       for (const t of TABELLE.concat(['meta'])) {

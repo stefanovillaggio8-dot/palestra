@@ -59,6 +59,47 @@ test('2c. le sfide con gli sconosciuti esistono e sono scritte semplici', () => 
   }
 });
 
+test('2d. nessuna missione si ripete per la stessa persona', () => {
+  // Ste: "non possono spuntare piu\' volte le stesse sfide, se e\' gia\' capitata
+  // a uno non puo\' capitare la stessa cosa alla stessa persona".
+  const giaFatte = POOL.slice(0, 30).map((m) => m.id);
+  const set = setSettimanale('2026-W40', giaFatte);
+  for (const m of [...set.weekly, ...set.secret]) {
+    assert.ok(!giaFatte.includes(m.id), 'non deve tornare una missione gia\' fatta: ' + m.id);
+  }
+  const d1 = dailyDi('io', '2026-10-05', giaFatte);
+  if (d1) assert.ok(!giaFatte.includes(d1.id), 'la daily non deve essere gia\' fatta: ' + d1.id);
+
+  // un'altra persona, senza storico, vede ancora il set uguale
+  const setAltro = setSettimanale('2026-W40', []);
+  assert.deepEqual(setAltro.weekly.map((m) => m.id), setSettimanale('2026-W40', []).weekly.map((m) => m.id),
+    'senza storico il set resta uguale per tutti');
+});
+
+test('2e. la daily non si ripete nemmeno giorno dopo giorno', () => {
+  // stesso utente, una settimana di giorni: nessuna missione due volte
+  const viste = [];
+  for (let g = 5; g <= 20; g++) {
+    const giorno = `2026-10-${String(g).padStart(2, '0')}`;
+    const m = dailyDi('io', giorno, viste);
+    if (!m) continue;
+    assert.ok(!viste.includes(m.id), 'la missione ' + m.id + ' e\' usata due volte entro il ' + giorno);
+    viste.push(m.id);
+  }
+  assert.ok(viste.length >= 10, 'in due settimane deve arrivare a dargli una missione ogni giorno');
+});
+
+test('2f. anche le weekly non si ripetono tra un utente e l\'altro nello stesso periodo', () => {
+  // due persone che hanno gia\' fatto cose diverse: i loro set possono
+  // diversificarsi, ma nessuno dei due deve vedere due volte la stessa missione
+  const a = setSettimanale('2026-W41', POOL.slice(0, 5).map((m) => m.id));
+  const b = setSettimanale('2026-W41', POOL.slice(5, 10).map((m) => m.id));
+  const idA = a.weekly.map((m) => m.id);
+  const idB = b.weekly.map((m) => m.id);
+  assert.equal(new Set(idA).size, idA.length, 'nel set di A non ci sono duplicati');
+  assert.equal(new Set(idB).size, idB.length, 'nel set di B non ci sono duplicati');
+});
+
 test('3. l\'identificatore di settimana e\' nel formato giusto', () => {
   assert.match(idSettimana('2026-10-05'), /^\d{4}-W\d{2}$/);
   assert.equal(idSettimana('2026-10-05'), idSettimana('2026-10-11'), 'la stessa settimana, stesso id');

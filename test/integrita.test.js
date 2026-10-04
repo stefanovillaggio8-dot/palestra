@@ -120,3 +120,32 @@ test('sw.js precarica anche index.html, stile.css e il manifest', () => {
     assert.ok(sw.includes(f), `sw.js non precarica ${f}`);
   }
 });
+
+// ---------------------------------------------------------------------------
+// Il numero di versione di IndexedDB.
+// ---------------------------------------------------------------------------
+// Ste ha visto sul telefono: "Failed to execute 'transaction' on
+// 'IDBDatabase': One of the specified object stores was not found".
+// Il motivo era che la versione del database era scritta a mano (2) e non si
+// e' alzata quando ho aggiunto le tabelle nuove ('pesi', 'profili',
+// 'missioni', 'ricompense'): senza upgrade le tabelle non venivano create e
+// ogni lettura esplodeva. Adesso la versione si calcola dalle tabelle, quindi
+// non puo' piu' succedere. Questo test lo blocca per l'avvenire.
+
+test('I1. la versione di IndexedDB sale da sola quando aggiungi una tabella', async () => {
+  const { TABELLE, VERSIONE_IDB } = await import('../src/db.js');
+  assert.ok(Array.isArray(TABELLE) && TABELLE.length > 0, 'la lista delle tabelle esiste');
+  assert.equal(typeof VERSIONE_IDB, 'number', 'la versione e\' un numero');
+  // deve dipendere dalle tabelle: se qualcuno aggiunge "pesi" o "profili",
+  // la versione sale da sola e l'upgrade scatta davvero
+  assert.equal(VERSIONE_IDB, 1 + TABELLE.length,
+    'la versione deve essere legata al numero di tabelle, altrimenti si rompe di nuovo');
+  assert.ok(VERSIONE_IDB > 2, 'la versione deve essere gia\' salita oltre la 2 bloccata');
+
+  // ogni tabella deve comparire nel codice di apertura, altrimenti esiste solo
+  // nella lista e il gioco non la trova mai
+  const sorgente = readFileSync(join(SRC, 'db.js'), 'utf8');
+  for (const t of TABELLE) {
+    assert.ok(sorgente.includes(t), 'la tabella ' + t + ' deve comparire in db.js');
+  }
+});

@@ -82,8 +82,20 @@ export const CAMPO_MISURA = {
 //    campione. Ogni esercizio ha il suo riferimento, quindi le soglie sono sue.
 // ---------------------------------------------------------------------------
 
-/** x il riferimento: bronze, silver, gold, platinum(=1), diamond, titan, olympian. */
-export const MOLTIPLICATORI_SOGLIA = [0.45, 0.62, 0.80, 1.00, 1.25, 1.55, 2.00];
+/**
+ * x il riferimento: bronze, silver, gold, platinum(=1), diamond, titan, olympian.
+ *
+ * Ste: "non troppo sgravati ma manco troppo poco". Prima erano
+ * [0.45, 0.62, 0.80, 1.00, 1.25, 1.55, 2.00]: bastava arrivare all'80% del
+ * riferimento per prendersi l'ORO, quindi il Rank non diceva niente, era
+ * scontato. Adesso la scalinata e' piu' stretta e spostata in alto:
+ *   - l'ORO richiede l'88% del riferimento (era 80%)
+ *   - il BRONZE richiede il 55% (era 45%)
+ *   - sopra il PLATINUM i gradini crescono, cosi' il DIAMOND resta un traguardo
+ * Non e' impossibile: chi si allena con costanza arriva, ma non ci arriva in
+ * due settimane come prima.
+ */
+export const MOLTIPLICATORI_SOGLIA = [0.55, 0.72, 0.88, 1.00, 1.18, 1.45, 1.85];
 
 /** Sotto questa soglia non c'e' rank: l'esercizio e' "non ancora valutato". */
 export const SOGLIA_MINIMA_ASSOLUTA = 0.0001;

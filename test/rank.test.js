@@ -89,8 +89,12 @@ test('8. gli LP stanno fra 0 e 99 dentro un rank e crescono col punteggio', () =
 
 test('9. gli LP crescono quando la performance cresce, a parita\' di rank', () => {
   const profilo = profiloEsercizio(chest);
-  const a = calcolaRank(55, profilo);
-  const b = calcolaRank(60, profilo);
+  // i valori si prendono DENTRO la stessa fascia: prima erano scritti a mano
+  // (55 e 60) e quando sono cambiate le soglie finivano in due rank diversi,
+  // quindi il test si rompeva senza che nessuno cambiasse il codice
+  const [basso, alto] = profilo.soglie;
+  const a = calcolaRank(basso + (alto - basso) * 0.3, profilo);
+  const b = calcolaRank(basso + (alto - basso) * 0.7, profilo);
   assert.equal(a.rankId, b.rankId);
   assert.ok(b.lp > a.lp, 'sempre piu\' LP quando il punteggio sale');
 });
@@ -243,4 +247,49 @@ test('24. recordAccount e\' gia\' ordinato dal rank piu\' alto', () => {
   const d = distribuzioneRank(record);
   assert.equal(d.length, RANK.length);
   assert.equal(d.reduce((a, x) => a + x.numero, 0), 2);
+});
+test('R10. la prossima divisione si chiama come la divisione giusta', () => {
+  // Ste: non "per il PLATINUM mancano" quando sei a ORO 2, ma "per l'ORO 1 mancano"
+  const p = profiloEsercizio(chest);
+  const soglie = p.soglie;
+
+  // meta' strada fra due soglie = LP 50, quindi sei gia' nella divisione 2
+  // del bronze (LP 34-66) e la successiva e' la 1
+  const mezzo = (soglie[0] + soglie[1]) / 2;
+  const r = calcolaRank(mezzo, p);
+  assert.equal(r.rankId, RANK[0].id);
+  assert.equal(r.divisione.nome, 'II', 'a meta\' strada sei nella divisione 2');
+  assert.ok(r.prossimoObiettivo, 'deve dire qual e\' il prossimo obiettivo');
+  assert.equal(r.prossimoObiettivo.etichetta, `${RANK[0].nome} I`, 'quindi il prossimo e\' bronze 1');
+  assert.ok(r.prossimoObiettivo.solaDivisione, 'e\' una divisione, non un altro rank');
+
+  // in cima al rank (LP 90+) la divisione 1 e\' finita: si passa al rank dopo,
+  // che si riparte dalla terza divisione
+  const quasiFine = soglie[1] - 1e-6;
+  const r2 = calcolaRank(quasiFine, p);
+  assert.equal(r2.rankId, RANK[0].id, 'sei ancora bronze, alla fine');
+  assert.equal(r2.prossimoObiettivo.etichetta, `${RANK[1].nome} III`, 'a fine bronze si va a silver 3');
+  assert.equal(r2.prossimoObiettivo.solaDivisione, false);
+
+  // nell'ultimo rank non si inventa un obiettivo
+  const alto = soglie[soglie.length - 1] * 5;
+  assert.equal(calcolaRank(alto, p).prossimoObiettivo, null, 'sopra tutto non c\'e\' un prossimo pezzo');
+});
+
+test('R11. le soglie non sono scontate e restano impossibili', () => {
+  // Ste: "non troppo sgravati ma manco troppo poco"
+  const s = soglieDaRiferimento(100); // riferimento 100 = platino
+  // non troppo sgravato: l'oro non arriva piu' all'80% del riferimento
+  assert.ok(s[2] >= 85, 'l\'oro richiede almeno 85 punti su 100, trovato ' + s[2]);
+  // neanche troppo difficile: il bronzo resta raggiungibile
+  assert.ok(s[0] <= 60, 'il bronzo non deve essere lontano, trovato ' + s[0]);
+  // la scalinata sale sempre e non si appiattisce
+  for (let i = 1; i < s.length; i++) {
+    assert.ok(s[i] > s[i - 1], 'la soglia ' + i + ' sale rispetto alla precedente');
+  }
+  assert.equal(s[3], 100, 'il platino coincide con il riferimento');
+  // ogni gradino deve valere qualcosa: niente trappole da 1 punto
+  for (let i = 1; i < s.length; i++) {
+    assert.ok(s[i] - s[i - 1] >= 5, 'il gradino ' + i + ' vale almeno 5 punti');
+  }
 });
