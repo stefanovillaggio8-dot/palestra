@@ -87,7 +87,10 @@ export function punteggioSerie(serie, profilo) {
   if (p.misura === M.KG_REPS) {
     const stima = stimaMassimo(peso, rip);
     if (stima === null) return { ...vuoto, motivo: 'mancano i kg o le ripetizioni' };
-    return { valido: true, punteggio: stima, testo: `${serie.peso} kg x ${serie.ripetizioni} (stima ${stima} kg)`, tipo: 'stima' };
+    // Ste (04/10/2026): "vuol dire che il mio massimale e' 44.33? se si' scrivi
+    // massimale non stima". Aveva ragione: e' il massimale, e con un termine
+    // tecnico non si capisce cosa sia. Quindi: massimale.
+    return { valido: true, punteggio: stima, testo: `${serie.peso} kg x ${serie.ripetizioni} (massimale ${stima} kg)`, tipo: 'stima' };
   }
 
   if (p.misura === M.SOLO_REPS) {
@@ -283,20 +286,41 @@ export function calcolaRank(punteggio, profilo) {
     progresso = Math.max(0, Math.min(1, dentro / spessore));
   }
 
-  // "prossimoObiettivo" e' il pezzo successivo con il nome ESATTO che
-  // vede Ste. Prima scrivevamo solo "per il PLATINUM mancano 5 kg" anche se
-  // lui era a ORO 2, e non si capiva piu' niente. Ora se sei a ORO 2 la
-  // prossima divisione e' ORO 1, quindi dice "per l'ORO 1 mancano 5 kg".
-  // Solo quando sei al massimo della divisione (LP 90+) si passa al rank
-  // dopo, e in quel caso si riparte dalla terza divisione: "PLATINUM 3".
+  // "prossimoObiettivo" e' il pezzo successivo con il nome ESATTO che vede
+  // Ste, e soprattutto con il numero GIUSTO per quel pezzo.
+  //
+  // Prima abbinavo la cifra della soglia del RANK DOPIO al nome della DIVISIONE:
+  // se eri a BRONZE 2 ti diceva "54 kg per BRONZE 1", ma 54 kg era la soglia
+  // del SILVER. Ste: "per arrivare argento 2 devo fare 53.93 kg, che sono un
+  // botto". Non era un botto: era semplicemente il numero sbagliato.
+  //
+  // Adesso il numero e' quello del pezzo indicato:
+  //  - se il prossimo passo e' una DIVISIONE dello stesso rank, il numero e'
+  //    la soglia di quella divisione;
+  //  - se il prossimo passo e' il RANK dopo, il numero e' la sua soglia.
   const divisioneCorrente = divisioneDaLp(lp);
+  const sotto = soglie[indice];
   let prossimoObiettivo = null;
   if (!eTop) {
     const prossima = prossimaDivisione(divisioneCorrente);
     const seguente = R[indice + 1];
-    prossimoObiettivo = prossima
-      ? { etichetta: `${rank.nome} ${prossima.nome}`, solaDivisione: true }
-      : { etichetta: `${seguente.nome} ${DIVISIONI[0].nome}`, solaDivisione: false };
+    if (prossima) {
+      // stessa fascia di rank: la divisione si raggiunge a un certo punto
+      // dentro il rank, calcolato con gli stessi LP della barra
+      const spessore = spessoreSoglia(p, indice) || 1;
+      const aLp = 100 - 33 * (2 - DIVISIONI.findIndex((d) => d.nome === prossima.nome));
+      prossimoObiettivo = {
+        etichetta: `${rank.nome} ${prossima.nome}`,
+        solaDivisione: true,
+        punteggio: sotto + spessore * (aLp / 100),
+      };
+    } else {
+      prossimoObiettivo = {
+        etichetta: `${seguente.nome} ${DIVISIONI[0].nome}`,
+        solaDivisione: false,
+        punteggio: soglie[indice + 1],
+      };
+    }
   }
 
   return {

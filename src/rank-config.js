@@ -85,17 +85,26 @@ export const CAMPO_MISURA = {
 /**
  * x il riferimento: bronze, silver, gold, platinum(=1), diamond, titan, olympian.
  *
- * Ste: "non troppo sgravati ma manco troppo poco". Prima erano
- * [0.45, 0.62, 0.80, 1.00, 1.25, 1.55, 2.00]: bastava arrivare all'80% del
- * riferimento per prendersi l'ORO, quindi il Rank non diceva niente, era
- * scontato. Adesso la scalinata e' piu' stretta e spostata in alto:
- *   - l'ORO richiede l'88% del riferimento (era 80%)
- *   - il BRONZE richiede il 55% (era 45%)
- *   - sopra il PLATINUM i gradini crescono, cosi' il DIAMOND resta un traguardo
- * Non e' impossibile: chi si allena con costanza arriva, ma non ci arriva in
- * due settimane come prima.
+ * Ste (04/10/2026): "il posizionamento del grado deve variare per esercizio,
+ * ci sono esercizi piu' difficili e piu' facili. Con la chest press 35 kg x 8
+ * mi sembra poco argento 3, o no?"
+ *
+ * Aveva ragione: la scala era troppo ripida all'inizio. Con i vecchi valori
+ * (0.55, 0.72, 0.88) una chest press 35x8 finiva a BRONZE, e per arrivare
+ * all'ARGENTO serviva un salto grosso.
+ *
+ * Adesso i primi gradini sono piu' vicini fra loro e il platino resta lontano:
+ *   - si entra in BRONZO presto (40% del riferimento), cosi' la prima medaglia
+ *     arriva subito e non resta tutto grigio;
+ *   - l'ARGENTO si prende con il 58%: e' il salto vero, e li arriva chi
+ *     spinge con criterio (una chest press 35x8 ci arriva);
+ *   - l'ORO richiede il 79%: è impegnativo ma non assurdo;
+ *   - il PLATINUM resta al 100% del riferimento, e sopra crescono ancora.
+ *
+ * Ogni esercizio ha comunque il SUO riferimento (più difficile la chest press
+ * di un raise), quindi la scala è diversa esercizio per esercizio.
  */
-export const MOLTIPLICATORI_SOGLIA = [0.55, 0.72, 0.88, 1.00, 1.18, 1.45, 1.85];
+export const MOLTIPLICATORI_SOGLIA = [0.40, 0.58, 0.79, 1.00, 1.22, 1.52, 1.90];
 
 /** Sotto questa soglia non c'e' rank: l'esercizio e' "non ancora valutato". */
 export const SOGLIA_MINIMA_ASSOLUTA = 0.0001;

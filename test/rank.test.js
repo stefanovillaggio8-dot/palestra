@@ -11,6 +11,7 @@ import {
 } from '../src/rank.js';
 import {
   RANK, MISURE, profiloEsercizio, soglieDaRiferimento, ETICHETTE_MISURA, divisioneDaLp,
+  profiloPerPesoCorporeo,
 } from '../src/rank-config.js';
 
 const chest = { id: 'ex-chest-press', nome: 'Chest Press', convenzione: 'macchina' };
@@ -276,20 +277,36 @@ test('R10. la prossima divisione si chiama come la divisione giusta', () => {
   assert.equal(calcolaRank(alto, p).prossimoObiettivo, null, 'sopra tutto non c\'e\' un prossimo pezzo');
 });
 
-test('R11. le soglie non sono scontate e restano impossibili', () => {
-  // Ste: "non troppo sgravati ma manco troppo poco"
+test('R11. la scala parte easy e il platino resta un traguardo', () => {
+  // Ste: "con la chest press 35 kg x 8 mi sembra poco argento 3, o no?"
+  // Aveva ragione: la scala era troppo ripida all'inizio. I gradini bassi
+  // sono vicini fra loro (e si entra in bronzo presto), il platino resta
+  // lontano e non e' una medaglia che arriva in una settimana.
   const s = soglieDaRiferimento(100); // riferimento 100 = platino
-  // non troppo sgravato: l'oro non arriva piu' all'80% del riferimento
-  assert.ok(s[2] >= 85, 'l\'oro richiede almeno 85 punti su 100, trovato ' + s[2]);
-  // neanche troppo difficile: il bronzo resta raggiungibile
-  assert.ok(s[0] <= 60, 'il bronzo non deve essere lontano, trovato ' + s[0]);
-  // la scalinata sale sempre e non si appiattisce
+
+  // si entra in bronzo presto: non deve restare tutto grigio
+  assert.ok(s[0] <= 42, 'il bronzo si prende presto, trovato ' + s[0]);
+  // l'argento e' il salto vero, e ci si arriva con una serie normale
+  assert.ok(s[1] >= 55 && s[1] <= 62, 'l\'argento sta intorno al 58%, trovato ' + s[1]);
+  // l'oro e' impegnativo ma non assurdo
+  assert.ok(s[2] >= 75 && s[2] <= 82, 'l\'oro sta intorno al 79%, trovato ' + s[2]);
+  // il platino resta il 100%: e' il traguardo, non una formalita'
+  assert.equal(s[3], 100, 'il platino coincide con il riferimento');
+  // sopra il platino continua a salire
+  assert.ok(s[4] > 100 && s[6] > s[5], 'sopra il platino la scala cresce ancora');
+
+  // la scalinata sale sempre e i gradini non si appiattiscono troppo
   for (let i = 1; i < s.length; i++) {
     assert.ok(s[i] > s[i - 1], 'la soglia ' + i + ' sale rispetto alla precedente');
   }
-  assert.equal(s[3], 100, 'il platino coincide con il riferimento');
-  // ogni gradino deve valere qualcosa: niente trappole da 1 punto
-  for (let i = 1; i < s.length; i++) {
-    assert.ok(s[i] - s[i - 1] >= 5, 'il gradino ' + i + ' vale almeno 5 punti');
-  }
+});
+
+test('R12. una 35 kg x 8 sulla chest press porta all\'argento 3', () => {
+  // Il caso concreto che Ste ha citato: 82 kg di persona, chest press
+  // 35 kg x 8. Deve cadere su ARGENTO divisione 3, non su bronzo.
+  const p = profiloPerPesoCorporeo(profiloEsercizio(chest), 82);
+  const q = calcolaRank(stimaMassimo(35, 8), p);
+  assert.equal(q.rankId, 'silver', 'deve essere argento, trovato ' + q.rankId);
+  assert.equal(q.divisione.nome, 'III', 'e la divisione 3, cioe\' quella da cui si parte');
+  assert.ok(q.lp <= 5, 'ed e\' appena entrato, non ha ancora scalato (LP ' + q.lp + ')');
 });
