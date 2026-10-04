@@ -23,11 +23,39 @@ test('1. il pool ha un sacco di missioni e tutte hanno id unico', () => {
 });
 
 test('2. nessuna missione e\' pericolosa o fuori luogo', () => {
-  // controllo che il pool non chieda mai cose che fanno male o che tocchino
-  // persone che non hanno firmato per niente
-  const vietate = /filmare|riprendere|video|sconosciut|stranier|insicur|pericolos|rovinare|attrezzatur|sabot|non\s+chiedere\s+il\s+permesso/i;
+  // Controllo che il pool non chieda mai cose che fanno male, che rovinano
+  // l'attrezzatura o che toccano persone senza il loro permesso.
+  //
+  // Nota: la parola "sconosciuto" NON e\' piu\' vietata. Ste ha chiesto delle
+  // sfide che vedono sconosciuti, e sono innocue: sono imbarazzanti per chi le
+  // fa, non per gli altri. Restano vietate le cose che fanno davvero danno.
+  const vietate = /filmare|riprendere|video|stranier|insicur|pericolos|rovinare|attrezzatur|sabot|non\s+chiedere\s+il\s+permesso/i;
   for (const m of POOL) {
     assert.equal(vietate.test(m.testo), false, 'missione da rivedere: ' + m.id);
+  }
+});
+
+test('2b. con chi non conosci mai nessun contatto fisico', () => {
+  // Il gruppo "sfide con gli sconosciuti" puo' usare solo la parola e il
+  // sorriso. Vietato toccare, spingere, abbracciare, mettere le mani addosso a
+  // chi non ha chiesto nulla. Con gli amici invece si puo' fare il pugno, per
+  // quello la regola non vale.
+  const contatto = /\b(tocca|toccare|toccarla|toccagli|toccargli|spingi|spingere|spingila|striscia|strisciare|abbraccia|abbracciare|palleggia|palleggi|mani\s+(sui|addosso|in\s+faccia))\b/i;
+  for (const m of POOL) {
+    // solo nelle missioni che vedono persone non conosciute
+    if (!/sconosciut|non\s+conosci/i.test(m.testo)) continue;
+    assert.equal(contatto.test(m.testo), false,
+      'missione con contatto fisico verso uno sconosciuto, da rivedere: ' + m.id);
+  }
+});
+
+test('2c. le sfide con gli sconosciuti esistono e sono scritte semplici', () => {
+  const conSconosciuto = POOL.filter((m) => /sconosciut|non\s+conosci/i.test(m.testo));
+  assert.ok(conSconosciuto.length >= 6, 'ci sono le sfide che vedono sconosciuti');
+  for (const m of conSconosciuto) {
+    // frasi corte e parole comuni: niente linguaggio complicato
+    assert.ok(m.testo.length < 170, 'frase non troppo lunga: ' + m.id);
+    assert.ok(/[.!]$/.test(m.testo.trim()), 'la frase finisce con un punto: ' + m.id);
   }
 });
 
