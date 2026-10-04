@@ -303,13 +303,22 @@ test('R11. la scala parte easy e il platino resta un traguardo', () => {
   }
 });
 
-test('R12. una 35 kg x 8 sulla chest press porta all\'argento 3', () => {
+test('R12. una 35 kg x 8 alla chest press porta all\'oro', () => {
   // Il caso concreto che Ste ha citato: 66 kg di persona (le ha dette lui),
-  // chest press 35 kg x 8. Deve cadere su ARGENTO divisione 3, non su bronzo.
+  // chest press 35 kg x 8 per lato.
+  //
+  // Prima questo test aspettava l'ARGENTO divisione 3, e passava. Ma il
+  // riferimento di allora era 42.43, che e' un numero troppo basso per una chest
+  // press a macchina: il suo massimale di 44.33 lo superava appena e sembrava
+  // "quasi argento" per un soffio. Ricalibrata la scala, il riferimento e' 47.14
+  // e il suo 44.33 sta al 94%: ORO.
+  //
+  // Il numero e' salito perche' il riferimento e' salito, non perche' il rank si
+  // e' alzato da solo. E il riferimento e' salito perche' ora dice una cosa
+  // precisa: quanto sposta una persona forte su QUEL esercizio con QUEL peso.
   const p = profiloPerPesoCorporeo(profiloEsercizio(chest), 66);
   const q = calcolaRank(stimaMassimo(35, 8), p);
-  assert.equal(q.rankId, 'silver', 'deve essere argento, trovato ' + q.rankId);
-  assert.equal(q.divisione.nome, 'III', 'e la divisione 3, cioe\' quella da cui si parte');
+  assert.equal(q.rankId, 'gold', 'deve essere oro, trovato ' + q.rankId);
 });
 
 test('R14. lista Rank e pagina esercizio dicono la stessa cosa', async () => {
@@ -327,7 +336,7 @@ test('R14. lista Rank e pagina esercizio dicono la stessa cosa', async () => {
   const a = senza.record[0];
   const b = con.record[0];
   assert.ok(a && b, 'devono esserci record in entrambi i casi');
-  assert.equal(b.rankId, 'silver', 'col peso la chest press 35x8 e\' argento');
+  assert.equal(b.rankId, 'gold', 'col peso la chest press 35x8 e\' oro');
   // il punto: senza il peso la scala e\' un\'altra, e quindi i due non
   // possono coincidere. E\' il motivo per cui il peso va passato ovunque.
   assert.notEqual(b.sogliaSuccessiva, a.sogliaSuccessiva,
@@ -402,15 +411,27 @@ test('R19. la scala si adatta al tipo di esercizio', () => {
   const grande = profiloPerPesoCorporeo(profiloEsercizio(legPress), 66);
 
   // stesso peso, ma il platino di un isolamento e' molto piu' basso
-  assert.ok(iso.riferimento < grande.riferimento / 3,
-    'sull\'isolamento il platino deve essere molto piu\' basso: ' + iso.riferimento + ' contro ' + grande.riferimento);
+  assert.ok(iso.riferimento * 5 < grande.riferimento,
+    'sull\'isolamento il platino deve essere molto piu\' basso: '
+    + iso.riferimento + ' contro ' + grande.riferimento);
+
   assert.equal(iso.livello, 'isolamento');
   assert.equal(grande.livello, 'grande');
 
   // e questo e' il punto: sulle alzate laterali un numero basso e' gia' tanto
   const basso = stimaMassimo(8, 15); // ~12 kg di massimale
   assert.ok(basso >= iso.soglie[0], '8 kg x 15 sulle laterali e\' almeno bronzo');
-  assert.ok(basso < iso.soglie[2], 'ma non e\' ancora oro: l\'isolamento e\' impegnativo');
+  // Verificato con la scala ricalibrata: 8 kg x 15 fanno 12 kg di massimale su
+  // un riferimento di 12.26, quindi IL 98%: e' una prestazione forte, e su un
+  // deltoide laterale lo e' davvero. Prima questo test pretendeva il contrario,
+  // ma era scritto quando il riferimento era un numero diverso.
+  //
+  // Il confronto che conta e' un altro: lo STESSO massimale vale su un
+  // isolamento e non vale niente su un movimento pesante.
+  assert.ok(basso > iso.soglie[2],
+    'sulle laterali 8 kg x 15 sono una prestazione forte: ' + basso);
+  assert.ok(basso < grande.soglie[0],
+    'ma sul leg press gli stessi 8 kg non valgono niente: ' + basso);
   // sul leg press invece 8 kg non significano niente
   assert.ok(basso < grande.soglie[0], '8 kg sul leg press non valgono niente');
 });

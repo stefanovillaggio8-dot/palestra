@@ -24,6 +24,18 @@ export const CONVENZIONI = {
   // obliqua), ma mancava il caso del braccio, che e' quello delle macchine a
   // dischi.
   PER_BRACCIO: 'per_braccio',
+  // Ste (04/10/2026): "ai cavi c'e' il cavo con mono carrucola e doppia carrucola.
+  // Per esempio di hammer curl faccio 50kg ma e' doppia carrucola quindi sarebbero 25".
+  //
+  // Ha ragione, ed era un buco grosso: sul cavo a doppia carrucola il guadagno e'
+  // 2:1, quindi il carrello segna 50 ma il peso che senti e' 25. E' anche per
+  // questo che la doppia carrucola si usa su un braccio alla volta.
+  //
+  // Non e' un dettaglio di come si scrive: e' META' del carico. Se l'app legge 50
+  // quando il peso reale e' 25 sbaglia di 2 volte, e sbaglia di 2 volte sul Rank
+  // di tutti gli esercizi al cavo.
+  CARRUCOLA_MONO: 'carrucola_mono',
+  CARRUCOLA_DOPPIA: 'carrucola_doppia',
   // "macchina a dischi" non puo' stare in convenzione PERCHE' li' ci vuole anche
   // "per braccio": due informazioni diverse, e prima che le ho separate la
   // macchina si perdeva. Percio' l'attrezzatura e' un campo per conto suo.
@@ -44,7 +56,6 @@ export const CONVENZIONI = {
   // Esiste gia' PER_GAMBA per lo stesso motivo (17 kg per gamba sulla leg press
   // obliqua), ma mancava il caso del braccio, che e' quello delle macchine a
   // dischi.
-  PER_BRACCIO: 'per_braccio',
   BILANCIERE: 'bilanciere',
   ASSISTENZA: 'assistenza',
   CORPO_LIBERO: 'corpo_libero',

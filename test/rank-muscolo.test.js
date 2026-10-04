@@ -6,6 +6,7 @@ import {
   rapportoDifficolta, riferimentoPerEsercizio, LIVELLI_DIFFICOLTA, MOLTIPLICATORI_SOGLIA,
 } from '../src/rank-config.js';
 import { ESERCIZI } from '../src/dati-iniziali.js';
+import { classificaEsercizio } from '../src/esercizi-classificatore.js';
 
 // Ste (04/10/2026): "deve capire cosa lavora quell'esercizio e quindi capire
 // se e' difficile o facile", e poi "deve capire ancora meglio i rank e le
@@ -56,10 +57,16 @@ test('R1. 35 kg per braccio sono 70 kg, e il Rank lo deve sapere', () => {
   // dimezzava tutto.
   //
   // Quindi il test non puo' piu' dire "non si tocca": deve dire il numero vero.
+  // Ste (04/10/2026), sul raddoppio: "no fallo restare 44.33. non voglio che
+  // spunti un numero cosi' alto, voglio che rimanga il numero di peso che metto in
+  // una sola parte per il massimale".
+  //
+  // Quindi il massimale NON si raddoppia. Il numero che si vede e' quello che lui
+  // ha scritto, e si puo' confrontare a occhio con la serie.
   const a = rankDi(chest, 35, 8);
-  assert.equal(a.punteggio, 88.67, '70 kg x 8 -> il massimale e\' 88.67, non 44.33');
-  assert.match(a.testo, /totale 70 kg/, 'e la riga deve dire che il totale e\' 70');
-  assert.equal(a.rank.nome, 'OLYMPIAN');
+  assert.equal(a.punteggio, 44.33, '35 kg x 8 -> massimale 44.33: niente raddoppio');
+  assert.match(a.testo, /^35 kg/, 'la riga parte dal numero che ha scritto lui');
+  assert.doesNotMatch(a.testo, /88|70 kg/, 'e non deve comparire il doppio');
   assert.ok(rankDi(chest, 50, 8).rank.indice >= a.rank.indice,
     'con 50 kg per braccio non puo\' fare peggio che con 35');
 });
@@ -99,10 +106,32 @@ test('R1c. "per braccio" e "macchina a dischi" non si perdono a vicenda', () => 
   const prof = recordAccount([chest],
     [{ esercizio_id: chest.id, serie: [{ id: 's', peso: 35, ripetizioni: 8, stato: 'fatta' }] }],
     { pesoAttuale: PESO })[0].profilo;
-  assert.equal(prof.moltiplicatoreCarico, 2, 'deve sapere di raddoppiare per il Rank');
-  const r = rapportoDifficolta(chest);
-  assert.ok(r.spiegazione && /attrezzo/.test(r.spiegazione),
-    'e deve ancora spiegare che e\' una macchina a dischi, non un bilanciere');
+  // Ste: il massimale resta sul numero scritto, quindi per_braccio NON raddoppia
+  // piu'. Resta solo come etichetta, per dire che quei kg sono di un lato.
+  assert.equal(prof.moltiplicatoreCarico, 1,
+    "per braccio non raddoppia: il numero che si vede e' quello scritto");
+
+  // Ste: "però quando muovo il braccio destro non muovo anche il sinistro".
+  // Questa macchina ha i due bracci indipendenti, quindi e' iso-lateral di
+  // fatto, anche se non si chiama cosi'. Percio' qui la spiegazione e' NULL:
+  // la macchina a dischi da -2 e l'indipendenza dà +2, si azzerano.
+  //
+  // E' pero' proprio qui che si vede se l'informazione si e' persa: se la macchina
+  // o i bracci indipendenti sparissero, il risultato sarebbe lo stesso 0.90 ma
+  // per un motivo sbagliato. Quindi guardo i motivi uno per uno, non la somma.
+  const riconosciuto = classificaEsercizio({
+    nome: chest.nome,
+    convenzione: chest.convenzione,
+    attrezzatura: chest.attrezzatura,
+    bracciaIndipendenti: !!chest.bracciaIndipendenti,
+  });
+  assert.ok(riconosciuto.motivi.some((m) => /dischi/.test(m)),
+    'deve sapere che e\' una macchina a dischi');
+  assert.ok(riconosciuto.motivi.some((m) => /indipendent/i.test(m)),
+    'e deve sapere che i due bracci sono indipendenti');
+  assert.equal(riconosciuto.pesoModificatori, 0, 'i due effetti si compensano a zero');
+  assert.equal(rapportoDifficolta(chest).spiegazione, null,
+    'quindi non c\'e\' niente da spiegare: e\' un compenso, non un errore');
 });
 
 test('R2. il muscolo piccolo abbassa la soglia, quello grande no', () => {
@@ -127,7 +156,12 @@ test('R3. il laterale pesante conta piu\' di un petto leggero', () => {
   const percPetto = pettoR.punteggio / pettoR.riferimento;
   assert.ok(percLaterale > percPetto,
     'sul laterale arriva piu\' in alto della soglia che sul petto: il muscolo conta');
-  assert.equal(lateraleR.rank.nome, 'OLYMPIAN');
+  // Numeri verificati con la scala ricalibrata: laterale 15.42 su un
+  // riferimento di 12.26 = 126% -> TITAN. Petto 44.33 su 47.14 = 94% -> GOLD.
+  // Quindi il muscolo piccolo arriva piu' in alto, ed e' quello che volevo
+  // provare: non e' che ogni esercizio sia uguale.
+  assert.equal(lateraleR.rank.nome, 'TITAN');
+  assert.equal(pettoR.rank.nome, 'GOLD');
 });
 
 test('R4. la soglia della chest press e\' quella giusta', () => {

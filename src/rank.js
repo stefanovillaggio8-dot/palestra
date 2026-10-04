@@ -17,6 +17,7 @@ import {
   pesoCorporeoValido,
   descriviPunteggio,
   spessoreSoglia,
+  pesoReale,
 } from './rank-config.js';
 
 const R = RANK;
@@ -95,15 +96,42 @@ export function punteggioSerie(serie, profilo) {
     // Rank, quindi se il fattore lo moltiplicasse un altro pezzo di codice i due
     // posti potrebbero non essere d'accordo, e il Rank dipenderebbe da quale dei
     // due hai chiesto per primo.
-    const fattore = Number.isFinite(Number(p.moltiplicatoreCarico)) ? Number(p.moltiplicatoreCarico) : 1;
-    const totale = fattore > 1 ? Math.round(peso * fattore * 100) / 100 : peso;
+    // Il TOTALE si calcola qui e da nessun'altra parte, perche' e' il numero che
+    // decide il Rank: se lo moltiplicasse un altro pezzo di codice, i due posti
+    // potrebbero non essere d'accordo e il Rank dipenderebbe da quale dei due hai
+    // chiesto per primo.
+    //
+    // Qui ci finisce anche la carrucola. Ste: "di hammer curl faccio 50kg ma e'
+    // doppia carrucola quindi sarebbero 25". E la regola tricky e' questa: il
+    // doppio carrucola si usa su UN braccio alla volta, quindi il peso e' gia'
+    // dimezzato e NON va anche raddoppiato come sulle macchine a dischi. Se si
+    // applicassero i due insieme la correzione si annullerebbe e l'app leggerebbe
+    // di nuovo 50, cioe' il numero sbagliato di prima.
+    // Ste: "il massimale deve restare il numero di peso che metto in una sola
+    // parte". Quindi niente raddoppio: il massimale e' sul numero che ha scritto
+    // lui. La carrucola invece resta, perche' quella e' meccanica: sul doppio
+    // carrucola il peso che senti e' davvero meta'.
+    const totale = pesoReale(peso, { carrucola: p.carrucola });
+    if (totale === null) return { ...vuoto, motivo: 'mancano i kg o le ripetizioni' };
     const stima = stimaMassimo(totale, rip);
     if (stima === null) return { ...vuoto, motivo: 'mancano i kg o le ripetizioni' };
     // Ste: "vuol dire che il mio massimale e' 44.33? se si' scrivi massimale non
     // stima". Aveva ragione: e' il massimale, e con un termine tecnico non si
     // capisce cosa sia. Quindi: massimale.
-    const perLato = fattore > 1 ? ` per lato, totale ${totale} kg` : '';
-    return { valido: true, punteggio: stima, testo: `${serie.peso} kg${perLato} x ${serie.ripetizioni} (massimale ${stima} kg)`, tipo: 'stima' };
+    // Ste ha chiesto che la riga sotto la serie dica il peso VERO, non quello
+    // scritto. Mostrare "50 kg" quando ne stai spostando 25 e' peggio che non
+    // mostrare niente: e' un numero che mente.
+    const cheSai = [];
+    if (p.carrucola === 'carrucola_doppia') {
+      cheSai.push(`doppia carrucola: il peso che senti e' ${totale} kg`);
+    }
+    const inChiaro = cheSai.length ? ` ${cheSai.join(', ')}` : '';
+    return {
+      valido: true,
+      punteggio: stima,
+      testo: `${serie.peso} kg${inChiaro} x ${serie.ripetizioni} (massimale ${stima} kg)`,
+      tipo: 'stima',
+    };
   }
 
   if (p.misura === M.SOLO_REPS) {

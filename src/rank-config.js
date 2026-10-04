@@ -150,6 +150,7 @@ export function spessoreSoglia(profilo, indiceRank) {
 // il livello lo capisce dal nome ("Dumbbell Lateral Raise" -> isolamento)
 import { classificaEsercizio } from './esercizi-classificatore.js';
 import { parteDiMuscolo, intrinsecoDi } from './muscoli-parti.js';
+import { scalaEsercizio, scalaSulCorpo } from './scala-esercizi.js';
 
 export const LIVELLI_DIFFICOLTA = {
   grande:     { id: 'grande',     nome: 'GRANDE',     rapporto: 1.85 },
@@ -242,7 +243,11 @@ export function livelloEsercizio(esercizio) {
   if (convenzione === 'corpo_libero' || convenzione === 'assistenza') return 'assistito';
 
   // 3) altrimenti lo riconosce dal nome
-  return classificaEsercizio({ nome, convenzione, attrezzatura: (esercizio && esercizio.attrezzatura) || null }).livello;
+  return classificaEsercizio({
+    nome, convenzione,
+    attrezzatura: (esercizio && esercizio.attrezzatura) || null,
+    bracciaIndipendenti: !!(esercizio && esercizio.bracciaIndipendenti),
+  }).livello;
 }
 
 /** Anche il gruppo muscolare, quando serve saperlo. */
@@ -274,6 +279,69 @@ export function gruppoEsercizio(esercizio) {
  * (composto, petto) non cambia di una virgola, quindi il suo Silver III a 35
  * kg x 8 resta esattamente quello.
  */
+/**
+ * Correzione per TIPO DI MOVIMENTO, non solo per livello.
+ *
+ * Ste: "ma sono diversi". Aveva ragione, e si riferiva a una cosa che avevo
+ * scritto io: avevo detto che chest press e iso-lateral row si comportano
+ * uguale. Uguagliano SOLO la parte meccanica (dischi veri, bracci indipendenti).
+ * L'esercizio e' un altro e il Rank non lo sapeva: entrambi sono "composto",
+ * quindi prendevano lo stesso rapporto 0.90. Un petto e un dorso non valgono la
+ * stessa cosa, e con un solo rapporto per livello l'app non poteva distinguerli.
+ *
+ * Perche' questi numeri sono (e non sono) una scienza:
+ *  - NON sono inventati a caso: la direzione e' quella nota da chi si allena.
+ *    Di solito su una TIRATA ORIZZONTALE si carica piu' che su una SPINTA
+ *    ORIZZONTALE, quindi impressionare tirando e' piu' difficile e la soglia
+ *    deve SALIRE. E la SPINTA VERTICALE (military) e' l'esercizio di spinta che
+ *    regge meno, quindi la soglia scende.
+ *  - NON sono misurati sulla persona di Ste: sono percentuali prudenti. Chiunque
+ *    puo' correggerli, e l'app li mostra ogni volta, quindi un numero sbagliato
+ *    almeno si vede.
+ *
+ * Il correttivo e' PICCOLO di proposito. Sui Rank veri di Ste vale 6-12%: se
+ * questi numeri fossero sbagliati di molto, gli sposterebbero tutti insieme e io
+ * non potrei accorgermene. Meglio una correzione piccola e discussa che una
+ * grossa e arbitraria.
+ */
+const CORRETTIVO_MOVIMENTO = {
+  // spinte
+  spinta_orizzontale: 1.00, // panca, chest press: la base di paragone
+  spinta_verticale: 0.88, // military: regge meno del petto, soglia piu' bassa
+  // tirate
+  tirata_verticale: 1.00, // trazioni, pulldown: soglia simile alla base
+  tirata_orizzontale: 1.06, // remo: di solito si tira piu' di quanto si spinga
+  // gambe
+  gambe_pesanti: 1.00, // leg press: e' gia' "grande", non serve altro
+  // isolamento
+  petto_isolamento: 1.00,
+  spalle_isolamento: 1.00,
+  bicipiti: 1.00,
+  tricipiti: 1.00,
+  gambe_isolamento: 1.00,
+  core: 1.00,
+};
+
+/** Il correttivo per tipo di movimento, 1 se non si sa niente. */
+export function correttivoMovimento(movimento) {
+  const v = CORRETTIVO_MOVIMENTO[movimento];
+  return Number.isFinite(v) ? v : 1;
+}
+
+const NOME_MOVIMENTO = {
+  spinta_orizzontale: 'spinta orizzontale',
+  spinta_verticale: 'spinta verticale',
+  tirata_verticale: 'tirata verticale',
+  tirata_orizzontale: 'tirata orizzontale',
+  gambe_pesanti: 'gambe, movimento pesante',
+  petto_isolamento: 'isolamento petto',
+  spalle_isolamento: 'isolamento spalle',
+  bicipiti: 'isolamento bicipiti',
+  tricipiti: 'isolamento tricipiti',
+  gambe_isolamento: 'isolamento gambe',
+  core: 'core',
+};
+
 export function rapportoDifficolta(esercizio) {
   const livello = livelloEsercizio(esercizio);
   const base = LIVELLI_DIFFICOLTA[livello];
@@ -294,7 +362,11 @@ export function rapportoDifficolta(esercizio) {
   // falso: sulla macchina il busto e' appoggiato, il percorso e' guidato e la
   // barra non ti puo' scivolare addosso. Lo stesso 44 kg li' sono piu' duri
   // liberi che al cavo.
-  const riconosciuto = classificaEsercizio({ nome, convenzione, attrezzatura: (esercizio && esercizio.attrezzatura) || null });
+  const riconosciuto = classificaEsercizio({
+    nome, convenzione,
+    attrezzatura: (esercizio && esercizio.attrezzatura) || null,
+    bracciaIndipendenti: !!(esercizio && esercizio.bracciaIndipendenti),
+  });
   const mod = riconosciuto.pesoModificatori || 0;
 
   // Ogni 10 punti di modificatore spostano la soglia del 4%. Il segno e'
@@ -302,11 +374,18 @@ export function rapportoDifficolta(esercizio) {
   // cavo, pesi -) ALZA la soglia, perche' impressionare e piu' difficile.
   const correttivoAttrezzo = 1 - 0.004 * mod;
 
+  // ---- il tipo di movimento
+  //
+  // Ste: "ma sono diversi". Chest press e iso-lateral row sono entrambe
+  // "composto", quindi fin qui avevano lo stesso rapporto. Ma una e' una SPINTA e
+  // l'altra una TIRATA, e non valgono la stessa cosa.
+  const mov = correttivoMovimento(riconosciuto.movimento);
+
   // ---- il muscolo
   const spintaMuscolo = intrinseco === null ? 0 : Math.max(0, intrinseco - 2);
 
   const spinta = spintaMuscolo;
-  const rapporto = Math.round(base.rapporto * correttivoAttrezzo * (1 - 0.06 * spintaMuscolo) * 1000) / 1000;
+  const rapporto = Math.round(base.rapporto * correttivoAttrezzo * mov * (1 - 0.06 * spintaMuscolo) * 1000) / 1000;
 
   const spiegazioni = [];
   if (mod !== 0) {
@@ -318,9 +397,26 @@ export function rapportoDifficolta(esercizio) {
     spiegazioni.push(`${parte.nome}: muscolo piccolo e instabile, la soglia scende del `
       + `${Math.round(spintaMuscolo * 6)}%`);
   }
+  if (mov !== 1) {
+    const su = mov > 1;
+    spiegazioni.push(`${NOME_MOVIMENTO[riconosciuto.movimento] || riconosciuto.movimento}: `
+      + (su ? `movimento dove di solito si carica piu', la soglia sale del `
+        : `movimento dove di solito si regge meno, la soglia scende del `)
+      + `${Math.abs(Math.round((mov - 1) * 100))}%`);
+  }
 
   return {
     rapporto,
+    // Il correttivo RELATIVO: quanto questo esercizio e' piu' o meno difficile
+    // della media del suo livello. E' quello che va moltiplicato per la scala
+    // dell'esercizio.
+    //
+    // Perche' serve due valori e non uno solo: il rapporto assoluto (0.907, 1.006
+    // ...) e' "quanto pesa come frazione del corpo", quindi contiene GIAA' il peso
+    // corporeo. Se lo moltiplicassi a una scala che e' gia' stata riportata sul
+    // peso della persona, il peso entrerebbe due volte: e' il doppio conteggio
+    // che ho gia' fatto due volte, e la volta prima proprio qui.
+    correttivoRelativo: Math.round((rapporto / base.rapporto) * 1000) / 1000,
     livello,
     spinta,
     spintaMuscolo,
@@ -342,10 +438,55 @@ export function rapportoDifficolta(esercizio) {
 //
 // Il totale si calcola una volta sola, qui, e non in mezzo ai calcoli: due posti
 // che moltiplicano per due sono due posti che possono dimenticarselo.
+/**
+ * Quanto pesa davvero, secondo la carrucola.
+ *
+ * Ste: "di hammer curl faccio 50kg ma e' doppia carrucola quindi sarebbero 25".
+ *
+ * Sul mono carrucola il cavo arriva dritto: senti quello che c'e' sul carrello.
+ * Sul doppio carrucola il cavo passa sopra una puleggia e torna indietro: il
+ * guadagno e' 2:1, quindi senti META' del carrello.
+ *
+ * Sul doppio carrucola si lavora su un braccio alla volta, quindi il peso e'
+ * gia' dimezzato e NON va anche raddoppiato come sulle macchine a dischi. Se si
+ * applicassero i due insieme, 50 kg diventerebbero 25 e poi di nuovo 50: la
+ * correzione si annullerebbe e l'app tornerebbe al numero sbagliato di prima.
+ */
+export function fattoreCarrucola(carrucola) {
+  if (carrucola === 'carrucola_doppia') return 0.5;
+  return 1;
+}
+
+/**
+ * Il fattore da mettere sul peso che Ste ha scritto, per ottenere il peso vero.
+ *
+ * Restituisce anche se il peso e' gia' "per braccio" cosi' chi chiama non deve
+ * ricordarsene: la regola "prima la carrucola, poi il per braccio" sta in un
+ * posto solo invece che nella testa di chi scrive il codice.
+ */
+export function pesoReale(peso, { carrucola = null, perBraccio = false } = {}) {
+  let p = Number(peso);
+  if (!Number.isFinite(p)) return null;
+  const carrucolaRaddoppia = carrucola === 'carrucola_doppia';
+  // il doppio carrucola e' su un braccio alla volta: il peso e' gia' per braccio
+  if (perBraccio && !carrucolaRaddoppia) p *= 2;
+  p *= fattoreCarrucola(carrucola);
+  return Math.round(p * 100) / 100;
+}
+
+// Ste: "il massimale deve restare il numero di peso che metto in una sola parte".
+// Percio' per_braccio e per_gamba NON raddoppiano piu': valgono 1 come tutto il
+// resto, e servono solo come etichetta per dire all'utente che quei kg sono per
+// un lato.
+//
+// Il raddoppio c'era e non funzionava, perche' raddoppiava SOLO il massimale e non
+// anche la scala: risultato che 35 kg diventavano 70 e la soglia restava quella di
+// 90, quindi il suo 35 kg x 8 finiva a BRONZE. Due numeri nella stessa frase, due
+// unita' diverse: e' il tipo di errore che si vede solo se guardi entrambi.
 const PER_CORPO = {
-  per_braccio: 2, // macchina a dischi: un disco per braccio
-  per_gamba: 2, // leg press obliqua: 17 kg per gamba
-  per_manubrio: 1, // 30 kg vuol dire 30 kg in UNA mano: li' il totale non e' il doppio
+  per_braccio: 1, // macchina a dischi: un disco per braccio, ma il numero resta com'e'
+  per_gamba: 1, // leg press obliqua: 17 kg per gamba
+  per_manubrio: 1, // 30 kg vuol dire 30 kg in UNA mano
   bilanciere: 1,
 };
 
@@ -361,14 +502,57 @@ export function moltiplicatoreCarico(convenzione) {
  * cosi' l'app resta usabile anche senza aver mai segnato il peso.
  */
 export function riferimentoPerEsercizio(esercizio, pesoCorporeo = null, { storico = null } = {}) {
-  const { rapporto } = rapportoDifficolta(esercizio);
-  if (rapporto === null) {
+  // Ste: "ogni esercizio deve avere la propria scala, senza confrontare direttamente
+  // i kg tra esercizi diversi". Questa e' la riga che lo fa.
+  //
+  // Prima qui c'era "rapporto del livello x peso", e il rapporto dipendeva solo da
+  // isolamento/composto/grande: quindi un curl e una lat machine avevano la stessa
+  // soglia, e le alzate laterali avevano la soglia dei pushdown. Adesso la scala
+  // la decide l'esercizio (o il movimento a cui appartiene) e la riporta sul peso
+  // della persona. I due kg non si confrontano piu' fra esercizi diversi: ogni
+  // esercizio misura la prestazione sulla SUA scala.
+  const riconosciuto = classificaEsercizio({
+    nome: (esercizio && (esercizio.nome || esercizio.id)) || '',
+    convenzione: (esercizio && esercizio.convenzione) || null,
+    attrezzatura: (esercizio && esercizio.attrezzatura) || null,
+    bracciaIndipendenti: !!(esercizio && esercizio.bracciaIndipendenti),
+  });
+  const scala = scalaEsercizio({
+    id: (esercizio && esercizio.id) || '',
+    movimento: riconosciuto.movimento,
+    livello: riconosciuto.livello,
+  });
+  if (scala === null) {
+    // nessuna scala: meglio ammetterlo che tirare fuori un numero inventato
+    return Number(storico) > 0 ? Number(storico) : 0;
+  }
+
+  // se la scala e' 0 il conto non ha senso (core: si contano le ripetizioni)
+  if (scala <= 0) {
     return Number(storico) > 0 ? Number(storico) : (RIFERIMENTO_DEFAULT[MISURE.SOLO_REPS] || 12);
   }
+
+  // Il riferimento e' il numero realistico di quell'esercizio per QUELLO corpo,
+  // e basta. Non c'e' piu' nessuna catena di correzioni che lo abbassa.
+  //
+  // Ste: "Cable Fly 37x5 -> 18.5 sentiti, riferimento 15.7, OLymPIAN. Come mai
+  // cosi' tanto? ... deve essere realistico in confronto al tuo peso, non deve
+  // essere per non rendere triste la persona".
+  //
+  // Il motivo era questo: sul fly si sommavano tre correzioni (cavo -6%, muscolo
+  // piccolo -24%, tipo di movimento) e insieme facevano piu' del 30%. Il
+  // riferimento finiva a 15.7, che per un fly al cavo e' un numero bassissimo, e
+  // allora 18.5 kg sembravano un'arma. Il riferimento era FALSO, non la prestazione.
+  //
+  // Adesso il significato e' uno solo e pulito: il riferimento e' quanto sposta
+  // una persona forte su QUEL esercizio con QUEL peso. I correttivi restano, ma
+  // solo per spiegare a voce perche' due esercizi simili non hanno la stessa soglia
+  // esatta: nonabbassano piu' il numero.
   const peso = pesoCorporeoValido(pesoCorporeo);
-  if (peso) return Math.round(rapporto * peso * 100) / 100;
+
+  if (peso) return Math.round(scalaSulCorpo(scala, peso) * 100) / 100;
   if (Number(storico) > 0) return Number(storico);
-  return Math.round(rapporto * PESO_RIFERIMENTO * 100) / 100;
+  return Math.round(scalaSulCorpo(scala, PESO_RIFERIMENTO) * 100) / 100;
 }
 
 // ---------------------------------------------------------------------------
@@ -465,7 +649,17 @@ export function profiloPerPesoCorporeo(profilo, pesoCorporeo) {
   const p = profilo || profiloEsercizio(null);
   const peso = pesoCorporeoValido(pesoCorporeo);
   const usa = !!MISURE_CON_PESO[p.misura];
-  const livello = livelloEsercizio({ id: p.id, convenzione: p.assistito ? 'assistenza' : null });
+  // Il NOME insieme, per lo stesso motivo del riferimento qui sotto: senza, il
+  // classificatore non riconosce il movimento e il livello torna sempre
+  // "composto", che e' la risposta di quando non sa niente. Un esercizio pesante e
+  // un isolamento finivano per sembrare uguali.
+  const livello = livelloEsercizio({
+    id: p.id,
+    nome: p.nome,
+    convenzione: p.assistito ? 'assistenza' : null,
+    attrezzatura: p.attrezzatura || null,
+    bracciaIndipendenti: !!p.bracciaIndipendenti,
+  });
 
   if (!usa) {
     // trazioni, dip, plank: il riferimento sono le ripetizioni e non dipende
@@ -493,12 +687,28 @@ export function profiloPerPesoCorporeo(profilo, pesoCorporeo) {
     riferimento = p.riferimento;
     soglie = p.soglie.map((s) => Math.round(s * (peso / PESO_RIFERIMENTO) * 100) / 100);
   } else {
-    riferimento = riferimentoPerEsercizio({ id: p.id, convenzione: p.assistito ? 'assistenza' : null }, peso);
+    // Il nome passa OBBLIGATORIO. Prima qui passavo solo id e convenzione: senza
+    // il nome il classificatore non poteva riconoscere il movimento, e quindi due
+    // esercizi diversi cadevano entrambi sulla scala generica. Il test R19 lo
+    // trovava: l'isolamento e il movimento pesante avevano lo stesso identico
+    // riferimento, che e' esattamente cio' che Ste non vuole ("non tutti gli
+    // esercizi sono uguali").
+    riferimento = riferimentoPerEsercizio({
+      id: p.id,
+      nome: p.nome,
+      convenzione: p.assistito ? 'assistenza' : null,
+      attrezzatura: p.attrezzatura || null,
+      bracciaIndipendenti: !!p.bracciaIndipendenti,
+    }, peso);
     // tetto di realismo: l'OLYMPIAN non puo' valere piu' di 2.2 volte il peso,
     // altrimenti si arriva a numeri che nessuno umano puo' spingere
     const tetto = peso * TETTO_PER_PESO;
     const alto = soglieDaRiferimento(riferimento);
-    if (alto[alto.length - 1] > tetto) {
+    // alto puo' essere null se il riferimento e' 0 o non e' un numero: succede con
+    // gli esercizi creati dall'amministratore che nessun movimento riconosce. Non
+    // e' un caso teorico, e' il percorso normale quando aggiungi un esercizio
+    // nuovo, e senza questo controllo l'app si rompeva aprendo quella scheda.
+    if (alto && alto.length && alto[alto.length - 1] > tetto) {
       // stringo i gradini alti per farlo entrare sotto il tetto, restando
       // strettamente crescenti: la prima volta li avevo scalati e senza
       // ricontrollare l'ordine, cosi' il diamondo era piu' basso del platino
@@ -564,25 +774,53 @@ export function profiloEsercizio(esercizio, extra = {}) {
   //    Prima mettevo qui il default per misura (60 kg) e questo rendeva inutile
   //    il livello: tutti gli esercizi avevano lo stesso riferimento.
   const scritto = Number(configurato.riferimento) > 0;
-  // stesso rapporto del riferimento, cosi' il traguardo e la soglia non possono
-  // mai contraddirsi: se cambiasse solo uno dei due, l'app ti direbbe che hai
-  // passato il livello mentre il prossimo obiettivo resta lontano
-  const { rapporto } = rapportoDifficolta({ id, nome: (configurato.nome || '') });
+  // Un posto solo per il riferimento: questo e' riferimentoPerEsercizio.
+  //
+  // Prima qui c'era un secondo calcolo, fatto a parte ("rapporto x 70"), e i due
+  // potevano dare numeri diversi: e' la stessa lezione del v37, detta peggio,
+  // perche' qui non era un semplice doppio conteggio ma due formule intere che
+  // potevano andare ognuna per conto proprio. Se un giorno l'app ti dicesse che
+  // hai passato il livello mentre il prossimo obiettivo resta lontano, il
+  // motivo sarebbe questo.
   let riferimento;
   if (scritto) {
     riferimento = Number(configurato.riferimento);
-  } else if (rapporto === null) {
+  } else if (misura === MISURE.SOLO_REPS) {
     // assistito: il riferimento sono le ripetizioni, e non dipendono dal peso
     riferimento = defaultRiferimentoPerMisura(misura);
   } else {
-    // ancora senza peso: uso il rapporto sul peso di riferimento (70 kg).
-    // Poi profiloPerPesoCorporeo lo ricalcola sul peso vero della persona.
-    riferimento = Math.round(rapporto * PESO_RIFERIMENTO * 100) / 100;
+    riferimento = riferimentoPerEsercizio(
+      {
+        id,
+        nome: (configurato.nome || esercizio.nome || ''),
+        convenzione,
+        attrezzatura: (configurato.attrezzatura || esercizio.attrezzatura) || null,
+        bracciaIndipendenti: !!(configurato.bracciaIndipendenti || esercizio.bracciaIndipendenti),
+      },
+      null,
+    );
+    if (!Number.isFinite(riferimento) || riferimento <= 0) {
+      riferimento = defaultRiferimentoPerMisura(misura);
+    }
   }
 
-  const soglie = Array.isArray(configurato.soglie) && configurato.soglie.length === RANK.length
+  // Le soglie non possono mai essere null: sotto i NULL c'era un buco vero.
+  // Se un esercizio non ha una scala sua (per esempio uno creato dall'amministratore
+  // con un nome che nessun movimento riconosce), il riferimento tornava 0 e da li'
+  // soglieDaRiferimento restituiva null, e il primo accesso a .length faceva
+  // esplodere la pagina. Un esercizio nuovo non deve poter rompere l'app.
+  const soglieConfigurate = Array.isArray(configurato.soglie)
+    && configurato.soglie.length === RANK.length
     ? configurato.soglie.map((n) => Number(n))
-    : soglieDaRiferimento(riferimento);
+    : null;
+  let soglie = soglieConfigurate || soglieDaRiferimento(riferimento);
+  if (!soglie) {
+    riferimento = Number.isFinite(riferimento) && riferimento > 0
+      ? riferimento
+      : defaultRiferimentoPerMisura(misura);
+    soglie = soglieDaRiferimento(riferimento)
+      || soglieDaRiferimento(RIFERIMENTO_DEFAULT[misura] || 60);
+  }
   return {
     id,
     nome: (esercizio && esercizio.nome) || id,
@@ -603,6 +841,12 @@ export function profiloEsercizio(esercizio, extra = {}) {
     // Ste: "35 kg per braccio". Il Rank usa il TOTALE, quindi qui c'e' il
     // fattore da moltiplicare. Vedi moltiplicatoreCarico().
     moltiplicatoreCarico: moltiplicatoreCarico(convenzione),
+    attrezzatura: (configurato.attrezzatura || esercizio.attrezzatura) || null,
+    bracciaIndipendenti: !!(configurato.bracciaIndipendenti || esercizio.bracciaIndipendenti),
+    // Ste: mono o doppia carrucola. Sul doppio carrucola il peso vero e' META'
+    // di quello che segna il carrello, quindi se questo resta null l'app legge
+    // il numero del carrello e sbaglia di 2 su tutti i cavi.
+    carrucola: (configurato.carrucola || esercizio.carrucola) || null,
     totaleDaMostrare: true,
   };
 }

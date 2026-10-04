@@ -122,7 +122,12 @@ const MODIFICATORI = [
   { peso: -2, parole: ['macchina', 'machine', 'apparato', 'leg press', 'pressa'], perche: 'la macchina ti guida: il percorso è fisso' },
 
   // --- simmetria: una cosa sola e\' molto piu\' difficile ---
-  { peso: 8, parole: ['single arm', 'single-arm', 'singolo braccio', 'un braccio', 'monoarticolare'],
+  {
+  peso: 8,
+  // 'one arm' mancava: e' la stessa cosa di 'single arm' scritta in inglese,
+  // e senza la parola i suoi esercizi monobraccio passavano per bilaterali
+  parole: ['single arm', 'single-arm', 'one arm', 'one-arm', 'singolo braccio',
+    'un braccio', 'monoarticolare'],
     perche: 'un braccio solo: devi tenerti in equilibrio con una meta\' del corpo' },
   { peso: 8, parole: ['single leg', 'single-leg', 'singola gamba', 'una gamba'],
     perche: 'una gamba sola: instabile e con un solo quadricipite' },
@@ -162,7 +167,10 @@ const MODIFICATORI = [
     // Se tenessi anche qui il conto dei dischi per lato, sarebbe doppio conteggio:
     // la stessa cosa contata due volte. E' lo stesso errore che facevo prima con
     // il muscolo e con la macchina insieme, e l'ho gia' corretto una volta.
-    { peso: 2, parole: ['iso-lateral', 'isolateral'], perche: 'iso-lateral: due braccia indipendenti, puoi spingere un lato alla volta' },
+        // il testo e' IDENTICO a quello del modificatore che scende dai dati
+    // dell'esercizio (PERCHE_BRACCIA_INDEPENDENTI): e' la stessa cosa detta in
+    // due modi, e se si accendessero insieme il conteggio si ferma al primo.
+    { peso: 2, parole: ['iso-lateral', 'isolateral'], perche: "braccia indipendenti: uno per volta, quindi l'equilibrio lo fai tu" },
 ];
 
 // ---------------------------------------------------------------------------
@@ -292,8 +300,48 @@ function ricorda(chiave, valore) {
   CACHE.set(chiave, valore);
 }
 
-export function classificaEsercizio({ nome = '', descrizione = '', convenzione = null, attrezzatura = null } = {}) {
-  const chiave = nome + ' ' + descrizione + ' ' + (convenzione || '');
+/**
+ * Perche' due braccia indipendenti sono piu' difficili.
+ *
+ * Ste (04/10/2026), passando dalla chest press all'Iso-Lateral Row:
+ * "però quando muovo il braccio destro non muovo anche il sinistro".
+ *
+ * E' la stessa cosa che diceva dell'iso-lateral, detta di un esercizio che
+ * "iso-lateral" non si chiama. La parola la cerca il classificatore nel NOME,
+ * ma questa macchina si chiama "Chest Press" e quindi la parola non c'e': per
+ * questo l'informazione deve poter arrivare anche dai dati dell'esercizio.
+ *
+ * Il testo e' uguale a quello del modificatore "iso-lateral" di proposito: e' la
+ * stessa cosa, e se le due regole si accendessero insieme sullo stesso
+ * esercizio il conteggio si ferma al primo, cosi' non si paga due volte.
+ */
+export const PERCHE_BRACCIA_INDEPENDENTI =
+  'braccia indipendenti: uno per volta, quindi l\'equilibrio lo fai tu';
+
+/**
+ * Perché un esercizio è mono-braccio.
+ *
+ * Ste: "Single Arm Tricep Pushdown lo sa che è monobraccio no?" Per quello sì,
+ * perché il classificatore cerca "single arm" nel nome. Ma mancavano altri due
+ * modi in cui un esercizio è mono-braccio:
+ *
+ *  - "ONE ARM" invece di "single arm": stessa cosa in inglese, e senza la parola
+ *    i suoi esercizi passavano per bilaterali.
+ *  - il DOPPIO CARRUCOLA, che è mono-braccio per definizione: è proprio il
+ *    motivo per cui si usa, perché il guadagno 2:1 dimezza il peso e serve per
+ *    lavorare un braccio alla volta con un carico giusto.
+ *
+ * Il testo è identico a quello del modificatore già esistente, quindi se un
+ * esercizio è "One Arm" E doppio carrucola il +3 si conta una volta sola.
+ */
+export const PERCHE_MONOBRACCIO = "un braccio solo: devi tenerti in equilibrio con una meta' del corpo";
+
+export function classificaEsercizio({
+  nome = '', descrizione = '', convenzione = null, attrezzatura = null,
+  bracciaIndipendenti = false, carrucola = null,
+} = {}) {
+  const chiave = [nome, descrizione, convenzione, attrezzatura, bracciaIndipendenti ? 'si' : 'no'].join('|');
+    + (attrezzatura || '') + (bracciaIndipendenti ? '|bi' : '');
   const gia = CACHE.get(chiave);
   if (gia !== undefined) return gia;
   const testo = soloNome(nome);
@@ -411,12 +459,33 @@ export function classificaEsercizio({ nome = '', descrizione = '', convenzione =
     peso += CONVENZIONE[convenzione];
     motivi.push('convenzione del carico scelta: ' + normalizz(convenzione));
   }
+  // Ste: il doppio carrucola è mono-braccio per definizione, quindi si un
+  // braccio alla volta. Anche questo è un movimento che l'app deve sapere
+  // leggere, altrimenti i suoi cinque esercizi a doppio carrucola vengono
+  // valutati come bilaterali e il risultato è più generoso del dovuto.
+  if (carrucola === 'carrucola_doppia' && !visti.has(PERCHE_MONOBRACCIO)) {
+    peso += 8;
+    visti.add(PERCHE_MONOBRACCIO);
+    motivi.push(PERCHE_MONOBRACCIO + ' (doppia carrucola)');
+  }
   // L'attrezzatura sta in un campo separato perche' la convenzione dice gia'
   // "per braccio": senza i due campi separati, o la macchina a dischi si perde o
   // si perde il "35 kg per braccio". Uno dei due, non entrambi.
   if (attrezzatura && CONVENZIONE[attrezzatura]) {
     peso += CONVENZIONE[attrezzatura];
     motivi.push('attrezzatura: ' + normalizz(attrezzatura));
+  }
+  // Ste: "però quando muovo il braccio destro non muovo anche il sinistro".
+  //
+  // Questa macchina si chiama "Chest Press", quindi la parola "iso-lateral" non
+  // compare e il classificatore non la trova: l'informazione puo' arrivare solo
+  // dai dati dell'esercizio. Il testo e' identico a quello del modificatore
+  // "iso-lateral", quindi se le due cose si accendessero insieme sullo stesso
+  // esercizio si conterebbero una volta sola.
+  if (bracciaIndipendenti && !visti.has(PERCHE_BRACCIA_INDEPENDENTI)) {
+    peso += 2;
+    visti.add(PERCHE_BRACCIA_INDEPENDENTI);
+    motivi.push(PERCHE_BRACCIA_INDEPENDENTI);
   }
 
   // ---- 3) il livello
