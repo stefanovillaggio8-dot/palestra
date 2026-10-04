@@ -797,10 +797,6 @@ a { color: var(--blu); text-decoration: none; }
   --rank-colore: var(--testo-3);
   --rank-ombra: #2e2745;
   display: inline-block; white-space: nowrap;
-  /* Non deve mai essere schiacciato: dentro un contenitore stretto finiva
-     con una lettera per riga (il badge diventava una colonna altissima). */
-  flex: 0 0 auto; width: max-content; max-width: 100%;
-  overflow: hidden; text-overflow: ellipsis;
   font-size: .68rem; font-weight: 900; letter-spacing: .09em;
   padding: 5px 10px; border-radius: 9px;
   color: var(--rank-colore);

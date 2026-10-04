@@ -2431,34 +2431,13 @@ function seduteDellaPersonaPer(p) {
 
 /* ---------- mattoni visivi del gioco ---------- */
 
-/**
- * I LP che si vedono, in CONTO ALLA ROVESCIA.
- *
- * Ste (04/10/2026): "deve scendere da 100, a 99, 98, ecc.". Prima si vedeva
- * 0, 1, 2... e cresceva, quindi guardandolo non capivi se ti manca tanto o
- * poco alla promozione. Ora entra in un rank con 100 e la lancetta SCENDE:
- * 100, 99, 98... fino a 1, e a 0 sali al rank dopo.
- *
- * Il numero dentro l'app (`r.lp`) resta quello che cresce: cambia solo come
- * lo mostriamo, cosi' i calcoli non cambiano e i confronti fra esercizi
- * diversi continuano a valere.
- */
-function lpDaMostrare(lp, inTop = false) {
-  const n = Number(lp) || 0;
-  // sul rank piu' alto non c'e' un "piano" da raggiungere e gli LP possono
-  // superare 100: non li limito, altrimenti mostrei sempre 99 (bug trovato dai
-  // test, non dai miei occhi).
-  if (inTop) return Math.max(0, Math.round(n));
-  return 100 - Math.max(0, Math.min(99, n));
-}
-
-function badgeRank(rankId, lp, divisione, inTop = false) {
+function badgeRank(rankId, lp, divisione) {
   const r = RANK.find((x) => x.id === rankId);
   if (!r) return el('span', { class: 'badge-rank badge-nessuno', testo: 'SENZA RANK' });
   const secondario = rankId === 'olympian' ? ' #4fc3ff' : '';
   return el('span', {
     class: 'badge-rank badge-' + rankId,
-    testo: r.nome + (divisione ? ' ' + divisione.nome : '') + (lp ? ' · ' + lpDaMostrare(lp, inTop) + ' LP' : ''),
+    testo: r.nome + (divisione ? ' ' + divisione.nome : '') + (lp ? ' · ' + lp + ' LP' : ''),
     style: `--rank-colore:${r.colore};--rank-ombra:${r.ombra}${secondario}`,
   });
 }
@@ -2555,12 +2534,10 @@ function cardRank(record, { compatta = false } = {}) {
         el('span', { class: 'nota', testo: nome }),
         el('strong', { class: 'card-rank-nome', testo: r.testo }),
       ]),
-      badgeRank(r.rankId, r.lp, r.divisione, r.inTop),
+      badgeRank(r.rankId, r.lp, r.divisione),
     ]),
     el('div', { class: 'card-rank-basso' }, [
-      // la barra si riempie verso la promozione, e l'etichetta scende
-      // 100 -> 99 -> 98, quindi "manca" si legge come una conta alla rovescia
-      barraProgresso(r.progresso, r.inTop ? 'TOP' : `${lpDaMostrare(r.lp, r.inTop)} LP`),
+      barraProgresso(r.progresso, r.inTop ? 'TOP' : `${r.lp} LP / 100`),
       el('span', { class: 'nota', testo: verso }),
       el('a', { href: '#/esercizio/' + (r.esercizio ? r.esercizio.id : ''), class: 'bottone-guarda', testo: 'Dettaglio' }),
     ]),
@@ -2678,7 +2655,7 @@ function vistaCasa(zona) {
     el('div', { class: 'teschio-rank' }, [
       el('span', { class: 'simbolo', testo: 'RANK' }),
       st.rankPrincipale
-        ? badgeRank(st.rankPrincipale.rankId, st.rankPrincipale.lp, st.rankPrincipale.divisione, st.rankPrincipale.inTop)
+        ? badgeRank(st.rankPrincipale.rankId, st.rankPrincipale.lp, st.rankPrincipale.divisione)
         : el('strong', { testo: '—' }),
       el('span', { class: 'nota', testo: st.rankPrincipale && st.rankPrincipale.esercizio
         ? st.rankPrincipale.esercizio.nome : 'nessun record ancora' }),
@@ -2942,7 +2919,7 @@ function vistaRank(zona) {
             el('strong', { testo: v.username + (mio ? ' (tu)' : '') }),
             el('span', { class: 'nota', testo: v.testo }),
           ]),
-          badgeRank(v.rankId, v.lp, v.divisione, v.inTop),
+          badgeRank(v.rankId, v.lp, v.divisione),
         ]));
       }
     }
@@ -3008,7 +2985,7 @@ function vistaEsercizio(zona, esercizioId) {
         el('span', { class: 'nota', testo: record.inTop ? 'Record personale · rank massimo' : 'Record personale' }),
         el('strong', { class: 'card-rank-nome', testo: record.testo }),
       ]),
-      badgeRank(record.rankId, record.lp, record.divisione, record.inTop),
+      badgeRank(record.rankId, record.lp, record.divisione),
     ]),
     el('div', { class: 'card-rank-basso' }, [
       barraProgresso(record.progresso, `${record.lp} LP`),
@@ -3045,7 +3022,7 @@ function vistaEsercizio(zona, esercizioId) {
       ? el('div', {}, tappe.slice().reverse().map((t) => el('div', { class: 'riga-tappa' }, [
         el('span', { class: 'nota', testo: dataLeggibile(t.data) }),
         el('span', { class: 'cresci', testo: t.testoSerie }),
-        badgeRank(t.rankId, t.lp, null, t.inTop),
+        badgeRank(t.rankId, t.lp),
       ])))
       : el('p', { class: 'nota', testo: 'Ancora nessun miglioramento registrato.' }),
   ]));
