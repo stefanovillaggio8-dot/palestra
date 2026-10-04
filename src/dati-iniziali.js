@@ -96,7 +96,7 @@ export const ESERCIZI = [
 
   // Esercizi AGGIUNTI, non ancora messi in nessuna scheda: sono disponibili
   // nella lista cosi' ognuno puo' aggiungerli quando gli servono.
-  { id: 'ex-iso-lateral-row', nome: 'Iso-Lateral Row', gruppo: 'Row', convenzione: C.MACCHINA_STACK, foto: 'img/esercizi/iso-lateral-row.png', tipo: 'standard', nota_permanente: '' },
+  { id: 'ex-iso-lateral-row', nome: 'Iso-Lateral Row', gruppo: 'Row', convenzione: C.MACCHINA_DISCHI, foto: 'img/esercizi/iso-lateral-row.png', tipo: 'standard', nota_permanente: 'Macchina a dischi, e ogni braccio e\' indipendente: se i due lati non sono uguali lo senti subito.' },
   { id: 'ex-lat-pulldown-lats', nome: 'Lat Pulldown (lats)', gruppo: 'Lat Pulldown', convenzione: C.MACCHINA_STACK, foto: 'img/esercizi/lat-pulldown-lats.png', tipo: 'standard', nota_permanente: '' },
   { id: 'ex-db-lateral-raise', nome: 'Dumbbell Lateral Raise', gruppo: 'Lateral Raise', convenzione: C.BILANCIERE, foto: 'img/esercizi/db-lateral-raise.png', tipo: 'standard', nota_permanente: '' },
   { id: 'ex-lying-cable-curl', nome: 'Incline Single Arm Pulldown', gruppo: 'Lat Pulldown', convenzione: C.CAVO, foto: 'img/esercizi/incline-single-arm-pulldown.png', tipo: 'standard', nota_permanente: 'Braccio singolo: sto sulla panca inclinata col petto appoggiato e tiro il cavo alto verso di me con la presa piccola. Dorso. Quello che diciamo "liac".' },

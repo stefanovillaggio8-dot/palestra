@@ -145,7 +145,24 @@ const MODIFICATORI = [
   { peso: 3, parole: ['negativa', 'eccentrica'], perche: 'la fase negativa e\' piu\' difficile della positiva' },
   { peso: 4, parole: ['tempesta', 'temuto', 'tempo estremo'], perche: 'a tempo: quasi sempre in allenamento statico' },
   { peso: 3, parole: ['burn', 'scottatura', 'a fuoco'], perche: 'in scottatura: la parte difficile arriva alla fine' },
-  { peso: -4, parole: ['iso-lateral', 'isolateral'], perche: 'iso-lateral: i due lati sono separati' },
+      // Ste (04/10/2026), in due tempi:
+    //
+    // 1) "Iso-Lateral Row e' pure a dischi. Ma e' piu' difficile a stack o
+    //    dischi?" -> questo modificatore aveva il segno GIRO: faceva l'esercizio
+    //    piu' FACILE. Due lati separati non aiutano.
+    //
+    // 2) "anche nella chest press ogni braccio e' indipendente: ogni lato ha il
+    //    suo disco" -> e questo e' il punto vero. Il ragionamento "un disco per
+    //    lato, quindi equilibrio da fare" vale per TUTTE le macchine a dischi,
+    //    non solo per la iso-lateral. Percio' quel ragionamento sta dentro
+    //    macchina_dischi (che vale -2 proprio per quello), e qui dentro si
+    //    conta SOLO what's in piu': che i due braccia sono indipendenti e puoi
+    //    lavorarne uno alla volta.
+    //
+    // Se tenessi anche qui il conto dei dischi per lato, sarebbe doppio conteggio:
+    // la stessa cosa contata due volte. E' lo stesso errore che facevo prima con
+    // il muscolo e con la macchina insieme, e l'ho gia' corretto una volta.
+    { peso: 2, parole: ['iso-lateral', 'isolateral'], perche: 'iso-lateral: due braccia indipendenti, puoi spingere un lato alla volta' },
 ];
 
 // ---------------------------------------------------------------------------
