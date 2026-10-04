@@ -149,6 +149,7 @@ export function spessoreSoglia(profilo, indiceRank) {
 // il classificatore: se l'esercizio non e' nella lista scritta a mano,
 // il livello lo capisce dal nome ("Dumbbell Lateral Raise" -> isolamento)
 import { classificaEsercizio } from './esercizi-classificatore.js';
+import { parteDiMuscolo, intrinsecoDi } from './muscoli-parti.js';
 
 export const LIVELLI_DIFFICOLTA = {
   grande:     { id: 'grande',     nome: 'GRANDE',     rapporto: 1.85 },
@@ -252,13 +253,61 @@ export function gruppoEsercizio(esercizio) {
 }
 
 /**
+ * Il rapporto di difficolta' di un esercizio, CORRETTO sul muscolo.
+ *
+ * Ste: "deve capire cosa lavora quell'esercizio e quindi capire se e'
+ * difficile o facile".
+ *
+ * Questa e' la riga che decide il Rank, quindi qui il muscolo smette di essere
+ * una frase a schermo e diventa un numero. Prima la soglia dipendeva solo dal
+ * livello: tutte le alzate laterali valevano come tutte le altre spinte. Non
+ * e' vero. Sul deltoide laterale 4 kg sono gia' tanto, perche' il muscolo e'
+ * piccolo e ti tiene in equilibrio; sul quadricipite 40 kg sono la norma.
+ *
+ * Per questo il rapporto SCENDA quando il muscolo e' piccolo e instabile: e'
+ * piu' facile impressionare, quindi il PLATINUM arriva con meno peso. Non
+ * sale mai, e per una ragione precisa: se il muscolo e' grande e la macchina
+ * aiuta, lo sa gia' il classificatore dagli accorgimenti. Se anche qui
+ * alzassimo, si contava due volte e il giudizio finiva sotto terra.
+ *
+ * Cosa resta identico, e va detto perche' Ste ci ha fatto i conti: la panca
+ * (composto, petto) non cambia di una virgola, quindi il suo Silver III a 35
+ * kg x 8 resta esattamente quello.
+ */
+export function rapportoDifficolta(esercizio) {
+  const livello = livelloEsercizio(esercizio);
+  const base = LIVELLI_DIFFICOLTA[livello];
+  if (!base || base.rapporto === null) return { rapporto: null, livello, spinta: 0, spiegazione: null };
+
+  const nome = (esercizio && (esercizio.nome || esercizio.id)) || '';
+  const parte = parteDiMuscolo({ nome });
+  const intrinseco = intrinsecoDi(parte);
+  if (intrinseco === null) return { rapporto: base.rapporto, livello, spinta: 0, spiegazione: null };
+
+  const spinta = Math.max(0, intrinseco - 2);
+  if (spinta === 0) return { rapporto: base.rapporto, livello, spinta: 0, spiegazione: null };
+
+  // ogni punto di spinta toglie il 6%: il laterale (spinta 4) scende del 24%
+  const rapporto = Math.round(base.rapporto * (1 - 0.06 * spinta) * 1000) / 1000;
+  return {
+    rapporto,
+    livello,
+    spinta,
+    intrinseco,
+    parte,
+    spiegazione: `${parte.nome}: muscolo piccolo e instabile, la soglia scende del `
+      + `${Math.round(0.06 * spinta * 100)}%`,
+  };
+}
+
+/**
  * Il riferimento PLATINUM di un esercizio, legato al peso della persona.
  *
  * Se il peso non c'e' uso il numero storico (valutato su una persona da 70 kg),
  * cosi' l'app resta usabile anche senza aver mai segnato il peso.
  */
 export function riferimentoPerEsercizio(esercizio, pesoCorporeo = null, { storico = null } = {}) {
-  const rapporto = LIVELLI_DIFFICOLTA[livelloEsercizio(esercizio)].rapporto;
+  const { rapporto } = rapportoDifficolta(esercizio);
   if (rapporto === null) {
     return Number(storico) > 0 ? Number(storico) : (RIFERIMENTO_DEFAULT[MISURE.SOLO_REPS] || 12);
   }
@@ -461,7 +510,10 @@ export function profiloEsercizio(esercizio, extra = {}) {
   //    Prima mettevo qui il default per misura (60 kg) e questo rendeva inutile
   //    il livello: tutti gli esercizi avevano lo stesso riferimento.
   const scritto = Number(configurato.riferimento) > 0;
-  const rapporto = LIVELLI_DIFFICOLTA[livelloEsercizio({ id, convenzione })].rapporto;
+  // stesso rapporto del riferimento, cosi' il traguardo e la soglia non possono
+  // mai contraddirsi: se cambiasse solo uno dei due, l'app ti direbbe che hai
+  // passato il livello mentre il prossimo obiettivo resta lontano
+  const { rapporto } = rapportoDifficolta({ id, nome: (configurato.nome || '') });
   let riferimento;
   if (scritto) {
     riferimento = Number(configurato.riferimento);

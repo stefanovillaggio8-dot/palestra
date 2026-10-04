@@ -236,11 +236,13 @@ test('24. recordAccount e\' gia\' ordinato dal rank piu\' alto', () => {
     lateral,
     { id: 'ex-pull-ups', nome: 'Pull Ups', convenzione: 'assistenza' },
   ];
+  // pesi realistici: 50 kg in panca e 6 kg alle alzate laterali. Con questi
+  // numeri la panca viene davanti, e deve venire davanti.
   const gruppi = [
     { esercizio_id: chest.id, serie: [{ id: 'a', peso: 50, ripetizioni: 8, stato: 'fatta' }] },
-    { esercizio_id: lateral.id, serie: [{ id: 'b', peso: 15, ripetizioni: 12, stato: 'fatta' }] },
+    { esercizio_id: lateral.id, serie: [{ id: 'b', peso: 6, ripetizioni: 15, stato: 'fatta' }] },
   ];
-  const record = recordAccount(catalogo, gruppi);
+  const record = recordAccount(catalogo, gruppi, { pesoAttuale: 66 });
   assert.equal(record.length, 2);
   assert.equal(record[0].esercizio.id, chest.id);
   assert.ok(record[0].rank.indice > record[1].rank.indice);

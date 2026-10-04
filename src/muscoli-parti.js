@@ -165,7 +165,25 @@ function conta(testo, parola) {
  * nome e descrizione insieme: spesso la parte è nella descrizione ("panca
  * inclinata") e nel nome c'è solo il nome dell'esercizio.
  */
+/**
+ * Cache dei pezzi riconosciuti. Vedi la nota in esercizi-classificatore.js:
+ * gli stessi nomi vengono guardati decine di volte quando la pagina disegna una
+ * lista, e rifare la conta delle parole ogni volta e' sprecato.
+ */
+const CACHE = new Map();
+const CACHE_MAX = 500;
+
 export function parteDiMuscolo({ nome = '', descrizione = '' } = {}) {
+  const chiave = nome + ' ' + descrizione;
+  const gia = CACHE.get(chiave);
+  if (gia !== undefined) return gia;
+  const risultato = riconosciParte({ nome, descrizione });
+  if (CACHE.size >= CACHE_MAX) CACHE.clear();
+  CACHE.set(chiave, risultato);
+  return risultato;
+}
+
+function riconosciParte({ nome = '', descrizione = '' } = {}) {
   const soloNome = ' ' + normalizza(nome) + ' ';
   const ancheDescrizione = soloNome + ' ' + normalizza(descrizione) + ' ';
   // Un pezzo è detto da una FRASE ("panca inclinata"), non da una parola

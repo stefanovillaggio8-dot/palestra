@@ -25,7 +25,7 @@ import { nuovoId, adesso, TABELLE } from './sincronizzazione.js';
 import { statoAccount, ricompenseAllenamento, gruppiDaSerie } from './gioco.js';
 import { recordEsercizio, recordAccount, classificaEsercizio, storicoMiglioramenti, giudizioPerformance } from './rank.js';
 import { confrontoGiorno, confrontiMensili, GIORNI_UN_MESE } from './confronto-mensile.js';
-import { profiloEsercizio, profiloPerPesoCorporeo, RANK, ETICHETTE_MISURA, descriviPunteggio, descrizioneLivello, livelloEsercizio, impostaLivelliImparati, livelliImparati } from './rank-config.js';
+import { profiloEsercizio, profiloPerPesoCorporeo, RANK, ETICHETTE_MISURA, descriviPunteggio, descrizioneLivello, livelloEsercizio, impostaLivelliImparati, livelliImparati, rapportoDifficolta } from './rank-config.js';
 import { formattaAura } from './aura.js';
 import { elencoAvatar, avatarPerId, gradienteAvatar, iniziali } from './avatar.js';
 import { amiciDi, confronta, classifichePerEsercizio, privacyDi, campiVisibili, PRIVACY_PREDEFINITE } from './sociale.js';
@@ -3157,6 +3157,15 @@ function vistaEsercizio(zona, esercizioId) {
     rigaSoglie.push('metti il tuo peso nel profilo e le soglie si adattano');
   }
   zona.appendChild(el('p', { class: 'nota', testo: `${rigaSoglie.join(' · ')}. Soglie: ${profilo.soglie.map((s, i) => `${RANK[i].nome} da ${formattaNumero(s)}`).join(' · ')}` }));
+
+  // Ste: "deve capire ancora meglio i rank e le difficolta'". Ora il muscolo
+  // entra nella soglia, e se non lo dico l'app ti chiede solo perche' la tua
+  // soglia e' piu' bassa di quanto ti aspettavi: la spiegazione c'e', ma
+  // invisibile. Peggio: sembrerebbe un errore.
+  const spiegazione = rapportoDifficolta(e).spiegazione;
+  if (spiegazione) {
+    zona.appendChild(el('p', { class: 'nota nota-piccola', testo: `La soglia è più bassa perché ${spiegazione}.` }));
+  }
 
   if (!record.valido) {
     zona.appendChild(el('p', { class: 'nota', testo: 'Nessuna prestazione registrata su questo esercizio: ancora nessun rank.' }));

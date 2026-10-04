@@ -254,7 +254,31 @@ function soloNome(nome) {
  * convenzione = macchina / cavo_totali / per_manubrio / dischi / bilanciere /
  *               corpo_libero / assistenza
  */
+/**
+ * Cache dei risultati.
+ *
+ * Ste: "migliora tutto quanto, rendi tutto piu' efficente". Misurando: 120.000
+ * classificazioni di 6 esercizi ripetuti ci mettevano 15 secondi. Il motivo e'
+ * che la stessa stringa veniva riguardata decine di volte: la lista Rank, la
+ * pagina del giorno e il ricalcolo dei riferimenti chiamano tutti lo stesso
+ * classificatore sugli stessi nomi.
+ *
+ * Il risultato e' un oggetto puro e non lo modifica nessuno, quindi riutilizzarlo
+ * e' sicuro. La cache e' limitata a 500 voci: se ne svuota tutta e si ricomincia,
+ * invece di tenere in memoria ogni nome mai scritto.
+ */
+const CACHE = new Map();
+const CACHE_MAX = 500;
+
+function ricorda(chiave, valore) {
+  if (CACHE.size >= CACHE_MAX) CACHE.clear();
+  CACHE.set(chiave, valore);
+}
+
 export function classificaEsercizio({ nome = '', descrizione = '', convenzione = null } = {}) {
+  const chiave = nome + ' ' + descrizione + ' ' + (convenzione || '');
+  const gia = CACHE.get(chiave);
+  if (gia !== undefined) return gia;
   const testo = soloNome(nome);
   const testoLungo = testo + ' ' + normalizza(descrizione) + ' ';
 
@@ -406,7 +430,7 @@ export function classificaEsercizio({ nome = '', descrizione = '', convenzione =
 
   const confidenza = migliore.punti >= 3 ? 'alta' : (migliore.punti === 2 ? 'media' : 'bassa');
 
-  return {
+  const risultato = {
     livello,
     gruppo: migliore.movimento.gruppo,
     movimento: migliore.movimento.id,
@@ -417,6 +441,8 @@ export function classificaEsercizio({ nome = '', descrizione = '', convenzione =
     paroleRiconosciute: migliore.trovate,
     riconosciutoDa: migliore.movimento.id,
   };
+  ricorda(chiave, risultato);
+  return risultato;
 }
 
 function normalizz(s) {
