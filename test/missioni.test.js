@@ -316,6 +316,20 @@ test('20. ogni missione del pool e\' usabile: settimana diverse coprono tutto', 
 // quando fra un mese aggiungo altre missioni.
 // ---------------------------------------------------------------------------
 
+test('2f2. nessuna missione parla di cose che non c\'entrano con la palestra', () => {
+  // Ste: "scrivi UNA frase drammatica su WhatsApp, ma che senso ha? su
+  // WhatsApp cosa c\'entra con la palestra?"
+  //
+  // Le sfide si fanno IN PALESTRA. Una missione che ti fa scrivere su
+  // WhatsApp, postare una foto o fare qualcosa fuori da qui non ha senso:
+  // non c\'entra niente con l\'allenamento. (E la frase "esempio" in una
+  // missione non deve parlare di cose tipo "stasera", che non c\'entrano.)
+  const estranei = /\b(whatsapp|telegram|instagram|facebook|tiktok|youtube|twitch|whatsapp|snapchat|discord|email|e-mail|posta|domicilio|numero di telefono)\b/i;
+  for (const m of POOL) {
+    assert.ok(!estranei.test(m.testo), 'la missione ' + m.id + ' parla di cose fuori dalla palestra: ' + m.testo);
+  }
+});
+
 test('2g. nessuna missione ti fa uscire dalla palestra', () => {
   // Ste: "la mia palestra non puoi uscire fuori e non ha senso che non saprei
   // cosa dire". Alla palestra non si esce: quindi niente "esci", niente

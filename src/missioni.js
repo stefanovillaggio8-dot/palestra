@@ -237,7 +237,7 @@ export const POOL = [
   M('la-grande-palestra', 'LA GRANDE PALESTRA',
     'Per tutta la seduta descrivi la palestra come se fosse un tempio. Esempio: quando prendi un bilanciere di 20 kg devi dire "Signori, avvicinatevi: questo peso ha requiem" e poi inchinarti davanti. Continua cosi\' con ogni macchina che usi.', 'legendary', { segreta: true }),
   M('il-messaggio-finale', 'IL MESSAGGIO FINALE',
-    'Trova un amico che non è nella stanza e scrivigli su WhatsApp UNA sola frase drammatica, come se fosse una cosa importantissima. Esempio: "Stef, dimentica tutto quello che hai fatto stasera." Poi, se lui ti chiede cosa vuol dire, rispondi solo: "Poi capirai?"', 'insane', { segreta: true }),
+    'Scrivi a un amico UNA sola frase drammatica sulla tua palestra, come se fosse una notizia importantissima. Esempi: "Ho battuto un record e nessuno se ne è accorto." oppure "Oggi ho alzato più di quanto credevo." Poi lui ti chiederà: "Che vuol dire?" Tu rispondi: "Poi capirai."', 'insane', { segreta: true }),
   M('il-grande-giro', 'IL GRANDE GIRO',
     'Fai un giro della sala pesi passando da tutte le stazioni, anche quelle libere, come se fosse una visita ufficiale. Esempio: alzo ti presento la panca, e poi ti stringo la mano come se fossimo colleghi.', 'legendary', { segreta: true }),
 ];
