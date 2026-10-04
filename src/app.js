@@ -28,6 +28,7 @@ import { profiloEsercizio, RANK, ETICHETTE_MISURA, descriviPunteggio } from './r
 import { formattaAura } from './aura.js';
 import { elencoAvatar, avatarPerId, gradienteAvatar, iniziali } from './avatar.js';
 import { amiciDi, confronta, classifichePerEsercizio, privacyDi, campiVisibili, PRIVACY_PREDEFINITE } from './sociale.js';
+import { controllaAggiornamento, applicaAggiornamento as prendiVersioneNuova, registraAggiornamentoRapido } from './update-via-sw.js';
 
 const V = {}; // stato dell'app
 const GIRI_DROPSET = 3; // i 3 posti in piu' che ha chiesto Ste
@@ -86,17 +87,32 @@ async function avvia() {
     window.addEventListener('hashchange', () => disegna());
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./sw.js').catch(() => { /* senza service worker funziona lo stesso, solo niente offline */ });
+    registraAggiornamentoRapido();
     // se il browser prende una versione nuova mentre l'app e' aperta, lo dico
     try {
       navigator.serviceWorker.addEventListener('message', (e) => {
         if (e && e.data && e.data.tipo === 'aggiornata') {
           disegnaStatoSalvataggio();
-          avviso('C\'e\' una versione nuova dell\'app. Chiudi e riapri per prenderla.', { durata: 9000 });
+          avviso('C\'e\' una versione nuova. Sto ricaricando...', { durata: 3000 });
+          // ricarico una volta sola, quando arriva davvero il nuovo worker
+          if (typeof window.__reloadGiaFatto === 'undefined') {
+            window.__reloadGiaFatto = true;
+            setTimeout(() => window.location.reload(), 600);
+          }
         }
       });
     } catch { /* pazienza */ }
   }
     disegna();
+
+    // Controllo se online c'e' gia' una versione piu' nuova: succede spesso
+    // che Ste veda la v20 mentre la v21 e' gia' online da un po'.
+    controllaAggiornamento().then((trovata) => {
+      if (!trovata) return;
+      registraAggiornamentoRapido();
+      avviso(`C\'e\' la versione ${trovata.remota}: ti aggiorno.`, { durata: 3500 });
+      prendiVersioneNuova();
+    }).catch(() => { /* senza rete resta com'e' */ });
     if (db.MOTORE_SCELTO.tipo === 'memoria del browser') {
       avviso('Attenzione: questo browser blocca il database veloce, sto usando la memoria del browser. Tutto funziona, ma esporta un backup ogni tanto.', { durata: 9000 });
     }
@@ -1994,7 +2010,20 @@ function vistaImpostazioni(zona) {
   versioneBox.appendChild(el('h2', { testo: 'Versione dell\'app' }));
   versioneBox.appendChild(el('p', { class: 'nota', testo: `Stai usando la versione v${window.PALESTRA_VERSIONE || '?'}. Se una cosa non ti funziona, prova a scaricare la versione nuova: cancella i file salvati dal browser e ricarica tutto. I tuoi allenamenti NON vengono toccati.` }));
   versioneBox.appendChild(el('div', { class: 'riga-pulsanti' }, [
-    bottone('Scarica la versione nuova', { onClick: () => aggiornaDavvero(), classe: 'principale' }),
+    bottone('Aggiorna adesso', {
+      onClick: async () => {
+        // Prima prova il modo pulito: se online c'e' la versione nuova prende
+        // quella, senza cancellare niente e senza perdere i dati salvati.
+        const trovata = await controllaAggiornamento({ forzato: true });
+        if (trovata) {
+          avviso(`Aggiorno alla versione ${trovata.remota}...`, { tipo: 'ok' });
+          prendiVersioneNuova();
+          return;
+        }
+        await aggiornaDavvero();
+      },
+      classe: 'principale',
+    }),
     bottone('Ho chiuso e riaperto, non cambia niente', { onClick: () => diagnostica(esitoDiagnostica), classe: 'fantasma' }),
   ]));
   const esitoDiagnostica = el('pre', { class: 'testo-errore', testo: '' });

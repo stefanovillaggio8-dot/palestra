@@ -25,6 +25,15 @@ const FILE = [
   './src/supabase.js',
   './src/sync.js',
   './src/ui.js',
+  './src/update-via-sw.js',
+  './src/rank-config.js',
+  './src/rank.js',
+  './src/streak.js',
+  './src/missioni.js',
+  './src/aura.js',
+  './src/sociale.js',
+  './src/avatar.js',
+  './src/gioco.js',
   './src/grafici.js',
   './src/rank.js',
   './src/rank-config.js',
@@ -88,6 +97,22 @@ self.addEventListener('activate', (evento) => {
         }
       }),
   );
+});
+
+// Ste chiede la versione nuova: prendo subito, senza aspettare che tutte le
+// schede del browser si chiudano. Dopo aver preso tutto, ricarico la pagina una
+// volta sola cosi l'app passa davvero alla versione nuova.
+self.addEventListener('message', (evento) => {
+  const tipo = evento && evento.data && evento.data.tipo;
+  if (tipo === 'aggiorna-subito') {
+    evento.waitUntil(
+      self.skipWaiting().then(() => self.clients.matchAll()).then((clienti) => {
+        for (const c of clienti) {
+          try { c.postMessage({ tipo: 'aggiornata', versione: VERSIONE }); } catch { /* pazienza */ }
+        }
+      }),
+    );
+  }
 });
 
 // PRIMA LA RETE, poi la cache.

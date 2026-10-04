@@ -972,7 +972,7 @@ test('33. la parte tecnica del database online e\' chiusa e spiegata', async () 
 
   // e per usare l\'app i pulsanti veri ci sono comunque
   assert.ok(pulsante(app, 'Scarica il backup JSON'), 'il backup si scarica normalmente');
-  assert.ok(pulsante(app, 'Scarica la versione nuova'), 'e si puo\' anche aggiornare l\'app');
+  assert.ok(pulsante(app, 'Aggiorna adesso'), 'e si puo\' anche aggiornare l\'app');
 });
 
 test('34. la nota scritta in palestra si vede subito dopo, SENZA riavviare', async () => {
