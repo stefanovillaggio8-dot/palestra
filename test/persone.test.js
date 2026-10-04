@@ -27,3 +27,64 @@ test('la seconda persona si chiama Palestra A, non "gym 3"', () => {
   assert.equal(seconda.nomeScheda, 'Palestra A');
   assert.doesNotMatch(seconda.nomeScheda, /gym/i);
 });
+
+// ---------------------------------------------------------------------------
+// Il peso corporeo è per persona.
+//
+// Ste: "non ho capito perchè non spunta niente se ho gia' messo il mio peso".
+// Due problemi distinti, trovati insieme:
+//
+//  1) la tabella "pesi" non aveva un account_id, quindi i due profili leggevano
+//     lo stesso peso: se uno si pesava 82 kg, anche l'altro risultava 82 kg.
+//     E i Rank di entrambi erano sbagliati.
+//  2) un record compare solo dopo "Allenamento finito": con la seduta ancora
+//     aperta non c'e' nessun rank, e la schermata non lo diceva.
+//
+// Qui blocco il punto 1. Il 2 e' un test in gioco-ui.test.js.
+// ---------------------------------------------------------------------------
+
+test('i pesi sono divisi per persona, non condivisi', async () => {
+  const pc = await import('../src/peso-corporeo.js');
+  const db = await import('../src/db.js');
+
+  const a = 'account-1';
+  const b = 'account-2';
+  await db.salva('pesi', { id: 'w-a', account_id: a, kg: 82, data: '2026-01-10' });
+  await db.salva('pesi', { id: 'w-b', account_id: b, kg: 65, data: '2026-01-10' });
+
+  assert.equal(await pc.pesoAttuale(a), 82, 'il primo profilo vede il suo peso');
+  assert.equal(await pc.pesoAttuale(b), 65, 'il secondo vede il suo, non quello del primo');
+
+  const soloA = await pc.pesiCronologici(a);
+  const soloB = await pc.pesiCronologici(b);
+  assert.equal(soloA.length, 1, 'il primo profilo ha una sola misurazione');
+  assert.equal(soloB.length, 1, 'il secondo idem');
+  assert.equal(soloA[0].kg, 82);
+  assert.equal(soloB[0].kg, 65);
+
+  // e la storia è separata: il peso di ieri dell'altro non entra
+  await db.salva('pesi', { id: 'w-a2', account_id: a, kg: 81, data: '2026-01-11' });
+  const aggA = await pc.pesiCronologici(a);
+  assert.equal(aggA.length, 2, 'le due misurazioni del primo profilo');
+  assert.equal(await pc.pesoAttuale(a), 81, 'l\'ultima del primo');
+  assert.equal(await pc.pesoAttuale(b), 65, 'il secondo non cambia');
+});
+
+test('segnare un peso non tocca quello dell\'altro profilo', async () => {
+  const pc = await import('../src/peso-corporeo.js');
+  const db = await import('../src/db.js');
+  const a = 'account-3';
+  const b = 'account-4';
+
+  await pc.segnaPeso(90, { account: a, data: '2026-02-01' });
+  await pc.segnaPeso(70, { account: b, data: '2026-02-01' });
+  assert.equal(await pc.pesoAttuale(a), 90);
+  assert.equal(await pc.pesoAttuale(b), 70);
+
+  // correggo il peso del primo: quello del secondo deve restare
+  await pc.segnaPeso(88, { account: a, data: '2026-02-01' });
+  assert.equal(await pc.pesoAttuale(a), 88, 'il primo e\' stato corretto');
+  assert.equal(await pc.pesoAttuale(b), 70, 'il secondo e\' rimasto com\'era');
+  const delB = await pc.pesiCronologici(b);
+  assert.equal(delB.length, 1, 'non e\' stata creata una misurazione in piu\' per l\'altro');
+});

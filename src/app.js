@@ -38,7 +38,9 @@ import {
 // a ogni schermata: cambia raramente e il Rank lo usa spesso.
 let PESO_CACHE = { valore: null, pronto: false };
 async function aggiornaPesoInMemoria() {
-  PESO_CACHE = { valore: await pesoAttuale(), pronto: true };
+  // il peso e' DELLA PERSONA che sta usando l'app: senza questo filtro i due
+  // profili leggevano lo stesso peso e i Rank erano sbagliati per entrambi
+  PESO_CACHE = { valore: await pesoAttuale(accountAttivo()), pronto: true };
   return PESO_CACHE.valore;
 }
 function pesoCorporeoOra() {
@@ -47,10 +49,11 @@ function pesoCorporeoOra() {
 
 /** Lo stato del peso per mostrarlo nel profilo e ricordare di aggiornarlo. */
 async function controlloPeso() {
-  const peso = await pesoAttuale();
+  const account = accountAttivo();
+  const peso = await pesoAttuale(account);
   if (!PESO_CACHE.pronto) await aggiornaPesoInMemoria();
-  const avviso_ = await serveAggiornare();
-  const pesi = await pesiCronologici();
+  const avviso_ = await serveAggiornare(account);
+  const pesi = await pesiCronologici(account);
   const ultimo = pesi.length ? pesi[pesi.length - 1] : null;
   let durata = '';
   if (ultimo) {
@@ -2428,13 +2431,34 @@ function seduteDellaPersonaPer(p) {
 
 /* ---------- mattoni visivi del gioco ---------- */
 
-function badgeRank(rankId, lp, divisione) {
+/**
+ * I LP che si vedono, in CONTO ALLA ROVESCIA.
+ *
+ * Ste (04/10/2026): "deve scendere da 100, a 99, 98, ecc.". Prima si vedeva
+ * 0, 1, 2... e cresceva, quindi guardandolo non capivi se ti manca tanto o
+ * poco alla promozione. Ora entra in un rank con 100 e la lancetta SCENDE:
+ * 100, 99, 98... fino a 1, e a 0 sali al rank dopo.
+ *
+ * Il numero dentro l'app (`r.lp`) resta quello che cresce: cambia solo come
+ * lo mostriamo, cosi' i calcoli non cambiano e i confronti fra esercizi
+ * diversi continuano a valere.
+ */
+function lpDaMostrare(lp, inTop = false) {
+  const n = Number(lp) || 0;
+  // sul rank piu' alto non c'e' un "piano" da raggiungere e gli LP possono
+  // superare 100: non li limito, altrimenti mostrei sempre 99 (bug trovato dai
+  // test, non dai miei occhi).
+  if (inTop) return Math.max(0, Math.round(n));
+  return 100 - Math.max(0, Math.min(99, n));
+}
+
+function badgeRank(rankId, lp, divisione, inTop = false) {
   const r = RANK.find((x) => x.id === rankId);
   if (!r) return el('span', { class: 'badge-rank badge-nessuno', testo: 'SENZA RANK' });
   const secondario = rankId === 'olympian' ? ' #4fc3ff' : '';
   return el('span', {
     class: 'badge-rank badge-' + rankId,
-    testo: r.nome + (divisione ? ' ' + divisione.nome : '') + (lp ? ' · ' + lp + ' LP' : ''),
+    testo: r.nome + (divisione ? ' ' + divisione.nome : '') + (lp ? ' · ' + lpDaMostrare(lp, inTop) + ' LP' : ''),
     style: `--rank-colore:${r.colore};--rank-ombra:${r.ombra}${secondario}`,
   });
 }
@@ -2531,10 +2555,12 @@ function cardRank(record, { compatta = false } = {}) {
         el('span', { class: 'nota', testo: nome }),
         el('strong', { class: 'card-rank-nome', testo: r.testo }),
       ]),
-      badgeRank(r.rankId, r.lp, r.divisione),
+      badgeRank(r.rankId, r.lp, r.divisione, r.inTop),
     ]),
     el('div', { class: 'card-rank-basso' }, [
-      barraProgresso(r.progresso, r.inTop ? 'TOP' : `${r.lp} LP / 100`),
+      // la barra si riempie verso la promozione, e l'etichetta scende
+      // 100 -> 99 -> 98, quindi "manca" si legge come una conta alla rovescia
+      barraProgresso(r.progresso, r.inTop ? 'TOP' : `${lpDaMostrare(r.lp, r.inTop)} LP`),
       el('span', { class: 'nota', testo: verso }),
       el('a', { href: '#/esercizio/' + (r.esercizio ? r.esercizio.id : ''), class: 'bottone-guarda', testo: 'Dettaglio' }),
     ]),
@@ -2652,7 +2678,7 @@ function vistaCasa(zona) {
     el('div', { class: 'teschio-rank' }, [
       el('span', { class: 'simbolo', testo: 'RANK' }),
       st.rankPrincipale
-        ? badgeRank(st.rankPrincipale.rankId, st.rankPrincipale.lp, st.rankPrincipale.divisione)
+        ? badgeRank(st.rankPrincipale.rankId, st.rankPrincipale.lp, st.rankPrincipale.divisione, st.rankPrincipale.inTop)
         : el('strong', { testo: '—' }),
       el('span', { class: 'nota', testo: st.rankPrincipale && st.rankPrincipale.esercizio
         ? st.rankPrincipale.esercizio.nome : 'nessun record ancora' }),
@@ -2843,7 +2869,33 @@ function vistaRank(zona) {
   function sezioneMieiRank(stato) {
     contenitore.appendChild(el('p', { class: 'nota', testo: 'Il rank di ogni esercizio e\' tuo e basta: le soglie sono diverse per ogni esercizio, quindi 50 kg di una cosa non valgono 50 kg di un\'altra.' }));
     if (!stato.record.length) {
-      contenitore.appendChild(el('p', { class: 'nota', testo: 'Nessun record ancora: chiudi un allenamento e i rank compaiono qui.' }));
+      // Ste: "non ho capito perche' non spunta niente se ho gia' messo il mio
+      // peso". Il peso NON c'entra: un rank compare solo quando la seduta e'
+      // stata CHIUSA. Prima era scritto solo "chiudi un allenamento", che non
+      // diceva che il peso e' gia' salvato e che quindi il problema e' un
+      // altro. Ora lo spiego per bene e dico subito cosa fare.
+      const aperta = seduteMie().find((s) => s && !s.eliminata && s.stato !== 'completata');
+      const finite = seduteMie().filter((s) => s && !s.eliminata && s.stato === 'completata').length;
+      const peso = pesoCorporeoOra();
+
+      const box = el('div', { class: 'blocco' });
+      if (aperta) {
+        box.appendChild(el('p', { class: 'nota', testo: `Hai un allenamento APERTO (${aperta.nome_giorno || 'in corso'}). Le serie contano solo quando finisci la seduta con "Allenamento finito".` }));
+        box.appendChild(el('a', { href: '#/', class: 'bottone-guarda', testo: 'Vai e chiudi l\'allenamento' }));
+      } else if (finite > 0) {
+        box.appendChild(el('p', { class: 'nota', testo: `Hai ${finite} allenamenti finiti, ma nessuna serie valida. Probabilmente le serie sono fatte col solo spotter: quelle non contano come record, perché non è una prestazione tua.` }));
+        box.appendChild(el('a', { href: '#/storico', class: 'bottone-guarda', testo: 'Controlla lo storico' }));
+      } else {
+        box.appendChild(el('p', { class: 'nota', testo: 'Non hai ancora finito un allenamento. Appena ne finisci uno, i rank di ogni esercizio spuntano qui.' }));
+        box.appendChild(el('a', { href: '#/', class: 'bottone-guarda', testo: 'Inizia ad allenarti' }));
+      }
+
+      // Il peso corporeo: confermiamo che l\'ha gia' messo, cos\'e\' non
+      // continua a pensare che il Rank dipenda da quello.
+      box.appendChild(el('p', { class: 'nota nota-chiaro', testo: peso
+        ? `Il tuo peso corporeo e\' gia\' salvato (${formattaNumero(peso)} kg) e\' gia\' usato per i Rank: non e\' quello che manca.`
+        : 'Il peso corporeo non l\'hai ancora messo nel Profilo, ma non e\' quello che manca: i Rank funzionano anche senza.' }));
+      contenitore.appendChild(box);
       return;
     }
     for (const r of stato.record) contenitore.appendChild(cardRank(r, { compatta: true }));
@@ -2890,7 +2942,7 @@ function vistaRank(zona) {
             el('strong', { testo: v.username + (mio ? ' (tu)' : '') }),
             el('span', { class: 'nota', testo: v.testo }),
           ]),
-          badgeRank(v.rankId, v.lp, v.divisione),
+          badgeRank(v.rankId, v.lp, v.divisione, v.inTop),
         ]));
       }
     }
@@ -2956,7 +3008,7 @@ function vistaEsercizio(zona, esercizioId) {
         el('span', { class: 'nota', testo: record.inTop ? 'Record personale · rank massimo' : 'Record personale' }),
         el('strong', { class: 'card-rank-nome', testo: record.testo }),
       ]),
-      badgeRank(record.rankId, record.lp, record.divisione),
+      badgeRank(record.rankId, record.lp, record.divisione, record.inTop),
     ]),
     el('div', { class: 'card-rank-basso' }, [
       barraProgresso(record.progresso, `${record.lp} LP`),
@@ -2993,7 +3045,7 @@ function vistaEsercizio(zona, esercizioId) {
       ? el('div', {}, tappe.slice().reverse().map((t) => el('div', { class: 'riga-tappa' }, [
         el('span', { class: 'nota', testo: dataLeggibile(t.data) }),
         el('span', { class: 'cresci', testo: t.testoSerie }),
-        badgeRank(t.rankId, t.lp),
+        badgeRank(t.rankId, t.lp, null, t.inTop),
       ])))
       : el('p', { class: 'nota', testo: 'Ancora nessun miglioramento registrato.' }),
   ]));
@@ -3257,7 +3309,7 @@ async function vistaProfilo(zona) {
         avviso('Scrivi un peso fra 25 e 300 kg.', { tipo: 'errore' });
         return;
       }
-      await segnaPeso(n);
+      await segnaPeso(n, { account: accountAttivo() });
       avviso(`Peso salvato: ${formattaNumero(n)} kg. I Rank sono aggiornati.`, { tipo: 'ok' });
       await aggiornaPesoInMemoria();
       disegna();
@@ -3268,7 +3320,7 @@ async function vistaProfilo(zona) {
   if (statoPeso.peso) {
     boxPeso.appendChild(el('p', { class: 'nota', testo: `Ultima misurazione: ${formattaNumero(statoPeso.peso)} kg (${statoPeso.durata}). Ti si ricorda di aggiornarlo almeno una volta alla settimana.` }));
   }
-  const pesi = await pesiCronologici();
+  const pesi = await pesiCronologici(accountAttivo());
   if (pesi.length) {
     const ultimi = pesi.slice(-8).reverse();
     const lista = el('div', { class: 'storico-pesi' });
