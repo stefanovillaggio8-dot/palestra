@@ -29,6 +29,7 @@ import { profiloEsercizio, profiloPerPesoCorporeo, RANK, ETICHETTE_MISURA, descr
 import { formattaAura } from './aura.js';
 import { elencoAvatar, avatarPerId, gradienteAvatar, iniziali } from './avatar.js';
 import { amiciDi, confronta, classifichePerEsercizio, privacyDi, campiVisibili, PRIVACY_PREDEFINITE, CODICE_SCHEDE, codiceCorretto } from './sociale.js';
+import { classificaEsercizio as riconosciEsercizio } from './esercizi-classificatore.js';
 import { controllaAggiornamento, applicaAggiornamento as prendiVersioneNuova, registraAggiornamentoRapido } from './update-via-sw.js';
 import {
   pesoAttuale, pesiCronologici, segnaPeso, togliPeso, pesoCorporeoValido,
@@ -3584,6 +3585,39 @@ function finestraCreaEsercizio() {
   const riferimento = campoNumero('', { etichetta: 'punteggio PLATINUM (facoltativo)' });
   const anteprimaRiferimento = el('div', { class: 'anteprima-riferimento' });
 
+  // Ste (04/10/2026): "deve riconoscere si, per questo ti ho detto se puoi
+  // metterci un ia". Quando scrivi il nome, l'app lo RICONOSCE da sola e ti
+  // dice che movimento e' e quanto e' difficile, e PERCHE'. Se sbaglia, te ne
+  // accorgi subito e puoi correggerla a mano.
+  const riconosciuto = el('div', { class: 'anteprima-riferimento' });
+  const aggiornaRiconoscimento = () => {
+    const nomeScritto = String(nome.value || '').trim();
+    svuota(riconosciuto);
+    if (!nomeScritto) return;
+    const r = riconosciEsercizio({
+      nome: nomeScritto,
+      descrizione: String(descrizione.value || '').trim(),
+      convenzione: convenzione.value,
+    });
+    riconosciuto.appendChild(el('p', { class: 'nota nota-piccola' }, [
+      el('span', { class: 'tag-livello piccolo liv-' + r.livello, testo: descrizioneLivello(r.livello) }),
+    ]));
+    riconosciuto.appendChild(el('p', {
+      class: 'nota nota-piccola',
+      testo: `Riconosciuto come ${r.movimento.replace(/_/g, ' ')} · gruppo ${r.gruppo} · quanto sono sicuro: ${r.confidenza}`,
+    }));
+    if (r.motivi && r.motivi.length) {
+      riconosciuto.appendChild(el('p', { class: 'nota nota-piccola', testo: 'Perche\': ' + r.motivi.join(' · ') }));
+    }
+    if (r.confidenza === 'bassa') {
+      riconosciuto.appendChild(el('p', { class: 'nota nota-piccola', testo: 'Non sono sicuro: il nome non contiene parole che conosco. Scrivilo come lo chiami in palestra e vediamo.' }));
+    }
+  };
+  nome.addEventListener('input', aggiornaRiconoscimento);
+  descrizione.addEventListener('input', aggiornaRiconoscimento);
+  convenzione.addEventListener('change', aggiornaRiconoscimento);
+  aggiornaRiconoscimento();
+
   /** Ricalcola l'anteprima ogni volta che cambia qualcosa. */
   const aggiornaAnteprima = () => {
     const scritto = Number(String(riferimento.value || '').replace(',', '.'));
@@ -3674,6 +3708,7 @@ function finestraCreaEsercizio() {
     ]),
 
     el('label', { class: 'nota', testo: 'Nome' }), nome,
+    riconosciuto,
     el('label', { class: 'nota', testo: 'Immagine' }), immagine,
     el('label', { class: 'nota', testo: 'Tipo' }), tipo,
     el('label', { class: 'nota', testo: 'Convenzione del carico' }), convenzione,

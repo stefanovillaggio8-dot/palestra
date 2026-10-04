@@ -1,4 +1,4 @@
-// rank-config.js -- la configurazione del gioco: rank, soglie, misure.
+﻿// rank-config.js -- la configurazione del gioco: rank, soglie, misure.
 //
 // Tutto quello che si puo' cambiare senza toccare la logica sta QUI dentro.
 // Se domani vuoi un rank nuovo, una soglia diversa o un esercizio con un
@@ -131,7 +131,6 @@ export function spessoreSoglia(profilo, indiceRank) {
 
 // ---------------------------------------------------------------------------
 // 3 bis. Quanto e' difficile l'esercizio.
-//
 // Ste (04/10/2026): "i rank per ogni esercizio devono adattarsi al tipo di
 // esercizio, se e' difficile, facile, medio. Tipo alzate laterali e'
 // difficile quindi anche un carico basso puo' essere tanto".
@@ -146,6 +145,10 @@ export function spessoreSoglia(profilo, indiceRank) {
 // quarto. E' esattamente il punto di Ste: sulle alzate laterali un carico
 // basso e' gia' tanto.
 // ---------------------------------------------------------------------------
+
+// il classificatore: se l'esercizio non e' nella lista scritta a mano,
+// il livello lo capisce dal nome ("Dumbbell Lateral Raise" -> isolamento)
+import { classificaEsercizio } from './esercizi-classificatore.js';
 
 export const LIVELLI_DIFFICOLTA = {
   grande:     { id: 'grande',     nome: 'GRANDE',     rapporto: 1.85 },
@@ -213,14 +216,34 @@ export function descrizioneLivello(livello) {
   return 'COMPOSTO · esercizio di forza vero, qui contano i kg';
 }
 
-/** Il livello di un esercizio; se non e' in elenco lo deduco dalla convenzione. */
+/**
+ * Il livello di un esercizio.
+ *
+ * Ste (04/10/2026): "deve riconoscere si, per questo ti ho detto se puoi
+ * metterci un ia".
+ *
+ * L'ordine e' importante:
+ *   1) se l'esercizio e' nella lista scritta a mano,vinca quella (l'ho
+ *      verificata una per una e so che e' giusta);
+ *   2) altrimenti lo RICONOSCO dal nome, con il classificatore.
+ */
 export function livelloEsercizio(esercizio) {
   const id = (esercizio && esercizio.id) || '';
   const convenzione = (esercizio && esercizio.convenzione) || null;
   const noto = LIVELLO_ESERCIZI[id];
   if (noto) return noto;
   if (convenzione === 'corpo_libero' || convenzione === 'assistenza') return 'assistito';
-  return 'composto';
+  return classificaEsercizio({
+    nome: (esercizio && esercizio.nome) || id,
+    convenzione,
+  }).livello;
+}
+
+/** Anche il gruppo muscolare, quando serve saperlo. */
+export function gruppoEsercizio(esercizio) {
+  const id = (esercizio && esercizio.id) || '';
+  const nome = (esercizio && esercizio.nome) || id;
+  return classificaEsercizio({ nome, convenzione: (esercizio && esercizio.convenzione) || null }).gruppo;
 }
 
 /**
