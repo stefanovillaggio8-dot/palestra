@@ -1919,6 +1919,34 @@ function vistaProgressi(zona) {
       }));
     }
     zona.appendChild(boxForza);
+
+    // Ste (04/10/2026): "voglio che dica chi in generale e' piu' forte, facendo
+    // una media, e sia che si vedano tutti gli esercizi facendo vedere chi fa di
+    // piu'" e "non voglio solo che si veda chi e' il piu' forte: voglio vedere gli
+    // altri".
+    //
+    // Tutti gli esercizi in elenco, ognuno con i kg e il rapporto, e in alto la
+    // media. Una classifica che mostra solo il primo e' una pubblicita': qui si vede
+    // anche dove hai i numeri piu' bassi, che e' la parte che serve a capire.
+    if (prestazioniOra.length) {
+      const boxTabella = el('div', { class: 'spiegazione generale' });
+      boxTabella.appendChild(el('h3', { testo: 'Ogni esercizio, e quanto vali' }));
+      const utili = prestazioniOra.filter((p) => p.percentuale !== null);
+      const lista = utili.slice().sort((a, b) => b.percentuale - a.percentuale);
+      for (const p of lista) {
+        const righe = el('div', { class: 'riga-esercizio-forza' }, [
+          el('strong', { testo: p.nome }),
+          el('span', { testo: `${formattaNumero(p.kg)} kg` }),
+          el('span', { testo: `${formattaNumero(p.rapporto)}× il tuo peso` }),
+          el('span', { testo: `${formattaNumero(p.percentuale)}% del livello realistico` }),
+        ]);
+        if (!p.contaNellaMedia) {
+          righe.appendChild(el('span', { class: 'nota nota-piccola', testo: 'non conta nella media: è gamba' }));
+        }
+        boxTabella.appendChild(righe);
+      }
+      zona.appendChild(boxTabella);
+    }
   }
 
   // Il riepilogo generale viene PRIMA di tutto il resto: Ste ha detto che coi

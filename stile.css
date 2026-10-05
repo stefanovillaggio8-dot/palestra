@@ -1034,3 +1034,21 @@ a { color: var(--blu); text-decoration: none; }
   .card-grande .card-rank-nome { font-size: 1.25rem; }
   .teschio-streak, .teschio-aura, .teschio-rank { flex: 1 1 100%; }
 }
+
+/* Ogni esercizio e quanto vali: la tabella "piu' forte in generale".
+ * Ogni riga e' un esercizio con i kg, il rapporto sul corpo e la percentuale sul
+ * suo livello realistico. Tutte le righe si vedono: e' la parte che serve a capire
+ * dove sei forte e dove no, quindi nasconderne qualcuna sarebbe inutile. */
+.riga-esercizio-forza {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.9rem;
+  align-items: baseline;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+.riga-esercizio-forza strong { flex: 1 1 100%; }
+.riga-esercizio-forza span { font-variant-numeric: tabular-nums; }
+@media (min-width: 640px) {
+  .riga-esercizio-forza strong { flex: 1 1 auto; }
+}
