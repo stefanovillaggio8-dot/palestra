@@ -3653,6 +3653,27 @@ function finestraCreaEsercizio() {
     el('option', { value: 'corpo_libero', testo: 'corpo libero' }),
     el('option', { value: 'assistenza', testo: 'kg di assistenza' }),
   ]);
+  // Ste (04/10/2026): "metti che si puo' decidere quando fai un nuovo esercizio se
+  // e' monocarrucola o doppia carrucola".
+  //
+  // Prima questi tre fatti stavano SOLO scritti dentro il file: se creavi un
+  // esercizio al cavo non potevi dirgli mono o doppia, e l'app sbagliava di 2 sul
+  // Rank. Nessuno ci deve pensare da solo, e Ste non deve dipendere da me.
+  const carrucola = el('select', { class: 'selettore' }, [
+    el('option', { value: '', testo: "non lo so / non è un cavo" }),
+    el('option', { value: 'carrucola_mono', testo: 'mono carrucola (cavo singolo)' }),
+    el('option', { value: 'carrucola_doppia', testo: "doppia carrucola (senti metà)" }),
+  ]);
+  const attrezzatura = el('select', { class: 'selettore' }, [
+    el('option', { value: '', testo: "non è una macchina" }),
+    el('option', { value: 'macchina_dischi', testo: 'macchina a DISCHI veri' }),
+    el('option', { value: 'macchina_stack', testo: 'macchina a STACK (linguetta)' }),
+  ]);
+  const braccia = el('select', { class: 'selettore' }, [
+    el('option', { value: '', testo: 'i due bracci vanno insieme' }),
+    el('option', { value: 'si', testo: 'braccia indipendenti' }),
+  ]);
+
   // Il riferimento ora si CALCOLA da solo.
   //
   // Ste (04/10/2026): "non si puo' rendere automatica sta cosa?".
@@ -3681,6 +3702,8 @@ function finestraCreaEsercizio() {
       nome: nomeScritto,
       descrizione: String(descrizione.value || '').trim(),
       convenzione: convenzione.value,
+      attrezzatura: attrezzatura.value || null,
+      bracciaIndipendenti: braccia.value === 'si',
     });
     riconosciuto.appendChild(el('p', { class: 'nota nota-piccola' }, [
       el('span', { class: 'tag-livello piccolo liv-' + r.livello, testo: descrizioneLivello(r.livello) }),
@@ -3707,7 +3730,7 @@ function finestraCreaEsercizio() {
     const usaQuelloScrittto = Number.isFinite(scritto) && scritto > 0;
     const peso = pesoCorporeoOra();
     const profilo = profiloEsercizio(
-      { id: 'ex-nuovo', nome: nome.value || 'Nuovo esercizio', convenzione: convenzione.value, misura: tipo.value },
+      { id: 'ex-nuovo', nome: nome.value || 'Nuovo esercizio', convenzione: convenzione.value, misura: tipo.value, attrezzatura: attrezzatura.value || null, bracciaIndipendenti: braccia.value === 'si', carrucola: carrucola.value || null },
       usaQuelloScrittto ? { riferimento: scritto } : {},
     );
     const conPeso = profiloPerPesoCorporeo(profilo, peso);
@@ -3795,6 +3818,9 @@ function finestraCreaEsercizio() {
     el('label', { class: 'nota', testo: 'Immagine' }), immagine,
     el('label', { class: 'nota', testo: 'Tipo' }), tipo,
     el('label', { class: 'nota', testo: 'Convenzione del carico' }), convenzione,
+    el('label', { class: 'nota', testo: "Com'è fatto il carico? (solo se è un cavo)" }), carrucola,
+    el('label', { class: 'nota', testo: "Che macchina è? (dischi veri o stack)" }), attrezzatura,
+    el('label', { class: 'nota', testo: "Muovi un braccio senza l'altro?" }), braccia,
     el('label', { class: 'nota', testo: 'Punteggio PLATINUM (facoltativo: se lo lasci vuoto lo sceglie l\'app)' }), riferimento,
     anteprimaRiferimento,
     el('label', { class: 'nota', testo: 'Descrizione (come si fa: facoltativa)' }), descrizione,
@@ -3820,6 +3846,12 @@ function finestraCreaEsercizio() {
             gruppo: nomeValore,
             convenzione: convenzione.value,
             misura,
+            // I tre fatti che l'app DEVE sapere. Senza questi l'esercizio nasce
+            // sbagliato: sul doppio carrucola il Rank e' dimezzato, e una macchina
+            // a dischi non e' una macchina a stack.
+            ...(carrucola.value ? { carrucola: carrucola.value } : {}),
+            ...(attrezzatura.value ? { attrezzatura: attrezzatura.value } : {}),
+            ...(braccia.value === 'si' ? { bracciaIndipendenti: true } : {}),
             tipo: 'standard',
             foto: fotoData || 'img/esercizi/chest-press.png',
             nota_permanente: String(descrizione.value || '').trim(),
