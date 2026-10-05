@@ -21,6 +21,7 @@ const FILE = [
   './src/muscoli-parti.js',
   './src/scala-esercizi.js',
   './src/forza-generale.js',
+  './src/scala-auto.js',
   './src/progressi.js',
   './src/sincronizzazione.js',
   './src/backup.js',
