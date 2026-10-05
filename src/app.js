@@ -1898,13 +1898,19 @@ function vistaProgressi(zona) {
     } else {
       boxForza.appendChild(el('p', {
         class: 'nota numero-grande',
-        testo: `${formattaNumero(media.rapporto)}× il tuo peso`,
+        testo: `${formattaNumero(media.percentuale)}%`,
       }));
       boxForza.appendChild(el('p', {
         class: 'nota nota-piccola',
-        testo: `Media di quanto sollevi rispetto al tuo corpo di ${formattaNumero(pesoOraProgressi)} kg, `
-          + `su ${media.conta} esercizi${media.saltate ? ` (ne ho esclusi ${media.saltate})` : ''}. `
-          + `In kg vuol dire che in media sposti ${media.eccessoMedio > 0 ? '+' : ''}${formattaNumero(media.eccessoMedio)} kg oltre il tuo corpo.`,
+        testo: `È la media di quanto hai raggiunto rispetto al livello realistico per te, `
+          + `misurato sul tuo corpo di ${formattaNumero(pesoOraProgressi)} kg, su ${media.conta} esercizi`
+          + `${media.saltate ? ` (ne ho esclusi ${media.saltate})` : ''}. `
+          + `100% vuol dire che hai raggiunto il livello di chi si allena bene su quell'esercizio.`,
+      }));
+      boxForza.appendChild(el('p', {
+        class: 'nota nota-piccola',
+        testo: `Come kg vuol dire che in media sposti ${media.eccessoMedio > 0 ? '+' : ''}`
+          + `${formattaNumero(media.eccessoMedio)} kg oltre il tuo corpo, e ${formattaNumero(media.rapporto)} volte il tuo peso.`,
       }));
       boxForza.appendChild(el('p', {
         class: 'nota nota-piccola',

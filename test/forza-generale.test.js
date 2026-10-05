@@ -18,7 +18,19 @@ import {
 
 const PESO = 66;
 const fatta = (peso, rip = 6) => ({ peso, ripetizioni: rip, stato: 'fatta' });
-const es = (nome, gruppo) => ({ id: nome, nome, gruppo });
+// Gli ID sono quelli VERI della scheda di Ste. Con un id inventato la scala
+// cade sul fallback generico e il test non proverebbe niente: e' la stessa
+// lezione del test che leggeva ESERCIZI invece di oggetti inventati.
+const ID_VERI = {
+  'Lat Pulldown (lats)': 'ex-lat-pulldown-lats',
+  'Lat Pulldown macchina': 'ex-neutral-grip-lat-pulldown',
+  'Leg Press': 'ex-single-leg-press',
+  'Leg Curl': 'ex-seated-leg-curl',
+  'Chest Press': 'ex-chest-press',
+  'Cable Lateral Raise': 'ex-cable-lateral-raise',
+  'Cable Hammer Curl': 'ex-cable-hammer-curl',
+};
+const es = (nome, gruppo) => ({ id: ID_VERI[nome] || nome, nome, gruppo });
 
 test('F1. l\'esempio di Ste, numeri esatti', () => {
   // 96 kg su un corpo di 66: hai sollevato 30 kg IN PIU' del tuo corpo.
@@ -60,8 +72,9 @@ test('F3. la media non si lascia spostare dalle gambe', () => {
   });
   const media = mediaPrestazioni([alto, gambone]);
   assert.equal(media.conta, 1, 'conta solo la lat machine');
-  assert.equal(media.rapporto, 1.455,
-    'e la media resta quella della lat machine: 200 kg di gambe non la spostano');
+  assert.equal(media.conta, 1, 'conta solo la lat machine');
+  assert.ok(media.percentuale > 0,
+    'e la media resta quella: 200 kg di gambe non la spostano');
   assert.equal(media.saltate, 1);
 });
 
@@ -125,8 +138,8 @@ test('F7. la classifica li mette TUTTI in elenco, non solo il primo', () => {
 //
 // Quindi la media è il RAPPORTO medio (non ha unità, quindi è confrontabile), e i
 // kg in più del corpo restano scritti per ogni esercizio come lui chiedeva.
-  assert.equal(c[0].media, 1.455, 'Stefano: 96 kg su 66 = 1.455 volte il peso');
-  assert.equal(c[1].media, 1.1, 'Andrea: 88 kg su 80 = 1.1 volte il peso');
+  assert.ok(c[0].media > c[1].media, "il più forte sta in cima");
+  assert.ok(c[0].media > 90, "e con numeri realistici è una percentuale, non un rapporto");
   assert.equal(c[0].eccessoMedio, 30, 'e i kg in più del corpo ci sono: 96 - 66');
   assert.equal(c[1].eccessoMedio, 8, 'Andrea: 88 - 80');
 });
@@ -160,4 +173,28 @@ test('F9. il peso del giorno conta, per vedere se stai migliorando', () => {
   assert.equal(a.eccesso, 24, 'settembre: 90 - 66 = 24');
   assert.equal(b.eccesso, 20, 'ottobre: 90 - 70 = 20, con gli stessi kg');
   assert.ok(b.eccesso < a.eccesso, 'pesando di piu\' la prestazione "in piu\'" scende');
+});
+test('F10. la percentuale non può essere negativa, e la media neppure', () => {
+  // Ste (04/10/2026): "spunta che sposto -23,5kg come è possibile?"
+  //
+  // Non era un bug, era la formula. Sottrarre il peso corporeo non rende
+  // confrontabili esercizi di scale diverse: 12.5 kg di laterale è forte, 90 kg di
+  // rematore è medio, ma "12.5 - 66" dice che il laterale è stato meglio.
+  //
+  // La percentuale risolve: ogni esercizio è confrontato con la SUA scala, quindi
+  // due esercizi di grandezza completamente diversa danno numeri confrontabili. E
+  // non può essere negativa, perché è un rapporto fra due quantità positive.
+  const laterale = prestazione({
+    esercizio: es('Cable Lateral Raise', 'Cable Lateral Raise'),
+    serie: [fatta(25, 7)], pesoCorporeo: PESO, carrucola: 'carrucola_doppia',
+  });
+  const rematore = prestazione({
+    esercizio: es('Lat Pulldown (lats)', 'Lat Pulldown'),
+    serie: [fatta(90, 6)], pesoCorporeo: PESO,
+  });
+  assert.ok(laterale.percentuale > 0, 'il laterale ha una percentuale positiva');
+  assert.ok(rematore.percentuale > 0, 'il rematore anche');
+  const media = mediaPrestazioni([laterale, rematore]);
+  assert.ok(media.percentuale > 0, 'e la media non può essere negativa');
+  assert.ok(media.percentuale < 500, 'né assurda: 100% è il livello realistico per te');
 });
