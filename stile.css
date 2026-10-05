@@ -1035,6 +1035,38 @@ a { color: var(--blu); text-decoration: none; }
   .teschio-streak, .teschio-aura, .teschio-rank { flex: 1 1 100%; }
 }
 
+/* La schermata dell'allenamento sul telefono.
+ *
+ * Ste (04/10/2026): "da telefono appena inizio gli allenamenti è tutto troppo
+ * grosso e un po' si bugga".
+ *
+ * "Tutto troppo grosso" è il problema vero: con i campi di kg e ripetizioni grandi
+ * e i bottoni alti, sul telefono le tre serie di un esercizio non ci stanno e si
+ * finisce per scorrere per un esercizio solo. E "si bugga" viene da li': gli input
+ * numerici su iOS fanno zoom da soli se la dimensione del font e' sotto i 16px, e
+ * un zoom a metà allenamento fa saltare il tap successivo.
+ *
+ * Quindi: font piu' piccolo ma MAI sotto i 16px sugli input (altrimenti iOS zooma),
+ * padding ridotto, e i campi affiancati stretti cosi' una serie sta in una riga.
+ */
+@media (max-width: 430px) {
+  .riga-serie {
+    gap: 6px;
+    padding: 7px;
+    border-radius: 10px;
+  }
+  .riga-serie input,
+  .riga-serie select,
+  .riga-serie .sotto-campo {
+    font-size: 16px; /* sotto i 16px iOS zooma da solo e rompe i tap */
+    padding: 6px 7px;
+    min-height: 40px;
+  }
+  .riga-serie .numero-serie { min-width: 26px; }
+  .serie-previste { gap: 5px; margin: 7px 0 2px; }
+  .serie-previste button { padding: 5px 8px; font-size: .8rem; }
+}
+
 /* Ogni esercizio e quanto vali: la tabella "piu' forte in generale".
  * Ogni riga e' un esercizio con i kg, il rapporto sul corpo e la percentuale sul
  * suo livello realistico. Tutte le righe si vedono: e' la parte che serve a capire

@@ -1902,15 +1902,17 @@ function vistaProgressi(zona) {
       }));
       boxForza.appendChild(el('p', {
         class: 'nota nota-piccola',
-        testo: `È la media di quanto hai raggiunto rispetto al livello realistico per te, `
-          + `misurato sul tuo corpo di ${formattaNumero(pesoOraProgressi)} kg, su ${media.conta} esercizi`
-          + `${media.saltate ? ` (ne ho esclusi ${media.saltate})` : ''}. `
-          + `100% vuol dire che hai raggiunto il livello di chi si allena bene su quell'esercizio.`,
+        testo: `La percentuale è quanto hai sollevato rispetto a quello che ci si aspetta `
+          + `da una persona forte come te, su quel pezzo. 100% vuol dire che l'hai eguagliato, `
+          + `sotto il 100% che ti manca, sopra il 100% che lo hai superato. `
+          + `È calcolata sul tuo corpo di ${formattaNumero(pesoOraProgressi)} kg, `
+          + `su ${media.conta} esercizi${media.saltate ? ` (ne ho esclusi ${media.saltate})` : ''}.`,
       }));
       boxForza.appendChild(el('p', {
         class: 'nota nota-piccola',
-        testo: `Come kg vuol dire che in media sposti ${media.eccessoMedio > 0 ? '+' : ''}`
-          + `${formattaNumero(media.eccessoMedio)} kg oltre il tuo corpo, e ${formattaNumero(media.rapporto)} volte il tuo peso.`,
+        testo: 'Sopra il 100% vuol dire che hai superato il livello di chi si allena bene: '
+          + 'i numeri di riferimento sono stime prudenti, e se per te sono sbagliati, '
+          + 'il numero giusto è quello che dici tu.',
       }));
       boxForza.appendChild(el('p', {
         class: 'nota nota-piccola',
