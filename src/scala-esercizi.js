@@ -86,10 +86,23 @@ export const SCALA_ESERCIZI = {
 // intorno ai 30-32 per lato.
 "ex-smith-incline-bench": 32,
   "ex-dumbbell-bench-pull": 45,
-  "ex-neutral-grip-lat-pulldown": 115,
-  "ex-lat-pulldown-lats": 108,
-  "ex-iso-lateral-row": 90,
-  "ex-seated-cable-row": 115,
+  // Ste (04/10/2026): "la lat machine e la seated cable row sono di tirata, faccio
+  // quasi 30kg in piu' del mio corpo, come puo' essere sotto il 100%?"
+  //
+  // Aveva ragione: avevo tarato le TIRATE su 1.64 volte il peso corporeo, che e' la
+  // fascia di chi e' molto forte. Lui faceva 1.36, che e' un numero solido.
+  //
+  // La regola che tengo da qui in avanti, e che dice di non tarare su di lui:
+  //   sotto 1.3 volte il peso -> il riferimento e' troppo alto, si abbassa
+  //   tra 1.3 e 1.5        -> numero giusto
+  //   sopra 1.5             -> il riferimento e' troppo basso, si alza
+  // Le tirate vanno portate a circa 1.45 volte il peso: la fascia media di chi si
+  // allena bene. Non al 100% a ogni costo, perche' allora l'app non distingue piu'
+  // nessuno.
+  "ex-neutral-grip-lat-pulldown": 102,
+  "ex-lat-pulldown-lats": 101,
+  "ex-seated-cable-row": 102,
+  "ex-iso-lateral-row": 50,
   // 58 era un numero da manubri bilaterali. Lui lo fa con i MANUBRI, 30 kg per
 // mano, da seduto: la scala deve stare intorno ai 30-32 che e' quanto sposta in
 // modo decente una persona forte con i manubri, per un braccio.
