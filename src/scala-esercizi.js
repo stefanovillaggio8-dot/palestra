@@ -81,13 +81,19 @@ export const SCALA_PER_MOVIMENTO = {
  */
 export const SCALA_ESERCIZI = {
   "ex-chest-press": 50,
-  "ex-smith-incline-bench": 48,
+  // 48 era un numero da bilanciere. Lui i dischi li mette su ENTRAMBI i lati del
+// bilanciere, 30 per lato, e sui rails della Smith il percorso e' guidato: scala
+// intorno ai 30-32 per lato.
+"ex-smith-incline-bench": 32,
   "ex-dumbbell-bench-pull": 45,
   "ex-neutral-grip-lat-pulldown": 115,
   "ex-lat-pulldown-lats": 108,
   "ex-iso-lateral-row": 90,
   "ex-seated-cable-row": 115,
-  "ex-seated-db-shoulder-press": 58,
+  // 58 era un numero da manubri bilaterali. Lui lo fa con i MANUBRI, 30 kg per
+// mano, da seduto: la scala deve stare intorno ai 30-32 che e' quanto sposta in
+// modo decente una persona forte con i manubri, per un braccio.
+"ex-seated-db-shoulder-press": 32,
   "ex-cable-lateral-raise": 13,
   "ex-dumbbell-lateral-raise": 12,
   "ex-one-arm-cable-reverse-fly": 16,
@@ -97,12 +103,21 @@ export const SCALA_ESERCIZI = {
 // quell'esercizio deve stare intorno ai 45 che lui solleva, non a 120.
 "ex-chest-supported-shrug": 45,
   "ex-cable-hammer-curl": 32,
-  "ex-scott-bench-curl": 32,
-  "ex-one-arm-dumbbell-preacher-curl": 30,
+  // 32 era un numero da curl bilaterale. Lui lo fa a UN braccio alla volta, 20 kg
+// per mano, e con il braccio in alto che e' la posizione corta, quindi la posizione
+// difficile: scala intorno ai 21.
+"ex-scott-bench-curl": 21,
+  // 30 era un numero da curl bilaterale. Lui lo fa a un braccio solo, 18 kg per
+// mano, col braccio appoggiato che aiuta ma stringe il movimento.
+"ex-one-arm-preacher-curl": 19,
   "ex-single-arm-tricep-pushdown": 30,
   "ex-cable-overhead-tricep-extension": 30,
   "ex-wrist-curl": 34,
-  "ex-single-leg-press": 100,
+  // 100 era il numero della leg press NORMALE a 100 kg per lato, che lui faceva
+// prima. Ma l'obliqua e' un esercizio diverso: un piede solo, con le guide
+// oblique che scaricano il peso di lato. Un numero che per l'obliqua sta bene e'
+// molto piu' basso.
+"ex-single-leg-press": 40,
   "ex-sled-press-calf-raise": 140,
   "ex-leg-extension": 92,
   "ex-seated-leg-curl": 85,
