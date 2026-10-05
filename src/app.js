@@ -18,6 +18,7 @@ import {
   riassuntoSpotter,
 } from './aggiornamento.js';
 import { testoProgresso, serieARipetizioniCostanti, riepilogoGenerale } from './progressi.js';
+import { prestazione, mediaPrestazioni, classificaGenerale } from './forza-generale.js';
 import { creaPacchetto, validaPacchetto, unisci, csvSerie, csvSedute, csvEsercizi } from './backup.js';
 import { ESERCIZI, SCHEDA_ID, SCHEDA_NOME, PERSONE, CONTATTI, accountId, personaDallaUrl, costruisciSnapshot } from './dati-iniziali.js';
 import { nuovoId, adesso, TABELLE } from './sincronizzazione.js';
@@ -1852,8 +1853,67 @@ function scegliEsercizio(bozza, g) {
 
 /* ===================== vista: progressi ===================== */
 
+/**
+ * Le prestazioni di questa persona, per l'esercizio "più forte in generale".
+ *
+ * Solo i suoi, e solo quelle dove c'è un peso: senza, "in più del tuo corpo" non
+ * si può calcolare.
+ */
+function prestazioniDiQuestaPersona() {
+  const peso = pesoCorporeoOra();
+  if (!peso) return [];
+  const perEsercizio = new Map();
+  for (const s of serieDellaPersona()) {
+    if (!s || s.eliminata) continue;
+    if (!perEsercizio.has(s.esercizio_id)) perEsercizio.set(s.esercizio_id, []);
+    perEsercizio.get(s.esercizio_id).push(s);
+  }
+  const fuori = [];
+  for (const [id, serie] of perEsercizio) {
+    const e = esercizioPerId(id);
+    if (!e) continue;
+    fuori.push(prestazione({ esercizio: e, serie, pesoCorporeo: peso, carrucola: e.carrucola || null }));
+  }
+  return fuori;
+}
+
 function vistaProgressi(zona) {
   zona.appendChild(el('h1', { testo: 'Progressi' }));
+
+  // Ste (04/10/2026): "voglio il rapporto peso potenza quindi in base al peso
+  // corporeo". E poi: "con kg intendo il peso che alzo in piu' rispetto al mio
+  // corpo... io peso 66kg e faccio 96 di lat machine, alzo 30kg in piu'".
+  //
+  // Va PRIMA di tutto il resto, perche' e' la domanda vera: "sto migliorando?"
+  // I kg da soli non lo dicono, perche' se il peso sale le soglie salgono e i
+  // kg possono salire senza che tu sia piu' forte.
+  const pesoOraProgressi = pesoCorporeoOra();
+  if (pesoOraProgressi) {
+    const prestazioniOra = prestazioniDiQuestaPersona();
+    const media = mediaPrestazioni(prestazioniOra);
+    const boxForza = el('div', { class: 'spiegazione generale' });
+    boxForza.appendChild(el('h3', { testo: 'Quanto stai sollevando in più del tuo corpo' }));
+    if (media.media === null) {
+      boxForza.appendChild(el('p', { class: 'nota', testo: 'Non ci sono ancora esercizi con un peso registrato.' }));
+    } else {
+      boxForza.appendChild(el('p', {
+        class: 'nota numero-grande',
+        testo: `${formattaNumero(media.rapporto)}× il tuo peso`,
+      }));
+      boxForza.appendChild(el('p', {
+        class: 'nota nota-piccola',
+        testo: `Media di quanto sollevi rispetto al tuo corpo di ${formattaNumero(pesoOraProgressi)} kg, `
+          + `su ${media.conta} esercizi${media.saltate ? ` (ne ho esclusi ${media.saltate})` : ''}. `
+          + `In kg vuol dire che in media sposti ${media.eccessoMedio > 0 ? '+' : ''}${formattaNumero(media.eccessoMedio)} kg oltre il tuo corpo.`,
+      }));
+      boxForza.appendChild(el('p', {
+        class: 'nota nota-piccola',
+        testo: 'Le gambe non contano nella media: i loro numeri sono troppo alti e la farebbero saltare. '
+          + 'Restano visibili uno per uno, però.',
+      }));
+    }
+    zona.appendChild(boxForza);
+  }
 
   // Il riepilogo generale viene PRIMA di tutto il resto: Ste ha detto che coi
   // grafici da solo non capisce, quindi la risposta principale e' in parole.
