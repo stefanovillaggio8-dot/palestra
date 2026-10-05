@@ -102,46 +102,36 @@ export function prestazione({ esercizio, serie, pesoCorporeo, carrucola = null }
     return { ...base, kg, percheNonConta: base.percheNonConta || 'Non c\'è il tuo peso nel profilo: senza quello non posso dire quanto hai sollevato in più.' };
   }
 
-  // LA PERCENTUALE, e questo è il numero che conta.
+  // LA PERCENTUALE, calcolata sul PESO VERO, non sul massimale stimato.
   //
-  // Ste ha visto -23.5 kg nella media e ha chiesto "come è possibile?". La
-  // risposta è che la formula era sbagliata, non i suoi numeri. Sottrarre il peso
-  // corporeo NON rende confrontabili esercizi di scale diverse: 12.5 kg di laterale
-  // è una prestazione forte, 90 kg di rematore è una prestazione media, ma
-  // "12.5 - 66" dice che il laterale è stato meglio del rematore. Il contrario.
+  // Ste (04/10/2026): "non voglio che calcoli il massimale, ma il massimo che ho
+  // fatto in quella seduta in quell'esercizio", e poi: "questa cosa serve a capire
+  // quanto alzo in piu' del mio corpo, non quale e' la mia serie migliore".
   //
-  // La percentuale invece funziona, perché ogni esercizio viene confrontato con la
-  // SUA scala (quanto sposta chi si allena bene su QUEL esercizio, riportato sul
-  // peso di questa persona). 100% = il livello realistico per te. E i due numeri
-  // sono confrontabili fra esercizi qualsiasi, perché ognuno è già normalizzato.
+  // Quindi niente "1RM stimato" (88 kg x 1,2 = 105.6): e' una mia invenzione, e come
+  // gli avevo detto io sul Cable Fly sbaglia tantissimo quando le ripetizioni sono
+  // alte. Qui si confronta il peso che hai davvero sollevato con la scala di
+  // quell'esercizio.
   //
-  // E si aggiorna da sola: scala, peso corporeo e prestazione si rileggono ogni
-  // volta che apri la schermata. Nessun numero scritto dentro il codice.
-  const migliore = fatti.reduce((a, s) => {
-    const rip = Number(s.ripetizioni);
-    if (!Number.isFinite(rip) || rip <= 0) return a;
-    return (a === null || rip > a) ? rip : a;
-  }, null);
-  const massimale = migliore === null ? null : stimaMassimo(kg, migliore);
+  // E non si aggiorna a mano: scala, peso corporeo e peso sollevato si rileggono a
+  // ogni apertura della schermata.
   const riferimento = riferimentoPerEsercizio(
     { id: base.id, nome: nomeEsercizio, convenzione: (esercizio && esercizio.convenzione) || null,
       attrezzatura: (esercizio && esercizio.attrezzatura) || null,
       bracciaIndipendenti: !!(esercizio && esercizio.bracciaIndipendenti) },
     peso,
   );
-  const percentuale = (massimale !== null && Number.isFinite(riferimento) && riferimento > 0)
-    ? Math.round((massimale / riferimento) * 1000) / 10
+  const percentuale = (Number.isFinite(riferimento) && riferimento > 0)
+    ? Math.round((kg / riferimento) * 1000) / 10
     : null;
 
   return {
     ...base,
     kg,
-    ripetizioni: migliore,
-    massimale,
     riferimento,
     percentuale,
     rapporto: Math.round((kg / peso) * 1000) / 1000,
-    // Ste: "il peso che alzo in piu' rispetto al mio corpo". 96 - 66 = 30.
+    // Ste: "quanto alzo in piu' del mio corpo". 96 - 66 = 30.
     eccesso: Math.round((kg - peso) * 100) / 100,
   };
 }

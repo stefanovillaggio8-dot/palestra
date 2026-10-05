@@ -91,7 +91,11 @@ export const SCALA_ESERCIZI = {
   "ex-cable-lateral-raise": 13,
   "ex-dumbbell-lateral-raise": 12,
   "ex-one-arm-cable-reverse-fly": 16,
-  "ex-chest-supported-shrug": 120,
+  // 120 era un numero da bilanciere, e lui lo fa con i MANUBRI: 45 kg per mano.
+// Ste (04/10/2026): "di chest supported dumbbell shrug faccio 45kg per braccio e
+// non penso che ti aspetti di piu' da uno del mio peso". Quindi la scala di
+// quell'esercizio deve stare intorno ai 45 che lui solleva, non a 120.
+"ex-chest-supported-shrug": 45,
   "ex-cable-hammer-curl": 32,
   "ex-scott-bench-curl": 32,
   "ex-one-arm-dumbbell-preacher-curl": 30,
