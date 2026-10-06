@@ -76,10 +76,16 @@ export function prestazione({ esercizio, serie, pesoCorporeo, carrucola = null }
   const fatti = (serie || []).filter((s) => s && !s.eliminata
     && (!s.stato || s.stato === 'fatta') && s.spotter !== true);
   const letto = kgReali(serie);
-  // Sul doppio carrucola il peso che senti è META' di quello sul carrello.
-  // Senza questo, le alzate laterali finivano con il doppio: la stessa identica
-  // dimenticanza che Ste mi ha fatto correggere tre volte sul Rank.
-  const kg = letto === null ? null : (carrucola === 'carrucola_doppia' ? letto / 2 : letto);
+  // La carrucola si decide UNA volta e vale per due cose: per dimezzare i kg che
+  // senti, e per dire alla scala in che unita' e' scritto quel numero. Se le due
+  // cose prendessero la carrucola da posti diversi, la percentuale sarebbe
+  // dimezzata senza che nessuno se ne accorga. Sul doppio carrucola il peso che
+  // senti e' META' di quello sul carrello: senza questo, le alzate laterali
+  // finivano con il doppio, la stessa identica dimenticanza che Ste mi ha fatto
+  // correggere tre volte sul Rank.
+  const carr = carrucola || (esercizio && esercizio.carrucola) || null;
+  const doppia = carr === 'carrucola_doppia';
+  const kg = letto === null ? null : (doppia ? letto / 2 : letto);
   const gruppo = (esercizio && (esercizio.gruppo || '')) || '';
   const nomeEsercizio = (esercizio && esercizio.nome) || '';
   const gamba = gambeEsclusoDaMedia(gruppo, nomeEsercizio);
@@ -118,6 +124,11 @@ export function prestazione({ esercizio, serie, pesoCorporeo, carrucola = null }
   const riferimento = riferimentoPerEsercizio(
     { id: base.id, nome: nomeEsercizio, convenzione: (esercizio && esercizio.convenzione) || null,
       attrezzatura: (esercizio && esercizio.attrezzatura) || null,
+      // la carrucola va passata ANCHE qui, non solo per dimezzare i kg: e' lei
+      // che dice alla scala in che unita' e' scritto quel numero. Senza, il
+      // riferimento di un esercizio al doppio carrucola era il doppio e la
+      // percentuale usciva dimezzata.
+      carrucola: carr,
       bracciaIndipendenti: !!(esercizio && esercizio.bracciaIndipendenti) },
     peso,
   );

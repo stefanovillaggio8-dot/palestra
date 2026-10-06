@@ -26,7 +26,7 @@ import { nuovoId, adesso, TABELLE } from './sincronizzazione.js';
 import { statoAccount, ricompenseAllenamento, gruppiDaSerie } from './gioco.js';
 import { recordEsercizio, recordAccount, classificaEsercizio, storicoMiglioramenti, giudizioPerformance } from './rank.js';
 import { confrontoGiorno, confrontiMensili, GIORNI_UN_MESE } from './confronto-mensile.js';
-import { profiloEsercizio, profiloPerPesoCorporeo, RANK, ETICHETTE_MISURA, descriviPunteggio, descrizioneLivello, livelloEsercizio, impostaLivelliImparati, livelliImparati, rapportoDifficolta } from './rank-config.js';
+import { profiloEsercizio, profiloPerPesoCorporeo, RANK, ETICHETTE_MISURA, descriviPunteggio, descrizioneLivello, livelloEsercizio, impostaLivelliImparati, livelliImparati, rapportoDifficolta, MOLTIPLICATORI_SOGLIA } from './rank-config.js';
 import { formattaAura } from './aura.js';
 import { elencoAvatar, avatarPerId, gradienteAvatar, iniziali } from './avatar.js';
 import { amiciDi, confronta, classifichePerEsercizio, privacyDi, campiVisibili, PRIVACY_PREDEFINITE } from './sociale.js';
@@ -3877,13 +3877,15 @@ function finestraCreaEsercizio() {
         el('h4', { testo: 'Il campo "punteggio PLATINUM"' }),
         el('p', { testo: 'Non devi preoccupartene: lo sceglie l\'app al posto tuo. Lascia il campo vuoto e fa tutto da sola.' }),
         el('p', { testo: 'Come funziona: il PLATINUM è il livello di riferimento, e gli altri gradini nascono da lì con questi scarti:' }),
-        el('ul', {}, [
-          el('li', { testo: 'Bronzo = 55% del riferimento' }),
-          el('li', { testo: 'Silver = 72%' }),
-          el('li', { testo: 'Gold = 88%' }),
-          el('li', { testo: 'Platinum = 100%' }),
-          el('li', { testo: 'Diamond = 118%, Titan = 145%, Olympian = 185%' }),
-        ]),
+        // La lista dei gradini la LEGGE la configurazione (MOLTIPLICATORI_SOGLIA),
+        // non e' scritta qui a mano. Prima era scritta qui: diceva Bronzo 55%,
+        // Diamond 118%, Titan 145%, Olympian 185%, mentre i numeri veri sono 50,
+        // 110, 122 e 135. Quattro numeri sbagliati in un tutorial che Ste legge per
+        // capire come funziona il Rank: la classe di errore di sempre, cioe' una
+        // copia del numero in un posto dove poi non lo aggiorni.
+        el('ul', {}, MOLTIPLICATORI_SOGLIA.map((m, i) => el('li', {
+          testo: `${RANK[i].nome} = ${Math.round(m * 100)}%`,
+        }))),
         el('p', { testo: 'Sotto la riga del campo vedi già la scala vera che verrà usata, quindi sai cosa aspettarti prima di salvare.' }),
         el('p', { testo: 'Il numero si sceglie in base al tipo di misura che hai messo sopra (kg e ripetizioni, solo ripetizioni, tempo, distanza) e poi si scala sul peso corporeo di chi si allena: se sei più pesante e più forte, il tuo PLATINUM sale. Eccolo per i due casi più comuni:' }),
         el('ul', {}, [
@@ -3899,13 +3901,12 @@ function finestraCreaEsercizio() {
 
         el('h4', { testo: 'Il campo "Convenzione del carico"' }),
         el('p', { testo: 'Dice come si leggono i kg che l\'utente scrive.' }),
-        el('ul', {}, [
-          el('li', { testo: 'Per manubrio = ogni mano (quello che scrive di solito chi si allena)' }),
-          el('li', { testo: 'kg piastre macchina = il peso delle piastre, senza bilanciere' }),
-          el('li', { testo: 'kg totali del cavo = la somma dei due lati del cavo' }),
-          el('li', { testo: 'kg bilanciere = il bilanciere completo' }),
-          el('li', { testo: 'assistenza = i kg con cui ti aiutano' }),
-        ]),
+        // Le voci sono lette da ETICHETTE_CONVENZIONE (numeri.js): anche qui una
+        // copia scritta a mano andrebbe out of date, e qui dentro finiva per
+        // mancare proprio "kg per braccio", che e' la voce da cui dipende meta'
+        // del Rank sulle macchine a dischi.
+        el('ul', {}, ['per_manubrio', 'per_braccio', 'macchina', 'macchina_dischi', 'macchina_stack', 'cavo_totali', 'bilanciere', 'assistenza'].map((k) => el('li', { testo: ETICHETTE_CONVENZIONE[k] }))),
+        el('p', { testo: 'Questo campo non è una nota: il numero del PLATINUM dipende da qui. Un esercizio registrato per braccio ha una scala diversa dallo stesso esercizio registrato in totale, perché 35 kg per braccio non si confrontano con 35 kg in tutto.' }),
       ]),
     ]),
 
@@ -3932,8 +3933,22 @@ function finestraCreaEsercizio() {
           // nulla: così profiloEsercizio usa il default giusto per il tipo di
           // misura e le soglie si ricalcolano da sole sul peso di chi le usa.
           const scritto = Number(String(riferimento.value || '').replace(',', '.'));
+          // I quattro fatti che dicono COME si registra il carico devono stare
+          // anche qui, non solo nell'anteprima e non solo nel salvataggio: senza
+          // la convenzione e la carrucola la scala non sa se il numero che
+          // scriveranno e' di un lato, del carrello o del carico intero, e il
+          // riferimento salvato e' quello sbagliato. Prima la copia passava solo
+          // nome e convenzione.
           const profilo = profiloEsercizio(
-            { id, nome: nomeValore, convenzione: convenzione.value, misura },
+            {
+              id,
+              nome: nomeValore,
+              convenzione: convenzione.value,
+              misura,
+              attrezzatura: attrezzatura.value || null,
+              carrucola: carrucola.value || null,
+              bracciaIndipendenti: braccia.value === 'si',
+            },
             Number.isFinite(scritto) && scritto > 0 ? { riferimento: scritto } : {},
           );
           await db.salva('esercizi', {
@@ -3944,7 +3959,8 @@ function finestraCreaEsercizio() {
             misura,
             // I tre fatti che l'app DEVE sapere. Senza questi l'esercizio nasce
             // sbagliato: sul doppio carrucola il Rank e' dimezzato, e una macchina
-            // a dischi non e' una macchina a stack.
+            // a dischi non e' una macchina a stack. E valgono anche per la scala,
+            // quindi non solo per il Rank.
             ...(carrucola.value ? { carrucola: carrucola.value } : {}),
             ...(attrezzatura.value ? { attrezzatura: attrezzatura.value } : {}),
             ...(braccia.value === 'si' ? { bracciaIndipendenti: true } : {}),

@@ -150,7 +150,8 @@ export function spessoreSoglia(profilo, indiceRank) {
 // il livello lo capisce dal nome ("Dumbbell Lateral Raise" -> isolamento)
 import { classificaEsercizio } from './esercizi-classificatore.js';
 import { parteDiMuscolo, intrinsecoDi } from './muscoli-parti.js';
-import { scalaEsercizio, scalaSulCorpo } from './scala-esercizi.js';
+import { scalaSulCorpo } from './scala-esercizi.js';
+import { scalaDerivata } from './scala-auto.js';
 
 export const LIVELLI_DIFFICOLTA = {
   grande:     { id: 'grande',     nome: 'GRANDE',     rapporto: 1.85 },
@@ -502,7 +503,7 @@ export function moltiplicatoreCarico(convenzione) {
  * cosi' l'app resta usabile anche senza aver mai segnato il peso.
  */
 export function riferimentoPerEsercizio(esercizio, pesoCorporeo = null, { storico = null } = {}) {
-  // Ste: "ogni esercizio deve avere la propria scala, senza confrontare direttamente
+  // Ste (04/10/2026): "ogni esercizio deve avere la propria scala, senza confrontare direttamente
   // i kg tra esercizi diversi". Questa e' la riga che lo fa.
   //
   // Prima qui c'era "rapporto del livello x peso", e il rapporto dipendeva solo da
@@ -511,16 +512,26 @@ export function riferimentoPerEsercizio(esercizio, pesoCorporeo = null, { storic
   // la decide l'esercizio (o il movimento a cui appartiene) e la riporta sul peso
   // della persona. I due kg non si confrontano piu' fra esercizi diversi: ogni
   // esercizio misura la prestazione sulla SUA scala.
+  //
+  // I DUE campi che dicono COME' si registra il carico (convenzione e carrucola)
+  // sono obbligatori, non opzionali: senza di loro la scala non sa se il numero e'
+  // di un lato o del carico intero, e il confronto vale la meta' o il doppio.
   const riconosciuto = classificaEsercizio({
     nome: (esercizio && (esercizio.nome || esercizio.id)) || '',
     convenzione: (esercizio && esercizio.convenzione) || null,
     attrezzatura: (esercizio && esercizio.attrezzatura) || null,
+    carrucola: (esercizio && esercizio.carrucola) || null,
     bracciaIndipendenti: !!(esercizio && esercizio.bracciaIndipendenti),
   });
-  const scala = scalaEsercizio({
+  const scala = scalaDerivata({
     id: (esercizio && esercizio.id) || '',
+    nome: (esercizio && (esercizio.nome || esercizio.id)) || '',
     movimento: riconosciuto.movimento,
     livello: riconosciuto.livello,
+    convenzione: (esercizio && esercizio.convenzione) || null,
+    attrezzatura: (esercizio && esercizio.attrezzatura) || null,
+    carrucola: (esercizio && esercizio.carrucola) || null,
+    bracciaIndipendenti: !!(esercizio && esercizio.bracciaIndipendenti),
   });
   if (scala === null) {
     // nessuna scala: meglio ammetterlo che tirare fuori un numero inventato
@@ -696,8 +707,14 @@ export function profiloPerPesoCorporeo(profilo, pesoCorporeo) {
     riferimento = riferimentoPerEsercizio({
       id: p.id,
       nome: p.nome,
-      convenzione: p.assistito ? 'assistenza' : null,
+      // La convenzione e la carrucola NON sono un dettaglio: dicono se il numero
+      // che l'utente scrive e' di un lato, del carrello o del carico intero. Prima
+      // qui passavo "convenzione: null" e non passavo la carrucola: la scala
+      // non poteva scegliere la base giusta, e su un esercizio al cavo con la
+      // doppia carrucola il riferimento usciva il doppio (o la meta').
+      convenzione: (p.assistito ? 'assistenza' : p.convenzione) || null,
       attrezzatura: p.attrezzatura || null,
+      carrucola: p.carrucola || null,
       bracciaIndipendenti: !!p.bracciaIndipendenti,
     }, peso);
     // tetto di realismo: l'OLYMPIAN non puo' valere piu' di 2.2 volte il peso,
@@ -795,6 +812,7 @@ export function profiloEsercizio(esercizio, extra = {}) {
         nome: (configurato.nome || esercizio.nome || ''),
         convenzione,
         attrezzatura: (configurato.attrezzatura || esercizio.attrezzatura) || null,
+        carrucola: (configurato.carrucola || esercizio.carrucola) || null,
         bracciaIndipendenti: !!(configurato.bracciaIndipendenti || esercizio.bracciaIndipendenti),
       },
       null,
@@ -826,6 +844,11 @@ export function profiloEsercizio(esercizio, extra = {}) {
     nome: (esercizio && esercizio.nome) || id,
     misura,
     assistito,
+    // La convenzione del carico viaggia dentro il profilo, e non solo con
+    // l'esercizio: profiloPerPesoCorporeo ricalcola il riferimento da qui e,
+    // senza questo campo, non saprebbe piu' se i kg che l'utente scrive sono di
+    // un lato o del carico intero.
+    convenzione,
     unita: (configurato.unita) || campo.unita,
     campoSecondario: (configurato.campoSecondario !== undefined && configurato.campoSecondario !== null)
       ? configurato.campoSecondario

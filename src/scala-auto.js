@@ -1,90 +1,191 @@
-import { pesoCorporeoValido, PESO_RIFERIMENTO } from './rank-config.js';
-import { scalaEsercizio } from './scala-esercizi.js';
-
 /**
- * La scala di un esercizio, DERIVATA invece che scritta a mano.
+ * scala-auto.js -- la scala di un esercizio, DERIVATA invece che scritta a mano.
  *
- * Ste (04/10/2026): "e dovrebbe farlo in automatico in realtà". Ha ragione, ed è
- * il vero difetto di come l'avevo costruito: avevo una tabella di una riga per
- * esercizio, con dentro tutti i fattori insieme. Il risultato è che ogni riga
- * poteva sbagliare l'unità, e in una settimana ne sono usciti sette uno dietro
+ * Ste (04/10/2026): "e dovrebbe farlo in automatico in realta'". Ha ragione, ed e'
+ * il vero difetto di come l'avevo costruito: avevo UNA tabella con una riga per
+ * esercizio e dentro tutti i fattori insieme. Il risultato e' che ogni riga
+ * poteva sbagliare l'unita', e in una settimana ne sono usciti sette uno dietro
  * l'altro (lo shrug con 120 che era un numero da bilanciere, le tirate tarate su
- * 1.64 volte il peso, e cosi via).
+ * 1.64 volte il peso, il -23,2 kg della media...).
  *
- * Qui invece i fattori stanno in TRE posti separati e applicati una volta sola:
+ * Qui i fattori stanno in TRE posti separati e vengono applicati una volta sola:
  *
- *   1) il MOVIMENTO dice quanto e' grande quell'esercizio in assoluto
- *      (una tirata verticale e' diversa da un laterale)
- *   2) l'UNITA' dice come sono i kg che si registrano
- *      (per braccio, per gamba, e sul doppio carrucola senti META')
- *   3) le DIFFICOLTA' spostano la soglia dentro un tetto
- *      (macchina a dischi, cavo, braccia indipendenti, tipo di movimento)
+ *   1) il MOVIMENTO dice quanto e' grande l'esercizio in assoluto, e l'UNITA'
+ *      dice in che numero lo si registra (una spinta su macchina si registra per
+ *      lato, una panca col bilanciere no: sono due numeri che non si confrontano)
+ *   2) i CORRETTIVI spostano la soglia dentro un tetto del 20%
+ *      (macchina a dischi, stack, braccia indipendenti, tipo di movimento)
+ *   3) il NUMERO VERIFICATO vince su tutto (scala-esercizi.js)
  *
- * Ogni fattore ha un TETTO. Non perche' i numeri siano sbagliati, ma perche' la
- * prima volta che li ho sommati senza tetto il risultato e' stato un -30% e il
- * riferimento del Cable Fly e' finito a 15.7 kg: un numero bassissimo, per il quale
- * i suoi 18.5 kg sembravano un'arma. Con il tetto il fattore sposta la soglia, ma
- * non la cancella.
+ * IL NUMERO GIUSTO, E IL MODO IN CUI SBAGLIARLO
+ *
+ * Tutti i numeri di questo file sono CHILOGRAMMI, non rapporti. E' il punto su
+ * cui la v53 ha sbagliato e da cui riparto: scriveva i rapporti (kg per kg di
+ * peso corporeo) e poi restituiva il rapporto, quindi la chest press dava 0.84
+ * invece di circa 32. Un rapporto non e' un peso: se torni da 0.84 capisci che
+ * hai dimenticato il corpo. Qui il numero e' un peso sul corpo di riferimento,
+ * e chi lo riporta sul peso vero e' uno solo (scalaSulCorpo).
+ *
+ * LA CARRUCOLA: IL MIO SECONDO ERRORE DELLA STESSA CLASSE
+ *
+ * Nella v53 avevo scritto che sul doppio carrucola la scala andava dimezzata,
+ * perche' "li' il numero che leggi e' il carrello e il peso che senti e' meta'".
+ * Il ragionamento e' giusto e la conclusione e' sbagliata, perche' il
+ * dimezzamento c'e' GIA', e sta in pesoReale() dentro rank.js: la prestazione
+ * che viene confrontata con la scala e' gia' meta'. Se anche la scala viene
+ * dimezzata si dimezza due volte, e il risultato e' un riferimento la meta' del
+ * giusto: e' esattamente il 15.7 kg di cui Ste si e' lamentato sul Cable Fly
+ * ("37x5 -> 18.5 sentiti, riferimento 15.7, OLympiAN... deve essere realistico in
+ * confronto al tuo peso").
+ *
+ * Quindi: sul doppio carrucola la scala e' quella di UN LATO, senza fattori. Il
+ * 0.5 sta nel posto giusto, quello della prestazione, e non si tocca.
+ *
+ * LA REGOLA CHE RIEPILOGA TUTTO
+ *
+ * La scala e' SEMPRE nella stessa unita' in cui l'esercizio si registra, e non
+ * si converte niente. L'unita' non e' un dettaglio: e' l'unica cosa che faceva
+ * sbagliare sette numeri di fila, quindi qui si calcola in un posto solo
+ * (unitaDi) e chi chiama non deve ricordarsela.
  */
+
+// l'unica fonte dei numeri verificati: questo file calcola, scala-esercizi.js
+// solo ricorda cosa e' stato approvato a mano. Nessun ciclo fra i due.
+import { scalaVerificata } from './scala-esercizi.js';
 
 /** Tetto di ogni correttivo: il fattore puo' spostare, non stravolgere. */
 export const TETTO_CORRETTIVO = 0.20;
 
+/** Le tre unita' in cui un esercizio si registra davvero. */
+export const UNITA = {
+  LATO: 'lato',
+  TOTALE: 'totale',
+  CARRELLO: 'carrello',
+};
+
+/**
+ * 1b) In che unita' si registra questo esercizio.
+ *
+ * Non si deduce dal nome e non si ricorda: si legge dai due campi che gia'
+ * esistono nell'esercizio, quindi non puo' dimenticarsene.
+ */
+const CONVENZIONI_PER_LATO = new Set(['per_braccio', 'per_gamba', 'per_manubrio']);
+
+export function unitaDi({ convenzione = null, carrucola = null } = {}) {
+  // il doppio carrucola si usa su un braccio alla volta: il numero che leggi e'
+  // quello del carrello, e il peso che senti e' meta'. La scala resta quella di
+  // un lato (vedi la spiegazione in testa al file).
+  if (carrucola === 'carrucola_doppia') return UNITA.CARRELLO;
+  if (CONVENZIONI_PER_LATO.has(convenzione)) return UNITA.LATO;
+  // tutto il resto (macchina a stack, cavo mono, bilanciere, dischi) si registra
+  // con il carico intero
+  return UNITA.TOTALE;
+}
+
 /**
  * 1) Il movimento: quanto e' grande l'esercizio in assoluto.
- * Numero = kg per kg di peso corporeo, alla eta di riferimento.
+ *
+ * Chilogrammi sul corpo di riferimento (70 kg), come nella tabella dei numeri
+ * verificati: cosi' i due posti si confrontano a occhio e nessuno dei due puo'
+ * essere un rapporto per sbaglio.
+ *
+ * "lato"   = il peso di un braccio, di una gamba, di un manubrio
+ * "totale" = il carico intero, come lo registri quando ti metti davanti alla
+ *            macchina con un solo numero (stack, cavo mono, bilanciere)
+ *
+ * Perche' due numeri e non uno solo: perche' il movimento da solo non basta.
+ * Una spinta orizzontale su macchina a dischi la registri 35 per braccio, la
+ * stessa identica spinta col bilanciere libero la registri 70 in tutto. Sono lo
+ * stesso movimento e due numeri che non si confrontano: se il movimento avesse
+ * un numero solo, uno dei due sarebbe sbagliato, e' il caso che ha prodotto lo
+ * shrug da 120 e la chest press da 0.84.
+ *
+ * Perche' il "totale" NON e' il "lato" per due. Un movimento bilaterale e' piu'
+ * debole della somma dei due lati, e su un isolamento molto piu' debole: due
+ * curl con 21 kg per mano non sono un curl da 42, sono circa 36. Percio' i due
+ * numeri si scrivevano uno per uno, non si moltiplicava per due.
+ *
+ * Da dove vengono: quasi tutti sono la media dei numeri che Ste ha verificato
+ * per quel movimento e quell'unita' (scala-esercizi.js). Dove non c'e' nessun
+ * numero verificato il valore e' la fascia media di chi si allena bene, e si
+ * sa: sono percentuali prudenti, non misure. Ogni numero qui dentro si vede
+ * sempre, quindi se e' sbagliato si nota.
  */
-export const RAPPORTO_MOVIMENTO = {
-  gambe_pesanti: 2.10,
-  tirata_orizzontale: 1.45, // Ste: "la lat machine e la seated cable row sono di
-  tirata_verticale: 1.45, // tirata, faccio quasi 30 kg in piu' del mio corpo".
-  // La fascia giusta e' 1.3-1.5 volte il peso: sotto abbassa il riferimento,
-  // sopra lo alza. Lui e' dentro.
-  spinta_orizzontale: 1.05,
-  spinta_verticale: 0.80,
-  petto_isolamento: 0.42,
-  spalle_isolamento: 0.16, // deltoide laterale: il punto debole di tutti
-  bicipiti: 0.40,
-  tricipiti: 0.40,
-  gambe_isolamento: 0.95,
-  core: 0,
+export const SCALA_MOVIMENTO = {
+  gambe_pesanti: {
+    // 40 per gamba e' la sua leg press obliqua (17 kg per gamba con le guide
+    // oblique). In totale 140 e' il suo sled press, verificato.
+    lato: 40, totale: 140,
+  },
+  // Ste: "la lat machine e la seated cable row sono di tirata, faccio quasi 30kg
+  // in piu' del mio corpo". Le tirate sono nella fascia 1.3-1.5 volte il peso, e
+  // qui sono i 102 (=1.46) che lui ha verificato. Per lato 50 e' la sua iso-lateral
+  // row, che e' una tirata orizzontale registrata per braccio.
+  tirata_orizzontale: { lato: 50, totale: 102 },
+  // 110 e' il numero piu' alto delle tirate verticali, e viene dal suo "liac" (tirata
+  // da sdraiato a un braccio solo col petto appoggiato): la posizione e' la piu'
+  // difficile fra le tirate, quindi il suo riferimento sale. Le due lat machine,
+  // che hanno un numero verificato di 101 e 102, restano quelle.
+  tirata_verticale: { lato: 49, totale: 110 },
+  // 41 e' la media fra la chest press a dischi (50) e lo Smith (32), che sono
+  // lo stesso movimento registrato per lato ma su due macchine diverse.
+  spinta_orizzontale: { lato: 41, totale: 101 },
+  // 32 e' il suo shoulder press con i manubri, per mano. In totale 56: il
+  // military con bilanciere regge molto meno della somma dei due manubri.
+  spinta_verticale: { lato: 32, totale: 56 },
+  // 34 e' il Cable Fly, il suo esercizio di petto senza numero verificato. Per
+  // lato e' un numero giusto: chi e' forte sente 15-25 kg per braccio su un fly al
+  // cavo. In totale 63, poco piu' del doppio: un pec deck bilaterale regge meno
+  // della somma dei due lati.
+  petto_isolamento: { lato: 34, totale: 63 },
+  // 13 e' la sua alzata laterale al cavo, il punto debole di tutti. Sulle spalle
+  // il "totale" non esiste come numero: un paio di alzate laterali non si
+  // registra come 26, si registra per mano. Quindi totale = lato, e la ragione
+  // e' scritta qui perche' sembra una dimenticanza.
+  spalle_isolamento: { lato: 13, totale: 13 },
+  // 21 e' la mediana dei suoi tre curl verificati (hammer 32, scott 21, preacher
+  // 19). In totale 36: il curl col bilanciere e' molto piu' debole della somma dei
+  // due lati, quindi non e' il doppio.
+  bicipiti: { lato: 21, totale: 36 },
+  // 32 e' il numero che aveva l'overhead tricep al cavo (dalla vecchia tabella per
+  // movimento). Il pushdown verificato e' 30, quindi la mediana sarebbe 31: tengo
+  // 32 perche' e' il numero che Ste ha gia' visto e non cambio una soglia senza
+  // che lui l'abbia verificata.
+  tricipiti: { lato: 32, totale: 50 },
+  // 88 e' la media dei suoi due esercizi verificati (leg extension 92, leg curl
+  // 85), entrambi registrati col carico intero su macchina a stack.
+  gambe_isolamento: { lato: 44, totale: 88 },
+  // il core non ha kg: si contano le ripetizioni e il peso non c'entra
+  core: { lato: 0, totale: 0 },
 };
 
 /**
- * 2) L'unita': COME sono i kg che vengono registrati.
+ * L'ultimo ripiego, quando il nome non dice quale movimento e' e il livello non
+ * aiuta: il numero del LIVELLO, come nella tabella di prima.
  *
- * Sta qui e non nelle righe, ed e' la ragione per cui i sette bug di unita' non
- * possono piu' succedere: se un esercizio e' per braccio, il fattore lo tratta
- * come per braccio, e non c'e' nessuna riga che puo' dimenticarselo.
+ * Serve perche' Ste ha detto una cosa che e' anche un requisito tecnico:
+ * "ogni esercizio deve avere la sua scala". Se qui tornasse 0, un esercizio nuovo
+ * con un nome che il classificatore non conosce resterebbe senza soglie e la
+ * pagina di quell'esercizio si romperebbe. Non va bene: meglio una scala
+ * generica del livello che un esercizio che non si apre.
+ *
+ * Nota: questi numeri non hanno l'unita'. E' una resa, non una scala: valgono per
+ * qualunque modo di registrazione, e servono solo quando non si sa nient'altro.
  */
-/**
- * 2) L'unita'.
- *
- * Ste (04/10/2026): "la lat machine e la seated cable row sono di tirata, faccio
- * quasi 30kg in piu' del mio corpo".
- *
- * QUI C'ERO CADUTO IO, e ne merito una spiegazione, perche' e' esattamente il
- * bug che ha prodotto i sette errori precedenti. Avevo messo
- * "per_braccio: 0.5", cioe' dimezzavo la scala perche' i kg sono per braccio.
- *
- * E SBAGLIATO. Se tu registri 35 kg per braccio, anche il riferimento deve stare
- * per braccio: 35 si confronta con 35. Dimmezzando il riferimento, la chest
- * press diventava 0.42 invece di 32 e non confrontava con niente.
- *
- * La lezione, che vale per tutta la tabella: i rapporti base sono gia' espressi
- * nell'unita' in cui l'esercizio si registra. Non si converte niente.
- *
- * L'unica eccezione e' la CARRUCOLA, e perche' e' diversa: sul doppio carrucola
- * tu leggi 50 sul carrello e ne senti 25. Il numero che registri e' il carrello,
- * quindi li' il dimezzamento serve davvero.
- */
-export const RAPPORTO_UNITA = {
-  // NESSUN fattore per per_braccio / per_gamba / per_manubrio: i rapporti base
-  // sono gia' nell'unita' giusta e dimezzarli rompe il confronto.
-  carrucola_doppia: 0.5,
+export const SCALA_LIVELLO = {
+  grande: 210,
+  composto: 95,
+  isolamento: 32,
+  assistito: 0,
 };
 
-/** 3) Le difficolta'. Ogni voce con il suo tetto. */
+/**
+ * 2) I correttivi di difficolta'. Ogni voce sposta la soglia di poco e ha un tetto.
+ * Non e' un vezzo mettere il tetto: la prima volta che ho sommato i fattori
+ * senza tetto il risultato e' stato un -30% e il riferimento del Cable Fly e'
+ * finito a 15.7 kg, un numero bassissimo per il quale i suoi 18.5 kg sembravano
+ * un'arma. Col tetto il fattore sposta la soglia, ma non la cancella.
+ */
 export const CORRETTIVO = {
   attrezzatura: { macchina_dischi: 0.96, macchina_stack: 1.08 },
   bracciaIndipendenti: 0.93, // l'equilibrio lo fai tu
@@ -95,48 +196,60 @@ function limita(x, tetto = TETTO_CORRETTIVO) {
   return Math.max(1 - tetto, Math.min(1 + tetto, x));
 }
 
+function arrotonda2(n) {
+  return Math.round(n * 100) / 100;
+}
+
 /**
- * La scala di un esercizio, derivata.
+ * Il numero di base di un movimento nell'unita' in cui si registra.
  *
- * Se l'esercizio ha un numero scritto a mano (la tabella vecchia), quello vince:
- * e' un'eccezione, e le eccezioni si toccano a mano. Ma se non ce l'ha, la scala
- * si calcola, e cosi' un esercizio che Ste crea domani ha gia' il numero giusto
- * senza che io debba scrivere niente.
+ * Se la coppia (movimento, unita') non ha un numero suo si prende quello per
+ * lato: il carrello del doppio carrucola e' un lato, e quando un movimento non
+ * ha un "totale" (le spalle) il totale e' il lato.
+ *
+ * Se il movimento non e' riconosciuto si scende al LIVELLO, che non ha un'unita':
+ * e' una resa, non una scala.
+ */
+function baseMovimento(movimento, unita, livello) {
+  const voce = SCALA_MOVIMENTO[movimento];
+  if (voce) {
+    const n = unita === UNITA.TOTALE ? voce.totale : voce.lato;
+    return Number.isFinite(n) ? n : 0;
+  }
+  const perLivello = SCALA_LIVELLO[livello];
+  if (Number.isFinite(perLivello)) return perLivello;
+  return SCALA_LIVELLO.composto;
+}
+
+/**
+ * La scala di un esercizio, in kg sul corpo di riferimento, PRIMA di riportarla
+ * sul peso vero della persona (per quello c'e' scalaSulCorpo, in un posto solo).
+ *
+ * Il numero verificato vince sempre: se qualcuno ha guardato quell'esercizio e ha
+ * scritto il numero giusto, il calcolo non lo tocca. Se invece non c'e', la scala
+ * si deriva dal movimento e da come' e' fatto il carico: cosi' un esercizio che
+ * Ste crea domani ha gia' il suo numero senza che io debba scrivere niente.
  */
 export function scalaDerivata(esercizio = {}) {
   const {
-    id, nome = '', movimento = null, livello = null, convenzione = null,
+    id = '', movimento = null, livello = null, convenzione = null,
     attrezzatura = null, carrucola = null, bracciaIndipendenti = false,
-    pesoCorporeo = null,
-  } = esercizio;
+  } = esercizio || {};
 
-  // eccezione scritta a mano: vince sempre
-  const scritta = scalaEsercizio({ id, movimento, livello });
-  const peso = pesoCorporeoValido(pesoCorporeo) || PESO_RIFERIMENTO;
+  const verificata = scalaVerificata(id);
+  if (Number.isFinite(verificata)) return verificata;
 
-  const rapportoMovimento = Number.isFinite(RAPPORTO_MOVIMENTO[movimento])
-    ? RAPPORTO_MOVIMENTO[movimento]
-    : (Number.isFinite(scitta) && scritta > 0
-      // senza movimento riconosciuto uso lo scritto come base, diviso per il
-      // peso di riferimento: cosi' la scala resta nella stessa unita' della base
-      ? scritta / PESO_RIFERIMENTO
-      : 0.90);
+  const base = baseMovimento(movimento, unitaDi({ convenzione, carrucola }), livello);
+  if (!(base > 0)) return 0; // core: si contano le ripetizioni
 
-  const rapportoUnita = 1; // vedi sopra: i rapporti base sono gia' nell'unita' giusta
-  const rapportoCarrucola = carrucola === 'carrucola_doppia' ? RAPPORTO_UNITA.carrucola_doppia : 1;
+  const correttivi = [
+    CORRETTIVO.attrezzatura[attrezzatura],
+    bracciaIndipendenti ? CORRETTIVO.bracciaIndipendenti : 1,
+    String(movimento || '').startsWith('spinta') ? CORRETTIVO.spinta : 1,
+  ];
 
-  const fattoreAttrezzatura = CORRETTIVO.attrezzatura[attrezzatura] || 1;
-  const fattoreBraccia = bracciaIndipendenti ? CORRETTIVO.bracciaIndipendenti : 1;
-  const fattoreSpinta = (movimento && String(movimento).startsWith('spinta'))
-    ? CORRETTIVO.spinta
-    : 1;
+  let scala = base;
+  for (const c of correttivi) scala *= limita(Number.isFinite(c) ? c : 1);
 
-  const scala70 = rapportoMovimento
-    * rapportoUnita
-    * rapportoCarrucola
-    * limita(fattoreAttrezzatura)
-    * limita(fattoreBraccia)
-    * limita(fattoreSpinta);
-
-  return Math.round(scala70 * (peso / PESO_RIFERIMENTO) * 100) / 100;
+  return arrotonda2(scala);
 }
