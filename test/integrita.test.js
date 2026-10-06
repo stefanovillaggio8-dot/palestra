@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -149,6 +150,40 @@ test('I2. la versione di index.html e quella di sw.js sono lo stesso numero', ()
   // deve saltare fuori
   const numero = Number(dallaPagina[1]);
   assert.ok(Number.isInteger(numero) && numero > 0, 'la versione e\' un numero intero');
+});
+
+test('I3. la versione dichiarata e\' anche quella dell\'ultimo commit', () => {
+  // I due numeri possono anche essere uguali e sbagliati in blocco: e' successo.
+  // Dopo la v55 avevo smesso di alzarli, quindi index.html e sw.js dicevano entrambi
+  // "55" mentre il codice era gia' alla v57. Ste verifica il sito guardando quel
+  // numero: se il numero mente, lui non puo' sapere se la versione nuova e' online,
+  // e per lui e' l'unico modo di controllare.
+  //
+  // Percio' il numero non e' solo "due file che devono dircela stessa": deve essere
+  // quello della versione su cui stiamo lavorando. Si legge dall'ultimo commit.
+  //
+  // LIMITI ONESTI DI QUESTO TEST, che vale la pena sapere:
+  //  - salta se git non c'e' (un archivio, una copia senza .git): niente da confrontare
+  //  - salta se l'ultimo commit non e' una versione (un "tutto pulito", per esempio)
+  //  - quando salta, non controlla niente: e' una rete, non un cancello
+  const radice = join(QUI, '..');
+  let titolo = '';
+  try {
+    titolo = execFileSync('git', ['log', '-1', '--format=%s'], {
+      cwd: radice, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim();
+  } catch {
+    return; // niente git: il test non puo' dire niente
+  }
+  const m = /^v(\d+)/.exec(titolo);
+  if (!m) return; // l'ultimo commit non e' una versione: non e' un mio errore
+
+  const html = readFileSync(join(radice, 'index.html'), 'utf8');
+  const dichiarata = /window\.PALESTRA_VERSIONE = '(\d+)'/.exec(html);
+  assert.ok(dichiarata, 'index.html deve dichiarare window.PALESTRA_VERSIONE');
+  assert.equal(dichiarata[1], m[1],
+    `l'ultimo commit e' "${titolo}" ma il numero dichiarato e' il ${dichiarata[1]}: `
+    + 'il numero che Ste legge sul sito e\' quello che va alzato a ogni versione');
 });
 
 // ---------------------------------------------------------------------------

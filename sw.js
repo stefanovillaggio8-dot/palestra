@@ -5,10 +5,11 @@
 
 // Il numero di versione sta anche in index.html (window.PALESTRA_VERSIONE), perche'
 // e' quello che l'app mostra e quello con cui si controlla che il sito sia davvero
-// aggiornato. Sono due numeri in due file: il test I2 in test/integrita.test.js
-// controlla che dicano lo stesso, perche' altrimenti si alza la cache e si lascia
-// scritto il numero vecchio.
-const VERSIONE = 'palestra-v55';
+// aggiornato. Sono due numeri in due file: il test I2 controlla che dicano lo stesso
+// e il test I3 che sia quello dell'ultimo commit, altrimenti si alza la cache e si
+// lascia scritto il numero vecchio. E' successo due volte: nella v54 avevo alzato
+// solo questo file, e dopo la v55 avevo smesso di alzarlo del tutto.
+const VERSIONE = 'palestra-v57';
 
 const FILE = [
   './',
