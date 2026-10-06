@@ -113,9 +113,21 @@ export function unitaDi({ convenzione = null, carrucola = null } = {}) {
  */
 export const SCALA_MOVIMENTO = {
   gambe_pesanti: {
-    // 40 per gamba e' la sua leg press obliqua (17 kg per gamba con le guide
-    // oblique). In totale 140 e' il suo sled press, verificato.
-    lato: 40, totale: 140,
+    // 40 per gamba era un numero PRESTATO: veniva dalla leg press normale a 100 kg
+    // per lato, che e' un esercizio diverso fatto su un'altra macchina (l'obliqua
+    // scarica il peso di lato e ha un percorso piu' corto). Ste (06/10/2026):
+    // "il riferimento viene dalla leg press normale a 100 per lato che facevi
+    // prima, ma l'obliqua e' un esercizio diverso".
+    //
+    // Adesso e' una stima dichiarata e non un numero copiato: una pressa su una
+    // gamba sola, per un adulto che si allena bene, sta fra 0,3 e 0,7 volte il
+    // suo peso, e qui prendo circa meta' (0,49 -> 34 kg su un corpo di 70).
+    //
+    // Attenzione: questa e' una STIMA, e lo dice anche il test S17, perche' su
+    // una macchina sola conta la sua geometria: due macchine con lo stesso nome
+    // si leggono numeri completamente diversi. Il numero giusto lo puo' dare solo
+    // chi ci va in palestra, quindi va nella tabella dei verificati, non qui.
+    lato: 34, totale: 140,
   },
   // Ste: "la lat machine e la seated cable row sono di tirata, faccio quasi 30kg
   // in piu' del mio corpo". Le tirate sono nella fascia 1.3-1.5 volte il peso, e
@@ -133,11 +145,26 @@ export const SCALA_MOVIMENTO = {
   // 32 e' il suo shoulder press con i manubri, per mano. In totale 56: il
   // military con bilanciere regge molto meno della somma dei due manubri.
   spinta_verticale: { lato: 32, totale: 56 },
-  // 34 e' il Cable Fly, il suo esercizio di petto senza numero verificato. Per
-  // lato e' un numero giusto: chi e' forte sente 15-25 kg per braccio su un fly al
-  // cavo. In totale 63, poco piu' del doppio: un pec deck bilaterale regge meno
-  // della somma dei due lati.
-  petto_isolamento: { lato: 34, totale: 63 },
+  // 20 e' il Cable Fly, e il numero e' piu' basso di quanto sembrasse.
+  //
+  // Ste (06/10/2026): "il cable fly e' un movimento corto e pesante, non un cavo da
+  // 32 kg. Secondo me il riferimento e' troppo alto e va abbassato". Aveva ragione:
+  // il 34 di prima non era un numero ragionato, era il numero che c'era gia' nella
+  // tabella per movimento e che nella v54 avevo lasciato li' solo per non spostare
+  // nulla. Un riferimento di 34 kg per UN braccio di fly al cavo non e' realistico
+  // per nessuno.
+  //
+  // Il numero lo prendo dal suo vicino piu' vicino, che e' verificato: il One Arm
+  // Cable Reverse Fly e' 16 kg, sullo stesso cavo a doppia carrucola, sullo stesso
+  // braccio, con lo stesso numero di carrello. Il fly e' il davanti invece che il
+  // dietro: muscolo piu' grande e percorso piu' ampio, quindi un quarto in piu' ->
+  // 20. Il test S17 blocca questo ragionamento: se il reverse fly si sposta, il fly
+  // si deve spostare con lui.
+  //
+  // In totale 55 e' un pec deck bilaterale: regge piu' della somma dei due lati
+  // (che sarebbe 40), perche' la macchina ti fa vincere. Non e' un numero che ho
+  // misurato: e' una fascia.
+  petto_isolamento: { lato: 20, totale: 55 },
   // 13 e' la sua alzata laterale al cavo, il punto debole di tutti. Sulle spalle
   // il "totale" non esiste come numero: un paio di alzate laterali non si
   // registra come 26, si registra per mano. Quindi totale = lato, e la ragione

@@ -111,11 +111,17 @@ export const SCALA_ESERCIZI = {
   "ex-one-arm-preacher-curl": 19,
   "ex-single-arm-tricep-pushdown": 30,
   "ex-wrist-curl": 34,
-  // 100 era il numero della leg press NORMALE a 100 kg per lato, che lui faceva
-  // prima. Ma l'obliqua e' un esercizio diverso: un piede solo, con le guide
-  // oblique che scaricano il peso di lato. Un numero che per l'obliqua sta bene e'
-  // molto piu' basso.
-  "ex-single-leg-press": 40,
+  // QUI C'ERA "ex-single-leg-press: 40", e l'ho tolta (Ste, 06/10/2026).
+  //
+  // Il 40 era un numero PRESTATO dalla leg press normale a 100 kg per lato, che e'
+  // un esercizio diverso fatto su un'altra macchina. Non era un numero verificato:
+  // era la mia stima. Ste: "il riferimento viene dalla leg press normale a 100 per
+  // lato che facevi prima, ma l'obliqua e' un esercizio diverso".
+  //
+  // Adesso quell'esercizio prende la base derivata (scala-auto.js), che vale 34
+  // e ha una ragione scritta. La riga non e' stata sostituita con un 34 "verificato"
+  // perche' mettere li' un numero che nessuno ha verificato e' esattamente il
+  // difetto di questo file.
   "ex-sled-press-calf-raise": 140,
   "ex-leg-extension": 92,
   "ex-seated-leg-curl": 85,
