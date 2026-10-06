@@ -180,7 +180,13 @@ test('C14. riconosce 59 nomi veri di palestra, italiano e inglese', () => {
   ['Plank', 'isolamento'],
   ['Iso-Lateral Row', 'composto'],
   ['Pull Ups', 'assistito'],
-  ['Chest Supported Dumbbell Shrug', 'isolamento'],
+  // Ste (06/10/2026): "e' una tirata del trapezio con pesi sui due bracci". Prima
+  // questo nome era atteso come isolamento sulle spalle, e il test era la prova
+  // che il classificatore sbagliava: 45 kg per braccio non sono un isolamento.
+  ['Chest Supported Dumbbell Shrug', 'composto'],
+  ['Shrug con manubri', 'composto'],
+  ['Shrug sulla macchina', 'composto'],
+  ['Scrollate con bilanciere', 'composto'],
   ['Seated Dumbbell Shoulder Press', 'composto'],
   ['Bodyweight Overhead Tricep Extension', 'assistito'],
   ['Spinte in basso', 'composto'],
@@ -204,7 +210,7 @@ test('C15. i 27 esercizi della scheda di Ste hanno il livello giusto', async () 
     'ex-cable-fly': 'isolamento', 'ex-scott-bench-curl': 'isolamento',
     'ex-single-arm-tricep-pushdown': 'isolamento', 'ex-seated-leg-curl': 'isolamento',
     'ex-smith-incline-bench': 'composto', 'ex-seated-cable-row': 'composto',
-    'ex-chest-supported-shrug': 'isolamento', 'ex-sled-press-calf-raise': 'grande',
+    'ex-chest-supported-shrug': 'composto', 'ex-sled-press-calf-raise': 'grande',
     'ex-single-leg-press': 'grande', 'ex-one-arm-preacher-curl': 'isolamento',
     'ex-one-arm-cable-reverse-fly': 'isolamento', 'ex-wrist-curl': 'isolamento',
     'ex-iso-lateral-row': 'composto', 'ex-lat-pulldown-lats': 'composto',

@@ -122,6 +122,36 @@ test('sw.js precarica anche index.html, stile.css e il manifest', () => {
 });
 
 // ---------------------------------------------------------------------------
+// Il numero di versione e' in due file, e devono dire la stessa cosa.
+// ---------------------------------------------------------------------------
+// Ste controlla il sito guardando la versione che gli scrive in faccia: se dice
+// un numero vecchio, il sito non e' stato pubblicato. Quel numero e' in due posti
+// (la cache del service worker e la pagina), quindi sono due numeri che possono
+// non essere d'accordo: e' successo nella v54, quando avevo alzato solo sw.js e
+// index.html era ancora al 52. Il sito sembrava regolare e invece serviva la
+// versione di due versioni fa.
+
+test('I2. la versione di index.html e quella di sw.js sono lo stesso numero', () => {
+  const radice = join(QUI, '..');
+  const sw = readFileSync(join(radice, 'sw.js'), 'utf8');
+  const html = readFileSync(join(radice, 'index.html'), 'utf8');
+
+  const dalWorker = /const VERSIONE = 'palestra-v(\d+)'/.exec(sw);
+  const dallaPagina = /window\.PALESTRA_VERSIONE = '(\d+)'/.exec(html);
+  assert.ok(dalWorker, 'sw.js deve dichiarare la versione come palestra-vNUMERO');
+  assert.ok(dallaPagina, 'index.html deve dichiarare window.PALESTRA_VERSIONE');
+
+  assert.equal(dalWorker[1], dallaPagina[1],
+    `sw.js e' alla v${dalWorker[1]} e index.html alla v${dallaPagina[1]}: `
+    + 'chi le guarda vede due versioni diverse');
+
+  // e non puo' tornare indietro: se qualcuno copia una versione vecchia, il numero
+  // deve saltare fuori
+  const numero = Number(dallaPagina[1]);
+  assert.ok(Number.isInteger(numero) && numero > 0, 'la versione e\' un numero intero');
+});
+
+// ---------------------------------------------------------------------------
 // Il numero di versione di IndexedDB.
 // ---------------------------------------------------------------------------
 // Ste ha visto sul telefono: "Failed to execute 'transaction' on

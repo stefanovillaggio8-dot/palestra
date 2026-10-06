@@ -37,8 +37,11 @@
 <div id="app">
   <div class="caricamento">Carico i tuoi dati...</div>
 </div>
-<!-- v52: riferimenti delle tirate corretti, bug di unita delle scale risolti -->
-<script>window.PALESTRA_VERSIONE = '52';</script>
+<!-- v55: il classificatore impara lo shrug (tirata del trapezio, non isolamento
+     sulle spalle). Il numero di versione sta in DUE file, questo e sw.js, e il
+     test I2 controlla che dicano lo stesso numero: prima avevo alzato solo sw.js
+     e il sito continuava a dire la versione vecchia. -->
+<script>window.PALESTRA_VERSIONE = '55';</script>
 <script type="module" src="./src/app.js"></script>
 </body>
 </html>

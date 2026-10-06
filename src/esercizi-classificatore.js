@@ -61,7 +61,24 @@ const MOVIMENTI = [
   {
     id: 'tirata_orizzontale', livello: 'composto', gruppo: 'dorso',
     parole: ['row', 'rematore', 'rowing', 'tiremento', 'tiro', 'horizontal row',
-      'renegade row', 't bar row', 't-bar'],
+      'renegade row', 't bar row', 't-bar',
+      // Ste (06/10/2026): "il classificatore sbaglia ancora il Chest Supported
+      // Dumbbell Shrug: lo legge come isolamento sulle spalle, e invece e' una
+      // tirata del trapezio con pesi sui due bracci".
+      //
+      // Aveva ragione, e il classificatore si contraddiceva: le spalle le stava
+      // dicendo "isolamento", mentre muscoli-parti.js gia' gli dava "parte alta
+      // del dorso (trapezio)". Due pezzi dell'app che sullo stesso esercizio
+      // dicevano cose diverse.
+      //
+      // Perche' finiva fra le tirate e non fra gli isolamenti: 45 kg per braccio
+      // non e' un isolamento, e' un movimento pesante. E il conto tornava: la base
+      // del movimento tirato (50 per lato) e' la stessa da cui e' partito il suo
+      // 45 verificato, mentre sull'isolamento delle spalle la base era 13, cioe'
+      // la scala di un'alzata laterale. Con 13 di riferimento i suoi 45 kg di
+      // massimale sembravano un record assurdo, e ogni shrug nuovo che avesse
+      // creato avrebbe preso la scala di una alzata laterale.
+      'shrug', 'scrollata', 'scrollate', 'shrug con bilanciere'],
   },
   // --- isolamento braccia e gambe ---
   {
@@ -81,8 +98,11 @@ const MOVIMENTI = [
   },
   {
     id: 'spalle_isolamento', livello: 'isolamento', gruppo: 'spalle',
+    // NOTA: qui NON c'e' "shrug". Lo scrollamento del trapezio e' una tirata con
+    // pesi, non un isolamento: sta fra le tirate (vedi tirata_orizzontale).
     parole: ['lateral raise', 'alzata laterale', 'alzate laterali', 'raise laterale',
-      'side raise', 'rear delt', 'rear deltoid', 'spalle laterali', 'delt raise', 'front raise', 'shrug', 'spalle a Y'],
+      'side raise', 'rear delt', 'rear deltoid', 'spalle laterali', 'delt raise',
+      'front raise', 'spalle a Y'],
   },
   {
     id: 'petto_isolamento', livello: 'isolamento', gruppo: 'petto',

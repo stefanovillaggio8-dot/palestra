@@ -3,7 +3,12 @@
 // anche senza rete. I dati NON stanno qui: stanno in IndexedDB, quindi
 // cancellare la cache non cancella niente del tuo allenamento.
 
-const VERSIONE = 'palestra-v54';
+// Il numero di versione sta anche in index.html (window.PALESTRA_VERSIONE), perche'
+// e' quello che l'app mostra e quello con cui si controlla che il sito sia davvero
+// aggiornato. Sono due numeri in due file: il test I2 in test/integrita.test.js
+// controlla che dicano lo stesso, perche' altrimenti si alza la cache e si lascia
+// scritto il numero vecchio.
+const VERSIONE = 'palestra-v55';
 
 const FILE = [
   './',
