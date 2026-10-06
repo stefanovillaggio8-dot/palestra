@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import {
   stimaMassimo, punteggioSerie, performanceEsercizio, recordEsercizio,
   calcolaRank, classificaEsercizio, storicoMiglioramenti, recordAccount,
-  rankPrincipale, distribuzioneRank,
+  rankPrincipale, distribuzioneRank, distanzaAllaSoglia,
 } from '../src/rank.js';
 import {
   RANK, MISURE, profiloEsercizio, soglieDaRiferimento, ETICHETTE_MISURA, divisioneDaLp,
@@ -432,6 +432,58 @@ test('R20. sul rank piu\' alto gli LP sono la percentuale sopra la soglia', () =
   const dentro = calcolaRank(sogliaTop * 0.5, p);
   assert.notEqual(dentro.rankId, 'olympian');
   assert.ok(dentro.lp >= 0 && dentro.lp <= 99, 'dentro il.rank gli LP stanno fra 0 e 99');
+});
+
+test('R21. la distanza alla soglia si scrive in percentuale, non in kg', () => {
+  // Ste (06/10/2026): "la colonna 'manca alla prossima' mente... se il tuo peso
+  // corporeo passa da 66 a 68 kg la Chest Press ti passa da OLYMPIAN a TITAN... quel
+  // numero e la soglia vengono DALLO STESSO calcolo... quindi 'manca 0,15 kg' e' una
+  // precisione che non esiste".
+  //
+  // Verificato, e il fondo e' anche piu' netto: sulla Chest Press a 66 kg gli mancano
+  // 0,15 kg al PLATINUM, ma a 65,79 kg di corpo la raggiunge e a 65 kg e' gia'
+  // PLATINUM III. Il suo punteggio non cambia mai: e' la soglia che si sposta col
+  // peso corporeo. Un "0,15 kg" e' quindi piu' piccolo dell'incertezza dello stesso
+  // numero che lo produce.
+  const p = profiloPerPesoCorporeo(profiloEsercizio(chest), 66);
+  const obiettivo = calcolaRank(46.99, p).prossimoObiettivo;
+  const distanza = distanzaAllaSoglia(46.99, obiettivo.punteggio);
+
+  assert.ok(distanza, 'la distanza si calcola');
+  assert.equal(distanza.percentuale, 0.3,
+    '0,15 kg su 47,14 sono 0,3%: si scrive la percentuale, non i kg');
+  assert.equal(distanza.inGioco, true, 'e si sa che il passo e\' ancora da fare');
+
+  // il caso peggiore: sul suo Cable Fly la distanza era 0,14 kg, cioe' 0,6%
+  const lateraleR = profiloPerPesoCorporeo(profiloEsercizio(lateral), 66);
+  const l = distanzaAllaSoglia(16.35, calcolaRank(16.35, lateraleR).prossimoObiettivo.punteggio);
+  assert.equal(l.percentuale, 1.2);
+
+  // e non si puo' scrivere una distanza in kg neanche per sbaglio: la funzione
+  // restituisce solo una percentuale, e di una cifra sola
+  assert.deepEqual(Object.keys(distanza).sort(), ['inGioco', 'percentuale', 'piccolo']);
+  assert.equal(distanza.kg, undefined, 'nessun numero in kg: non deve esistere');
+
+  // sotto l'1% non si scrive "0,04%": si dice che manca pochissimo
+  const minuscolo = distanzaAllaSoglia(46.99, 46.99 * 1.0004);
+  assert.equal(minuscolo.percentuale, 0, 'arrotonda a zero');
+  assert.equal(minuscolo.piccolo, true, 'ma si sa che manca qualcosa');
+  assert.equal(distanzaAllaSoglia(46.99, 46.99).piccolo, false, 'se e\' zero, non manca niente');
+
+  // casi che non hanno distanza: niente numero inventato
+  assert.equal(distanzaAllaSoglia(null, 10), null);
+  assert.equal(distanzaAllaSoglia(10, null), null);
+  assert.equal(distanzaAllaSoglia(0, 10), null);
+  assert.equal(distanzaAllaSoglia(10, 0), null);
+  assert.equal(distanzaAllaSoglia('abc', 'def'), null);
+
+  // e la soglia si sposta davvero col peso: e' la prova che il punto due di Ste
+  // regge, quindi la percentuale e' l'unico numero onesto da mostrare
+  const basso = profiloPerPesoCorporeo(profiloEsercizio(chest), 65);
+  const alto = profiloPerPesoCorporeo(profiloEsercizio(chest), 68);
+  assert.ok(alto.soglie[3] > basso.soglie[3], 'chi pesa di piu\' ha la soglia piu\' alta');
+  assert.equal(calcolaRank(46.99, basso).rankId, 'platinum', 'a 65 kg lo stesso punteggio e\' platino');
+  assert.equal(calcolaRank(46.99, p).rankId, 'gold', 'a 66 kg lo stesso punteggio e\' oro');
 });
 
 test('R19. la scala si adatta al tipo di esercizio', () => {

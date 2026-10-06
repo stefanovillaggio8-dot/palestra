@@ -670,4 +670,41 @@ export function distribuzioneRank(records) {
   return R.map((r) => ({ rank: r, numero: conta.get(r.id) || 0 }));
 }
 
+/**
+ * Quanto manca alla soglia successiva, in PERCENTUALE e non in kg.
+ *
+ * Ste (06/10/2026): "la colonna 'manca alla prossima' mente... se il tuo peso
+ * corporeo passa da 66 a 68 kg la Chest Press ti passa da OLYMPIAN a TITAN... perche'
+ * quel numero e la soglia vengono DALLO STESSO calcolo. Non sono due misure
+ * indipendenti... quindi 'manca 0,15 kg' e' una precisione che non esiste".
+ *
+ * Ha ragione sul fondo, e misurato il fondo e' anche piu' brutale di come l'ha
+ * descritto: sulla Chest Press a 66 kg gli mancano 0,15 kg al PLATINUM, ma basta
+ * 1 kg di peso corporeo (65 invece di 66) per portarlo a PLATINUM III, e 0,2 kg
+ * (65,79) per toccare il platino. Il suo punteggio non si muove: cambia la soglia.
+ *
+ * Per precisione: i due numeri non sono "lo stesso numero contato due volte" (il
+ * punteggio dipende solo dai kg e dalle ripetizioni, la soglia solo dal peso del
+ * corpo), ma non sono abbastanza indipendenti da giustificare 0,15 kg: sono due
+ * STIME della stessa cosa (quanto sono forte su quell'esercizio), quindi l'errore
+ * dei due si somma, e il rapporto e' tanto piu' incerto quanto piu' e' vicino al
+ * 100%. Un numero che ti dice "0,3%" e' onesto; un numero che ti dice "0,15 kg"
+ * ti fa preoccupare di niente.
+ *
+ * Per questo la distanza si scrive in percentuale. L'OBIETTIVO resta in kg (e va
+ * bene: un obiettivo e' qualcosa verso cui mirare, non una misura di te), la
+ * DISTANZA no.
+ */
+export function distanzaAllaSoglia(punteggio, prossimo) {
+  const a = Number(punteggio);
+  const b = Number(prossimo);
+  if (!Number.isFinite(a) || !Number.isFinite(b) || a <= 0 || b <= 0) return null;
+  const grezza = ((b / a) - 1) * 100;
+  // Una cifra sola, non due: sotto l'1% la differenza non e' misurabile, e due
+  // decimali significherebbero inventare precisione. Se il numero e' positivo ma
+  // arrotonda a zero, lo dico con "pochissimo" invece di scrivere "0%".
+  const percentuale = Math.round(grezza * 10) / 10;
+  return { percentuale, inGioco: grezza > 0, piccolo: grezza > 0 && percentuale === 0 };
+}
+
 export { MISURE as MISURE_RANK, profiloEsercizio, descriviPunteggio };

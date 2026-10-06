@@ -175,15 +175,23 @@ test('I3. la versione dichiarata e\' anche quella dell\'ultimo commit', () => {
   } catch {
     return; // niente git: il test non puo' dire niente
   }
-  const m = /^v(\d+)/.exec(titolo);
+const m = /^v(\d+)/.exec(titolo);
   if (!m) return; // l'ultimo commit non e' una versione: non e' un mio errore
 
   const html = readFileSync(join(radice, 'index.html'), 'utf8');
   const dichiarata = /window\.PALESTRA_VERSIONE = '(\d+)'/.exec(html);
   assert.ok(dichiarata, 'index.html deve dichiarare window.PALESTRA_VERSIONE');
-  assert.equal(dichiarata[1], m[1],
-    `l'ultimo commit e' "${titolo}" ma il numero dichiarato e' il ${dichiarata[1]}: `
-    + 'il numero che Ste legge sul sito e\' quello che va alzato a ogni versione');
+
+  const ultima = Number(m[1]);
+  const adesso = Number(dichiarata[1]);
+  // Perche' va bene anche "ultima + 1": il numero si alza PRIMA di scrivere il
+  // codice (e' la regola di Ste dal 06/10/2026: "mettilo per primo"), quindi
+  // quando i test girano il commit con quel numero non esiste ancora. Ammetto
+  // quindi zero o un passo, e nient'altro.
+  assert.ok(adesso === ultima || adesso === ultima + 1,
+    `l'ultimo commit e' "${titolo}" ma il numero dichiarato e' il ${adesso}: `
+    + 'va lasciato com\'e\' o alzato di uno, non altro. Il numero che Ste legge '
+    + 'sul sito e\' l\'unico suo controllo su quello che e\' online.');
 });
 
 // ---------------------------------------------------------------------------

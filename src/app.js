@@ -24,7 +24,7 @@ import { ESERCIZI, SCHEDA_ID, SCHEDA_NOME, PERSONE, CONTATTI, accountId, persona
 import { nuovoId, adesso, TABELLE } from './sincronizzazione.js';
 // --- il gioco: rank, LP, streak, Aura, missioni, amici ---
 import { statoAccount, ricompenseAllenamento, gruppiDaSerie } from './gioco.js';
-import { recordEsercizio, recordAccount, classificaEsercizio, storicoMiglioramenti, giudizioPerformance } from './rank.js';
+import { recordEsercizio, recordAccount, classificaEsercizio, storicoMiglioramenti, giudizioPerformance, distanzaAllaSoglia } from './rank.js';
 import { confrontoGiorno, confrontiMensili, GIORNI_UN_MESE } from './confronto-mensile.js';
 import { profiloEsercizio, profiloPerPesoCorporeo, RANK, ETICHETTE_MISURA, descriviPunteggio, descrizioneLivello, livelloEsercizio, impostaLivelliImparati, livelliImparati, rapportoDifficolta, MOLTIPLICATORI_SOGLIA } from './rank-config.js';
 import { formattaAura } from './aura.js';
@@ -2685,6 +2685,27 @@ function badgeRank(rankId, lp, divisione) {
  * fianco si legge al contrario. Un posto solo per la regola, cosi' la card e la
  * pagina dell'esercizio non possono dire cose diverse.
  */
+/**
+ * L'avvertenza che va sotto la distanza alla soglia, in UN posto solo.
+ *
+ * Ste (06/10/2026): "la colonna 'manca alla prossima' mente... quindi 'manca 0,15
+ * kg' e' una precisione che non esiste. E' la stessa cosa che mi hai detto tu: se non
+ * lo sai misurarlo, non scriverlo come se fosse misurato".
+ *
+ * Il numero e' una percentuale adesso, non i kg (vedi distanzaAllaSoglia), e la
+ * percentuale ha un vantaggio che si vede subito: 1 kg di peso corporeo sposta la
+ * soglia di circa l'1,5%, quindi se ti manca lo 0,3% la risposta onesta non e' "ti
+ * manca cosi' poco", e' "non lo so ancora". Questa frase e' quella risposta.
+ */
+const AVVERTIMENTO_STIMA_SOGLIA = 'Numero stimato: il massimale e\' calcolato, non '
+  + 'misurato, e il peso corporee muove la soglia. Non fidarti di decimali.';
+
+/** La distanza alla prossima soglia, in percentuale. Vedi distanzaAllaSoglia. */
+function distanzaObiettivo(record) {
+  if (!record || record.inTop) return null;
+  return distanzaAllaSoglia(record.punteggio, (record.prossimoObiettivo || {}).punteggio);
+}
+
 function etichettaLp(record) {
   if (!record || !record.rankId) return '';
   if (record.inTop) return `TOP · +${record.lp}% sulla soglia`;
@@ -2756,6 +2777,7 @@ function cardRank(record, { compatta = false } = {}) {
   // il prossimo obiettivo e' vicino.
   if (r.sottoSoglia) {
     const manca = r.mancaAlPrimo;
+    const distanza = distanzaAllaSoglia(r.punteggio, (r.prossimoObiettivo || {}).punteggio || manca);
     return el('div', { class: 'card-rank card-rank-none' }, [
       el('div', { class: 'card-rank-alto' }, [
         el('div', {}, [
@@ -2771,18 +2793,23 @@ function cardRank(record, { compatta = false } = {}) {
         ),
         el('span', {
           class: 'nota',
-          testo: manca === null || manca === undefined
+          testo: !distanza
             ? 'Ti manca ancora un po\' per il primo rank.'
-            : `Ti mancano ${formattaNumero(manca)} ${profilo.unita} per il ${(r.prossimoObiettivo || {}).etichetta || 'BRONZE'}.`,
+            : (distanza.piccolo
+              ? `Sei sul gradino del ${(r.prossimoObiettivo || {}).etichetta || 'BRONZE'}: ti manca pochissimo.`
+              : `Ti manca lo ${formattaNumero(distanza.percentuale)}% per il ${(r.prossimoObiettivo || {}).etichetta || 'BRONZE'}.`),
         }),
+        el('span', { class: 'nota nota-piccola', testo: AVVERTIMENTO_STIMA_SOGLIA }),
         el('a', { href: '#/esercizio/' + (r.esercizio ? r.esercizio.id : ''), class: 'bottone-guarda', testo: 'Vedi il dettaglio' }),
       ]),
     ]);
   }
 
+  const distanza = distanzaAllaSoglia(r.punteggio, (r.prossimoObiettivo || {}).punteggio);
   const verso = r.inTop
     ? `Sei nel rank piu' alto: non c'e' un passo dopo, e ogni LP e' un punto di percentuale sopra la soglia dell'OLYMPIAN (+${r.lp}% adesso).`
-    : `${formattaNumero((r.prossimoObiettivo || {}).punteggio)} ${profilo.unita} per ${(r.prossimoObiettivo || {}).etichetta || r.prossimoRank.nome}`;
+    : `${formattaNumero((r.prossimoObiettivo || {}).punteggio)} ${profilo.unita} per ${(r.prossimoObiettivo || {}).etichetta || r.prossimoRank.nome}`
+      + (distanza && distanza.inGioco ? ` (ti manca lo ${formattaNumero(distanza.percentuale)}%)` : '');
   return el('div', { class: 'card-rank card-' + r.rankId + (compatta ? ' compatta' : '') }, [
     el('div', { class: 'card-rank-alto' }, [
       el('div', {}, [
@@ -2805,6 +2832,7 @@ function cardRank(record, { compatta = false } = {}) {
     el('div', { class: 'card-rank-basso' }, [
       barraProgresso(r.progresso, etichettaLp(r)),
       el('span', { class: 'nota', testo: verso }),
+      el('span', { class: 'nota nota-piccola', testo: AVVERTIMENTO_STIMA_SOGLIA }),
       el('a', { href: '#/esercizio/' + (r.esercizio ? r.esercizio.id : ''), class: 'bottone-guarda', testo: 'Dettaglio' }),
     ]),
   ]);
@@ -3354,8 +3382,10 @@ function vistaEsercizio(zona, esercizioId) {
         class: 'nota',
         testo: record.inTop
           ? `Sei sul rank piu' alto: non c'e' un passo dopo, e ogni LP e' un punto di percentuale sopra la soglia dell'OLYMPIAN (+${record.lp}% adesso).`
-          : `${formattaNumero((record.prossimoObiettivo || {}).punteggio)} ${profilo.unita} per ${(record.prossimoObiettivo || {}).etichetta || record.prossimoRank.nome}.`,
+          : `${formattaNumero((record.prossimoObiettivo || {}).punteggio)} ${profilo.unita} per ${(record.prossimoObiettivo || {}).etichetta || record.prossimoRank.nome}.`
+            + (distanzaObiettivo(record) ? ` (ti manca lo ${formattaNumero(distanzaObiettivo(record).percentuale)}%)` : ''),
       }),
+      el('span', { class: 'nota nota-piccola', testo: AVVERTIMENTO_STIMA_SOGLIA }),
     ]),
   ]));
 
