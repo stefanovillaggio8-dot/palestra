@@ -2668,6 +2668,29 @@ function badgeRank(rankId, lp, divisione) {
   });
 }
 
+/**
+ * La barra degli LP, e che cosa ci scrive dentro.
+ *
+ * Ste (06/10/2026): "con 3 serie sei al massimo del tuo range e il passo dopo e'
+ * lontanissimo". Guardando il suo Dumbbell Bench Pull: barra PIENA, scritta
+ * "3 LP", e la frase sotto diceva solo "Sei sul rank piu' alto".
+ *
+ * Il equivoco e' che "3 LP" sembrava una progressione quasi finita dentro un rango,
+ * mentre non c'e' nessun rango sopra l'OLYMPIAN: li' gli LP crescono senza tetto, e
+ * il conto e' semplicemente "(quanto sei sopra la soglia) x 100". Quindi 3 LP vuol
+ * dire "3% sopra la soglia dell'OLYMPIAN", non "hai quasi finito".
+ *
+ * La barra resta piena perche' non c'e' niente da riempire: non esiste un passo
+ * successivo. Ma l'etichetta deve dirlo, altrimenti una barra piena con "3 LP" a
+ * fianco si legge al contrario. Un posto solo per la regola, cosi' la card e la
+ * pagina dell'esercizio non possono dire cose diverse.
+ */
+function etichettaLp(record) {
+  if (!record || !record.rankId) return '';
+  if (record.inTop) return `TOP · +${record.lp}% sulla soglia`;
+  return `${record.lp} LP / 100`;
+}
+
 function barraProgresso(frazione, etichetta) {
   const f = Math.max(0, Math.min(1, Number(frazione) || 0));
   return el('div', { class: 'barra-progresso' }, [
@@ -2758,7 +2781,7 @@ function cardRank(record, { compatta = false } = {}) {
   }
 
   const verso = r.inTop
-    ? 'Sei nel rank piu' + ' alto: gli LP continuano a crescere.'
+    ? `Sei nel rank piu' alto: non c'e' un passo dopo, e ogni LP e' un punto di percentuale sopra la soglia dell'OLYMPIAN (+${r.lp}% adesso).`
     : `${formattaNumero((r.prossimoObiettivo || {}).punteggio)} ${profilo.unita} per ${(r.prossimoObiettivo || {}).etichetta || r.prossimoRank.nome}`;
   return el('div', { class: 'card-rank card-' + r.rankId + (compatta ? ' compatta' : '') }, [
     el('div', { class: 'card-rank-alto' }, [
@@ -2780,7 +2803,7 @@ function cardRank(record, { compatta = false } = {}) {
       el('span', { class: 'nota nota-piccola', testo: giudizioPerformance(r.profilo, r.punteggio).frase }),
     ]),
     el('div', { class: 'card-rank-basso' }, [
-      barraProgresso(r.progresso, r.inTop ? 'TOP' : `${r.lp} LP / 100`),
+      barraProgresso(r.progresso, etichettaLp(r)),
       el('span', { class: 'nota', testo: verso }),
       el('a', { href: '#/esercizio/' + (r.esercizio ? r.esercizio.id : ''), class: 'bottone-guarda', testo: 'Dettaglio' }),
     ]),
@@ -3326,11 +3349,11 @@ function vistaEsercizio(zona, esercizioId) {
       badgeRank(record.rankId, record.lp, record.divisione),
     ]),
     el('div', { class: 'card-rank-basso' }, [
-      barraProgresso(record.progresso, `${record.lp} LP`),
+      barraProgresso(record.progresso, etichettaLp(record)),
       el('span', {
         class: 'nota',
         testo: record.inTop
-          ? 'Sei sul rank piu\' alto: gli LP crescono senza tetto.'
+          ? `Sei sul rank piu' alto: non c'e' un passo dopo, e ogni LP e' un punto di percentuale sopra la soglia dell'OLYMPIAN (+${record.lp}% adesso).`
           : `${formattaNumero((record.prossimoObiettivo || {}).punteggio)} ${profilo.unita} per ${(record.prossimoObiettivo || {}).etichetta || record.prossimoRank.nome}.`,
       }),
     ]),
@@ -3386,6 +3409,30 @@ function vistaEsercizio(zona, esercizioId) {
   }
 
   zona.appendChild(el('p', { class: 'nota nota-piccola', testo: `Le soglie sono calcolate sul riferimento di questo esercizio (${descriviPunteggio(profilo, profilo.riferimento)} = PLATINUM), non su quelle degli altri.` }));
+  // QUI SI DICE CHE IL NUMERO E' UNA STIMA, e non e' una pigna.
+  //
+  // Ste (06/10/2026): "18.86 viene da un massimale stimato su 5 rip con un
+  // movimento corto, e quindi e' una stima dentro una stima... se ti sembra troppo, il
+  // numero da cambiare e' la base della percentuale, non questo riferimento".
+  //
+  // Ha ragione: il riferimento e' un numero scelto e va bene cosi'. Il fragile e' il
+  // massimale, che qui e' stimato dai kg e dalle ripetizioni con una formula (Epley
+  // fino a 10 rip, Brzycki sopra). E' un calcolo fatto con una regola, non una
+  // misura, e su un movimento corto con poche ripetizioni e' il caso peggiore: il
+  // peso sul cavo finisce prima che il muscolo ceda, quindi la stima sbaglia verso
+  // l'alto. Per questo su un isolamento il Rank qui e' indicativo: la stessa serie
+  // puo' valere mezzo rank di piu' o di meno a seconda di quanto hai indovinato.
+  //
+  // Non ci scrivo "stimato" nel numero perche' Ste (04/10/2026) ha chiesto
+  // esplicitamente "scrivi massimale non stima": la parola che preferisce lui resta,
+  // e l'avvertenza sta qui, dove si spiega da dove viene il numero.
+  zona.appendChild(el('p', {
+    class: 'nota nota-piccola',
+    testo: 'Attenzione: il massimale qui e\' stimato dai kg e dalle ripetizioni, non '
+      + 'misurato. Sui movimenti corti con poche ripetizioni (un fly al cavo, una '
+      + 'scrollata) la stima sbaglia verso l\'alto, quindi su quegli esercizi il rank '
+      + 'e\' indicativo.',
+  }));
 }
 
 function vistaAmici(zona) {

@@ -400,6 +400,40 @@ test('R18. sopra il platino i gradini sono vicini, non sparati', () => {
   }
 });
 
+test('R20. sul rank piu\' alto gli LP sono la percentuale sopra la soglia', () => {
+  // Ste (06/10/2026): "con 3 serie sei al massimo del tuo range e il passo dopo e'
+  // lontanissimo. Non e' un errore, ma un segnale che la scala di quell'esercizio
+  // e' stretta".
+  //
+  // Sul suo Dumbbell Bench Pull la barra era piena e scriveva "3 LP": sembrava una
+  // progressione quasi finita dentro un rango. Ma sopra l'OLYMPIAN non c'e' nessun
+  // rango: li' gli LP crescono senza tetto e valgono una cosa sola, quanto sei
+  // sopra la soglia in percentuale. E' quello che devono dire, anche all'interfaccia.
+  const p = profiloPerPesoCorporeo(profiloEsercizio(lateral), 66);
+  const sogliaTop = p.soglie[p.soglie.length - 1];
+
+  const appena = calcolaRank(sogliaTop + 0.01, p);
+  assert.equal(appena.rankId, 'olympian', 'e\' sul rank piu\' alto');
+  assert.equal(appena.inTop, true);
+  assert.equal(appena.prossimoRank, null, 'e non c\'e\' nessun passo dopo');
+  assert.equal(appena.prossimoObiettivo, null, 'quindi nessun obiettivo da inseguire');
+  assert.equal(appena.sogliaSuccessiva, null);
+  assert.ok(appena.lp <= 1, 'un passo sopra la soglia sono 0-1 LP: ' + appena.lp);
+
+  // la regola e' una sola e vale sempre: LP = quanto sei sopra la soglia, per 100
+  for (const sopra of [1, 5, 23, 100]) {
+    const r = calcolaRank(sogliaTop * (1 + sopra / 100), p);
+    assert.equal(r.rankId, 'olympian');
+    assert.ok(Math.abs(r.lp - sopra) <= 1,
+      `a +${sopra}% sopra la soglia gli LP sono ${sopra}, trovati ${r.lp}`);
+  }
+
+  // e sotto non cambiano: li' gli LP sono la posizione DENTRO il rango, 0-99
+  const dentro = calcolaRank(sogliaTop * 0.5, p);
+  assert.notEqual(dentro.rankId, 'olympian');
+  assert.ok(dentro.lp >= 0 && dentro.lp <= 99, 'dentro il.rank gli LP stanno fra 0 e 99');
+});
+
 test('R19. la scala si adatta al tipo di esercizio', () => {
   // Ste: "i rank per ogni esercizio devono adattarsi al tipo di esercizio,
   // se e' difficile, facile, medio. Tipo alzate laterali e' difficile quindi
