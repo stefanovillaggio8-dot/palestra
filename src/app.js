@@ -21,7 +21,7 @@ import { testoProgresso, serieARipetizioniCostanti, riepilogoGenerale } from './
 import { prestazione, mediaPrestazioni, classificaGenerale } from './forza-generale.js';
 import { creaPacchetto, validaPacchetto, unisci, csvSerie, csvSedute, csvEsercizi } from './backup.js';
 import { ESERCIZI, SCHEDA_ID, SCHEDA_NOME, PERSONE, CONTATTI, accountId, personaDallaUrl, costruisciSnapshot } from './dati-iniziali.js';
-import { nuovoId, adesso, TABELLE } from './sincronizzazione.js';
+import { nuovoId, adesso, TABELLE, riallineaEsercizi } from './sincronizzazione.js';
 // --- il gioco: rank, LP, streak, Aura, missioni, amici ---
 import { statoAccount, ricompenseAllenamento, gruppiDaSerie } from './gioco.js';
 import { recordEsercizio, recordAccount, classificaEsercizio, storicoMiglioramenti, giudizioPerformance, distanzaAllaSoglia } from './rank.js';
@@ -334,11 +334,35 @@ async function seminaSeVuoto() {
   const gia = await db.tutti('esercizi');
   if (gia.length) {
     await sistemaNomeScheda();
+    await risistemaCampiCarico(gia);
   } else {
     for (const e of ESERCIZI) await db.salva('esercizi', e, { segna: false });
     await db.scriviMeta('installato_il', adesso());
   }
   await seminaPersona();
+}
+
+/**
+ * Rimette i tre campi che dicono come si registra il carico, dal catalogo.
+ *
+ * Ste (06/10/2026): "e' il buco piu' serio di tutti quelli trovati finora,
+ * perche' perde dati invece di sbagliare un numero".
+ *
+ * Il database non ha le colonne carrucola / attrezzatura / bracciaIndipendenti,
+ * quindi i campi che tornano dal server non le contengono: senza questo passaggio
+ * restano persi per sempre, e l'app conta il carrello del doppio carrucola invece
+ * del peso che senti. Cinque esercizi su venti diventavano OLYMPIAN e il Cable Fly
+ * scendeva a GOLD: cinque su cinque erano cavi a doppia carrucola.
+ *
+ * Si fa qui, all'avvio, perche' il catalogo (ESERCIZI) e' l'unico posto dove quei
+ * tre campi sono scritti per bene: il database non deve decidere come si registra
+ * il carico. E non si rimette in coda di sincronizzazione, perche' il server
+ * quella coda non la puo' ricevere.
+ */
+async function risistemaCampiCarico(righe) {
+  const daScrivere = riallineaEsercizi(ESERCIZI, righe);
+  for (const r of daScrivere) await db.salva('esercizi', r, { segna: false });
+  return daScrivere.length;
 }
 
 /**

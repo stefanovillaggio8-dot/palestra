@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {
   decidiPush, dopoInvioRiuscito, segnaDaSalvare, applicaRemote, risolviConflitto,
   costruisciConflitto, attesaRiprovo, contaDaSincronizzare, statoSalvataggio,
-  nuovoId, rigaPerInvio,
+  nuovoId, rigaPerInvio, CAMPI_CARICO, riallineaEsercizi,
 } from '../src/sincronizzazione.js';
 
 const riga = (over = {}) => ({
@@ -97,6 +97,133 @@ test('16. il conflitto conserva entrambe le versioni e la scelta rimette in coda
   const sceltoRemoto = risolviConflitto(c, 'remoto');
   assert.equal(sceltoRemoto.riga.peso, 40);
   assert.equal(sceltoRemoto.perso.peso, 45);
+});
+
+// ---------------------------------------------------------------------------
+// I TRE CAMPI CHE DICONO COME SI REGISTRA IL CARICO.
+// Ste (06/10/2026): "e' il buco piu' serio di tutti quelli trovati finora,
+// perche' perde dati invece di sbagliare un numero".
+//
+// Cosa era successo: la tabola `esercizi` del database non ha le colonne
+// carrucola / attrezzatura / bracciaIndipendenti, e applicaRemote SOSTITUISCE la
+// riga locale con quella remota. Quindi i tre campi non venivano ignorati:
+// venivano cancellati, e al riavvio non tornavano, perche' il catalogo si semina
+// solo quando la tabella e' vuota.
+//
+// Il conto che faceva: perduta la carrucola, il punteggio del cavo doppio non
+// veniva dimezzato (leggevi il carrello invece del peso che senti) e la scala
+// sceglieva la base "carico intero" invece di quella per lato. Cinque esercizi su
+// venti diventavano OLYMPIAN di colpo, e il Cable Fly scendeva a GOLD.
+// ---------------------------------------------------------------------------
+
+test('31. il catalogo rimette i tre campi a ogni avvio, anche se il database li ha persi', () => {
+  // Il caso vero: la riga nel database e' quella che arriva dal server, senza i
+  // tre campi. Il catalogo li sa, quindi vanno rimessi.
+  const catalogo = [
+    { id: 'ex-cable-lateral-raise', nome: 'Cable Lateral Raise', convenzione: 'cavo_totali', carrucola: 'carrucola_doppia' },
+    { id: 'ex-chest-press', nome: 'Chest Press', convenzione: 'per_braccio', attrezzatura: 'macchina_dischi', bracciaIndipendenti: true },
+    { id: 'ex-leg-extension', nome: 'Leg Extension', convenzione: 'macchina', attrezzatura: 'macchina_stack' },
+  ];
+  const persiDalServer = [
+    { id: 'ex-cable-lateral-raise', nome: 'Cable Lateral Raise', convenzione: 'cavo_totali', rev: 1, sync: 'pulito' },
+    { id: 'ex-chest-press', nome: 'Chest Press', convenzione: 'per_braccio', rev: 1, sync: 'pulito' },
+    { id: 'ex-leg-extension', nome: 'Leg Extension', convenzione: 'macchina', rev: 1, sync: 'pulito' },
+  ];
+
+  const daScrivere = riallineaEsercizi(catalogo, persiDalServer);
+  assert.equal(daScrivere.length, 3, 'tutti e tre gli esercizi vanno risistemati');
+
+  const laterale = daScrivere.find((r) => r.id === 'ex-cable-lateral-raise');
+  assert.equal(laterale.carrucola, 'carrucola_doppia',
+    'la carrucola torna: senza, i kg del carrello non vengono dimezzati');
+
+  const chest = daScrivere.find((r) => r.id === 'ex-chest-press');
+  assert.equal(chest.attrezzatura, 'macchina_dischi');
+  assert.equal(chest.bracciaIndipendenti, true);
+  assert.equal(chest.rev, 1, 'il resto della riga resta com\'e\'');
+  assert.equal(chest.nome, 'Chest Press', 'e non si perde nessun altro campo');
+
+  // LA CONDIZIONE 1 E' ANCHE CHE NON RIMETTA IN CODA: il server non ha le
+  // colonne, quindi rimandare la riga su non serve a niente e lascerebbe
+  // l'app con una coda che non si svuota mai.
+  for (const r of daScrivere) {
+    assert.notEqual(r.sync, 'da_salvare', 'i tre campi non si rimettono in coda per il server');
+  }
+
+  // se la riga e' gia' giusta non si scrive niente (non si riscrive tutto ogni volta)
+  const giaGiusta = riallineaEsercizi(catalogo, [
+    { id: 'ex-cable-lateral-raise', convenzione: 'cavo_totali', carrucola: 'carrucola_doppia' },
+    { id: 'ex-chest-press', convenzione: 'per_braccio', attrezzatura: 'macchina_dischi', bracciaIndipendenti: true },
+    { id: 'ex-leg-extension', convenzione: 'macchina', attrezzatura: 'macchina_stack' },
+  ]);
+  assert.deepEqual(giaGiusta, [], 'riga gia\' giusta: niente da fare');
+
+  // e se un esercizio del catalogo non esiste ancora nel database non lo inventa:
+  // quello lo crea il semina, non questo
+  const senza = riallineaEsercizi(catalogo, []);
+  assert.deepEqual(senza, [], 'nessuna riga da creare');
+
+  // i campi che il catalogo NON dichiara non si toccano: non si cancella niente
+  const conAltro = riallineaEsercizi(
+    [{ id: 'x', nome: 'X', convenzione: 'bilanciere' }],
+    [{ id: 'x', nome: 'X', convenzione: 'bilanciere', carrucola: 'carrucola_doppia' }],
+  );
+  assert.deepEqual(conAltro, [], 'il catalogo non dichiara la carrucola: non si cancella');
+
+  assert.deepEqual([...CAMPI_CARICO].sort(), ['attrezzatura', 'bracciaIndipendenti', 'carrucola']);
+});
+
+test('32. una riga remota SENZA quei campi non cancella quelli locali', () => {
+  // E\' il buco vero, e da solo spiega i 7 OLYMPIAN.
+  const locale = riga({
+    tabella: 'esercizi', nome: 'Cable Lateral Raise', convenzione: 'cavo_totali',
+    carrucola: 'carrucola_doppia', attrezzatura: 'macchina_dischi', bracciaIndipendenti: true,
+  });
+  // il server non ha le colonne: la riga che torna NON le contiene
+  const remoto = {
+    id: locale.id, nome: 'Cable Lateral Raise', convenzione: 'cavo_totali',
+    rev: 2, updated_at: '2026-10-07T10:00:00.000Z', device_id: 'pc',
+  };
+
+  const esito = applicaRemote(locale, remoto);
+  assert.equal(esito.azione, 'applica', 'la remota e\' piu\' nuova, quindi si applica');
+  assert.equal(esito.riga.carrucola, 'carrucola_doppia',
+    'la carrucola LOCALE deve restare: il server non puo\' cancellarla');
+  assert.equal(esito.riga.attrezzatura, 'macchina_dischi');
+  assert.equal(esito.riga.bracciaIndipendenti, true);
+  // e i campi che il server HA davvero vengono presi da lui
+  assert.equal(esito.riga.nome, 'Cable Lateral Raise');
+  assert.equal(esito.riga.convenzione, 'cavo_totali');
+  assert.equal(esito.riga.device_id, 'pc', 'il resto arriva dal server');
+  assert.equal(esito.riga.rev, 2, 'e la revisione e\' la sua');
+});
+
+test('33. una riga remota CHE HA quei campi aggiornati li applica', () => {
+  // Il verso opposto deve funzionare, altrimenti questo fix blocca le correzioni
+  // vere: se Ste corregge la carrucola dal telefono, quella correzione deve
+  // arrivare. Qui non si puo' "proteggere" il campo locale per sempre.
+  const locale = riga({
+    tabella: 'esercizi', nome: 'Cable Lateral Raise', convenzione: 'cavo_totali',
+    carrucola: 'carrucola_doppia',
+  });
+  const remoto = {
+    id: locale.id, nome: 'Cable Lateral Raise', convenzione: 'cavo_totali',
+    carrucola: 'carrucola_mono', attrezzatura: 'macchina_dischi',
+    rev: 3, updated_at: '2026-10-07T11:00:00.000Z', device_id: 'pc',
+  };
+
+  const esito = applicaRemote(locale, remoto);
+  assert.equal(esito.azione, 'applica');
+  assert.equal(esito.riga.carrucola, 'carrucola_mono',
+    'il valore CHE HA il server vince: altrimenti le correzioni vere non arrivano');
+  assert.equal(esito.riga.attrezzatura, 'macchina_dischi', 'e un campo che il server ha in piu\' entra');
+
+  // e se il server dice esplicitamente null, null vale: non e\' "non so"
+  const conNull = applicaRemote(
+    riga({ tabella: 'esercizi', carrucola: 'carrucola_doppia' }),
+    { id: 'r1', rev: 9, updated_at: '2026-10-07T12:00:00.000Z', carrucola: null },
+  );
+  assert.equal(conNull.riga.carrucola, null, 'un null del server e\' una cancellazione vera');
 });
 
 test('15c. ritentativi con attese crescenti', () => {

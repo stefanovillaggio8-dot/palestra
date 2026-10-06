@@ -104,7 +104,82 @@ export function applicaRemote(locale, remoto) {
   if (revRemoto === revLocale && remoto.updated_at === locale.updated_at) {
     return { azione: 'ignora', riga: locale };
   }
-  return { azione: 'applica', riga: { ...remoto, sync: 'pulito', base_rev: revRemoto } };
+  // UNISCE, non sostituisce. Ste (06/10/2026): "quando arriva una riga dal server
+  // si prendono i campi che quella riga ha davvero, e quelli che non ha restano.
+  // Cosi' un server con meno colonne non puo' piu' cancellare niente, oggi e per
+  // qualunque campo aggiungerai domani".
+  //
+  // Prima qui c'era { ...remoto } e basta: la riga remota SOSTITUIVA la locale, e
+  // siccome il server non ha le colonne carrucola / attrezzatura /
+  // bracciaIndipendenti, quei tre campi venivano CANCELLATI. Non ignorati:
+  // cancellati. E il catalogo si semina solo se la tabella e' vuota, quindi non
+  // tornavano piu'.
+  //
+  // Vince il valore che il server HA, anche se e' null (null e' "l'ho tolto", non
+  // "non lo so"). Vincono i campi che ha; quelli che non ha restano come sono.
+  return {
+    azione: 'applica',
+    riga: { ...locale, ...remoto, sync: 'pulito', base_rev: revRemoto, ultimo_errore: null },
+  };
+}
+
+/**
+ * I tre campi che dicono COME si registra il carico di un esercizio.
+ *
+ * Ste (06/10/2026): "e' il buco piu' serio di tutti quelli trovati finora,
+ * perche' perde dati invece di sbagliare un numero".
+ *
+ * Sono tre campi piccoli e decisivi: la carrucola (mono o doppia), l'attrezzatura
+ * (dischi veri o stack) e se i due braccia sono indipendenti. Se uno di questi
+ * sparisce, l'app non sbaglia un numero: conta il carrello invece del peso che
+ * senti, e sceglie la scala del carico intero invece di quella per lato.
+ *
+ * Perche' sono in una lista e non scritti a mano in tre posti: sono tre, ma
+ * domani potrebbero essere cinque, e il punto del fix e' che la lista sia il posto
+ * dove si guarda.
+ */
+export const CAMPI_CARICO = ['carrucola', 'attrezzatura', 'bracciaIndipendenti'];
+
+/**
+ * Rimette i tre campi dal catalogo, per ogni esercizio che li perse.
+ *
+ * Serve perche' la tabella `esercizi` del database non ha queste colonne: la riga
+ * che torna dal server non le contiene, e quindi non basta che il server non le
+ * cancelli, i campi sul dispositivo possono essere gia' spariti. Il CATALOGO e'
+ * l'unico posto dove sono scritti per bene, quindi all'avvio si rileggono e si
+ * rimettono.
+ *
+ * Restituisce solo le righe da scrivere, e solo se qualcosa cambia davvero: non
+ * riscrive tutte le righe a ogni avvio per il piacere di farlo.
+ *
+ * NON mette in coda di sincronizzazione (niente sync: 'da_salvare'): il server non
+ * ha le colonne, quindi rimandargli la riga non serve a niente e lascerebbe
+ * l'app con una coda che non si svuota mai. E non cancella un campo che il
+ * catalogo non dichiara: se domani un esercizio non ha carrucola, qui non si
+ * tocca la sua, anche se per errore ne avesse una.
+ *
+ * Non crea righe: un esercizio che non c'e' ancora lo crea il semina.
+ */
+export function riallineaEsercizi(catalogo, righeLocali) {
+  const perId = new Map((righeLocali || []).map((r) => [r && r.id, r]));
+  const daScrivere = [];
+  for (const e of catalogo || []) {
+    if (!e || !e.id) continue;
+    const locale = perId.get(e.id);
+    if (!locale) continue;
+    const corretti = {};
+    let cambia = false;
+    for (const campo of CAMPI_CARICO) {
+      const voluto = e[campo];
+      if (voluto === undefined) continue; // il catalogo non lo dichiara: non si tocca
+      if (locale[campo] !== voluto) {
+        corretti[campo] = voluto;
+        cambia = true;
+      }
+    }
+    if (cambia) daScrivere.push({ ...locale, ...corretti });
+  }
+  return daScrivere;
 }
 
 /** Costruisce il record di conflitto da mostrare a Ste. */
