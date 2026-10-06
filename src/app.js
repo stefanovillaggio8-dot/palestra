@@ -2733,6 +2733,10 @@ function distanzaObiettivo(record) {
 function etichettaLp(record) {
   if (!record || !record.rankId) return '';
   if (record.inTop) return `TOP · +${record.lp}% sulla soglia`;
+  // Quando il bonus e' stato fermato, i LP NON sono la posizione nella fascia: sono
+  // il posto dove ti hanno portato dentro. Scrivere "/ 100" accanto a una barra
+  // mezza piena e' una promessa falsa, quindi l'etichetta non lo promette piu'.
+  if (record.bonusBloccato) return `${record.lp} LP`;
   return `${record.lp} LP / 100`;
 }
 
@@ -2853,9 +2857,10 @@ function cardRank(record, { compatta = false } = {}) {
       }),
       el('span', { class: 'nota nota-piccola', testo: giudizioPerformance(r.profilo, r.punteggio).frase }),
     ]),
-    el('div', { class: 'card-rank-basso' }, [
+el('div', { class: 'card-rank-basso' }, [
       barraProgresso(r.progresso, etichettaLp(r)),
       el('span', { class: 'nota', testo: verso }),
+      r.spiegaBonus ? el('span', { class: 'nota nota-piccola', testo: r.spiegaBonus }) : null,
       el('span', { class: 'nota nota-piccola', testo: AVVERTIMENTO_STIMA_SOGLIA }),
       el('a', { href: '#/esercizio/' + (r.esercizio ? r.esercizio.id : ''), class: 'bottone-guarda', testo: 'Dettaglio' }),
     ]),
@@ -3410,6 +3415,7 @@ function vistaEsercizio(zona, esercizioId) {
             + (distanzaObiettivo(record) ? ` (ti manca lo ${formattaNumero(distanzaObiettivo(record).percentuale)}%)` : ''),
       }),
       el('span', { class: 'nota nota-piccola', testo: AVVERTIMENTO_STIMA_SOGLIA }),
+      record.spiegaBonus ? el('span', { class: 'nota nota-piccola', testo: record.spiegaBonus }) : null,
     ]),
   ]));
 

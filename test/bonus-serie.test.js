@@ -65,26 +65,64 @@ test('S4. le serie non contate non contano', () => {
   assert.equal(conSerie(treSerie).bonusSerie, 6);
 });
 
-test('S5. le serie possono spostare il rank, ma di UN livello solo', () => {
-  // Qui il test aveva detto una cosa sbagliata, e me ne sono accorto guardando
-  // cosa succedeva davvero: avevo scritto che il rank doveva restare identico
-  // da 1 a 4 serie. Ma allora il bonus non servirebbe a niente.
+test('S5. le serie NON spostano mai il rank: il bonus sta DENTRO il rank', () => {
+  // Ste (06/10/2026): "la regola secca. Il bonus non cambia mai il Rank, sposta
+  // solo i LP dentro il Rank... perche' un Rank deve dire quanto sei forte. Se il
+  // numero di serie decide meta' dei Rank, il Rank non sta misurando quello che
+  // dice di misurare".
   //
-  // Il suo 35 x 8 sta al 94% del riferimento, quindi +8% lo porta oltre il
-  // PLATINUM: GOLD con 1-3 serie, PLATINUM con 4. E va bene, perche' 4x8 e' il
-  // quadruplo del lavoro di 1x8.
-  //
-  // La cosa che invece deve essere vera, e che il bonus PICCOLO garantisce, e' che
-  // le serie possano spostare il rank di UN livello solo: mai di piu'. Altrimenti
-  // un piccolo bonus diventa un passaggio di porta nascosto.
+  // Prima questo test diceva il contrario ("le serie possono spostare il rank, ma
+  // di un livello solo") e il suo commento era un ragionamento sul quadruplo di
+  // lavoro: giusto sul merito, sbagliato sul posto. Il suo 35x8 sta al 94% del
+  // riferimento, quindi +8% lo portava oltre il PLATINUM: GOLD con 1-3 serie,
+  // PLATINUM con 4. E cosi' per 10 esercizi su 20 il rank dipendeva dal numero di
+  // serie, non dalla forza.
   const indice = (n) => {
     const serie = Array.from({ length: n }, (_, i) => s(i));
     return conSerie(serie).rank.indice;
   };
   const da1 = indice(1);
-  for (const n of [2, 3, 4, 5, 6]) {
-    const salto = indice(n) - da1;
-    assert.ok(salto >= 0, 'piu\' serie non può peggiorare il rank');
-    assert.ok(salto <= 1, 'con ' + n + ' serie il rank può salire di un livello, non di più');
+  for (const n of [2, 3, 4, 5, 6, 8]) {
+    assert.equal(indice(n), da1,
+      'con ' + n + ' serie il rank NON si muove: il bonus non compra un rank');
   }
+});
+
+test('S6. il bonus spinge comunque gli LP dentro il rank', () => {
+  // Non e' un premio che sparisce: resta, e si legge dentro il rank. 3x8 e' piu'
+  // lavoro di 1x8 e l'app lo dice.
+  const una = conSerie([s(1)]);
+  const tre = conSerie([s(1), s(2), s(3)]);
+  assert.ok(tre.lp > una.lp,
+    `3 serie devono spingere gli LP: ${una.lp} -> ${tre.lp}`);
+  assert.equal(una.bonusBloccato, false, 'con una serie il bonus non c\'e\'');
+  assert.ok(tre.bonusLp > 0, 'e il bonus dice quanto LP ha aggiunto');
+  // ma la barra resta quella del LAVORO VERO: e' il numero che non si puo' comprare
+  assert.ok(tre.progresso <= una.progresso + 0.001 || tre.rank.indice !== una.rank.indice,
+    'la barra non viene gonfiata dal bonus');
+});
+
+test('S7. quando il bonus non basta, resta nel rank e lo dice', () => {
+  // Il suo caso vero: Cable Lateral Raise e' al 126% del riferimento, il tetto sta
+  // al 135%, e con 4 serie (+8%) il bonus da solo ci arrivava. Sotto la regola
+  // secca non ci arriva piu', e l'app deve POTER DIRE che il bonus c'era.
+  const rankOnesto = (n) => conSerie(Array.from({ length: n }, (_, i) => s(i)));
+  const quattro = rankOnesto(4);
+  const tre = rankOnesto(3);
+
+  // il suo caso e' sul chest press: 35x8 al 94% del riferimento, il +8% lo passava
+  const pct = 44.33 / 47.14;
+  assert.ok(pct < 1, 'la serie sta sotto il platino');
+  const conQuattro = conSerie(Array.from({ length: 4 }, (_, i) => s(i)));
+  assert.equal(conQuattro.rank.nome, 'GOLD', 'quattro serie non cambiano il rank');
+  assert.equal(conQuattro.bonusBloccato, true, 'e il bonus viene fermato');
+  assert.ok(conQuattro.lp > conSerie([s(1)]).lp, 'però spinge gli LP fino in fondo');
+  assert.match(conQuattro.testo, /non abbastanza per il rank/,
+    'e la riga dice che il bonus c\'era ma non ha bastato');
+  assert.match(conQuattro.spiegaBonus, /non sono bastate a cambiare rank/,
+    'la spiegazione accanto alla barra dice la stessa cosa');
+
+  // e quando il bonus NON viene fermato, non c\'e\' nessuna spiegazione strana
+  assert.equal(tre.bonusBloccato, false);
+  assert.equal(tre.spiegaBonus, null, 'senza bonus fermato non si spiega niente');
 });

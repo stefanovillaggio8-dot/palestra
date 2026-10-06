@@ -255,6 +255,69 @@ export function bonusSerie(serieFatte) {
   return { fattore, bonus: Math.round((fattore - 1) * 100) };
 }
 
+/**
+ * Il Rank con dentro il bonus serie, SENZA che il bonus possa cambiare il rank.
+ *
+ * Ste (06/10/2026): "la regola secca. Il bonus non cambia mai il Rank, sposta solo
+ * i LP dentro il Rank... perche' un Rank deve dire quanto sei forte. Se il numero di
+ * serie decide meta' dei Rank, il Rank non sta misurando quello che dice di
+ * misurare. Il bonus ha senso, 3x8 e' piu' lavoro di 1x8, ma il suo posto e' dentro
+ * il Rank".
+ *
+ * Come stava prima, e cosa costava: il bonus entrava nel numero confrontato con le
+ * soglie. Quindi bastava una serie in piu' per cambiare rank, e misurato sugli
+ * esercizi veri di Ste, **10 rank su 20 esistevano solo per il bonus**. Tre di quei
+ * rank erano addirittura un OLYMPIAN regalato dal numero di serie: il Cable
+ * Lateral Raise entrava in tetto con 4 serie mentre gli mancava il 7,3% di lavoro
+ * vero.
+ *
+ * Il tetto al 5% che era l'altra idea non risolveva: con il 5% il bonus continua a
+ * poter cambiare il rank (un esercizio al 4% dalla soglia sale aggiungendo una
+ * serie), quindi e' una mezza misura che sembra funzionare.
+ *
+ * Quindi: il RANK lo decide il massimale, il BONUS spinge gli LP dentro il rank e
+ * quando ha spinto troppo viene fermato al massimo e DICHO, perche' il numero di
+ * serie che hai fatto te lo devi poter leggere.
+ */
+export function rankConBonusSerie(punteggio, fattoreBonus, profilo) {
+  const onesto = calcolaRank(punteggio, profilo);
+  const fattore = Number(fattoreBonus);
+  if (!Number.isFinite(fattore) || fattore <= 1) {
+    return { ...onesto, bonusBloccato: false, bonusLp: 0 };
+  }
+  const colBonus = calcolaRank(punteggio * fattore, profilo);
+  const su = !!(onesto.rank && colBonus.rank && colBonus.rank.indice > onesto.rank.indice);
+  // Quanto il bonus vale DAVVERO in LP, calcolato sul tuo gradino: e' la distanza
+  // che copre dentro la fascia in cui sei, non quella del gradino dopo (che non
+  // ti spetta). Serve a dire "ti ha portato qui dentro" senza gonfiare nulla.
+  const spessore = onesto.rank ? spessoreSoglia(onesto.profilo || profilo, onesto.rank.indice) : 0;
+  const bonusLp = spessore > 0
+    ? Math.max(0, Math.round(((punteggio * (fattore - 1)) / spessore) * 100))
+    : 0;
+  if (su) {
+    // il bonus voleva far salire di un gradino: resta dove sei e si ferma sul fondo
+    return {
+      ...onesto,
+      lp: Math.min(99, onesto.lp + bonusLp),
+      bonusBloccato: true,
+      bonusLp,
+    };
+  }
+  // il bonus sta dentro il tuo rank: spinge gli LP e basta
+  return { ...onesto, lp: colBonus.lp, bonusBloccato: false, bonusLp };
+}
+
+/**
+ * Frase che spiega il caso del bonus fermato. Va accanto alla barra, non dentro il
+ * numero: la barra dice quanto hai fatto davvero, il bonus e' un merito a parte.
+ */
+export function spiegaBonusFermato(record) {
+  if (!record || !record.bonusBloccato) return null;
+  return `La barra e' piena sul tuo record: le ${record.serieFatte} serie valgono `
+    + `+${record.bonusSerie}% e non sono bastate a cambiare rank. `
+    + `Per il prossimo ti serve lavoro vero.`;
+}
+
 export function recordEsercizio(serie, esercizio, profilo = null, pesoAttuale = null) {
   const res = performanceEsercizio(serie, esercizio, profilo, pesoAttuale);
   if (!res.migliore) {
@@ -265,24 +328,31 @@ export function recordEsercizio(serie, esercizio, profilo = null, pesoAttuale = 
     };
   }
   // Bonus serie: Ste "se fai piu' serie l'app ti da' un po' di merito in piu'".
-  // Va sul rank e non sul massimale, perche' il massimale deve restare quello
-  // della serie migliore: e' quello che si misura in palestra.
+  // Ma il posto del bonus e' DENTRO il rank: il rank lo decide il massimale, e il
+  // bonus spinge solo gli LP. Vedi rankConBonusSerie, che spiega perche' e cosa
+  // costava il contrario.
   const bonus = bonusSerie(res.tutte.length);
   const punteggioConSerie = bonus.fattore > 1
     ? Math.round(res.migliore.punteggio * bonus.fattore * 100) / 100
     : res.migliore.punteggio;
-  const r = calcolaRank(punteggioConSerie, res.profilo);
+  const r = rankConBonusSerie(res.migliore.punteggio, bonus.fattore, res.profilo);
   const testoSerie = bonus.bonus > 0
-    ? ` (+${bonus.bonus}% per ${res.tutte.length} serie)`
+    ? ` (+${bonus.bonus}% per ${res.tutte.length} serie${r.bonusBloccato ? ', non abbastanza per il rank' : ''})`
     : '';
   return {
     esercizio,
     profilo: res.profilo,
     valido: true,
     punteggio: res.migliore.punteggio,
+    // il numero col bonus resta scritto e leggibile: serve per capire quanto
+    // vale il merito delle serie, e perche' i LP sono avanti rispetto alla barra
+    punteggioConSerie,
     testo: res.migliore.testo + testoSerie,
     serieFatte: res.tutte.length,
     bonusSerie: bonus.bonus,
+    bonusBloccato: !!r.bonusBloccato,
+    bonusLp: r.bonusLp || 0,
+    spiegaBonus: spiegaBonusFermato({ bonusBloccato: r.bonusBloccato, serieFatte: res.tutte.length, bonusSerie: bonus.bonus }),
     serie: res.migliore.serie,
     pesoCorporeo: res.migliore.pesoCorporeo,
     // tutto quello che calcola calcolaRank, così le schermate non perdono
