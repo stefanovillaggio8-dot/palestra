@@ -295,16 +295,24 @@ export function rankConBonusSerie(punteggio, fattoreBonus, profilo) {
     ? Math.max(0, Math.round(((punteggio * (fattore - 1)) / spessore) * 100))
     : 0;
   if (su) {
-    // il bonus voleva far salire di un gradino: resta dove sei e si ferma sul fondo
-    return {
-      ...onesto,
-      lp: Math.min(99, onesto.lp + bonusLp),
-      bonusBloccato: true,
-      bonusLp,
-    };
+    // Il bonus voleva far salire di un gradino, quindi NON e' entrato: gli LP
+    // restano quelli del lavoro vero, e il merito delle serie si legge nella nota.
+    //
+    // Ste: "il bonus va detto a parte". E serve anche perche' i LP e la divisione
+    // (III, II, I) sono la stessa scala: se gonfio i LP senza ricalcolare la
+    // divisione, la barra dice una cosa e il badge un'altra. Prima infatti un
+    // record poteva dire "99 LP" con la divisione calcolata sui LP veri, che erano
+    // 68: due numeri che non tornavano insieme sulla stessa riga.
+    return { ...onesto, bonusBloccato: true, bonusLp };
   }
-  // il bonus sta dentro il tuo rank: spinge gli LP e basta
-  return { ...onesto, lp: colBonus.lp, bonusBloccato: false, bonusLp };
+  // Il bonus sta dentro il tuo rank: spinge gli LP, e con loro la divisione e il
+  // prossimo obiettivo, cosi' sono coerenti fra loro.
+  //
+  // La BARRA pero' resta quella del lavoro vero (progresso), e non quella del
+  // numero gonfiato dal bonus. Ste: "la barra deve riempirsi col VERO, e il bonus
+  // va detto a parte". Senza questo la barra prometteva il posto che il bonus
+  // aveva comprato ma che non ti spetta.
+  return { ...colBonus, progresso: onesto.progresso, bonusBloccato: false, bonusLp };
 }
 
 /**

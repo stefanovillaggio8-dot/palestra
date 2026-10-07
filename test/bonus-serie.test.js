@@ -88,6 +88,34 @@ test('S5. le serie NON spostano mai il rank: il bonus sta DENTRO il rank', () =>
   }
 });
 
+test('S8. gli LP e la divisione non si contraddicono mai', () => {
+  // Ste ha letto sul telefono "99 LP" e ha scritto "platinum 2": due numeri che
+  // non possono stare insieme. La divisione (III, II, I) e' la stessa scala degli
+  // LP, quindi se uno si muove l'altro deve seguire.
+  //
+  // Qui si prova su TUTTI i 20 esercizi della scheda e su 1-8 serie, perche' il
+  // caso che morde e' quando il bonus spinge gli LP oltre il confine di una
+  // divisione mentre il nome del rank resta quello vero: e' li' che i due
+  // numeri si separavano.
+  const { ESERCIZI: TUTTI } = ESERCIZI.length ? { ESERCIZI } : { ESERCIZI: [] };
+  const conQueste = (e, n) => recordEsercizio(
+    Array.from({ length: n }, (_, i) => ({ id: 's' + i, peso: 45, ripetizioni: 8, stato: 'fatta' })),
+    e, null, PESO,
+  );
+  for (const e of TUTTI) {
+    for (const n of [1, 2, 3, 4, 8]) {
+      const r = conQueste(e, n);
+      if (!r.divisione) continue;
+      const attesa = r.lp >= 67 ? 'I' : (r.lp >= 34 ? 'II' : 'III');
+      assert.equal(r.divisione.nome, attesa,
+        e.nome + ' con ' + n + ' serie: dice ' + r.divisione.nome
+        + ' ma gli LP sono ' + r.lp);
+      assert.ok(r.lp >= 0 && r.lp <= 99,
+        e.nome + ': gli LP devono stare fra 0 e 99, trovati ' + r.lp);
+    }
+  }
+});
+
 test('S6. il bonus spinge comunque gli LP dentro il rank', () => {
   // Non e' un premio che sparisce: resta, e si legge dentro il rank. 3x8 e' piu'
   // lavoro di 1x8 e l'app lo dice.
@@ -116,9 +144,12 @@ test('S7. quando il bonus non basta, resta nel rank e lo dice', () => {
   const conQuattro = conSerie(Array.from({ length: 4 }, (_, i) => s(i)));
   assert.equal(conQuattro.rank.nome, 'GOLD', 'quattro serie non cambiano il rank');
   assert.equal(conQuattro.bonusBloccato, true, 'e il bonus viene fermato');
-  assert.ok(conQuattro.lp > conSerie([s(1)]).lp, 'però spinge gli LP fino in fondo');
+  assert.ok(conQuattro.bonusLp > 0,
+    'ma si sa quanti LP valeva: il merito delle serie non sparisce');
+  assert.equal(conQuattro.lp, conSerie([s(1)]).lp,
+    'e gli LP restano quelli del lavoro vero: il bonus non entra nel tuo posto nella fascia');
   assert.match(conQuattro.testo, /non abbastanza per il rank/,
-    'e la riga dice che il bonus c\'era ma non ha bastato');
+    'la riga dice che il bonus c\'era ma non ha bastato');
   assert.match(conQuattro.spiegaBonus, /non sono bastate a cambiare rank/,
     'la spiegazione accanto alla barra dice la stessa cosa');
 
