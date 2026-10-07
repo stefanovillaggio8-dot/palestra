@@ -122,6 +122,52 @@ test('5. i pulsanti secondari restano ma sono stretti (40 px, non spariti)', () 
 });
 
 // ---------------------------------------------------------------------------
+// 1b) LA SCRITTA. "E' troppo grosso scritto" (Ste, 07/10/2026)
+// ---------------------------------------------------------------------------
+
+test('5b. le etichette KG e RIP sono PICCOLE, non grandi come i numeri', () => {
+  const rem = Number(/font-size:\s*(\.?\d+)rem/.exec(
+    /\.sotto-campo\s*\{([^}]*)\}/.exec(CSS)[1],
+  )[1]);
+  assert.ok(rem <= 0.55,
+    `.sotto-campo e' a ${rem} rem: le etichette devono stare sotto ai numeri, non al pari`);
+});
+
+test('5c. sul telefono le etichette NON vengono portate a 16 px', () => {
+  // Il colpevole di "troppo grosso scritto": la regola dei 16px (che serve per i
+  // campi, sennò iOS zooma) metteva dentro anche .sotto-campo, che e' una SPAN.
+  // Le etichette quindi erano grandi come i numeri che descrivono.
+  //
+  // Qui si guarda il PEZZO DI CSS per intero (selettore + dichiarazioni), non solo
+  // le dichiarazioni: il selettore e' la parte dove sta .sotto-campo, e se guardo
+  // solo il dentro questo test passerebbe anche con le etichette a 16px.
+  //
+  // E si controllano TUTTI i blocchi da telefono, non solo il primo: nel foglio ce
+  // ne sono due, e controllando solo il primo questo test passava con le etichette
+  // a 16 px nell'altro. Un test che guarda la meta' delle regole e' un test che
+  // non guarda niente.
+  const blocchi = [...CSS.matchAll(/@media \(max-width: 430px\)\s*\{([\s\S]*?)\n\}/g)];
+  assert.ok(blocchi.length >= 2,
+    `i blocchi da telefono sono ${blocchi.length}: se questo numero scende, riguarda anche i testi qui sotto`);
+  for (const [, dentro] of blocchi) {
+    for (const regola of dentro.match(/[^{}]+\{[^{}]*\}/g) || []) {
+      if (!/font-size:\s*16px/.test(regola)) continue;
+      assert.doesNotMatch(regola, /sotto-campo/,
+        'le etichette KG/RIP non possono stare nella regola dei 16 px: non sono campi, '
+        + 'iOS non zooma su quelle, e cosi\' diventano grandi come i numeri');
+    }
+  }
+});
+
+test('5d. dentro la riga serie i numeri non sono grandi (i campi restano 16 px su iOS)', () => {
+  const campo = /\.campo-num\s*\{([^}]*)\}/.exec(CSS)[1];
+  const rem = Number(/font-size:\s*(\.?\d+)rem/.exec(campo)[1]);
+  assert.ok(rem <= 0.95, `il campo dei numeri e\' a ${rem} rem fuori dal telefono`);
+  const numero = Number(/font-size:\s*(\.?\d+)rem/.exec(/\.numero-serie\s*\{([^}]*)\}/.exec(CSS)[1])[1]);
+  assert.ok(numero <= 0.85, `il badge del numero e\' a ${numero} rem: deve stare in un angolino`);
+});
+
+// ---------------------------------------------------------------------------
 // 2) IL PULSANTE DROPSET (quello che mancava proprio)
 // ---------------------------------------------------------------------------
 

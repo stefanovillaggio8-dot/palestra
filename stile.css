@@ -1,4 +1,4 @@
-/* stile.css -- tema scuro: nero di fondo, viola scuro e blu.
+﻿/* stile.css -- tema scuro: nero di fondo, viola scuro e blu.
    Testi grandi e pulsanti grandi: in palestra si guarda con un occhio solo. */
 
 :root {
@@ -174,10 +174,10 @@ a { color: var(--blu); text-decoration: none; }
 .bot.pericolo { background: linear-gradient(135deg, #d63a4a, #a32430); border-color: transparent; color: #fff; }
 .bot.piccolo-b { padding: 8px 10px; min-height: 38px; font-size: .82rem; }
 /* dentro la riga serie i pulsanti secondari sono stretti: ci devono stare senza
- * far saltare la riga, ma restano 40 px perché si premano col dito. */
-.riga-serie .bot.piccolo-b { padding: 5px 8px; min-height: 40px; font-size: .76rem; }
+ * far saltare la riga, ma restano 40 px perchÃ© si premano col dito. */
+.riga-serie .bot.piccolo-b { padding: 5px 8px; min-height: 40px; font-size: .68rem; }
 .riga-serie .bot.spotter,
-.riga-serie .bot.dropset-bot { padding: 5px 9px; min-height: 40px; font-size: .72rem; font-weight: 800; }
+.riga-serie .bot.dropset-bot { padding: 5px 9px; min-height: 40px; font-size: .64rem; font-weight: 800; }
 .bot.dropset-bot.attivo { color: var(--arancio); border-color: #4a3a1c; }
 .bot.pericolo-b { color: var(--rosso); border-color: #4a2028; }
 .bot.spotter { background: transparent; border-color: var(--bordo); }
@@ -373,10 +373,10 @@ a { color: var(--blu); text-decoration: none; }
  *
  * Le regole che ho seguito, e perche':
  *  - i numeri e la spunta diventano compatti: sono loro che si toccano mille volte;
- *  - il toccabile NON scende sotto i 40 px: in palestra il dito è sudato e la
- *    riga viene premuta di fretta. Piccolo sì, ma non "minuscolo da sbagliarsi";
- *  - i campi sul telefono restano a 16 px, perché sotto i 16 iOS zooma da solo e
- *    un zoom a metà allenamento fa saltare il tap dopo (vedi il media query);
+ *  - il toccabile NON scende sotto i 40 px: in palestra il dito Ã¨ sudato e la
+ *    riga viene premuta di fretta. Piccolo sÃ¬, ma non "minuscolo da sbagliarsi";
+ *  - i campi sul telefono restano a 16 px, perchÃ© sotto i 16 iOS zooma da solo e
+ *    un zoom a metÃ  allenamento fa saltare il tap dopo (vedi il media query);
  *  - i pulsanti secondari (spotter, nota, elimina) diventano stretti, ma NON
  *    spariscono: sono cose che Ste ha chiesto, si accorcia solo lo spazio. */
 .riga-serie {
@@ -390,7 +390,7 @@ a { color: var(--blu); text-decoration: none; }
 .numero-serie {
   width: 26px; height: 34px; display: flex; align-items: center; justify-content: center;
   background: var(--viola-scuro); border-radius: 8px; font-weight: 800; flex: 0 0 auto;
-  font-size: .95rem;
+  font-size: .82rem;
 }
 .campetto { display: flex; flex-direction: column; align-items: center; gap: 2px; }
 .campo-num, .campo-testo {
@@ -399,15 +399,15 @@ a { color: var(--blu); text-decoration: none; }
   border: 1px solid var(--bordo); border-radius: 9px;
   padding: 6px; text-align: center; min-height: 40px;
 }
-.campo-num { width: 64px; font-size: 1.05rem; }
-.campo-num.piccolo { width: 52px; font-size: .95rem; min-height: 34px; }
+.campo-num { width: 62px; font-size: .95rem; }
+.campo-num.piccolo { width: 50px; font-size: .85rem; min-height: 34px; }
 /* i campi che tocchi spesso: bordo un po' piu' vivo, si vedono subito */
 .campo-num { border-color: #3d3358; }
 .campo-num:focus, .campo-testo:focus { outline: 2px solid var(--viola); outline-offset: 1px; }
 .campo-num.errore { border-color: var(--rosso); background: #2a1114; }
 .campo-testo { width: 100%; text-align: left; }
 .campo-testo:focus { outline: 2px solid var(--viola); }
-.sotto-campo { font-size: .55rem; font-weight: 800; color: var(--testo-3); letter-spacing: .06em; }
+.sotto-campo { font-size: .5rem; font-weight: 800; color: var(--testo-3); letter-spacing: .05em; }
 .gruppo-assistite { display: flex; flex-direction: column; gap: 2px; align-items: center; }
 /* i bottoni dei kg: in palestra si tocca, non si scrive */
 .gruppo-peso { display: flex; flex-direction: column; align-items: center; gap: 2px; }
@@ -422,8 +422,8 @@ a { color: var(--blu); text-decoration: none; }
 .bot.passo-largo { font-size: .62rem; font-weight: 800; letter-spacing: .02em; color: var(--blu); border-color: #2c3f6b; }
 .tag-grigio { font-size: .62rem; color: var(--testo-3); font-weight: 700; }
 /* la nota della serie sta ACCANTO ai numeri, non su una riga tutta sua: "40 kg x 8"
-   deve stare dove lo vedi insieme a 40 e a 8, altrimenti è un pezzo a caso. */
-.nota-serie { color: var(--testo-2); font-size: .72rem; font-weight: 700; align-self: center; }
+   deve stare dove lo vedi insieme a 40 e a 8, altrimenti Ã¨ un pezzo a caso. */
+.nota-serie { color: var(--testo-2); font-size: .64rem; font-weight: 700; align-self: center; }
 
 .riga-confronto {
   width: 100%; font-size: .78rem; color: var(--testo-2);
@@ -456,8 +456,8 @@ a { color: var(--blu); text-decoration: none; }
 /* spunta: segna la serie come fatta. Piccola, ma sempre 40 px: e' il bottone che
    si preme piu' volte in una seduta e non va mai premuto "un po' a lato". */
 .etichetta-fatta {
-  color: var(--verde); font-size: .62rem; font-weight: 800;
-  align-self: center; letter-spacing: .05em;
+  color: var(--verde); font-size: .52rem; font-weight: 800;
+  align-self: center; letter-spacing: .04em;
 }
 .etichetta-fatta:empty { display: none; }
 .bottone-spunta {
@@ -499,16 +499,16 @@ a { color: var(--blu); text-decoration: none; }
 .riga-spotter.fatta:empty { display: none; }
 .badge-spotter {
   background: #3a2a10; color: var(--arancio);
-  font-size: .68rem; font-weight: 800; padding: 4px 8px;
+  font-size: .58rem; font-weight: 800; padding: 3px 7px;
   border-radius: 99px; white-space: nowrap;
 }
 /* quando non c'e' niente da dire (serie senza spotter) il badge sparisce */
 .badge-spotter:empty { display: none; }
 
 .dropset { width: 100%; border-top: 1px dashed var(--bordo); padding-top: 9px; margin-top: 6px; display: flex; flex-direction: column; gap: 8px; }
-.etichetta-dropset { font-size: .78rem; font-weight: 800; color: var(--arancio); }
-.riga-dropset { display: flex; gap: 9px; align-items: flex-end; }
-.etichetta-giro { width: 54px; font-size: .72rem; font-weight: 800; color: var(--testo-2); padding-bottom: 12px; }
+.etichetta-dropset { font-size: .66rem; font-weight: 800; color: var(--arancio); }
+.riga-dropset { display: flex; gap: 6px; align-items: flex-end; }
+.etichetta-giro { width: 44px; font-size: .64rem; font-weight: 800; color: var(--testo-2); padding-bottom: 8px; }
 
 .storico-serie { display: flex; flex-direction: column; gap: 8px; }
 .riepilogo-seduta { display: flex; gap: 14px; flex-wrap: wrap; color: var(--testo-2); font-size: .88rem; }
@@ -642,7 +642,7 @@ a { color: var(--blu); text-decoration: none; }
   content: '+'; margin-left: auto; color: var(--testo-3);
   font-size: 1.3rem; font-weight: 700; line-height: 1;
 }
-.blocco-chiuso[open] > summary::after { content: '−'; }
+.blocco-chiuso[open] > summary::after { content: 'âˆ’'; }
 .blocco-chiuso > summary h2 { margin: 0; font-size: 1.05rem; }
 .blocco-chiuso > div { padding: 0 14px 14px; }
 .blocco-chiuso[open] > summary { border-bottom: 1px solid var(--bordo); margin-bottom: 10px; }
@@ -681,9 +681,9 @@ a { color: var(--blu); text-decoration: none; }
   color: var(--viola); user-select: none;
 }
 .tutorial > summary::-webkit-details-marker { display: none; }
-.tutorial > summary::after { content: '  ▾'; color: var(--testo-2); }
+.tutorial > summary::after { content: '  â–¾'; color: var(--testo-2); }
 .tutorial[open] > summary { border-bottom: 1px solid var(--bordo); }
-.tutorial[open] > summary::after { content: '  ▴'; }
+.tutorial[open] > summary::after { content: '  â–´'; }
 .tutorial-corpo {
   padding: 12px 14px 15px; display: flex; flex-direction: column; gap: 9px;
 }
@@ -700,7 +700,7 @@ a { color: var(--blu); text-decoration: none; }
 }
 .tutorial-corpo li { margin: 3px 0; }
 
-/* anteprima della scala che verrà usata, sotto il campo PLATINUM */
+/* anteprima della scala che verrÃ  usata, sotto il campo PLATINUM */
 .anteprima-riferimento {
   display: flex; flex-direction: column; gap: 4px;
   margin: -6px 0 12px; padding: 9px 11px;
@@ -945,7 +945,7 @@ a { color: var(--blu); text-decoration: none; }
   border: 1px solid #1f5e42; border-radius: 6px; padding: 3px 7px;
 }
 
-/* --- quanto è pesante per TE, e la correzione dei livelli --- */
+/* --- quanto Ã¨ pesante per TE, e la correzione dei livelli --- */
 .riga-giudizio.giud-personale { border-left-color: var(--blu); }
 .riga-giudizio.giud-personale .nota-piccola { font-size: .74rem; }
 
@@ -967,8 +967,8 @@ a { color: var(--blu); text-decoration: none; }
 .livello-interrogativo { margin-top: 16px; }
 .livello-interrogativo > summary { cursor: pointer; list-style: none; font-size: .74rem; font-weight: 900; letter-spacing: .1em; color: var(--viola); }
 .livello-interrogativo > summary::-webkit-details-marker { display: none; }
-.livello-interrogativo > summary::after { content: '  ▾'; color: var(--testo-2); }
-.livello-interrogativo[open] > summary::after { content: '  ▴'; }
+.livello-interrogativo > summary::after { content: '  â–¾'; color: var(--testo-2); }
+.livello-interrogativo[open] > summary::after { content: '  â–´'; }
 
 /* --- confronto mensile: "un mese fa su questo esercizio come stavo?" --- */
 .blocco-mensile {
@@ -1075,32 +1075,50 @@ a { color: var(--blu); text-decoration: none; }
 
 /* La schermata dell'allenamento sul telefono.
  *
- * Ste (04/10/2026): "da telefono appena inizio gli allenamenti è tutto troppo
+ * Ste (04/10/2026): "da telefono appena inizio gli allenamenti Ã¨ tutto troppo
  * grosso e un po' si bugga".
  *
- * "Tutto troppo grosso" è il problema vero: con i campi di kg e ripetizioni grandi
+ * "Tutto troppo grosso" Ã¨ il problema vero: con i campi di kg e ripetizioni grandi
  * e i bottoni alti, sul telefono le tre serie di un esercizio non ci stanno e si
  * finisce per scorrere per un esercizio solo. E "si bugga" viene da li': gli input
  * numerici su iOS fanno zoom da soli se la dimensione del font e' sotto i 16px, e
- * un zoom a metà allenamento fa saltare il tap successivo.
+ * un zoom a metÃ  allenamento fa saltare il tap successivo.
  *
- * Quindi: font piu' piccolo ma MAI sotto i 16px sugli input (altrimenti iOS zooma),
- * padding ridotto, e i campi affiancati stretti cosi' una serie sta in una riga.
+ * Quindi: i CAMPI restano a 16px (quelli sono input, e sotto i 16 lo zoom si
+ * vede), ma tutto il resto va giÃ¹.
+ *
+ * Ste (07/10/2026): "ti ho detto di farlo meno ingombrante, Ã¨ troppo grosso
+ * scritto". Aveva ragione, e il colpevole era proprio qui sotto: la regola dei
+ * 16px metteva `.sotto-campo` INSIEME agli input, quindi le etichette "KG" e
+ * "RIP" erano grandi come i numeri che descrivono. Le etichette sono SPAN, non
+ * campi: iOS non zooma su quelle, quindi possono (e devono) essere piccole.
  */
 @media (max-width: 430px) {
   .riga-serie {
-    gap: 6px;
-    padding: 7px;
-    border-radius: 10px;
+    gap: 5px;
+    padding: 6px;
+    border-radius: 9px;
   }
   .riga-serie input,
   .riga-serie select,
-  .riga-serie .sotto-campo {
+  .riga-serie textarea {
     font-size: 16px; /* sotto i 16px iOS zooma da solo e rompe i tap */
     padding: 6px 7px;
     min-height: 40px;
   }
-  .riga-serie .numero-serie { min-width: 26px; }
+  .riga-serie .numero-serie { min-width: 22px; font-size: .78rem; }
+  /* le etichette sotto ai campi: piccole sul serio, qui sta la parte di "troppo
+   * grosso scritto" che Ste aveva visto al telefono */
+  .riga-serie .sotto-campo { font-size: .5rem; letter-spacing: .04em; }
+  .riga-serie .etichetta-fatta { font-size: .52rem; }
+  .riga-serie .nota-serie { font-size: .64rem; }
+  .riga-serie .bot.spotter,
+  .riga-serie .bot.dropset-bot { font-size: .64rem; padding: 5px 8px; min-height: 38px; }
+  .riga-serie .bot.piccolo-b { font-size: .68rem; padding: 5px 7px; min-height: 38px; }
+  .riga-serie .badge-spotter { font-size: .58rem; padding: 3px 7px; }
+  .riga-serie .etichetta-dropset { font-size: .66rem; }
+  .riga-serie .riga-dropset { gap: 6px; }
+  .riga-serie .etichetta-giro { width: 44px; font-size: .64rem; padding-bottom: 8px; }
   .serie-previste { gap: 5px; margin: 7px 0 2px; }
   .serie-previste button { padding: 5px 8px; font-size: .8rem; }
 }
