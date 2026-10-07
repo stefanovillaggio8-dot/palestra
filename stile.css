@@ -360,20 +360,22 @@ a { color: var(--blu); text-decoration: none; }
  * Sul telefono la banda e' gia' una colonna (vedi il media query), quindi la
  * compattazione deve stare per forza sotto: e' un pezzo di schermo in meno, non
  * una riga in piu'. */
-body.scorso .banda-cronometro { padding: 7px 10px; gap: 8px; }
-body.scorso .banda-cronometro .cronometro { font-size: 1.6rem; }
+body.scorso .banda-cronometro { padding: 5px 9px; gap: 7px; }
+body.scorso .banda-cronometro .cronometro { font-size: 1.25rem; }
 body.scorso .etichetta-crono { display: none; }
 body.scorso .banda-cronometro #totale-sedute { display: none; }
-body.scorso .avanzamento { margin: 0; padding: 3px 10px; }
-body.scorso .avanzamento strong { font-size: .95rem; }
+body.scorso .avanzamento { margin: 0; padding: 2px 9px; }
+body.scorso .avanzamento strong { font-size: .9rem; }
+body.scorso .avanzamento span { font-size: .68rem; }
 body.scorso .banda-cronometro .bot.grande {
-  min-height: 40px; padding: 8px 14px; font-size: .95rem;
+  min-height: 40px; padding: 8px 12px; font-size: .88rem;
 }
 @media (max-width: 430px) {
-  body.scorso .banda-cronometro { padding: 6px 8px; margin: 8px 0; }
-  body.scorso .banda-cronometro .cronometro { font-size: 1.5rem; }
+  body.scorso .banda-cronometro { padding: 4px 7px; margin: 7px 0; gap: 6px; }
+  body.scorso .banda-cronometro .cronometro { font-size: 1.2rem; }
+  body.scorso .avanzamento { padding: 2px 8px; }
   body.scorso .banda-cronometro .bot.grande {
-    min-height: 40px; padding: 7px 12px; font-size: .9rem;
+    min-height: 40px; padding: 7px 11px; font-size: .84rem;
   }
 }
 
@@ -549,6 +551,24 @@ body.scorso .banda-cronometro .bot.grande {
   display: flex; gap: 12px; align-items: center;
   background: var(--card); border: 1px solid var(--bordo);
   border-radius: var(--r); padding: 12px; color: var(--testo);
+  text-align: left; width: 100%; font: inherit; cursor: pointer;
+}
+
+/* Modalita' "scegli le sedute da eliminare" (Ste, 07/10/2026).
+ * La riga e' un bottone, non un link: un tocco solo deve fare una cosa sola. */
+.riga-scelta { border-left: 4px solid var(--bordo); }
+.riga-scelta.scelta {
+  border-left-color: var(--rosso); background: #231218;
+  box-shadow: inset 0 0 0 1px rgba(255, 95, 109, .4);
+}
+.spunta-scelta {
+  width: 30px; height: 30px; flex: 0 0 auto;
+  border-radius: 8px; border: 2px solid var(--bordo);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 900; color: transparent; font-size: 1rem;
+}
+.riga-scelta.scelta .spunta-scelta {
+  background: var(--rosso); border-color: var(--rosso); color: #1b0508;
 }
 
 /* ---------- scheda: modifica ---------- */
@@ -1125,6 +1145,23 @@ body.scorso .banda-cronometro .bot.grande {
  * campi: iOS non zooma su quelle, quindi possono (e devono) essere piccole.
  */
 @media (max-width: 430px) {
+  /* Le cinque voci della barra sul telefono stretto.
+   *
+   * Ste (07/10/2026): "sistema tutta l'app... anche i tasti in basso". Nella
+   * barra ora c'e' anche lo storico, e le cinque voci su un telefono da 320px
+   * con "Allenamento" dentro non ci stanno: la quinta voce finisce fuori dal
+   * bordo e il tasto che ho appena messo per sistemare lo storico sarebbe
+   * proprio quello che non si vede.
+   *
+   * Percio' qui: font piu' piccolo, padding laterale stretto e niente a capo
+   * (una voce che va a capo fa due righe, e due righe in una barra di cinque
+   * voci sembrano un tasto rotto). */
+  .menu-basso { gap: 2px; padding: 5px 2px calc(5px + env(safe-area-inset-bottom)); }
+  .menu-basso .voce-menu {
+    font-size: .64rem; padding: 11px 1px; white-space: nowrap;
+    letter-spacing: 0; border-radius: 9px;
+  }
+  .menu-basso .voce-menu.attiva::before { width: 12px; margin: 0 auto 4px; }
   .riga-serie {
     gap: 5px;
     padding: 6px;

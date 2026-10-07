@@ -71,13 +71,18 @@ before(async () => {
   await attendiChe(() => perClasse(app, 'scheda-giorno').length === 4);
 });
 
-test('1. la barra in alto mostra fuoco, aura e livello', async () => {
+test('1. la barra in alto mostra streak, aura e livello', async () => {
   await attendiChe(() => perClasse(app, 'chip-gioco').length >= 0);
   const testo = await vai('#/');
   await attendiChe(() => perClasse(globalThis.document.getElementById('stato-salvataggio'), 'chip-gioco').length === 3);
   const chips = perClasse(globalThis.document.getElementById('stato-salvataggio'), 'chip-gioco');
-  assert.equal(chips.length, 3, 'fuoco, aura e livello sono nella barra');
-  assert.match(chips[0].textContent, /fuoco/);
+  assert.equal(chips.length, 3, 'streak, aura e livello sono nella barra');
+  // Ste (07/10/2026): "FUOCO sostituiscilo con STREAK". La parola che si vede
+  // e' "streak"; dentro il codice "fuoco" resta (e' il nome interno dello stato
+  // e dei livelli, e cambiare quello non cambierebbe nulla a schermo).
+  assert.match(chips[0].textContent, /streak/);
+  assert.doesNotMatch(chips[0].textContent, /fuoco/,
+    'la parola "fuoco" non deve piu\' comparire a schermo');
   assert.match(chips[1].textContent, /aura/);
   assert.match(chips[2].textContent, /livello/);
   assert.ok(testo.length > 0);
@@ -157,8 +162,21 @@ test('6. dopo un allenamento finito ci sono rank, LP e Aura', async () => {
   assert.ok(sedute.find((s) => s.stato === 'completata'), 'la seduta e\' completata nel database');
   await vai('#/casa', () => app.textContent.includes('Daily Mission'));
   assert.match(app.textContent, /Ultimo allenamento/);
-  assert.equal(perClasse(app, 'teschio-streak').length, 1);
-  assert.match(app.textContent, /1 giorno|1 giorni/);
+  const teschio = perClasse(app, 'teschio-streak');
+  assert.equal(teschio.length, 1);
+  const testoTeschio = teschio[0].textContent || '';
+  assert.match(testoTeschio, /STREAK/, 'al centro ora c\'e\' la parola STREAK');
+  assert.match(testoTeschio, /giorno/, 'e sotto resta "giorno"');
+  // Ste (07/10/2026): "su casa c'e' scritto 1 normale 1 giorno, sistema".
+  // Il numero NON deve comparire due volte (una nel badge e una in "1 giorno"),
+  // e il nome del livello ("Normale") non deve stare in mezzo: il livello e'
+  // gia' detto dal colore, e "Normale" accanto al numero sembra dire "tutto
+  // regolare", che non e' quello che la streak vuol dire.
+  assert.doesNotMatch(testoTeschio, /Normale/i,
+    'il nome del livello non deve stare al centro del teschio');
+  const numeri = (testoTeschio.match(/\d+/g) || []).length;
+  assert.ok(numeri <= 1,
+    `il numero della streak deve comparire una volta sola, qui era ${numeri}: "${testoTeschio}"`);
 });
 
 test('6b. finire un allenamento dalla schermata assegna rank, LP e Aura', async () => {
@@ -305,10 +323,15 @@ test('16. l\'esercizio creato dall\'admin finisce nel catalogo di tutti', async 
   assert.equal(dopo.length, prima, 'senza nome non si crea niente');
 });
 
-test('17. la barra di sotto ha le cinque voci senza perdere le vecchie pagine', async () => {
+test('17. la barra di sotto ha le cinque voci, e lo STORICO e\' una di queste', async () => {
+  // Ste (07/10/2026): "andare a trovare lo storico e' un'impresa". Nella barra
+  // non c'era. Quindi dentro c'e' lo Storico, e Amici e' uscito (e' nelle
+  // scorciatoie di Casa e Profilo).
   await vai('#/', () => perClasse(app, 'scheda-giorno').length === 4);
   const voci = perClasse(app, 'voce-menu').map((v) => v.textContent.trim());
-  assert.deepEqual(voci, ['Allenamento', 'Casa', 'Rank', 'Amici', 'Profilo']);
+  assert.deepEqual(voci, ['Allenamento', 'Rank', 'Storico', 'Casa', 'Profilo']);
+  assert.ok(voci.includes('Storico'),
+    'lo storico deve essere un tocco, non una ricerca: e\' la schermata che Ste apre di meno');
   // le rotte vecchie funzionano ancora
   await vai('#/storico', () => app.textContent.includes('Storico'));
   assert.match(app.textContent, /Storico/);
@@ -316,8 +339,34 @@ test('17. la barra di sotto ha le cinque voci senza perdere le vecchie pagine', 
   assert.match(app.textContent, /Progressi/);
   await vai('#/impostazioni', () => app.textContent.includes('Impostazioni'));
   assert.match(app.textContent, /Impostazioni/);
+  await vai('#/amici', () => app.textContent.includes('Amici'));
+  assert.match(app.textContent, /Amici/, 'la lista amici si raggiunge ancora');
   await vai('#/scheda', () => perClasse(app, 'riga-modifica').length > 0);
   assert.ok(perClasse(app, 'riga-modifica').length > 0, 'la scheda si modifica ancora');
+});
+
+test('17b. ogni schermata si trova: dalla Casa si arriva a tutto quello che c\'e\'', async () => {
+  // Se Amici esce dalla barra, deve esserci un altro modo di arrivarci: prima si
+  // apriva solo dalla barra, e toglierlo da li' avrebbe reso la lista amici
+  // irraggiungibile senza che nessuno se ne accorgesse.
+  await vai('#/casa', () => app.textContent.includes('Daily Mission'));
+  const linkCasa = perClasse(app, 'bot')
+    .filter((b) => b.tagName === 'A')
+    .map((a) => a.attributi.href)
+    .filter(Boolean);
+  for (const rotta of ['#/storico', '#/progressi', '#/amici', '#/impostazioni']) {
+    assert.ok(linkCasa.includes(rotta),
+      `dalla Casa non si arriva a ${rotta}: la pagina sarebbe irraggiungibile`);
+  }
+  await vai('#/profilo', () => app.textContent.includes('profilo') || app.textContent.length > 0);
+  const linkProfilo = perClasse(app, 'bot')
+    .filter((b) => b.tagName === 'A')
+    .map((a) => a.attributi.href)
+    .filter(Boolean);
+  for (const rotta of ['#/storico', '#/amici']) {
+    assert.ok(linkProfilo.includes(rotta),
+      `dal Profilo non si arriva a ${rotta}`);
+  }
 });
 
 test('18. nessun errore durante tutta la sessione di test', () => {

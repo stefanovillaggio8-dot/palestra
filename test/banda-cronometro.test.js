@@ -128,10 +128,12 @@ test('6. compatta, spariscono i pezzi di testo e il cronometro si dimezza', () =
   assert.ok(totale, 'c\'e\' la regola che nasconde "Durata totale"');
   assert.match(totale[1], /display:\s*none/);
 
-  // il cronometro scende sotto i 2rem: da 3rem era un titolo, non un orologio
+  // il cronometro scende sotto 1.4rem: Ste (07/10/2026) "fallo ancora piu'
+  // piccolo" dopo la prima compressione, quindi il tetto e' piu' basso di quanto
+  // avevo messo prima (1.7rem). Se si alza di nuovo, il test deve accorgersene.
   const compatto = remDa(perSelettore.get('.banda-cronometro .cronometro'), 'cronometro compatto');
   const normale = remDa(/\.cronometro\s*\{([^}]*)\}/.exec(CSS)[1], 'cronometro normale');
-  assert.ok(compatto <= 1.7, `il cronometro compatto e\' ancora a ${compatto} rem`);
+  assert.ok(compatto <= 1.4, `il cronometro compatto e\' ancora a ${compatto} rem: Ste l'ha chiesto piu\' piccolo`);
   assert.ok(compatto < normale,
     `compatto ${compatto} rem deve essere piu\' piccolo del normale ${normale} rem`);
 

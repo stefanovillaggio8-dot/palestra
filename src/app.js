@@ -639,15 +639,21 @@ function cornice() {
     testo: etichetta,
   });
 
-  // La barra in basso e' quella che c'era prima, con tre voci nuove. Storico,
-  // Progressi e Impostazioni restano raggiungibili dalla Casa e dal Profilo:
-  // niente di quello che c'era e' sparito.
-  const resto = el('div', { class: 'basso' }, [
+  // La barra in basso: cinque voci, e sono le cinque schermate per cui Ste apre
+// l'app. Prima c'erano Allenamento, Casa, Rank, Amici e Profilo: lo STORICO non
+// c'era, ed è la schermata che lui apre di meno ("andare a trovare lo storico è
+// un'impresa", 07/10/2026). Quindi Storico entra e Amici esce dalla barra: non
+// sparisce, è nelle scorciatoie di Casa e Profilo (senza quei link sarebbe
+// irraggiungibile, perché nella lista amici si arriva solo da lì).
+//
+// L'ordine è per quanto si usa: allenarsi, vedere quanto sei forte, rivedere
+// cosa hai fatto, il gioco, e il tuo profilo.
+const resto = el('div', { class: 'basso' }, [
     el('nav', { class: 'menu-basso' }, [
       voce('/', 'Allenamento', '/'),
-      voce('/casa', 'Casa', '/casa'),
       voce('/rank', 'Rank', '/rank'),
-      voce('/amici', 'Amici', '/amici'),
+      voce('/storico', 'Storico', '/storico'),
+      voce('/casa', 'Casa', '/casa'),
       voce('/profilo', 'Profilo', '/profilo'),
     ]),
   ]);
@@ -1659,6 +1665,19 @@ async function finisceAllenamento(s) {
 
 /* ===================== vista: storico ===================== */
 
+/**
+ * Le sedute scelte da eliminare, e se la modalita' e' aperta.
+ *
+ * Ste (07/10/2026): "fai un bottone anche che mi fa selezionare nello storico le
+ * sedute da eliminare". Prima si eliminava una seduta SOLO aprendo la seduta e
+ * cercando il bottone in fondo: con trenta sedute da ripulire era un lavoro.
+ *
+ * Perche' sta qui fuori e non dentro la schermata: la schermata viene ridisegnata
+ * a ogni salvataggio, e se la lista di scelte vivesse qui si perderebbe a ogni
+ * ridisegno (e il conteggio "3 selezionate" ripartirebbe da zero).
+ */
+const selezioneStorico = { attiva: false, ids: new Set() };
+
 function vistaStorico(zona) {
   zona.appendChild(el('h1', { testo: 'Storico' }));
   const completate = seduteDellaPersona().filter((s) => s.stato === 'completata' && !s.eliminata)
@@ -1668,10 +1687,68 @@ function vistaStorico(zona) {
     return;
   }
   zona.appendChild(el('p', { class: 'nota', testo: `${completate.length} sedute. Nessun dato inventato: qui ci sono solo allenamenti che hai chiuso davvero.` }));
+
+  // Il bottone per scegliere le sedute da togliere. Fuori dalla lista, in alto:
+  // se stai in mezzo a trenta sedute e devi cercarlo, è la stessa impresa di prima.
+  const rigaComandi = el('div', { class: 'riga-pulsanti' });
+  const contaSelezione = el('span', { class: 'nota', testo: '' });
+  const scriviConta = () => {
+    const n = selezioneStorico.ids.size;
+    contaSelezione.textContent = n ? `${n} sedut${n === 1 ? 'a' : 'e'} scelt${n === 1 ? 'a' : 'e'}` : '';
+  };
+  if (selezioneStorico.attiva) {
+    // il conteggio va scritto SUBITO: la schermata viene ridisegnata a ogni
+    // tocco (la riga cambia aspetto), e senza questo il numero restava vuoto
+    scriviConta();
+    const togli = async () => {
+      const ids = [...selezioneStorico.ids];
+      if (!ids.length) return;
+      const ok = await chiediConferma(
+        `Eliminare ${ids.length} sedut${ids.length === 1 ? 'a' : 'e'}?`,
+        'Le sedute e tutte le loro serie vanno nel cestino. Puoi recuperarle.',
+        { testoOk: 'Nel cestino', pericolo: true },
+      );
+      if (!ok) return;
+      for (const id of ids) {
+        for (const serie of V.serie.filter((x) => x.seduta_id === id)) await db.cestino('serie', serie.id);
+        await db.cestino('sedute', id);
+      }
+      selezioneStorico.attiva = false;
+      selezioneStorico.ids.clear();
+      await ricaricaTutto();
+      disegna();
+      avviso(`Eliminata${ids.length === 1 ? '' : 'e'} ${ids.length} sedut${ids.length === 1 ? 'a' : 'e'}. Nel cestino, se ti serve tornare indietro.`, { tipo: 'ok' });
+    };
+    rigaComandi.appendChild(contaSelezione);
+    rigaComandi.appendChild(bottone('Elimina scelte', {
+      onClick: togli,
+      classe: 'pericolo-b',
+    }));
+    rigaComandi.appendChild(bottone('Annulla', {
+      onClick: () => {
+        selezioneStorico.attiva = false;
+        selezioneStorico.ids.clear();
+        disegna();
+      },
+      classe: 'fantasma',
+    }));
+  } else {
+    rigaComandi.appendChild(bottone('Scegli sedute da eliminare', {
+      onClick: () => {
+        selezioneStorico.attiva = true;
+        selezioneStorico.ids.clear();
+        disegna();
+      },
+      classe: 'fantasma piccolo-b',
+      titolo: 'Tocca le sedute da togliere, poi Elimina scelte',
+    }));
+  }
+  zona.appendChild(rigaComandi);
+
   const elenco = el('div', { class: 'elenco-sedute' });
   for (const s of completate) {
     const serie = V.serie.filter((x) => x.seduta_id === s.id && !x.eliminata);
-    const r = el('a', { href: '#/storico/' + s.id, class: 'riga-seduta' }, [
+    const dentro = [
       el('img', { src: 'img/logo.png', alt: '', class: 'logo-seduta' }),
       el('div', {}, [
         el('strong', { testo: `${s.nome_giorno || 'Seduta'} — ${dataLeggibile(s.data)}` }),
@@ -1679,8 +1756,28 @@ function vistaStorico(zona) {
         // l'anteprima delle note: cosi' le ritrovi senza aprire ogni seduta
         s.note ? el('div', { class: 'anteprima-nota', testo: '“' + String(s.note).slice(0, 90).replace(/\s+/g, ' ') + '”' }) : null,
       ]),
-    ]);
-    elenco.appendChild(r);
+    ];
+    if (selezioneStorico.attiva) {
+      // in modalita' scelta la riga NON e' un link: un link che contiene la spunta
+      // fa due cose con un tocco solo (la seleziona e apre la seduta). Qui il
+      // tocco seleziona, e per aprire la seduta si esce dalla modalita'.
+      const scelta = selezioneStorico.ids.has(s.id);
+      const r = el('button', {
+        type: 'button',
+        class: 'riga-seduta riga-scelta' + (scelta ? ' scelta' : ''),
+        dati: { sedutaId: s.id },
+        'aria-pressed': scelta ? 'true' : 'false',
+        titolo: scelta ? 'Tocca per toglierla dalla scelta' : 'Tocca per sceglierla',
+        onClick: () => {
+          if (selezioneStorico.ids.has(s.id)) selezioneStorico.ids.delete(s.id);
+          else selezioneStorico.ids.add(s.id);
+          disegna();
+        },
+      }, [el('span', { class: 'spunta-scelta', testo: scelta ? '✓' : '' }), ...dentro]);
+      elenco.appendChild(r);
+    } else {
+      elenco.appendChild(el('a', { href: '#/storico/' + s.id, class: 'riga-seduta' }, dentro));
+    }
   }
   zona.appendChild(elenco);
 }
@@ -2942,23 +3039,38 @@ function avatarNodo(profilo, { grande = false, dimensione = 46 } = {}) {
   ]);
 }
 
+/**
+ * Il teschio della streak.
+ *
+ * Ste (07/10/2026): "comunque FUOCO sostituiscilo con STREAK. Poi su Casa c'e'
+ * scritto 1 normale 1 giorno, sistema".
+ *
+ * Cosa non andava, e sono due cose diverse:
+ *  1) la parola al centro era il NOME DEL LIVELLO (Normale, Giallo, Arancio...).
+ *     Ma il livello e' gia' detto dal colore, e la parola "Normale" accanto al
+ *     numero dice "tutto regolare", che non e' quello che la streak vuol dire:
+ *     vuol dire che hai allenato 1 giorno di fila. Quindi al centro ora c'e' la
+ *     parola STREAK, e il livello resta nel colore e nel tooltip;
+ *  2) il numero era scritto DUE volte (nel badge e in "1 giorno"): "1" e "1
+ *     giorno" nella stessa riga. Ora il numero sta solo nel badge e sotto c'e'
+ *     solo il livello. Un numero che compare due volte e' rumore, non
+ *     informazione: sembra un numero diverso.
+ *
+ * "FUOCO" come parola e' sparito anche dai chip: ora si chiama streak dappertutto
+ * (ed e' la parola che hai usato tu).
+ */
 function teschioStreak(st) {
   const f = st.fuoco;
-  // Ste: "sul profilo dove c'e' la streak c'e' scritto 2 2 giorni, ripete il
-  // numero 2 volte". Il numero grande e la parola "giorni" dicevano la stessa
-  // cosa: "2 giorni" due volte di fila. Ora il numero sta nel badge e la
-  // parola nella nota, ma senza ripeterlo.
-  const n = f.acceso ? `${f.giorni} ${f.giorni === 1 ? 'giorno' : 'giorni'}` : 'spenta';
+  const n = f.acceso ? (f.giorni === 1 ? 'giorno' : 'giorni') : 'spenta';
   return el('div', {
     class: 'teschio-streak' + (f.acceso ? ' acceso' : ' spenta'),
     style: `--fuoco:${f.colore}`,
+    titolo: f.acceso ? `Streak: ${f.giorni} ${f.giorni === 1 ? 'giorno' : 'giorni'} di fila, livello ${f.nome}` : 'Streak spenta',
   }, [
     el('span', { class: 'fuoco', testo: f.acceso ? String(f.giorni) : '·' }),
     el('div', {}, [
-      // nel badge grande il numero non serve (c'e' gia' a sinistra): metto il
-      // nome dello stato, cosi' non si ripete
-      el('strong', { testo: f.acceso ? f.nome : 'spenta' }),
-      el('span', { class: 'nota', testo: n }),
+      el('strong', { testo: 'STREAK' }),
+      el('span', { class: 'nota', testo: f.acceso ? n : f.nome }),
     ]),
   ]);
 }
@@ -3252,11 +3364,17 @@ function vistaCasa(zona) {
   ]));
 
   // --- scorciatoie verso quello che c\'era già ---
+  // Ste (07/10/2026): "andare a trovare lo storico è un'impresa". Lo storico
+  // adesso è anche nella barra in basso, ma queste scorciatoie restano: qui si
+  // arriva senza sapere dov'è la barra, e dalla barra non si vede tutto quello
+  // che c'è. Amici è qui per lo stesso motivo: dalla barra non c'è più, e senza
+  // questo link la lista amici diventerebbe irraggiungibile.
   zona.appendChild(el('h2', { testo: 'Allenamento e storico' }));
   zona.appendChild(el('div', { class: 'riga-pulsanti' }, [
     el('a', { href: '#/', class: 'bot fantasma', testo: 'Allenamento' }),
     el('a', { href: '#/storico', class: 'bot fantasma', testo: 'Storico' }),
     el('a', { href: '#/progressi', class: 'bot fantasma', testo: 'Progressi' }),
+    el('a', { href: '#/amici', class: 'bot fantasma', testo: 'Amici' }),
     el('a', { href: '#/impostazioni', class: 'bot fantasma', testo: 'Impostazioni' }),
   ]));
 
@@ -4014,6 +4132,7 @@ async function vistaProfilo(zona) {
   zona.appendChild(el('div', { class: 'riga-pulsanti' }, [
     el('a', { href: '#/storico', class: 'bot fantasma', testo: 'Storico' }),
     el('a', { href: '#/progressi', class: 'bot fantasma', testo: 'Progressi' }),
+    el('a', { href: '#/amici', class: 'bot fantasma', testo: 'Amici' }),
     el('a', { href: '#/impostazioni', class: 'bot fantasma', testo: 'Impostazioni' }),
   ]));
   if (profilo.amministratore) {
@@ -4299,7 +4418,7 @@ function disegnaBarraGioco(contenitore) {
   try {
     const st = statoMio();
     const riga = el('div', { class: 'barra-gioco' }, [
-      el('span', { class: 'chip-gioco', title: 'Streak', testo: `fuoco ${st.fuoco.acceso ? st.fuoco.giorni : '0'}` }),
+      el('span', { class: 'chip-gioco', title: 'Streak: giorni di fila', testo: `streak ${st.fuoco.acceso ? st.fuoco.giorni : '0'}` }),
       el('span', { class: 'chip-gioco', testo: `aura ${formattaAura(st.aura)}` }),
       el('span', { class: 'chip-gioco', testo: `livello ${st.livello.livello}` }),
     ]);
