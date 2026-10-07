@@ -1,4 +1,4 @@
-﻿/* stile.css -- tema scuro: nero di fondo, viola scuro e blu.
+/* stile.css -- tema scuro: nero di fondo, viola scuro e blu.
    Testi grandi e pulsanti grandi: in palestra si guarda con un occhio solo. */
 
 :root {
@@ -174,7 +174,7 @@ a { color: var(--blu); text-decoration: none; }
 .bot.pericolo { background: linear-gradient(135deg, #d63a4a, #a32430); border-color: transparent; color: #fff; }
 .bot.piccolo-b { padding: 8px 10px; min-height: 38px; font-size: .82rem; }
 /* dentro la riga serie i pulsanti secondari sono stretti: ci devono stare senza
- * far saltare la riga, ma restano 40 px perchÃ© si premano col dito. */
+ * far saltare la riga, ma restano 40 px perche' si premano col dito. */
 .riga-serie .bot.piccolo-b { padding: 5px 8px; min-height: 40px; font-size: .68rem; }
 .riga-serie .bot.spotter,
 .riga-serie .bot.dropset-bot { padding: 5px 9px; min-height: 40px; font-size: .64rem; font-weight: 800; }
@@ -346,6 +346,37 @@ a { color: var(--blu); text-decoration: none; }
 }
 .etichetta-crono { font-size: .78rem; color: #c3b5ef; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
 
+/* QUANDO SCORRI, la banda si fa piccola.
+ *
+ * Ste (07/10/2026): "il coso con scritto 'allenamento iniziato alle', il tempo
+ * ecc, e' troppo grosso, fallo piu' piccolo quando scorro verso il basso".
+ *
+ * La banda e' appiccicata in alto (position: sticky), quindi mentre lavori sulle
+ * serie ti ruba un pezzo di schermo per ogni riga: e' la parte peggiore quando
+ * stai contando le ripetizioni. Scendendo sparisce tutto il contorno e resta solo
+ * quello che serve con l'occhio in mezzo all'esercizio: il TEMPO e il bottone per
+ * finire l'allenamento.
+ *
+ * Sul telefono la banda e' gia' una colonna (vedi il media query), quindi la
+ * compattazione deve stare per forza sotto: e' un pezzo di schermo in meno, non
+ * una riga in piu'. */
+body.scorso .banda-cronometro { padding: 7px 10px; gap: 8px; }
+body.scorso .banda-cronometro .cronometro { font-size: 1.6rem; }
+body.scorso .etichetta-crono { display: none; }
+body.scorso .banda-cronometro #totale-sedute { display: none; }
+body.scorso .avanzamento { margin: 0; padding: 3px 10px; }
+body.scorso .avanzamento strong { font-size: .95rem; }
+body.scorso .banda-cronometro .bot.grande {
+  min-height: 40px; padding: 8px 14px; font-size: .95rem;
+}
+@media (max-width: 430px) {
+  body.scorso .banda-cronometro { padding: 6px 8px; margin: 8px 0; }
+  body.scorso .banda-cronometro .cronometro { font-size: 1.5rem; }
+  body.scorso .banda-cronometro .bot.grande {
+    min-height: 40px; padding: 7px 12px; font-size: .9rem;
+  }
+}
+
 /* ---------- esercizi e serie ---------- */
 
 .blocco-esercizio {
@@ -373,10 +404,10 @@ a { color: var(--blu); text-decoration: none; }
  *
  * Le regole che ho seguito, e perche':
  *  - i numeri e la spunta diventano compatti: sono loro che si toccano mille volte;
- *  - il toccabile NON scende sotto i 40 px: in palestra il dito Ã¨ sudato e la
- *    riga viene premuta di fretta. Piccolo sÃ¬, ma non "minuscolo da sbagliarsi";
- *  - i campi sul telefono restano a 16 px, perchÃ© sotto i 16 iOS zooma da solo e
- *    un zoom a metÃ  allenamento fa saltare il tap dopo (vedi il media query);
+*  - il toccabile NON scende sotto i 40 px: in palestra il dito e' sudato e la
+ *    riga viene premuta di fretta. Piccolo si', ma non "minuscolo da sbagliarsi";
+ *  - i campi sul telefono restano a 16 px, perche' sotto i 16 iOS zooma da solo e
+ *    un zoom a meta' allenamento fa saltare il tap dopo (vedi il media query);
  *  - i pulsanti secondari (spotter, nota, elimina) diventano stretti, ma NON
  *    spariscono: sono cose che Ste ha chiesto, si accorcia solo lo spazio. */
 .riga-serie {
@@ -422,7 +453,7 @@ a { color: var(--blu); text-decoration: none; }
 .bot.passo-largo { font-size: .62rem; font-weight: 800; letter-spacing: .02em; color: var(--blu); border-color: #2c3f6b; }
 .tag-grigio { font-size: .62rem; color: var(--testo-3); font-weight: 700; }
 /* la nota della serie sta ACCANTO ai numeri, non su una riga tutta sua: "40 kg x 8"
-   deve stare dove lo vedi insieme a 40 e a 8, altrimenti Ã¨ un pezzo a caso. */
+   deve stare dove lo vedi insieme a 40 e a 8, altrimenti e' un pezzo a caso. */
 .nota-serie { color: var(--testo-2); font-size: .64rem; font-weight: 700; align-self: center; }
 
 .riga-confronto {
@@ -642,7 +673,7 @@ a { color: var(--blu); text-decoration: none; }
   content: '+'; margin-left: auto; color: var(--testo-3);
   font-size: 1.3rem; font-weight: 700; line-height: 1;
 }
-.blocco-chiuso[open] > summary::after { content: 'âˆ’'; }
+.blocco-chiuso[open] > summary::after { content: '−'; }
 .blocco-chiuso > summary h2 { margin: 0; font-size: 1.05rem; }
 .blocco-chiuso > div { padding: 0 14px 14px; }
 .blocco-chiuso[open] > summary { border-bottom: 1px solid var(--bordo); margin-bottom: 10px; }
@@ -681,9 +712,9 @@ a { color: var(--blu); text-decoration: none; }
   color: var(--viola); user-select: none;
 }
 .tutorial > summary::-webkit-details-marker { display: none; }
-.tutorial > summary::after { content: '  â–¾'; color: var(--testo-2); }
+.tutorial > summary::after { content: '  ▾'; color: var(--testo-2); }
 .tutorial[open] > summary { border-bottom: 1px solid var(--bordo); }
-.tutorial[open] > summary::after { content: '  â–´'; }
+.tutorial[open] > summary::after { content: '  ▴'; }
 .tutorial-corpo {
   padding: 12px 14px 15px; display: flex; flex-direction: column; gap: 9px;
 }
@@ -700,7 +731,7 @@ a { color: var(--blu); text-decoration: none; }
 }
 .tutorial-corpo li { margin: 3px 0; }
 
-/* anteprima della scala che verrÃ  usata, sotto il campo PLATINUM */
+/* anteprima della scala che verra' usata, sotto il campo PLATINUM */
 .anteprima-riferimento {
   display: flex; flex-direction: column; gap: 4px;
   margin: -6px 0 12px; padding: 9px 11px;
@@ -945,7 +976,7 @@ a { color: var(--blu); text-decoration: none; }
   border: 1px solid #1f5e42; border-radius: 6px; padding: 3px 7px;
 }
 
-/* --- quanto Ã¨ pesante per TE, e la correzione dei livelli --- */
+/* --- quanto e' pesante per TE, e la correzione dei livelli --- */
 .riga-giudizio.giud-personale { border-left-color: var(--blu); }
 .riga-giudizio.giud-personale .nota-piccola { font-size: .74rem; }
 
@@ -967,8 +998,8 @@ a { color: var(--blu); text-decoration: none; }
 .livello-interrogativo { margin-top: 16px; }
 .livello-interrogativo > summary { cursor: pointer; list-style: none; font-size: .74rem; font-weight: 900; letter-spacing: .1em; color: var(--viola); }
 .livello-interrogativo > summary::-webkit-details-marker { display: none; }
-.livello-interrogativo > summary::after { content: '  â–¾'; color: var(--testo-2); }
-.livello-interrogativo[open] > summary::after { content: '  â–´'; }
+.livello-interrogativo > summary::after { content: '  ▾'; color: var(--testo-2); }
+.livello-interrogativo[open] > summary::after { content: '  ▴'; }
 
 /* --- confronto mensile: "un mese fa su questo esercizio come stavo?" --- */
 .blocco-mensile {
@@ -1075,19 +1106,19 @@ a { color: var(--blu); text-decoration: none; }
 
 /* La schermata dell'allenamento sul telefono.
  *
- * Ste (04/10/2026): "da telefono appena inizio gli allenamenti Ã¨ tutto troppo
+ * Ste (04/10/2026): "da telefono appena inizio gli allenamenti e' tutto troppo
  * grosso e un po' si bugga".
  *
- * "Tutto troppo grosso" Ã¨ il problema vero: con i campi di kg e ripetizioni grandi
+ * "Tutto troppo grosso" e' il problema vero: con i campi di kg e ripetizioni grandi
  * e i bottoni alti, sul telefono le tre serie di un esercizio non ci stanno e si
  * finisce per scorrere per un esercizio solo. E "si bugga" viene da li': gli input
  * numerici su iOS fanno zoom da soli se la dimensione del font e' sotto i 16px, e
- * un zoom a metÃ  allenamento fa saltare il tap successivo.
+ * un zoom a meta' allenamento fa saltare il tap successivo.
  *
  * Quindi: i CAMPI restano a 16px (quelli sono input, e sotto i 16 lo zoom si
- * vede), ma tutto il resto va giÃ¹.
+ * vede), ma tutto il resto va giu'.
  *
- * Ste (07/10/2026): "ti ho detto di farlo meno ingombrante, Ã¨ troppo grosso
+ * Ste (07/10/2026): "ti ho detto di farlo meno ingombrante, e' troppo grosso
  * scritto". Aveva ragione, e il colpevole era proprio qui sotto: la regola dei
  * 16px metteva `.sotto-campo` INSIEME agli input, quindi le etichette "KG" e
  * "RIP" erano grandi come i numeri che descrivono. Le etichette sono SPAN, non

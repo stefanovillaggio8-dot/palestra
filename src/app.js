@@ -188,6 +188,38 @@ async function caricaLivelliImparati() {
   }
 }
 
+/**
+ * Un solo ascolto per lo scorrimento, per tutta l'app.
+ *
+ * Ste (07/10/2026): "il coso con scritto 'allenamento iniziato alle', il tempo ecc,
+ * e' troppo grosso, fallo piu' piccolo quando scorro verso il basso".
+ *
+ * La banda col cronometro sta appiccicata in alto (position: sticky), quindi
+ * mentre lavori sulle serie ti mangia un pezzo di schermo per ogni riga. Quando
+ * scendi, quella banda si fa piccola: restano il cronometro e il bottone per
+ * finire l'allenamento, e sparisce il testo di contorno.
+ *
+ * Perche' una classe sul body e non stili sul nodo della banda: la banda viene
+ * ridisegnata a ogni salvataggio (disegna() gira spesso), quindi metterle un
+ * ascolto ogni volta creerebbe ascolti a ripetizione, che dopo un po' si chiamano
+ * dieci volte per ogni scroll. Qui c'e' UN ascolto solo, e la classe sul body la
+ * trovano tutte le bande, anche quelle che nascono dopo che hai iniziato a
+ * scorrere.
+ */
+const SOGLIA_SCORRIMENTO = 48;
+function ascoltaScorrimento() {
+  if (typeof window === 'undefined' || typeof window.addEventListener !== 'function') return;
+  if (ascoltaScorrimento.giaFatto) return;
+  ascoltaScorrimento.giaFatto = true;
+  const aggiorna = () => {
+    const y = typeof window.scrollY === 'number' ? window.scrollY : 0;
+    const body = typeof document !== 'undefined' ? document.body : null;
+    if (body && body.classList) body.classList.toggle('scorso', y > SOGLIA_SCORRIMENTO);
+  };
+  window.addEventListener('scroll', aggiorna, { passive: true });
+  aggiorna();
+}
+
 async function avvia() {
   const radice = document.getElementById('app');
   installaSpiaErrori();
@@ -211,6 +243,7 @@ async function avvia() {
     }
     await seminaSeVuoto();
     bottoneSu();
+    ascoltaScorrimento();
 
     await ricaricaTutto();
 

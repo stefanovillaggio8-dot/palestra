@@ -1,4 +1,4 @@
-﻿// sw.js -- service worker.
+// sw.js -- service worker.
 // Pre-carica tutto quello che serve, cosi' la seconda volta l'app parte
 // anche senza rete. I dati NON stanno qui: stanno in IndexedDB, quindi
 // cancellare la cache non cancella niente del tuo allenamento.
@@ -9,7 +9,7 @@
 // e il test I3 che sia quello dell'ultimo commit, altrimenti si alza la cache e si
 // lascia scritto il numero vecchio. E' successo due volte: nella v54 avevo alzato
 // solo questo file, e dopo la v55 avevo smesso di alzarlo del tutto.
-const VERSIONE = 'palestra-v65';
+const VERSIONE = 'palestra-v66';
 
 const FILE = [
   './',

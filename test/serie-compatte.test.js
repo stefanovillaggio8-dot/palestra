@@ -42,12 +42,26 @@ async function attendiChe(condizione, tentativi = 80) {
   return false;
 }
 
-/** il numero in px di una regola CSS, se c'è: `width: 40px` dentro `.bottone-spunta` */
+/** Il numero in px di una regola CSS, se c'è: `width: 40px` dentro `.bottone-spunta` */
 function pxDi(selettore, proprieta) {
   const regola = new RegExp(selettore.replace(/\./g, '\\.') + '\\s*\\{([^}]*)\\}').exec(CSS);
   assert.ok(regola, `il CSS non ha la regola ${selettore}`);
   const m = new RegExp(proprieta + '\\s*:\\s*(\\d+(?:\\.\\d+)?)px').exec(regola[1]);
   assert.ok(m, `${selettore} non ha ${proprieta} in px`);
+  return Number(m[1]);
+}
+
+/**
+ * I rem dentro un pezzo di CSS: accetta "3rem", ".5rem" e "1.6rem".
+ *
+ * La regex accettava solo due delle tre e, quando non tornava, restituiva null. E
+ * un null non dice niente: il test cadeva con un errore suo invece che con "questa
+ * regola non c'e' piu'". Un test che quando sbaglia dice una cosa diversa da
+ * quella che voleva verificare fa perdere mezz'ora.
+ */
+function remDa(css, dove) {
+  const m = /font-size:\s*(\d*\.?\d+)rem/.exec(css || '');
+  assert.ok(m, `${dove}: non c'è un font-size in rem (${JSON.stringify((css || '').trim())})`);
   return Number(m[1]);
 }
 
@@ -126,9 +140,7 @@ test('5. i pulsanti secondari restano ma sono stretti (40 px, non spariti)', () 
 // ---------------------------------------------------------------------------
 
 test('5b. le etichette KG e RIP sono PICCOLE, non grandi come i numeri', () => {
-  const rem = Number(/font-size:\s*(\.?\d+)rem/.exec(
-    /\.sotto-campo\s*\{([^}]*)\}/.exec(CSS)[1],
-  )[1]);
+  const rem = remDa(/\.sotto-campo\s*\{([^}]*)\}/.exec(CSS)[1], '.sotto-campo');
   assert.ok(rem <= 0.55,
     `.sotto-campo e' a ${rem} rem: le etichette devono stare sotto ai numeri, non al pari`);
 });
@@ -160,10 +172,9 @@ test('5c. sul telefono le etichette NON vengono portate a 16 px', () => {
 });
 
 test('5d. dentro la riga serie i numeri non sono grandi (i campi restano 16 px su iOS)', () => {
-  const campo = /\.campo-num\s*\{([^}]*)\}/.exec(CSS)[1];
-  const rem = Number(/font-size:\s*(\.?\d+)rem/.exec(campo)[1]);
+  const rem = remDa(/\.campo-num\s*\{([^}]*)\}/.exec(CSS)[1], '.campo-num');
   assert.ok(rem <= 0.95, `il campo dei numeri e\' a ${rem} rem fuori dal telefono`);
-  const numero = Number(/font-size:\s*(\.?\d+)rem/.exec(/\.numero-serie\s*\{([^}]*)\}/.exec(CSS)[1])[1]);
+  const numero = remDa(/\.numero-serie\s*\{([^}]*)\}/.exec(CSS)[1], '.numero-serie');
   assert.ok(numero <= 0.85, `il badge del numero e\' a ${numero} rem: deve stare in un angolino`);
 });
 
