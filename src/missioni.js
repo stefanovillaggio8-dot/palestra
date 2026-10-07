@@ -153,6 +153,67 @@ export const POOL = [
   M('la-lotta', 'LA LOTTA INTERNA',
     "Prima della serie guarda un amico e chiedigli ad alta voce: \"Chi ti sta aspettando dall'altra parte?\" Poi vinci.", 'insane'),
 
+  // ---- le sfide di Ste, scritte da lui il 07/10/2026 ----
+  // Queste sono sue, parola per parola nel senso. Livello e punti li ho messi io, e
+  // il criterio e' uno solo: quanto ti mette in imbarazzo se ti vede un amico che
+  // NON sta facendo nessuna delle cose che hai scritto tu.
+  //  - easy      (20 aura): lo fai senza accorgertene, e ridi anche tu
+  //  - unhinged  (40 aura): te la cavi con faccia seria
+  //  - insane    (75 aura): se qualcuno ti vede, ride di te per una settimana
+  //  - legendary (150 aura): va fatta di nascosto, e le SECRET valgono anche di piu'
+  //
+  // DIECIOTTO su ventidue erano gia' nel pool o ci somigliavano troppo:
+  //  - "intervista post-gara" esiste gia' (id interview-post-gara): stesso testo
+  //    dentro, quindi NON l'ho rimessa
+  //  - le altre che si somigliano sono tenute separate apposta: la posa da
+  //    vincitore, la foto da campione, l'applauso all'amico e il conto delle
+  //    ripetizioni sono sfide DIVERSE da queste, e qui ognuna ha la sua.
+  // ---------------------------------------------------------------------------
+  M('lo-specchio-maledetto', 'IL SPECCHIO MALEDETTO',
+    'Fai davanti allo specchio una posa da bodybuilder esagerata e tientila per venti secondi senza muovere niente. Solo il viso racconta la posa.', 'insane'),
+  M('il-coach-improvvisato', 'IL COACH IMPROVVISATO',
+    'Spiega a un amico, con serietà da allenatore, come si fa un esercizio normalissimo, e non cambiare mai discorso. Alla fine chiedigli: "Tutto chiaro?"', 'unhinged'),
+  M('la-presentazione-epica', 'LA PRESENTAZIONE EPICA',
+    'Prima di una serie presentati come se stessi entrando sul palco del Mr. Olympia: nome, cognome e paese, senza sorridere. Poi la affronti in silenzio.', 'unhinged'),
+  M('applauso-personale', 'APPLAUSO PERSONALE',
+    'Dopo una serie fai dieci secondi di applauso a te stesso, guardandoti nello specchio, come se avessi appena vinto qualcosa.', 'easy'),
+  M('il-ringraziamento', 'IL RINGRAZIAMENTO',
+    'Dopo aver finito un esercizio guarda la macchina negli occhi e ringraziala solennemente, ad alta voce, come se ti avesse appena salvato la vita.', 'easy'),
+  M('il-commentatore-sportivo', 'IL COMMENTATORE SPORTIVO',
+    "Racconta ad alta voce la tua prossima serie come una telecronaca, dalla salita a bilanciere fino all'ultima ripetizione. Non ridere mentre parli.", 'unhinged'),
+  M('la-posa-casuale', 'LA POSA CASUALE',
+    'Ogni volta che qualcuno ti guarda fai una posa da bodybuilding, e poi chiedi a chi ti ha guardato: "Che hai visto?" senza spiegare niente.', 'unhinged'),
+  M('il-motivatore', 'IL MOTIVATORE',
+    'Fai a un amico un discorso motivazionale di almeno venti secondi, con voce ferma e zero pause. Alla fine chiedigli: "Ora ti senti meglio?"', 'unhinged'),
+  M('il-selfie-drammatico', 'IL SELFIE DRAMMATICO',
+    "Dopo una serie fai una foto a te stesso con l'espressione di uno che ha appena sofferto moltissimo, anche se non è successo niente. Poi torni al lavoro.", 'unhinged'),
+  M('l-intervista-fallita', "L'INTERVISTA DELLA SERIE PERFETTA",
+    "Chiedi al tuo amico di farti un'intervista dopo una serie andata benissimo e spiegagli con serietà perché l'hai persa. Se ti fa la domanda più brutale, \"come ti senti?\", rispondi: \"Al limite, ma ho dato tutto.\"", 'unhinged'),
+  M('l-applauso-obbligatorio', "L'APPLAUSO OBBLIGATORIO",
+    "Dopo ogni serie il tuo amico deve applaudirti come se avessi appena fatto qualcosa di storico, e tu non devi sorridere. Poi chiedigli: \"Stavolta l'ho meritato?\"", 'insane'),
+  M('il-discorso-al-manubrio', 'IL DISCORSO AL MANUBRIO',
+    "Prendi un manubrio e parlagli per trenta secondi come se fosse il tuo migliore amico, senza alzare niente. Alla fine chiedigli: \"Siamo amici?\"", 'insane'),
+  M('il-debuttante', 'IL DEBUTTANTE',
+    "Per tre minuti chiedi al tuo amico spiegazioni ovvie sull'esercizio che state facendo, e fingi di non capire niente. Parti sempre da: \"Ma questo io lo so fare?\" e fagli almeno sei domande diverse.", 'unhinged'),
+  M('il-campione-olimpico', 'IL CAMPIONE OLIMPICO',
+    'Dopo una serie normalissima fai finta di aver appena vinto una medaglia olimpica: guarda la bandiera, ringrazia la palestra e rimettiti al lavoro.', 'unhinged'),
+  M('la-telecronaca-personale', 'LA TELECRONACA PERSONALE',
+    "Racconta ad alta voce ogni tua ripetizione, una alla volta, e non puoi usare due volte la stessa frase: se sbagli il nome dell'esercizio continui come se niente fosse.", 'insane'),
+  // Cinque di queste sono SECRET: quelle che faresti solo se nessuno della sala
+  // guarda. Le altre si possono fare guardando in faccia, e allora valgono meno.
+  M('il-npc-della-palestra', 'IL NPC DELLA PALESTRA',
+    'Per due minuti fai il personaggio di un gioco: cammina con una strana andatura, corri sul posto e ripeti una frase a caso finche nessuno ti guarda.', 'legendary', { segreta: true }),
+  M('la-foto-criminale', 'LA FOTO CRIMINALE',
+    'Fai la foto più tamarra possibile davanti allo specchio, con la luce peggiore che trovi, e non ritoccarla: deve sembrare una prova del reato.', 'legendary', { segreta: true }),
+  M('il-nome-sbagliato', 'IL NOME SBAGLIATO',
+    'Per cinque minuti chiama ogni attrezzo con un nome inventato e usalo per tutto: manubri, panche, macchine. E se sbagli, sbagli ancora meglio.', 'insane', { segreta: true }),
+  M('la-confessione-alla-macchina', 'LA CONFESSIONE ALLA MACCHINA',
+    'Racconta alla macchina il tuo fallimento più grande in palestra, con la stessa serietà di un confessionale, e non citare nessun nome.', 'insane', { segreta: true }),
+  M('il-doppio-personal-trainer', 'IL DOPPIO PERSONAL TRAINER',
+    "Chiedi al tuo amico di farti vedere un esercizio che sta facendo in modo perfetto e spiegagli che deve cambiare tutto. Parti da: \"Ma se è perfetto, cosa correggo?\" Non accettare discussioni.", 'insane', { segreta: true }),
+  M('il-traduttore', 'IL TRADUTTORE',
+    'Spiega a un amico un esercizio senza mai dirne il nome vero: descrivi solo i movimenti e chiedigli "Quale attrezzo è?" senza svelargli la risposta.', 'insane'),
+
 // ---- sfide con gli sconosciuti: imbarazzo per TE, mai per gli altri ----
   // Ste ha chiesto che siano piu' difficili delle altre, perche' e' lo
   // sconosciuto a metterti in imbarazzo. Per questo qui dentro non ci sono

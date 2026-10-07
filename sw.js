@@ -9,7 +9,7 @@
 // e il test I3 che sia quello dell'ultimo commit, altrimenti si alza la cache e si
 // lascia scritto il numero vecchio. E' successo due volte: nella v54 avevo alzato
 // solo questo file, e dopo la v55 avevo smesso di alzarlo del tutto.
-const VERSIONE = 'palestra-v62';
+const VERSIONE = 'palestra-v63';
 
 const FILE = [
   './',
@@ -52,7 +52,8 @@ const FILE = [
   './src/avatar.js',
   './src/gioco.js',
   './src/grafici.js',
-  './src/peso-corporeo.js',
+'./src/peso-corporeo.js',
+  './src/avviso-peso.js',
   './src/rank.js',
   './src/rank-config.js',
   './src/streak.js',

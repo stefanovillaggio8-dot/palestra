@@ -377,7 +377,74 @@ test('2l. ogni missione spiega con chiarezza cosa fare', () => {
 // almeno un verbo d'azione concreto.
     // niente \b sulle parole accentate: "ì" non e' un carattere di parola in
     // JavaScript, quindi \b non aggancia e il test passerebbe buggerato
-    const azione = /(fai|chiedi|guarda|metti|spiega|annuncia|presenta|conta|saluta|racconta|ripeti|mostra|scegli|scrivi|leggi|cambia|annuisci|sorridi|scrolla|porta|prova|continua|parti|chiama|urla|canticchia|trombone|dirigi|incoraggia|festeggia|cita|segna|alza)/i;
+const azione = /(fai|chiedi|guarda|metti|spiega|annuncia|presenta|conta|saluta|racconta|ripeti|mostra|scegli|scrivi|leggi|cambia|annuisci|sorridi|scrolla|porta|prova|continua|parti|chiama|urla|canticchia|trombone|dirigi|incoraggia|festeggia|cita|segna|alza)/i;
     assert.ok(azione.test(m.testo), 'non dice cosa fare: ' + m.id);
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Le sfide che Ste ha scritto lui il 07/10/2026, con i livelli scelti da me.
+//
+// Qui non guardo "se la sfida c'e'": guardo che ognuna ci sia UNA volta sola e che
+// i punti aura NON siano scritti a mano. I punti devono uscire dalla difficolta'
+// (DIFFICOLTA[...].aura), altrimenti il giorno che cambio i punti di un livello
+// questa tabella continuerebbe a dire il numero vecchio, e qui passerebbe lo
+// stesso: e' il tipo di bug che si vede solo fra un anno.
+// ---------------------------------------------------------------------------
+
+test('21. tutte le sfide di Ste ci sono, una volta sola', () => {
+  // id nell'ordine in cui le ha scritte lui. "intervista-post-gara" non e' in
+  // lista perche' ESISTEVA GIA' nel pool con lo stesso testo dentro: Ste ha detto
+  // "se ci sono gia', non duplicarle", quindi l'ho lasciata com'era.
+  const richieste = [
+    'lo-specchio-maledetto', 'il-coach-improvvisato', 'la-presentazione-epica',
+    'applauso-personale', 'il-ringraziamento', 'il-commentatore-sportivo',
+    'la-posa-casuale', 'il-npc-della-palestra', 'il-motivatore',
+    'la-foto-criminale', 'il-selfie-drammatico', 'il-doppio-personal-trainer',
+    'intervista-post-gara', 'il-nome-sbagliato', 'l-applauso-obbligatorio',
+    'il-discorso-al-manubrio', 'il-debuttante', 'la-confessione-alla-macchina',
+    'il-traduttore', 'la-telecronaca-personale', 'l-intervista-fallita',
+    'il-campione-olimpico',
+  ];
+  for (const id of richieste) {
+    const m = missionePerId(id);
+    assert.ok(m, 'sfida richiesta da Ste che manca: ' + id);
+    assert.ok(DIFFICOLTA[m.difficolta], 'livello non valido per ' + id + ': ' + m.difficolta);
+    assert.equal(m.testo.length >= 60, true, 'testo troppo corto: ' + id);
+  }
+  // e nessuna delle sue due volte: gli id sono unici (test 1), ma controllo
+  // anche che NON sia stata rimessa una sfida identica con un altro nome
+  const sue = richieste.map((id) => missionePerId(id));
+  const titoli = sue.map((m) => m.titolo);
+  assert.equal(new Set(titoli).size, titoli.length, 'due sfide di Ste hanno lo stesso titolo');
+  const testi = sue.map((m) => m.testo);
+  assert.equal(new Set(testi).size, testi.length, 'due sfide di Ste hanno lo stesso testo');
+});
+
+test('21b. i punti aura delle sfide vengono dal livello, non sono scritti a mano', () => {
+  const sconosciute = ['lo-specchio-maledetto', 'il-coach-improvvisato', 'la-presentazione-epica',
+    'applauso-personale', 'il-ringraziamento', 'il-commentatore-sportivo', 'la-posa-casuale',
+    'il-npc-della-palestra', 'il-motivatore', 'la-foto-criminale', 'il-selfie-drammatico',
+    'il-doppio-personal-trainer', 'il-nome-sbagliato', 'l-applauso-obbligatorio',
+    'il-discorso-al-manubrio', 'il-debuttante', 'la-confessione-alla-macchina',
+    'il-traduttore', 'la-telecronaca-personale', 'l-intervista-fallita', 'il-campione-olimpico'];
+  for (const id of sconosciute) {
+    const m = missionePerId(id);
+    const atteso = ricompensaMissione(m, { segreta: !!m.segreta });
+    assert.equal(m.aura, undefined,
+      id + ' ha un numero di aura scritto a mano: deve arrivare dal livello');
+    assert.ok(atteso.aura > 0, id + ' non vale niente');
+    if (m.segreta) {
+      assert.ok(atteso.aura > DIFFICOLTA[m.difficolta].aura,
+        id + ' e\' segreta ma non vale di piu\' della stessa sfida come weekly');
+    }
+  }
+  // il criterio con cui ho scelto i livelli: piu' la sfida ti mette in imbarazzo,
+  // piu' vale. Controllo solo che i cinque segreti siano fra le piu' care.
+  const segrete = sconosciute.map((id) => missionePerId(id)).filter((m) => m.segreta);
+  assert.equal(segrete.length, 5, 'le segrete sono cinque: quelle che faresti di nascosto');
+  for (const m of segrete) {
+    assert.ok(['insane', 'legendary'].includes(m.difficolta),
+      'una segreta deve essere cara: ' + m.id + ' e\' ' + m.difficolta);
   }
 });

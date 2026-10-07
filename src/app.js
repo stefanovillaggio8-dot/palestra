@@ -39,6 +39,7 @@ import {
   pesoAttuale, pesiCronologici, segnaPeso, togliPeso, pesoCorporeoValido,
   serveAggiornare, PESO_RIFERIMENTO,
 } from './peso-corporeo.js';
+import { avvisoPesoEsercizio } from './avviso-peso.js';
 
 // Il peso corporeo sta in una variabile semplice per non rileggerlo dal database
 // a ogni schermata: cambia raramente e il Rank lo usa spesso.
@@ -3381,7 +3382,7 @@ function vistaRank(zona) {
   disegnaSezione();
 }
 
-function vistaEsercizio(zona, esercizioId) {
+async function vistaEsercizio(zona, esercizioId) {
   const e = esercizioPerId(esercizioId);
   if (!e) { zona.appendChild(el('p', { testo: 'Esercizio non trovato.' })); return; }
   const serie = (V.serie || []).filter((x) => x && !x.eliminata && x.esercizio_id === e.id);
@@ -3441,6 +3442,20 @@ function vistaEsercizio(zona, esercizioId) {
     rigaSoglie.push('metti il tuo peso nel profilo e le soglie si adattano');
   }
   zona.appendChild(el('p', { class: 'nota', testo: `${rigaSoglie.join(' · ')}. Soglie: ${profilo.soglie.map((s, i) => `${RANK[i].nome} da ${formattaNumero(s)}`).join(' · ')}` }));
+
+  // L'AVVISO DEL PESO. Ste (07/10/2026): "il peso corporeo e' l'ultima cosa
+  // fragile: e' l'unico numero digitato a mano che muove tutti i Rank".
+  //
+  // Va qui, subito sotto la riga delle soglie, perche' e' la stessa cosa: quelle
+  // soglie sono state costruite con quel peso. E appare SOLO se il peso e' vecchio:
+  // se e' fresco l'avviso sarebbe solo rumore, e decideslo lo fa serveAggiornare
+  // (non un controllo nuovo fatto qui, vedi avviso-peso.js).
+  const avvisoPeso = await avvisoPesoEsercizio({ serie, esercizio: e, account: accountAttivo() });
+  if (avvisoPeso) {
+    zona.appendChild(el('div', { class: 'box-avviso-peso' }, [
+      ...avvisoPeso.righe.map((riga) => el('p', { class: 'nota nota-piccola', testo: riga })),
+    ]));
+  }
 
   // Ste: "deve capire ancora meglio i rank e le difficolta'". Ora il muscolo
   // entra nella soglia, e se non lo dico l'app ti chiede solo perche' la tua
