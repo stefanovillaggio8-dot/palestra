@@ -1,19 +1,30 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-// Due persone nella stessa app, con link diversi (?p=1 e ?p=2).
-// Il pericolo grosso e' che i dati di una finiscano nei progressi dell'altra:
-// questi test premono esattamente quel tasto.
+// Due persone nella stessa app, con link diversi (?p=1 e ?p=2), piu' chi si registra
+// col link (?n=nome&k=chiave). Il pericolo grosso e' che i dati di una finiscano nei
+// progressi dell'altra: questi test premono esattamente quel tasto.
 
-import { personaDallaUrl, PERSONE } from '../src/dati-iniziali.js';
+import { chiSei, PERSONE } from '../src/dati-iniziali.js';
+
+/** Data quella scheda gia' presente sul telefono, la scelta torna a Ste. */
+const SU_STE = ['scheda-gym-3'];
 
 test('la persona si sceglie dalla URL', () => {
-  assert.equal(personaDallaUrl('').id, 1, 'senza ?p= si parte dalla prima');
-  assert.equal(personaDallaUrl('?p=1').id, 1);
-  assert.equal(personaDallaUrl('?p=2').id, 2);
-  assert.equal(personaDallaUrl('?p=2' + String.fromCharCode(35) + '/').id, 2, 'anche con il pezzo di scheda dopo');
-  assert.equal(personaDallaUrl('?p=99').id, 1, 'un numero inesistente non deve rompere: torno alla prima');
-  assert.equal(personaDallaUrl('?altro=2').id, 1);
+  assert.equal(chiSei({ ricerca: '', memoria: null, schede: SU_STE }).persona.id, 1,
+    'senza ?p=, su un telefono che ha gia\' le tue schede, parti da te');
+  assert.equal(chiSei({ ricerca: '?p=1', memoria: null, schede: [] }).persona.id, 1);
+  assert.equal(chiSei({ ricerca: '?p=2', memoria: null, schede: [] }).persona.id, 2);
+  assert.equal(chiSei({ ricerca: '?p=2' + String.fromCharCode(35) + '/', memoria: null, schede: [] }).persona.id, 2,
+    'anche con il pezzo di scheda dopo');
+  assert.equal(chiSei({ ricerca: '?altro=2', memoria: null, schede: SU_STE }).persona.id, 1);
+  // ?p=99 non esiste piu': non si butta nessuno fuori, si cerca il resto del
+  // dispositivo (o si chiede il nome). Non si sceglie Ste a caso, perche' cosi'
+  // un link scritto male finirebbe con qualcuno dentro la scheda di un altro.
+  assert.equal(chiSei({ ricerca: '?p=99', memoria: null, schede: SU_STE }).persona.id, 1,
+    'un numero inesistente non deve rompere: torna a chi c\'era gia\'');
+  assert.equal(chiSei({ ricerca: '?p=99', memoria: null, schede: [] }).daChiedere, true,
+    'su un telefono nuovo, un link scritto male porta a chiedere il nome');
 });
 
 test('ogni persona ha la sua scheda e un id diverso', () => {

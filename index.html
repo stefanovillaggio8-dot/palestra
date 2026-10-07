@@ -9,15 +9,21 @@
 <link rel="manifest" href="./manifest.webmanifest">
 <script>
 // Ogni persona installa la SUA app, quindi ognuna ha il suo manifesto.
-// ?p=2 -> "Palestra A", tutto il resto -> la scheda di Stefano.
-// Prima avevamo un manifesto solo: installando "Palestra A" si apriva sulla
-// scheda di Stefano e sul telefono la seconda installazione sovrascriveva la prima.
+// ?p=2 -> "Palestra A" (Andrea), ?n=nome&k=chiave -> il manifest "nuovo" (chi si
+// registra col link), tutto il resto -> la scheda di Stefano.
+//
+// Il manifest "nuovo" esiste perche' senza, un amico che apre ?n=luca&k=aa11
+// prenderebbe quello di Stefano: si troverebbe un'app chiamata "la mia scheda",
+// con lo stesso id (e quindi installandola sostituirebbe quella di Ste) e con
+// start_url che punta a ?p=1, cioe' che gli aprirebbe SEMPRE il profilo di Ste.
 (function () {
   try {
-    var m = /[?&]p=(\d+)/.exec(window.location.search || '');
-    var nome = m && m[1] === '2' ? 'p2' : 'p1';
+    var q = window.location.search || '';
+    var nome = /[?&]n=/.test(q);
+    var m = /[?&]p=(\d+)/.exec(q);
+    var scelto = nome ? 'nuovo' : (m && m[1] === '2' ? 'p2' : 'p1');
     var link = document.querySelector('link[rel="manifest"]');
-    if (link) link.setAttribute('href', './manifest-' + nome + '.webmanifest');
+    if (link) link.setAttribute('href', './manifest-' + scelto + '.webmanifest');
   } catch (e) { /* pazienza: resta il manifesto di base */ }
 })();
 </script>
@@ -41,7 +47,7 @@
      insieme, su 11 righe su 20: il bonus spingeva gli LP senza ricalcolare la
      divisione. Trovato leggendo il telefono. Il numero di versione sta in DUE
      file, questo e sw.js: i test I2 e I3 lo controllano. -->
-<script>window.PALESTRA_VERSIONE = '61';</script>
+<script>window.PALESTRA_VERSIONE = '62';</script>
 <script type="module" src="./src/app.js"></script>
 </body>
 </html>

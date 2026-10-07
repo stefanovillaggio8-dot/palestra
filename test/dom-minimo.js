@@ -208,14 +208,22 @@ export function montaDom() {
   body.appendChild(app);
 
   const ascoltatoriFinestra = new Map();
+  // Questo telefono finto e' IL TELEFONO DI STE: parte gia' con la sua identita'
+  // nella URL. Serve, perche' da quando anche gli amici possono registrarsi col
+  // link, un dispositivo vuoto senza link chiede il nome: e quei test qui non
+  // vogliono una domanda, vogliono la home di Stefano.
   const posizione = {
     _hash: '',
-    get href() { return 'http://prova/palestra/' + posizione._hash; },
-    get hash() { return posizione._hash; },
+    _search: '?p=1',
+    pathname: '/palestra/',
+    get href() { return 'http://prova/palestra/' + this._search + this._hash; },
+    get search() { return this._search; },
+    set search(v) { this._search = String(v || ''); },
+    get hash() { return this._hash; },
     set hash(v) {
-      const vecchio = posizione._hash;
-      posizione._hash = String(v);
-      if (vecchio !== posizione._hash) {
+      const vecchio = this._hash;
+      this._hash = String(v);
+      if (vecchio !== this._hash) {
         for (const fn of (ascoltatoriFinestra.get('hashchange') || [])) fn({ type: 'hashchange' });
       }
     },

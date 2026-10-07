@@ -9,15 +9,19 @@
 // e il test I3 che sia quello dell'ultimo commit, altrimenti si alza la cache e si
 // lascia scritto il numero vecchio. E' successo due volte: nella v54 avevo alzato
 // solo questo file, e dopo la v55 avevo smesso di alzarlo del tutto.
-const VERSIONE = 'palestra-v61';
+const VERSIONE = 'palestra-v62';
 
 const FILE = [
   './',
   './index.html',
   './stile.css',
-  './manifest.webmanifest',
+'./manifest.webmanifest',
   './manifest-p1.webmanifest',
   './manifest-p2.webmanifest',
+  // il manifest di chi si registra col link (?n=nome&k=chiave): senza, l'app
+  // installata di un amico prenderebbe quello di Ste, con lo stesso id e con
+  // start_url che punta a ?p=1
+  './manifest-nuovo.webmanifest',
   './src/app.js',
   './src/numeri.js',
   './src/confronto.js',

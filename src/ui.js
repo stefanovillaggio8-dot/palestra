@@ -106,6 +106,39 @@ export function chiediConferma(titolo, messaggio, { testoOk = 'Confermo', testoA
   });
 }
 
+/**
+ * Chiede una parola con un dialogo fatto in casa. Serve alla prima apertura di chi
+ * si registra col link: senza un campo dove scrivere il nome, l'amico si troverebbe
+ * dentro la scheda di Ste.
+ *
+ * Restituisce il testo scritto (stringa vuota se annulla), quindi il chiamante
+ * decide cosa fare: un nome vuoto non e' un nome, e non lo si trasforma in uno.
+ */
+export function chiediTesto(titolo, messaggio, { segnaposto = '', testoOk = 'Va bene' } = {}) {
+  return new Promise((risolvi) => {
+    const fine = (v) => { sfondo.remove(); document.removeEventListener('keydown', esc); risolvi(v); };
+    const esc = (e) => { if (e.key === 'Escape') fine(''); };
+    const campo = campoTesto('', { segnaposto, righe: 1 });
+    const invia = () => fine(String(campo.value || '').trim());
+    campo.addEventListener('keydown', (e) => { if (e.key === 'Enter') invia(); });
+    const sfondo = el('div', { class: 'sfondo-dialogo' }, [
+      el('div', { class: 'dialogo' }, [
+        el('h3', { testo: titolo }),
+        el('p', { testo: messaggio, class: 'testo-dialogo' }),
+        campo,
+        el('div', { class: 'dialogo-azioni' }, [
+          bottone('Annulla', { onClick: () => fine(''), classe: 'fantasma' }),
+          bottone(testoOk, { onClick: invia, classe: 'principale' }),
+        ]),
+      ]),
+    ]);
+    sfondo.addEventListener('click', (e) => { if (e.target === sfondo) fine(''); });
+    document.addEventListener('keydown', esc);
+    document.body.appendChild(sfondo);
+    try { if (campo.focus) campo.focus(); } catch { /* pazienza */ }
+  });
+}
+
 export function avviso(testo, { tipo = 'info', durata = 4200 } = {}) {
   const n = el('div', { class: 'avviso avviso-' + tipo, testo });
   document.body.appendChild(n);

@@ -5,7 +5,7 @@
 import * as db from './db.js';
 import * as sb from './supabase.js';
 import * as sync from './sync.js';
-import { el, svuota, campoNumero, campoTesto, bottone, chiediConferma, avviso, schedaEvento, oraLocale, dataLeggibile, conRitardo, bottoneSu } from './ui.js';
+import { el, svuota, campoNumero, campoTesto, bottone, chiediConferma, chiediTesto, avviso, schedaEvento, oraLocale, dataLeggibile, conRitardo, bottoneSu } from './ui.js';
 import { graficoLinea, graficoBarre } from './grafici.js';
 import {
   formattaNumero, formattaPeso, formattaRipetizioni, formattaCronometro, formattaDurata,
@@ -20,7 +20,7 @@ import {
 import { testoProgresso, serieARipetizioniCostanti, riepilogoGenerale } from './progressi.js';
 import { prestazione, mediaPrestazioni, classificaGenerale } from './forza-generale.js';
 import { creaPacchetto, validaPacchetto, unisci, csvSerie, csvSedute, csvEsercizi } from './backup.js';
-import { ESERCIZI, SCHEDA_ID, SCHEDA_NOME, PERSONE, CONTATTI, accountId, personaDallaUrl, costruisciSnapshot } from './dati-iniziali.js';
+import { ESERCIZI, SCHEDA_ID, SCHEDA_NOME, PERSONE, CONTATTI, accountId, chiSei, personaDaMemoria, costruisciSnapshot } from './dati-iniziali.js';
 import { nuovoId, adesso, TABELLE, riallineaEsercizi } from './sincronizzazione.js';
 // --- il gioco: rank, LP, streak, Aura, missioni, amici ---
 import { statoAccount, ricompenseAllenamento, gruppiDaSerie } from './gioco.js';
@@ -86,12 +86,71 @@ const GIRI_DROPSET = 3; // i 3 posti in piu' che ha chiesto Ste
 let persona = null;
 function personaAttiva() {
   if (!persona) {
-    const ricerca = (typeof window !== 'undefined' && window.location && window.location.search) || '';
-    persona = personaDallaUrl(ricerca);
+    // Non si puo' decidere qui: la scelta dipende dal link E dalla memoria del
+    // dispositivo, e la memoria sta nel database. Chi decide e' risolviPersona(),
+    // chiamata all'avvio prima di qualsiasi schermata. Questo e' solo la rete di
+    // sicurezza: se qualcosa la chiama prima, non deve saltare, e la prima cosa da
+    // proteggere e' la scheda di Ste.
+    persona = personaDaMemoria({ p: 1 });
   }
   return persona;
 }
 function schedaAttivaId() { return personaAttiva().schedaId; }
+
+/**
+ * CHI SEI, risolto una volta sola all'avvio.
+ *
+ * Ste (06/10/2026): "quando un amico apre il link vede Stefano. Deve chiedere il
+ * nome e diventare se stesso".
+ *
+ * L'ordine (link, memoria, schede gia' presenti, altrimenti chiedi) e' in
+ * `chiSei`, in dati-iniziali.js, ed e' li' che e' scritto perche'. Qui solo si
+ * raccolgono i tre ingredienti e si applica il risultato.
+ *
+ * La memoria sta nella tabella `meta`, che e' LOCALE e non va sul server: e' una
+ * cosa di questo dispositivo ("questo telefono e' di Luca"), non un fatto da
+ * condividere.
+ */
+async function risolviPersona() {
+  const ricerca = (typeof window !== 'undefined' && window.location && window.location.search) || '';
+  const memoria = await db.leggiMeta('persona', null);
+  const schede = (await db.tutti('schede')).map((s) => s && s.id).filter(Boolean);
+  const esito = chiSei({ ricerca, memoria, schede });
+  if (esito.persona) {
+    persona = esito.persona;
+    if (esito.memoria) await db.scriviMeta('persona', esito.memoria);
+  }
+  return esito;
+}
+
+/**
+ * La domanda del nome, e poi il rinvio col link.
+ *
+ * Il nome va chiesto una volta sola: quando lo scrivi, si genera la chiave, si
+ * scrive la memoria del dispositivo e si riapre la pagina con `?n=nome&k=chiave`.
+ * Cosi' l'amico vede subito la sua scheda, e se un giorno copia il link o cambia
+ * telefono ritrova la stessa.
+ */
+async function chiediNome() {
+  const chiave = nuovoId().replace(/-/g, '').slice(0, 8);
+  const nome = await chiediTesto({
+    titolo: 'Come ti chiami?',
+    spiegazione: 'Questa scheda e\' tua: quello che ci metti lo vedi solo tu.',
+    segnaposto: 'Il tuo nome',
+  });
+  if (!nome) {
+    // nessun nome: non si entra. Meglio una pagina vuota che una scheda chiamata
+    // "senza nome" che poi nessuno ricorda di aver creato.
+    return false;
+  }
+  await db.scriviMeta('persona', { n: nome, k: chiave });
+  try {
+    window.location.href = window.location.pathname + '?n=' + encodeURIComponent(nome) + '&k=' + chiave;
+  } catch {
+    vai('/');
+  }
+  return true;
+}
 
 /** Le versioni della scheda della persona che sta usando l'app. */
 function versioniDellaPersona() {
@@ -136,6 +195,19 @@ async function avvia() {
 
   try {
     await db.apriDb();
+    // CHI SEI, prima di qualsiasi altra cosa. Se questo dispositivo non lo sa e il
+    // link non lo dice, si chiede il nome: meglio una domanda che trovarsi dentro la
+    // scheda di un altro.
+    const chi = await risolviPersona();
+    if (chi.daChiedere) {
+      const risposto = await chiediNome();
+      if (!risposto) {
+        svuota(radice);
+        radice.appendChild(el('div', { class: 'caricamento', testo: 'Serve un nome per aprire la scheda.' }));
+        return;
+      }
+      return; // chiediNome sta rilegando la pagina col link giusto
+    }
     await seminaSeVuoto();
     bottoneSu();
 
@@ -366,10 +438,45 @@ async function risistemaCampiCarico(righe) {
 }
 
 /**
+ * Le persone che su QUESTO dispositivo si possono usare.
+ *
+ * Ste e Andrea ci sono sempre (sono le due schede scritte a mano). Chi si registra
+ * col link c'e' solo se e' lui ad averlo fatto su questo telefono: mettere in lista
+ * dieci amici che non sono qui sarebbe una lista di nomi che non cambiano niente,
+ * e lascerebbe l'impressione di poter passare a una scheda che non esiste.
+ */
+function personeDiQuestaApp() {
+  const persone = PERSONE.slice();
+  const io = personaAttiva();
+  if (io && io.creata && !persone.some((p) => p.id === io.id)) persone.push(io);
+  return persone;
+}
+
+/**
+ * Il link di una persona: `?p=1` / `?p=2` per quelle scritte a mano,
+ * `?n=nome&k=chiave` per chi si registra col link. La chiave ci mette dentro
+ * appena come nel link che manda lui: e' quella che tiene separata la sua scheda
+ * da quella di un omonimo.
+ */
+function linkPersona(p) {
+  const base = window.location.pathname;
+  if (p.creata && p.chiave) {
+    return base + '?n=' + encodeURIComponent(p.nome) + '&k=' + encodeURIComponent(p.chiave);
+  }
+  return base + '?p=' + p.id;
+}
+
+/**
  * Ogni persona deve avere la sua scheda. Alla prima visita creo la scheda e la
  * versione 1 se non ci sono ancora: NON tocco i dati di nessuno, e la scheda
  * dell'altro parte come punto di partenza (gli esercizi sono gli stessi, poi
  * ognuno la modifica come vuole).
+ *
+ * MA chi si registra col link parte da una copia SENZA le serie. Ste (06/10/2026):
+ * "fai una copia della mia e loro la modificano... pero' non deve trovarsi dentro
+ * 35 kg alla chest press come se fossero suoi". Le due persone scritte a mano
+ * (Ste e Andrea) invece partono con i dati del catalogo, che sono la base su cui
+ * sono costruite e hanno senso come esempio.
  */
 async function seminaPersona() {
   const p = personaAttiva();
@@ -381,7 +488,7 @@ async function seminaPersona() {
   const versioneId = 'ver-' + p.schedaId + '-1';
   await db.salva('versioni', {
     id: versioneId, scheda_id: p.schedaId, numero: 1,
-    snapshot: costruisciSnapshot(),
+    snapshot: costruisciSnapshot({ conSerie: !p.creata }),
     nota: 'Versione iniziale: punto di partenza, poi ognuno la modifica come vuole.',
   }, { segna: false });
   await db.salva('schede', {
@@ -590,16 +697,17 @@ function vistaHome(zona) {
 
   // Cambio persona: ogniuno ha il suo link. Non serve alcun account, e i dati
   // non si mescolano: sono schede e storico separati.
-  if (PERSONE.length > 1) {
+  const persone = personeDiQuestaApp();
+  if (persone.length > 1) {
     const boxPersone = el('div', { class: 'scelta-persona' });
     boxPersone.appendChild(el('span', { class: 'nota', testo: 'Stai usando:' }));
     const scelte = el('div', { class: 'chip-scelte' });
-    for (const p of PERSONE) {
+    for (const p of persone) {
       const attiva = p.id === personaAttiva().id;
       scelte.appendChild(bottone(p.nome, {
         onClick: () => {
           if (attiva) return;
-          try { window.location.href = window.location.pathname + '?p=' + p.id + window.location.hash; }
+          try { window.location.href = linkPersona(p) + window.location.hash; }
           catch { vai('/'); }
         },
         classe: 'chip' + (attiva ? ' attivo' : ''),

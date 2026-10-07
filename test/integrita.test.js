@@ -115,11 +115,41 @@ test('ogni file .js di src e\' nella lista del service worker (altrimenti offlin
   }
 });
 
-test('sw.js precarica anche index.html, stile.css e il manifest', () => {
+test('sw.js precarica anche index.html, stile.css e i manifest', () => {
   const sw = readFileSync(join(QUI, '..', 'sw.js'), 'utf8');
-  for (const f of ['./index.html', './stile.css', './manifest.webmanifest']) {
+  for (const f of ['./index.html', './stile.css', './manifest.webmanifest',
+    './manifest-p1.webmanifest', './manifest-p2.webmanifest', './manifest-nuovo.webmanifest']) {
     assert.ok(sw.includes(f), `sw.js non precarica ${f}`);
   }
+});
+
+// I manifest sono l'identita' dell'app installata: se due persone hanno lo stesso
+// id, la seconda installazione sostituisce la prima. E se il start_url punta a una
+// persona fissa, l'app installata si apre SEMPRE su quella persona.
+//
+// Ste (06/10/2026): "se metti la chiave, il link diventa una chiave personale"
+// -> ogni persona deve poter installare l'app senza toccare le altre.
+test('I3b. ogni manifesto ha un id suo e non apre una persona fissa', () => {
+  const radice = join(QUI, '..');
+  const html = readFileSync(join(radice, 'index.html'), 'utf8');
+  const idVisti = new Map();
+  for (const nome of ['manifest-p1', 'manifest-p2', 'manifest-nuovo']) {
+    const m = JSON.parse(readFileSync(join(radice, nome + '.webmanifest'), 'utf8'));
+    assert.ok(m.id, nome + ' deve avere un id');
+    assert.equal(idVisti.has(m.id), false,
+      `${nome} ha lo stesso id di ${idVisti.get(m.id)}: installandolo sostituisce l'altro`);
+    idVisti.set(m.id, nome);
+    assert.ok(m.start_url, nome + ' deve avere start_url');
+  }
+  // il manifesto "nuovo" e' quello di chi si registra col link: il suo start_url
+  // NON puo' contenere ?p=1, altrimenti l'app installata aprirebbe Ste
+  const nuovo = JSON.parse(readFileSync(join(radice, 'manifest-nuovo.webmanifest'), 'utf8'));
+  assert.doesNotMatch(String(nuovo.start_url), /[?&]p=/,
+    'il manifesto di chi si registra non deve puntare a una persona fissa');
+  assert.doesNotMatch(String(nuovo.start_url), /[?&]n=/,
+    'e nemmeno a un nome: l\'app deve aprire pulita e lasciare che la memoria del dispositivo dica chi e\'');
+  // e index.html deve scegliere il manifesto giusto quando c'e' un nome
+  assert.match(html, /'nuovo'/, 'index.html deve scegliere il manifesto nuovo per i link con ?n=');
 });
 
 // ---------------------------------------------------------------------------

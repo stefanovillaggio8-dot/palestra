@@ -52,16 +52,107 @@ export function accountId(numero) {
   return 'account-' + numero;
 }
 
-/** Quale persona si sta usando adesso, letta dalla URL (?p=2). */
-export function personaDallaUrl(ricerca) {
-  const qs = String(ricerca || '');
-  const m = /[?&]p=(\d+)/.exec(qs);
-  const richiesta = m ? Number(m[1]) : null;
-  if (richiesta !== null) {
-    const trovata = PERSONE.find((p) => p.id === richiesta);
-    if (trovata) return trovata;
+/**
+ * La persona che si crea quando qualcuno apre il link e scrive il suo nome.
+ *
+ * Ste (06/10/2026): "quando un amico apre il link vede Stefano. Deve chiedere il
+ * nome e diventare se stesso".
+ *
+ * Tre regole, decise insieme:
+ *   1) la scheda e' una COPIA di quella di Ste ma SENZA le sue serie;
+ *   2) chi sei si ricorda con dispositivo E url, e l'url vince sempre;
+ *   3) nessuno finisce nella lista di Ste se non lo aggiunge lui.
+ *
+ * La `chiave` non e' un vezzo: senza, due amici con lo stesso nome finirebbero
+ * sulla stessa scheda e si scriverebbero addosso. Con la chiave, due link diversi
+ * sono due persone diverse anche se si chiamano uguale.
+ *
+ * `amici` parte vuoto e `amministratore` false: nessuno nasce con i tuoi poteri e
+ * nessuno nasce nella tua lista. Nomi e amici sono di Ste, non del codice.
+ */
+export function personaDaNome(nome, chiave) {
+  const n = String(nome || '').trim();
+  const k = String(chiave || '').trim();
+  if (!n || !k) return null;
+  return {
+    id: k,
+    nome: n,
+    username: n,
+    nomeScheda: 'Palestra di ' + n,
+    schedaId: 'scheda-' + k,
+    predefinita: false,
+    amministratore: false,
+    avatar: 'vuoto',
+    amici: [],
+    chiave: k,
+    creata: true,
+  };
+}
+
+/** Ricostruisce la persona da quello che si e' scritto nella memoria del dispositivo. */
+export function personaDaMemoria(memoria) {
+  if (!memoria || typeof memoria !== 'object') return null;
+  if (memoria.p !== undefined && memoria.p !== null) {
+    return PERSONE.find((p) => p.id === Number(memoria.p)) || null;
   }
-  return PERSONE.find((p) => p.predefinita) || PERSONE[0];
+  if (memoria.n && memoria.k) return personaDaNome(memoria.n, memoria.k);
+  return null;
+}
+
+/** Una stringa dentro un campo dell'URL, per chi si chiama "a b" o "a&b". */
+function campoUrl(qs, nome) {
+  // si ferma anche al pezzo di scheda (#/seduta/...): nel browser vero quello non
+  // sta nella query, ma cosi' la lettura regge anche se qualcuno lo mette li
+  const m = new RegExp('[?&]' + nome + '=([^&#]*)').exec(qs);
+  if (!m) return null;
+  let v = m[1];
+  try { v = decodeURIComponent(v.replace(/\+/g, ' ')); } catch { /* era gia' grezzo */ }
+  return v.trim() ? v.trim() : null;
+}
+
+/**
+ * CHI SEI, in un pezzo solo e testabile.
+ *
+ * L'ordine e' quello che ha deciso Ste, e ogni ordine ha una ragione:
+ *   1) il LINK: ?p=1 / ?p=2 sono le due persone scritte a mano, ?n=nome&k=chiave
+ *      e' chi ti ha mandato il link. Vince sempre, perche' il link e' di chi lo
+ *      manda: se Marco apre il link di Luca sul suo telefono deve diventare Luca.
+ *   2) la MEMORIA del dispositivo: cosi' il nome non si chiede due volte, e se
+ *      cambio telefono e riapro lo stesso link ritrovo la mia scheda.
+ *   3) il caso limite: un dispositivo che ha gia' dentro le schede di Ste NON
+ *      viene messo davanti alla domanda, altrimenti anche lui si troverebbe una
+ *      scheda vuota e non vedrebbe piu' i suoi allenamenti. E' la cosa peggiore
+ *      che potesse succedere, quindi e' scritta qui per prima.
+ *   4) nessuna delle tre: si chiede il nome. Su un dispositivo nuovo non si sa
+ *      niente, e non si inventa nessuno.
+ */
+export function chiSei({ ricerca = '', memoria = null, schede = [] } = {}) {
+  const qs = String(ricerca || '');
+
+  const numero = campoUrl(qs, 'p');
+  if (numero !== null && /^\d+$/.test(numero)) {
+    const persona = PERSONE.find((p) => p.id === Number(numero));
+    if (persona) return { persona, daChiedere: false, memoria: { p: persona.id } };
+    // una persona inesistente NON ti butta fuori dal tuo profilo: si continua
+    // sotto, che vuol dire memoria o schede gia' presenti.
+  }
+
+  const nome = campoUrl(qs, 'n');
+  const chiave = campoUrl(qs, 'k');
+  if (nome && chiave) {
+    const persona = personaDaNome(nome, chiave);
+    if (persona) return { persona, daChiedere: false, memoria: { n: persona.nome, k: persona.chiave } };
+  }
+
+  const dallaMemoria = personaDaMemoria(memoria);
+  if (dallaMemoria) return { persona: dallaMemoria, daChiedere: false, memoria };
+
+  const tue = PERSONE.find((p) => p.predefinita) || PERSONE[0];
+  if (tue && (schede || []).includes(tue.schedaId)) {
+    return { persona: tue, daChiedere: false, memoria: { p: tue.id } };
+  }
+
+  return { persona: null, daChiedere: true, memoria: null };
 }
 
 // Ogni riga e' una VARIANTA con id proprio: "Chest Press" e "Chest Press - macchina B"
@@ -151,8 +242,20 @@ export const GIORNI = [
   },
 ];
 
-/** Istantanea completa della scheda: e' questo che finisce in una versione. */
-export function costruisciSnapshot() {
+/**
+ * Istantanea completa della scheda: e' questo che finisce in una versione.
+ *
+ * `conSerie: false` serve a chi si registra col link: la copia porta i tuoi
+ * giorni, i tuoi esercizi, le tue note e le opzionali, ma NON le tue serie.
+ * Ste: "fai una copia della mia e loro la modificano... pero' non deve trovarsi
+ * dentro 35 kg alla chest press come se fossero suoi".
+ *
+ * Nota sul perche' non possa rompere niente: gli id delle sedute e delle serie non
+ * vengono da qui, nascono nuovi (nuovoId()) quando l'allenamento parte, e ogni
+ * seduta porta scheda_id + versione_id. Quindi la copia di uno non puo' scrivere
+ * sulle righe di un altro: non e' che lo impediamo, e' che non e' possibile.
+ */
+export function costruisciSnapshot({ conSerie = true } = {}) {
   return {
     scheda_id: SCHEDA_ID,
     nome: SCHEDA_NOME,
@@ -166,13 +269,15 @@ export function costruisciSnapshot() {
         esercizio_id: e.esercizio_id,
         opzionale: !!e.opzionale,
         nota: e.nota || '',
-        serie: e.serie.map((x) => ({
-          peso: x.peso === undefined ? null : x.peso,
-          peso_assistenza: x.peso_assistenza === undefined ? null : x.peso_assistenza,
-          ripetizioni: x.ripetizioni === undefined ? null : x.ripetizioni,
-          spotter: !!x.spotter,
-          dropset: !!x.dropset,
-        })),
+        serie: conSerie
+          ? e.serie.map((x) => ({
+            peso: x.peso === undefined ? null : x.peso,
+            peso_assistenza: x.peso_assistenza === undefined ? null : x.peso_assistenza,
+            ripetizioni: x.ripetizioni === undefined ? null : x.ripetizioni,
+            spotter: !!x.spotter,
+            dropset: !!x.dropset,
+          }))
+          : [],
       })),
     })),
   };
