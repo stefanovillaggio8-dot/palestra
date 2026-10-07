@@ -173,6 +173,12 @@ a { color: var(--blu); text-decoration: none; }
 .bot.fantasma { background: transparent; }
 .bot.pericolo { background: linear-gradient(135deg, #d63a4a, #a32430); border-color: transparent; color: #fff; }
 .bot.piccolo-b { padding: 8px 10px; min-height: 38px; font-size: .82rem; }
+/* dentro la riga serie i pulsanti secondari sono stretti: ci devono stare senza
+ * far saltare la riga, ma restano 40 px perché si premano col dito. */
+.riga-serie .bot.piccolo-b { padding: 5px 8px; min-height: 40px; font-size: .76rem; }
+.riga-serie .bot.spotter,
+.riga-serie .bot.dropset-bot { padding: 5px 9px; min-height: 40px; font-size: .72rem; font-weight: 800; }
+.bot.dropset-bot.attivo { color: var(--arancio); border-color: #4a3a1c; }
 .bot.pericolo-b { color: var(--rosso); border-color: #4a2028; }
 .bot.spotter { background: transparent; border-color: var(--bordo); }
 .bot.spotter.attivo {
@@ -356,39 +362,56 @@ a { color: var(--blu); text-decoration: none; }
 .nota-permanente-box p { margin: 8px 0 0; font-size: .9rem; }
 .nota-seduta { display: block; margin: 12px 0 6px; font-weight: 700; color: var(--testo-2); font-size: .85rem; }
 
-.serie { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+.serie { display: flex; flex-direction: column; gap: 7px; margin-top: 8px; }
+
+/* Righe serie COMPATTE (Ste, 07/10/2026).
+ *
+ * Ste ha mandato la foto di un'altra app e ha detto: "rendilo piu' piccolo e meno
+ * ingombrante, tipo di quelle dimensioni". Il problema non era un pezzo gonfio:
+ * era che una serie sola occupava TRE righe di schermo (numeri, poi pulsanti, poi
+ * il confronto) e con cinque esercizi non ne vedi due.
+ *
+ * Le regole che ho seguito, e perche':
+ *  - i numeri e la spunta diventano compatti: sono loro che si toccano mille volte;
+ *  - il toccabile NON scende sotto i 40 px: in palestra il dito è sudato e la
+ *    riga viene premuta di fretta. Piccolo sì, ma non "minuscolo da sbagliarsi";
+ *  - i campi sul telefono restano a 16 px, perché sotto i 16 iOS zooma da solo e
+ *    un zoom a metà allenamento fa saltare il tap dopo (vedi il media query);
+ *  - i pulsanti secondari (spotter, nota, elimina) diventano stretti, ma NON
+ *    spariscono: sono cose che Ste ha chiesto, si accorcia solo lo spazio. */
 .riga-serie {
-  display: flex; flex-wrap: wrap; align-items: flex-end; gap: 9px;
+  display: flex; flex-wrap: wrap; align-items: flex-end; gap: 6px;
   background: var(--card-2); border: 1px solid var(--bordo);
   border-left: 4px solid var(--viola);
-  border-radius: 12px; padding: 10px;
+  border-radius: 10px; padding: 6px 7px;
 }
 .riga-serie.serie-spotter { border-left-color: var(--arancio); background: #2a2016; }
 .riga-serie.serie-decimale { box-shadow: inset 0 0 0 1px rgba(124, 92, 255, .35); }
 .numero-serie {
-  width: 30px; height: 46px; display: flex; align-items: center; justify-content: center;
-  background: var(--viola-scuro); border-radius: 9px; font-weight: 800; flex: 0 0 auto;
+  width: 26px; height: 34px; display: flex; align-items: center; justify-content: center;
+  background: var(--viola-scuro); border-radius: 8px; font-weight: 800; flex: 0 0 auto;
+  font-size: .95rem;
 }
-.campetto { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.campetto { display: flex; flex-direction: column; align-items: center; gap: 2px; }
 .campo-num, .campo-testo {
   font: inherit; font-weight: 700;
   background: var(--nero); color: var(--testo);
-  border: 1px solid var(--bordo); border-radius: 10px;
-  padding: 10px; text-align: center; min-height: 46px;
+  border: 1px solid var(--bordo); border-radius: 9px;
+  padding: 6px; text-align: center; min-height: 40px;
 }
-.campo-num { width: 78px; font-size: 1.15rem; }
-.campo-num.piccolo { width: 62px; font-size: 1rem; min-height: 40px; }
+.campo-num { width: 64px; font-size: 1.05rem; }
+.campo-num.piccolo { width: 52px; font-size: .95rem; min-height: 34px; }
 /* i campi che tocchi spesso: bordo un po' piu' vivo, si vedono subito */
 .campo-num { border-color: #3d3358; }
 .campo-num:focus, .campo-testo:focus { outline: 2px solid var(--viola); outline-offset: 1px; }
 .campo-num.errore { border-color: var(--rosso); background: #2a1114; }
 .campo-testo { width: 100%; text-align: left; }
 .campo-testo:focus { outline: 2px solid var(--viola); }
-.sotto-campo { font-size: .62rem; font-weight: 800; color: var(--testo-3); letter-spacing: .06em; }
-.gruppo-assistite { display: flex; flex-direction: column; gap: 3px; align-items: center; }
+.sotto-campo { font-size: .55rem; font-weight: 800; color: var(--testo-3); letter-spacing: .06em; }
+.gruppo-assistite { display: flex; flex-direction: column; gap: 2px; align-items: center; }
 /* i bottoni dei kg: in palestra si tocca, non si scrive */
-.gruppo-peso { display: flex; flex-direction: column; align-items: center; gap: 3px; }
-.passi-peso { display: flex; gap: 4px; margin-top: 2px; }
+.gruppo-peso { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.passi-peso { display: flex; gap: 4px; margin-top: 1px; }
 .bot.passo {
   min-height: 32px; min-width: 34px; padding: 3px 8px;
   font-size: 1.05rem; font-weight: 900; line-height: 1;
@@ -396,9 +419,11 @@ a { color: var(--blu); text-decoration: none; }
 }
 .bot.passo:active { background: var(--card-2); }
 .bot.passo-piu { color: var(--verde); border-color: #2c5c44; }
-.bot.passo-largo { font-size: .68rem; font-weight: 800; letter-spacing: .02em; color: var(--blu); border-color: #2c3f6b; }
+.bot.passo-largo { font-size: .62rem; font-weight: 800; letter-spacing: .02em; color: var(--blu); border-color: #2c3f6b; }
 .tag-grigio { font-size: .62rem; color: var(--testo-3); font-weight: 700; }
-.nota-serie { width: 100%; color: var(--testo-2); font-size: .82rem; }
+/* la nota della serie sta ACCANTO ai numeri, non su una riga tutta sua: "40 kg x 8"
+   deve stare dove lo vedi insieme a 40 e a 8, altrimenti è un pezzo a caso. */
+.nota-serie { color: var(--testo-2); font-size: .72rem; font-weight: 700; align-self: center; }
 
 .riga-confronto {
   width: 100%; font-size: .78rem; color: var(--testo-2);
@@ -406,6 +431,18 @@ a { color: var(--blu); text-decoration: none; }
 }
 .riga-confronto .prima { color: var(--testo-3); }
 .riga-confronto .dopo { color: var(--verde); font-weight: 700; }
+
+/* dentro la riga serie, invece, "prima: 40 kg x 8" non vuole la sua riga con la
+ * bordata a punteggi: era il terzo pezzo di riga e non aggiungeva niente. Sta in
+ * coda ai numeri e si taglia se non c'entra. La regola vale SOLO qui dentro, perche'
+ * la stessa classe la usa anche la classifica fra amici e li quei pezzi hanno
+ * bisogno della loro scatoletta. */
+.riga-serie .riga-confronto {
+  width: auto; font-size: .72rem;
+  border-top: 0; padding-top: 0; margin-top: 0;
+  align-self: center; min-width: 0; overflow: hidden;
+  text-overflow: ellipsis; white-space: nowrap;
+}
 
 .riga-serie.appena-creata {
   border-color: var(--verde);
@@ -416,17 +453,18 @@ a { color: var(--blu); text-decoration: none; }
   0% { background: #12402e; }
   100% { background: var(--card-2); }
 }
-/* spunta: segna la serie come fatta */
+/* spunta: segna la serie come fatta. Piccola, ma sempre 40 px: e' il bottone che
+   si preme piu' volte in una seduta e non va mai premuto "un po' a lato". */
 .etichetta-fatta {
-  color: var(--verde); font-size: .7rem; font-weight: 800;
+  color: var(--verde); font-size: .62rem; font-weight: 800;
   align-self: center; letter-spacing: .05em;
 }
 .etichetta-fatta:empty { display: none; }
 .bottone-spunta {
-  width: 46px; height: 46px; flex: 0 0 auto;
+  width: 40px; height: 40px; flex: 0 0 auto;
   border-radius: 50%; border: 2px solid var(--bordo);
   background: var(--nero); color: transparent;
-  font-size: 1.5rem; font-weight: 900; line-height: 1;
+  font-size: 1.25rem; font-weight: 900; line-height: 1;
   display: flex; align-items: center; justify-content: center;
   cursor: pointer; padding: 0;
   transition: transform .1s, background-color .15s, border-color .15s;

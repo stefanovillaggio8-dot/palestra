@@ -1394,6 +1394,7 @@ function rigaSerie(serie, numero, confronto, seduta, pesoRigaSorella = null) {
     classe: serie.spotter ? 'spotter attivo' : 'fantasma',
   });
   riga.appendChild(botSpotter);
+  riga.appendChild(pulsanteDropset(serie, { perView }));
   riga.appendChild(badgeSpotter);
 
   const campiAssistite = el('div', { class: 'gruppo-assistite' });
@@ -1431,29 +1432,8 @@ function rigaSerie(serie, numero, confronto, seduta, pesoRigaSorella = null) {
     }),
   ]));
 
-  // dropset: 3 giri extra
-  if (serie.dropset) {
-    const extra = el('div', { class: 'dropset' });
-    extra.appendChild(el('div', { class: 'etichetta-dropset', testo: 'Dropset: aggiungi i giri successivi' }));
-    const giri = Array.isArray(serie.giri_extra) ? serie.giri_extra.slice() : [];
-    while (giri.length < GIRI_DROPSET) giri.push({ peso: null, ripetizioni: null });
-    giri.slice(0, GIRI_DROPSET).forEach((g, idx) => {
-      const gp = campoNumero(g.peso, {
-        etichetta: 'giro peso',
-        onCambio: conRitardo((v) => aggiornaSerie(serie, { giri_extra: aggiornaGiro(giri, idx, 'peso', v) })),
-      });
-      const gr = campoNumero(g.ripetizioni, {
-        etichetta: 'giro ripetizioni',
-        onCambio: conRitardo((v) => aggiornaSerie(serie, { giri_extra: aggiornaGiro(giri, idx, 'ripetizioni', v) })),
-      });
-      extra.appendChild(el('div', { class: 'riga-dropset' }, [
-        el('span', { class: 'etichetta-giro', testo: `giro ${idx + 2}` }),
-        el('label', { class: 'campetto' }, [gp, el('span', { class: 'sotto-campo', testo: 'KG' })]),
-        el('label', { class: 'campetto' }, [gr, el('span', { class: 'sotto-campo', testo: 'RIP' })]),
-      ]));
-    });
-    riga.appendChild(extra);
-  }
+  // dropset: i tre giri extra, ma solo se l'hai acceso col pulsante
+  if (serie.dropset) riga.appendChild(bloccoDropset(serie));
 
   if (confronto) {
     if (!confronto.haConfronto) {
@@ -1495,6 +1475,67 @@ function aggiornaGiro(giri, idx, campo, valore) {
   const copia = giri.map((g) => ({ ...g }));
   copia[idx] = { ...copia[idx], [campo]: valore === '' || valore === null ? null : Number(String(valore).replace(',', '.')) };
   return copia.slice(0, GIRI_DROPSET);
+}
+
+/**
+ * Il pulsante DROPSET, che mancava.
+ *
+ * Ste (07/10/2026): "non esiste ancora il pulsante dropset che ti avevo detto
+ * tempo fa". Aveva ragione: i tre giri extra esistevano gia' nel codice
+ * (GIRI_DROPSET = 3, e il blocco per riempirli), ma non c'era NULLA che li
+ * accendesse. Il campo `dropset` nasceva false e restava false per sempre: quindi
+ * quei tre campi non si erano mai visti nella vita dell'app.
+ *
+ * Perche' un interruttore e non un campo da compilare sempre: il dropset e' una
+ * TECNICA, non un dato. Nove serie su dieci non lo fanno, e una riga con tre campi
+ * in piu' su ogni serie sarebbe esattamente la riga ingombrante che Ste mi ha
+ * chiesto di togliere. Lo accendi quando lo fai, e li' restano i tre giri.
+ */
+function pulsanteDropset(serie, { perView = null } = {}) {
+  const acceso = !!serie.dropset;
+  return bottone(acceso ? '✓ Dropset' : 'Dropset', {
+    onClick: async () => {
+      const nuovo = !serie.dropset;
+      if (perView) perView.dropset = nuovo;
+      await aggiornaSerie(serie, { dropset: nuovo });
+      if (nuovo) pulsa();
+      disegna();
+    },
+    classe: (acceso ? 'dropset-bot attivo' : 'dropset-bot') + ' fantasma',
+    titolo: acceso
+      ? 'Dropset acceso: tocca per toglierlo'
+      : 'Dropset: aggiungi i tre giri a calo dopo la serie',
+  });
+}
+
+/**
+ * I tre giri a calo, quando il dropset e' acceso.
+ *
+ * Stessa cosa che c'era gia' nella riga della scheda, ma tirata fuori in una
+ * funzione: adesso c'e' anche nello storico, e due copie identiche prima o poi
+ * finiscono diverse.
+ */
+function bloccoDropset(serie) {
+  const extra = el('div', { class: 'dropset' });
+  extra.appendChild(el('div', { class: 'etichetta-dropset', testo: 'Dropset: aggiungi i giri successivi' }));
+  const giri = Array.isArray(serie.giri_extra) ? serie.giri_extra.slice() : [];
+  while (giri.length < GIRI_DROPSET) giri.push({ peso: null, ripetizioni: null });
+  giri.slice(0, GIRI_DROPSET).forEach((g, idx) => {
+    const gp = campoNumero(g.peso, {
+      etichetta: 'giro peso',
+      onCambio: conRitardo((v) => aggiornaSerie(serie, { giri_extra: aggiornaGiro(giri, idx, 'peso', v) })),
+    });
+    const gr = campoNumero(g.ripetizioni, {
+      etichetta: 'giro ripetizioni',
+      onCambio: conRitardo((v) => aggiornaSerie(serie, { giri_extra: aggiornaGiro(giri, idx, 'ripetizioni', v) })),
+    });
+    extra.appendChild(el('div', { class: 'riga-dropset' }, [
+      el('span', { class: 'etichetta-giro', testo: `giro ${idx + 2}` }),
+      el('label', { class: 'campetto' }, [gp, el('span', { class: 'sotto-campo', testo: 'KG' })]),
+      el('label', { class: 'campetto' }, [gr, el('span', { class: 'sotto-campo', testo: 'RIP' })]),
+    ]));
+  });
+  return extra;
 }
 
 function descriviSerie(x) {
@@ -1821,13 +1862,14 @@ function rigaStorico(serie, numero, e, s, pesoRigaSorella = null) {
     },
     classe: perView.spotter ? 'spotter attivo' : 'fantasma',
   });
-  riga.appendChild(botSpotter);
+riga.appendChild(botSpotter);
+  riga.appendChild(pulsanteDropset(serie, { perView }));
   riga.appendChild(badgeSpotter);
 
   const assistite = el('div', { class: 'gruppo-assistite' });
   if (perView.spotter) {
     const ass = campoNumero(serie.rip_assistite, {
-      onCambio: conRitardo((v) => aggiornaSerie(serie, { rip_assistite: v === '' ? null : Number(String(v).replace(',', '.')) })),
+      onCambio: conRitardo((v) => aggiornaSerie(serie, { rip_assistite: v === null ? null : Number(String(v).replace(',', '.')) })),
     });
     ass.classList.add('piccolo');
     assistite.appendChild(el('label', { class: 'campetto' }, [
@@ -1835,6 +1877,7 @@ function rigaStorico(serie, numero, e, s, pesoRigaSorella = null) {
     ]));
   }
   riga.appendChild(assistite);
+if (serie.dropset) riga.appendChild(bloccoDropset(serie));
   if (serie.nota) riga.appendChild(el('div', { class: 'nota-serie', testo: serie.nota }));
   return riga;
 }
