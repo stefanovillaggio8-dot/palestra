@@ -155,6 +155,33 @@ export function chiSei({ ricerca = '', memoria = null, schede = [] } = {}) {
   return { persona: null, daChiedere: true, memoria: null };
 }
 
+/**
+ * Gli esercizi del catalogo che NON sono ancora nella tabella `esercizi` del
+ * dispositivo.
+ *
+ * Ste (07/10/2026): "perché mi spariscono alcuni esercizi dal rank".
+ *
+ * Il buco vero, e la ragione per cui questa funzione esiste: il catalogo veniva
+ * riempito SOLO alla prima installazione (seminaSeVuoto guardava se la tabella
+ * era vuota e, se non lo era, non aggiungeva niente). Quindi ogni esercizio che ho
+ * aggiunto dopo — Chest Press, Cable Lateral Raise, Leg Extension, Cable Fly, i
+ * curl — andava nella scheda ma non nella tabella.
+ *
+ * E la conseguenza e' peggio di una scritta mancante: la lista dei Rank gira sul
+ * CATALOGO (recordAccount fa `for (const e of esercizi)`), quindi un esercizio
+ * assente dal catalogo non ha una card. Non dice "nessun dato": semplicemente non
+ * c'e'. Con 23 esercizi in scheda e un catalogo fermo a 12, 11 sparivano.
+ *
+ * Perche' solo i MANCANTI e non tutto il catalogo: gli esercizi gia' presenti non
+ * si toccano. Su un dispositivo dove ne hai corretti uno o che sono arrivati dal
+ * server, riscrivere tutto ogni avvio perderebbe le correzioni (e i dati, che e'
+ * la cosa peggiore).
+ */
+export function eserciziMancanti(catalogo, ufficiale = ESERCIZI) {
+  const presenti = new Set((catalogo || []).map((e) => e && e.id).filter(Boolean));
+  return (ufficiale || []).filter((e) => e && e.id && !presenti.has(e.id));
+}
+
 // Ogni riga e' una VARIANTA con id proprio: "Chest Press" e "Chest Press - macchina B"
 // hanno id diversi e quindi non verranno mai confrontati fra loro.
 export const ESERCIZI = [

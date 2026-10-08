@@ -20,7 +20,7 @@ import {
 import { testoProgresso, serieARipetizioniCostanti, riepilogoGenerale } from './progressi.js';
 import { prestazione, mediaPrestazioni, classificaGenerale } from './forza-generale.js';
 import { creaPacchetto, validaPacchetto, unisci, csvSerie, csvSedute, csvEsercizi } from './backup.js';
-import { ESERCIZI, SCHEDA_ID, SCHEDA_NOME, PERSONE, CONTATTI, accountId, chiSei, personaDaMemoria, costruisciSnapshot } from './dati-iniziali.js';
+import { ESERCIZI, SCHEDA_ID, SCHEDA_NOME, PERSONE, CONTATTI, accountId, chiSei, personaDaMemoria, costruisciSnapshot, eserciziMancanti } from './dati-iniziali.js';
 import { nuovoId, adesso, TABELLE, riallineaEsercizi } from './sincronizzazione.js';
 // --- il gioco: rank, LP, streak, Aura, missioni, amici ---
 import { statoAccount, ricompenseAllenamento, gruppiDaSerie } from './gioco.js';
@@ -436,15 +436,40 @@ async function ricaricaTutto() {
   V.conflitti = await sync.conflittiDaScegliere();
 }
 
+/**
+ * Riallinea il catalogo esercizi del dispositivo con quello ufficiale.
+ *
+ * Ste (07/10/2026): "vedi perché mi spariscono alcuni esercizi dal rank".
+ *
+ * Prima qui c'era un se/else: il catalogo veniva riempito SOLO se la tabella era
+ * vuota, cioe' solo alla prima installazione. Ogni esercizio aggiunto dopo
+ * andava nella scheda ma non nella tabella, e siccome la lista dei Rank gira sul
+ * CATALOGO (recordAccount fa `for (const e of esercizi)`), quegli esercizi non
+ * avevano una card: sparivano in silenzio, senza nessun avviso.
+ *
+ * Adesso si aggiungono i MANCANTI a ogni avvio, e solo quelli:
+ *  - aggiungere e' sicuro, sono righe nuove;
+ *  - NON si riscrivono quelle che ci sono gia', perche' su un dispositivo possono
+ *    essere arrivate dal server o essere state corrette, e riscriverle ogni volta
+ *    perderebbe dati (che e' la cosa peggiore che possa succedere).
+ */
+async function riallineaCatalogo(gi) {
+  const mancanti = eserciziMancanti(gi);
+  for (const e of mancanti) await db.salva('esercizi', e, { segna: false });
+  if (mancanti.length) {
+    // i campi del carico (carrucola, attrezzatura, bracciaIndipendenti) li
+    // rimette gia' risistemaCampiCarico, ma solo sugli esercizi che gia' c'erano:
+    // quindi va rilanciato anche sui nuovi, altrimenti restano senza quei campi
+    await risistemaCampiCarico([...(gi || []), ...mancanti]);
+  }
+  return mancanti;
+}
+
 async function seminaSeVuoto() {
   const gia = await db.tutti('esercizi');
-  if (gia.length) {
-    await sistemaNomeScheda();
-    await risistemaCampiCarico(gia);
-  } else {
-    for (const e of ESERCIZI) await db.salva('esercizi', e, { segna: false });
-    await db.scriviMeta('installato_il', adesso());
-  }
+  await riallineaCatalogo(gia);
+  await sistemaNomeScheda();
+  await risistemaCampiCarico(await db.tutti('esercizi'));
   await seminaPersona();
 }
 
