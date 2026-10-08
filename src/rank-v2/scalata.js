@@ -15,7 +15,7 @@
 // radi, cosi' che DIAMOND, TITAN e OLYMPIAN costino il giusto. Chi e' principiante
 // non ci arriva con il volume, e ci arriva con il lavoro vero.
 
-import { RANK } from '../rank-config.js';
+import { RANK, divisioneDaLp, divisioneSuccessiva } from '../rank-config.js';
 import { moltiplicatoreSerie } from './curve.js';
 
 /**
@@ -113,7 +113,7 @@ function progressoDentro(valore, soglie, indice) {
 function bandaDaValore(valore, soglie) {
   if (valore <= soglie[0]) {
     return {
-      indice: -1, rank: null, lp: 0, progresso: 0, sottoSoglia: true,
+      indice: -1, rank: null, divisione: null, lp: 0, progresso: 0, sottoSoglia: true,
       mancaAllaPrima: Math.round((soglie[0] - valore) * 100) / 100,
     };
   }
@@ -132,9 +132,17 @@ function bandaDaValore(valore, soglie) {
     lp = Math.max(0, Math.min(99, Math.floor(((valore - sotto) / spessore) * 100)));
     progresso = Math.max(0, Math.min(1, (valore - sotto) / spessore));
   }
+  // la divisione: I e' la piu' bassa e III la piu' alta (Ste, 07/10/2026)
+  const divisione = inCima ? null : divisioneDaLp(lp);
   return {
-    indice, rank: RANK[indice] || null, lp, progresso, sottoSoglia: false,
+    indice,
+    rank: RANK[indice] || null,
+    divisione,
+    lp,
+    progresso,
+    sottoSoglia: false,
     prossimaSoglia: inCima ? null : soglie[indice + 1],
     prossimoRank: inCima ? null : (RANK[indice + 1] || null),
+    prossimaDivisione: inCima ? null : divisioneSuccessiva(divisione),
   };
 }

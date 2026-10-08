@@ -155,10 +155,18 @@ test('15. chi non ha il record non finisce in classifica', () => {
   assert.equal(c.length, 0);
 });
 
-test('16. le divisioni stanno dentro il rank', () => {
-  assert.equal(divisioneDaLp(0).nome, 'III');
+test('16. le divisioni stanno dentro il rank, col numero che sale', () => {
+  // Ste, 07/10/2026: "il massimo deve essere GOLD 3", quindi I e' la piu' bassa.
+  assert.equal(divisioneDaLp(0).nome, 'I');
   assert.equal(divisioneDaLp(40).nome, 'II');
-  assert.equal(divisioneDaLp(80).nome, 'I');
+  assert.equal(divisioneDaLp(80).nome, 'III');
+  // e la scala deve essere monotona: piu' LP, mai una divisione piu' bassa
+  let prima = 0;
+  for (let lp = 0; lp <= 99; lp++) {
+    const n = { I: 1, II: 2, III: 3 }[divisioneDaLp(lp).nome];
+    assert.ok(n >= prima, 'a ' + lp + ' LP la divisione e\' tornata indietro');
+    prima = n;
+  }
 });
 
 test('17. solo reps: conta il numero, non i kg', () => {
@@ -252,26 +260,33 @@ test('24. recordAccount e\' gia\' ordinato dal rank piu\' alto', () => {
   assert.equal(d.reduce((a, x) => a + x.numero, 0), 2);
 });
 test('R10. la prossima divisione si chiama come la divisione giusta', () => {
-  // Ste: non "per il PLATINUM mancano" quando sei a ORO 2, ma "per l'ORO 1 mancano"
+  // Ste: non "per il PLATINUM mancano" quando sei a ORO 2, ma "per l'ORO 3 mancano"
   const p = profiloEsercizio(chest);
   const soglie = p.soglie;
 
   // meta' strada fra due soglie = LP 50, quindi sei gia' nella divisione 2
-  // del bronze (LP 34-66) e la successiva e' la 1
+  // del bronzo (LP 34-66) e la successiva e' la 3 (la piu' alta del bronzo)
   const mezzo = (soglie[0] + soglie[1]) / 2;
   const r = calcolaRank(mezzo, p);
   assert.equal(r.rankId, RANK[0].id);
   assert.equal(r.divisione.nome, 'II', 'a meta\' strada sei nella divisione 2');
   assert.ok(r.prossimoObiettivo, 'deve dire qual e\' il prossimo obiettivo');
-  assert.equal(r.prossimoObiettivo.etichetta, `${RANK[0].nome} I`, 'quindi il prossimo e\' bronze 1');
+  assert.equal(r.prossimoObiettivo.etichetta, `${RANK[0].nome} III`, 'quindi il prossimo e\' bronze 3');
   assert.ok(r.prossimoObiettivo.solaDivisione, 'e\' una divisione, non un altro rank');
 
-  // in cima al rank (LP 90+) la divisione 1 e\' finita: si passa al rank dopo,
-  // che si riparte dalla terza divisione
+  // il numero del prossimo obiettivo deve essere proprio la soglia della divisione
+  // che dice (Ste: "54 kg per bronze 1" quando la soglia giusta era un'altra)
+  const attesa = soglie[0] + (soglie[1] - soglie[0]) * (67 / 100);
+  assert.ok(Math.abs(r.prossimoObiettivo.punteggio - attesa) < 1e-6,
+    'la soglia di bronze 3 deve stare a 67/100 fra bronze e silver, non a '
+    + r.prossimoObiettivo.punteggio);
+
+  // in cima al rank (LP 90+) la divisione 3 e' finita: si passa al rank dopo,
+  // che si riparte dalla divisione 1, la piu' bassa
   const quasiFine = soglie[1] - 1e-6;
   const r2 = calcolaRank(quasiFine, p);
   assert.equal(r2.rankId, RANK[0].id, 'sei ancora bronze, alla fine');
-  assert.equal(r2.prossimoObiettivo.etichetta, `${RANK[1].nome} III`, 'a fine bronze si va a silver 3');
+  assert.equal(r2.prossimoObiettivo.etichetta, `${RANK[1].nome} I`, 'a fine bronze si va a silver 1');
   assert.equal(r2.prossimoObiettivo.solaDivisione, false);
 
   // nell'ultimo rank non si inventa un obiettivo

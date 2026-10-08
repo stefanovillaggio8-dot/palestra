@@ -12,6 +12,7 @@ import {
   MISURE,
   DIVISIONI,
   divisioneDaLp,
+  divisioneSuccessiva,
   profiloEsercizio,
   profiloPerPesoCorporeo,
   pesoCorporeoValido,
@@ -546,21 +547,20 @@ export function calcolaRank(punteggio, profilo) {
   //  - se il prossimo passo e' una DIVISIONE dello stesso rank, il numero e'
   //    la soglia di quella divisione;
   //  - se il prossimo passo e' il RANK dopo, il numero e' la sua soglia.
-  const divisioneCorrente = divisioneDaLp(lp);
+const divisioneCorrente = divisioneDaLp(lp);
   const sotto = soglie[indice];
   let prossimoObiettivo = null;
   if (!eTop) {
-    const prossima = prossimaDivisione(divisioneCorrente);
+    const prossima = divisioneSuccessiva(divisioneCorrente);
     const seguente = R[indice + 1];
     if (prossima) {
       // stessa fascia di rank: la divisione si raggiunge a un certo punto
-      // dentro il rank, calcolato con gli stessi LP della barra
+      // dentro il rank, e quei LP sono gli stessi della barra (prossima.aLp)
       const spessore = spessoreSoglia(p, indice) || 1;
-      const aLp = 100 - 33 * (2 - DIVISIONI.findIndex((d) => d.nome === prossima.nome));
       prossimoObiettivo = {
         etichetta: `${rank.nome} ${prossima.nome}`,
         solaDivisione: true,
-        punteggio: sotto + spessore * (aLp / 100),
+        punteggio: sotto + spessore * (prossima.aLp / 100),
       };
     } else {
       prossimoObiettivo = {
@@ -582,26 +582,10 @@ export function calcolaRank(punteggio, profilo) {
     sogliaSuccessiva: eTop ? null : soglie[indice + 1],
     inTop: eTop,
     prossimoRank: eTop ? null : R[indice + 1],
-    prossimaDivisione: (!eTop && lp >= 90) ? prossimaDivisione(divisioneCorrente) : null,
+    prossimaDivisione: (!eTop && lp >= 90) ? divisioneSuccessiva(divisioneCorrente) : null,
     prossimoObiettivo,
     punteggio: valore,
   };
-}
-
-/**
- * La divisione DOPO quella indicata.
- *
- * Prima questa funzione riceveva un oggetto rank, ma un rank non ha mai avuto
- * la proprieta' "divisione": quindi non trovava nulla e restituiva sempre null.
- * Ora riceve direttamente la divisione corrente ({ nome: 'II' }) e restituisce
- * davvero la successiva ('I'), oppure null se sei gia' alla I.
- */
-function prossimaDivisione(divisione) {
-  const ordine = ['III', 'II', 'I'];
-  const nome = divisione && divisione.nome ? String(divisione.nome).toUpperCase() : '';
-  const i = ordine.indexOf(nome);
-  if (i < 0 || i >= ordine.length - 1) return null;
-  return { nome: ordine[i + 1], aLp: 100 - 33 * (2 - i) };
 }
 
 // ---------------------------------------------------------------------------

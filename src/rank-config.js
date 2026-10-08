@@ -29,13 +29,25 @@ export const OLYMPIAN_SECONDARIO = '#4fc3ff';
 export const RANK_PER_ID = new Map(RANK.map((r, i) => [r.id, { ...r, indice: i }]));
 
 /**
- * Le divisioni dentro un rank (come nei giochi online).
- * La IV non esiste: la I e' la piu' vicina al rank successivo.
+ * Le divisioni dentro un rank.
+ *
+ * Ste (07/10/2026): "comunque falli al contrario. Nel senso che GOLD 3 e' piu' alto
+ * di GOLD 1 ecc" e "il massimo deve essere GOLD 3".
+ *
+ * Prima erano al contrario (III la piu' bassa, I la piu' alta): e' la convenzione
+ * dei videogiochi, dove si parte da Diamond IV e si sale a Diamond I. Ma qui e'
+ * controintuitivo perche' sembra che "Gold 1" valga piu' di "Gold 3", e uno che
+ * non ha mai giocato lo legge al contrario. Ste ha deciso: il numero sale con la
+ * prestazione.
+ *
+ * Quindi: I = il gradino basso (0 LP), II = quello di mezzo, III = il piu' alto
+ * (dai 67 LP in su, fino alla soglia del Rank dopo). E i due trattini sono la
+ * divisione, i punti invece sono gli LP, che vanno da 0 a 99 dentro il Rank.
  */
 export const DIVISIONI = [
-  { id: 3, nome: 'III', min: 0 },
+  { id: 1, nome: 'I',   min: 0 },
   { id: 2, nome: 'II',  min: 34 },
-  { id: 1, nome: 'I',   min: 67 },
+  { id: 3, nome: 'III', min: 67 },
 ];
 
 export function divisioneDaLp(lp) {
@@ -43,6 +55,24 @@ export function divisioneDaLp(lp) {
   let scelta = DIVISIONI[0];
   for (const d of DIVISIONI) if (n >= d.min) scelta = d;
   return scelta;
+}
+
+/**
+ * La divisione DOPO quella indicata, con gli LP in cui la raggiungi.
+ *
+ * Prima questa cosa stava dentro rank.js con un elenco scritto a mano
+ * (['III','II','I']) e un conto fatto a mano (100 - 33 * (2 - i)): due numeri
+ * scritti due volte che potevano andare in disaccordo, ed e' successo (la
+ * divisione risultava sempre null). Adesso l'elenco UNO e' DIVISIONI e l'aLp e'
+ * il "min" della divisione che viene dopo: non c'e' piu' niente da tenere
+ * allineato a mano.
+ */
+export function divisioneSuccessiva(divisione) {
+  const nome = divisione && divisione.nome ? String(divisione.nome).toUpperCase() : '';
+  const i = DIVISIONI.findIndex((d) => d.nome === nome);
+  if (i < 0 || i >= DIVISIONI.length - 1) return null;
+  const d = DIVISIONI[i + 1];
+  return { nome: d.nome, aLp: d.min };
 }
 
 // ---------------------------------------------------------------------------

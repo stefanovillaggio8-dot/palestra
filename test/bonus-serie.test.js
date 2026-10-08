@@ -90,8 +90,12 @@ test('S5. le serie NON spostano mai il rank: il bonus sta DENTRO il rank', () =>
 
 test('S8. gli LP e la divisione non si contraddicono mai', () => {
   // Ste ha letto sul telefono "99 LP" e ha scritto "platinum 2": due numeri che
-  // non possono stare insieme. La divisione (III, II, I) e' la stessa scala degli
-  // LP, quindi se uno si muove l'altro deve seguire.
+  // non possono stare insieme. La divisione e' la stessa scala degli LP, quindi
+  // se uno si muove l'altro deve seguire.
+  //
+  // L'ORDINE delle divisioni e' quello che Ste ha deciso il 07/10/2026: "il
+  // numero sale con la prestazione", quindi I e' la piu' bassa e III la piu' alta.
+  // Prima era al contrario (la convenzione dei videogiochi) e si leggeva storto.
   //
   // Qui si prova su TUTTI i 20 esercizi della scheda e su 1-8 serie, perche' il
   // caso che morde e' quando il bonus spinge gli LP oltre il confine di una
@@ -106,7 +110,7 @@ test('S8. gli LP e la divisione non si contraddicono mai', () => {
     for (const n of [1, 2, 3, 4, 8]) {
       const r = conQueste(e, n);
       if (!r.divisione) continue;
-      const attesa = r.lp >= 67 ? 'I' : (r.lp >= 34 ? 'II' : 'III');
+      const attesa = r.lp >= 67 ? 'III' : (r.lp >= 34 ? 'II' : 'I');
       assert.equal(r.divisione.nome, attesa,
         e.nome + ' con ' + n + ' serie: dice ' + r.divisione.nome
         + ' ma gli LP sono ' + r.lp);

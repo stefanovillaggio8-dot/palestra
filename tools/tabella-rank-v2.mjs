@@ -17,6 +17,13 @@ import { VALORI_MOVIMENTO, sogliePerEsercizio, TETTO_ISOLAMENTI, TETTO_PER_PESO 
 const PESO = Number(process.argv[3]) || 66;
 const MODO = process.argv[2] === 'confronta' ? 'confronta' : 'valori';
 
+// 'scala' stampa la scala di un esercizio: che Rank esce a 30, 35, 40, 45 kg,
+// per capire se i gradini sono leggibili e se i Rank escono davvero uno dietro
+// l'altro invece di saltare.
+const CERCA = String(process.argv[2] || '').toLowerCase();
+const MODO_SCALA = CERCA.startsWith('scala');
+const CARICO_SCALA = Number(process.argv[3]) || 40;
+
 function eserciziDellaScheda() {
   const snap = costruisciSnapshot();
   const visti = new Set();
@@ -39,7 +46,34 @@ const fmt = (n, d = 2) => {
 const nomeRank = (r) => (r && r.nome ? r.nome : 'sotto il primo');
 const esercizi = eserciziDellaScheda();
 
-if (MODO === 'valori') {
+const etichetta = (r) => {
+  if (!r || !r.rank) return 'sotto il primo';
+  const d = r.divisione ? ' ' + r.divisione.nome : '';
+  return r.rank.nome + d + ' ' + r.lp + 'LP';
+};
+
+if (MODO_SCALA) {
+  const scelto = esercizi.find((e) => e.nome.toLowerCase().includes(CERCA.slice(5).trim()));
+  if (!scelto) {
+    console.log('Nessun esercizio con quel nome. Prova: node tools/tabella-rank-v2.mjs scala chest');
+    console.log(esercizi.map((e) => '  ' + e.nome).join('\n'));
+  } else {
+    console.log(`${scelto.nome}, corpo ${PESO} kg, una serie da 8 ripetizioni.`);
+    console.log(`I Rank escono uno dietro l'altro? Il numero della divisione sale col merito.\n`);
+    console.log('carico'.padEnd(10) + 'rank vecchio'.padEnd(16) + 'rank nuovo');
+    console.log('-'.repeat(56));
+    for (let kg = 20; kg <= 90; kg += 5) {
+      const serie = [{ id: 's', esercizio_id: scelto.id, stato: 'fatta', peso: kg, ripetizioni: 8 }];
+      const vecchio = recordEsercizio(serie, scelto, null, PESO);
+      const nuovo = valutaEsercizio({ esercizio: scelto, serie, pesoCorporeo: PESO });
+      console.log(
+        (kg + ' kg').padEnd(10)
+        + nomeRank(vecchio.rank).padEnd(16)
+        + etichetta(nuovo),
+      );
+    }
+  }
+} else if (MODO === 'valori') {
   console.log(`I tre numeri di ogni esercizio, per una persona di ${PESO} kg\n`);
   console.log('esercizio'.padEnd(32) + 'movimento'.padEnd(21) + 'ingresso'.padStart(9) + 'vertice'.padStart(9) + '  tetto   fonte');
   console.log('-'.repeat(96));

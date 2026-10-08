@@ -56,8 +56,8 @@ export const VALORI_MOVIMENTO = {
     nota: 'Seated cable row: stessa zona del pulldown, ma la stazza stanca prima.',
   },
   spinta_orizzontale: {
-    vertice: 95, quotaIngresso: 0.45, fonte: 'tuo',
-    nota: 'Chest press a dischi: tu 35 kg per braccio x8. Sul peso di 70 il vertice realistico e\' 95.',
+    vertice: 70, quotaIngresso: 0.45, fonte: 'tuo',
+    nota: 'Chest press a dischi, valore PER BRACCIO. Il numero e\' stato corretto: avevo 95 (cioe\' 2,7 volte il corpo in totale, che non e\' un vertice ma un record del mondo). 70 per braccio su un corpo di 70 = 1,0 per braccio, che e\' il vertice reale di chi si allena bene. Tu fai 37 kg per braccio x8: con questo numero sei oltre l\'ingresso.',
   },
   spinta_verticale: {
     vertice: 42, quotaIngresso: 0.50, fonte: 'stima',
