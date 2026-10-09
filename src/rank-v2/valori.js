@@ -181,12 +181,18 @@ export const VALORI_MOVIMENTO = {
     varianti: {
       // il cable fly: piccolo muscolo, carico leggero sul cavo
       cavo: { multiplo: 0.4, ingressoMultiplo: 0.2, nota: 'Cable fly al cavo con doppia carrucola, PER LATO: tetto 0,4x il corpo per lato, ingresso 0,2x.' },
-      // il bench pull coi manubri: stesso gruppo muscolare, carico grosso
-      pesante: {
-        multiplo: 1.2, ingressoMultiplo: 0.5,
-        nota: 'Bench pull coi manubri, PER MANUBRIO: tetto 1,2x il corpo per mano, ingresso 0,5x. ATTENZIONE: e\' lo stesso gruppo muscolare del cable fly ma il carico e\' grosso (manubri, non cavo), quindi il tetto NON puo\' essere quello del cavo. Con lo stesso numero i tuoi 45 kg per mano finivano al 217% della scala, cioe\' OLYMPIAN regalato.',
-      },
     },
+  },
+  // IL BENCH PULL E' PASSATO DA QUI (8/10/2026): era una "variante pesante" del
+  // petto isolamento, ma Ste ha detto che e' schiena (tirata prona coi manubri),
+  // quindi ora ha un movimento suo. I numeri sono gli stessi che aveva prima
+  // (1,2x di tetto, 0,5x di ingresso), cosi' i suoi kg NON cambiano di colpo: cambia
+  // il muscolo, il colore e il testo, che prima erano sbagliati, ma la scala resta
+  // quella che lui ha giusto sott'occhio. Se poi vuoi stringerla o allargarla,
+  // e' un numero da spostare qui.
+  tirata_manubri: {
+    multiplo: 1.2, ingressoMultiplo: 0.5, fonte: 'tuo',
+    nota: 'Bench pull coi manubri, PER MANUBRIO: tirata prona, lavora il dorso centrale. Tetto 1,2x il corpo per mano, ingresso 0,5x. Il carico e\' grosso (manubri) ma il movimento e\' piu\' isolato di un remo con seduta, quindi il tetto sta piu\' basso del remo (1,7x). Prima questo esercizio era classificato come petto, e la scheda gli diceva "il petto lavora in modo abbastanza uniforme".',
   },
   spalle_isolamento: {
     multiplo: 0.45, ingressoMultiplo: 0.12, fonte: 'tuo',

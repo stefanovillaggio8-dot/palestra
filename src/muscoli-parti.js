@@ -45,8 +45,19 @@ export const PARTI = [
   {
     id: 'petto_centrale', muscolo: 'petto', parte: 'petto nel mezzo',
     parole: ['chest press', 'panca', 'pecorino', 'macchina', 'cable fly', 'fly', 'cross over',
-      'crossover', 'crucifix', 'incline single arm pulldown', 'bench pull', 'dumbbell bench pull',
+      'crossover', 'crucifix', 'incline single arm pulldown',
       'bench press', 'bench', 'pressione petto', 'horizontal press'],
+    // QUI C'ERA "bench pull" E "dumbbell bench pull", E SONO STATI TOLTI L'8/10/2026.
+    // Ste guardando la scheda del Dumbbell Bench Pull: "c'e' scritto 'il lavoro e'
+    // distribuito, il petto lavora in modo abbastanza uniforme'... ma quello fa
+    // schiena, centro schiena". Ha ragione: il bench pull coi manubri e' una
+    // TIRATA prona (maniubri verso il busto, sdraiato sul piano), quindi lavora
+    // la schiena centrale fra le scapole. Non e' un fly col petto: su un fly il
+    // peso ti viene davanti, su un bench pull lo tiri indietro.
+    //
+    // Il nome e' ambiguo ("bench" puo' voler dire panca o poggiapiedi), quindi se
+    // domani un esercizio chiamato "bench pull" intendi un fly col petto, questo
+    // elenco va cambiato. Per l'esercizio di Ste vale la schiena.
     nota: 'Il lavoro è distribuito: il petto lavora in modo abbastanza uniforme. Il fly lavora soprattutto il centro del petto.',
   },
   // ---- dorso ----
@@ -63,7 +74,11 @@ export const PARTI = [
   },
   {
     id: 'dorso_centrale', muscolo: 'dorso', parte: 'dorso centrale',
-    parole: ['rematore', 'row', 'tiremento', 'tirate orizzontali', 'prone'],
+    parole: ['rematore', 'row', 'tiremento', 'tirate orizzontali', 'prone',
+      // Ste (08/10/2026): il Dumbbell Bench Pull e' una tirata prona coi
+      // manubri, quindi dorso centrale. Stava fra le parole del PETTO e la
+      // scheda gli diceva "il petto lavora in modo abbastanza uniforme".
+      'bench pull', 'dumbbell bench pull'],
     nota: 'Tira verso il corpo: lavora la parte centrale della schiena, quella fra le scapole.',
   },
 

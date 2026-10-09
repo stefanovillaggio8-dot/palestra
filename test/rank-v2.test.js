@@ -329,3 +329,89 @@ test('V16. l\'app usa il motore NUOVO, e il vecchio non regala pi\' OLYMPIAN', (
   assert.equal(senzaKg.motore, 'vecchio',
     'le trazioni non si valutano in kg: il motore nuovo lo dice e l\'app torna al vecchio');
 });
+test('V17. il MONOBRACCIO non dimezza: se leggi 21 kg, sono 21', async () => {
+  // Ste (08/10/2026): "di tricipiti pushdown monobraccio faccio 21kg, e' isolamento
+  // e sono solo bronzo?". Non era bronzo: nessun livello. Il motivo stava qui.
+  //
+  // La doppia carrucola dimezza, perche' su una doppia carrucola lavori un braccio
+  // alla volta e il numero che leggi e' gia' meta'. Ma questo vale per gli
+  // esercizi A DUE BRACCIA (la corda del fly, il curl, le alzate laterali): leggi
+  // 50 kg, ne fai 25 per braccio.
+  //
+  // Il pushdown MONOBRACCIO si fa con un manubrio solo: leggi 21 kg e quei 21 kg
+  // sono gia' del tuo braccio. L'app li dimezzava a 10,5, quindi meta' del lavoro
+  // spariva e il tricipite restava sotto la soglia d'ingresso senza spiegazione.
+  //
+  // La regola nuova: si dimezza SOLO se l'esercizio si fa a due braccia. Il nome
+  // e' l'unica prova, perche' non esiste un campo dedicato.
+  const { caricoReale, lavoroMonobraccio } = await import('../src/rank-v2/curve.js');
+  const { ESERCIZI } = await import('../src/dati-iniziali.js');
+  const perId = (id) => ESERCIZI.find((e) => e.id === id);
+
+  // il caso di Ste
+  const pushdown = perId('ex-single-arm-tricep-pushdown');
+  assert.equal(lavoroMonobraccio(pushdown), true, 'il pushdown e\' monobraccio: lo dice il nome');
+  assert.equal(caricoReale(21, pushdown), 21,
+    '21 kg su un monobraccio sono 21: NON dimezzati a 10,5');
+
+  // e il caso opposto, che non deve cambiare: STESSO attrezzo, due braccia
+  const curl = perId('ex-cable-hammer-curl');
+  assert.equal(lavoroMonobraccio(curl), false, 'il hammer curl si fa a due braccia');
+  assert.equal(caricoReale(50, curl), 25,
+    '50 kg letti sul curl sono 25 per braccio: qui dimezzare e\' giusto');
+
+  // e i due casi che stanno in mezzo
+  assert.equal(caricoReale(21, perId('ex-one-arm-cable-reverse-fly')), 21,
+    'il reverse fly monobraccio non dimezza');
+  assert.equal(caricoReale(88, perId('ex-lat-pulldown-macchina')), 88,
+    'il pulldown non ha doppia carrucola: non si tocca');
+
+  // e la prova finale, quella che conta per l'utente: il Rank c\'e\'.
+  const { recordEsercizio } = await import('../src/rank.js');
+  const rec = recordEsercizio([{ id: 's', peso: 21, ripetizioni: 8, stato: 'fatta' }],
+    pushdown, null, 66);
+  assert.ok(rec.rank, `21 kg di pushdown monobraccio devono dare un Rank, non `
+    + `${rec.rank ? rec.rank.nome : 'nessuno'}`);
+  assert.equal(rec.rank.nome, 'BRONZE',
+    `e devono dare il bronzo: prima non davano nessun livello (10,5 kg su un `
+    + `ingresso di 19,8)`);
+});
+
+test('V18. il BENCH PULL e\ schiena, non petto', async () => {
+  // Ste (08/10/2026), guardando la scheda del Dumbbell Bench Pull: "c'e\' scritto
+  // \'il lavoro e\' distribuito, il petto lavora in modo abbastanza uniforme\'...
+  // ma quello fa schiena, centro schiena".
+  //
+  // Aveva ragione: il bench pull coi manubri e\' una TIRATA PRONA, cioe\' manubri
+  // verso il busto mentre sei sdraiato sul piano. Lavora la schiena centrale fra
+  // le scapole. Non e\' un fly col petto: su un fly il peso ti viene davanti, su
+  // un bench pull lo tiri indietro.
+  //
+  // Prima stava in tre elenchi sbagliati tutti insieme (il classificatore, il
+  // gruppo muscolare e la parte del corpo), quindi la scheda diceva petto, la
+  // scala era quella del fly e il colore era quello del petto.
+  const { ESERCIZI } = await import('../src/dati-iniziali.js');
+  const { classificaEsercizio } = await import('../src/esercizi-classificatore.js');
+  const { parteDiMuscolo } = await import('../src/muscoli-parti.js');
+  const bench = ESERCIZI.find((e) => e.id === 'ex-dumbbell-bench-pull');
+
+  const m = classificaEsercizio({ nome: bench.nome, convenzione: bench.convenzione });
+  assert.equal(m.movimento, 'tirata_manubri', 'il movimento deve essere la tirata coi manubri');
+  assert.equal(m.livello, 'isolamento', 'e resta un isolamento: prono, si tirano solo i dorsali');
+  assert.notEqual(m.gruppo, 'petto', 'il gruppo NON e\' piu\' il petto');
+
+  const parte = parteDiMuscolo({ nome: bench.nome });
+  assert.equal(parte.muscolo, 'dorso', 'il muscolo e\' la schiena');
+  assert.equal(parte.parte, 'dorso_centrale', 'e la parte e\' il dorso centrale, come dice Ste');
+  // e il testo che Ste aveva letto a schermo non deve piu' parlare di petto
+  assert.match(parte.nota, /schiena|dorso/i,
+    'la nota parlava di "il petto lavora in modo abbastanza uniforme": ora parla della schiena');
+  assert.doesNotMatch(parte.nota, /petto/i, 'e non contiene piu\' la parola petto');
+
+  // e il cable fly resta petto: non ho spostato troppa roba
+  const fly = ESERCIZI.find((e) => e.id === 'ex-cable-fly');
+  assert.equal(parteDiMuscolo({ nome: fly.nome }).muscolo, 'petto',
+    'il cable fly resta sul petto: e\' un fly, il peso viene davanti');
+  assert.equal(classificaEsercizio({ nome: fly.nome }).movimento, 'petto_isolamento',
+    'e il suo movimento resta il fly');
+});

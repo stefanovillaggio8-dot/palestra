@@ -123,9 +123,24 @@ const MOVIMENTI = [
       'front raise', 'spalle a Y'],
   },
   {
+    // la TIRATA PRONA coi MANUBRI. Ste (08/10/2026) guardando la scheda del
+    // Dumbbell Bench Pull: "ma quello fa schiena, centro schiena". Aveva ragione:
+    // e' una tirata prona (manubri verso il busto), quindi dorso centrale, non
+    // petto. Prima stava dentro "petto_isolamento" insieme al cable fly, quindi
+    // la scheda gli diceva "il petto lavora in modo abbastanza uniforme".
+    //
+    // Perche' e' un movimento SUO e non dentro le tirate orizzontali con il remo:
+    // sul remo stai SEDUTO e il carico parte da una posizione di braccia lunga;
+    // qui stai PRONO con le braccia che pendono e tiri solo coi dorsali. Il
+    // movimento e' piu' isolato, quindi la soglia deve stare piu' bassa di quella
+    // del remo, anche se il carico che ci metti e' grosso.
+    id: 'tirata_manubri', livello: 'isolamento', gruppo: 'dorso',
+    parole: ['bench pull', 'dumbbell bench pull', 'prone row', 'tirata prona'],
+  },
+  {
     id: 'petto_isolamento', livello: 'isolamento', gruppo: 'petto',
     parole: ['fly', 'flyes', 'cross over', 'crossover', 'crucifix', 'pec deck', 'pecorino a',
-      'flyes', 'intraspalla', 'bench pull', 'pullover al cavo'],
+      'flyes', 'intraspalla', 'pullover al cavo'],
   },
   {
     id: 'core', livello: 'isolamento', gruppo: 'core',

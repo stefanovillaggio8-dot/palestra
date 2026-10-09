@@ -164,6 +164,38 @@ export function fattoreMeccanica(esercizio = {}) {
 }
 
 /**
+ * L'esercizio si fa su UN BRACCIO alla volta?
+ *
+ * E' la domanda che decide se la doppia carrucola dimezza, e nel 08/10/2026 ha
+ * fatto fallire due esercizi di Ste.
+ *
+ * IL CASO: "Single Arm Tricep Pushdown", 21 kg, e Ste: "di tricipiti pushdown
+ * monobraccio faccio 21kg e' isolamento e sono solo bronzo?". Non era bronzo:
+ * nessun livello. Il motivo era qui sotto. La regola "la doppia carrucola
+ * dimezza" e' giusta per gli esercizi che fai A DUE BRACCIA INSIEME (la corda
+ * del fly, il curl, le alzate laterali): leggi 50 kg, ne fai 25 per braccio.
+ *
+ * Ma il pushdown MONOBRACCIO si fa con un manubrio solo: leggi 21 kg e quei
+ * 21 kg sono gia' del tuo braccio. L'app li dimezzava a 10,5, quindi metà del
+ * tuo lavoro spariva e tu restavi sotto la soglia d'ingresso senza saperlo.
+ *
+ * La regola e' gia' scritta piu' in basso, in questo stesso file, ma senza la
+ * condizione: "la doppia carrucola dimezza, perche' su una doppia carrucola
+ * lavori un braccio alla volta". Il "lavori un braccio alla volta" e' vero
+ * anche quando lavori un braccio SOLO, ed e' proprio li' che il numero e' gia'
+ * per braccio.
+ *
+ * Quindi: si dimezza solo se l'esercizio si fa a due braccia. Il nome e' la
+ * prova, perche' e' l'unica cosa che distingue un monobraccio da un
+ * "a due braccia con lo stesso attrezzo": non c'e' un campo dedicato.
+ */
+export function lavoroMonobraccio(esercizio = {}) {
+  const e = esercizio || {};
+  const nome = String(e.nome || e.id || '').toLowerCase();
+  return /single arm|one arm|single-arm|one-arm|monobraccio|un braccio|mono.?arm/.test(nome);
+}
+
+/**
  * Il carico REALE di una serie: quello che hai davvero spostato.
  *
  * Copia la regola che c'e' gia' nel Rank vecchio, e la copia perche' e' giusta:
@@ -173,11 +205,16 @@ export function fattoreMeccanica(esercizio = {}) {
  *  - la doppia carrucola DIMEZZA, perche' su una doppia carrucola lavori un
  *    braccio alla volta e il numero che leggi e' gia' meta'. E non si raddoppia
  *    dopo, altrimenti le due correzioni si annullerebbero.
+ *
+ * LA ECCEZIONE (08/10/2026), e sta per questo qui e non in un altro posto:
+ * se l'esercizio e' MONOBRACCIO non si dimezza. Vedi `lavoroMonobraccio` per
+ * il caso di Ste con i 21 kg del pushdown che diventavano 10,5.
  */
 export function caricoReale(peso, esercizio = {}) {
   const p = Number(String(peso === null || peso === undefined ? '' : peso).replace(',', '.'));
   if (!Number.isFinite(p) || p <= 0) return null;
-  if (esercizio && esercizio.carrucola === 'carrucola_doppia') {
+  const e = esercizio || {};
+  if (e.carrucola === 'carrucola_doppia' && !lavoroMonobraccio(e)) {
     return Math.round((p / 2) * 100) / 100;
   }
   return Math.round(p * 100) / 100;
