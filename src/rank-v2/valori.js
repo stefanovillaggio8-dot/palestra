@@ -212,6 +212,14 @@ export const VALORI_MOVIMENTO = {
     multiplo: 2.2, ingressoMultiplo: 1.0, fonte: 'tuo',
     nota: 'Sled press calf raise e single leg press: stessa zona del leg press perche\' il carico e\' grosso e la macchina scarica. Tetto e ingresso come il leg press. Sul single leg press valgono i kg per gamba.',
   },
+  polso: {
+    multiplo: 0.4, ingressoMultiplo: 0.15, fonte: 'stima',
+    nota: 'Wrist curl: tetto 0,4x il corpo, ingresso 0,15x. Il polso e\' un insieme di muscoli piccoli dell\'avambraccio e il movimento e\' corto, quindi il carico resta basso anche se ci metti i manubri. 30 kg su corpo 75 sono gia\' tanto per il polso. Nota: il tetto di realta\' taglia questo a 0,5x, quindi il numero effettivo e\' 0,4x.',
+  },
+  polpacci: {
+    multiplo: 1.0, ingressoMultiplo: 0.4, fonte: 'stima',
+    nota: 'Calf raise e sled press calf raise: tetto 1,0x il corpo, ingresso 0,4x. I polpacci (gemelli e soleo) sono muscoli piccoli come il polso, ma il carico e\' piu\' grosso perche\' ci metti i dischi della pressa sotto i piedi. 75 kg su corpo 75 sono gia\' il tetto per i polpacci. Ste (08/10/2026): il classificatore gli dava il tetto del leg press (2,2x = 165 kg) perche\' leggeva "sled press" e ignorava "calf raise", ma 165 kg per un calf raise non esistono in nessuna palestra.',
+  },
   // NOTA: spalle_trapezio sta fra le tirate perche\' lo scrollamento del trapezio e\' una
   // tirata con i pesi (vedi il commento nel classificatore). Lo shrug e\' pesante e
   //compound, quindi niente tetto da isolamento.
@@ -255,6 +263,11 @@ export const TETTO_MOVIMENTO = {
   gambe_curl: 1.2,
   gambe_pesanti: 2.2,
   gambe_stabilizzatore: 2.2,
+  // il polso e' l'avambraccio: tenni con un bilanciere o coi manubri, ma il carico
+  // resta bassissimo (0,4x il corpo), perche' i muscoli del polso sono piccoli e
+  // il movimento e' corto. Senza questo tetto dedicato il Wrist Curl (che ora ha
+  // il movimento "polso") prendeva il tetto di un isolamento generico.
+  polso: 0.5,
 };
 
 /** Se il vertice e' dentro i tetti di realta' per quell'esercizio. */

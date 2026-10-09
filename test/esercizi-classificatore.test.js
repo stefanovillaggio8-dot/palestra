@@ -167,7 +167,10 @@ test('C14. riconosce 59 nomi veri di palestra, italiano e inglese', () => {
   ['One Arm Cable Reverse Fly', 'isolamento'],
   ['Incline Single Arm Pulldown', 'composto'],
   ['Leg Press', 'grande'],
-  ['Sled Press Calf Raise', 'grande'],
+  // anche qui il test fissava il bug: "Sled Press Calf Raise" stava come
+  // "grande" perche' conteneva "sled press", quindi gli dava il tetto del leg
+  // press (165 kg) per un esercizio sui polpacci. Ora vince "calf".
+  ['Sled Press Calf Raise', 'isolamento'],
   ['Squat', 'grande'],
   ['Stacco', 'grande'],
   ['Hip Thrust', 'grande'],
@@ -197,6 +200,55 @@ test('C14. riconosce 59 nomi veri di palestra, italiano e inglese', () => {
   }
 });
 
+test('C14b. nel nome, il MUSCOLO vince sulla MACCHINA', async () => {
+  // La regola nuova, e il motivo per cui esiste.
+  //
+  // Un nome puo' contenere due cose vere: la MACCHINA (dove lo fai) e il
+  // MOVIMENTO (che muscolo lavori). "Sled Press Calf Raise" e' fatto di entrambe.
+  // Prima vinceva la macchina, perche' "sled press" e' una frase (2 punti) e
+  // "calf" una parola sola (1 punto), e il classificatore dava ai polpacci il tetto
+  // del leg press: 165 kg su corpo 75. Il risultato era che chi faceva 60 kg di
+  // calf raise restava sotto il primo livello per sempre, con la scala che gli
+  // chiedeva numeri fuori portata umana.
+  //
+  // Quindi: se nel nome c'e' una parola che identifica il muscolo, quella vince
+  // sulla macchina. La macchina dice solo DOVE, il muscolo dice COSA.
+  const casi = [
+    // macchina pesante + muscolo specifico = il muscolo
+    ['Sled Press Calf Raise', 'isolamento'],
+    ['Leg Press Calf Raise', 'isolamento'],
+    ['Hack Squat Calf Raise', 'isolamento'],
+    // la macchina da sola resta "grande": non c'e' nessun muscolo che vince
+    ['Leg Press', 'grande'],
+    ['Sled Press', 'grande'],
+    ['Hack Squat', 'grande'],
+    ['Squat', 'grande'],
+    // e un isolamento col nome giusto resta un isolamento
+    ['Calf Raise', 'isolamento'],
+    ['Seated Leg Curl', 'isolamento'],
+    ['Wrist Curl', 'isolamento'],
+  ];
+  for (const [nome, atteso] of casi) {
+    const r = classificaEsercizio({ nome });
+    assert.equal(r.livello, atteso, nome + ' -> preso ' + r.livello + ' invece di ' + atteso);
+  }
+  // il caso che ha fatto scattare tutto: il tetto dei polpacci non puo' essere
+  // quello del leg press. 165 kg su corpo 75 per un calf raise non esiste.
+  const v2 = await import('../src/rank-v2/index.js');
+  const calf = { id: 'x', nome: 'Sled Press Calf Raise', convenzione: 'macchina' };
+  const pressa = { id: 'y', nome: 'Single Leg Press', convenzione: 'macchina' };
+  const rCalf = v2.valutaEsercizio({ esercizio: calf, serie: [{ id: 's', peso: 20, ripetizioni: 8 }], pesoCorporeo: 75 });
+  const rPressa = v2.valutaEsercizio({ esercizio: pressa, serie: [{ id: 's', peso: 20, ripetizioni: 8 }], pesoCorporeo: 75 });
+  assert.ok(rCalf.vertice < rPressa.vertice,
+    `i polpacci non possono avere il tetto della pressa: ${rCalf.vertice} contro ${rPressa.vertice}`);
+  // il numero esatto del tetto dei polpacci non e' fissato qui (0,85x il corpo e'
+  // il tetto di realta' per un isolamento): quello che conta e' che resti sotto
+  // la pressa e che sia un numero umano. 165 kg per un calf raise non esistono,
+  // e il test deve dirlo senza dover fissare il multiplo esatto.
+  assert.ok(rCalf.vertice <= 75,
+    `un calf raise non chiede piu' di 1x il corpo (75 kg), e chiede ${rCalf.vertice}`);
+});
+
 
 test('C15. i 27 esercizi della scheda di Ste hanno il livello giusto', async () => {
   // Non basta indovinare in generale: se sbaglia su quelli che usa davvero,
@@ -210,7 +262,15 @@ test('C15. i 27 esercizi della scheda di Ste hanno il livello giusto', async () 
     'ex-cable-fly': 'isolamento', 'ex-scott-bench-curl': 'isolamento',
     'ex-single-arm-tricep-pushdown': 'isolamento', 'ex-seated-leg-curl': 'isolamento',
     'ex-smith-incline-bench': 'composto', 'ex-seated-cable-row': 'composto',
-    'ex-chest-supported-shrug': 'composto', 'ex-sled-press-calf-raise': 'grande',
+    'ex-chest-supported-shrug': 'composto',
+    // IL SLED PRESS CALF RAISE E' "isolamento", e fino al 08/10/2026 questo test
+    // diceva "grande". Fissava il BUG: il classificatore leggeva "sled press"
+    // (una macchina per gambe, che pesa tanto) e ignorava "calf raise" (i
+    // polpacci), quindi il tetto di quell'esercizio era 165 kg su corpo 75.
+    // Nessuno al mondo fa 165 kg di sollevamento sul pino: la scala li stava
+    // chiedendo una cosa fuori portata, e chi lo faceva restava sotto il primo
+    // livello per sempre. Ora vince il muscolo, non la sala in cui lo fai.
+    'ex-sled-press-calf-raise': 'isolamento',
     'ex-single-leg-press': 'grande', 'ex-one-arm-preacher-curl': 'isolamento',
     'ex-one-arm-cable-reverse-fly': 'isolamento', 'ex-wrist-curl': 'isolamento',
     'ex-iso-lateral-row': 'composto', 'ex-lat-pulldown-lats': 'composto',

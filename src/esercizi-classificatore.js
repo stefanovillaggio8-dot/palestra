@@ -92,9 +92,27 @@ const MOVIMENTI = [
       'skull', 'estensioni', 'kickback', 'dips al ciavolo'],
   },
   {
+    // i POLPACCI (gemelli e soleo) sono muscoli piccoli come il polso. Stavano
+    // sotto gambe_isolamento insieme al quadricipite, quindi il "Sled Press Calf
+    // Raise" e il "Calf Raise" prendevano il tetto del Leg Extension (1,4x). Ma
+    // 105 kg per un sollevamento sul pino non esiste: i polpacci reggono molto meno
+    // del quadricipite. Ora hanno il loro movimento, con tetto basso.
+    id: 'polpacci', livello: 'isolamento', gruppo: 'polpacci',
+    parole: ['calf raise', 'calf', 'panturrino', 'soleo', 'gemelli', 'heel raise'],
+  },
+  {
     id: 'gambe_isolamento', livello: 'isolamento', gruppo: 'gambe',
     parole: ['leg curl', 'leg extension', 'curl gambe', 'estensioni gambe', 'prone curl',
-      'leg raise', 'adduzione', 'abduction', 'glute', 'polso', 'calf', 'panturrino'],
+      'leg raise', 'adduzione', 'abduction', 'glute'],
+  },
+  {
+    // il POLSO e' un insieme di muscoli piccoli dell'avambraccio, non un bicipite
+    // e non una gamba. Avevo messa la parola "polso"/"wrist" sotto le gambe (per
+    //che' li avevo tolti di li' quando ho aggiunto il movimento gambe_isolamento),
+    // ma cosi' il "Wrist Curl" prendeva il tetto del leg extension. Ora e' un suo
+    // movimento, con la sua scala: tetto bassissimo, come deve essere.
+    id: 'polso', livello: 'isolamento', gruppo: 'avambraccio',
+    parole: ['wrist curl', 'polso', 'wrist', 'avambraccio', 'flexor'],
   },
   {
     id: 'spalle_isolamento', livello: 'isolamento', gruppo: 'spalle',
@@ -416,7 +434,54 @@ export function classificaEsercizio({
       perId.set(id, riga);
     }
   }
-  punteggi.sort((a, b) => b.punti - a.punti);
+  // ---- il MUSCOLO specifico vince sulla MACCHINA
+  //
+  // Ste (08/10/2026): nel catalogo c'era "Sled Press Calf Raise", e il
+  // classificatore gli dava il tetto del LEG PRESS: 165 kg su corpo 75. Nessuno
+  // al mondo fa 165 kg di sollevamento sul pino. Il motivo era la regola "una
+  // frase vale piu' di una parola sola" (linea 401): "sled press" e' una frase e
+  // valeva 2 punti, "calf" una parola sola e ne valeva 1, quindi vinceva la
+  // macchina. Ma nel nome "Sled Press CALF RAISE" la macchina e' solo DOVE lo
+  // fai, e il muscolo che lavori (i polpacci) e' il CALF RAISE. Sono due cose
+  // diverse, e la scala deve seguirne una.
+  //
+  // La regola: se nel nome c'e' una parola che identifica un muscolo o un
+  // isolamento chiaro, quella vince sulla macchina, perche' la macchina dice solo
+  // il mezzo. Non e' un trucco per un nome: e' la differenza fra "sled press" (di
+  // che cosa) e "calf raise" (che cosa). Se il nome fosse solo "Sled Press",
+  // nessuna parola di muscolo ci sarebbe, e la macchina vincerebbe come prima.
+  const PAROLE_MUSCOLO = [
+    'calf', 'panturrino', 'polso', 'wrist', 'glute', 'gluteo', 'addome', 'abs',
+    'lateral raise', 'front raise', 'rear delt', 'tricep', 'bicep', 'curl', 'pushdown',
+    'leg curl', 'leg extension', 'abduction', 'adduzione', 'leg raise', 'neck',
+  ];
+  let movimentoSpecifico = null;
+  for (const parola of PAROLE_MUSCOLO) {
+    if (conta(testoLungo, parola) > 0) {
+      // fra i movimenti che hanno questa parola di muscolo nel nome, prendo quello
+      // con PIU' punti. Se prendo il primo che trovo nell'ordine della lista, il
+      // "Seated Leg Curl" diventava bicipiti solo perche' i bicipiti sono scritti
+      // prima delle gambe, non perche' fosse la risposta giusta.
+      const candidati = punteggi.filter((p) => p.trovate.some((t) => normalizza(t).includes(parola)));
+      const miglioreCandidato = candidati.slice().sort((a, b) => b.punti - a.punti)[0];
+      if (miglioreCandidato) {
+        // e vince solo se non e' una macchina pesante: li' la parola di muscolo
+        // descrive il movimento, non la sala in cui lo fai
+        if (miglioreCandidato.movimento.livello !== 'grande' && miglioreCandidato.movimento.id !== 'gambe_pesanti') {
+          movimentoSpecifico = miglioreCandidato;
+        }
+        break; // una parola di muscolo che matcha basta
+      }
+    }
+  }
+  // se c'e' un isolamento col nome nel testo, mettilo davanti a tutti i compound
+  punteggi.sort((a, b) => {
+    if (movimentoSpecifico) {
+      if (a === movimentoSpecifico) return -1;
+      if (b === movimentoSpecifico) return 1;
+    }
+    return b.punti - a.punti;
+  });
   const migliore = punteggi[0] || null;
 
   // ---- se non capisco, LO DICO
