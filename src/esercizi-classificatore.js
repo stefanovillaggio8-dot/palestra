@@ -86,9 +86,28 @@ const MOVIMENTI = [
   },
   // --- isolamento braccia e gambe ---
   {
+    // IL CURL COL MANUBRIO SULLA PANCA SCOTT (8/10/2026).
+    //
+    // Ste: "il preacher curl non sarebbe bicipiti sulla panca scott?". Ha ragione:
+    // il preacher curl e il Scott bench curl sono lo stesso esercizio, fatto con un
+    // manubrio singolo per un braccio alla volta sulla panca inclinata col cuscino.
+    // Prima finivano dentro "bicipiti", insieme al curl al CAVO, e ne prendevano la
+    // scala: tetto 46,2 kg per braccio, che sul cavo si vede (92 kg sul carrello
+    // con la doppia carrucola dimezzata) ma col manubrio in panca non e' realistico.
+    //
+    // Quindi qui: scala propria, ragionata sul corpo (0,4x tetto, 0,15x ingresso).
+    // Vedi la nota lunga in valori.js.
+    id: 'bicipiti_panca', livello: 'isolamento', gruppo: 'bicipiti',
+    parole: ['preacher', 'scott bench', 'panca scott', 'scott', 'incline curl',
+      'panchina', 'preacher curl',
+      // Il nome vero del tuo esercizio e' "Scott Bench Curl seduto al contrario":
+      // le parole sono separate dal "curl" in mezzo, quindi "scott bench" da solo
+      // non basta e finiva sui bicipiti generici. Metto anche la sequenza intera.
+      'scott bench curl', 'curl scott', 'curl alla panca', 'curl panca'],
+  },
+  {
     id: 'bicipiti', livello: 'isolamento', gruppo: 'bicipiti',
-    parole: ['curl', 'bicipite', 'bicipiti', 'scott bench', 'scott', 'hammer', 'preacher',
-      'flexion', 'biceps', 'incline curl'],
+    parole: ['curl', 'bicipite', 'bicipiti', 'hammer', 'flexion', 'biceps'],
   },
   {
     id: 'tricipiti', livello: 'isolamento', gruppo: 'tricipiti',

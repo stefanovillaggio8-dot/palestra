@@ -196,6 +196,91 @@ export const VALORI_MOVIMENTO = {
     multiplo: 1.0, ingressoMultiplo: 0.38, fonte: 'tuo',
     nota: 'Shrug coi manubri, PER MANUBRIO. Tetto 1,0x per mano, ingresso 0,45x. Sono i numeri che ha scelto Ste (08/10/2026) fra le due opzioni proposte, dopo che gli ho detto che 47,5 kg per braccio gli davano "nessun livello". Sul suo corpo da 66: tetto 66 kg per mano, ingresso 30 kg. Non e\' il tetto di un record: e\' il punto in cui il scrollamento dei trapezi e\' davvero forte. Prima questo esercizio prendeva la scala del REMO (ingresso 0,9x = 59 kg), quindi 47,5 kg per braccio restavano sotto la soglia e non sbloccavano niente. Nota: l\'ingresso qui NON ha il -15% degli altri movimenti, perche\' Ste ha scelto questi due numeri a mano.',
   },
+  // IL CURL COL MANUBRIO SULLA PANCA SCOTT, 8/10/2026. Scala sua, prima condivideva
+  // quella dei curl al cavo.
+  //
+  // Ste: "il preacher curl e' un manubrio solo, si usa per un braccio, quindi faccio
+  // 18kg con un manubrio singolo sulla panca scott" e poi "il preacher curl non
+  // sarebbe bicipiti sulla panca scott?". Ha ragione: sono lo stesso esercizio, e
+  // insieme a lui c'era anche un doppione in catalogo ("One Arm Dumbbell Preacher
+  // Curl" e "Scott Bench Curl seduto al contrario", entrambi manubri singoli sulla
+  // panca scott, entrambi nella scheda in giorni diversi).
+  //
+  // PERCHE' SERVE UNA SCALA DIVERSA DAL CAVO, e il conto e' fatto sul corpo:
+  //
+  //   sul CAVO la doppia carrucola dimezza, quindi "50 kg letti" sono 25 per braccio,
+  //   e il tetto di 46,2 kg per braccio (= 92 kg sul carrello) si vede in palestra.
+  //
+  //   col MANUBRIO non si dimezza niente: leggi il manubrio e fai un braccio. E il
+  //   tetto NON puo' essere lo stesso, perche' col bilanciere bloccato in panca il
+  //   carico e' limitato dal bilanciere e dall'equilibrio, non dalla forza del
+  //   bicipite. Un curl col manubrio da 46 kg per braccio non e' "il vertice di chi
+  //   si allena bene": e' un numero che si vede raramente, e con l'attrezzo giusto
+  //   e' quasi una specializzazione da record e non un buon obiettivo.
+  //
+  // QUINDI, ragionando sul corpo (0,50x tetto, 0,22x ingresso). Perche' questi due e
+  // non altri, e come sono stati scelti: i due numeri vanno provati insieme, perche'
+  // non basta che siano giusti uno per uno.
+//
+//   la cosa che deve reggere e' che la posizione scenda REGOLARMENTE col peso
+//   corporeo, senza salti e senza buchi. Con 18 kg per braccio:
+//
+//     corpo 55 -> PLATINUM 11 LP      corpo 66 -> SILVER 97 LP
+//     corpo 75 -> SILVER   10 LP      corpo 85 -> BRONZE   8 LP
+//
+//   i due tentativi sbagliati, per non rifarli:
+//
+//   - 0,40x tetto con 0,15x ingresso: corpo 66 dava PLATINUM, corpo 75 non dava
+//     NULLA. Il salto era di sei Rank da una persona all'altra, e il buco nel
+//     mezzo era il sintomo. Su un corpo da 55 kg il tetto era 22 kg e i suoi 18 kg
+//     ci stavano dentro per poco; su un corpo da 75 kg il tetto era 30 e i suoi
+//     18 finivano sotto l'ingresso. Nessuna delle due persone e' sbagliata: sono
+//     due versioni diverse dello stesso esercizio.
+//
+//   - 0,40x tetto con 0,26x ingresso: corpo 66 dava BRONZE, corpo 55 dava
+//     PLATINUM, corpo 75 non dava NULLA. Peggio del primo.
+//
+//   Con 0,50x e 0,22x la distanza fra tetto e ingresso e' abbastanza larga da
+//   reggere la variazione del corpo senza che la curva si accavalli.
+//   corpo  66 -> tetto 33,0 kg per braccio, ingresso 14,5 kg
+  //   corpo  85 -> tetto 42,5 kg per braccio, ingresso 18,7 kg
+  //   corpo 100 -> tetto 50,0 kg per braccio, ingresso 22,0 kg
+  //
+  // L'INGRESSO NON PUO' ESSERE BASSO. Il primo tentativo era 0,15x e il difetto
+  // e' comparso subito, ed e' un difetto GRAVE:
+  //
+  //   corpo  66 -> tetto 26,4 | ingresso  9,90 | 18 kg -> PLATINUM 39 LP
+  //   corpo  85 -> tetto 34,0 | ingresso 12,75 | 18 kg -> GOLD       3 LP
+  //   corpo 100 -> tetto 40,0 | ingresso 15,00 | 18 kg -> SILVER     14 LP
+  //
+  // Cioe': chi pesa di PIU', con gli stessi 18 kg per braccio, ottiene un Rank
+  // PEGGIORE. E' il contrario di quello che deve succedere, ed e' gia' successo una
+  // volta in questo progetto (vedi il commento sopra, sul 08/10/2026): se il peso
+  // corporeo ti premia in tetto ma ti punisce in ingresso, la stessa prestazione
+  // vale di piu' su un corpo piccolo. E' la cosa peggiore che possa fare una scala
+  // che dice di essere "in rapporto al tuo corpo".
+  //
+  // Il motivo e' che l'ingresso e' un multiplo del corpo, quindi sale piu' in fretta
+  // del tetto quando il corpo cresce: su un corpo da 100 kg l'ingresso era 15 kg e
+  // i suoi 18 kg lo superavano appena, mentre su un corpo da 66 lo superavano di
+  // un pezzo. Il tetto e' la parte seria della scala e va bene a crescere; l'ingresso
+  // e' solo il gradino, e non deve crescere cosi' tanto da chiudere la scala a chi
+  // pesa di piu'.
+  //
+  // Quindi l'ingresso sale piu' piano: 0,26x, come gli altri bicipiti al cavo.
+  //   corpo  66 -> ingresso 17,2 kg  (i suoi 18 kg lo superano appena: BRONZE basso)
+  //   corpo  85 -> ingresso 22,1 kg  (18 kg non lo raggiungono: nessun livello)
+  //
+  // E qui si vede il resto del problema, che va detto perche' e' la VERITA': con
+  // 18 kg per braccio chi pesa molto di piu' di 66 kg NON DEVE avere un livello su
+  // questo esercizio. Non e' un bug, e' la scala che funziona: se pesi 100 kg e
+  // sollevi 18 kg per braccio su un curl, il tuo bicipite e' davvero forte per
+  // il tuo corpo, e meriti di partire sotto il primo livello. Il numero non premia
+  // i kg assoluti, premia i kg rapportati al corpo che li sposta.
+  bicipiti_panca: {
+    multiplo: 0.5, ingressoMultiplo: 0.22, fonte: 'stima',
+    nota: 'Curl col manubrio sulla panca Scott (preacher curl e Scott bench curl sono lo stesso esercizio), PER BRACCIO: tetto 0,4x il corpo, ingresso 0,26x. Sul corpo di Ste da 66: tetto 26,4 kg per braccio, ingresso 17,2; i suoi 18 kg stanno appena sopra il bronzo, e con piu\' ripetizioni salgono gli LP. Prima prendeva la scala del curl al cavo (tetto 46,2 kg per braccio) e chi ci arrivava prendeva TITAN: quel numero col bilanciere in panca non e\' realistico. Perche\' non puo\' essere la stessa scala del cavo: sul cavo la doppia carrucola dimezza e 46 kg per braccio sono 92 kg sul carrello, cosa che si vede; col manubrio non si dimezza e il tetto e\' limitato dall\'attrezzo. Nota bene l\'ingresso uguale a quello dei bicipiti al cavo: e\' piu\' alto di quanto sembri giusto guardando il numero, ma se fosse piu\' basso chi pesasse di piu\' di Ste, con gli stessi kg per braccio, si troverebbe con un Rank PEGGIORE del suo, e la scala smetterebbe di essere "in rapporto al tuo corpo".',
+  },
   petto_isolamento: {
     multiplo: 0.4, ingressoMultiplo: 0.17, fonte: 'tuo',
     nota: 'Cable fly al cavo, PER LATO: tetto 0,4x il corpo per lato, ingresso 0,2x. Nota bene il tetto: 0,4x per lato e\' 0,8x in totale, non e\' un errore. Il petto isolato al cavo e\' un movimento piccolo, quindi il carico e\' basso.',

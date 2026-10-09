@@ -283,3 +283,88 @@ test('C15. i 27 esercizi della scheda di Ste hanno il livello giusto', async () 
     assert.equal(r.livello, attesi[e.id], e.nome + ': preso ' + r.livello + ' invece di ' + attesi[e.id]);
   }
 });
+
+test('C14c. i bicipiti sulla PANCA hanno una scala loro, non quella del cavo', async () => {
+  // Ste (08/10/2026): "il preacher curl non sarebbe bicipiti sulla panca scott?".
+  // Ha ragione: il preacher curl e il Scott bench curl sono lo STESSO esercizio (un
+  // manubrio singolo, un braccio alla volta, panca inclinata col cuscino). E prima
+  // finivano dentro "bicipiti", insieme al curl al CAVO, prendendone la scala:
+  // tetto 46,2 kg per braccio, che chi ci arrivava prendeva TITAN.
+  //
+  // Quel numero col manubrio in panca non e' realistico: sul cavo la doppia
+  // carrucola dimezza, quindi 46 kg per braccio sono 92 kg sul carrello e si vedono
+  // in palestra; col manubrio non si dimezza niente e il limite e' il bilanciere e
+  // l'equilibrio, non il bicipite.
+  const { ESERCIZI } = await import('../src/dati-iniziali.js');
+  const { classificaEsercizio } = await import('../src/esercizi-classificatore.js');
+  const { recordEsercizio } = await import('../src/rank.js');
+  const perId = (id) => ESERCIZI.find((e) => e.id === id);
+
+  const casi = [
+    ['One Arm Dumbbell Preacher Curl', 'bicipiti_panca'],
+    ['Preacher Curl', 'bicipiti_panca'],
+    ['Scott Bench Curl seduto al contrario', 'bicipiti_panca'],
+    // e il cavo resta coi bicipiti normali, con la sua scala (tetto 0,7x)
+    ['Cable Hammer Curl', 'bicipiti'],
+    ['Bicipiti con bilanciere', 'bicipiti'],
+  ];
+  for (const [nome, atteso] of casi) {
+    assert.equal(classificaEsercizio({ nome }).movimento, atteso,
+      nome + ' -> presa ' + classificaEsercizio({ nome }).movimento + ' invece di ' + atteso);
+  }
+
+  const pre = perId('ex-one-arm-preacher-curl');
+  const cavo = perId('ex-cable-hammer-curl');
+
+  // la scala e' DIVERSA, e piu' bassa di quella del cavo
+  const aPanca = recordEsercizio([{ id: 's', peso: 18, ripetizioni: 8, stato: 'fatta' }], pre, null, 66);
+  const aCavo = recordEsercizio([{ id: 's', peso: 50, ripetizioni: 6, stato: 'fatta' }], cavo, null, 66);
+  assert.ok(aPanca.vertice < aCavo.vertice,
+    `il tetto col manubrio in panca deve essere piu' basso di quello del cavo: `
+    + `${aPanca.vertice} contro ${aCavo.vertice}`);
+  // e non deve esistere un tetto "col bilanciere in panca" irraggiungibile:
+  // 46 kg per braccio NON devono arrivare a TITAN
+  const assurdo = recordEsercizio([{ id: 's', peso: 46, ripetizioni: 8, stato: 'fatta' }], pre, null, 66);
+  assert.ok(!assurdo.rank || assurdo.rank.id !== 'titan',
+    `46 kg per braccio col manubrio in panca non possono essere TITAN: `
+    + `sono un numero che si vede raramente (tetto ${assurdo.vertice})`);
+
+  // IL PEZZO CHE CONTA, e che non si vede guardando un solo corpo.
+  //
+  // I due tentativi sbagliati (tetto 0,40x con ingresso 0,15x e poi 0,26x)
+  // sembravano giusti guardando il corpo di Ste, ma al variare del corpo compariva
+  // un BUCO: chi pesava 75 kg con gli stessi 18 kg per braccio non aveva nessun
+  // livello, mentre chi pesava 55 kg era a PLATINUM. Sei Rank di scarto fra due
+  // persone che fanno lo stesso esercizio con lo stesso carico.
+  //
+  // Quindi qui si verifica la regola vera: con gli stessi kg per braccio, la
+  // posizione SCENDE REGOLARMENTE col peso corporeo, senza salti e senza buchi.
+  const posizione = (P) => {
+    const r = recordEsercizio([{ id: 's', peso: 18, ripetizioni: 8, stato: 'fatta' }], pre, null, P);
+    return r.rank ? r.rank.id : 'nessuno';
+  };
+// Il buco da evitare NON e' "nessun livello": e' il SALTO. Con 18 kg per braccio
+  // chi pesa 85 kg puo' stare sotto l'ingresso, e va bene: il suo bicipite non e'
+  // forte per il suo corpo. Il difetto vero era un corpo da 55 kg a PLATINUM e uno
+  // da 75 kg a NESSUN livello: sei Rank di scarto, e il salto dipendeva dal fatto che
+  // l'ingresso saliva piu' in fretta del tetto.
+  //
+  // Quindi qui si controlla la CONTINUITA': ogni corpo deve trovarsi nella fascia
+  // subito sotto quella del corpo precedente, non sei fasce piu' in basso. E se un
+  // corpo e' sotto l'ingresso, il successivo deve esserlo anch'esso.
+  const corpi = [55, 66, 75, 85, 100];
+  const posizioni = corpi.map(posizione);
+  const scala = ['nessuno', 'bronze', 'silver', 'gold', 'platinum', 'diamond', 'titan', 'olympian'];
+  for (let i = 0; i < corpi.length; i++) {
+    if (i === 0) continue;
+    const a = scala.indexOf(posizioni[i - 1]);
+    const b = scala.indexOf(posizioni[i]);
+    // non sale mai col peso, e non scende di piu' di una fascia per corpo
+    assert.ok(b <= a,
+      `chi pesa di piu' non puo' fare meglio: corpo ${corpi[i - 1]}=${posizioni[i - 1]} `
+      + `ma corpo ${corpi[i]}=${posizioni[i]}`);
+    assert.ok(a - b <= 1,
+      `la posizione non puo' saltare piu' di una fascia fra due corpi vicini: `
+      + `corpo ${corpi[i - 1]}=${posizioni[i - 1]} -> corpo ${corpi[i]}=${posizioni[i]}`);
+  }
+});
