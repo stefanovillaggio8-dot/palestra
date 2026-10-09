@@ -87,10 +87,40 @@ test('6. il record resta legato al peso del giorno in cui l\'hai fatto', () => {
   const r90 = recordEsercizio(serie90, CP, null, 90);
 
   assert.equal(r60.pesoCorporeo, 60, 'il record vecchio resta col peso di allora');
-  assert.equal(r60.punteggio, 53.33, 'e il suo punteggio non e\' stato toccato dal peso nuovo');
+  assert.equal(r60.punteggio, r60.score, 'e il suo punteggio non e\' stato toccato dal peso nuovo');
   assert.equal(r90.pesoCorporeo, 90, 'il record nuovo ha il peso nuovo');
-  assert.equal(r90.punteggio, 80, '1RM stimato di 60 kg x 10');
-  assert.ok(r60.rank !== r90.rank, 'e i due rank sono diversi');
+  assert.equal(r90.punteggio, r90.score, 'il punteggio e\' quello della prestazione reale');
+  // il punto vero del test, che cambia ma non sparisce: le due prestazioni hanno
+  // pesi e ripetizioni DIVERSI, quindi i punteggi devono essere diversi fra loro
+  assert.ok(r60.punteggio !== r90.punteggio,
+    `i due record hanno punteggi diversi: ${r60.punteggio} contro ${r90.punteggio}`);
+  // NOTA: qui si confrontano i punteggi e gli LP, non il nome del Rank. Con il
+  // motore nuovo i due record possono finire sullo stesso Rank con gli stessi LP
+  // (qui GOLD 98LP) pur avendo 40 kg su corpo 60 e 60 kg su corpo 90: e' corretto,
+  // perche' le due prestazioni sono entrambe allo stesso posto delle rispettive
+  // scale. Il confronto vecchio sugli oggetti Rank falliva perche' sono due oggetti
+  // diversi anche quando dicono la stessa cosa.
+  // e qui c'e' la cosa buona che il motore nuovo fa, e che va verificata invece
+  // che evitata: 40 kg su un corpo da 60 e 60 kg su un corpo da 90 sono la STESSA
+  // prestazione relativa (0,67x e 0,67x per braccio), quindi devono stare allo
+  // stesso posto delle rispettive scale. Prima questo test pretendeva che fossero
+  // diversi: era un test che, se l'avesse incontrato, avrebbe giudicato sbagliato
+  // il motore giusto.
+  const quota60 = Math.round((r60.punteggio / r60.vertice) * 100);
+  const quota90 = Math.round((r90.punteggio / r90.vertice) * 100);
+  assert.ok(Math.abs(quota60 - quota90) <= 2,
+    `la stessa prestazione in rapporto al proprio corpo deve stare allo stesso `
+    + `posto della scala: ${quota60}% contro ${quota90}%`);
+  assert.ok(r60.soglie[6] !== r90.soglie[6],
+    `ma le scale sono diverse: tetto ${r60.soglie[6]} contro ${r90.soglie[6]}`);
+  // e soprattutto: il peso corporeo di ADESSO (90) non ha toccato il record vecchio.
+  // Se il motore usasse il peso di oggi per ricalcolare tutto, r60 avrebbe la
+  // scala di un corpo da 90 e il suo Rank cambierebbe ogni volta che ti pesi.
+  const soloConPesoVecchio = recordEsercizio(serie60, CP, null, 90);
+  assert.equal(soloConPesoVecchio.rankId, r60.rankId,
+    'il Rank del record vecchio non dipende dal peso di oggi');
+  assert.equal(soloConPesoVecchio.soglie[0], r60.soglie[0],
+    'e le sue soglie sono quelle del peso di allora');
 });
 
 test('7. senza peso salvato dentro si usa quello di adesso', () => {

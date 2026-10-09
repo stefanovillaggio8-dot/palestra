@@ -20,6 +20,9 @@ import {
   spessoreSoglia,
   pesoReale,
 } from './rank-config.js';
+// il motore del Rank NUOVO. Vedi recordEsercizio: il collegamento e' fatto li', e
+// questo import e' l'unico pezzo di rank-v2 che entra nel motore vecchio.
+import { valutaEsercizio as valutaEsercizioNuovo } from './rank-v2/index.js';
 
 const R = RANK;
 const PER_ID = RANK_PER_ID;
@@ -336,39 +339,84 @@ export function recordEsercizio(serie, esercizio, profilo = null, pesoAttuale = 
       sottoSoglia: false, mancaAlPrimo: null, prossimoObiettivo: null,
     };
   }
-  // Bonus serie: Ste "se fai piu' serie l'app ti da' un po' di merito in piu'".
-  // Ma il posto del bonus e' DENTRO il rank: il rank lo decide il massimale, e il
-  // bonus spinge solo gli LP. Vedi rankConBonusSerie, che spiega perche' e cosa
-  // costava il contrario.
-  const bonus = bonusSerie(res.tutte.length);
+  // ======================================================================
+  // IL RANK NUOVO (rank-v2), attivato l'08/10/2026
+  // ======================================================================
+  // Ste ha approvato i numeri ("ok vabene tutto") dopo aver visto la tabella con i
+  // suoi carichi veri su tutti gli esercizi. Prima questo file calcolava il Rank
+  // sul MASSIMALE STIMATO, e li' stava il difetto che aveva fatto notare lui:
+  // "se faccio 45x8 non voglio che l'app trasformi quella prestazione in un
+  // ipotetico 1RM e poi assegni il Rank in base a quello".
+  //
+  // Il motore nuovo e' in src/rank-v2/ e risponde a: quanto e' forte QUESTA
+  // prestazione, per una persona di QUESTO peso, su QUESTO esercizio.
+  //
+  // PERCHE' SI COLLEGA QUI e non riscrivendo le schermate:
+  // recordEsercizio e' il punto in cui tutte le schermatele passano gia' (Rank,
+  // scheda, storico, confronto mensile, classifiche). Un record ha la stessa
+  // forma di prima, quindi l'app funziona senza toccare quasi nulla, e se il
+  // motore nuovo ha un buco l'app non si rompe: si comporta come prima.
+  //
+  // Il peso corporeo non si prende da quello passato a mano ma da quello DEL
+  // GIORNO in cui hai fatto la serie migliore: e' il peso che avevi quando hai
+  // spinto, non quello di adesso. Se non c'e', si usa quello attuale.
+  const pesoDelGiorno = res.migliore.pesoCorporeo || pesoAttuale;
+  const nuovo = valutaConMotoreNuovo({
+    serie: res.tutte.map((t) => t.serie),
+    esercizio,
+    pesoCorporeo: pesoDelGiorno,
+  });
+  if (nuovo && nuovo.valido) {
+    return recordDaMotoreNuovo(nuovo, esercizio, res);
+  }
+  // il motore nuovo non sa valutarlo (esercizio a ripetizioni, nessuna serie in kg):
+  // si torna al vecchio, che in quel caso sa ancora dire qualcosa
+  const resVecchio = recordVecchio(serie, esercizio, profilo, pesoAttuale, res);
+  return resVecchio;
+}
+
+/**
+ * Il Rank col motore VECCHIO, chiamato solo quando il nuovo non puo' valutare.
+ *
+ * Il codice del vecchio motore sta qui dentro e non sparisce: cosi' gli
+ * esercizi a ripetizioni (trazioni, dip) continuano a funzionare come prima, e
+ * nessun pezzo dell'app resta senza risposta.
+ */
+function recordVecchio(serie, esercizio, profilo, pesoAttuale, res = null) {
+  const prestazioni = res || performanceEsercizio(serie, esercizio, profilo, pesoAttuale);
+  if (!prestazioni.migliore) {
+    return {
+      esercizio, profilo: prestazioni.profilo, valido: false, motivo: 'nessuna prestazione registrata',
+      punteggio: null, rank: null, lp: 0, testo: '', pesoCorporeo: null,
+      sottoSoglia: false, mancaAlPrimo: null, prossimoObiettivo: null,
+    };
+  }
+  const bonus = bonusSerie(prestazioni.tutte.length);
   const punteggioConSerie = bonus.fattore > 1
-    ? Math.round(res.migliore.punteggio * bonus.fattore * 100) / 100
-    : res.migliore.punteggio;
-  const r = rankConBonusSerie(res.migliore.punteggio, bonus.fattore, res.profilo);
+    ? Math.round(prestazioni.migliore.punteggio * bonus.fattore * 100) / 100
+    : prestazioni.migliore.punteggio;
+  const r = rankConBonusSerie(prestazioni.migliore.punteggio, bonus.fattore, prestazioni.profilo);
   const testoSerie = bonus.bonus > 0
-    ? ` (+${bonus.bonus}% per ${res.tutte.length} serie${r.bonusBloccato ? ', non abbastanza per il rank' : ''})`
+    ? ` (+${bonus.bonus}% per ${prestazioni.tutte.length} serie${r.bonusBloccato ? ', non abbastanza per il rank' : ''})`
     : '';
   return {
     esercizio,
-    profilo: res.profilo,
+    profilo: prestazioni.profilo,
     valido: true,
-    punteggio: res.migliore.punteggio,
-    // il numero col bonus resta scritto e leggibile: serve per capire quanto
-    // vale il merito delle serie, e perche' i LP sono avanti rispetto alla barra
+    punteggio: prestazioni.migliore.punteggio,
     punteggioConSerie,
-    testo: res.migliore.testo + testoSerie,
-    serieFatte: res.tutte.length,
+    testo: prestazioni.migliore.testo + testoSerie,
+    serieFatte: prestazioni.tutte.length,
     bonusSerie: bonus.bonus,
     bonusBloccato: !!r.bonusBloccato,
     bonusLp: r.bonusLp || 0,
-    spiegaBonus: spiegaBonusFermato({ bonusBloccato: r.bonusBloccato, serieFatte: res.tutte.length, bonusSerie: bonus.bonus }),
-    serie: res.migliore.serie,
-    pesoCorporeo: res.migliore.pesoCorporeo,
-    // tutto quello che calcola calcolaRank, così le schermate non perdono
-    // campi (prima "prossimoObiettivo" non arrivava e la frase del Rank
-    // ricadeva sul nome del rank sbagliato)
+    spiegaBonus: spiegaBonusFermato({ bonusBloccato: r.bonusBloccato, serieFatte: prestazioni.tutte.length, bonusSerie: bonus.bonus }),
+    serie: prestazioni.migliore.serie,
+    pesoCorporeo: prestazioni.migliore.pesoCorporeo,
+    motore: 'vecchio',
     rank: r.rank,
     rankId: r.rankId,
+    indice: r.indice,
     lp: r.lp,
     divisione: r.divisione,
     progresso: r.progresso,
@@ -380,7 +428,109 @@ export function recordEsercizio(serie, esercizio, profilo = null, pesoAttuale = 
     sottoSoglia: r.sottoSoglia,
     mancaAlPrimo: r.mancaAlPrimo,
     inTop: r.inTop,
-    quanteSerieValide: res.tutte.length,
+    quanteSerieValide: prestazioni.tutte.length,
+  };
+}
+
+/** Il motore nuovo, se c'e' e se risponde. Altrimenti null: si torna al vecchio. */
+function valutaConMotoreNuovo({ serie, esercizio, pesoCorporeo }) {
+  if (!pesoCorporeoValido(pesoCorporeo)) return null;
+  try {
+    return valutaEsercizioNuovo({ esercizio, serie, pesoCorporeo });
+  } catch {
+    // un errore del motore nuovo non deve portare giu' l'app: si dice solo che non
+    // si puo' valutare e si usa il vecchio
+    return null;
+  }
+}
+
+/**
+ * Trasforma l'uscita del motore nuovo nella stessa forma di un record vecchio.
+ *
+ * E' il punto in cui due sistemi diversi diventano uno solo. I campi che le
+ * schermate leggono (rank, lp, divisione, sottoSoglia, prossimoObiettivo) devono
+ * esserci TUTTI e con lo stesso significato, altrimenti una schermata mostra
+ * "undefined" e non si capisce se e' un bug o un campo nuovo.
+ */
+function recordDaMotoreNuovo(r, esercizio, res) {
+  const testoSerie = r.serieFatte > 1 ? ` (${r.serieFatte} serie)` : '';
+  const prossimoObiettivo = r.distanza
+    ? {
+      etichetta: r.rank ? (R[r.indice + 1] || {}).nome || 'il prossimo' : 'BRONZE',
+      solaDivisione: false,
+      punteggio: r.soglie[Math.max(0, r.indice + 1)] || null,
+      distanza: r.distanza,
+    }
+    : null;
+  return {
+    esercizio,
+    profilo: res.profilo,
+    valido: true,
+    motore: 'nuovo',
+    // il numero che le schermate mostravano era il punteggio: ora e' lo score
+    // della prestazione reale, e resta leggibile come prima
+    punteggio: r.score,
+    // il numero col volume: serve per capire quanto vale il merito delle serie,
+    // e perche' gli LP sono avanti rispetto alla barra
+    punteggioConSerie: r.scoreConSerie,
+    // i due nomi del motore nuovo. Sono gli stessi numeri di punteggio e
+    // punteggioConSerie: si chiamano cosi' perche' "punteggio" nel motore vecchio
+    // era il massimale stimato (la domanda ipotetica "quanto reggeresti") e qui
+    // non lo e' piu'. Senza questi due campi la schermata e i test leggevano
+    // "undefined" perche' si aspettavano quei nomi.
+    score: r.score,
+    scoreConSerie: r.scoreConSerie,
+    testo: `${r.caricoReale} kg x ${r.ripetizioni}${testoSerie}`,
+    serieFatte: r.serieFatte,
+    bonusSerie: 0,
+    bonusBloccato: !!r.volumeBloccato,
+    bonusLp: 0,
+    spiegaBonus: r.volumeBloccato
+      ? 'Il volume ti spingerebbe su, ma la serie migliore non e\' ancora vicina alla soglia.'
+      : null,
+    serie: { peso: r.caricoReale, ripetizioni: r.ripetizioni },
+    pesoCorporeo: r.pesoCorporeo || (res.migliore ? res.migliore.pesoCorporeo : null),
+    movimento: r.movimento,
+    livello: r.livello,
+    // i pezzi nuovi, per la schermata che li vuole mostrare
+    ripetizioniPiene: r.ripetizioniPiene,
+    meccanica: r.meccanica,
+    kgEquivalenti: r.kgEquivalenti,
+    // il carico che entra nel calcolo (la doppia carrucola dimezzata): serve a
+    // chi vuole sapere "quanto ho spinto davvero" e non "quanto leggevo"
+    caricoReale: r.caricoReale,
+    soglie: r.soglie,
+    ingresso: r.ingresso,
+    vertice: r.vertice,
+    distanza: r.distanza,
+    // e i campi che le schermate di prima leggevano, con lo stesso significato
+    rank: r.rank,
+    rankId: r.rank ? r.rank.id : null,
+    // IL NUMERO DELLA FASCIA. Nel motore vecchio `rank.indice` era un numero (la
+    // posizione nella lista dei Rank, da 0 a 6) e diverse schermate lo usavano per
+    // ordinare e per scegliere i colori. Il motore nuovo mette l'indice sul record
+    // (`r.indice`) e non dentro l'oggetto rank: senza riportarlo qui, `rank.indice`
+    // tornava "undefined" e un confronto come "a.indice > b.indice" dava false
+    // SEMPRE, quindi l'ordinamento della lista Rank si rovesciava o non ordinava.
+    //
+    // -1 vuol dire "sotto il primo livello": e' un valore reale, non un errore, e
+    // per questo i confronti devono reggerlo (chi e' sotto soglia viene per ultimo).
+    indice: r.indice,
+    lp: r.lp,
+    divisione: r.divisione,
+    progresso: r.progresso,
+    // la barra col volume: serve per capire quanto vale il merito delle serie
+    // anche quando il volume e' fermato e la barra non si muove
+    progressoConVolume: r.progressoConVolume,
+    prossimoRank: r.prossimoRank,
+    prossimaDivisione: r.prossimaDivisione,
+    prossimoObiettivo,
+    sogliaAttuale: r.soglie[r.indice] || null,
+    sogliaSuccessiva: r.prossimaSoglia,
+    sottoSoglia: !!r.sottoSoglia,
+    mancaAlPrimo: r.mancaAllaPrima || null,
+    inTop: r.indice === r.soglie.length - 1,
+    quanteSerieValide: r.serieFatte,
   };
 }
 

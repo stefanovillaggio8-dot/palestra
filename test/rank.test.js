@@ -13,9 +13,10 @@ import {
   RANK, MISURE, profiloEsercizio, soglieDaRiferimento, ETICHETTE_MISURA, divisioneDaLp,
   profiloPerPesoCorporeo, MOLTIPLICATORI_SOGLIA,
 } from '../src/rank-config.js';
+import { ESERCIZI } from '../src/dati-iniziali.js';
 
-const chest = { id: 'ex-chest-press', nome: 'Chest Press', convenzione: 'macchina' };
-const lateral = { id: 'ex-cable-lateral-raise', nome: 'Cable Lateral Raise', convenzione: 'cavo_totali' };
+const chest = ESERCIZI.find((e) => /chest press/i.test(e.nome));
+const lateral = ESERCIZI.find((e) => /lateral/i.test(e.nome));
 
 function serie(peso, rip, extra = {}) {
   return { id: 's' + peso + 'x' + rip + Math.random().toString(36).slice(2, 6), peso, ripetizioni: rip, stato: 'fatta', ordine: 1, ...extra };
@@ -244,20 +245,62 @@ test('24. recordAccount e\' gia\' ordinato dal rank piu\' alto', () => {
     lateral,
     { id: 'ex-pull-ups', nome: 'Pull Ups', convenzione: 'assistenza' },
   ];
-  // pesi realistici: 50 kg in panca e 6 kg alle alzate laterali. Con questi
-  // numeri la panca viene davanti, e deve venire davanti.
+  // pesi realistici. ATTENZIONE ALLE UNITA': le alzate laterali sono al cavo con
+  // doppia carrucola, quindi il numero che leggi e' il TOTALE sui due cavi e quello
+  // che entra nel calcolo e' la meta'. Il test metteva 6 kg letti (= 3 per lato),
+  // che col motore nuovo danno legittimamente "nessun Rank": l'ingresso di un
+  // isolamento sulle spalle e' bassissimo (0,12x il corpo per lato = 7,9 kg), ma
+  // 3 kg per lato non arrivano. Quindi qui si mettono 20 kg letti = 10 per lato,
+  // che e' un numero che si vede davvero in palestra.
   const gruppi = [
     { esercizio_id: chest.id, serie: [{ id: 'a', peso: 50, ripetizioni: 8, stato: 'fatta' }] },
-    { esercizio_id: lateral.id, serie: [{ id: 'b', peso: 6, ripetizioni: 15, stato: 'fatta' }] },
+    { esercizio_id: lateral.id, serie: [{ id: 'b', peso: 20, ripetizioni: 15, stato: 'fatta' }] },
   ];
   const record = recordAccount(catalogo, gruppi, { pesoAttuale: 66 });
   assert.equal(record.length, 2);
+  // e i due devono avere un Rank entrambi: un record senza Rank e' un caso
+  // possibile (chi non ha ancora sbloccato il primo livello) e non deve far
+  // esplodere niente, ma qui siamo nel caso normale
+  assert.ok(record[0].rank && record[1].rank,
+    'con questi pesi entrambi gli esercizi hanno un Rank');
   assert.equal(record[0].esercizio.id, chest.id);
   assert.ok(record[0].rank.indice > record[1].rank.indice);
   assert.equal(rankPrincipale(record).esercizio.id, chest.id);
   const d = distribuzioneRank(record);
   assert.equal(d.length, RANK.length);
-  assert.equal(d.reduce((a, x) => a + x.numero, 0), 2);
+  assert.equal(d.reduce((a, x) => a + x.numero, 0), 2,
+    'e ogni esercizio con Rank conta una volta sola nella distribuzione');
+});
+
+test('24b. un esercizio senza Rank non fa esplodere nulla', () => {
+  // Un record puo' stare sotto la prima soglia: e' il caso di chi si allena ma
+  // non ha ancora sbloccato il BRONZE su quell'esercizio. Prima non succedeva
+  // (il motore vecchio non restituiva mai Rank null) e un pezzo dell'app che legge
+  // "record.rank.indice" andava in crash.
+  //
+  // Le alzate laterali con 6 kg letti sul cavo doppio sono 3 kg per lato, sotto
+  // l'ingresso di 7,9: nessun Rank, e va benissimo.
+  const catalogo = [
+    chest,
+    lateral,
+  ];
+  const gruppi = [
+    { esercizio_id: chest.id, serie: [{ id: 'a', peso: 37, ripetizioni: 8, stato: 'fatta' }] },
+    { esercizio_id: lateral.id, serie: [{ id: 'b', peso: 6, ripetizioni: 15, stato: 'fatta' }] },
+  ];
+  const record = recordAccount(catalogo, gruppi, { pesoAttuale: 66 });
+  assert.equal(record.length, 2, 'entrambi i record ci sono');
+  const senza = record.find((r) => r.esercizio.id === lateral.id);
+  assert.equal(senza.rank, null, 'quello sulle alzate laterali non ha ancora un Rank');
+  assert.equal(senza.sottoSoglia, true, 'e lo sa: e\' sotto la prima soglia');
+  assert.ok(senza.ingresso > 0, 'e sa anche quanto gli serve');
+  // il record senza Rank non deve contare nella distribuzione, e il rank principale
+  // deve essere quello che ce l'ha
+  const d = distribuzioneRank(record);
+  assert.equal(d.reduce((a, x) => a + x.numero, 0), 1,
+    'nella distribuzione conta solo l\'esercizio che ha un Rank');
+  assert.equal(rankPrincipale(record).esercizio.id, chest.id,
+    'e il Rank principale non e\' quello sotto soglia');
 });
 test('R10. la prossima divisione si chiama come la divisione giusta', () => {
   // Ste: non "per il PLATINUM mancano" quando sei a ORO 2, ma "per l'ORO 3 mancano"
@@ -351,9 +394,13 @@ test('R14. lista Rank e pagina esercizio dicono la stessa cosa', async () => {
   const a = senza.record[0];
   const b = con.record[0];
   assert.ok(a && b, 'devono esserci record in entrambi i casi');
-  assert.equal(b.rankId, 'gold', 'col peso la chest press 35x8 e\' oro');
-  // il punto: senza il peso la scala e\' un\'altra, e quindi i due non
-  // possono coincidere. E\' il motivo per cui il peso va passato ovunque.
+  // Il Rank e' cambiato il 08/10/2026 col motore nuovo: la chest press 35 kg x 8
+  // su corpo 66 sta al 20% della scala (ingresso 29,7, tetto 66) e quindi dà
+  // SILVER, non GOLD. Prima veniva dal massimale stimato e dava GOLD.
+  assert.equal(b.rankId, 'silver', 'col peso la chest press 35x8 e\' silver');
+  // il punto del test, che e' quello vero: senza il peso la scala e\' un\'altra, e
+  // quindi i due non possono coincidere. E' il motivo per cui il peso va passato
+  // ovunque: due schermate non possono dare due Rank diversi sullo stesso record.
   assert.notEqual(b.sogliaSuccessiva, a.sogliaSuccessiva,
     'senza peso le soglie sono diverse: e\' il bug che aveva fatto due risposte diverse');
   assert.equal(b.prossimoObiettivo.punteggio > 0, true, 'il numero del prossimo obiettivo c\'e\'');

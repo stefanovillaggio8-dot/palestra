@@ -20,8 +20,8 @@
 
 import { classificaEsercizio } from '../esercizi-classificatore.js';
 import { scoreSerie, moltiplicatoreSerie } from './curve.js';
-import { soglieDaValori, rankDaScore } from './scalata.js';
-import { VALORI_MOVIMENTO, sogliePerEsercizio, fattoreSogliaDaKg } from './valori.js';
+import { soglieDaValori, rankDaScore, distanzaAllaSoglia } from './scalata.js';
+import { valoriPerEsercizio, sogliePerEsercizio, fattoreSogliaDaKg, RIPETIZIONI_RIFERIMENTO } from './valori.js';
 import { affinaVertice } from './misura.js';
 
 /** Il movimento di un esercizio, con la sua unita' di carico. */
@@ -46,10 +46,12 @@ export function movimentoDi(esercizio) {
 export function valutaEsercizio({ esercizio, serie = [], pesoCorporeo = null, risposte = [] }) {
   const riconosciuto = movimentoDi(esercizio);
   const movimento = riconosciuto.movimento;
-  const valori = VALORI_MOVIMENTO[movimento] || null;
+  // i valori dipendono anche dall'attrezzatura, non solo dal movimento: stesso
+  // petto, ma il fly al cavo e il bench pull coi manubri non hanno lo stesso tetto
+  const valori = valoriPerEsercizio(movimento, esercizio || {});
   const livello = riconosciuto.livello;
 
-  if (!valori || valori.vertice === 0) {
+  if (!valori || valori.multiplo === 0) {
     return {
       valido: false,
       motivo: 'questo esercizio si conta in ripetizioni, non in kg',
@@ -74,7 +76,7 @@ export function valutaEsercizio({ esercizio, serie = [], pesoCorporeo = null, ri
 
   // le soglie: tre valori dell'esercizio, riportati sul tuo corpo e convertiti
   // nell'unita' dello score (kg-equivalenti per 8 rip)
-  const tre = sogliePerEsercizio(valori, livello, pesoCorporeo);
+  const tre = sogliePerEsercizio(valori, livello, pesoCorporeo, movimento);
   if (!tre) {
     return { valido: false, motivo: 'peso corporeo non disponibile', movimento, livello };
   }
@@ -88,11 +90,22 @@ export function valutaEsercizio({ esercizio, serie = [], pesoCorporeo = null, ri
   const conVolume = migliore.score * moltiplicatoreSerie(n);
   const rank = rankDaScore(migliore.score, soglie, { serieFatte: n });
 
+  // strada B (Ste, 08/10/2026): il Rank premia le ripetizioni vere, ma la
+  // schermata dice sempre quanto manca alla soglia dopo, in ripetizioni o in kg.
+  // Le soglie sono per 8 ripetizioni e chi ne fa meno va legittimamente piu'
+  // in basso: il punto e' che lo vede, e sa quanto ci mette ad arrivarci.
+  const distanza = distanzaAllaSoglia(migliore.score, soglie, rank.indice, {
+    carico: migliore.carico,
+    meccanica: migliore.meccanica,
+    ripetizioniFatte: migliore.ripetizioni,
+  });
+
   // e l'affinamento: le tue risposte spostano il vertice di un pezzo alla volta
   const affinato = affinaVertice({
-    verticeDichiarato: valori.vertice,
+    verticeDichiarato: pesoCorporeo ? tre.vertice : valori.multiplo * 70,
     risposte,
     livello,
+    movimento,
     pesoCorporeo: pesoCorporeo || 70,
   });
 
@@ -117,6 +130,12 @@ export function valutaEsercizio({ esercizio, serie = [], pesoCorporeo = null, ri
     // e i numeri in kg, per la schermata: sono quelli che si leggono
     kgEquivalenti: Math.round((migliore.score / fattore) * 100) / 100,
     ...rank,
+    // le soglie sono per 8 ripetizioni: questo e' il tetto dichiarato in quel
+    // riferimento, e serve alla schermata per non far leggere "66 kg" come se
+    // valesse lo stesso con 5 o con 12 ripetizioni
+    sogliePer8Rip: true,
+    ripetizioniRiferimento: RIPETIZIONI_RIFERIMENTO,
+    distanza,
     affinamento: affinato,
   };
 }

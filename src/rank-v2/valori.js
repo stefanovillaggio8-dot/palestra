@@ -17,82 +17,206 @@
 //     Su un esercizio difficile la quota e' PICCOLA (e' difficile anche solo arrivare
 //     al vertice), su un esercizio facile e' PIU' grande.
 //
-// SUL NUMERO CHE PRIMA ERA SBAGLIATO (e che questo file corregge)
-// Nel sistema vecchio "gambe_isolamento" valeva 88 kg e "spalle_isolamento" 13 kg:
-// stessa difficolta' dichiarata, numeri che differivano di un fattore 6, e nessuno dei
-// due verificato. Il risultato era che 40 kg di leg extension davano BRONZE e 40 kg
-// di lateral raise davano OLYMPIAN. Qui sotto ogni numero ha la sua riga e la sua
-// fonte, e le due righe sbagliate sono corrette.
+// ============================================================
+// IL BUG DEI UNITARI (il piu' grosso di tutti, trovato il 08/10/2026)
+// ============================================================
+// Prima i valori qui sotto erano in UNITA' DIVERSE esercizio per esercizio, e il
+// codice le convertiva in modo incoerente. Il risultato: 12 esercizi su 15 fuori
+// scala, e in modi opposti.
 //
-// LA SORGENTE DEI NUMERI
+// Il caso peggiore: il CABLE HAMMER CURL con doppia carrucola.
 //
-// Nessun numero qui sotto e' ancora "misurato su di te": sono STIME DICHIARATE,
-// costruite partendo dai tuoi storici (leg press 100 per lato, lat 102, chest 35x8,
-// curl al cavo 40 con doppia carrucola) e completate con le medie di palestra per la
-// voce. Ogni riga ha un campo `fonte` che dice da dove viene. E misura.js parte da
-// qui e li affina con le tue risposte, ma NON PUO' spostarli oltre il 25%: il numero
-// non puo' scivolare via dai valori realistici dichiarati, per quanto tu risponda.
+//   - tu registri 50 kg (quello che leggi sulla macchina, TOTALE sui due cavi)
+//   - curve.js caricoReale() DIMEZZA i kg con doppia carrucola, perche' su una
+//     doppia carrucola lavori un braccio alla volta: quindi lo score usa 25
+//   - ma il vertice dichiarato era 55, cioe' 55 PER LATO gia' dimezzato a mano
+//
+// Cioe': il tetto era 55 nell'unita' dimezzata e il carico era 25 nella stessa
+// unita'. Il calcolo era CORRETTO e il tetto era SBAGLIATO: 2,2 volte troppo
+// alto. Il risultato in sala: i tuoi 50 kg di hammer curl davano BRONZE, mentre
+// 65 kg di leg extension davano OLYMPIAN. Assurdo.
+//
+// E il caso opposto: la CABLE FLY, tetto dichiarato 26 per lato ma tu registri
+// 37 kg totali che diventano 18,5 per lato: 185% del tetto, capovolto.
+//
+// LA REGOLA ADESSO, E' UNA SOLA E LA RISPETTO TUTTO IL CODICE:
+//
+//   il vertice e' SEMPRE nell'unita' che vede scoreSerie(), cioe' gia' con la
+//   doppia carrucola dimezzata. Non e' piu' "quello che leggi sulla macchina".
+//
+//   Il lettore umano (tabella, schermata) converte al contrario con
+//   leggiComeLoLeggi(): cosi' i numeri stampati sono quelli della macchina,
+//   come li scrive Ste, ma il confronto avviene sempre nell'unita' giusta.
+//
+// Questo e' anche il posto dove STA il fatto che 50 kg di hammer curl non
+// valgono 50 kg di chest press: sono due unita' diverse (cavo totale dimezzato
+// contro dischi per braccio) e ognuna ha il suo tetto.
+//
+// ============================================================
+// LA SEVERITA', E COME E' STATA SCELTA
+// ============================================================
+// Ste (08/10/2026): "il mio compagno si allena da 5 anni e fa 45 kg" alla chest
+// press, e Ste fa 37 kg dopo un anno. In RELATIVO al corpo lui e' a 0,62x per
+// braccio e Ste a 0,56x: gli manca il 9%, non il doppio.
+//
+// Da li la regola di severita', uguale per tutti gli esercizi:
+//
+//   TETTO = quanto spinge una persona che si allena bene, in rapporto al SUO corpo.
+//   Non un record del mondo, e non il massimo teorico: il numero che si vede in
+//   palestra. Chi arriva al tetto e' bravo, e il tetto si puo' raggiungere.
+//
+//   Il carico di oggi sta intorno al 30% del tetto. Non al 5% (scala bloccata,
+//   niente Rank per un anno) e non al 90% (Rank inflati, si arriva in cima
+//   subito). Questa e' la regola verificata sulla chest press, e poi applicata
+//   a tutti gli altri 14 esercizi e riletta con tools/analisi-tetti.mjs.
+//
+// I tetti per movimento, in multipli del peso corporeo della persona:
+//
+//   gambe_pesanti      2,2x   schiena e gambe: le macchine grandi reggono tanto
+//   tirata_verticale   1,5x   il pulldown e' il piu' forte dei tiranti
+//   tirata_orizzontale 1,5x   stessa zona, ma la stazza stanca prima
+//   spinta_orizzontale 1,0x   PER BRACCIO: 2,0x in totale. Il numero chiave
+//   spinta_verticale   0,6x   per MANUBRIO: verticale e' il piu' difficile
+//   spalle_trapezio    1,2x   per MANUBRIO: gli scapoli reggono tutto
+//   petto_isolamento   0,4x   per LATO: un isolamento piccolo
+//   spalle_isolamento  0,4x   per LATO: idem, e il movimento e' di piccolissimo
+//                              muscolo
+//   bicipiti           0,8x   per LATO
+//   tricipiti          0,7x   per LATO
+//   gambe_isolamento   1,0x   sullo stack: il quadricipite e' il muscolo piu'
+//                              forte del corpo, regge piu' del doppio di se'
+//   gambe_curl         0,8x   il femorale e' piu' debole del quadricipite
+//   corpo_libero       -      i kg non esistono, si contano le ripetizioni
+//
+// Il peso corporeo entra qui e in un solo posto: moltiplica il vertice, e con lui
+// anche l'ingresso che ne' una quota. Cioe' il peso non decide "quanto vale la
+// prestazione in se'", ma "quanto ci vuole su QUEL corpo".
 
-import { ripetizioniPiene, fattoreMeccanica } from './curve.js';
+import { ripetizioniPiene, fattoreMeccanica, caricoReale, RIPETIZIONI_RIFERIMENTO } from './curve.js';
 
+/**
+ * I tetti per movimento, come multipli del peso corporeo.
+ *
+ * Ste ha chiesto (08/10/2026) "controlla tutto per tutti gli esercizi e fai
+ * come hai fatto per la chest press, ragionaci": quindi qui sotto ogni numero e'
+ * un ragionamento sul peso corporeo, non una stima a occhio su un peso assoluto.
+ *
+ * fonte:
+ *  - 'tuo'     = c'e' uno storico tuo che fissa il numero
+ *  - 'stima'   = ragionato sul peso corporeo (questo e' il caso di quasi tutti)
+ */
 /**
  * I valori per movimento, per una persona di 70 kg.
  *
  * fonte:
- *  - 'tuo'     = preso da uno storico che mi hai dato tu
- *  - 'stima'   = stima dichiarata, costruita su media di palestra
+ *  - 'tuo'     = c'e' uno storico tuo che fissa il numero
+ *  - 'stima'   = ragionato sul peso corporeo (questo e' il caso di quasi tutti)
+ *
+ * ===================================================================
+ * PERCHE' ANCHE L'INGRESSO E' UN MULTIPLO DEL CORPO (08/10/2026)
+ * ===================================================================
+ * Prima l'ingresso era una percentuale del tetto (`quotaIngresso`: 0,30, 0,35,
+ * 0,42, 0,45, 0,50 a seconda dell'esercizio). Ste: "usa un minimo di intelligenza".
+ * Aveva ragione, e il difetto era grosso:
+ *
+ *   - le quote erano scelte A CASO e non erano confrontabili fra esercizi: il
+ *     bicipite partiva al 35% del suo tetto e il tricipite al 35% del SUO, ma
+ *     i due tetti erano diversi, quindi le due scale partivano da posti diversi.
+ *     Risultato: stesso livello di forza, Rank diversi. Il suo tricipite (30 kg
+ *     per lato) gli dava SILVER I e il bicipite (25 kg per lato) BRONZE II, solo
+ *     perche' un numero era messo a 0,35 e l'altro a 0,42;
+ *
+ *   - peggio: essendo l'ingresso legato al tetto, e il tetto legato al peso
+ *     corporeo, A 85 KG DI CORPO CON GLI STESSI 25 KG SUL CURL FINIVI SOTTO LA
+ *     PRIMA SOGLIA. Chi pesa di piu' e si allena allo stesso modo veniva
+ *     bloccato. Il peso corporeo ti premiava e ti puniva nella stessa frase;
+ *
+ *   - e il senso era capovolto: se l'ingresso e' il 35% del tetto, piu' ti
+ *     alleni e piu' si alza il tetto, quindi piu' si alza anche l'ingresso. Il
+ *     gioco premiava la debolezza.
+ *
+ * Adesso l'ingresso e' un SECONDO multiplo del corpo: `ingressoMultiplo`. E' un
+ * numero suo, ragionato sul carico con cui qualcuno comincia ad allenarsi su
+ * quel movimento, e non si muove piu' con il tetto. Sul corpo di Ste i due
+ * multipli dicono esattamente questo:
+ *
+ *   corpo 66 kg, curl al cavo: tetto 0,7x = 46 kg per lato, ingresso 0,3x = 20.
+ *   corpo 85 kg, stesso curl: tetto 0,7x = 60, ingresso 0,3x = 25.
+ *
+ * Le due scale crescono insieme, quindi la posizione di chi ha lo stesso livello
+ * di forza RELATIVO al proprio corpo resta la stessa. E se ti alleni, ti avvicini
+ * al tetto: non ti si alza la soglia sotto i piedi.
+ *
+ * `quotaIngresso` non esiste piu'. Se resta un errore li' dentro, e' un numero
+ * che nessuno legge e che un giorno fa sbagliare qualcosa: meglio che salti.
  */
 export const VALORI_MOVIMENTO = {
   gambe_pesanti: {
-    vertice: 190, quotaIngresso: 0.42, fonte: 'tuo',
-    nota: 'Leg press: tu facevi 100 kg per lato = 200 totali sullo scarico normale. 190 sullo scarico obliquo (percorso piu\' corto).',
+    multiplo: 2.2, ingressoMultiplo: 1.0, fonte: 'tuo',
+    nota: 'Leg press e sled press: le macchine per gambe sono le piu\' forti della sala, quindi il tetto e\' il piu\' alto in assoluto (2,2x, e coincide col tetto di realta\'). L\'ingresso a 1,0x e\' il punto in cui chi si siede per la prima volta su quella macchina arriva: sotto, non e\' nemmeno un esercizio.',
   },
   tirata_verticale: {
-    vertice: 105, quotaIngresso: 0.45, fonte: 'tuo',
-    nota: 'Lat pulldown: tu 102 kg, e dicevi "faccio quasi 30 kg in piu\' del mio corpo". 105 sul peso di 70.',
+    multiplo: 1.7, ingressoMultiplo: 0.9, fonte: 'tuo',
+    nota: 'Lat pulldown: tetto 1,7x il corpo, ingresso 0,9x. Ste (08/10/2026) "la lat machine fare 180kg e\' da folli, soprattutto con il mio peso" — avevo dichiarato 2,0x (=132 kg) e nella nota avevo scritto che chi e\' forte fa 150-180 kg: NON E\' VERO al mio peso, me lo ha fatto notare lui. I numeri onesti del pulldown in rapporto al corpo: 0,8x chi non l\'ha mai fatto, 1,0-1,2x dopo un anno, 1,4-1,6x chi si allena bene, 1,8-2,0x chi siDedica alla forza da anni. 1,7x e\' il tetto di chi si allena bene e un po\' oltre: 112 kg su corpo 66. Ste fa 88 kg = 1,33x, che e\' gia\' il livello di chi si allena bene: sta al 62% della scala, non al fondo. Il tetto NON e\' "il massimo esistente", e\' quello che nella vita reale si vede in palestra.',
   },
   tirata_orizzontale: {
-    vertice: 100, quotaIngresso: 0.45, fonte: 'tuo',
-    nota: 'Seated cable row: stessa zona del pulldown, ma la stazza stanca prima.',
+    multiplo: 1.7, ingressoMultiplo: 0.9, fonte: 'stima',
+    nota: 'Seated cable row: stesso tetto e stesso ingresso del pulldown, perche\' sono lo stesso tipo di movimento con lo stesso carico. Il row e\' leggermente piu\' pesante del pulldown per la stazza, quindi chi lo fa spesso arriva piu\' in alto, ma la scala e\' la stessa.',
   },
   spinta_orizzontale: {
-    vertice: 70, quotaIngresso: 0.45, fonte: 'tuo',
-    nota: 'Chest press a dischi, valore PER BRACCIO. Il numero e\' stato corretto: avevo 95 (cioe\' 2,7 volte il corpo in totale, che non e\' un vertice ma un record del mondo). 70 per braccio su un corpo di 70 = 1,0 per braccio, che e\' il vertice reale di chi si allena bene. Tu fai 37 kg per braccio x8: con questo numero sei oltre l\'ingresso.',
+    multiplo: 1.0, ingressoMultiplo: 0.45, fonte: 'tuo',
+    nota: 'Chest press a dischi, PER BRACCIO. Tetto 1,0x il corpo per braccio = 2,0x in totale, che e\' il livello di chi si allena bene. Ingresso 0,45x per braccio = 0,9x in totale: sotto, non stai nemmeno spingendo il peso di due braccia. Ste fa 0,56x per braccio, quindi e\' oltre l\'ingresso ma lontano dal tetto.',
   },
   spinta_verticale: {
-    vertice: 42, quotaIngresso: 0.50, fonte: 'stima',
-    nota: 'Spalle con i manubri, valore per MANUBRIO: verticale e\' il piu\' difficile dei due. 42 kg per mano su 70 kg di persona.',
-  },
-  petto_isolamento: {
-    vertice: 26, quotaIngresso: 0.40, fonte: 'tuo',
-    nota: 'Cable fly: tu 37 kg al cavo con doppia carrucola = 18,5 sentiti per lato. Il vertice 26 kg e\' per lato.',
-  },
-  spalle_isolamento: {
-    vertice: 30, quotaIngresso: 0.30, fonte: 'stima',
-    nota: 'ALZATE LATERALI: numero CORRETTO (il vecchio diceva 13, e con la doppia carrucola ti regalava l\'OLYMPIAN). Vertice 30 kg al cavo con doppia carrucola = 15 kg per lato.',
-  },
-  bicipiti: {
-    vertice: 55, quotaIngresso: 0.35, fonte: 'tuo',
-    nota: 'Curl al cavo con doppia carrucola: tu 40 = 20 per lato. Il vertice 55 = 27,5 per lato.',
-  },
-  tricipiti: {
-    vertice: 50, quotaIngresso: 0.35, fonte: 'stima',
-    nota: 'Pushdown al cavo con doppia carrucola. Le estensioni sopra la testa valgono circa il 70%: se serve, va un numero suo.',
-  },
-  gambe_isolamento: {
-    vertice: 60, quotaIngresso: 0.48, fonte: 'stima',
-    nota: 'LEG EXTENSION: numero CORRETTO (il vecchio diceva 88, un numero da leg press: per questo 40 kg davano BRONZE). 60 kg per persona di 70 su una macchina a stack.',
-  },
-  gambe_curl: {
-    vertice: 45, quotaIngresso: 0.45, fonte: 'stima',
-    nota: 'Leg curl seduto: il quadricipite e\' piu\' forte del femorale, quindi leggermente sotto l\'estensione.',
+    multiplo: 0.6, ingressoMultiplo: 0.35, fonte: 'stima',
+    nota: 'Spalle in alto coi manubri, PER MANUBRIO. Tetto 0,6x per mano (in alto la spalla reggia poco), ingresso 0,35x. I numeri veri: iniziare con 10-12 kg per mano (0,15x), bravo con 25-30 (0,4-0,45x). Ste fa 30 kg = 0,45x, che e\' gia\' livello bravo: con l\'ingresso a 0,25x stava al 58% della scala, troppo alto per un anno di palestra, quindi l\'ingresso e\' stato alzato a 0,35x.',
   },
   spalle_trapezio: {
-    vertice: 85, quotaIngresso: 0.45, fonte: 'stima',
-    nota: 'Shrug con i manubri, per MANUBRIO: gli scapoli sopportano tutto il tuo peso piu\' volte. 85 per mano su 70 di persona.',
+    multiplo: 1.2, ingressoMultiplo: 0.5, fonte: 'stima',
+    nota: 'Shrug coi manubri, PER MANUBRIO. Tetto 1,2x per mano: gli scapoli sono i muscoli piu\' robusti del corpo e reggono il tuo peso piu\' volte. Ingresso 0,5x per mano.',
   },
+  petto_isolamento: {
+    multiplo: 0.4, ingressoMultiplo: 0.2, fonte: 'tuo',
+    nota: 'Cable fly al cavo, PER LATO: tetto 0,4x il corpo per lato, ingresso 0,2x. Nota bene il tetto: 0,4x per lato e\' 0,8x in totale, non e\' un errore. Il petto isolato al cavo e\' un movimento piccolo, quindi il carico e\' basso.',
+    varianti: {
+      // il cable fly: piccolo muscolo, carico leggero sul cavo
+      cavo: { multiplo: 0.4, ingressoMultiplo: 0.2, nota: 'Cable fly al cavo con doppia carrucola, PER LATO: tetto 0,4x il corpo per lato, ingresso 0,2x.' },
+      // il bench pull coi manubri: stesso gruppo muscolare, carico grosso
+      pesante: {
+        multiplo: 1.2, ingressoMultiplo: 0.5,
+        nota: 'Bench pull coi manubri, PER MANUBRIO: tetto 1,2x il corpo per mano, ingresso 0,5x. ATTENZIONE: e\' lo stesso gruppo muscolare del cable fly ma il carico e\' grosso (manubri, non cavo), quindi il tetto NON puo\' essere quello del cavo. Con lo stesso numero i tuoi 45 kg per mano finivano al 217% della scala, cioe\' OLYMPIAN regalato.',
+      },
+    },
+  },
+  spalle_isolamento: {
+    multiplo: 0.45, ingressoMultiplo: 0.12, fonte: 'tuo',
+    nota: 'Alzate laterali al cavo con doppia carrucola, PER LATO. Tetto 0,45x e ingresso 0,12x, ragionati sui numeri veri di palestra: le alzate laterali sono l\'esercizio col peso pi\' basso in assoluto (5-10 kg per lato coi manubri, 10-25 per lato al cavo doppio). Il vecchio sistema diceva 13 kg TOTALI e regalava l\'OLYMPIAN. Ste fa 25 kg letti = 12,5 per lato = 0,19x: e\' gia\' un livello decente, e sta a cavallo dell\'ingresso come deve stare chi ha un anno di palestra.',
+  },
+  bicipiti: {
+    multiplo: 0.7, ingressoMultiplo: 0.3, fonte: 'tuo',
+    nota: 'Curl al cavo con doppia carrucola e curl coi manubri, PER LATO. Ste (08/10/2026): "come puo\' una persona fare tipo 50 kg di hammer curl?" — 50 NON SONO 50 PER BRACCIO. Con la doppia carrucola leggi 50 kg in totale sui due cavi, quindi ne fai 25 per braccio: 0,38x il corpo per lato, un numero normalissimo. Il tetto 0,7x per lato (= 0,6 kg per braccio su corpo 60) e\' il livello di un bicipite molto allenato: per questo il suo 25 kg sta nella meta\' bassa della scala e non al 19% di prima.',
+  },
+  tricipiti: {
+    multiplo: 0.7, ingressoMultiplo: 0.3, fonte: 'stima',
+    nota: 'Pushdown ed estensioni sopra la testa al cavo, PER LATO: tetto 0,7x, ingresso 0,3x. Ste (08/10/2026) "vabbè che è due braccia però": 60 kg letti = 30 per braccio = 0,45x per lato, quindi sopra l\'ingresso e nella parte bassa ma seria della scala. Le estensioni sopra la testa valgono un po\' di piu\' del pushdown perche\' l\'allungamento e\' maggiore, ma stanno sulla stessa scala di movimento.',
+  },
+  gambe_isolamento: {
+    multiplo: 1.4, ingressoMultiplo: 0.5, fonte: 'tuo',
+    nota: 'Leg extension: Ste (08/10/2026) "comunque lo faccio con una gamba", quindi i kg sono per gamba. 1,4x il corpo e\' un tetto ragionato cosi\': 1,0x per il quadricipite piu\' il 40% in piu\' perche\' a una gamba sola tutto il carico finisce su una coscia sola (niente aiuto dell\'altra gamba). Sul tuo corpo il tetto e\' 92 kg e tu ne fai 65: 34% della scala. Ho provato 2,0x e 1,0x: il primo ti metteva al 2% (tetto irraggiungibile), il secondo ti dava OLYMPIAN (scala finita sotto i tuoi piedi). 1,4x mette i tuoi numeri al posto giusto.',
+  },
+  gambe_curl: {
+    multiplo: 1.2, ingressoMultiplo: 0.45, fonte: 'stima',
+    nota: 'Leg curl seduto: tetto 1,2x il corpo, ingresso 0,45x. Vale anche per gamba come l\'estensione, ma il femorale regge un po\' meno del quadricipite: un gradino sotto.',
+  },
+  gambe_stabilizzatore: {
+    multiplo: 2.2, ingressoMultiplo: 1.0, fonte: 'tuo',
+    nota: 'Sled press calf raise e single leg press: stessa zona del leg press perche\' il carico e\' grosso e la macchina scarica. Tetto e ingresso come il leg press. Sul single leg press valgono i kg per gamba.',
+  },
+  // NOTA: spalle_trapezio sta fra le tirate perche\' lo scrollamento del trapezio e\' una
+  // tirata con i pesi (vedi il commento nel classificatore). Lo shrug e\' pesante e
+  //compound, quindi niente tetto da isolamento.
   corpo_libero: {
-    vertice: 0, quotaIngresso: 0.30, fonte: 'nessuno',
+    multiplo: 0, fonte: 'nessuno',
     nota: 'Trazioni e dip: qui i kg non esistono, si contano le ripetizioni.',
   },
 };
@@ -108,39 +232,109 @@ export const VALORI_MOVIMENTO = {
 export const TETTO_PER_PESO = 2.2;
 export const TETTO_ISOLAMENTI = 0.85;
 
+// Ste (08/10/2026): "leg extension comunque lo faccio con una gamba".
+//
+// Il tetto da isolamento (0,85x il corpo) era pensato per i muscoli PICCOLI: un
+// bicipite o un deltoide laterale non reggono un carico grosso. Ma non vale per
+// TUTTI gli isolamenti, e qui moriva nel modo peggiore: il leg extension e' un
+// isolamento (livello 'isolamento'), quindi il tetto gli tagliava il vertice a
+// 0,85x = 56 kg, mentre il multiplo dichiarato era 2,0x. Risultato: i tuoi 65 kg
+// davano OLYMPIAN e la scala finiva sotto i tuoi piedi.
+//
+// Il principio giusto e' sul CARICO REALE, non sulla parola "isolamento":
+//  - muscolo piccolo (bicipite, deltoide, polso): il carico e' minuscolo, tetto 0,85x
+//  - gambe a una gamba sola: tutto il carico su una coscia, tetto 2,2x come i
+//    composti grossi. E' la stessa realta' del leg press, solo che l'isolamento
+//    e' su un solo arto.
+//
+// Quindi il tetto di realta' non e' "isolamento o no", ma "quanto e' grosso il
+// carico che quell'esercizio mette in gioco". Lo dico con la grandezza del
+// movimento, che e' la cosa giusta da guardare.
+export const TETTO_MOVIMENTO = {
+  gambe_isolamento: 1.4,
+  gambe_curl: 1.2,
+  gambe_pesanti: 2.2,
+  gambe_stabilizzatore: 2.2,
+};
+
 /** Se il vertice e' dentro i tetti di realta' per quell'esercizio. */
-export function tettoPerEsercizio(livello) {
+export function tettoPerEsercizio(livello, movimento = null) {
+  if (movimento && TETTO_MOVIMENTO[movimento]) return TETTO_MOVIMENTO[movimento];
   return livello === 'isolamento' ? TETTO_ISOLAMENTI : TETTO_PER_PESO;
+}
+
+/**
+ * Quale riga dei valori vale per QUESTO esercizio.
+ *
+ * Serve perche\' alcuni movimenti hanno piu' varianti con tetti molto diversi: il
+ * cable fly al cavo e il bench pull coi manubri sono entrambi "petto isolamento",
+ * ma il fly e\' un piccolo muscolo con carico leggero (0,4x per lato) e il bench
+ * pull regge un carico grosso (1,2x per mano). Un numero solo per il movimento
+ * faceva finire il bench pull a 217% del tetto: OLYMPIAN regalato.
+ *
+ * La scelta guarda l'attrezzatura, che e' il fatto vero: i manubri sono pesanti,
+ * il cavo con doppia carrucola no.
+ */
+export function valoriPerEsercizio(movimento, esercizio = {}) {
+  const base = VALORI_MOVIMENTO[movimento];
+  if (!base || !base.varianti) return base;
+  const pesante = esercizio
+    && (esercizio.convenzione === 'per_manubrio' || esercizio.convenzione === 'bilanciere');
+  const chiave = pesante ? 'pesante' : 'cavo';
+  const v = base.varianti[chiave];
+  if (!v) return base;
+  return {
+    ...base,
+    multiplo: v.multiplo,
+    ingressoMultiplo: v.ingressoMultiplo,
+    nota: v.nota + ' (movimento con varianti: questo esercizio usa i numeri '
+      + chiave + ', perche\' ' + (pesante ? 'usa i manubri' : 'va al cavo') + ')',
+  };
 }
 
 /**
  * Il vertice di un esercizio, riportato sul corpo della persona.
  *
- * Il peso corporeo entra qui e in un solo posto: moltiplica il vertice (e quindi
- * anche l'ingresso, che e' una quota di quello). Questo vuol dire che il peso non
- * decide "quanto vale la prestazione in se'" ma "quanto ci vuole su QUEL corpo".
+ * Il peso corporeo entra qui e in un solo posto: il tetto e' un multiplo del peso,
+ * quindi tutto il resto (ingresso incluso) segue da solo.
  */
-export function verticePerCorpo(valori, livello, pesoCorporeo) {
+export function verticePerCorpo(valori, livello, pesoCorporeo, movimento = null) {
   const peso = Number(pesoCorporeo);
   if (!Number.isFinite(peso) || peso <= 0) return null;
-  const tetto = tettoPerEsercizio(livello);
-  const grezzo = valori.vertice * (peso / 70);
+  const tetto = tettoPerEsercizio(livello, movimento);
+  const grezzo = peso * valori.multiplo;
   const limite = peso * tetto;
   return {
     vertice: Math.round(Math.min(grezzo, limite) * 100) / 100,
+    multiplo: valori.multiplo,
     tetto: Math.round(limite * 100) / 100,
     tettoRaggiunto: grezzo > limite,
   };
 }
 
-/** Le soglie complete di un esercizio sul corpo della persona, in kg. */
-export function sogliePerEsercizio(valori, livello, pesoCorporeo) {
-  const v = verticePerCorpo(valori, livello, pesoCorporeo);
+/**
+ * Le soglie complete di un esercizio sul corpo della persona, in kg.
+ *
+ * L'ingresso NON e' una percentuale del tetto: e' il suo proprio multiplo del
+ * corpo (`ingressoMultiplo`). Il motivo e' scritto in testa a VALORI_MOVIMENTO, e
+ * in una riga: se l'ingresso fosse una quota del tetto, chi pesa di piu' si
+ * troverebbe sotto la prima soglia con lo stesso carico che gli dava un Rank.
+ */
+export function sogliePerEsercizio(valori, livello, pesoCorporeo, movimento = null) {
+  const v = verticePerCorpo(valori, livello, pesoCorporeo, movimento);
   if (!v) return null;
-  const ingresso = Math.round(v.vertice * valori.quotaIngresso * 100) / 100;
+  const peso = Number(pesoCorporeo);
+  const ingresso = Math.round(peso * valori.ingressoMultiplo * 100) / 100;
+  // difesa: se un movimento si dimenticasse l'ingresso, meglio accorgersene qui
+  // che scoprirlo con un Rank che non si muove
+  if (!Number.isFinite(ingresso) || ingresso <= 0) {
+    throw new Error(`il movimento "${movimento}" non ha un ingressoMultiplo valido: ${valori.ingressoMultiplo}`);
+  }
   return {
     ingresso,
     vertice: v.vertice,
+    multiplo: v.multiplo,
+    ingressoMultiplo: valori.ingressoMultiplo,
     tetto: v.tetto,
     tettoRaggiunto: v.tettoRaggiunto,
     fonte: valori.fonte,
@@ -149,22 +343,54 @@ export function sogliePerEsercizio(valori, livello, pesoCorporeo) {
 }
 
 /**
+ * Il tetto come lo LEGGE la persona, cioe' con la doppia carrucola raddoppiata.
+ *
+ * E' il contrario di caricoReale(), che dimezza. Serve solo per stampare numeri
+ * che Ste riconosce ("50 kg sul cavo"), NON per confrontare: il confronto avviene
+ * sempre nell'unita' dello score, e qui non si arriva mai.
+ */
+export function leggiComeLoLeggi(carico, esercizio = {}) {
+  const n = Number(carico);
+  if (!Number.isFinite(n)) return carico;
+  if (esercizio && esercizio.carrucola === 'carrucola_doppia') {
+    return Math.round((n * 2) * 100) / 100;
+  }
+  return Math.round(n * 100) / 100;
+}
+
+/** L'unita' in cui quel esercizio registra i kg, in parole. */
+export function unitaCarico(esercizio = {}) {
+  const e = esercizio || {};
+  if (e.carrucola === 'carrucola_doppia') return 'per lato (cavo doppio)';
+  if (e.convenzione === 'per_manubrio') return 'per manubrio';
+  if (e.convenzione === 'per_braccio') return 'per braccio';
+  if (e.convenzione === 'per_gamba') return 'per gamba';
+  if (e.attrezzatura === 'macchina_stack') return 'sullo stack';
+  if (e.attrezzatura === 'macchina_dischi') return 'sulla macchina';
+  if (e.convenzione === 'cavo_totali') return 'totali al cavo';
+  return 'sul carico';
+}
+
+/**
  * Le soglie nella STESSA unita' dello score, e qui sta una trappola che ho preso
  * io la prima volta (e che e' utile sapere, perche' un numero senza unita' e' un
  * numero a caso).
  *
- * I valori che ho dichiarato sopra sono in CHILOGRAMMI ("vertice 95 kg alla chest
- * press"), e cosi' sono leggibili. Ma lo score di una serie e' in kg-equivalenti
- * (40 kg x 8 = 258 kg-equivalenti), quindi confrontare 258 con 95 vuol dire sempre
- * "OLYMPIAN": la prima volta che ho stampato la tabella davano TUTTI OLYMPIAN.
+ * I valori che ho dichiarato sopra sono in CHILOGRAMMI ("1,0x il corpo per braccio
+ * alla chest press"), e cosi' sono leggibili. Ma lo score di una serie e' in
+ * kg-equivalenti (40 kg x 8 = 258 kg-equivalenti), quindi confrontare 258 con 66
+ * vuol dire sempre "OLYMPIAN": la prima volta che ho stampato la tabella davano
+ * TUTTI OLYMPIAN.
  *
- * La conversione c'e' e non e' un vezzo: una soglia dichiarata come "95 kg alla
- * chest press" vuol dire 95 kg fatti come una serie da 8, quindi va moltiplicata
+ * La conversione c'e' e non e' un vezzo: un tetto dichiarato come "1,0x il corpo
+ * per braccio" vuol dire 66 kg fatti come una serie da 8, quindi va moltiplicato
  * per quello che 8 ripetizioni valgono e per la meccanica di quell'esercizio.
  * Solo dopo le due stanno nello stesso posto e il confronto ha un senso.
  */
-export const RIPETIZIONI_RIFERIMENTO = 8;
+export { RIPETIZIONI_RIFERIMENTO };
 
 export function fattoreSogliaDaKg(esercizio = {}) {
   return ripetizioniPiene(RIPETIZIONI_RIFERIMENTO) * fattoreMeccanica(esercizio);
 }
+
+export { caricoReale };

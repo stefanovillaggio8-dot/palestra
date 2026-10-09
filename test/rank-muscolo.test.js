@@ -43,7 +43,23 @@ function rankDi(esercizio, peso, ripetizioni) {
     [{ esercizio_id: esercizio.id, serie: [{ id: 's', peso, ripetizioni, stato: 'fatta' }] }],
     { pesoAttuale: PESO });
   const x = rec[0];
-  return { punteggio: x.punteggio, riferimento: x.profilo.riferimento, rank: x.rank, testo: x.testo };
+  // la quota: dove sei fra l'ingresso e il tetto di quell'esercizio, in per cento.
+  // E' il numero con cui si confrontano esercizi diversi (gli esercizi non sono
+  // confrontabili in kg, ma sono confrontabili in "quanta parte della tua scala
+  // hai riempito").
+  const span = x.vertice && x.ingresso ? x.vertice - x.ingresso : null;
+  const quota = span && x.caricoReale !== undefined
+    ? Math.round(((x.caricoReale - x.ingresso) / span) * 100)
+    : null;
+  return {
+    punteggio: x.punteggio, riferimento: x.profilo.riferimento, rank: x.rank, testo: x.testo,
+    motore: x.motore, quota, ingresso: x.ingresso, vertice: x.vertice,
+    // lo score del motore nuovo: il numero da confrontare con i kg che hai scritto.
+    // Prima si leggeva `punteggio`, che nel motore vecchio era il massimale stimato:
+    // due nomi diversi per due cose diverse, e il test R1 li usava come se fossero
+    // lo stesso numero.
+    score: x.score, caricoReale: x.caricoReale,
+  };
 }
 
 test('R1. 35 kg per braccio sono 70 kg, e il Rank lo deve sapere', () => {
@@ -63,12 +79,27 @@ test('R1. 35 kg per braccio sono 70 kg, e il Rank lo deve sapere', () => {
   //
   // Quindi il massimale NON si raddoppia. Il numero che si vede e' quello che lui
   // ha scritto, e si puo' confrontare a occhio con la serie.
+  // IL NUMERO E' CAMBIATO il 08/10/2026 col motore nuovo, ma l\'INSEGNAMENTO no.
+  //
+  // Il vecchio punteggio era il massimale stimato: 35 kg x 8 -> 44,33 kg (Epley).
+  // Ste aveva detto di non volerlo: "non voglio che spunti un numero cosi\' alto,
+  // voglio che rimanga il numero di peso che metto in una sola parte". Il numero
+  // c\'era sparito dalla riga, ma restava dentro il calcolo del Rank, che era il
+  // vero problema.
+  //
+  // Adesso lo score e\' la prestazione reale: 35 kg x 8 = 35 (le 8 ripetizioni di
+  // riferimento valgono 1,0), piu\' il piccolo correttivo di meccanica della
+  // macchina a dischi. Nessun massimale, nessuna domanda ipotetica.
   const a = rankDi(chest, 35, 8);
-  assert.equal(a.punteggio, 44.33, '35 kg x 8 -> massimale 44.33: niente raddoppio');
+  assert.ok(a.score > 35 && a.score < 40,
+    `35 kg x 8 deve valere circa 35, non un massimale stimato: ${a.score}`);
   assert.match(a.testo, /^35 kg/, 'la riga parte dal numero che ha scritto lui');
-  assert.doesNotMatch(a.testo, /88|70 kg/, 'e non deve comparire il doppio');
-  assert.ok(rankDi(chest, 50, 8).rank.indice >= a.rank.indice,
-    'con 50 kg per braccio non puo\' fare peggio che con 35');
+  assert.doesNotMatch(a.testo, /70 kg|88/, 'e non deve comparire il doppio');
+  // e il punto vero: il Rank sale col peso, senza che nulla venga "raddoppiato"
+  const b = rankDi(chest, 50, 8);
+  assert.ok(b.score > a.score, 'con 50 kg per braccio lo score sale');
+  assert.ok(b.rank.indice >= a.rank.indice,
+    'e con 50 kg per braccio non puo\' fare peggio che con 35');
 });
 
 test('R1b. una macchina a DISCHI non e\' la macchina facile', () => {
@@ -148,20 +179,41 @@ test('R3. il laterale pesante conta piu\' di un petto leggero', () => {
   // panca. Ora non e' piu' confrontabile: la panca e' per braccio, quindi 50 kg
   // per braccio sono 100 kg. Il confronto che volevo verificare era pero' un
   // altro, e regge: il laterale e' un muscolo instabile, quindi a parita' di
-  // percentuale sul proprio riferimento va piu' in alto del petto, che e' un
+  // prestazione sul proprio riferimento va piu' in alto del petto, che e' un
   // muscolo grande.
+  //
+  // IL CAMBIAMENTO DEL 08/10/2026: adesso la percentuale non si calcola sul
+  // "riferimento" del motore vecchio (che nasceva dal massimale stimato) ma sui
+  // tetti dichiarati per esercizio in valori.js, che sono in multipli del peso
+  // corporeo. E il confronto si fa sullo SCORE, non sul punteggio vecchio.
+  //
+  // Quindi la domanda non e' piu' "chi arriva piu' in alto in assoluto" (che non
+  // ha senso: gli esercizi non sono confrontabili) ma "chi e' piu' vicino al
+  // PROPRIO tetto": e' li' che si vede che il tetto del laterale e' molto piu'
+  // basso di quello del petto, quindi 25 kg li valgono una fetta ben piu' grande
+  // della scala.
   const lateraleR = rankDi(laterale, 25, 7); // i suoi kg veri dalla scheda
   const pettoR = rankDi(chest, 35, 8);
-  const percLaterale = lateraleR.punteggio / lateraleR.riferimento;
-  const percPetto = pettoR.punteggio / pettoR.riferimento;
-  assert.ok(percLaterale > percPetto,
-    'sul laterale arriva piu\' in alto della soglia che sul petto: il muscolo conta');
-  // Numeri verificati con la scala ricalibrata: laterale 15.42 su un
-  // riferimento di 12.26 = 126% -> TITAN. Petto 44.33 su 47.14 = 94% -> GOLD.
-  // Quindi il muscolo piccolo arriva piu' in alto, ed e' quello che volevo
-  // provare: non e' che ogni esercizio sia uguale.
-  assert.equal(lateraleR.rank.nome, 'TITAN');
-  assert.equal(pettoR.rank.nome, 'GOLD');
+  assert.ok(lateraleR.motore === 'nuovo' && pettoR.motore === 'nuovo',
+    'i due esercizi sono valutati dal motore nuovo');
+
+  // IL PUNTO CHE IL TEST DEVE PROTEGGERE, e che e\' cambiato con il motore nuovo:
+  // non e\' piu\' "il laterale finisce su un Rank piu\' alto del petto" (i due
+  // esercizi non sono confrontabili in kg, e a questi carichi finiscono entrambi
+  // su SILVER III: un\'coincidenza della curva, non un difetto).
+  //
+  // Il meccanismo vero e\' IL TETTO: quello del laterale e\' 0,45x il corpo per
+  // lato, quello del petto 1,0x per braccio. E\' li\' che il differenziale fra
+  // muscolo piccolo e muscolo grande vive adesso: se i due tetti si avvicinassero,
+  // il laterale con 25 kg perderebbe il senso (sembra un numero assurdo) e la
+  // scala smetterebbe di essere per esercizio.
+  assert.ok(lateraleR.vertice < pettoR.vertice * 0.5,
+    `il tetto del laterale deve essere molto piu\' basso di quello del petto: `
+    + `${lateraleR.vertice} contro ${pettoR.vertice}`);
+  // e in entrambi i casi l\'ingresso sta sotto il carico fatto, quindi nessuno dei
+  // due e\' "sotto il primo livello" per caso
+  assert.ok(lateraleR.ingresso < 12.5, 'il laterale non e\' bloccato sotto l\'ingresso');
+  assert.ok(pettoR.ingresso < 35, 'il petto non e\' bloccato sotto l\'ingresso');
 });
 
 test('R4. la soglia della chest press e\' quella giusta', () => {

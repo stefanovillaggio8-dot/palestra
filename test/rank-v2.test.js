@@ -17,6 +17,8 @@ const misura = await import('../src/rank-v2/misura.js');
 const v2 = await import('../src/rank-v2/index.js');
 const { ESERCIZI } = await import('../src/dati-iniziali.js');
 const { recordEsercizio } = await import('../src/rank.js');
+const { classificaEsercizio } = await import('../src/esercizi-classificatore.js');
+const { valoriPerEsercizio } = await import('../src/rank-v2/valori.js');
 
 const CHEST = ESERCIZI.find((e) => /chest press/i.test(e.nome));
 const LAT_RAISE = ESERCIZI.find((e) => /cable lateral raise/i.test(e.nome));
@@ -31,13 +33,72 @@ test('V1. ogni ripetizione conta, ma meno della precedente, e non satura MAI', (
   const otto = curve.ripetizioniPiene(8);
   const venti = curve.ripetizioniPiene(20);
   const quaranta = curve.ripetizioniPiene(40);
-  assert.equal(uno, 1, 'una ripetizione vale una ripetizione piena');
-  assert.ok(cinque > otto * 0.6 && cinque < otto, '5 ripetizioni valgono meno di 8');
+  // le 8 ripetizioni di riferimento valgono esattamente 1,0: e\' cio\' che rende
+  // coerenti le soglie dichiarate "per 8 ripetizioni" con la curva. Prima non lo
+  // erano: 8 ripetizioni valevano 6,46 e tutte le soglie erano tarate su un numero
+  // che la curva non produceva mai.
+  assert.equal(otto, 1, 'le 8 ripetizioni di riferimento valgono esattamente 1');
+  assert.ok(uno > 0 && uno < cinque, 'una ripetizione vale meno di cinque');
+  assert.ok(cinque > otto * 0.7 && cinque < otto,
+    `5 ripetizioni valgono meno di 8 ma non un buco: ${cinque} contro ${otto}`);
   assert.ok(otto > cinque, 'la progressione 40x6 -> 40x8 -> 40x10 deve sentire qualcosa');
   // il punto del sistema nuovo rispetto a quello vecchio: qui non c'e' il tetto
-  // "peso x 4,3" oltre le 30 ripetizioni. Quindi 40 rip valgono piu' di 30
-  assert.ok(quaranta > venti, 'la curva cresce anche oltre 30 ripetizioni (nel vecchio era bloccata)');
-  assert.ok(venti < otto * 2, 'ma raddoppiare le ripetizioni non raddoppia il punteggio');
+  // "peso x 4,3" oltre le 30 ripetizioni. Quindi 40 rip valgono piu' di 20.
+  //
+  // Con il fattore 0,5 la curva SATURAVA a 20 ripetizioni (20 e 40 valevano
+  // entrambe 1,004): le ripetizioni non contavano piu\' niente, che e\' lo stesso
+  // difetto del sistema vecchio, solo con un altro numero. Per questo il fattore
+  // e\' 0,65 e non 0,5.
+  // NOTA: qui si confrontano i valori GREZZI, non quelli arrotondati a 3
+  // decimali. Con il fattore 0,65 la differenza fra 20 e 40 ripetizioni e' di
+  // qualche millesimo, e arrotondando a 1,033 - 1,033 il test direbbe "non
+  // cresce" quando invece cresce. E' il tipo di test che mente per arrotondamento.
+  const grezzoVenti = curve.sommaGeometrica(20);
+  const grezzoQuaranta = curve.sommaGeometrica(40);
+  assert.ok(grezzoQuaranta > grezzoVenti,
+    'la curva cresce ancora oltre 20 ripetizioni (nel vecchio era bloccata)');
+  assert.ok(venti < otto * 1.2, 'ma raddoppiare le ripetizioni non raddoppia il punteggio');
+});
+
+test('V1b. le ripetizioni NON possono cambiare il Rank di 6 pezzi', () => {
+  // Ste (08/10/2026): "non devono contare troppissimo le ripetizioni eh".
+  //
+  // Questo e\' il difetto vero che aveva scoperto lui, e il numero fa paura: a
+  // STESSO carico, passando da 5 a 12 ripetizioni, il Rank saltava di 4-7 pezzi.
+  // Il pulldown da 88 kg passava da BRONZE a OLYMPIAN: sei Rank senza alzare un
+  // grammo. Non era che le ripetizioni contassero troppo, era che contavano
+  // TUTTO, e il Rank dipendeva da quante volte avevi deciso di spingere.
+  //
+  // Il limite qui e\' voluto: al massimo 1 Rank di differenza fra 5 e 12
+  // ripetizioni, e comunque gli LP DEVONO salire (se non salissero, le
+  // ripetizioni non conterebbero niente e sarebbe un altro bug).
+  const salta = [];
+  for (const e of ESERCIZI) {
+    const cls = classificaEsercizio({
+      nome: e.nome, convenzione: e.convenzione, attrezzatura: e.attrezzatura,
+      carrucola: e.carrucola, bracciaIndipendenti: !!e.bracciaIndipendenti,
+    });
+    const val = valoriPerEsercizio(cls.movimento, e);
+    if (!val || val.multiplo === 0) continue;
+    const banda = (rip) => {
+      const r = v2.valutaEsercizio({
+        esercizio: e, pesoCorporeo: 66,
+        serie: [{ id: 's', esercizio_id: e.id, stato: 'fatta', peso: 30, ripetizioni: rip }],
+      });
+      return r.valido ? r : null;
+    };
+    const cinque = banda(5);
+    const dodici = banda(12);
+    if (!cinque || !dodici) continue;
+    const salto = (dodici.indice) - (cinque.indice);
+    if (salto > 1) salta.push(`${e.nome}: 5 rip = ${cinque.indice}, 12 rip = ${dodici.indice}`);
+    // e le ripetizioni devono contare qualcosa: gli LP non possono restare fermi
+    if (cinque.rank && dodici.rank && cinque.indice === dodici.indice && dodici.lp <= cinque.lp) {
+      salta.push(`${e.nome}: con le stesse ripetizioni non muove niente, e gli LP non salgono`);
+    }
+  }
+  assert.deepEqual(salta, [],
+    'le ripetizioni non possono cambiare il Rank di piu\' di 1 pezzo:\n  ' + salta.join('\n  '));
 });
 
 test('V2. il volume non cresce oltre il 20%, e una serie sola non da\' niente', () => {
@@ -64,15 +125,26 @@ test('V3. la meccanica sposta al massimo il 10%, e la carrucola dimezza', () => 
 
 test('V4. lo score NON e\' il massimale stimato', () => {
   const s = curve.scoreSerie({ peso: 45, ripetizioni: 8, esercizio: CHEST });
-  // 45 kg x 8 = 290 kg-equivalenti (6,46 rip piene), NON 57 kg di "1RM"
+  // L'UNITA' DELLO SCORE, che dal 08/10/2026 e' cambiata e va detta:
+  // le 8 ripetizioni di riferimento valgono esattamente 1,0, quindi lo score e'
+  // "i kg equivalenti che fareesti con UNA serie da 8". 45 kg x 8 = 45 (piu' la
+  // meccanica), e NON 57 kg di "1RM".
+  //
+  // Prima le 8 ripetizioni valevano 6,46 e lo score era 45 x 6,46 = 290: lo stesso
+  // numero moltiplicato per una costante arbitraria. Ora l'unita' e' leggibile:
+  // il numero che esce e' confrontabile con i kg che hai visto in palestra.
   assert.equal(s.carico, 45);
-  assert.equal(s.ripetizioniPiene, 6.458);
-  assert.ok(s.score > 200 && s.score < 400,
-    `lo score deve stare nell'ordine di grandezza del lavoro fatto, non del 1RM: ${s.score}`);
-  // e le due cose non coincidono: se coincidessero staremmo usando il 1RM
+  assert.equal(s.ripetizioniPiene, 1, 'otto ripetizioni valgono il riferimento esatto');
+  assert.ok(s.score > 45 && s.score < 60,
+    `lo score deve stare vicino ai kg per una serie da 8: ${s.score}`);
+  // e le due cose non coincidono: il massimale stimato e' un'altra domanda
   const comeSeFosse1RM = 45 * (1 + 8 / 30);
   assert.notEqual(Math.round(s.score), Math.round(comeSeFosse1RM),
     'lo score deve essere diverso dal massimale stimato');
+  // e piu' ripetizioni valgono piu' lavoro, quindi lo score sale
+  const diPiu = curve.scoreSerie({ peso: 45, ripetizioni: 12, esercizio: CHEST });
+  assert.ok(diPiu.score > s.score,
+    '12 ripetizioni valgono piu\' lavoro di 8, quindi lo score sale');
 });
 
 // ---------------------------------------------------------------------------
@@ -114,16 +186,26 @@ test('V6. il volume fa salire gli LP dentro il Rank, ma non compra il Rank da so
 });
 
 test('V7. nessun Rank sopra i tetti di realta\'', () => {
-  // isolamento: 0,85 per uno. Il numero dichiarato era 30 kg per 70 kg di persona,
-  // quindi sotto. Provo con un numero assurdo e vedo che il tetto vince
-  const assurdo = { vertice: 500, quotaIngresso: 0.3 };
-  const tre = valori.sogliePerEsercizio(assurdo, 'isolamento', 70);
+  // Il tetto non e' piu' "isolamento sì/no": dal 08/10/2026 e' sul CARICO REALE,
+  // perche\' il leg extension e\' un isolamento (livello 'isolamento') ma a una
+  // gamba sola mette 2x il tuo corpo su una coscia, mentre il cable fly e' un
+  // isolamento vero e minuscolo. Con la regola vecchia il leg extension veniva
+  // tagliato a 0,85x e i 65 kg di Ste davano OLYMPIAN.
+  //
+  // qui si prova con un multiplo assurdo e si vede che il tetto vince
+  const assurdo = { multiplo: 500, ingressoMultiplo: 0.3 };
+  const tre = valori.sogliePerEsercizio(assurdo, 'isolamento', 70, 'spalle_isolamento');
   assert.ok(tre.vertice <= 70 * 0.85 + 0.01,
-    `un isolamento non puo' avere vertice sopra 0,85 per uno: ${tre.vertice}`);
+    `un isolamento piccolo non puo' avere vertice sopra 0,85 per uno: ${tre.vertice}`);
   assert.equal(tre.tettoRaggiunto, true, 'e deve dire che il tetto ha morso');
   // i pesanti invece arrivano a 2,2 per uno
-  const pesante = valori.sogliePerEsercizio({ vertice: 1000, quotaIngresso: 0.3 }, 'grande', 70);
+  const pesante = valori.sogliePerEsercizio({ multiplo: 1000, ingressoMultiplo: 0.3 }, 'grande', 70, 'gambe_pesanti');
   assert.ok(pesante.vertice <= 70 * 2.2 + 0.01, 'nemmeno un pesante puo\' superare 2,2 per uno');
+  // e il leg extension ha il suo tetto, non quello da isolamento minuscolo
+  const gambe = valori.sogliePerEsercizio({ multiplo: 1000, ingressoMultiplo: 0.3 }, 'isolamento', 70, 'gambe_isolamento');
+  assert.ok(gambe.vertice > 70 * 1.3,
+    'il leg extension regge piu\' di 1,3 per uno: e\' un isolamento ma di gamba, '
+    + 'il carico e\' grosso. Trovato ' + gambe.vertice);
 });
 
 test('V8. il peso corporeo sposta le soglie, ma il tetto tiene', () => {
@@ -184,10 +266,14 @@ test('V13. il tetto di realta\' vince sulle risposte', () => {
   // risposte che direbbero un vertice assurdo su un isolamento
   const risposte = Array.from({ length: 10 }, () => ({ caricoReale: 200, risposta: 'massimo' }));
   const r = misura.affinaVertice({
-    verticeDichiarato: 30, risposte, livello: 'isolamento', pesoCorporeo: 70,
+    verticeDichiarato: 30, risposte, livello: 'isolamento', movimento: 'spalle_isolamento',
+    pesoCorporeo: 70,
   });
   assert.equal(r.tettoMesso, true, 'la misura supera il tetto: deve restare scritto');
   assert.ok(r.vertice <= 70 * 0.85 + 0.01, 'e il numero non supera il tetto');
+  // e il tetto usato e' quello del movimento, quindi la misura e la scala non
+  // possono litigare sullo stesso numero
+  assert.equal(r.limite, 70 * 0.85, 'il tetto viene da valori.js, non ricalcolato qui');
 });
 
 // ---------------------------------------------------------------------------
@@ -212,19 +298,34 @@ test('V15. l\'esercizio a ripetizioni non viene valutato in kg (e lo dice)', () 
   assert.match(r.motivo, /ripetizioni/, 'deve dire PERCHE\' non puo\' valutarlo in kg');
 });
 
-test('V16. il Rank VECCHIO non si e\' mosso: sui lateral raise e\' ancora quello di prima', () => {
-  // Ste: "non modificare arbitrariamente i Rank gia\' esistenti". Qui il Rank vecchio
-  // deve dire ESATTAMENTE quello che diceva: e\' il controllo che nessuno abbia
-  // cambiato il Rank mentre preparavo quello nuovo.
+test('V16. l\'app usa il motore NUOVO, e il vecchio non regala pi\' OLYMPIAN', () => {
+  // Ste: "non modificare arbitrariamente i Rank gia\' esistenti". Il controllo che
+  // faceva questo test era giusto, ma dal 08/10/2026 la situazione e\' rovesciata:
+  // il motore VECCHIO e\' quello che regala l\'OLYMPIAN (20 kg per lato di alzate
+  // laterali gli davano il Rank piu\' alto della scala, perche\' il suo tetto era un
+  // numero da 13 kg totali), ed e\' il NUOVO quello giusto.
+  //
+  // Quindi qui si verifica che il Rank dell\'app sia il nuovo, e che il nuovo non
+  // regali l\'OLYMPIAN. E si verifica anche che il motore vecchio resti in piedi,
+  // perche\' serve ancora agli esercizi a ripetizioni (trazioni, dip).
   const serie = [{
     id: 's', esercizio_id: LAT_RAISE.id, stato: 'fatta',
     peso: 40, ripetizioni: 8, spotter: false, carrucola: 'carrucola_doppia',
   }];
-  const vecchio = recordEsercizio(serie, LAT_RAISE, null, 66);
-  assert.equal(vecchio.rank.nome, 'OLYMPIAN',
-    'il vecchio dice ancora OLYMPIAN: se questo test fallisce, qualcuno ha toccato il Rank vecchio');
-  // e il nuovo dice un'altra cosa, che e' esattamente il punto della proposta
+  const record = recordEsercizio(serie, LAT_RAISE, null, 66);
+  assert.equal(record.motore, 'nuovo',
+    'l\'app deve usare il motore nuovo: se questo fallisce, il collegamento e\' stato tolto');
+  assert.notEqual(record.rank.nome, 'OLYMPIAN',
+    `il Rank dell\'app non deve regalare l\'OLYMPIAN su 20 kg per lato di alzate `
+    + `laterali, ma dice ${record.rank.nome}`);
+  // e il nuovo dice la stessa cosa del motore, perche' l'app passa per lui
   const nuovo = v2.valutaEsercizio({ esercizio: LAT_RAISE, serie, pesoCorporeo: 66 });
-  assert.notEqual(nuovo.rank.nome, 'OLYMPIAN',
-    'il nuovo sistema non regala l\'OLYMPIAN su 20 kg per lato di alzate laterali');
+  assert.equal(record.rank.nome, nuovo.rank.nome,
+    'l\'app e il motore nuovo devono dire lo stesso Rank: due sistemi, una risposta');
+  assert.equal(record.lp, nuovo.lp, 'e gli stessi LP');
+  // il motore vecchio resta in piedi per gli esercizi a ripetizioni
+  const trazioni = ESERCIZI.find((e) => /pull ups/i.test(e.nome));
+  const senzaKg = recordEsercizio([{ id: 's', esercizio_id: trazioni.id, stato: 'fatta', peso: null, ripetizioni: 7 }], trazioni, null, 66);
+  assert.equal(senzaKg.motore, 'vecchio',
+    'le trazioni non si valutano in kg: il motore nuovo lo dice e l\'app torna al vecchio');
 });

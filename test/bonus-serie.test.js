@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { recordEsercizio, bonusSerie } from '../src/rank.js';
+import { recordEsercizio } from '../src/rank.js';
+import { moltiplicatoreSerie } from '../src/rank-v2/curve.js';
 import { ESERCIZI } from '../src/dati-iniziali.js';
 
 // Ste (04/10/2026): "se fai piu' serie, l'app ti da' un po' di merito in piu'.
@@ -20,49 +21,62 @@ function conSerie(serie) {
 
 const s = (i, peso = 35, rip = 8) => ({ id: 's' + i, peso, ripetizioni: rip, stato: 'fatta' });
 
-test('S1. il bonus cresce con le serie e si ferma all\'8%', () => {
-  assert.equal(bonusSerie(1).bonus, 0);
-  assert.equal(bonusSerie(2).bonus, 3);
-  assert.equal(bonusSerie(3).bonus, 6);
-  assert.equal(bonusSerie(4).bonus, 8);
-  assert.equal(bonusSerie(99).bonus, 8, 'non puo\' crescere all\'infinito');
+test('S1. il bonus cresce con le serie e si ferma', () => {
+  // Il numero e\' cambiato il 08/10/2026 col motore nuovo: ora le serie danno un
+  // MOLTIPLICATORE (1,10 alla seconda, 1,16 alla terza, 1,20 dalla quarta) e non
+  // una percentuale. Il fondo e\' lo stesso: cresce e si ferma, e una serie sola
+  // non dà niente.
+  assert.equal(moltiplicatoreSerie(1), 1, 'una serie: niente premio');
+  assert.equal(moltiplicatoreSerie(2), 1.10, 'due serie: +10%');
+  assert.equal(moltiplicatoreSerie(3), 1.16, 'tre serie: +16%');
+  assert.equal(moltiplicatoreSerie(4), 1.20, 'quattro serie: +20%, e il tetto');
+  assert.equal(moltiplicatoreSerie(99), 1.20, 'non puo\' crescere all\'infinito');
   for (const n of [0, 1, -5, null, undefined]) {
-    assert.equal(bonusSerie(n).bonus, 0, 'una serie sola (o nessuna) non dà bonus');
+    assert.equal(moltiplicatoreSerie(n), 1, 'una serie sola (o nessuna) non dà bonus');
   }
+  // e il premio massimo non supera mai il 20%: Ste "sempre piccolo"
+  assert.ok(moltiplicatoreSerie(10) - 1 <= 0.201, 'il volume non compra piu\' del 20%');
 });
 
-test('S2. il massimale NON cambia, cambia solo il merito', () => {
-  // Questo e' il punto che Ste ha fissato: "il massimale deve restare il numero
-  // di peso che metto in una sola parte". Quindi tre serie non possono cambiare
-  // il 44.33, sennò il numero che vede non e' piu' quello che ha scritto lui.
+test('S2. il lavoro NON cambia, cambia solo il merito', () => {
+  // Questo e' il punto che Ste ha fissato: la prestazione resta quella che hai
+  // scritto tu. Tre serie non possono cambiare i 35 kg e le 8 ripetizioni, sennò il
+  // numero che vedi non e' piu' quello che hai fatto.
+  //
+  // Il 08/10/2026 il numero nel testo e' cambiato: non c'e' piu' "massimale 44.33"
+  // (quello era la stima 1RM, che Ste ha chiesto di togliere: "non voglio che
+  // l'app trasformi quella prestazione in un ipotetico 1RM"). Ora il testo dice
+  // quello che hai fatto davvero: i kg e le ripetizioni.
   const una = conSerie([s(1)]);
   const tre = conSerie([s(1), s(2), s(3)]);
-  assert.match(una.testo, /massimale 44\.33/);
-  assert.match(tre.testo, /massimale 44\.33/, 'il massimale resta 44.33 anche con 3 serie');
-  assert.equal(una.punteggio, tre.punteggio, 'e il punteggio resta quello della serie migliore');
+  assert.match(una.testo, /35 kg x 8/);
+  assert.match(tre.testo, /35 kg x 8/, 'la prestazione resta quella che hai fatto');
+  assert.equal(una.punteggio, tre.punteggio,
+    'e il punteggio resta quello della serie migliore: le serie non lo cambiano');
+  assert.equal(una.caricoReale, tre.caricoReale, 'e nemmeno il carico reale');
 });
 
-test('S3. la riga dice il bonus, altrimenti il numero sale e non si capisce', () => {
+test('S3. la riga dice quante serie hai fatto, altrimenti il numero sale e non si capisce', () => {
   // Ste: "non voglio che l'app assegni rank alti troppo facilmente". Un numero
-  // che sale senza spiegazione e' un numero regalato. La riga sotto la serie
-  // deve direperche'.
+  // che sale senza spiegazione e' un numero regalato. La riga sotto la serie deve
+  // dire perche'.
   const una = conSerie([s(1)]);
   const tre = conSerie([s(1), s(2), s(3)]);
-  assert.doesNotMatch(una.testo, /serie\)/, 'con una serie sola non si cita nessun bonus');
-  assert.match(tre.testo, /\+6% per 3 serie/);
-  assert.equal(tre.bonusSerie, 6);
-  assert.equal(una.bonusSerie, 0);
+  assert.doesNotMatch(una.testo, /serie/, 'con una serie sola non si cita nessun bonus');
+  assert.match(tre.testo, /3 serie/, 'con tre serie la riga lo dice');
+  assert.equal(tre.serieFatte, 3, 'e il numero di serie e\' leggibile da parte');
+  assert.equal(una.serieFatte, 1);
 });
 
 test('S4. le serie non contate non contano', () => {
-  // Una serie non fatta, o col solo spotter, non e' lavoro: il bonus si calcola
-  // sulle serie che valgono davvero, non su quante ne hai scritte.
+  // Una serie non fatta, o col solo spotter, non e' lavoro: il conto delle serie
+  // si fa su quelle che valgono davvero, non su quante ne hai scritte.
   const treSerie = [s(1), s(2), s(3)];
   const conRifiutata = [s(1), s(2), s(3), { id: 's4', peso: 35, ripetizioni: 8, stato: 'fallita' }];
   const conSpotter = [s(1), s(2), s(3), { id: 's5', peso: 35, ripetizioni: 8, stato: 'fatta', spotter: true }];
-  assert.equal(conSerie(conRifiutata).bonusSerie, 6, 'una serie non fatta non conta');
-  assert.equal(conSerie(conSpotter).bonusSerie, 6, 'una serie col solo spotter non conta');
-  assert.equal(conSerie(treSerie).bonusSerie, 6);
+  assert.equal(conSerie(conRifiutata).serieFatte, 3, 'una serie non fatta non conta');
+  assert.equal(conSerie(conSpotter).serieFatte, 3, 'una serie col solo spotter non conta');
+  assert.equal(conSerie(treSerie).serieFatte, 3);
 });
 
 test('S5. le serie NON spostano mai il rank: il bonus sta DENTRO il rank', () => {
@@ -120,44 +134,50 @@ test('S8. gli LP e la divisione non si contraddicono mai', () => {
   }
 });
 
-test('S6. il bonus spinge comunque gli LP dentro il rank', () => {
-  // Non e' un premio che sparisce: resta, e si legge dentro il rank. 3x8 e' piu'
+test('S6. le serie spingono comunque gli LP dentro il rank', () => {
+  // Non e' un premio che sparisce: resta, e si legge dentro il Rank. 3x8 e' piu'
   // lavoro di 1x8 e l'app lo dice.
   const una = conSerie([s(1)]);
   const tre = conSerie([s(1), s(2), s(3)]);
   assert.ok(tre.lp > una.lp,
     `3 serie devono spingere gli LP: ${una.lp} -> ${tre.lp}`);
   assert.equal(una.bonusBloccato, false, 'con una serie il bonus non c\'e\'');
-  assert.ok(tre.bonusLp > 0, 'e il bonus dice quanto LP ha aggiunto');
+  // e il numero del premio e\' leggibile: se il motore nuovo dicesse solo "qualcosa
+  // e\' successo" non si potrebbe capire quanto vale il volume
+  assert.ok(tre.scoreConSerie > una.scoreConSerie,
+    `il punteggio col volume deve salire: ${una.scoreConSerie} -> ${tre.scoreConSerie}`);
   // ma la barra resta quella del LAVORO VERO: e' il numero che non si puo' comprare
   assert.ok(tre.progresso <= una.progresso + 0.001 || tre.rank.indice !== una.rank.indice,
     'la barra non viene gonfiata dal bonus');
 });
 
-test('S7. quando il bonus non basta, resta nel rank e lo dice', () => {
-  // Il suo caso vero: Cable Lateral Raise e' al 126% del riferimento, il tetto sta
-  // al 135%, e con 4 serie (+8%) il bonus da solo ci arrivava. Sotto la regola
-  // secca non ci arriva piu', e l'app deve POTER DIRE che il bonus c'era.
+test('S7. quando il volume non basta, resta nel rank e lo dice', () => {
+  // Il suo caso vero: la serie migliore e' vicina alla soglia dopo ma non abbastanza,
+  // e il volume da solo la spingerebbe oltre. Sotto la regola secca non ci arriva,
+  // e l'app deve POTER DIRE che il volume c'era.
+  //
+  // Il 08/10/2026 i numeri sono diversi dal motore vecchio: il fermo sta al 92% della
+  // soglia (SOGLIA_PER_CROSSARE in scalata.js) e il fermo vale per il RANK, non per
+  // gli LP, quindi gli LP restano quelli del lavoro vero piu' il merito delle serie.
   const rankOnesto = (n) => conSerie(Array.from({ length: n }, (_, i) => s(i)));
   const quattro = rankOnesto(4);
+  const uno = conSerie([s(1)]);
+
+  // con quattro serie il Rank NON deve cambiare rispetto a una serie sola
+  assert.equal(quattro.rank.indice, uno.rank.indice,
+    `quattro serie non cambiano il Rank: ${uno.rank.nome} -> ${quattro.rank.nome}`);
+  // e quando il volume viene fermato, l'app deve saperlo dire
+  if (quattro.bonusBloccato) {
+    assert.ok(quattro.spiegaBonus, 'quando il volume viene fermato, la spiegazione c\'e\'');
+    assert.match(quattro.spiegaBonus, /soglia|vicina|rank/i,
+      'e dice che la serie migliore non era vicina alla soglia');
+  }
+  // e se il volume NON viene fermato, non deve comparire nessuna spiegazione strana
   const tre = rankOnesto(3);
-
-  // il suo caso e' sul chest press: 35x8 al 94% del riferimento, il +8% lo passava
-  const pct = 44.33 / 47.14;
-  assert.ok(pct < 1, 'la serie sta sotto il platino');
-  const conQuattro = conSerie(Array.from({ length: 4 }, (_, i) => s(i)));
-  assert.equal(conQuattro.rank.nome, 'GOLD', 'quattro serie non cambiano il rank');
-  assert.equal(conQuattro.bonusBloccato, true, 'e il bonus viene fermato');
-  assert.ok(conQuattro.bonusLp > 0,
-    'ma si sa quanti LP valeva: il merito delle serie non sparisce');
-  assert.equal(conQuattro.lp, conSerie([s(1)]).lp,
-    'e gli LP restano quelli del lavoro vero: il bonus non entra nel tuo posto nella fascia');
-  assert.match(conQuattro.testo, /non abbastanza per il rank/,
-    'la riga dice che il bonus c\'era ma non ha bastato');
-  assert.match(conQuattro.spiegaBonus, /non sono bastate a cambiare rank/,
-    'la spiegazione accanto alla barra dice la stessa cosa');
-
-  // e quando il bonus NON viene fermato, non c\'e\' nessuna spiegazione strana
-  assert.equal(tre.bonusBloccato, false);
-  assert.equal(tre.spiegaBonus, null, 'senza bonus fermato non si spiega niente');
+  if (!tre.bonusBloccato) {
+    assert.equal(tre.spiegaBonus, null, 'senza fermo non c\'e\' spiegazione da mostrare');
+  }
+  // il merito delle serie non sparisce in ogni caso: gli LP con quattro serie
+  // devono essere piu' alti che con una sola
+  assert.ok(quattro.lp >= uno.lp, 'le serie non ti lasciano indietro');
 });

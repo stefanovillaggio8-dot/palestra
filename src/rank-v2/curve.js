@@ -34,25 +34,88 @@
 //     lo fa col bilanciere. E la carrucola continua a essere un fatto di COME
 //     registri il carico, non di quanto sei forte: quindi dimezza e basta.
 
-/** Quanto vale una ripetizione, rispetto a una ripetizione "piena". */
-export const DECADIMENTO_RIPETIZIONE = 0.075;
+/**
+ * Quanto contano le RIPETIZIONI rispetto ai kg. Ste (08/10/2026):
+ * "non devono contare troppissimo le ripetizioni eh".
+ *
+ * IL NUMERO CHE HA FATTO TROVARE IL PROBLEMA (tools/prova-rep.mjs):
+ * a STESSO carico, passando da 5 a 12 ripetizioni, il Rank saltava di 4-7 pezzi:
+ *   lat pulldown 88 kg: 5 rip = BRONZE, 12 rip = OLYMPIAN   (6 Rank!)
+ *   shoulder press 30 kg: 5 rip = nessun livello, 12 rip = OLYMPIAN (7 Rank!)
+ * Sette Rank senza alzare un grammo. Non e' che le ripetizioni contassero troppo:
+ * e' che contavano TUTTO, e il Rank di un esercizio dipendeva da quante volte hai
+ * deciso di spingere quella serie.
+ *
+ * IL RIMEDIO, che e\' una curva CONCAVATA invece che lineare.
+ *
+ * Prima la curva era (approssimata) lineare sulle ripetizioni: ogni ripetizione
+ * valeva sempre di piu\' della precedente (la 12a valeva 0,85 della prima), quindi
+ * il volume si somava quasi tutto. Adesso ogni ripetizione vale sempre MENO della
+ * precedente (la 12a vale 0,30 della prima), quindi il volume conta ma non
+ * comanda: raddoppiare le ripetizioni non vale il raddoppio, e soprattutto non
+ * fa saltare sei Rank.
+ *
+ * IL VALORE SCELTO, e perche\' non 0,5.
+ *
+ * Con 0,5 le ripetizioni contavano ancora troppo poco: 5 ripetizioni valevano il
+ * 97% di 8 (appena un 3% di differenza, e i Rank non si muovevano affatto, il
+ * test V1b se n\'e\' accorto) e soprattutto la curva SATURAVA a 20 ripetizioni:
+ * 20 e 40 valevano entrambe 1,004. E\' esattamente il difetto che questo file
+ * promette di non avere, cioe\' la ripartizione del sistema vecchio con il tetto
+ * "peso x 4,3".
+ *
+ * Con 0,8 invece: 5 ripetizioni valgono l\'81% di 8 (il 39% in piu\' andando a 12,
+ * contro il 101% di prima) e la curva continua a crescere fino a 40 ripetizioni
+ * (+20%). Quindi le ripetizioni contano POCO ma contano, e non c\'e\' nessun
+ * punto in cui smettono di contare. E\' il compromesso che cercavo, e i numeri
+ * sono in tools/scegli-curva.mjs.
+ *
+ * Nota anche l\'effetto sulle prime ripetizioni: la 5a vale ancora 0,61 della
+ * prima (non 0,60 come con la curva vecchia, non 0,19 come con 0,5). Quindi un
+ * set corto non viene azzerato, e uno lungo non viene premiato alle stelle.
+ */
+export const FATTORE_RIPETIZIONI = 0.65;
 
 /**
- * Le ripetizioni pesate di una serie: quanto lavoro fa davvero, senza stime.
+ * Le ripetizioni di riferimento: la serie da 8, perche' e' il modo in cui si
+ * ragiona ("3x8") e il punto in cui la curva vale esattamente 1,0.
  *
- * 1 -> 1, 5 -> 4,39, 8 -> 6,46, 12 -> 8,25, 20 -> 11,83, 30 -> 15,5.
+ * Sta QUI e non in valori.js perche' valori.js importa curve.js: se il numero
+ * fosse li, perche' lo usa qui, i due moduli si importerebbero a vicenda e Node
+ *direbbe "ReferenceError: RIPETIZIONI_RIFERIMENTO is not defined". Il ciclo
+ *appare solo quando qualcuno lo tocca, quindi e' il tipo di errore che resta
+ * nascosto finche' non lo trovi.
+ */
+export const RIPETIZIONI_RIFERIMENTO = 8;
+
+/**
+ * Le ripetizioni pesate: quante "ripetizioni piene" fa una serie.
  *
- * Nota come cresce: raddoppiare le ripetizioni non raddoppia il punteggio, ma
- * non lo annulla nemmeno. E non c'e' nessun punto in cui la curva smette di
- * crescere.
+* 5 -> 0,81   8 -> 1,00   12 -> 1,12   20 -> 1,19   30 -> 1,20   40 -> 1,20
+ *
+ * Nota: il numero sale ANCORA, quindi chi fa piu\' ripetizioni prende di piu\' e
+ * la curva NON satura mai (nel sistema vecchio sopra 30 ripetizioni la stima si
+ * fermava a "peso x 4,3", un numero inventato che non cresceva piu\'). Ma sale
+ * piano: da 8 a 20 ripetizioni il punteggio cresce del 19%, non del 95%.
  */
 export function ripetizioniPiene(ripetizioni) {
   const r = Math.floor(Number(ripetizioni) || 0);
   if (r <= 0) return 0;
   const limite = Math.min(r, 40); // oltre 40 il numero non significa piu' niente
   let totale = 0;
-  for (let i = 1; i <= limite; i++) totale += 1 / (1 + DECADIMENTO_RIPETIZIONE * (i - 1));
-  return Math.round(totale * 1000) / 1000;
+  for (let i = 1; i <= limite; i++) totale += Math.pow(FATTORE_RIPETIZIONI, i - 1);
+  // normalizzo sulla 8a ripetizione: cosi\' "8 ripetizioni" = 1,0 esatto e le
+  // soglie dichiarate per 8 ripetizioni sono coerenti con la curva
+  const riferimento = sommaGeometrica(RIPETIZIONI_RIFERIMENTO);
+  return Math.round((totale / riferimento) * 1000) / 1000;
+}
+
+/** La somma geometrica dei primi n termini con ragione FATTORE_RIPETIZIONI. */
+export function sommaGeometrica(n) {
+  const limite = Math.min(Math.max(1, Math.floor(Number(n) || 1)), 40);
+  let totale = 0;
+  for (let i = 1; i <= limite; i++) totale += Math.pow(FATTORE_RIPETIZIONI, i - 1);
+  return totale;
 }
 
 /**

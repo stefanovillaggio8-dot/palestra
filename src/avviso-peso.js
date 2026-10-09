@@ -147,8 +147,27 @@ export async function avvisoPesoEsercizio({ serie, esercizio, account = null }) 
   // il peso con cui la scala e' davvero stata costruita: quello della serie
   // migliore, se ce l'ha salvato dentro, altrimenti quello di adesso
   const pesoUsato = record.pesoCorporeo || peso;
-  const confini = confiniPerIlRank(base, record.punteggio, record.profilo.soglie);
+  // LE SOGLIE SONO QUELLE DEL MOTORE NUOVO.
+  //
+  // Prima qui si usava `record.profilo.soglie`, cioe' la scala del motore VECCHIO
+  // (costruita sul massimale stimato). Dal 08/10/2026 il Rank e' calcolato da
+  // rank-v2 e le sue soglie stanno in `record.soglie`: i due sistemi hanno scale
+  // diverse, quindi l'avviso avrebbe detto "cambiando peso il Rank non si muove"
+  // mentre a schermo il Rank cambiava. Due sistemi che dicono cose diverse sulla
+  // stessa prestazione, ed e' esattamente il bug che questo file era nato per
+  // trovare: solo che adesso lo facevano i due motori insieme.
+  const soglie = Array.isArray(record.soglie) && record.soglie.length
+    ? record.soglie
+    : (record.profilo ? record.profilo.soglie : null);
+  if (!soglie || !soglie.length) return null;
+  // e il numero da confrontare con le soglie e' lo score del motore nuovo
+  const prestazione = Number.isFinite(record.score) ? record.score : record.punteggio;
+  const confini = confiniPerIlRank(base, prestazione, soglie);
+  // CHI E' SOTTO LA PRIMA SOGLIA ha un solo confine, quello in su, e senza Rank.
+  // Prima non succedeva (il motore vecchio non restituiva mai Rank null); qui il
+  // `record.rank.nome` sarebbe andato in crash, quindi il confine sotto non
+  // viene nemmeno calcolato.
   const righe = righeAvviso({ peso: pesoUsato, sale: confini.sale, scende: confini.scende });
   if (!righe.length) return null;
-  return { righe, peso: pesoUsato, record, confini, motivo: stato.motivo };
+  return { righe, peso: pesoUsato, record, confini, sottoSoglia: !!record.sottoSoglia, motivo: stato.motivo };
 }

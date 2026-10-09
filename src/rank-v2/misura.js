@@ -21,6 +21,8 @@
 // DOVE VANO I DATI: una tabella `risposte` (esercizio, data, carico reale, risposta).
 // Qui dentro c'e' solo il calcolo, cosi' e' provabile senza database.
 
+import { tettoPerEsercizio } from './valori.js';
+
 /** Le tre domande che ti faccio, con cosa significa ognuna. */
 export const RISPOSTE = {
   facile: { id: 'facile', peso: 1.35, frase: 'agevole: avrei potuto spingere molto di piu\'' },
@@ -62,7 +64,7 @@ function mediana(numeri) {
  * anche i motivi del "no", cosi' la schermata puo' dirti "non ho spostato niente:
  * mi servono 8 risposte e ne ho 4" invece di sembrare rotta.
  */
-export function affinaVertice({ verticeDichiarato, risposte = [], livello = 'composto', pesoCorporeo = 70 }) {
+export function affinaVertice({ verticeDichiarato, risposte = [], livello = 'composto', pesoCorporeo = 70, movimento = null }) {
   const dichiarato = Number(verticeDichiarato);
   if (!Number.isFinite(dichiarato) || dichiarato <= 0) {
     return { vertice: dichiarato, mosso: false, motivo: 'nessun numero dichiarato', quante: 0 };
@@ -99,7 +101,13 @@ export function affinaVertice({ verticeDichiarato, risposte = [], livello = 'com
   const misurato = mediana(utili);
 
   // i tetti non si negoziano: il numero misurato non puo' superarli
-  const tetto = livello === 'isolamento' ? 0.85 : 2.2;
+  //
+  // Il tetto viene da valori.js perche' dal 08/10/2026 NON e' "isolamento si/no":
+  // se lo fosse, il leg extension (isolamento, ma a una gamba sola) verrebbe
+  // tagliato a 0,85x il corpo. Qui la regola deve essere LA STESSA che usa la
+  // scala, altrimenti la misura potrebbe muovere un numero e poi la scala lo
+  // taglierebbe dietro: due regole diverse sullo stesso numero.
+  const tetto = tettoPerEsercizio(livello, movimento);
   const limite = Number(pesoCorporeo) * tetto;
   const misuraLimitata = Math.min(misurato, limite);
   const tettoMesso = misurato > limite;
@@ -117,6 +125,8 @@ export function affinaVertice({ verticeDichiarato, risposte = [], livello = 'com
     mosso: true,
     quante,
     accordo,
+    tetto: tetto,
+    limite: Math.round(limite * 100) / 100,
     misurato: Math.round(misurato * 100) / 100,
     obiettivo: Math.round(obiettivo * 100) / 100,
     dichiarato,

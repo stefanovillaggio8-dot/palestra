@@ -58,12 +58,25 @@ before(async () => {
   // un peso di 66 kg messo 40 giorni fa: il caso che l'avviso descrive
   const data = new Date(Date.now() - 40 * 86400000).toISOString().slice(0, 10);
   await peso.segnaPeso(66, { data, account: ACCOUNT });
-  // e una serie fatta sul primo esercizio della scheda, cosi' c'e' un Rank
+  // e una serie fatta sul primo esercizio della scheda, cosi' c'e' un Rank.
+  //
+  // IL CARICO E' 37 KG E NON 25, e il motivo e' questo test.
+  // L'avviso ha TRE righe quando sei dentro la scala: il peso registrato, a che
+  // peso tocchi il livello dopo, a che peso lo perdi. La terza riga (da quanto in
+  // giu' scendi sotto la fascia che hai) esiste SOLO se sei dentro la scala, cioe'
+  // se hai gia' un Rank. Con 25 kg x 8 su un corpo da 66 kg sei sotto l'ingresso
+  // (29,7 kg): nessun Rank, e l'app dice giustamente "per sbloccare il primo
+  // livello", NON "lo perdi". Il test metteva 25 e pretendeva "lo perdi": stava
+  // chiedendo una frase che in quel caso non deve esistere.
+  //
+  // 37 kg x 8 e' il carico vero di Ste e dà SILVER 72%: dentro la scala, con un
+  // tetto sopra (il livello dopo) e un pavimento sotto (la fascia che hai). E'
+  // il caso che l'avviso descrive.
   const v = (await db.tutti('versioni'))[0];
   const giorno = v.snapshot.giorni[0];
   const seduta = await apriSeduta({ scheda_id: SCHEDA_ID, versione: v, giorno });
   const serie = await db.perIndice('serie', 'seduta_id', seduta.id);
-  await db.salva('serie', { ...serie[0], peso: 25, ripetizioni: 8, stato: 'fatta' });
+  await db.salva('serie', { ...serie[0], peso: 37, ripetizioni: 8, stato: 'fatta' });
   await chiudiSeduta(seduta.id);
   // riapro l'app: e' quello che fa Ste quando torna sulla pagina dell'esercizio,
   // e serve perche' la serie l'ho scritta nel database alle spalle dell'app (che
