@@ -47,6 +47,10 @@ export function statoAccount({
   oggi = null,
   datiMissioni = null,
   pesoCorporeo = null,
+  // I giorni in cui questa persona allena. Prima non arrivavano qui e la streak
+  // contava i giorni di calendario: chi allena 4 volte su 7 non poteva superare 4.
+  // Vedi streak.js per il caso vero.
+  profilo = null,
 } = {}) {
   const giorno = oggi || isoGiorno(new Date());
   const settimana = idSettimana(giorno);
@@ -61,7 +65,7 @@ export function statoAccount({
   const principale = rankPrincipale(record);
   const distribuzione = distribuzioneRank(record);
 
-  const streak = calcolaStreak(completate, giorno);
+  const streak = calcolaStreak(completate, giorno, profilo);
   const fuoco = aspettoStreak(streak);
 
   const totali = totaliDaRicompense(ricompense);
@@ -128,6 +132,10 @@ export function ricompenseAllenamento({
   ricompense = [],
   oggi = null,
   pesoCorporeo = null,
+  // I giorni in cui questa persona allena. Prima non arrivavano qui e la streak
+  // contava i giorni di calendario: chi allena 4 volte su 7 non poteva superare 4.
+  // Vedi streak.js per il caso vero.
+  profilo = null,
 } = {}) {
   const giorno = oggi || isoGiorno(new Date());
   const completate = (sedute || []).filter((s) => s && !s.eliminata && s.stato === 'completata');
@@ -189,7 +197,7 @@ export function ricompenseAllenamento({
   }
 
   // 3) i traguardi di streak
-  const streak = calcolaStreak(completate, giorno);
+  const streak = calcolaStreak(completate, giorno, profilo);
   const giaStreak = ricompense.filter((r) => r.tipo === 'traguardo').map((r) => Number(String(r.fonte).split(':')[1]));
   for (const t of traguardiNuovi(streak.giorni, giaStreak)) {
     const ric = ricompensaTraguardo(t);

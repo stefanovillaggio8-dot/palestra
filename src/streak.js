@@ -4,8 +4,153 @@
 // stato "completata"). Non conta aprire l'app, non conta toccare una scheda:
 // conta solo un allenamento finito.
 //
-// Se salti un giorno la streak si interrompe e riparte da 1. Non esiste un
-// tetto: puo' arrivare a 100, 1000, 5000.
+// ===================================================================
+// LA STREAK USA I GIORNI CHE HAI DETTO TU (08/10/2026)
+// ===================================================================
+// Ste: "questa app devo darla pure a dei miei compagni, non tutti fanno i miei
+// stessi giorni, quindi devi mettere nell'app che devo specificare che giorni vado
+// in palestra e automaticamente funziona la streak".
+//
+// LA STREAK DI PRIMA ERA SBAGLIATA, e non per poco. Contava i giorni di CALENDARIO
+// consecutivi: se il programma prevedeva quattro giorni e tu riposavi tre, la
+// streak non poteva MAI superare quattro, e si rompeva ogni volta dal riposo lungo.
+// Verificato sui numeri veri di Ste: allenando 4 giorni su 7 la streak arriva a 4 e
+// si azzera.
+//
+// Adesso la regola e' la sua, ed e' quella giusta:
+//
+//   - la streak conta gli ALLENAMENTI, non i giorni di calendario;
+//   - si interrompe SOLO se salti un giorno che avevi detto di allenare;
+//   - un allenamento inaspettato (un giorno di riposo) conta comunque, e non
+//     azzera niente.
+//
+// Perche' "solo se salti un giorno previsto" e non "se passano due giorni": chi
+// allena quattro volte su sette ha diritto al riposo, e se la streak si rompesse
+// per quello non ci sarebbe piu' motivo di allenarsi con regolarita'. Il riposo e'
+// parte del programma, non una colpa.
+//
+// I giorni sono scelti dalla persona e salvati nel suo profilo: ogni account ha i
+// suoi, quindi i compagni di Ste non vengono misurati con i suoi.
+//
+// SE I GIORNI NON SONO SCELTI, non si rompe mai su niente: si conta solo se
+// l'ultimo allenamento e' oggi o ieri (vedi `calcolaStreak`). Meglio una streak
+// che non azzera per errore che una che ti toglie traguardi giusti.
+
+/**
+ * I giorni della settimana in cui alleni, come 0 = domenica ... 6 = sabato.
+ *
+ * Se non ci sono, si torna alla regola semplice (l'ultimo allenamento e' oggi o
+ * ieri). Non si indovina: indovinare sarebbe sbagliare la streak di qualcuno.
+ */
+export function giorniPrevistiDa(profilo) {
+  const g = profilo && profilo.giorni_allenamento;
+  if (!Array.isArray(g)) return null;
+  const numeri = g.map(Number).filter((n) => Number.isInteger(n) && n >= 0 && n <= 6);
+  return numeri.length ? [...new Set(numeri)].sort((a, b) => a - b) : null;
+}
+
+/** Il giorno della settimana (0 = domenica) di una data ISO. */
+function giornoSettimana(iso) {
+  const d = new Date(String(iso) + 'T12:00:00');
+  if (Number.isNaN(d.getTime())) return null;
+  return d.getDay();
+}
+
+/** Il giorno dopo, in ISO. Serve per camminare giorno per giorno. */
+function giornoSuccessivo(iso) {
+  const d = new Date(String(iso) + 'T12:00:00');
+  if (Number.isNaN(d.getTime())) return null;
+  d.setDate(d.getDate() + 1);
+  return isoGiorno(d);
+}
+
+/**
+ * Quanti allenamenti di fila, contati sui giorni che hai scelto.
+ *
+ * Il cammino e' fatto sui GIORNI PREVISTI, non su tutti i giorni: tra un martedi'
+ * e un mercoledi' non c'e' nessun giorno previsto in mezzo, quindi sono consecutivi
+ * anche se il calendario ha dentro un lunedi' che non ti riguarda.
+ *
+ * Il giorno corrente, se previsto e non ancora fatto, NON azzera: sono le 8 di sera
+ * e non ti e' ancora successo niente.
+ *
+ * @param giorni       gli allenamenti, in ordine (non serve siano ordinati)
+ * @param previsti     i giorni della settimana scelti; null = regola semplice
+ * @param oggiISO      il giorno di oggi
+ */
+export function contaAllenamentiConsecutiviConGiorni(giorni, previsti, oggiISO) {
+  const set = new Set(giorni || []);
+  if (!set.size) return 0;
+
+  // SENZA GIORNI SCELTI si contano i giorni di CALENDARIO consecutivi che
+  // arrivano fino a ieri.
+  //
+  // Non e' la regola giusta per chi allena quattro volte su sette (per quello ci
+  // sono i giorni scelti), ma e' quella che non sbaglia nessuno: finche' la
+  // persona non sceglie, si sa solo che gli ultimi due giorni li ha fatti o no.
+  // E restituire sempre 1 sarebbe peggio: direbbe che tre allenamenti di fila
+  // valgono come uno.
+  if (!previsti) {
+    if (!set.has(oggiISO) && !set.has(giornoPrecedente(oggiISO))) return 0;
+    let n = 0;
+    let g = set.has(oggiISO) ? oggiISO : giornoPrecedente(oggiISO);
+    for (let i = 0; i < 200000; i++) {
+      if (!set.has(g)) break;
+      n++;
+      const prec = giornoPrecedente(g);
+      if (!prec) break;
+      g = prec;
+    }
+    return n;
+  }
+
+  const previstiSet = new Set(previsti);
+  const ordinati = [...set].sort((a, b) => b.localeCompare(a));
+  const ultimo = ordinati[0];
+  // Se tra l'ultimo allenamento e oggi c'e' un giorno che avevi scelto e non l'hai
+  // fatto, la streak e' rotta. Il cammino e' in AVANTI e guarda solo i giorni
+  // scelti: il riposo non conta, quindi non ti azzera niente.
+  if (!streckAncoraViva(set, ultimo, oggiISO, previstiSet)) return 0;
+
+  // e adesso il conteggio, camminando INDIETRO dall'ultimo allenamento
+  let n = 0;
+  let g = ultimo;
+  for (let i = 0; i < 20000; i++) {
+    if (set.has(g)) { n++; g = giornoPrecedente(g); continue; }
+    // giorno non fatto: azzera SOLO se era un giorno previsto
+    if (previstiSet.has(giornoSettimana(g))) break;
+    // era un giorno di riposo: continua a camminare indietro
+    const prec = giornoPrecedente(g);
+    if (!prec) break;
+    g = prec;
+  }
+  return n;
+}
+
+/**
+ * La streak e' ancora viva?
+ *
+ * La domanda e' una sola, e si fa camminando in AVANTI dall'ultimo allenamento
+ * fino a oggi: hai saltato qualche giorno che avevi detto di fare?
+ *
+ * Se sì', è rotta. Se no', è viva, e il conteggio lo fa l'altra funzione.
+ *
+ * Il caso che è facile sbagliare, ed è quello di Luca nel test S5: Luca allena
+ * lun/mar/mer/ven, l'ultimo allenamento è venerdì e oggi è sabato. Il sabato non è
+ * un giorno suo, quindi non ha saltato niente e la streak è viva. Una versione
+ * che guarda "quanti giorni sono passati" invece che "quali giorni erano previsti"
+ * lo buca per un riposo che non si era mai chiesto di fare.
+ */
+function streckAncoraViva(set, ultimo, oggiISO, previstiSet) {
+  if (ultimo >= oggiISO) return true; // non e' ancora passato nulla
+  let g = giornoSuccessivo(ultimo);
+  for (let i = 0; i < 400; i++) {
+    if (!g || g > oggiISO) return true; // siamo arrivati a oggi senza saltare niente
+    if (previstiSet.has(giornoSettimana(g)) && !set.has(g)) return false;
+    g = giornoSuccessivo(g);
+  }
+  return true;
+}
 
 /** I giorni in cui hai davvero allenato, dal piu' recente al piu' vecchio. */
 export function giorniAllenati(sedute) {
@@ -52,23 +197,37 @@ export function isoGiorno(data) {
 
 /**
  * La streak di oggi.
- *  attiva: l'ultimo allenamento e' oggi o ieri (quindi la streak e' ancora viva)
- *  interrotta: e' passato piu' di un giorno (la prossima volta riparte da 1)
+ *
+ * @param sedute   le sedute chiuse
+ * @param oggi     il giorno di oggi in ISO
+ * @param profilo  il profilo della persona: da lì arrivano i giorni in cui allena.
+ *                 Se non ci sono, si applica la regola semplice.
+ *
+ * La regola semplice (quando i giorni non sono scelti): l'ultimo allenamento deve
+ * essere oggi o ieri. Non e' la regola giusta per chi allena quattro volte su
+ * sette, ma e' quella che non sbaglia nessuno: non azzera niente che non sia
+ * sicuramente saltato.
  */
-export function calcolaStreak(sedute, oggi = isoGiorno(new Date())) {
+export function calcolaStreak(sedute, oggi = isoGiorno(new Date()), profilo = null) {
   const giorni = giorniAllenati(sedute);
+  const previsti = giorniPrevistiDa(profilo);
   if (!giorni.length) {
     return {
       giorni: 0, attiva: false, interrotta: false, giorniAllenati: [],
-      ultimoGiorno: null, prossimoObiettivo: null, testo: 'Non hai ancora finito un allenamento: la streak parte dal primo allenamento.',
+      ultimoGiorno: null, prossimoObiettivo: null, giorniPrevisti: previsti,
+      testo: 'Non hai ancora finito un allenamento: la streak parte dal primo allenamento.',
     };
   }
   const ultimo = giorni[0];
-  const ieri = giornoPrecedente(oggi);
-  const consecutive = contaConsecutivi(giorni, oggi);
+  const consecutive = contaAllenamentiConsecutiviConGiorni(giorni, previsti, oggi);
   const fattoOggi = ultimo === oggi;
-  const viva = fattoOggi || ultimo === ieri;
-  const valore = consecutive + (fattoOggi ? 1 : 0);
+  // la streak e' viva se l'ultimo allenamento non e' "passato": cioe' oggi non e'
+  // ancora un giorno previsto saltato. Il calcolo dei consecutivi dice gia' tutto.
+  const viva = consecutive > 0 || (fattoOggi && consecutive >= 0);
+  const valore = consecutive;
+
+  // il prossimo giorno previsto non ancora fatto: serve a dire "ti manca giovedi"
+  const prossimoGiorno = previsti ? prossimoGiornoPrevisto(previsti, ultimo, oggi) : null;
 
   return {
     giorni: viva ? valore : 0,
@@ -77,13 +236,69 @@ export function calcolaStreak(sedute, oggi = isoGiorno(new Date())) {
     fattoOggi,
     giorniAllenati: giorni,
     ultimoGiorno: ultimo,
+    giorniPrevisti: previsti,
+    prossimoGiorno,
     prossimoObiettivo: prossimoMilestone(valore),
-    testo: viva
-      ? (fattoOggi
-        ? `Streak di ${valore} ${valore === 1 ? 'giorno' : 'giorni'}: oggi hai gia' allenato.`
-        : `Streak di ${valore} ${valore === 1 ? 'giorno' : 'giorni'}: ti manca solo oggi per continuare.`)
-      : `Streak interrotta: l'ultimo allenamento e' stato il ${ultimo}. Allenandoti oggi riparti da 1.`,
+    testo: testoStreak({ viva, valore, fattoOggi, ultimo, previsti, prossimoGiorno }),
   };
+}
+
+/** Il prossimo giorno previsto che non hai ancora fatto dopo l'ultimo allenamento. */
+function prossimoGiornoPrevisto(previsti, ultimo, oggi) {
+  let g = ultimo;
+  for (let i = 0; i < 60; i++) {
+    const succ = giornoSuccessivo(g);
+    if (!succ || succ > oggi) return null;
+    if (previsti.includes(giornoSettimana(succ))) return succ;
+    g = succ;
+  }
+  return null;
+}
+
+/**
+ * La frase, scritta sul tuo caso.
+ *
+ * Prima diceva una cosa falsa a chi allena quattro volte su sette: il conto dei
+ * giorni di calendario si fermava al riposo lungo e la streak moriva ogni venerdi'.
+ */
+function testoStreak({ viva, valore, fattoOggi, ultimo, previsti, prossimoGiorno }) {
+  if (!previsti) {
+    if (!viva) return `Streak interrotta: l'ultimo allenamento e' stato il ${ultimo}. Allenandoti oggi riparti da 1.`;
+    return fattoOggi
+      ? `Streak di ${valore} ${valore === 1 ? 'giorno' : 'giorni'}: oggi hai gia' allenato.`
+      : `Streak di ${valore} ${valore === 1 ? 'giorno' : 'giorni'}: ti manca solo oggi per continuare.`;
+  }
+  if (!viva) {
+    return `Streak interrotta: l'ultimo allenamento e' stato il ${ultimo}. Allenandoti al prossimo giorno che hai scelto riparti da 1.`;
+  }
+  const giorni = `${valore} ${valore === 1 ? 'allenamento' : 'allenamenti'} di fila`;
+  if (prossimoGiorno) {
+    const quando = dataLeggibileBreve(prossimoGiorno);
+    return `Streak di ${giorni}: ti manca solo ${quando} per continuare.`;
+  }
+  return `Streak di ${giorni}: oggi hai gia' allenato. Ti torna ${prossimoGiornoPrevistoTesto(previsti)}.`;
+}
+
+/** Il nome del prossimo giorno previsto, per la frase. */
+function prossimoGiornoPrevistoTesto(previsti) {
+  const oggi = new Date();
+  for (let i = 1; i <= 8; i++) {
+    const d = new Date(oggi.getFullYear(), oggi.getMonth(), oggi.getDate() + i, 12);
+    if (previsti.includes(d.getDay())) return NOME_GIORNO[d.getDay()];
+  }
+  return 'il prossimo giorno';
+}
+
+const NOME_GIORNO = ['domenica', 'lunedi', 'martedi', 'mercoledi', 'giovedi', 'venerdi', 'sabato'];
+
+function dataLeggibileBreve(iso) {
+  const d = new Date(String(iso) + 'T12:00:00');
+  if (Number.isNaN(d.getTime())) return iso;
+  const oggi = isoGiorno(new Date());
+  if (iso === oggi) return 'oggi';
+  const domani = giornoSuccessivo(oggi);
+  if (iso === domani) return 'domani';
+  return `${NOME_GIORNO[d.getDay()]} ${d.getDate()}/${d.getMonth() + 1}`;
 }
 
 // ---------------------------------------------------------------------------

@@ -573,6 +573,15 @@ async function seminaProfilo(p) {
     avatar_id: p.avatar || 'vuoto',
     amministratore: !!p.amministratore,
     amici: Array.isArray(p.amici) ? p.amici.map((n) => accountId(n)) : [],
+    // I giorni in cui allena: sono SCELTI, quindi qui non viene scritto nulla.
+    //
+    // Il campo resta assente di proposito. Se mettessi un valore qui, sarebbe il
+    // "giorno 1 = ?, giorno 2 = ?" della scheda, cioe' i MIE giorni, e finirebbero
+    // nel profilo di tutti gli altri. E' esattamente il buco che Ste ha segnalato:
+    // "devo darla pure a dei miei compagni, non tutti fanno i miei stessi giorni".
+    //
+    // Finche' il campo manca, `calcolaStreak` usa la regola semplice (l'ultimo
+    // allenamento deve essere oggi o ieri), che non azzera nessuno per sbaglio.
     privacy: { ...PRIVACY_PREDEFINITE },
     colore: p.colore || '#7c5cff',
   }, { segna: false });
@@ -2691,6 +2700,8 @@ function vistaProgressi(zona) {
 function vistaImpostazioni(zona) {
   zona.appendChild(el('h1', { testo: 'Impostazioni' }));
 
+  zona.appendChild(bloccoGiorniAllenamento());
+
   const statoBox = el('section', { class: 'blocco' });
   statoBox.appendChild(el('h2', { testo: 'Salvataggio e sincronizzazione' }));
   const lineaStato = el('p', { class: 'nota', id: 'stato-dettaglio', testo: 'Sto controllando...' });
@@ -3074,6 +3085,11 @@ function profiloAttivo() {
       ? !!salvato.amministratore
       : !!p.amministratore,
     amici: (salvato && salvato.amici) || (p.amici || []).map((n) => accountId(n)),
+    // I giorni in cui questa persona va in palestra. Ognuno ha i suoi, perche'
+    // Ste (08/10/2026) deve dare l'app anche ai suoi compagni e loro non fanno i
+    // suoi stessi giorni: senza questo, la streak di chi allena lun/mar/mer/ven si
+    // romperebbe ogni sabato, non avendo saltato niente.
+    giorni_allenamento: (salvato && salvato.giorni_allenamento) || null,
     privacy: privacyDi(salvato || {}),
   };
 }
@@ -3108,9 +3124,12 @@ function statoMio(oggi = null) {
     completamenti: missioniMie(),
     ricompense: ricompenseMie(),
     // il peso corporeo serve ANCHE qui: senza, la lista dei Rank usava soglie
-    // diverse da quelle della pagina dell'esercizio, e dicevano due cose
-    // diverse sullo stesso record (bug trovato provando l'app, non dai test)
-    pesoCorporeo: pesoCorporeoOra(),
+// diverse da quelle della pagina dell'esercizio, e dicevano due cose
+  // diverse sullo stesso record (bug trovato provando l'app, non dai test)
+  pesoCorporeo: pesoCorporeoOra(),
+  // e i giorni in cui alleno: senza, la streak contava i giorni di calendario e
+  // chi allena quattro volte su sette non poteva superare quattro (vedi streak.js)
+  profilo: profiloAttivo(),
     oggi,
   });
 }
@@ -3492,6 +3511,75 @@ async function salvaProfilo(campi) {
   });
   await ricaricaTutto();
   disegna();
+}
+
+const GIORNI_SETTIMANA = [
+  { n: 1, nome: 'Lunedì' }, { n: 2, nome: 'Martedì' }, { n: 3, nome: 'Mercoledì' },
+  { n: 4, nome: 'Giovedì' }, { n: 5, nome: 'Venerdì' }, { n: 6, nome: 'Sabato' },
+  { n: 0, nome: 'Domenica' },
+];
+
+/**
+ * I giorni in cui vai in palestra.
+ *
+ * Ste (08/10/2026): "questa app devo darla pure a dei miei compagni, non tutti
+ * fanno i miei stessi giorni, quindi devi mettere nell'app che devo specificare che
+ * giorni vado in palestra e automaticamente funziona la streak".
+ *
+ * PERCHE' SERVE UNA SCELTA E NON UNA REGOLA FISSA. Prima la streak contava i giorni di
+ * calendario consecutivi: chi allena quattro volte su sette non poteva MAI superare
+ * quattro, e si rompeva a ogni fine settimana dal riposo lungo. Sui numeri veri di
+ * Ste l'app diceva "streak di 1 giorno" dopo otto allenamenti in due settimane.
+ *
+ * Adesso la regola è la sua: la streak si interrompe SOLO se salti un giorno che hai
+ * scritto qui sotto, e un allenamento inaspettato conta comunque.
+ *
+ * IL RIPOSO È PARTE DEL PROGRAMMA. Per questo la casella dice "quando NON alleni
+ * non succede niente": è la frase che rende chiara la regola, perché il dubbio che
+ * tutti hanno guardando una streak è "ma il riposo me la rompe?".
+ */
+function bloccoGiorniAllenamento() {
+  const profilo = profiloAttivo();
+  const salvati = Array.isArray(profilo.giorni_allenamento) ? profilo.giorni_allenamento.slice() : null;
+
+  const box = el('section', { class: 'blocco' });
+  box.appendChild(el('h2', { testo: 'I giorni in cui alleni' }));
+  box.appendChild(el('p', { class: 'nota', testo: 'La streak conta gli allenamenti, non i giorni di calendario: quando non alleni non succede niente. Si interrompe solo se salti un giorno che hai scritto qui sotto. Se non scegli niente, l\'app conta come una volta sola l\'ultimo allenamento.' }));
+
+  const scelti = new Set(salvati || []);
+  const griglia = el('div', { class: 'riga-pulsanti' });
+  const riepilogo = el('p', { class: 'nota nota-piccola' });
+
+  const scriviRiepilogo = () => {
+    const quanti = scelti.size;
+    riepilogo.textContent = quanti === 0
+      ? 'Nessun giorno scelto: la streak vale solo se ti alleni oggi o ieri.'
+      : `Alleni ${quanti === 1 ? 'solo il' : 'in'} ${[...scelti].map((n) => {
+        const g = GIORNI_SETTIMANA.find((x) => x.n === n);
+        return (g ? g.nome : String(n)).toLowerCase();
+      }).join(', ')}.`;
+  };
+
+  for (const g of GIORNI_SETTIMANA) {
+    const bottoneGiorno = bottone(g.nome, {
+      onClick: async () => {
+        if (scelti.has(g.n)) scelti.delete(g.n); else scelti.add(g.n);
+        bottoneGiorno.classList.toggle('attivo', scelti.has(g.n));
+        scriviRiepilogo();
+        const lista = scelti.size ? [...scelti].sort((a, b) => ((a + 6) % 7) - ((b + 6) % 7)) : null;
+        await salvaProfilo({ giorni_allenamento: lista });
+        avviso(lista
+          ? `Giorni aggiornati: ${lista.map((n) => (GIORNI_SETTIMANA.find((x) => x.n === n) || {}).nome).join(', ')}.`
+          : 'Giorni svuotati: la streak ora vale solo se ti alleni oggi o ieri.', { tipo: 'ok' });
+      },
+      classe: 'fantasma' + (scelti.has(g.n) ? ' attivo' : ''),
+    });
+    griglia.appendChild(bottoneGiorno);
+  }
+  box.appendChild(griglia);
+  scriviRiepilogo();
+  box.appendChild(riepilogo);
+  return box;
 }
 
 /* ---------- schermate ---------- */
