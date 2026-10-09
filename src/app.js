@@ -1,4 +1,4 @@
-﻿// app.js -- interfaccia e navigazione.
+// app.js -- interfaccia e navigazione.
 // Tutto in italiano, tema scuro, pulsanti grandi, fatto per essere usato
 // in palestra con le mani occupate.
 
@@ -1695,6 +1695,9 @@ async function finisceAllenamento(s) {
   // senza questo la scheda risulterebbe "niente di nuovo" e la conferma di
   // aggiornarla non comparirebbe.
   await aspettaSalvataggi();
+  // I Rank di ADESSO, prima che la seduta diventi "completata". Servono per il
+  // confronto alla fine: e' l'unico modo di sapere se qualcosa e' cambiato davvero.
+  const rankPrima = mappaRank(V.esercizi, serieMie(), seduteMie());
   // IMPORTANTE: rileggo la seduta dal database invece di usare la copia che
   // avevo in mano. Se nel frattempo hai scritto qualcosa (per esempio le note
   // della seduta), con la copia vecchia verrebbe cancellato: era successo, la
@@ -1712,9 +1715,122 @@ async function finisceAllenamento(s) {
   // il gioco: record, rank, LP, streak, Aura e traguardi. Tutto calcolato
   // dai dati appena salvati e passato dal database, mai scritto a mano.
   await assegnaRicompense(s.id);
+  // Ste (08/10/2026): "sistema appena finisci" e poi "tutto quanto deve farsi
+  // automaticamente". Qui l'app ti portava allo storico e basta: finivi l'allenamento
+  // e non ti diceva SE avevi fatto un primato o SE eri salito di fascia. Il Rank era
+  // gia' calcolato e gia' salvato, nessuno lo mostrava.
+  annunciaFineSeduta(rankPrima, mappaRank(V.esercizi, serieMie(), seduteMie()));
   vai('/storico/' + s.id);
   // adesso la scheda: quello che hai fatto diventa la scheda per la prossima volta
   await proponiAggiornamentoScheda(s.id);
+}
+
+/**
+ * Il nome leggibile di un esercizio, o il suo id se non lo si trova.
+ *
+ * Serve alle funzioni che costruiscono i messaggi: quelle possono essere chiamate
+ * anche quando il catalogo non e' ancora in memoria (i test, e il primo avvio), e
+ * un messaggio che spiega cosa e' successo non puo' fallire perche' non ha trovato
+ * una parola da mettere. Fallire qui significa che l'utente non legge NULLA, che
+ * e' il caso peggiore: era l'esercizio a non essere pronto, non l'app.
+ */
+function nomeEsercizio(id) {
+  const e = (V && V.esercizi) ? esercizioPerId(id) : null;
+  return (e && e.nome) || id;
+}
+
+/**
+ * I Rank di tutti gli esercizi, per capire cosa e' cambiato.
+ *
+ * Serve al confronto PRIMA/DOPO: se la mappa e' la stessa, non e' successo niente e
+ * non c'e' niente da annunciare. Senza questo, alla fine di ogni seduta comparirebbe
+ * un messaggio anche quando non hai migliorato niente, che dopo tre settimane diventa
+ * un rumore che non guardi piu'.
+ *
+ * Il peso si puo' passare a mano: serve al confronto del peso corporeo, perche' quando
+ * calcoliamo il "prima" il peso salvato e' gia' quello nuovo.
+ *
+ * Esportata perche' il confronto merita un test: se sbaglia nel silenzio, l'app smette
+ * di dire le cose giuste e nessuno se ne accorge, perche' un avviso che manca non fa
+ * rumore.
+ */
+export function mappaRank(esercizi, serie, sedute, peso = null) {
+  const m = new Map();
+  const record = recordAccount(esercizi, gruppiDaSerie(sedute, serie, esercizi), {
+    soloConDati: true,
+    pesoAttuale: peso === null || peso === undefined ? pesoCorporeoOra() : peso,
+  });
+  for (const r of record) {
+    if (!r || !r.esercizio || !r.rankId) continue;
+    m.set(r.esercizio.id, {
+      nome: r.rank.nome, indice: r.indice, lp: r.lp, punteggio: r.punteggio,
+    });
+  }
+  return m;
+}
+
+/**
+ * Cosa dire alla fine della seduta.
+ *
+ * Solo cose vere: un Rank salito, un record battuto, un esercizio nuovo sbloccato.
+ * Niente complimenti se non e' successo niente: un avviso che dice sempre "bravo"
+ * smette di dire qualcosa anche quando hai davvero migliorato.
+ */
+export function annunciaFineSeduta(prima, dopo) {
+  const saliti = [];
+  const nuovi = [];
+  const battuti = [];
+  for (const [id, d] of dopo) {
+    const p = prima.get(id);
+    const nome = nomeEsercizio(id);
+    if (!p) {
+      // l'esercizio e' comparso solo adesso: o era nuovo, o non aveva mai avuto un
+      // Rank. In entrambi i casi e' una notizia, ma non e' una promozione
+      if (prima.size) nuovi.push(`${nome}: ${d.nome} ${d.lp} LP`);
+      continue;
+    }
+    if (d.indice > p.indice) saliti.push(`${nome}: ${p.nome} - ${d.nome} (${d.lp} LP)`);
+    else if (p.indice >= 0 && d.punteggio > p.punteggio + 0.01) {
+      battuti.push(`${nome}: nuovo record personale (${formattaNumero(d.punteggio)})`);
+    }
+  }
+  if (!saliti.length && !nuovi.length && !battuti.length) return null;
+  const righe = [];
+  if (saliti.length) righe.push('Sei salito: ' + saliti.join(' · '));
+  if (battuti.length) righe.push('Record battuti: ' + battuti.join(' · '));
+  if (nuovi.length) righe.push('Primo livello sbloccato: ' + nuovi.join(' · '));
+  // il messaggio resta 9 secondi: Ste guarda il telefono in palestra e la schermata
+  // del Rank, che si vede meglio, e' a un tocco da l'i
+  return avviso(righe.join(' '), { tipo: 'ok', durata: 9000 });
+}
+
+/**
+ * Cosa cambia quando aggiorni il peso corporeo.
+ *
+ * Non si dice "i Rank sono aggiornati" e basta: si dicono i nomi. Il peso cambia gli
+ * ingressi e i tetti di ogni esercizio, quindi gli stessi kg possono valere su due
+ * fasce diverse da un giorno all'altro, ed e' il punto fragile che Ste aveva gia'
+ * segnalato una volta ("la colonna manca alla prossima mente").
+ */
+export function annunciaCambioPeso(prima, dopo, nuovoPeso) {
+  const saliti = [];
+  const scesi = [];
+  const comparsi = [];
+  for (const [id, d] of dopo) {
+    const p = prima.get(id);
+    const nome = nomeEsercizio(id);
+    if (!p) { comparsi.push(`${nome}: ${d.nome}`); continue; }
+    if (d.indice > p.indice) saliti.push(`${nome}: ${p.nome} - ${d.nome}`);
+    else if (d.indice < p.indice) scesi.push(`${nome}: ${p.nome} - ${d.nome}`);
+  }
+  const righe = [`Peso aggiornato: ${formattaNumero(nuovoPeso)} kg.`];
+  if (saliti.length) righe.push('Sei salito: ' + saliti.join(' · '));
+  if (scesi.length) righe.push('Sei sceso: ' + scesi.join(' · '));
+  if (comparsi.length) righe.push('Primo livello sbloccato: ' + comparsi.join(' · '));
+  if (!saliti.length && !scesi.length && !comparsi.length) {
+    righe.push('Nessun Rank cambia: i tuoi kg sono gli stessi su tutta la scala.');
+  }
+  return avviso(righe.join(' '), { tipo: 'ok', durata: 9000 });
 }
 
 /* ===================== vista: storico ===================== */
@@ -4084,9 +4200,19 @@ async function vistaProfilo(zona) {
         avviso('Scrivi un peso fra 25 e 300 kg.', { tipo: 'errore' });
         return;
       }
+      // Ste (08/10/2026): "i rank devono aggiornare i pesi" e poi "tutto quanto deve
+      // farsi automaticamente". Il messaggio diceva gia' "i Rank sono aggiornati",
+      // ma non diceva QUANTO: era una promessa, non un'informazione.
+      //
+      // Qui il Rank viene calcolato DUE volte, col peso di prima e con quello nuovo,
+      // e si dicono i nomi che cambiano. Il peso corporeo sposta gli ingressi e i
+      // tetti di ogni esercizio, quindi gli stessi kg possono stare in due fasce
+      // diverse: senza questo messaggio non lo vedi, e ti resta il dubbio se il
+      // numero sia giusto.
+      const primaDelPeso = mappaRank(V.esercizi, serieMie(), seduteMie());
       await segnaPeso(n, { account: accountAttivo() });
-      avviso(`Peso salvato: ${formattaNumero(n)} kg. I Rank sono aggiornati.`, { tipo: 'ok' });
       await aggiornaPesoInMemoria();
+      annunciaCambioPeso(primaDelPeso, mappaRank(V.esercizi, serieMie(), seduteMie()), n);
       disegna();
     },
     classe: 'principale',
