@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 import {
   decidiPush, dopoInvioRiuscito, segnaDaSalvare, applicaRemote, risolviConflitto,
   costruisciConflitto, attesaRiprovo, contaDaSincronizzare, statoSalvataggio,
@@ -256,4 +257,66 @@ test('"Salvato online" compare solo quando non c\'e\' una coda', () => {
   assert.doesNotMatch(s1.testo, /Salvato online/);
   assert.doesNotMatch(statoSalvataggio({ online: false, configurato: true, coda: 0, errori: 0, inCorso: false }).testo, /Salvato online/);
   assert.doesNotMatch(statoSalvataggio({ online: true, configurato: true, coda: 0, errori: 1, inCorso: false }).testo, /Salvato online/);
+});
+
+test('ogni tabella che SALVA deve anche SCENDERE e SALIRE', async () => {
+  // IL PROBLEMA DEI TRE ELENCHI DIVERSI, e il test che lo chiude.
+  //
+  // In questo progetto i nomi delle tabelle stanno in TRE elenchi separati:
+  //  - db.js                 (13 tabelle: quello che il database crea davvero)
+  //  - sincronizzazione.js   (le tabelle che il motore di sync considera)
+  //  - sync.js               (le tabelle che scendono e salono da Supabase)
+  //
+  // Sono tre elenchi che possono andare in disaccordo, e sono andati in
+  // disaccordo: `pesi` era in quello del database e non in nessuno degli altri
+  // due. Il risultato era che il peso corporeo si salvava sul dispositivo ma
+  // non viaggiava mai: aprendo l'app su un telefono nuovo i tuoi record c'era
+  // tutti, ma il peso no, e il Rank veniva valutato senza sapere quanto pesi.
+  //
+  // Nessun errore, nessun rosso: solo un numero sbagliato sul telefono nuovo.
+  // Un test che confronta i tre elenchi lo rende impossibile.
+  const { TABELLE: TABELLE_DB } = await import('../src/db.js');
+  const { TABELLE: TABELLE_SYNC } = await import('../src/sincronizzazione.js');
+  // sync.js non esporta la lista: la leggo dal sorgente perche' e' una costante
+  // interna, e quello che mi interessa e' che sia uguale a quella di sync.js
+  const sorgente = await readFile(new URL('../src/sync.js', import.meta.url), 'utf8');
+  const m = /const TABELLE_SINCRONIZZATE\s*=\s*\[([^\]]*)\]/.exec(sorgente);
+  assert.ok(m, 'non trovo TABELLE_SINCRONIZZATE in sync.js: se hai cambiato il nome, aggiorna questo test');
+  const TABELLE_PULL = m[1].split(',').map((s) => s.trim().replace(/^['"]|['"]$/g, '')).filter(Boolean);
+
+  // le tabelle che il database conosce ma che NON viaggiano, e perche'. Sono una
+  // scelta, non una dimenticanza, quindi qui sono scritte per nome: se domani ne
+  // aggiungi una nuova, il test ti chiede di metterla in questa lista.
+  const LOCALI_PER_CHOIERE = {
+    // i conflitti nascono da una scelta di Ste fra due versioni: scaricarli da
+    // un altro dispositivo non ha senso
+    conflitti: 'scelta locale di Ste',
+    // le correzioni che Ste ha insegnato all'app: se viaggiassero, la correzione
+    // fatta sul telefono arriverebbe anche al computer. Serve una decisione di Ste
+    appreso: 'decisione di Ste pendente',
+    // la coda e i metadati sono gia\' dentro le righe, non sono tabelle
+  };
+
+  for (const t of TABELLE_DB) {
+    if (LOCALI_PER_CHOIERE[t]) continue;
+    assert.ok(TABELLE_SYNC.includes(t),
+      `la tabella "${t}" e\' nel database ma non fra le tabelle della sincronizzazione: `
+      + 'o la aggiungi, o spieghi perche\' resta solo su questo dispositivo');
+    assert.ok(TABELLE_PULL.includes(t),
+      `la tabella "${t}" e\' nel database ma non fra le tabelle che scendono e salgono: `
+      + 'i dati non viaggiano fra i dispositivi senza comparire qui');
+  }
+
+  // e il contrario non deve succedere: non si sincronizza una tababella che il
+  // database non conosce, perche\' la riga arriverebbe e non ci sarebbe dove metterla
+  for (const t of TABELLE_PULL) {
+    assert.ok(TABELLE_DB.includes(t),
+      `la tabella "${t}" viene sincronizzata ma il database non la conosce: `
+      + 'la riga che arriva non avrebbe dove essere salvata');
+  }
+
+  // e le due liste della sincronizzazione devono dire le stesse cose
+  const soloInPull = TABELLE_PULL.filter((t) => !TABELLE_SYNC.includes(t));
+  assert.deepEqual(soloInPull, [],
+    `scaricano e salgono tabelle diverse: ${soloInPull.join(', ')}`);
 });

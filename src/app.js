@@ -614,12 +614,41 @@ function disegna() {
   // pagina torna in cima, sembra che il pulsante non abbia fatto niente.
   const scrollPrima = typeof window.scrollY === 'number' ? window.scrollY : 0;
   svuota(zona);
-  try {
-    disegnaDentro(zona);
-  } catch (errore) {
+  // IL `try/catch` QUI NON COPRIVA LE VISTE ASYNC. Era un buco vero, e grosso.
+  //
+  // `disegnaDentro` non e' async ma dentro di lei quattro viste lo sono
+  // (`vistaSeduta`, `vistaSedutaPassata`, `vistaEsercizio`, `vistaProfilo`): quelle
+  // restituiscono una Promise, e un errore sollevato DOPO un `await` dentro una
+  // funzione async viene gestito dalla Promise, NON dal `try` del chiamante.
+  // Quindi `disegnaDentro` tornava subito, il `try` passava, e un errore in
+  // arrivo dal database dentro una vista async sfuggiva completamente: pagina a
+  // meta' disegnata e nessun messaggio. Il caso reale e' `vistaProfilo`, che fa
+  // `await controlloPeso()` DOPO aver gia' disegnato testa e barra del livello: se
+  // il database e' bloccato da un'altra scheda aperta, l'app si ferma a meta' del
+  // Profilo con l'aria, lo XP e il livello gia' scritti, e senza il blocco del
+  // peso e senza spiegare perche'.
+  //
+  // La correzione: `Promise.resolve(...)` chiama `disegnaDentro` SUBITO (nessun
+  // ritardo, nessuno sfarfallio: la pagina si disegna nel medesimo momento di
+  // prima) e restituisce la sua Promise, quindi il `.catch` prende anche gli
+  // errori sollevati dopo un `await`. Gli errori SINCRONI arrivano comunque al
+  // `try`, quindi le due protezioni restano entrambe.
+  let ancoraQui = true;
+  const alErrore = (errore) => {
+    // se nel frattempo la schermata e' stata ridisegnata, l'errore e' vecchio e
+    // non deve cancellare la pagina nuova
+    if (!ancoraQui) return;
+    ancoraQui = false;
     console.error('Disegno non riuscito:', errore);
     svuota(zona);
     mostraErrore(zona, errore);
+  };
+  try {
+    Promise.resolve(disegnaDentro(zona))
+      .then(() => { ancoraQui = false; })
+      .catch(alErrore);
+  } catch (errore) {
+    alErrore(errore);
     return;
   }
   if (scrollPrima > 0 && typeof window.scrollTo === 'function') {
@@ -2048,7 +2077,12 @@ let bozzaAttiva = null;
 
 function prendiBozza() {
   const v = versioneCorrente();
-  if (!v) return null;
+  // il controllo su `snapshot` mancava: se manca, `JSON.stringify(undefined)` restituisce
+  // `undefined` (non una stringa) e `JSON.parse(undefined)` LANCIA. Il chiamante pensava
+  // solo al caso `null`, quindi l'eccezione saliva fuori e la pagina restava a meta'.
+  // Uno snapshot mancante e' una versione corrotta o un import a meta': meglio dire
+  // "non c'e'" che far esplodere la schermata.
+  if (!v || !v.snapshot) return null;
   if (!bozzaAttiva || bozzaAttiva.versioneId !== v.id) {
     bozzaAttiva = { versioneId: v.id, dati: JSON.parse(JSON.stringify(v.snapshot)) };
   }
@@ -2059,9 +2093,20 @@ function scartaBozza() { bozzaAttiva = null; }
 
 function vistaScheda(zona) {
   const v = versioneCorrente();
-  if (!v) return;
+  // I DUE `return` MUUTI DI QUI ERANO UN BUTO VERO: se la versione o la bozza non
+  // ci sono, la schermata restava VUOTA, senza cornice e senza spiegazione. Un
+  // utente che preme "modifica scheda" e vede una pagina bianca pensa che l'app sia
+  // rotta. Le altre viste gia' scrivevano un messaggio ("Giorno non trovato"), quindi
+  // qui mancava solo quello.
+  if (!v) {
+    zona.appendChild(el('p', { class: 'nota', testo: 'Non trovo nessuna scheda da modificare. Torna alla home e riprova.' }));
+    return;
+  }
   const bozza = prendiBozza();
-  if (!bozza) return;
+  if (!bozza) {
+    zona.appendChild(el('p', { class: 'nota', testo: 'Questa scheda non si puo\' modificare adesso (manca il contenuto). Torna alla home e riprova.' }));
+    return;
+  }
   zona.appendChild(el('a', { href: '#/', class: 'indietro', testo: '← allenamento' }));
   zona.appendChild(el('h1', { testo: 'Modifica la scheda' }));
   zona.appendChild(el('p', { class: 'nota', testo: `Stai modificando la versione numero ${v.numero}. Quando salvi, nasce una versione nuova: le sedute passate restano esattamente come sono.` }));

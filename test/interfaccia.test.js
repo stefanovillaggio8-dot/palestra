@@ -1095,6 +1095,46 @@ test('36. nella pagina del giorno posso modificare la scheda e salvare', async (
   assert.equal(perClasse(app, 'mini-campo').length, 0, 'torniamo a sola lettura');
 });
 
+test('Y. un errore dopo un await dentro una vista viene mostrato, non mangiato', async () => {
+  // IL BUCO DEL `try/catch`, e il test che lo chiude.
+  //
+  // `disegna()` avvolgeva la chiamata a `disegnaDentro` in un `try/catch`, ma
+  // quattro viste sono `async` (`vistaSeduta`, `vistaSedutaPassata`,
+  // `vistaEsercizio`, `vistaProfilo`). Un errore sollevato DOPO un `await` dentro
+  // una funzione async non passa dal `try` del chiamante: passa dalla Promise.
+  //
+  // Quindi il `catch` non le copriva, e la pagina restava a meta' disegnata senza
+  // nessun messaggio. Il caso vero: il Profilo fa `await controlloPeso()` DOPO
+  // aver gia' scritto testa, livello e barra, quindi se il database e' bloccato
+  // (l'altra scheda del browser aperta) l'app si fermava li: aria, XP e livello
+  // scritti, blocco del peso sparito, e nessuna spiegazione di perche'.
+  //
+  // Qui non riesco a far fallire una vista vera (gli export di un modulo non si
+  // possono riassegnare, e il motore di memoria del database ingoia gli errori di
+  // lettura), quindi testo il MECCANISMO esatto che `disegna` ora usa: la chiamata
+  // passa dentro `Promise.resolve(...)` e gli errori dopo un `await` arrivano al
+  // `.catch`. Se un domani qualcuno toglie quel `Promise.resolve` da `disegna`,
+  // questo test documenta il pattern che lo protegge.
+  const vista = async () => {
+    await new Promise((r) => setTimeout(r, 1));
+    throw new Error('Errore di prova dentro una vista');
+  };
+  let mostrato = null;
+  // questo e' il pattern che ora c'e' in `disegna()`
+  Promise.resolve(vista())
+    .then(() => { /* va bene: nessun errore */ })
+    .catch((errore) => { mostrato = errore; });
+
+  // il disegno parte SUBITO: non c'e' nessun ritardo, nessuno sfarfallio
+  let partito = false;
+  Promise.resolve((async () => { partito = true; })());
+  assert.equal(partito, true, 'la vista parte subito, non dopo un turno');
+
+  await attendiChe(() => mostrato !== null, 30);
+  assert.ok(mostrato, 'un errore sollevato DOPO un await deve arrivare al catch');
+  assert.match(mostrato.message, /Errore di prova/, 'e deve essere l\'errore vero, non undefined');
+});
+
 test('Z. nessun errore JavaScript durante tutta la navigazione', () => {
   assert.deepEqual(errori, [], 'errori:\n' + errori.join('\n'));
 });

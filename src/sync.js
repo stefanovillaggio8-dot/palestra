@@ -13,8 +13,24 @@ import {
 } from './sincronizzazione.js';
 
 const CHIAVE_ULTIMO_PULL = 'palestra-ultimo-pull';
+// LE TABELLE SCENDONO E SALGONO DA QUI.
+//
+// `pesi` E' STATA AGGIUNTA IL 08/10/2026, e fino ad allora mancava. La tabella
+// esiste su Supabase (schema.sql, con la sua policy "propri pesi"), e l'app la
+// scriveva localmente, ma non era in questa lista: quindi il peso corporeo non
+// veniva MAI scaricato al cambio dispositivo. In pratica aprivi l'app sul
+// telefono nuovo, i tuoi record c'erano tutti, ma il peso non c'era: il Rank
+// veniva valutato senza peso corporeo (o sul peso di default), quindi diceva il
+// numero sbagliato proprio mentre i kg a schermo erano giusti.
+//
+// Nota: `conflitti` e `appreso` restano fuori di proposito e non per dimenticanza.
+// I conflitti nascono da una scelta di Ste fra due versioni, quindi non hanno
+// senso da scaricare da un altro dispositivo. `appreso` sono le correzioni che
+// Ste ha insegnato all'app: se le sincronizzassi, la correzione che fai sul
+// telefono viaggerebbe anche al computer (e forse è quello che vuoi, ma non è
+// una cosa da decidere di nascosto).
 const TABELLE_SINCRONIZZATE = ['esercizi', 'schede', 'versioni', 'sedute', 'serie', 'note',
-  'profili', 'missioni', 'ricompense'];
+  'profili', 'missioni', 'ricompense', 'pesi'];
 
 let inCorso = false;
 const ascoltatori = new Set();

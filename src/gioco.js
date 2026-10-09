@@ -1,4 +1,4 @@
-﻿// gioco.js -- il collante: mette insieme rank, streak, Aura, missioni e
+// gioco.js -- il collante: mette insieme rank, streak, Aura, missioni e
 // statistiche per un account, e dice che cosa guadagni quando finisci un
 // allenamento.
 //
@@ -160,9 +160,29 @@ export function ricompenseAllenamento({
     { soloConDati: true, pesoAttuale: pesoCorporeo },
   );
   for (const r of record) {
+    // IL CONTROLLO DI `r.rank` MANCAVA, ed era un buco vero.
+    //
+    // Un record puo' essere valido (`valido: true`) ma avere `rank: null`: e' il
+    // caso di chi si allena ma non ha ancora sbloccato il primo livello su quell'
+    // esercizio. Prima qui il controllo era solo `r.valido`, quindi arrivava alla
+    // riga della promozione e faceva `r.rank.nome` su un null: crash.
+    //
+    // E il crash era SILENZIOSO, perche' chi chiama questa funzione ha un
+    // `catch` che scrive in console e restituisce una lista vuota. Quindi
+    // finire un allenamento con un esercizio sotto la prima soglia faceva
+    // perdere le ricompense di TUTTA la seduta (Aura e XP di ogni esercizio),
+    // senza che sull'app comparisse niente. Il difetto piu' insidioso di tutti,
+    // perche' l'utente lo vede come un problema di ricompense e non di codice.
+    //
+    // Nota: `rank: null` NON vuol dire prestazione sbagliata. Vuol dire che la
+    // prestazione e' sotto la soglia d'ingresso di quell'esercizio, il che e'
+    // normale al primo mese. La ricompensa del record la prende lo stesso
+    // (riga 165, che usa `rankId`, non `rank`), quindi non si perde niente: si
+    // evita solo di scrivere il nome di un Rank che non c'e'.
     if (!r.valido || !r.esercizio) continue;
     const ric = ricompensaRecord(r.rankId);
     aggiungi('record', r.esercizio.id, ric.aura, ric.xp, `${r.esercizio.nome}: ${r.testo}`);
+    if (!r.rank) continue; // sotto la prima soglia: niente promozione da annunciare
     const promozione = ricompensaPromozione(r.rankId);
     aggiungi('promozione', `${r.esercizio.id}:${r.rankId}`, promozione.aura, promozione.xp,
       `${r.esercizio.nome}: ${r.rank.nome}`);
