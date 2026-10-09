@@ -367,14 +367,17 @@ test('V17. il MONOBRACCIO non dimezza: se leggi 21 kg, sono 21', async () => {
     'il pulldown non ha doppia carrucola: non si tocca');
 
   // e la prova finale, quella che conta per l'utente: il Rank c\'e\'.
+  // Il nome esatto NON e\' fissato qui: quando Ste ha chiesto gli ingressi piu\' bassi
+  // (08/10/2026) i tricipiti sono saliti di fascia, e questo test continuava a
+  // chiedere il bronzo che era il numero di ieri. Qui si fissa la cosa che non
+  // deve cambiare MAI: 21 kg su un monobraccio devono contare come 21, e devono
+  // dare un livello (prima non ne davano nessuno: 10,5 kg su un ingresso di 19,8).
   const { recordEsercizio } = await import('../src/rank.js');
   const rec = recordEsercizio([{ id: 's', peso: 21, ripetizioni: 8, stato: 'fatta' }],
     pushdown, null, 66);
-  assert.ok(rec.rank, `21 kg di pushdown monobraccio devono dare un Rank, non `
-    + `${rec.rank ? rec.rank.nome : 'nessuno'}`);
-  assert.equal(rec.rank.nome, 'BRONZE',
-    `e devono dare il bronzo: prima non davano nessun livello (10,5 kg su un `
-    + `ingresso di 19,8)`);
+  assert.ok(rec.rank,
+    '21 kg di pushdown monobraccio devono dare un livello: prima non ne davano nessuno');
+  assert.ok(rec.progresso > 0, 'e non possono essere "sotto soglia": sono 21 kg veri');
 });
 
 test('V18. il BENCH PULL e\ schiena, non petto', async () => {

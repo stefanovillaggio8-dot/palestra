@@ -243,12 +243,37 @@ export function rankDaScore(score, soglie, { serieFatte = 1 } = {}) {
     fermato.massimoRichiesto = Math.round(sog[daSola.indice + 1] * SOGLIA_PER_CROSSARE * 100) / 100;
     return fermato;
   }
-  // il volume non e' stato fermato: la barra si muove col numero, e qui
-  // `progressoConVolume` e' la stessa cosa di `progresso`. Si restituisce comunque,
-  // altrimenti la schermata riceve "undefined" nei due casi diversi a seconda che il
-  // volume sia stato fermato o no: un campo che c'e' solo a volte e' un campo su cui
-  // non si puo' contare, ed e' cosi' che una schermata mostra "undefined".
-  return { ...onesto, volumeBloccato: false, progressoConVolume: onesto.progresso };
+  // LA BARRA SEMPRE SUL LAVORO VERO, E ADESSO SEMPRE (08/10/2026).
+  //
+  // Prima la barra si fermava sul lavoro vero SOLO quando il volume veniva fermato
+  // (il ramo sopra). Quando invece il volume riusciva a spingere dentro la stessa
+  // fascia, la barra prendeva `onesto.progresso`, cioe' il numero COL volume: e
+  // allora due serie identiche movevano la barra quanto una serie piu' pesante.
+  //
+  // Il caso vero, con i numeri di Ste (corpo 66, chest press 35 kg x 8):
+  //
+  //   1x8  -> GOLD   1 LP  barra   1%
+  //   2x8  -> GOLD  48 LP  barra  49%
+  //   3x8  -> GOLD  77 LP  barra  77%
+  //
+  // Stesso esercizio, stesso peso, e la barra arriva al 77% perche' ha fatto tre
+  // volte la stessa identica serie. Non e' sbagliato (tre serie SONO piu' lavoro),
+  // ma e' una cosa che si rompe appena cambi qualcosa: prima del 15% sugli ingressi
+  // la 3a serie cambiava fascia, quindi la barra saliva "onestamente" e il test
+  // passava senza accorgersene. Con gli ingressi bassi non cambia piu' fascia, e il
+  // gonfiaggio e' comparso.
+  //
+  // Ste ha deciso: "barra = lavoro vero". Quindi qui sotto `progresso` e' SEMPRE
+  // quello della serie migliore da sola, e il volume si legge solo negli LP. E'
+  // la regola che rende impossibile comprare una fascia col volume.
+  const fermo = { ...onesto };
+  fermo.progresso = daSola.progresso;
+  fermo.volumeBloccato = false;
+  // `progressoConVolume` resta il posto dove si vede quanto avrebbe fatto la barra
+  // col volume, se un domani volessi mostrarlo. Serve anche alla schermata per
+  // spiegare "con 3 serie saresti al 77%". Non e' mai la barra principale.
+  fermo.progressoConVolume = onesto.progresso;
+  return fermo;
 }
 
 /** Gli LP che il volume ti porta a prendere, fermati dentro la fascia data. */

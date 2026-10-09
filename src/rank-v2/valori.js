@@ -149,38 +149,59 @@ import { ripetizioniPiene, fattoreMeccanica, caricoReale, RIPETIZIONI_RIFERIMENT
  *
  * `quotaIngresso` non esiste piu'. Se resta un errore li' dentro, e' un numero
  * che nessuno legge e che un giorno fa sbagliare qualcosa: meglio che salti.
+ *
+ * ===================================================================
+ * GLI INGRESSI SONO STATI ABBASSATI DEL 15% (08/10/2026)
+ * ===================================================================
+ * Ste, dopo aver visto le sue schede: "smith machine e' tanto 32kg, anche
+ * preacher curl, come faccio a non essere manco bronzo?".
+ *
+ * I numeri c'erano: 32 kg alla smith e 21 kg al preacher davano BRONZE. Ma erano
+ * al 12% appena sopra l'ingresso, e a occhio sembravano la stessa cosa di "non
+ * averlo sbloccato". Il bronzo che uno deve GUARDARE per capire se l'ha preso
+ * non e' un bronzo: e' un bronzo che ti sembra un errore.
+ *
+ * Quindi tutti gli `ingressoMultiplo` sono scesi del 15%, e i numeri qui dentro
+ * sono gia' quelli finali, non quelli vecchi da riabbassare. L'unica eccezione e'
+ * `spalle_trapezio` (lo shrug), che non ha subito lo sconto: Ste ne ha scelti due
+ * a mano lo stesso giorno, quindi 0,45 e' il numero che ha voluto lui e non uno
+ * da riabbassare.
+ *
+ * I TETTI non si sono mossi. Solo la porta di ingresso si e' abbassata: chi era
+ * gia' dentro una fascia resta dove era (il suo Rank e i suoi LP cambiano solo
+ * perche' la fascia e' piu' spessa), e chi era sotto ora entra.
  */
 export const VALORI_MOVIMENTO = {
   gambe_pesanti: {
-    multiplo: 2.2, ingressoMultiplo: 1.0, fonte: 'tuo',
+    multiplo: 2.2, ingressoMultiplo: 0.85, fonte: 'tuo',
     nota: 'Leg press e sled press: le macchine per gambe sono le piu\' forti della sala, quindi il tetto e\' il piu\' alto in assoluto (2,2x, e coincide col tetto di realta\'). L\'ingresso a 1,0x e\' il punto in cui chi si siede per la prima volta su quella macchina arriva: sotto, non e\' nemmeno un esercizio.',
   },
   tirata_verticale: {
-    multiplo: 1.7, ingressoMultiplo: 0.9, fonte: 'tuo',
+    multiplo: 1.7, ingressoMultiplo: 0.77, fonte: 'tuo',
     nota: 'Lat pulldown: tetto 1,7x il corpo, ingresso 0,9x. Ste (08/10/2026) "la lat machine fare 180kg e\' da folli, soprattutto con il mio peso" — avevo dichiarato 2,0x (=132 kg) e nella nota avevo scritto che chi e\' forte fa 150-180 kg: NON E\' VERO al mio peso, me lo ha fatto notare lui. I numeri onesti del pulldown in rapporto al corpo: 0,8x chi non l\'ha mai fatto, 1,0-1,2x dopo un anno, 1,4-1,6x chi si allena bene, 1,8-2,0x chi siDedica alla forza da anni. 1,7x e\' il tetto di chi si allena bene e un po\' oltre: 112 kg su corpo 66. Ste fa 88 kg = 1,33x, che e\' gia\' il livello di chi si allena bene: sta al 62% della scala, non al fondo. Il tetto NON e\' "il massimo esistente", e\' quello che nella vita reale si vede in palestra.',
   },
   tirata_orizzontale: {
-    multiplo: 1.7, ingressoMultiplo: 0.9, fonte: 'stima',
+    multiplo: 1.7, ingressoMultiplo: 0.77, fonte: 'stima',
     nota: 'Seated cable row: stesso tetto e stesso ingresso del pulldown, perche\' sono lo stesso tipo di movimento con lo stesso carico. Il row e\' leggermente piu\' pesante del pulldown per la stazza, quindi chi lo fa spesso arriva piu\' in alto, ma la scala e\' la stessa.',
   },
   spinta_orizzontale: {
-    multiplo: 1.0, ingressoMultiplo: 0.45, fonte: 'tuo',
+    multiplo: 1.0, ingressoMultiplo: 0.38, fonte: 'tuo',
     nota: 'Chest press a dischi, PER BRACCIO. Tetto 1,0x il corpo per braccio = 2,0x in totale, che e\' il livello di chi si allena bene. Ingresso 0,45x per braccio = 0,9x in totale: sotto, non stai nemmeno spingendo il peso di due braccia. Ste fa 0,56x per braccio, quindi e\' oltre l\'ingresso ma lontano dal tetto.',
   },
   spinta_verticale: {
-    multiplo: 0.6, ingressoMultiplo: 0.35, fonte: 'stima',
+    multiplo: 0.6, ingressoMultiplo: 0.30, fonte: 'stima',
     nota: 'Spalle in alto coi manubri, PER MANUBRIO. Tetto 0,6x per mano (in alto la spalla reggia poco), ingresso 0,35x. I numeri veri: iniziare con 10-12 kg per mano (0,15x), bravo con 25-30 (0,4-0,45x). Ste fa 30 kg = 0,45x, che e\' gia\' livello bravo: con l\'ingresso a 0,25x stava al 58% della scala, troppo alto per un anno di palestra, quindi l\'ingresso e\' stato alzato a 0,35x.',
   },
   spalle_trapezio: {
-    multiplo: 1.2, ingressoMultiplo: 0.5, fonte: 'stima',
-    nota: 'Shrug coi manubri, PER MANUBRIO. Tetto 1,2x per mano: gli scapoli sono i muscoli piu\' robusti del corpo e reggono il tuo peso piu\' volte. Ingresso 0,5x per mano.',
+    multiplo: 1.0, ingressoMultiplo: 0.38, fonte: 'tuo',
+    nota: 'Shrug coi manubri, PER MANUBRIO. Tetto 1,0x per mano, ingresso 0,45x. Sono i numeri che ha scelto Ste (08/10/2026) fra le due opzioni proposte, dopo che gli ho detto che 47,5 kg per braccio gli davano "nessun livello". Sul suo corpo da 66: tetto 66 kg per mano, ingresso 30 kg. Non e\' il tetto di un record: e\' il punto in cui il scrollamento dei trapezi e\' davvero forte. Prima questo esercizio prendeva la scala del REMO (ingresso 0,9x = 59 kg), quindi 47,5 kg per braccio restavano sotto la soglia e non sbloccavano niente. Nota: l\'ingresso qui NON ha il -15% degli altri movimenti, perche\' Ste ha scelto questi due numeri a mano.',
   },
   petto_isolamento: {
-    multiplo: 0.4, ingressoMultiplo: 0.2, fonte: 'tuo',
+    multiplo: 0.4, ingressoMultiplo: 0.17, fonte: 'tuo',
     nota: 'Cable fly al cavo, PER LATO: tetto 0,4x il corpo per lato, ingresso 0,2x. Nota bene il tetto: 0,4x per lato e\' 0,8x in totale, non e\' un errore. Il petto isolato al cavo e\' un movimento piccolo, quindi il carico e\' basso.',
     varianti: {
       // il cable fly: piccolo muscolo, carico leggero sul cavo
-      cavo: { multiplo: 0.4, ingressoMultiplo: 0.2, nota: 'Cable fly al cavo con doppia carrucola, PER LATO: tetto 0,4x il corpo per lato, ingresso 0,2x.' },
+      cavo: { multiplo: 0.4, ingressoMultiplo: 0.17, nota: 'Cable fly al cavo con doppia carrucola, PER LATO: tetto 0,4x il corpo per lato, ingresso 0,2x.' },
     },
   },
   // IL BENCH PULL E' PASSATO DA QUI (8/10/2026): era una "variante pesante" del
@@ -191,39 +212,39 @@ export const VALORI_MOVIMENTO = {
   // quella che lui ha giusto sott'occhio. Se poi vuoi stringerla o allargarla,
   // e' un numero da spostare qui.
   tirata_manubri: {
-    multiplo: 1.2, ingressoMultiplo: 0.5, fonte: 'tuo',
+    multiplo: 1.2, ingressoMultiplo: 0.43, fonte: 'tuo',
     nota: 'Bench pull coi manubri, PER MANUBRIO: tirata prona, lavora il dorso centrale. Tetto 1,2x il corpo per mano, ingresso 0,5x. Il carico e\' grosso (manubri) ma il movimento e\' piu\' isolato di un remo con seduta, quindi il tetto sta piu\' basso del remo (1,7x). Prima questo esercizio era classificato come petto, e la scheda gli diceva "il petto lavora in modo abbastanza uniforme".',
   },
   spalle_isolamento: {
-    multiplo: 0.45, ingressoMultiplo: 0.12, fonte: 'tuo',
+    multiplo: 0.45, ingressoMultiplo: 0.10, fonte: 'tuo',
     nota: 'Alzate laterali al cavo con doppia carrucola, PER LATO. Tetto 0,45x e ingresso 0,12x, ragionati sui numeri veri di palestra: le alzate laterali sono l\'esercizio col peso pi\' basso in assoluto (5-10 kg per lato coi manubri, 10-25 per lato al cavo doppio). Il vecchio sistema diceva 13 kg TOTALI e regalava l\'OLYMPIAN. Ste fa 25 kg letti = 12,5 per lato = 0,19x: e\' gia\' un livello decente, e sta a cavallo dell\'ingresso come deve stare chi ha un anno di palestra.',
   },
   bicipiti: {
-    multiplo: 0.7, ingressoMultiplo: 0.3, fonte: 'tuo',
+    multiplo: 0.7, ingressoMultiplo: 0.26, fonte: 'tuo',
     nota: 'Curl al cavo con doppia carrucola e curl coi manubri, PER LATO. Ste (08/10/2026): "come puo\' una persona fare tipo 50 kg di hammer curl?" — 50 NON SONO 50 PER BRACCIO. Con la doppia carrucola leggi 50 kg in totale sui due cavi, quindi ne fai 25 per braccio: 0,38x il corpo per lato, un numero normalissimo. Il tetto 0,7x per lato (= 0,6 kg per braccio su corpo 60) e\' il livello di un bicipite molto allenato: per questo il suo 25 kg sta nella meta\' bassa della scala e non al 19% di prima.',
   },
   tricipiti: {
-    multiplo: 0.7, ingressoMultiplo: 0.3, fonte: 'stima',
+    multiplo: 0.7, ingressoMultiplo: 0.26, fonte: 'stima',
     nota: 'Pushdown ed estensioni sopra la testa al cavo, PER LATO: tetto 0,7x, ingresso 0,3x. Ste (08/10/2026) "vabbè che è due braccia però": 60 kg letti = 30 per braccio = 0,45x per lato, quindi sopra l\'ingresso e nella parte bassa ma seria della scala. Le estensioni sopra la testa valgono un po\' di piu\' del pushdown perche\' l\'allungamento e\' maggiore, ma stanno sulla stessa scala di movimento.',
   },
   gambe_isolamento: {
-    multiplo: 1.4, ingressoMultiplo: 0.5, fonte: 'tuo',
+    multiplo: 1.4, ingressoMultiplo: 0.43, fonte: 'tuo',
     nota: 'Leg extension: Ste (08/10/2026) "comunque lo faccio con una gamba", quindi i kg sono per gamba. 1,4x il corpo e\' un tetto ragionato cosi\': 1,0x per il quadricipite piu\' il 40% in piu\' perche\' a una gamba sola tutto il carico finisce su una coscia sola (niente aiuto dell\'altra gamba). Sul tuo corpo il tetto e\' 92 kg e tu ne fai 65: 34% della scala. Ho provato 2,0x e 1,0x: il primo ti metteva al 2% (tetto irraggiungibile), il secondo ti dava OLYMPIAN (scala finita sotto i tuoi piedi). 1,4x mette i tuoi numeri al posto giusto.',
   },
   gambe_curl: {
-    multiplo: 1.2, ingressoMultiplo: 0.45, fonte: 'stima',
+    multiplo: 1.2, ingressoMultiplo: 0.38, fonte: 'stima',
     nota: 'Leg curl seduto: tetto 1,2x il corpo, ingresso 0,45x. Vale anche per gamba come l\'estensione, ma il femorale regge un po\' meno del quadricipite: un gradino sotto.',
   },
   gambe_stabilizzatore: {
-    multiplo: 2.2, ingressoMultiplo: 1.0, fonte: 'tuo',
+    multiplo: 2.2, ingressoMultiplo: 0.85, fonte: 'tuo',
     nota: 'Sled press calf raise e single leg press: stessa zona del leg press perche\' il carico e\' grosso e la macchina scarica. Tetto e ingresso come il leg press. Sul single leg press valgono i kg per gamba.',
   },
   polso: {
-    multiplo: 0.4, ingressoMultiplo: 0.15, fonte: 'stima',
+    multiplo: 0.4, ingressoMultiplo: 0.13, fonte: 'stima',
     nota: 'Wrist curl: tetto 0,4x il corpo, ingresso 0,15x. Il polso e\' un insieme di muscoli piccoli dell\'avambraccio e il movimento e\' corto, quindi il carico resta basso anche se ci metti i manubri. 30 kg su corpo 75 sono gia\' tanto per il polso. Nota: il tetto di realta\' taglia questo a 0,5x, quindi il numero effettivo e\' 0,4x.',
   },
   polpacci: {
-    multiplo: 1.0, ingressoMultiplo: 0.4, fonte: 'stima',
+    multiplo: 1.0, ingressoMultiplo: 0.34, fonte: 'stima',
     nota: 'Calf raise e sled press calf raise: tetto 1,0x il corpo, ingresso 0,4x. I polpacci (gemelli e soleo) sono muscoli piccoli come il polso, ma il carico e\' piu\' grosso perche\' ci metti i dischi della pressa sotto i piedi. 75 kg su corpo 75 sono gia\' il tetto per i polpacci. Ste (08/10/2026): il classificatore gli dava il tetto del leg press (2,2x = 165 kg) perche\' leggeva "sled press" e ignorava "calf raise", ma 165 kg per un calf raise non esistono in nessuna palestra.',
   },
   // NOTA: spalle_trapezio sta fra le tirate perche\' lo scrollamento del trapezio e\' una

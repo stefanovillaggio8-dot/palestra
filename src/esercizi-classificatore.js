@@ -59,26 +59,30 @@ const MOVIMENTI = [
       'tirata verticale', 'lat pulldown', 'tirata alta'],
   },
   {
+    // LO SHRUG. Scala propria, collegata qui l'8/10/2026.
+    //
+    // I valori per questo movimento ESISTEVANO gia' in valori.js ma il classificatore
+    // non produceva mai questo id, quindi erano codice morto: lo shrug finiva dentro
+    // "tirata_orizzontale" e prendeva la scala del REMO (ingresso 0,9x = 59 kg su
+    // corpo 66). Ste: "dumbbell shrug 47,5 kg x 8 per braccio e non sono manco
+    // bronzo?". 47,5 per braccio sono 95 kg di scrollamento, e l'app gli diceva che
+    // non aveva ancora sbloccato il primo livello.
+    //
+    // Uno shrug NON e' un remo: stai in piedi, le braccia pendono e tiri solo i
+    // trapezi. Il carico che ci metti e' grosso (manubri) ma il movimento non e' una
+    // tirata orizzontale col busto che parte da braccia lunghe.
+    //
+    // "shrug" e "scrollata" escono quindi da tirata_orizzontale e vengono qui. La
+    // correzione di Ste del 06/10/2026 ("45 kg per braccio non sono un isolamento")
+    // resta vera: per questo il livello e' "composto" e non "isolamento", altrimenti
+    // il tetto di realta' lo taglierebbe a 0,85x come tutti gli isolamenti.
+    id: 'spalle_trapezio', livello: 'composto', gruppo: 'dorso',
+    parole: ['shrug', 'scrollata', 'scrollate', 'shrug con bilanciere', 'scrollamento'],
+  },
+  {
     id: 'tirata_orizzontale', livello: 'composto', gruppo: 'dorso',
     parole: ['row', 'rematore', 'rowing', 'tiremento', 'tiro', 'horizontal row',
-      'renegade row', 't bar row', 't-bar',
-      // Ste (06/10/2026): "il classificatore sbaglia ancora il Chest Supported
-      // Dumbbell Shrug: lo legge come isolamento sulle spalle, e invece e' una
-      // tirata del trapezio con pesi sui due bracci".
-      //
-      // Aveva ragione, e il classificatore si contraddiceva: le spalle le stava
-      // dicendo "isolamento", mentre muscoli-parti.js gia' gli dava "parte alta
-      // del dorso (trapezio)". Due pezzi dell'app che sullo stesso esercizio
-      // dicevano cose diverse.
-      //
-      // Perche' finiva fra le tirate e non fra gli isolamenti: 45 kg per braccio
-      // non e' un isolamento, e' un movimento pesante. E il conto tornava: la base
-      // del movimento tirato (50 per lato) e' la stessa da cui e' partito il suo
-      // 45 verificato, mentre sull'isolamento delle spalle la base era 13, cioe'
-      // la scala di un'alzata laterale. Con 13 di riferimento i suoi 45 kg di
-      // massimale sembravano un record assurdo, e ogni shrug nuovo che avesse
-      // creato avrebbe preso la scala di una alzata laterale.
-      'shrug', 'scrollata', 'scrollate', 'shrug con bilanciere'],
+      'renegade row', 't bar row', 't-bar'],
   },
   // --- isolamento braccia e gambe ---
   {

@@ -394,10 +394,16 @@ test('R14. lista Rank e pagina esercizio dicono la stessa cosa', async () => {
   const a = senza.record[0];
   const b = con.record[0];
   assert.ok(a && b, 'devono esserci record in entrambi i casi');
-  // Il Rank e' cambiato il 08/10/2026 col motore nuovo: la chest press 35 kg x 8
-  // su corpo 66 sta al 20% della scala (ingresso 29,7, tetto 66) e quindi dà
-  // SILVER, non GOLD. Prima veniva dal massimale stimato e dava GOLD.
-  assert.equal(b.rankId, 'silver', 'col peso la chest press 35x8 e\' silver');
+  // Il Rank e' cambiato due volte l'08/10/2026: prima col motore nuovo (la chest
+  // press 35 kg x 8 su corpo 66 dava SILVER), e poi quando Ste ha chiesto gli
+  // ingressi piu' bassi del 15% ("come faccio a non essere manco bronzo?"), per cui
+  // la stessa prestazione e' salita a GOLD.
+  //
+  // Il NOME non e' il punto di questo test: il punto e' che la lista dei Rank e la
+  // pagina dell'esercizio dicano la STESSA cosa (riga sotto). Scrivere qui il
+  // numero di oggi serve solo a documentarlo; se un domani gli ingressi si
+  // muovono ancora, il test da' un rosso che non vuol dire che il bug e' tornato.
+  assert.equal(b.rankId, 'gold', `col peso la chest press 35x8 e' gold (ingressi abbassati del 15%), trovato ${b.rankId}`);
   // il punto del test, che e' quello vero: senza il peso la scala e\' un\'altra, e
   // quindi i due non possono coincidere. E' il motivo per cui il peso va passato
   // ovunque: due schermate non possono dare due Rank diversi sullo stesso record.

@@ -135,8 +135,21 @@ test('3. IL TESTE CHE BLOCCA IL BUG: cambio il peso nel database, il numero camb
   // del profilo vecchio ricostruita a mano: altrimenti questo test misurerebbe due
   // sistemi diversi e passerebbe anche quando l'app e' rotta.
   assert.ok(prima.record.rank && dopo.record.rank, 'a 40 kg per braccio c\'e\' un Rank a entrambi i pesi');
-  assert.notEqual(dopo.record.rank.id, prima.record.rank.id,
-    'pesando di piu\' senza aver fatto una serie in piu\', il Rank non puo\' restare identico');
+  // IL RANK NON PUO' RESTARE IDENTICO. Ma "identico" non vuol dire solo "stessa
+  // fascia": vuol dire stessa posizione. Dopo aver abbassato gli ingressi del 15%
+  // (08/10/2026) i due pesi stanno nella STESSA fascia ma a punti molto diversi
+  // (a 66 kg sei GOLD 69 LP, a 72 kg sei GOLD 23 LP): il peso ti ha fatto perdere
+  // 46 LP senza che tu abbia sollevato un grammo. Prima il test guardava solo
+  // l'id della fascia, quindi passava per un motivo sbagliato: se la fascia non
+  // cambiava ma i LP no, il test non se ne accorgeva.
+  const posizione = (r) => `${r.rank.id}:${r.lp}`;
+  assert.notEqual(posizione(dopo.record), posizione(prima.record),
+    `pesando di piu\' senza aver fatto una serie in piu\', la posizione non puo\' restare `
+    + `identica: ${posizione(prima.record)} -> ${posizione(dopo.record)}`);
+  assert.ok(dopo.record.lp < prima.record.lp || dopo.record.rank.id !== prima.record.rank.id,
+    'e deve andare indietro: o scende di fascia, o perdi LP');
+  assert.ok(dopo.record.lp < prima.record.lp,
+    `nel caso di Ste i LP scendono davvero: ${prima.record.lp} -> ${dopo.record.lp}`);
   // la prestazione e' la stessa (40 kg x 8 non cambiano), quindi a cambiare e' solo
   // la scala: e questo e' il punto fragile dell'app
   assert.equal(dopo.record.score, prima.record.score,

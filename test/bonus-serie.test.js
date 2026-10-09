@@ -181,3 +181,41 @@ test('S7. quando il volume non basta, resta nel rank e lo dice', () => {
   // devono essere piu' alti che con una sola
   assert.ok(quattro.lp >= uno.lp, 'le serie non ti lasciano indietro');
 });
+
+test('S9. la BARRA si muove col PESO, non col numero di serie', () => {
+  // Ste (08/10/2026), dopo aver scelto fra le tre opzioni: "barra = lavoro vero".
+  //
+  // Il caso che ha fatto decidere. Chest press 35 kg x 8, corpo 66:
+  //
+  //   1x8 -> GOLD  1 LP   barra  1%
+  //   2x8 -> GOLD 48 LP   barra 49%     <- il difetto
+  //   3x8 -> GOLD 77 LP   barra 77%     <- il difetto
+  //
+  // Due serie IDENTICHE movevano la barra quanto una serie piu' pesante. Non e'
+  // che sia sbagliato (tre serie sono piu' lavoro), ma e' una cosa che si rompeva
+  // appena si toccava qualcos'altro: quando i Rank si spostavano, la terza serie
+  // cambiava fascia e la barra saliva "onestamente", quindi il test di sopra
+  // passava senza accorgersi di niente. Con gli ingressi abbassati del 15% la
+  // fascia non cambia piu', e il gonfiaggio e' comparso.
+  //
+  // La regola: la barra mostra la serie MIGLIORE DA SOLA. Il volume si vede solo
+  // negli LP, che sono l'unica cosa che il volume puo' spingere.
+  const una = conSerie([s(1)]);
+  const tre = conSerie([s(1), s(2), s(3)]);
+  assert.equal(tre.progresso, una.progresso,
+    `tre serie uguali non devono muovere la barra: ${una.progresso} -> ${tre.progresso}`);
+  // e il volume si vede, pero' negli LP: non e' sparito, e' spostato
+  assert.ok(tre.lp > una.lp,
+    `il volume deve spingere gli LP: ${una.lp} -> ${tre.lp}`);
+  // il numero col volume resta disponibile per chi volesse mostrarlo, ma non e'
+  // la barra: e' il posto giusto per "con 3 serie saresti al 77%"
+  assert.equal(tre.progressoConVolume >= una.progressoConVolume, true,
+    'il numero col volume e\' ancora calcolato, e non e\' minore');
+
+  // IL CONTROESEMPIO: la barra DEVE salire quando sale il peso. Se non salisse
+  // nemmeno li\', la barra non starebbe piu\' dicendo niente.
+  const leggero = conSerie([{ ...s(1), peso: 35 }]);
+  const pesante = conSerie([{ ...s(1), peso: 55 }]);
+  assert.ok(pesante.progresso > leggero.progresso,
+    `la barra si muove col peso: ${leggero.progresso} -> ${pesante.progresso}`);
+});
