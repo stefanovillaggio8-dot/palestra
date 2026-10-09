@@ -3092,12 +3092,39 @@ function etichettaLp(record) {
   return `${record.lp} LP / 100`;
 }
 
+/**
+ * Quanto e' piena la barra degli LP: gli LP stessi, divisi per 100.
+ *
+ * Ste (08/10/2026): "le sbarre del lp sono buggate". Aveva ragione, e il motivo e'
+ * che la barra veniva riempita con `record.progresso`, che dal giorno in cui la
+ * barra e' diventata "solo lavoro vero" NON e' piu' la posizione nella fascia.
+ *
+ * Sono due numeri diversi, e nella stessa riga non possono non coincidere:
+ *
+ *   1x8  -> "63 LP / 100" ma barra al 63%   (coincide, per caso)
+ *   2x8  -> "25 LP / 100" ma barra al 63%   (non coincide: bug)
+ *
+ * Quindi la barra degli LP si riempie con gli LP. Il numero che dice "quanto mi
+ * manca per il Rank dopo" e' un'altra barra, e usa `progresso`: sono due domande
+ * diverse e non devono stare sulla stessa linea.
+ */
+function frazioneLp(record) {
+  if (!record || !record.rankId) return 0;
+  if (record.inTop) return 1; // sul Rank piu' alto la barra e' piena
+  return Math.max(0, Math.min(1, (Number(record.lp) || 0) / 100));
+}
+
 function barraProgresso(frazione, etichetta) {
   const f = Math.max(0, Math.min(1, Number(frazione) || 0));
   return el('div', { class: 'barra-progresso' }, [
     el('div', { class: 'barra-piena', style: `width:${Math.round(f * 1000) / 10}%` }),
     etichetta ? el('span', { class: 'barra-etichetta', testo: etichetta }) : null,
   ]);
+}
+
+/** La barra degli LP: riempita dagli LP, che e' quello che l'etichetta promette. */
+function barraLp(record) {
+  return barraProgresso(frazioneLp(record), etichettaLp(record));
 }
 
 function avatarNodo(profilo, { grande = false, dimensione = 46 } = {}) {
@@ -3201,10 +3228,28 @@ function cardRank(record, { compatta = false } = {}) {
   }
 
   const distanza = distanzaAllaSoglia(r.punteggio, (r.prossimoObiettivo || {}).punteggio);
+  // IL NUMERO DA MOSTRARE: I KG CHE TI MANCANO, NON IL PUNTEGGIO.
+  //
+  // Ste (08/10/2026) guardando la Smith: "di smith machine io faccio 32kg. i rank
+  // devono aggiornare i pesi". Qui la riga stampava
+  // `prossimoObiettivo.punteggio`, che NON e' un peso: e' il punteggio interno della
+  // prestazione, che contiene anche le ripetizioni pesate e il correttivo di
+  // meccanica. Sul suo caso diceva "36,3 kg per GOLD" mentre i kg giusti, calcolati
+  // dal motore, erano 34,9. Due numeri diversi per la stessa domanda, e quello
+  // sbagliato era in grassetto.
+  //
+  // Il numero da usare e' `distanza.kgNecessari`: e' il carico che, alle stesse
+  // ripetizioni di oggi, porta alla soglia dopo. Se non c'e' (perche' il motore non
+  // sa convertire, o perche' sei in cima) si dice cosa si sa, senza inventare un peso.
+  const prossimoNome = (r.prossimoObiettivo || {}).etichetta || (r.prossimoRank ? r.prossimoRank.nome : null);
+  const kgPerIlProssimo = r.distanza && r.distanza.kgNecessari;
   const verso = r.inTop
     ? `Sei nel rank piu' alto: non c'e' un passo dopo, e ogni LP e' un punto di percentuale sopra la soglia dell'OLYMPIAN (+${r.lp}% adesso).`
-    : `${formattaNumero((r.prossimoObiettivo || {}).punteggio)} ${profilo.unita} per ${(r.prossimoObiettivo || {}).etichetta || r.prossimoRank.nome}`
-      + (distanza && distanza.inGioco ? ` (ti manca lo ${formattaNumero(distanza.percentuale)}%)` : '');
+    : (kgPerIlProssimo
+      ? `${formattaNumero(kgPerIlProssimo)} ${profilo.unita} per ${prossimoNome}`
+        + (distanza && distanza.inGioco ? `, con le ripetizioni che hai` : '')
+      : `${prossimoNome} o ${(r.prossimoObiettivo || {}).etichetta ? 'prossimo livello' : 'prossimo rank'}`
+        + (distanza && distanza.inGioco ? ` (ti manca lo ${formattaNumero(distanza.percentuale)}%)` : ''));
   return el('div', { class: 'card-rank card-' + r.rankId + (compatta ? ' compatta' : '') }, [
     el('div', { class: 'card-rank-alto' }, [
       el('div', {}, [
@@ -3225,7 +3270,9 @@ function cardRank(record, { compatta = false } = {}) {
       el('span', { class: 'nota nota-piccola', testo: giudizioPerformance(r.profilo, r.punteggio).frase }),
     ]),
 el('div', { class: 'card-rank-basso' }, [
-      barraProgresso(r.progresso, etichettaLp(r)),
+      // la barra degli LP si riempie con gli LP (vedi frazioneLp): il numero che dice
+    // "quanto mi manca per il Rank dopo" e' un'altra barra e sta piu' in basso
+    barraLp(r),
       el('span', { class: 'nota', testo: verso }),
       r.spiegaBonus ? el('span', { class: 'nota nota-piccola', testo: r.spiegaBonus }) : null,
       el('span', { class: 'nota nota-piccola', testo: AVVERTIMENTO_STIMA_SOGLIA }),
@@ -3793,13 +3840,17 @@ async function vistaEsercizio(zona, esercizioId) {
       badgeRank(record.rankId, record.lp, record.divisione),
     ]),
     el('div', { class: 'card-rank-basso' }, [
-      barraProgresso(record.progresso, etichettaLp(record)),
+      barraLp(record),
       el('span', {
         class: 'nota',
         testo: record.inTop
           ? `Sei sul rank piu' alto: non c'e' un passo dopo, e ogni LP e' un punto di percentuale sopra la soglia dell'OLYMPIAN (+${record.lp}% adesso).`
-          : `${formattaNumero((record.prossimoObiettivo || {}).punteggio)} ${profilo.unita} per ${(record.prossimoObiettivo || {}).etichetta || record.prossimoRank.nome}.`
-            + (distanzaObiettivo(record) ? ` (ti manca lo ${formattaNumero(distanzaObiettivo(record).percentuale)}%)` : ''),
+          // gli stessi KG GIUSTI della card (vedi la spiegazione li' sopra): il
+          // punteggio interno non e' un peso e non va mostrato come se lo fosse
+          : (record.distanza && record.distanza.kgNecessari
+            ? `${formattaNumero(record.distanza.kgNecessari)} ${profilo.unita} per ${(record.prossimoObiettivo || {}).etichetta || (record.prossimoRank ? record.prossimoRank.nome : 'il prossimo rank')}, con le ripetizioni che hai`
+            : `Prossimo obiettivo: ${(record.prossimoObiettivo || {}).etichetta || (record.prossimoRank ? record.prossimoRank.nome : 'il prossimo rank')}`
+              + (distanzaObiettivo(record) ? ` (ti manca lo ${formattaNumero(distanzaObiettivo(record).percentuale)}%)` : '')),
       }),
       el('span', { class: 'nota nota-piccola', testo: AVVERTIMENTO_STIMA_SOGLIA }),
       record.spiegaBonus ? el('span', { class: 'nota nota-piccola', testo: record.spiegaBonus }) : null,

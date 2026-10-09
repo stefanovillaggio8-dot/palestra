@@ -124,18 +124,24 @@ export function distanzaAllaSoglia(score, soglie, indice, { carico, meccanica = 
     const LIMITE = 12;
     const ripInPiu = ripTotali ? Math.max(0, ripTotali - Math.floor(ripetizioniFatte)) : null;
     const ripUtili = ripInPiu !== null && ripInPiu <= LIMITE ? ripInPiu : null;
+    // IL NUMERO "impossibile" NON SI MOSTRA, e non si tiene da parte per un uso
+    // futuro: si butta via. Il suo posto nella frase e' l'altro membro.
+    //
+    // Prima la schermata aggiungeva il suo "% manca" e la frase diceva "circa 34,9
+    // kg in piu'", quindi il 52 compariva solo se qualcuno leggeva il campo. Un
+    // numero che puo' essere calcolato ma non puo' essere fatto non serve a niente,
+    // e tenerselo nel record e' l'invito a stamparlo per sbaglio domani.
     return {
       sottoPrimaSoglia: true,
       mancaScore: Math.round(manca * 100) / 100,
       ripetizioniNecessarie: ripTotali,
       ripetizioniInPiu: ripUtili,
-      ripetizioniImpossibili: ripInPiu !== null && ripUtili === null ? ripInPiu : null,
       kgNecessari,
       frase: 'per sbloccare il primo livello: '
         + (ripUtili === null
-          ? (kgNecessari ? `serve piu' carico, circa ${kgNecessari} kg` : 'serve piu\' carico')
-          : (ripUtili === 1 ? '1 ripetizione in piu\'' : `${ripUtili} ripetizioni in piu'`))
-        + (ripUtili !== null && kgNecessari ? `, oppure ${kgNecessari} kg` : ''),
+          ? (kgNecessari ? `circa ${kgNecessari} kg, con le ripetizioni che hai` : 'serve piu\' carico')
+          : (ripUtili === 1 ? '1 ripetizione in piu\'' : `${ripUtili} ripetizioni in piu'`)
+            + (kgNecessari ? `, oppure circa ${kgNecessari} kg` : '')),
     };
   }
   if (indice < 0 || indice >= soglie.length - 1) return null;
@@ -170,7 +176,7 @@ export function distanzaAllaSoglia(score, soglie, indice, { carico, meccanica = 
     mancaScore: Math.round(manca * 100) / 100,
     ripetizioniNecessarie: ripTotali,
     ripetizioniInPiu: ripUtili,
-    ripetizioniImpossibili: ripInPiu !== null && ripUtili === null ? ripInPiu : null,
+    // idem: il numero impossibile non viene tenuto, per lo stesso motivo di sopra
     kgNecessari,
     frase: ripUtili === null
       // oltre il limite di ripetizioni si dice solo il peso, e senza la "o" in
@@ -285,7 +291,24 @@ function lpDentro(valore, soglie, indice) {
   }
   const sotto = soglie[indice];
   const spessore = soglie[indice + 1] - sotto || 1;
-  return Math.max(0, Math.min(99, Math.floor(((valore - sotto) / spessore) * 100)));
+  // IL NUMERO NON PUO' SCENDERE SOTTO ZERO E IL MASSIMO E' 99 (100 e' il Rank dopo).
+  //
+  // IL DIFETTO CHE HO CORRETTO QUI (08/10/2026), e che Ste ha visto: con 18 kg al
+  // preacher, 1x8 dava 63 LP ma 2x8 dava 25 LP. Gli LP SCENDEVANO con il volume.
+  //
+  // Il motivo: se il volume passa la soglia SOPRA (es. 21,42 su una soglia di 19,9)
+  // ma la fascia viene trattenuta indietro dal blocco del 92%, il calcolo
+  // ((21,42 - sotto) / spessore) * 100 dava 156, che il min(99) schiacciava a 99. Ma
+  // non finiva a 99: finiva a un numero che dipende da quanto il volume aveva
+  // superato la soglia, e che poteva essere PIU' BASSO dei LP che avevi senza
+  // volume. Piu' serie, meno LP: il contrario di quello che il volume deve fare.
+  //
+  // Il volume spinge gli LP AVANTI e non puo' mai tirarli indietro. Se il volume
+  // vuole uscire dalla fascia, gli LP vanno a 99 (pieno) e la divisione a III: e
+  // il messaggio che ti resta da leggere e' "il Rank dopo non lo compra il volume",
+  // che e' esattamente quello che il blocco del 92% sta già dicendo.
+  const grezzo = Math.floor(((valore - sotto) / spessore) * 100);
+  return Math.max(0, Math.min(99, grezzo));
 }
 
 /** La percentuale di riempimento della fascia, fermata dentro la fascia data. */
