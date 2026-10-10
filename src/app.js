@@ -26,6 +26,7 @@ import { nuovoId, adesso, TABELLE, riallineaEsercizi } from './sincronizzazione.
 import { statoAccount, ricompenseAllenamento, gruppiDaSerie } from './gioco.js';
 import { calcolaAvatar, CLASSI, classeConsigliata, eCardio } from './avatar-rpg.js';
 import { isoGiorno } from './streak.js';
+import { suona, sbloccaAudio, audioSpento, impostaAudioSpento } from './audio.js';
 import { recordEsercizio, recordAccount, classificaEsercizio, storicoMiglioramenti, giudizioPerformance, distanzaAllaSoglia } from './rank.js';
 import { confrontoGiorno, confrontiMensili, GIORNI_UN_MESE } from './confronto-mensile.js';
 import { profiloEsercizio, profiloPerPesoCorporeo, RANK, ETICHETTE_MISURA, descriviPunteggio, descrizioneLivello, livelloEsercizio, impostaLivelliImparati, livelliImparati, rapportoDifficolta, MOLTIPLICATORI_SOGLIA } from './rank-config.js';
@@ -225,6 +226,26 @@ function ascoltaScorrimento() {
 async function avvia() {
   const radice = document.getElementById('app');
   installaSpiaErrori();
+
+  // SBLOCA L'AUDIO AL PRIMO TOCCO.
+  //
+  // Safari e Chrome sui telefoni non fanno suonare niente se l'audio non è stato
+  // aperto da un gesto tuo. Va fatto qui, sul PRIMO tocco su qualunque cosa, e non
+  // al primo avvio dell'app: all'avvio non c'è ancora stato nessun gesto, e
+  // sbloccarlo lì non avrebbe effetto. Dopo il primo tocco i suoni escono.
+  //
+  // Non costa niente e non blocca niente: se il browser non supporta l'audio, la
+  // funzione torna senza fare niente e l'app funziona lo stesso, muta.
+  const sbloccaAlPrimoTocco = () => {
+    sbloccaAudio();
+    window.removeEventListener('pointerdown', sbloccaAlPrimoTocco);
+    window.removeEventListener('keydown', sbloccaAlPrimoTocco);
+  };
+  window.addEventListener('pointerdown', sbloccaAlPrimoTocco);
+  // la tastiera conta come gesto: senza, un utente che usa l'app dal computer non
+  // sentirebbe mai niente
+  window.addEventListener('keydown', sbloccaAlPrimoTocco);
+
   svuota(radice);
   radice.appendChild(el('div', { class: 'caricamento', testo: 'Carico i tuoi dati...' }));
 
@@ -1442,6 +1463,13 @@ function rigaSerie(serie, numero, confronto, seduta, pesoRigaSorella = null) {
       const fatta = !eFatta(serie);
       segnaAspettoFatto(riga, spunta, fatta, etichettaFatta);
       if (fatta) pulsa();
+      // IL SUONO DELLA SERIA FATTA.
+      //
+      // È il suono più importante dell'app: in palestra le mani sono occupate e gli
+      // occhi guardano il bilanciere, non lo schermo. Un suono breve e secco dice
+      // "registrato" senza dover guardare. Toglierla ha un suono diverso, più basso:
+      // non è un errore, ma è un'altra azione.
+      suona(fatta ? 'serie' : 'togli');
       // L'ACCENDERSI DELLA SERIE.
       // È l'unica animazione che parte da una tua azione e dice cosa è successo:
       // hai premuto la spunta e la riga si illumina per mezzo secondo. Sparisce
@@ -1822,6 +1850,16 @@ async function finisceAllenamento(s) {
   // e non ti diceva SE avevi fatto un primato o SE eri salito di fascia. Il Rank era
   // già calcolato e già salvato, nessuno lo mostrava.
   annunciaFineSeduta(rankPrima, mappaRank(V.esercizi, serieMie(), seduteMie()));
+  // IL SUONO DI FINE ALLENAMENTO.
+  //
+  // Ste (10/10/2026) ha chiarito che per l'app Palestra l'audio è permesso. Qui è
+  // il posto giusto: è l'unico momento della seduta in cui il telefono è in mano e
+  // l'orecchio è libero, e la notizia che conta è "hai finito".
+  //
+  // Suona DOPO l'annuncio, non prima: così non copre la parola. E sta qui, non dentro
+  // `annunciaFineSeduta`: lì suonerebbe anche quando l'annuncio non c'è, cioè quando
+  // non è successo niente di notevole.
+  suona('sessione');
   vai('/storico/' + s.id);
   // adesso la scheda: quello che hai fatto diventa la scheda per la prossima volta
   await proponiAggiornamentoScheda(s.id);
@@ -2819,10 +2857,65 @@ function aggiorna() {
 
 /* ===================== vista: impostazioni ===================== */
 
+/**
+ * I SUONI.
+ *
+ * Ste (10/10/2026): per l'app Palestra l'audio è permesso, e insieme alle animazioni
+ * mi ha chiesto di migliorare l'app. Così ora l'app suona quando spunti una serie e
+ * quando finisci l'allenamento.
+ *
+ * Però l'interruttore c'è, e per una ragione che non è "per far contenta la regola":
+ * sei in una palestra, e ogni tanto qualcuno ha la musica alta. Se non lo puoi
+ * spegnere, la prima cosa che fai è togliere l'app dalla home.
+ *
+ * Il suono che descrive il bottone è lo stesso suono della serie: così capisci cosa
+ * stai spegnendo senza doverlo indovinare.
+ */
+function bloccoSuoni() {
+  const box = el('section', { class: 'blocco' });
+  box.appendChild(el('h2', { testo: 'Suoni' }));
+  box.appendChild(el('p', {
+    class: 'nota',
+    testo: 'Un suono breve quando spunti una serie e quando finisci l\'allenamento. '
+      + 'Sono generati dal telefono, quindi funzionano anche senza rete.',
+  }));
+
+  const riga = el('div', { class: 'riga-pulsanti' });
+  const disegna = () => {
+    svuota(riga);
+    const spento = audioSpento();
+    riga.appendChild(bottone(spento ? 'Riaccendi i suoni' : 'Spegni i suoni', {
+      onClick: () => {
+        const nuovo = !audioSpento();
+        impostaAudioSpento(nuovo);
+        db.leggiMeta('audio_spento', false).then(() => db.scriviMeta('audio_spento', nuovo));
+        disegna();
+        // se li riaccendi, li senti subito: senza, non sai se funzionano
+        if (!nuovo) suona('serie');
+      },
+      classe: 'fantasma' + (audioSpento() ? '' : ' attivo'),
+    }));
+    if (!audioSpento()) {
+      riga.appendChild(el('span', { class: 'nota nota-piccola', testo: 'Suonano' }));
+    }
+  };
+
+  // la scelta va ricordata, non rimessa su ogni apertura
+  db.leggiMeta('audio_spento', false).then((v) => {
+    impostaAudioSpento(!!v);
+    disegna();
+  });
+  riga.appendChild(el('span', { class: 'nota nota-piccola', testo: 'Sto caricando...' }));
+  box.appendChild(riga);
+  return box;
+}
+
 function vistaImpostazioni(zona) {
   zona.appendChild(el('h1', { testo: 'Impostazioni' }));
 
   zona.appendChild(bloccoGiorniAllenamento());
+
+  zona.appendChild(bloccoSuoni());
 
   const statoBox = el('section', { class: 'blocco' });
   statoBox.appendChild(el('h2', { testo: 'Salvataggio e sincronizzazione' }));
