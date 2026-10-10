@@ -599,14 +599,62 @@ export function livelloFuoco(giorni) {
 export function aspettoStreak(streak) {
   const giorni = (streak && streak.giorni) || 0;
   const acceso = !!(streak && streak.attiva);
+  // IL TERZO STATO: "oggi ti tocca e non l'hai ancora fatto".
+  //
+  // Ste (10/10/2026): "la streak deve spuntare spenta nel giorno in cui dovrei
+  // allenarmi dove non mi sono ancora allenato ma deve spuntare che devo andarci per
+  // farla aumentare e farla accendere, non che spunta grigia come se l'avessi
+  // persa".
+  //
+  // Aveva ragione, e il difetto era sottile: senza giorni scelti la streak è viva
+  // solo se hai allenato oggi o ieri, quindi il lunedì mattina, non avendo ancora
+  // allenato, la card era grigia con "??" dentro. Ma NON avevi perso niente: era
+  // lunedì mattina e la giornata non era ancora finita. La card diceva una cosa
+  // falsa.
+  //
+  // Ora ci sono tre stati e non due:
+  //   - ACCESA: hai allenato oggi, o ieri se oggi è giorno di riposo. Tutto bene.
+  //   - DA ACCENDERE: oggi è uno dei tuoi giorni e non l'hai ancora fatto. Non è
+  //     spenta: è in attesa, e va fatta OGGI per non perderla.
+  //   - SPENTA: hai saltato un giorno che ti toccava. Quella l'hai persa davvero.
+  const toccaOggi = !fattoOggi(streak) && previstoOggi(streak);
+  const daAccendere = !acceso && toccaOggi;
   const livello = livelloFuoco(giorni);
   return {
     acceso,
+    // `stato` è la parola che il disegno usa: 'acceso', 'da accendere', 'spenta'
+    stato: acceso ? 'acceso' : (daAccendere ? 'da accendere' : 'spenta'),
+    daAccendere,
     livello: livello.chiave,
     nome: livello.nome,
-    colore: acceso ? livello.colore : LIVELLI_FUOCO[0].colore,
+    // IL COLORE DI UN GIORNO CHE ASPETTA NON È QUELLO DI UN GIORNO PERSO.
+    // Ambra, non grigio: dice "manca un passo", non "hai fallito".
+    colore: acceso ? livello.colore : (daAccendere ? '#f0a02a' : LIVELLI_FUOCO[0].colore),
     simbolo: 'fuoco',
     giorni,
-    etichetta: acceso ? `${giorni} ${giorni === 1 ? 'giorno' : 'giorni'}` : 'spenta',
+    etichetta: acceso
+      ? `${giorni} ${giorni === 1 ? 'giorno' : 'giorni'}`
+      : (daAccendere ? 'da accendere oggi' : 'spenta'),
   };
+}
+
+/** Il numero di giorni già allenati oggi. */
+function fattoOggi(streak) {
+  return (streak && streak.fattoOggi) === true;
+}
+
+/**
+ * Oggi è uno dei giorni che hai scelto?
+ *
+ * Non usa `prossimoGiorno`, che guarda il giorno DOPO l'ultimo allenamento: serve
+ * per "quando mi tocca", non per "oggi mi tocca". Qui la domanda è se la giornata
+ * di oggi è prevista, e la risposta la dà la lista dei tuoi giorni con il numero del
+ * giorno della settimana di oggi.
+ */
+function previstoOggi(streak) {
+  const previsti = streak && streak.giorniPrevisti;
+  if (!Array.isArray(previsti) || !previsti.length) return false;
+  const oggi = isoGiorno(new Date());
+  const dow = new Date(oggi + 'T12:00:00').getDay();
+  return previsti.indexOf(dow) >= 0;
 }

@@ -151,10 +151,36 @@ export function chiediTesto(titolo, messaggio, { segnaposto = '', testoOk = 'Va 
 }
 
 export function avviso(testo, { tipo = 'info', durata = 4200 } = {}) {
+  // L'AVVISO ENTRA E SI RITIRA.
+  //
+  // Ste (10/10/2026): "metti più animazioni, sembra non essere cambiato nulla".
+  // Un avviso che compare di colpo e sparisce di colpo si legge come un errore che
+  // non e' più li'. Entra dal basso (sale di dieci pixel in 260 ms) e quando
+  // sparisce sale di qualche pixel e sbiadisce: così sai che era un messaggio e
+  // che se ne sta andando, non che e' comparso un altro numero.
   const n = el('div', { class: 'avviso avviso-' + tipo, testo });
   document.body.appendChild(n);
   setTimeout(() => { n.classList.add('via'); setTimeout(() => n.remove(), 300); }, durata);
   return n;
+}
+
+/**
+ * Fa lampeggiare un numero che è appena cambiato.
+ *
+ * Serve per una cosa sola: quando guardi un numero dopo aver allenato, vuoi sapere
+ * se è quello nuovo o quello di prima. Il colore da solo non basta a chi non nota
+ * le sfumature, e un movimento piccolo lo dice a tutti. Non ruota e non scala da
+ * solo: aspetta che sia lui a cambiare.
+ */
+export function numeroCambiato(nodo) {
+  if (!nodo) return;
+  nodo.classList.remove('numero-cambiato');
+  // forza il ricalcolo: senza, togliere e rimettere la classe nello stesso momento
+  // non riparte e la seconda volta non si vede
+  if (typeof globalThis.getComputedStyle === 'function') {
+    try { globalThis.getComputedStyle(nodo); } catch { /* il DOM finito non lo sa fare */ }
+  }
+  nodo.classList.add('numero-cambiato');
 }
 
 /**

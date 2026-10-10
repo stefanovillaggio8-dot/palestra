@@ -718,7 +718,19 @@ body.scorso .banda-cronometro .bot.grande {
   max-height: 86vh; overflow: auto;
 }
 .dialogo-largo { max-width: 620px; }
-.dialogo-azioni { display: flex; gap: 9px; flex-wrap: wrap; margin-top: 16px; justify-content: flex-end; }
+/* I PULSANTI DEL DIALOGO RESTANO IN FONDO, SEMPRE.
+   Il dialogo è `max-height: 86vh` con scorrimento: se i cambiamenti sono molti
+   (una seduta lunga ne può avere dieci), i due pulsanti finiscono sotto il bordo e
+   non li vedi senza scorrere. E quello che vuoi premere dopo aver letto è proprio
+   "Aggiorna". Stanno appiccicati al fondo, con uno sfondo che copre lo scorrimento
+   così il testo non esce loro dietro. */
+.dialogo-azioni {
+  display: flex; gap: 9px; flex-wrap: wrap; margin-top: 16px;
+  justify-content: flex-end;
+  position: sticky; bottom: -20px;
+  padding: 12px 0 4px;
+  background: linear-gradient(to top, var(--card) 72%, transparent);
+}
 
 /* --- tutorial amministratore dentro il dialogo "crea esercizio" --- */
 .tutorial {
@@ -795,15 +807,46 @@ body.scorso .banda-cronometro .bot.grande {
 
 .avviso {
   position: fixed; left: 50%; transform: translateX(-50%);
-  bottom: 90px; z-index: 120; max-width: 92vw;
+  /* L'AVVISO STA SOTTO AI DIALOGHI, non sopra.
+   *
+   * Ste (10/10/2026): "quando finisco una seduta e mi spuntano i miglioramenti non
+   * devono spuntare davanti il tasto 'lascia la scheda così' e 'aggiorna'".
+   *
+   * Qui z-index era 120 e il dialogo è 100: l'annuncio dei Rank saliti si posizionava
+   * SOPRA i due pulsanti, e per nove secondi (la durata dell'avviso) non potevi
+   * premere nessuno dei due. Il dialogo è modale: è lui che comanda, e un avviso
+   * sopra dice "non c'è niente da fare qui", che è esattamente il contrario.
+   */
+  bottom: 90px; z-index: 90; max-width: 92vw;
   background: var(--card-2); border: 1px solid var(--bordo);
   border-radius: 12px; padding: 13px 17px; font-weight: 600;
   box-shadow: 0 10px 40px rgba(0, 0, 0, .6);
 }
+/* SE C'È UN DIALOGO APERTO, L'AVVISO SCI IN ALTO.
+   Così non copre i pulsoni in fondo al dialogo, che su un telefono con molti
+   miglioramenti in elenco sono già al limite dello schermo. */
+body:has(.sfondo-dialogo) .avviso {
+  bottom: auto; top: calc(58px + env(safe-area-inset-top));
+}
 .avviso-ok { border-color: #1f5e42; }
 .avviso-errore { border-color: #6b222b; background: #2a1114; }
+/* L'AVVISO ENTRA. Dieci pixel in 260 ms: poco, ma su un telefono che tieni in
+   mano mentre cammini si sente. */
+@keyframes avviso-entra {
+  from { opacity: 0; transform: translateX(-50%) translateY(14px); }
+  to { opacity: 1; transform: translateX(-50%); }
+}
+.avviso { animation: avviso-entra .26s cubic-bezier(.2, .9, .3, 1); }
+/* E SE NE VA: sale e sbiadisce, non sparisce di colpo. */
+@keyframes avviso-esce {
+  from { opacity: 1; transform: translateX(-50%); }
+  to { opacity: 0; transform: translateX(-50%) translateY(10px); }
+}
+.avviso.via { animation: avviso-esce .3s ease-in forwards; }
 .avviso-info { border-color: #24325c; }
-.avviso.via { opacity: 0; transition: opacity .3s; }
+/* La regola `opacity: 0` che stava qui e' stata toglta: combatteva con l'animazione
+   di uscita, che fa gia' salire e sbiadire da sola. Con due regole insieme
+   l'uscita era a meta' e non si vedeva. */
 
 @media (max-width: 430px) {
   .campo-num { width: 68px; font-size: 1.05rem; }
@@ -851,6 +894,38 @@ body.scorso .banda-cronometro .bot.grande {
 .etichetta-streak { font-size: .72rem; letter-spacing: .08em; opacity: .8; }
 .teschio-streak .nota { font-size: .8rem; }
 .teschio-streak.acceso { box-shadow: 0 0 22px -6px var(--fuoco), inset 0 0 24px -18px var(--fuoco); }
+
+/* IL TERZO STATO: "OGGI TI TOCCA".
+ *
+ * Ste (10/10/2026): "la streak deve spuntare spenta nel giorno in cui dovrei
+ * allenarmi dove non mi sono ancora allenato ma deve spuntare che devo andarci per
+ * farla aumentare e farla accendere, non che spunta grigia come se l'avessi persa".
+ *
+ * Prima erano due stati e il caso intermedio finiva nel grigio, che vuol dire
+ * "persa": ma il lunedi' mattina, non avendo ancora allenato, non avevi perso
+ * niente. La giornata non era finita. Era una cosa falsa, e in alto, dove guardi
+ * per prima.
+ *
+ * Adesso l'ambra vuol dire "manca un passo", il grigio vuol dire "hai saltato un
+ * giorno che ti toccava", e il verde vuol dire "fatto".
+ */
+.teschio-streak.da-accendere {
+  box-shadow: 0 0 26px -4px color-mix(in srgb, var(--fuoco) 70%, transparent),
+              inset 0 0 26px -16px var(--fuoco);
+  /* il bordo pulsa piano: dice "questa è viva, ti sta aspettando" */
+  animation: attesa-streak 2.4s ease-in-out infinite;
+}
+.teschio-streak.da-accendere .fuoco { color: var(--fuoco); }
+/* LA FRASE CHE TI DICE COSA FARE. Un numero in ambra, da solo, è un colore. */
+.richiamo-streak {
+  margin-top: 4px; font-size: .7rem; font-weight: 800;
+  color: var(--fuoco); letter-spacing: .02em;
+}
+@keyframes attesa-streak {
+  0%, 100% { box-shadow: 0 0 26px -4px color-mix(in srgb, var(--fuoco) 70%, transparent), inset 0 0 26px -16px var(--fuoco); }
+  50% { box-shadow: 0 0 34px 2px color-mix(in srgb, var(--fuoco) 85%, transparent), inset 0 0 30px -14px var(--fuoco); }
+}
+.teschio-streak.spenta .fuoco { opacity: .45; }
 .teschio-streak.spenta { opacity: .62; filter: grayscale(.65); }
 .teschio-streak .fuoco { font-size: 1.5rem; line-height: 1; filter: drop-shadow(0 0 8px var(--fuoco)); }
 .teschio-streak.spenta .fuoco { filter: grayscale(1) brightness(.6); }
@@ -1234,7 +1309,10 @@ body.scorso .banda-cronometro .bot.grande {
 /* oggi: il bordo oro dentro, si vede anche sopra verde o rosso */
 .cella-calendario.oggi { box-shadow: inset 0 0 0 2px var(--oro); font-weight: 700; }
 /* il giorno premuto: si distingue da quello premuto prima con un bordo esterno */
-.cella-calendario.aperto { outline: 2px solid var(--oro); outline-offset: 1px; }
+.cella-calendario.aperto {
+  outline: 2px solid var(--oro); outline-offset: 1px;
+  animation: cella-pulse .3s cubic-bezier(.2, .9, .3, 1);
+}
 /* giorni fuori dal mese (per allineare le colonne) e giorni futuri */
 .cella-calendario.fuori { visibility: hidden; pointer-events: none; }
 .cella-calendario.futuro { opacity: .5; }
@@ -1271,6 +1349,30 @@ body.scorso .banda-cronometro .bot.grande {
    a leggere la spiegazione per capire la differenza */
 .riga-bonus { gap: 4px 14px; margin-top: -2px; }
 .riga-bonus > * { flex: 0 0 auto; }
+/* I GIORNI CHE HAI SCELTO DI ALLENARE.
+   Ste (10/10/2026): "quando devo scegliere i giorni della settimana in cui ci vado e
+   metto il giorno, fallo spuntare in verde o comunque che si capisca che ho
+   selezionato".
+
+   Il pulsante aveva la classe `attivo` già dal primo giorno, ma NESSUNA regola CSS
+   la guardava: quindi premere "Martedì" e non premere "Martedì" erano identici, e
+   l'unica prova che avevi scelto era il riepilogo in basso ("Alleni in martedì...").
+
+   Ora il giorno scelto è verde pieno, con il bordo spesso e una spunta: si vede
+   anche a colpo d'occhio mentre scegli, senza dover leggere. */
+.bot.giorno-settimana.attivo,
+.riga-pulsanti .fantasma.attivo {
+  background: linear-gradient(140deg, var(--verde), #1f7a4f);
+  border-color: transparent; color: #04150c; font-weight: 800;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--verde) 40%, transparent);
+}
+.bot.giorno-settimana.attivo::after {
+  content: ' ✓'; font-weight: 900;
+}
+/* il giorno NON scelto resta spento, ma non grigio: è una scelta, non un divieto */
+.bot.giorno-settimana { transition: transform .12s, filter .15s; }
+.bot.giorno-settimana:active { transform: scale(.94); }
+
 .righe-stat { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 4px; }
 /* LA RIGA CON LA SPIEGAZIONE.
    Un numero senza la sua unità è rumore: "Forza 10" non dice niente se non sai che
@@ -1457,27 +1559,86 @@ body.scorso .banda-cronometro .bot.grande {
  */
 
 /* IL DIALOGO.
-   Si apre dal basso e si ferma: 200 ms, non di piu'. Se dura di piu', su un telefono
-   si sente come un'esitazione invece che come una risposta. */
+   Si apre dal basso e si ferma. Ste (10/10/2026): "metti piu' animazioni, sembra
+   non essere cambiato nulla" e aveva ragione: 200 ms con uno spostamento di 14px su
+   una sfondo che sfuma è qualcosa che non si vede, soprattutto su un telefono che
+   tieni in mano mentre cammini. Qui si alza di 26px e ci mette 260 ms: si sente. */
 @keyframes dialogo-entra {
-  from { opacity: 0; transform: translateY(14px) scale(.985); }
+  from { opacity: 0; transform: translateY(26px) scale(.96); }
   to { opacity: 1; transform: none; }
 }
 @keyframes sfondo-entra {
   from { opacity: 0; }
   to { opacity: 1; }
 }
-.sfondo-dialogo { animation: sfondo-entra .16s ease-out; }
-.dialogo { animation: dialogo-entra .2s cubic-bezier(.2, .9, .3, 1); }
+.sfondo-dialogo { animation: sfondo-entra .2s ease-out; }
+.dialogo { animation: dialogo-entra .26s cubic-bezier(.2, .9, .3, 1); }
+/* IL DIALOGO CHE ESCE: si sa che hai premuto qualcosa. */
+@keyframes dialogo-esce {
+  from { opacity: 1; transform: none; }
+  to { opacity: 0; transform: translateY(10px) scale(.98); }
+}
+.sfondo-dialogo.chiudendo { animation: sfondo-esce .16s ease-in forwards; }
+.sfondo-dialogo.chiudendo .dialogo { animation: dialogo-esce .16s ease-in forwards; }
+@keyframes sfondo-esce {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
 
 /* LA SERIE APPENA SPUNTATA.
    Non parte da sola: la classe parte da JavaScript quando salvi la spunta, quindi
    l'animazione dice esattamente "questa l'hai fatta". */
 @keyframes serie-accesa {
-  0% { box-shadow: inset 0 0 0 999px color-mix(in srgb, var(--verde) 34%, transparent); }
-  100% { box-shadow: inset 0 0 0 999px transparent; }
+  0% {
+    box-shadow: inset 0 0 0 999px color-mix(in srgb, var(--verde) 55%, transparent);
+    transform: translateX(6px);
+  }
+  60% { box-shadow: inset 0 0 0 999px color-mix(in srgb, var(--verde) 22%, transparent); }
+  100% { box-shadow: inset 0 0 0 999px transparent; transform: none; }
 }
-.serie-fatta-adesso { animation: serie-accesa .5s ease-out; }
+.serie-fatta-adesso { animation: serie-accesa .6s cubic-bezier(.2, .9, .3, 1); }
+
+/* IL NUMERO CHE CAMBIA.
+ *
+ * Ste: "metti piu' animazioni". Il numero che appena e' cambiato e' la cosa che
+ * hai guardato per farvi caso: se pulsa piano mentre lo guardi, capisci che quello
+ * e' il nuovo numero e non quello di prima. Funziona anche a chi non nota i
+ * colori, perche' e' una movimento e non una tinta. */
+@keyframes numero-pulse {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.22); }
+  100% { transform: scale(1); }
+}
+.numero-cambiato { animation: numero-pulse .45s cubic-bezier(.2, .9, .3, 1); }
+
+/* LA CASELLA DEL CALENDARIO PREMUTA: si allarga un attimo, poi torna. */
+@keyframes cella-pulse {
+  0% { transform: scale(.7); }
+  55% { transform: scale(1.18); }
+  100% { transform: scale(1); }
+}
+.cella-giorni-aperta { animation: cella-pulse .3s cubic-bezier(.2, .9, .3, 1); }
+
+/* IL PULSANTE PREMUTO, in modo piu' deciso di prima.
+   Il tocco sul telefono e' l'unica azione che fai mentre l'app e' aperta in
+   palestra, e senza questo effetto non si capisce se il dito e' arrivato sul
+   pulsante o no: con le dita grandi e il telefono bagnato di sudore, la differenza
+   tra "premuto" e "sfiorato" e' tutto. */
+@keyframes tocco {
+  0% { transform: scale(1); }
+  40% { transform: scale(.9); }
+  100% { transform: scale(1); }
+}
+.bot:active { animation: tocco .14s ease-out; }
+
+/* I NUMERI CHE RUOTANO: quando un valore cambia, il nuovo numero entra dal basso.
+   Non ruota nulla (sarebbe un effetto da slot machine, e non e' un gioco d'azzardo),
+   ma si vede che e' cambiato. */
+@keyframes numero-entro {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: none; }
+}
+.numero-nuovo { animation: numero-entro .3s ease-out; }
 
 /* IL CALENDARIO quando cambi anno: si rifa', e un leggero "inserimento" dice che
    e' cambiato qualcosa senza dover leggere l'anno scritto in alto. */

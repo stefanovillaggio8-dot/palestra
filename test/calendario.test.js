@@ -121,7 +121,7 @@ test('C9. la risposta "oggi mi tocca?" sta SOPRA tutto', () => {
 test('C10. premi un giorno e vedi cosa ci hai fatto', () => {
   // Un calendario che non si lascia cliccare è uno sfondo.
   assert.match(mese, /onClick: \(\) => \{/, 'i giorni sono premibili');
-  assert.match(mese, /statoCalendario\.giorno = \(statoCalendario\.giorno === isoCell\) \? null : isoCell/,
+  assert.match(mese, /statoCalendario\.giorno = eraAperto \? null : isoCell;/,
     'e premere lo stesso giorno lo richiude');
   assert.match(cal, /dettaglioGiorno\(statoCalendario\.giorno\)/, 'sotto compare cosa hai fatto');
   assert.match(corpo('dettaglioGiorno'), /Qui non hai allenato/, 'anche quando non hai allenato');

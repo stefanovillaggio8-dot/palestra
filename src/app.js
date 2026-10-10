@@ -5,7 +5,7 @@
 import * as db from './db.js';
 import * as sb from './supabase.js';
 import * as sync from './sync.js';
-import { el, svuota, campoNumero, campoTesto, bottone, chiediConferma, chiediTesto, avviso, schedaEvento, oraLocale, dataLeggibile, conRitardo, bottoneSu } from './ui.js';
+import { el, svuota, campoNumero, campoTesto, bottone, chiediConferma, chiediTesto, avviso, numeroCambiato, schedaEvento, oraLocale, dataLeggibile, conRitardo, bottoneSu } from './ui.js';
 import { graficoLinea, graficoBarre } from './grafici.js';
 import {
   formattaNumero, formattaPeso, formattaRipetizioni, formattaCronometro, formattaDurata,
@@ -656,7 +656,7 @@ function disegna() {
   };
   try {
     Promise.resolve(disegnaDentro(zona))
-      .then(() => { ancoraQui = false; })
+      .then(() => { ancoraQui = false; animaNumeriCambiati(zona); })
       .catch(alErrore);
   } catch (errore) {
     alErrore(errore);
@@ -664,6 +664,32 @@ function disegna() {
   }
   if (scrollPrima > 0 && typeof window.scrollTo === 'function') {
     try { window.scrollTo(0, scrollPrima); } catch { /* in qualche browser non si può */ }
+  }
+}
+
+/**
+ * Fa lampeggiare i numeri che sono appena cambiati.
+ *
+ * Ste (10/10/2026): "metti più animazioni, sembra non essere cambiato nulla".
+ *
+ * Serve a una cosa sola: quando guardi il numero della streak dopo aver allenato,
+ * vuoi sapere se è quello nuovo o quello di prima. Un colore diverso non basta a
+ * chi non nota le sfumature, e un movimento piccolo lo dice a tutti.
+ *
+ * Per farlo senza animare tutto ogni volta, confronto il numero di adesso con
+ * quello del disegno precedente: se è cambiato, pulsa. Se è uguale, non succede
+ * niente. Il primo disegno non pulsa mai: non c'è un "prima" con cui confrontare.
+ */
+const numeriMostrati = new Map();
+function animaNumeriCambiati(zona) {
+  if (!zona || typeof zona.querySelectorAll !== 'function') return;
+  for (const nodo of zona.querySelectorAll('.fuoco')) {
+    const chiave = nodo.dataset ? nodo.dataset.giorni : null;
+    if (chiave === null || chiave === undefined) continue;
+    const prima = numeriMostrati.get(nodo.id || 'fuoco');
+    numeriMostrati.set(nodo.id || 'fuoco', chiave);
+    // senza un valore precedente non c'è un cambiamento da mostrare
+    if (prima !== undefined && prima !== chiave) numeroCambiato(nodo);
   }
 }
 
@@ -3436,26 +3462,68 @@ function avatarNodo(profilo, { grande = false, dimensione = 46 } = {}) {
  */
 function teschioStreak(st) {
   const f = st.fuoco;
+  // TRE STATI, non due.
+  //
+  // Ste (10/10/2026): "la streak deve spuntare spenta nel giorno in cui dovrei
+  // allenarmi dove non mi sono ancora allenato ma deve spuntare che devo andarci per
+  // farla aumentare e farla accendere, non che spunta grigia come se l'avessi persa".
+  //
+  // Prima erano solo "accesa" e "spenta", e il caso intermedio finiva nel grigio:
+  // il lunedì mattina, non avendo ancora allenato, la card diceva che avevi perso la
+  // streak. Ma la giornata non era finita, e la streak si rompe solo a fine sera.
+  // La card diceva una cosa falsa, e una cosa falsa in alto, dove guardi per prima,
+  // è la peggiore.
+  //
+  // Ora: verde se hai allenato, ambra se oggi ti tocca e non l'hai fatto (manca un
+  // passo), grigio solo se hai davvero saltato un giorno.
+  const stato = f.stato || (f.acceso ? 'acceso' : 'spenta');
   return el('div', {
-    class: 'teschio-streak' + (f.acceso ? ' acceso' : ' spenta'),
+    class: 'teschio-streak ' + stato,
     style: `--fuoco:${f.colore}`,
-    titolo: f.acceso ? `Streak: ${f.giorni} ${f.giorni === 1 ? 'giorno' : 'giorni'} di fila, livello ${f.nome}` : 'Streak spenta',
+    titolo: stato === 'acceso'
+      ? `Streak: ${f.giorni} ${f.giorni === 1 ? 'giorno' : 'giorni'} di fila, livello ${f.nome}`
+      : (stato === 'da accendere'
+        ? `Oggi ti tocca e non hai ancora allenato: ${f.giorni} ${f.giorni === 1 ? 'giorno' : 'giorni'} di fila, oggi la porti a ${f.giorni + 1}`
+        : 'Streak spenta: hai saltato un giorno che ti toccava'),
   }, [
-    // IL NUMERO GRANDE È UNO SOLO, e la riga sotto non lo ripete.
+    // IL NUMERO GRANDE E' UNO SOLO, e la riga sotto non lo ripete.
     //
     // Prima qui c'era il numero grosso nel cerchio del fuoco e la parola "giorno"
     // accanto: si leggeva "STREAKgiorno", cioe' due pezzi attaccati che non
     // formavano una frase. Ste me l'ha fatto vedere con uno screenshot.
     //
-    // Il numero grosso resta dovÈ, perchÈ È la cosa che guardi per prima. Sotto,
+    // Il numero grosso resta dov'e', perchè e' la cosa che guardi per prima. Sotto,
     // la parola STREAK e la frase intera. Il numero compare UNA volta sola: due
     // volte nella stessa card faceva pensare che fossero due cose diverse, e il
     // test gioco-ui lo segnalava ("qui era 2").
-    el('span', { class: 'fuoco', testo: f.acceso ? String(f.giorni) : '🔥' }),
+    //
+    // E nel caso "da accendere" il numero c'e' lo stesso: la tua streak non e'
+    // sparita, e' a un passo dal salire. Mostrare "??" diceva che avevi perso tutto.
+    el('span', {
+      class: 'fuoco',
+      testo: stato === 'spenta' ? '??' : String(f.giorni),
+      // Il numero che appena e' cambiato pulsa: e' l'unico modo per capire se
+      // quello che stai guardando e' il nuovo o il vecchio, senza leggere due volte.
+      dati: { giorni: String(f.giorni), stato },
+    }),
     el('div', { class: 'riga-streak' }, [
       el('strong', { class: 'etichetta-streak', testo: 'STREAK' }),
-      el('span', { class: 'nota', testo: f.acceso ? (f.giorni === 1 ? 'un giorno di fila' : 'giorni di fila') : f.nome }),
+      el('span', {
+        class: 'nota',
+        testo: stato === 'acceso'
+          ? (f.giorni === 1 ? 'un giorno di fila' : 'giorni di fila')
+          : (stato === 'da accendere'
+            ? `ti tocca oggi: allenati e sale a ${f.giorni + 1}`
+            : f.nome),
+      }),
     ]),
+    // LA SPUNTA DEL GIORNO CHE ASPETTA.
+    //
+    // Un numero in ambra, da solo, non dice "fai qualcosa". Questo dice "questa è
+    // l'ora di accenderla": è l'unica cosa che ti serve sapere guardando la home.
+    stato === 'da accendere'
+      ? el('span', { class: 'richiamo-streak', testo: '▲ oggi ti tocca' })
+      : null,
   ]);
 }
 
@@ -3843,7 +3911,7 @@ function bloccoMese(anno, mese, previsti, giorniFatti, oggi) {
     if (previsto && !fatto && !saltato) classi.push('atteso');
     if (isoCell === oggi) classi.push('oggi');
     if (isoCell > oggi) classi.push('futuro');
-    const aperto = isoCell === statoCalendario.giorno;
+const aperto = isoCell === statoCalendario.giorno;
     if (aperto) classi.push('aperto');
 
     riga.appendChild(el('button', {
@@ -3851,8 +3919,22 @@ function bloccoMese(anno, mese, previsti, giorniFatti, oggi) {
       class: classi.join(' '),
       testo: String(d.getDate()),
       onClick: () => {
-        statoCalendario.giorno = (statoCalendario.giorno === isoCell) ? null : isoCell;
+        const eraAperto = statoCalendario.giorno === isoCell;
+        statoCalendario.giorno = eraAperto ? null : isoCell;
         disegna();
+        // LA CASELLA APPENA PREMUTA SI ALLARGA un attimo. Su un calendario di 370
+        // caselline il dito finisce dove vuole: senza un segnale non sai quale hai
+        // premuto finché non leggi cosa c'è scritto sotto.
+        //
+        // La classe `aperto` c'è già nel DOM dopo il ridisegno, quindi basta
+        // rintrovarla: non serve tenere un riferimento al nodo, che a ogni
+        // ridisegno diventa vecchio.
+        if (!eraAperto) {
+          const celle = document.querySelectorAll
+            ? document.querySelectorAll('.cella-calendario.aperto')
+            : [];
+          for (const c of celle) numeroCambiato(c);
+        }
       },
       aria: { label: ariaGiorno(isoCell, d, previsto, fatto, saltato, !previsto) },
       titolo: `${d.getDate()}/${mese}` + (fatto ? ' allenato' : (saltato ? ' saltato' : (previsto ? ' giorno di allenamento' : ' recupero'))),
@@ -4111,7 +4193,9 @@ function bloccoGiorniAllenamento() {
           ? `Giorni aggiornati: ${lista.map((n) => (GIORNI_SETTIMANA.find((x) => x.n === n) || {}).nome).join(', ')}.`
           : 'Giorni svuotati: la streak ora vale solo se ti alleni oggi o ieri.', { tipo: 'ok' });
       },
-      classe: 'fantasma' + (scelti.has(g.n) ? ' attivo' : ''),
+      // IL PULSANTE HA UNA CLASSE SUA, così lo stile di "giorno scelto" non si
+    // confonde con quello degli altri bottoni accesi (spotter, dropset, chip).
+    classe: 'fantasma giorno-settimana' + (scelti.has(g.n) ? ' attivo' : ''),
     });
     griglia.appendChild(bottoneGiorno);
   }
