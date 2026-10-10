@@ -843,6 +843,13 @@ body.scorso .banda-cronometro .bot.grande {
   padding: 10px 12px; display: flex; flex-direction: column; gap: 2px;
 }
 .teschio-streak { border-color: color-mix(in srgb, var(--fuoco) 60%, var(--bordo)); }
+/* La parola STREAK e il numero con l'unita' stanno su due righe.
+   Ste me l'ha fatto vedere: stavano sulla stessa riga e si leggevano
+   "STREAKgiorno". Il blocco dentro era un <div> senza classe, quindi il CSS non
+   aveva niente su cui agire. */
+.riga-streak { display: flex; flex-direction: column; gap: 1px; }
+.etichetta-streak { font-size: .72rem; letter-spacing: .08em; opacity: .8; }
+.teschio-streak .nota { font-size: .8rem; }
 .teschio-streak.acceso { box-shadow: 0 0 22px -6px var(--fuoco), inset 0 0 24px -18px var(--fuoco); }
 .teschio-streak.spenta { opacity: .62; filter: grayscale(.65); }
 .teschio-streak .fuoco { font-size: 1.5rem; line-height: 1; filter: drop-shadow(0 0 8px var(--fuoco)); }
@@ -1094,6 +1101,13 @@ body.scorso .banda-cronometro .bot.grande {
 .avatar-scelta.attiva { border-color: var(--viola); box-shadow: 0 0 18px -6px var(--viola); }
 
 /* --- il profilo --- */
+/* Il titolo dello storico dei pesi, dentro la card del peso. Serve una riga sopra:
+   senza, "Il tuo storico" si leggeva come parte della scheda e non come un blocco. */
+.titolo-sottosezione {
+  margin: 18px 0 8px; padding-top: 14px;
+  border-top: 1px solid var(--bordo);
+  font-size: 1rem; letter-spacing: .01em;
+}
 .testa-profilo { text-align: center; margin: 14px 0 6px; }
 .testa-profilo h2 { margin: 6px 0 2px; }
 .testa-profilo .riga-teschio { justify-content: center; }

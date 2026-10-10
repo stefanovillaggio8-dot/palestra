@@ -3324,16 +3324,25 @@ function avatarNodo(profilo, { grande = false, dimensione = 46 } = {}) {
  */
 function teschioStreak(st) {
   const f = st.fuoco;
-  const n = f.acceso ? (f.giorni === 1 ? 'giorno' : 'giorni') : 'spenta';
   return el('div', {
     class: 'teschio-streak' + (f.acceso ? ' acceso' : ' spenta'),
     style: `--fuoco:${f.colore}`,
     titolo: f.acceso ? `Streak: ${f.giorni} ${f.giorni === 1 ? 'giorno' : 'giorni'} di fila, livello ${f.nome}` : 'Streak spenta',
   }, [
-    el('span', { class: 'fuoco', testo: f.acceso ? String(f.giorni) : '·' }),
-    el('div', {}, [
-      el('strong', { testo: 'STREAK' }),
-      el('span', { class: 'nota', testo: f.acceso ? n : f.nome }),
+    // IL NUMERO GRANDE E' UNO SOLO, e la riga sotto non lo ripete.
+    //
+    // Prima qui c'era il numero grosso nel cerchio del fuoco e la parola "giorno"
+    // accanto: si leggeva "STREAKgiorno", cioe' due pezzi attaccati che non
+    // formavano una frase. Ste me l'ha fatto vedere con uno screenshot.
+    //
+    // Il numero grosso resta dov'e', perche' e' la cosa che guardi per prima. Sotto,
+    // la parola STREAK e la frase intera. Il numero compare UNA volta sola: due
+    // volte nella stessa card faceva pensare che fossero due cose diverse, e il
+    // test gioco-ui lo segnalava ("qui era 2").
+    el('span', { class: 'fuoco', testo: f.acceso ? String(f.giorni) : '🔥' }),
+    el('div', { class: 'riga-streak' }, [
+      el('strong', { class: 'etichetta-streak', testo: 'STREAK' }),
+      el('span', { class: 'nota', testo: f.acceso ? (f.giorni === 1 ? 'un giorno di fila' : 'giorni di fila') : f.nome }),
     ]),
   ]);
 }
@@ -4366,7 +4375,15 @@ async function vistaProfilo(zona) {
         }),
       ]));
     }
-    boxPeso.appendChild(el('div', { class: 'nota', testo: 'Il tuo storico' }));
+    // IL TITOLO DELLO STORICO ERA UNA "nota" DENTRO LA CARD DEL PESO, e si leggeva
+    // come se fosse un blocco a se' finito. Ste me l'ha fatto vedere: dopo "Ti si
+    // ricorda di aggiornarlo..." compariva "Il tuo storico" dentro la stessa card
+    // viola, senza niente che dicesse dove finiva una cosa e cominciava l'altra.
+    //
+    // Ora e' un titolo vero, con una riga sopra che stacca. Non e' solo questione
+    // di bellezza: uno storico che sembra parte di un'altra scheda e' uno storico
+    // che non usi, perche' non lo vedi come una cosa tua da cui cancellare.
+    boxPeso.appendChild(el('h3', { class: 'titolo-sottosezione', testo: 'Il tuo storico' }));
     boxPeso.appendChild(lista);
   }
   zona.appendChild(boxPeso);
