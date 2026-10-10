@@ -1100,6 +1100,46 @@ body.scorso .banda-cronometro .bot.grande {
 }
 .avatar-scelta.attiva { border-color: var(--viola); box-shadow: 0 0 18px -6px var(--viola); }
 
+/* --- il calendario (Profilo) --- */
+/* Ste: "aggiungi un calendario dove mi segna evidenziato i giorni in cui vado in
+   palestra". Tre stati, tre colori: previsto, fatto, saltato. Il saltato e' l'unico
+   che rompe la streak, quindi senza distinguerlo a vista non capisci perche' il
+   numero e' tornato a zero. */
+.nota-grande { font-size: 1rem; margin: 4px 0 12px; }
+.calendario {
+  display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px;
+}
+.casella-calendario {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 7px 2px 6px; border-radius: 9px;
+  background: var(--card-2); border: 1px solid var(--bordo);
+  opacity: .55;
+}
+.nome-giorno { font-size: .64rem; text-transform: uppercase; letter-spacing: .06em; opacity: .75; }
+.numero-giorno { font-size: 1rem; }
+/* il giorno che hai scelto di allenare: si accende appena, non è "previsto" */
+.casella-calendario.previsto { opacity: 1; border-color: color-mix(in srgb, var(--viola) 45%, var(--bordo)); }
+/* l'hai fatto: verde pieno */
+.casella-calendario.fatto {
+  background: linear-gradient(160deg, color-mix(in srgb, var(--verde) 30%, var(--card-2)), var(--card-2));
+  border-color: color-mix(in srgb, var(--verde) 60%, var(--bordo));
+}
+/* previsto e non fatto, e il giorno e' passato: ROSSO. E' l'unico che rompe la streak */
+.casella-calendario.saltato {
+  background: linear-gradient(160deg, color-mix(in srgb, var(--rosso) 26%, var(--card-2)), var(--card-2));
+  border-color: color-mix(in srgb, var(--rosso) 55%, var(--bordo));
+}
+/* oggi: il bordo accanto, cosi si vede anche se e' anche fatto */
+.casella-calendario.oggi { box-shadow: inset 0 0 0 2px var(--oro); }
+.legenda-calendario { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.pastiglia {
+  font-size: .72rem; padding: 3px 9px; border-radius: 999px;
+  border: 1px solid var(--bordo); background: var(--card-2);
+}
+.legenda-previsto { border-color: color-mix(in srgb, var(--viola) 45%, var(--bordo)); }
+.legenda-fatto { border-color: color-mix(in srgb, var(--verde) 60%, var(--bordo)); }
+.legenda-saltato { border-color: color-mix(in srgb, var(--rosso) 55%, var(--bordo)); }
+
 /* --- l'avatar RPG (Profilo) --- */
 .riga-classi { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 4px; }
 .classe-rpg {

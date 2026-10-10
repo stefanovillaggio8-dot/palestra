@@ -132,18 +132,25 @@ test('B6. gli errori di sincronizzazione non vengono azzerati subito', async () 
   const dbSrc = await readFile(new URL('../src/db.js', import.meta.url), 'utf8');
   assert.match(dbSrc, /seguiErrore/,
     'salva deve avere l\'opzione seguiErrore');
-  assert.match(dbSrc, /if \(!seguiErrore\) \{\s*completa\.ultimo_errore = null/,
-    'e gli errori si azzerano SOLO quando seguiErrore e\' falso');
+  // LA REGOLA NUOVA, piu' semplice di quella che c\'era: se il chiamante scrive uno
+  // stato di sincronizzazione, quello vale. Non serve un opzione separata per gli
+  // errori: basta che lo stato passato non venga sovrascritto.
+  assert.match(dbSrc, /hoStato/,
+    'salva deve distinguere "il chiamante ha scritto uno stato" da "mettimi in coda"');
+  assert.match(dbSrc, /completa\.sync = hoStato \? statoEsplicito : 'da_salvare'/,
+    'e lo stato esplicito deve vincere su "da_salvare"');
   const syncSrc = await readFile(new URL('../src/sync.js', import.meta.url), 'utf8');
   // la sync registra gli errori e i conflitti: ogni scrittura di quei due stati
   // deve passare seguiErrore, altrimenti db.salva li azzera subito dopo
   const scriveErrore = syncSrc.match(/sync: 'errore'/g) || [];
   const scriveConflitto = syncSrc.match(/sync: 'conflitto'/g) || [];
+  const scriveInCorso = syncSrc.match(/sync: 'in_corso'/g) || [];
   assert.ok(scriveErrore.length >= 1, 'la sync registra gli errori');
   assert.ok(scriveConflitto.length >= 2, 'e i conflitti, in due posti (manda e tira)');
+  assert.ok(scriveInCorso.length >= 1, 'e lo stato "in_corso" mentre spedisce');
   const conSegui = (syncSrc.match(/seguiErrore: true/g) || []).length;
   assert.equal(conSegui, scriveErrore.length + scriveConflitto.length,
-    `tutte le scritture di errore e conflitto devono passare seguiErrore:true. `
+    `le scritture di errore e conflitto devono passare seguiErrore:true. `
     + `Trovate ${conSegui} su ${scriveErrore.length + scriveConflitto.length} attese: `
     + 'senza, un conflitto viene ritentato ogni 45 secondi per sempre e la lista '
     + 'dei conflitti cresce all\'infinito.');

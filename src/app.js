@@ -25,6 +25,7 @@ import { nuovoId, adesso, TABELLE, riallineaEsercizi } from './sincronizzazione.
 // --- il gioco: rank, LP, streak, Aura, missioni, amici ---
 import { statoAccount, ricompenseAllenamento, gruppiDaSerie } from './gioco.js';
 import { calcolaAvatar, CLASSI, classeConsigliata } from './avatar-rpg.js';
+import { isoGiorno } from './streak.js';
 import { recordEsercizio, recordAccount, classificaEsercizio, storicoMiglioramenti, giudizioPerformance, distanzaAllaSoglia } from './rank.js';
 import { confrontoGiorno, confrontiMensili, GIORNI_UN_MESE } from './confronto-mensile.js';
 import { profiloEsercizio, profiloPerPesoCorporeo, RANK, ETICHETTE_MISURA, descriviPunteggio, descrizioneLivello, livelloEsercizio, impostaLivelliImparati, livelliImparati, rapportoDifficolta, MOLTIPLICATORI_SOGLIA } from './rank-config.js';
@@ -1794,9 +1795,20 @@ export function annunciaFineSeduta(prima, dopo) {
     const p = prima.get(id);
     const nome = nomeEsercizio(id);
     if (!p) {
-      // l'esercizio e' comparso solo adesso: o era nuovo, o non aveva mai avuto un
-      // Rank. In entrambi i casi e' una notizia, ma non e' una promozione
-      if (prima.size) nuovi.push(`${nome}: ${d.nome} ${d.lp} LP`);
+      // L'esercizio e' comparso solo adesso: o era nuovo, o non aveva mai avuto un
+      // Rank.
+      //
+      // IL PRIMO CASE CHE C'ERA BUGGATO: alla PRIMA seduta in assoluto la mappa
+      // "prima" e' vuota, quindi `prima.size` era 0 e non diceva NIENTE. Ma la
+      // prima seduta e' la piu' importante da annunciare: e' il momento in cui
+      // sblocchi il tuo primo livello su ogni esercizio, e l'app ti lasciava li'
+      // come se non fosse successo niente.
+      //
+      // Ora la regola e' semplice e non guarda la mappa: se l'esercizio ha un Rank
+      // adesso, e non ne aveva uno prima, e' una notizia. Che sia la prima seduta
+      // o la centesima, il motivo per cui l'esercizio non c'era prima e' che hai
+      // appena toccato il tuo Rank.
+      nuovi.push(`${nome}: ${d.nome} ${d.lp} LP`);
       continue;
     }
     if (d.indice > p.indice) saliti.push(`${nome}: ${p.nome} - ${d.nome} (${d.lp} LP)`);
@@ -3057,8 +3069,18 @@ async function importaJson(file) {
 }
 
 async function applicaImportazione(oggetto, modo) {
-  const t = oggetto.tabelle;
-  for (const tabella of ['esercizi', 'schede', 'versioni', 'sedute', 'serie', 'note', 'profili', 'missioni', 'ricompense']) {
+  const t = oggetto.tabelle || {};
+  // LA LISTA DELLE TABELLE VIENE DAL PACCHETTO, NON E' SCRITTA QUI.
+  //
+  // Prima qui c'era un array scritto a mano con nove tabelle, e quando al backup ho
+  // aggiunto i pesi l'elenco e' rimasto com'era: quindi i pesi entravano nel backup e
+  // non uscivano mai. In "unione" venivano scartati in silenzio, in "sostituzione"
+  // non finivano nel cestino e non arrivavano: ti restava uno stato misto mentre
+  // l'app ti diceva "sostituzione completa".
+  //
+  // Derivandola dal pacchetto non puo' succedere di nuovo: se domani aggiungi una
+  // tabella al backup, entra qui dentro senza toccare niente.
+  for (const tabella of Object.keys(t)) {
     const righe = t[tabella] || [];
     if (modo === 'sostituzione') {
       // QUELLO CHE MANCAVA, ed era il buco piu' grave di tutti.
@@ -3562,6 +3584,107 @@ async function salvaProfilo(campi) {
   });
   await ricaricaTutto();
   disegna();
+}
+
+/**
+ * IL CALENDARIO DELL'ALLENAMENTO.
+ *
+ * Ste (09/10/2026): "aggiungi anche un calendario dove mi segna evidenziato i giorni in
+ * cui vado in palestra".
+ *
+ * Tre cose da vedere insieme, perche' sole non dicono niente:
+ *
+ *   - il giorno PREVISTO: uno di quelli che hai scelto in Impostazioni. E' quello che
+ *     ti dice se oggi ti tocca o no, e la risposta deve stare in cima, non in fondo a
+ *     una pagina.
+ *   - il giorno FATTO: ci sei andato davvero. E' l'unica cosa che conta per la
+ *     streak.
+ *   - il giorno SALTATO: era previsto e non l'hai fatto. E' l'unico che rompe la
+ *     streak, quindi senza vederlo non capisci perche' il numero e' tornato a zero.
+ *
+ * Il calendario e' ancorato a una settimana reale (con lunedi' in alto, come si usa in
+ * Italia) e la riga sotto ti dice la cosa che serve: se oggi ti tocca, quando ti
+ * tocca, e quanti giorni di fila hai.
+ */
+function bloccoCalendario(profilo, st) {
+  const box = el('section', { class: 'blocco' });
+  box.appendChild(el('h2', { testo: 'Il tuo calendario' }));
+
+  const previsti = new Set(Array.isArray(profilo.giorni_allenamento) ? profilo.giorni_allenamento : []);
+  const giorniFatti = new Set((st.streak && st.streak.giorniAllenati) || []);
+  const oggi = isoGiorno(new Date());
+
+  // la settimana corrente, dal lunedi' alla domenica
+  const oggiD = new Date(oggi + 'T12:00:00');
+  const lunedi = new Date(oggiD);
+  lunedi.setDate(oggiD.getDate() - ((oggiD.getDay() + 6) % 7));
+  const giorni = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(lunedi);
+    d.setDate(lunedi.getDate() + i);
+    giorni.push({
+      iso: isoGiorno(d),
+      dow: d.getDay(),
+      numero: d.getDate(),
+      passato: isoGiorno(d) < oggi,
+    });
+  }
+
+  // LA RIGA SOPRA: la risposta vera, detta subito. Un calendario senza questa frase
+  // costringe a cercare il giorno di oggi fra sette caselle.
+  const fattoOggi = giorniFatti.has(oggi);
+  const oggiPrevisto = previsti.has(oggiD.getDay());
+  const prossimoIndice = giorni.findIndex((g) => g.iso > oggi && previsti.has(g.dow));
+  const prossimo = prossimoIndice >= 0 ? giorni[prossimoIndice] : null;
+  // i nomi dei giorni: per la frase ("ti tocca marted\u00ec") e per le caselle ("mar").
+  const NOME_GIORNO = ['Domenica', 'Luned\u00ec', 'Marted\u00ec', 'Mercoled\u00ec', 'Gioved\u00ec', 'Venerd\u00ec', 'Sabato'];
+  const NOMI_CORTI = ['lun', 'mar', 'mer', 'gio', 'ven', 'sab', 'dom'];
+  const frase = !previsti.size
+    ? 'Non hai ancora scelto i giorni in cui alleni: la streak conta solo l\'ultimo allenamento.'
+    : (fattoOggi
+      ? 'Oggi hai allenato. La prossima volta ti tocca quando dice il calendario.'
+      : (oggiPrevisto
+        ? (prossimo
+          ? `Oggi ti tocca e non l'hai ancora fatto. Dopo, il prossimo giorno e' ${NOME_GIORNO[prossimo.dow].toLowerCase()}.`
+          : 'Oggi ti tocca e non l\'hai ancora fatto.')
+        : (prossimo
+          ? `Oggi e' giorno di riposo: non ti toglie niente. Ti tocca ${NOME_GIORNO[prossimo.dow].toLowerCase()}.`
+          : 'Oggi e\' giorno di riposo: non ti toglie niente.')));
+  box.appendChild(el('p', { class: 'nota nota-grande', testo: frase }));
+
+  // LE SETTE CASELLE. L'ordine e' quello italiano: lunedi' in alto.
+  const griglia = el('div', { class: 'calendario' });
+  const ordineItaliano = [1, 2, 3, 4, 5, 6, 0];
+  for (const dow of ordineItaliano) {
+    const info = giorni.find((g) => g.dow === dow);
+    const previsto = previsti.has(dow);
+    const fatto = giorniFatti.has(info.iso);
+    const saltato = info.passato && previsto && !fatto;
+    const oggiQuesta = info.iso === oggi;
+    const classi = ['casella-calendario'];
+    if (previsto) classi.push('previsto');
+    if (fatto) classi.push('fatto');
+    if (saltato) classi.push('saltato');
+    if (oggiQuesta) classi.push('oggi');
+    griglia.appendChild(el('div', {
+      class: classi.join(' '),
+      aria: { label: `${NOMI_CORTI[dow]} ${info.numero}${previsto ? ', giorno di allenamento' : ''}${fatto ? ', allenato' : ''}${saltato ? ', saltato' : ''}` },
+    }, [
+      el('span', { class: 'nome-giorno', testo: NOMI_CORTI[dow] }),
+      el('strong', { class: 'numero-giorno', testo: String(info.numero) }),
+    ]));
+  }
+  box.appendChild(griglia);
+
+  // LA LEGENDA. Senza, tre colori diversi e nessuno sa cosa significhino.
+  if (previsti.size) {
+    box.appendChild(el('div', { class: 'legenda-calendario' }, [
+      el('span', { class: 'pastiglia legenda-previsto', testo: 'giorno che alleni' }),
+      el('span', { class: 'pastiglia legenda-fatto', testo: 'allenato' }),
+      el('span', { class: 'pastiglia legenda-saltato', testo: 'saltato' }),
+    ]));
+  }
+  return box;
 }
 
 const GIORNI_SETTIMANA = [
@@ -4389,6 +4512,11 @@ async function vistaProfilo(zona) {
     el('div', { class: 'riga-teschio piccolo' }, [teschioStreak(st)]),
   ]);
   zona.appendChild(testa);
+
+  // ---- il calendario: i giorni che alleni, fatti e saltati, insieme.
+  // Va subito sotto la testa e non in fondo, perche' la domanda che ti fai guardando
+  // il Profilo e' "oggi mi tocca?", e la risposta sta nella riga sopra le caselle.
+  zona.appendChild(bloccoCalendario(profilo, st));
 
   zona.appendChild(el('div', { class: 'blocco-progresso-livello' }, [
     barraProgresso(st.livello.progresso, `livello ${st.livello.livello}`),

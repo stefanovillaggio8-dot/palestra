@@ -79,10 +79,21 @@ export function statoAccount({
   });
 
   const numMissioni = contaCompletate(completamenti);
+  // LE MEDAGLIE USANO IL RECORD DELLA STREAK, NON QUELLA DI ADESSO.
+  //
+  // Prima qui c'era `streak.giorni`, cioe' la streak di ADESSO. Quindi se facevi 20
+  // giorni di fila, saltavi una settimana e ne facevi 4, la medaglia "Dieci di fila"
+  // spariva: `ottenuta: false, mancano 6`. E nello stesso momento l'avatar RPG diceva
+  // che il record era 20 e ti teneva le armature. Due schermate della stessa pagina
+  // che si contraddicevano sullo stesso numero.
+  //
+  // Una medaglia che hai vinto non si toglie: si dà con la sequenza piu' lunga che
+  // hai mai fatto, che e' la stessa regola delle armature.
+  const streakPerMedaglie = Math.max(Number(streak.record) || 0, streak.giorni, 1);
   const medaglieVinte = medaglie({
     sedute: completate.length,
     aura: totali.aura,
-    streak: Math.max(streak.giorni, 1),
+    streak: streakPerMedaglie,
     missioni: numMissioni,
     rank: Object.fromEntries(distribuzione.map((d) => [d.rank.id, d.numero])),
   });

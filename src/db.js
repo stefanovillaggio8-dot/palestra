@@ -235,17 +235,29 @@ export async function salva(tabella, riga, { segna = true, seguiErrore = false }
   if (segna) {
     const segnata = segnaDaSalvare(esistente || completa);
     completa.rev = segnata.rev;
-    completa.sync = 'da_salvare';
     completa.base_rev = Number((esistente && esistente.base_rev) || 0);
-    // gli errori si azzerano SOLO se non li sta scrivendo proprio la sincronizzazione:
-    // altrimenti la sync registra l'errore e questa riga lo cancella subito
-    if (!seguiErrore) {
+    // SE IL CHIAMANTE DICE UNO STATO DI SINCRONIZZAZIONE, QUELLO VINCE.
+    //
+    // Prima qui finiva sempre `sync = 'da_salvare'`, comunque il chiamante avesse
+    // scritto qualcos'altro. Il risultato era che la sincronizzazione non poteva
+    // registrare NULLA di quello che stava facendo: `sync.manda()` scriveva
+    // `in_corso` con `tentativi: N+1` e diventava subito `da_salvare` con
+    // `tentativi: 0`. L'errore non si vedeva perche' nessuno leggeva quei campi,
+    // ma il contatore dei tentativi ripartiva da zero a ogni giro, quindi il
+    // ritentativo non poteva mai decidere di aspettare.
+    //
+    // La regola adesso e' semplice: se il chiamante ha passato uno stato di
+    // sincronizzazione esplicito, quello vale; altrimenti la riga si mette in coda
+    // come prima. E gli errori si azzerano solo se il chiamante NON li sta scrivendo.
+    const statoEsplicito = riga.sync;
+    const hoStato = typeof statoEsplicito === 'string' && statoEsplicito !== '';
+    completa.sync = hoStato ? statoEsplicito : 'da_salvare';
+    if (!seguiErrore && !hoStato) {
       completa.ultimo_errore = null;
       completa.tentativi = 0;
     } else {
-      completa.sync = riga.sync || completa.sync;
-      completa.ultimo_errore = riga.ultimo_errore !== undefined ? riga.ultimo_errore : completa.ultimo_errore;
-      completa.tentativi = riga.tentativi !== undefined ? riga.tentativi : completa.tentativi;
+      if (riga.ultimo_errore !== undefined) completa.ultimo_errore = riga.ultimo_errore;
+      if (riga.tentativi !== undefined) completa.tentativi = Number(riga.tentativi) || 0;
     }
   } else {
     completa.rev = Number(riga.rev || 1);

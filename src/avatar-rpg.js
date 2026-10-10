@@ -97,6 +97,42 @@ const MOVIMENTI_FORZA = new Set([
 const CARDIO = /\btapis|treadmill|corsa|corda|rope|salt[o]|sprint|cyclette|bike|step|ellittic/i;
 
 /**
+ * Quanto cardio vale una serie, in MINUTI.
+ *
+ * IL DIFETTO CHE C'ERA, e il motivo per cui questa funzione esiste.
+ *
+ * Sull'app i minuti, i secondi e i metri stanno TUTTI nello stesso campo delle
+ * ripetizioni (vedi CAMPO_MISURA in rank-config.js). Quindi il codio di Ste, che
+ * faceva `cardio += ripetizioni`, sommava secondi con minuti con metri nello stesso
+ * numero. Verificato: 1800 secondi di tapis più 5000 metri di corsa davano `cardio`
+ * 6800, che è agility 1361 e livello 37 da una seduta sola. Una seduta sola che ti
+ * porta al livello 37 è il segnale che il numero non è un numero.
+ *
+ * Qui il valore viene convertito in minuti, che è l'unica unità in cui "quanto mi
+ * sono allenato" ha senso. La regola è semplice e leggibile:
+ *
+ *   - da 60 a 3600 valori: sono secondi (il plank tiene 60, il tapis 1800);
+ *   - sotto 60: sono minuti;
+ *   - sopra 3600: sono metri o chilometri, e non sono cardio ma DISTANZA, quindi
+ *     non entrano nell'agilità. Correre 5000 metri non è "agilità 1000", è corsa.
+ *
+ * Se un giorno aggiungi un esercizio col campo in un'altra unità, questo è l'unico
+ * posto da toccare: qui sotto, e in nessun'altra parte dell'app.
+ */
+export function minutiDiCardio(valore) {
+  const n = Number(valore) || 0;
+  if (n <= 0) return 0;
+  // sopra un'ora di "minuti" il numero non può essere minuti: o sono secondi che
+  // hanno superato l'ora, o sono metri. In entrambi i casi non lo trattiamo come
+  // minuti d'agilità, perche' il risultato sarebbe un numero che non ha senso.
+  if (n > 3600) return 0;
+  // da 60 in su sono secondi
+  if (n >= 60) return n / 60;
+  // sotto 60 sono minuti
+  return n;
+}
+
+/**
  * Le statistiche dell'avatar, dai dati VERI.
  *
  * @param classe     la classe scelta (o null)
@@ -120,12 +156,9 @@ export function calcolaAvatar(classe, serie, sedute, esercizioPerId, { profilo =
     const p = Number(s.peso) || 0;
     const r = Number(s.ripetizioni) || 0;
 
-    // IL CARDIO. Il valore che hai scritto è il TEMPO (minuti o secondi), non le
-    // ripetizioni: sull'app i minuti e i secondi stanno nello stesso campo delle
-    // ripetizioni (vedi CAMPO_MISURA in rank-config.js). Quindi il numero va preso
-    // com'è, senza moltiplicare per i kg: un minuto di corsa non ha un peso.
+    // IL CARDIO. Il valore va CONVERTITO in minuti: vedi `minutiDiCardio` perche'.
     if (CARDIO.test(e.nome)) {
-      cardio += Math.max(r, 1);
+      cardio += minutiDiCardio(r);
       continue;
     }
 
@@ -185,7 +218,19 @@ export function calcolaAvatar(classe, serie, sedute, esercizioPerId, { profilo =
   const recordStreak = Math.max(Number(streak.record) || 0, Number(streak.giorni) || 0);
   const premi = PREMI.map((p) => {
     const haStreak = recordStreak >= p.giorni;
-    const haStat = Object.entries(p.richiede).every(([k, min]) => st[k] >= min);
+    // IL CONTROLLO USA I NUMERI BASE, NON QUELLI COL BONUS DELLA CLASSE.
+    //
+    // Il bug che c'era: `sbloccato` guardava `st`, cioe' i numeri DOPO il +20%. Tutti
+    // e sei i premi chiedono solo la forza, quindi il bonus di un Assassino o di un
+    // Berserker non aiutava nessuno, e cambiando classe perdevi le armature gia'
+    // sbloccate: Guerriero con forza base 4 arriva a 5 e sblocca l'armatura di ferro,
+    // Assassino resta a 4 e non la sblocca piu'. E' contro la regola scritta due
+    // righe sopra, che dice che un premio non si tocca.
+    //
+    // E i bonus di agilita' e stamina non servivano a nulla per progredire, perche'
+    // nessun premio li richiede: non e' un problema, ma la classe deve restare una
+    // scelta tua, non una scelta che ti fa perdere cose.
+    const haStat = Object.entries(p.richiede).every(([k, min]) => base[k] >= min);
     return {
       ...p,
       sbloccato: haStreak && haStat,

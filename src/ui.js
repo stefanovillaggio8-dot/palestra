@@ -9,6 +9,17 @@ export function el(tag, attributi = {}, figli = []) {
     else if (k === 'html') nodo.innerHTML = v;
     else if (k.startsWith('on') && typeof v === 'function') nodo.addEventListener(k.slice(2).toLowerCase(), v);
     else if (k === 'dati') for (const [dk, dv] of Object.entries(v)) nodo.dataset[dk] = dv;
+    // "titolo" vuol dire l'attributo HTML `title`, quello che fa comparire la
+    // spiegazione quando tieni premuto. Scritto cosi' diventava un attributo
+    // `titolo` che nessun browser conosce, quindi il tooltip non compariva MAI.
+    //
+    // Il motivo per cui faceva danno: quindici pulsanti hanno `titolo` come unica
+    // spiegazione. I `x` per togliere una serie dalla scheda e per togliere una
+    // misurazione di peso hanno la lettera `x` come unico testo: senza tooltip
+    // nessuno sa cosa facciano. E nel file stesso ci sono anche sette `title`
+    // scritti bene: quindi era un refuso, non una scelta.
+    else if (k === 'titolo') nodo.setAttribute('title', v === true ? '' : String(v));
+    else if (k === 'aria') for (const [ak, av] of Object.entries(v)) nodo.setAttribute('aria-' + ak, av === true ? '' : String(av));
     else nodo.setAttribute(k, v === true ? '' : String(v));
   }
   const lista = Array.isArray(figli) ? figli : [figli];

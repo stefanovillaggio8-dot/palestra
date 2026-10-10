@@ -159,9 +159,31 @@ export function giorniAllenati(sedute) {
     if (!s || s.eliminata) continue;
     if (s.stato !== 'completata') continue;
     const d = String(s.data || '').slice(0, 10);
-    if (/^\d{4}-\d{2}-\d{2}$/.test(d)) giorni.add(d);
+    // IL CONTROLLO DELLA DATA VERA, non solo della forma.
+    //
+    // Prima bastava che la data assomigliasse a una data: `\d{4}-\d{2}-\d{2}` accetta
+    // anche "2026-13-45", che non esiste. Verificato: finiva a schermo ("Streak
+    // interrotta: l'ultimo allenamento è stato il 2026-13-45") e spostava la testa
+    // della lista dei giorni, quindi il conteggio era sbagliato.
+    //
+    // Il perche' conta piu' di quanto sembri: `backup.js` non valida le date delle
+    // sedute, quindi un backup fatto a mano o corrotto te le infila dentro. Un numero
+    // che sembra una data ma non lo e' e' un numero che nessuno controlla, e questi
+    // finiscono sempre a schermo.
+    if (dataPossibile(d)) giorni.add(d);
   }
   return [...giorni].sort((a, b) => b.localeCompare(a));
+}
+
+/** La stringa e' una data che esiste davvero? (niente 2026-13-45, niente 30/02) */
+export function dataPossibile(iso) {
+  const s = String(iso || '');
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return false;
+  const d = new Date(`${s}T12:00:00`);
+  if (Number.isNaN(d.getTime())) return false;
+  // il confronto serve per i giorni che JavaScript "corregge" da solo: new Date
+  // ('2026-02-30') diventa il 2 di marzo, quindi il confronto torna e lo scarta
+  return isoGiorno(d) === s;
 }
 
 /** Quanti giorni di fila, fino a ieri. Serve al test e alla spiegazione. */
@@ -211,10 +233,20 @@ export function isoGiorno(data) {
 export function calcolaStreak(sedute, oggi = isoGiorno(new Date()), profilo = null) {
   const giorni = giorniAllenati(sedute);
   const previsti = giorniPrevistiDa(profilo);
+  // IL CASO SENZA SEDUTE HA TUTTI I CAMPI, COME QUELLO CON LE SEDUTE.
+  //
+  // Prima qui l'oggetto aveva otto chiavi invece di tredici: mancavano record,
+  // fattoOggi e prossimoGiorno, e `prossimoObiettivo` era null invece di un numero.
+  // Non rompeva niente perche' ogni consumatore faceva `Number(record) || 0`, ma e'
+  // la forma peggiore di difetto: due oggetti con lo stesso nome e forme diverse.
+  // Il prossimo che scrive `record + 1` senza controllare riceve NaN, e il prossimo
+  // che mostra `prossimoObiettivo` a schermo stampa "null".
   if (!giorni.length) {
     return {
-      giorni: 0, attiva: false, interrotta: false, giorniAllenati: [],
-      ultimoGiorno: null, prossimoObiettivo: null, giorniPrevisti: previsti,
+      giorni: 0, attiva: false, interrotta: false, fattoOggi: false,
+      giorniAllenati: [], ultimoGiorno: null, giorniPrevisti: previsti,
+      prossimoGiorno: null, record: 0,
+      prossimoObiettivo: prossimoMilestone(0),
       testo: 'Non hai ancora finito un allenamento: la streak parte dal primo allenamento.',
     };
   }
@@ -252,7 +284,7 @@ export function calcolaStreak(sedute, oggi = isoGiorno(new Date()), profilo = nu
     prossimoGiorno,
     record,
     prossimoObiettivo: prossimoMilestone(record),
-    testo: testoStreak({ viva, valore, fattoOggi, ultimo, previsti, prossimoGiorno }),
+    testo: testoStreak({ viva, valore, fattoOggi, ultimo, previsti, prossimoGiorno, oggiISO: oggi }),
   };
 }
 
@@ -334,7 +366,23 @@ function precedentiSetHa(previstiSet, da, a) {
   return false;
 }
 
-/** Il prossimo giorno previsto che non hai ancora fatto dopo l'ultimo allenamento. */
+/**
+ * Il prossimo giorno previsto che NON hai ancora fatto dopo l'ultimo allenamento.
+ *
+ * IL PERCHÉ ESISTE, e perché va capito prima di toccarla: questo numero serve alla
+ * frase "ti manca solo giovedì". Restituisce un giorno solo se, fra l'ultimo
+ * allenamento e oggi, c'è un giorno che avevi scelto e che non hai fatto.
+ *
+ * MA se quel giorno c'è, allora la streak è già rotta: perché `streckAncoraViva`
+ * controlla esattamente quello e restituisce false. Quindi nelle schermate normali
+ * questo numero è SEMPRE null, e il ramo della frase che lo usa non parte mai.
+ *
+ * Non è un errore che non si vede, è un numero pronto per quando serve davvero: se
+ * un giorno la streak non si rompesse più su un salto (per esempio perché decidi tu
+ * che un giorno saltato non conta), la frase avrebbe subito il numero giusto senza
+ * dover essere riscritta. Per questo il test S9 verifica la frase attraverso
+ * `prossimoGiornoPrevistoTesto`, che invece guarda i giorni scelti e funziona sempre.
+ */
 function prossimoGiornoPrevisto(previsti, ultimo, oggi) {
   let g = ultimo;
   for (let i = 0; i < 60; i++) {
@@ -346,13 +394,25 @@ function prossimoGiornoPrevisto(previsti, ultimo, oggi) {
   return null;
 }
 
+/** Il prossimo giorno previsto DOPO un giorno, per la frase. */
+function prossimoGiornoDopo(previsti, iso) {
+  const NOME = ['domenica', 'lunedi', 'martedi', 'mercoledi', 'giovedi', 'venerdi', 'sabato'];
+  let g = iso;
+  for (let i = 0; i < 9; i++) {
+    g = giornoSuccessivo(g);
+    if (!g) return null;
+    if (previsti.includes(giornoSettimana(g))) return g;
+  }
+  return null;
+}
+
 /**
  * La frase, scritta sul tuo caso.
  *
  * Prima diceva una cosa falsa a chi allena quattro volte su sette: il conto dei
  * giorni di calendario si fermava al riposo lungo e la streak moriva ogni venerdi'.
  */
-function testoStreak({ viva, valore, fattoOggi, ultimo, previsti, prossimoGiorno }) {
+function testoStreak({ viva, valore, fattoOggi, ultimo, previsti, prossimoGiorno, oggiISO }) {
   if (!previsti) {
     if (!viva) return `Streak interrotta: l'ultimo allenamento e' stato il ${ultimo}. Allenandoti oggi riparti da 1.`;
     return fattoOggi
@@ -364,7 +424,7 @@ function testoStreak({ viva, valore, fattoOggi, ultimo, previsti, prossimoGiorno
   }
   const giorni = `${valore} ${valore === 1 ? 'allenamento' : 'allenamenti'} di fila`;
   if (prossimoGiorno) {
-    const quando = dataLeggibileBreve(prossimoGiorno);
+    const quando = dataLeggibileBreve(prossimoGiorno, oggiISO);
     return `Streak di ${giorni}: ti manca solo ${quando} per continuare.`;
   }
   // IL CASO CHE DAVA UNA FRASE FALSA. Oggi e' un giorno di riposo, non hai allenato
@@ -374,26 +434,39 @@ function testoStreak({ viva, valore, fattoOggi, ultimo, previsti, prossimoGiorno
   // nessuna parte (solo dai test), quindi nessuno lo leggeva. Pero' un testo che
   // mente e' un testo da correggere prima che qualcuno lo mostri, e il giorno in cui
   // lo si mostra la frase falsa diventa subito leggibile.
-  if (fattoOggi) return `Streak di ${giorni}: oggi hai gia' allenato. Ti torna ${prossimoGiornoPrevistoTesto(previsti)}.`;
-  return `Streak di ${giorni}: oggi e' giorno di riposo, non ti toglie niente. Ti torna ${prossimoGiornoPrevistoTesto(previsti)}.`;
+  if (fattoOggi) return `Streak di ${giorni}: oggi hai gia' allenato. Ti torna ${prossimoGiornoPrevistoTesto(previsti, oggiISO)}.`;
+  return `Streak di ${giorni}: oggi e' giorno di riposo, non ti toglie niente. Ti torna ${prossimoGiornoPrevistoTesto(previsti, oggiISO)}.`;
 }
 
-/** Il nome del prossimo giorno previsto, per la frase. */
-function prossimoGiornoPrevistoTesto(previsti) {
-  const oggi = new Date();
-  for (let i = 1; i <= 8; i++) {
-    const d = new Date(oggi.getFullYear(), oggi.getMonth(), oggi.getDate() + i, 12);
-    if (previsti.includes(d.getDay())) return NOME_GIORNO[d.getDay()];
-  }
-  return 'il prossimo giorno';
+/**
+ * Il prossimo giorno previsto, in parole, per la frase.
+ *
+ * USA LA DATA CHE GLI È PASSATA, non `new Date()`.
+ *
+ * Il difetto che c'era: qui dentro si costruiva un `new Date()` e si contava da lì.
+ * Ma `calcolaStreak` riceve "oggi" come parametro, e se quel parametro dice un'altra
+ * giorno la frase guardava il giorno sbagliato. Verificato: con oggi = giovedì 04/06 e
+ * giorni scelti lun/ven, diceva "ti torna lunedì" quando il giorno giusto era venerdì.
+ *
+ * Nell'app oggi non si vedeva, perché le schermate passano sempre la data vera.
+ * Ma è una riga che aspetta solo di essere sbagliata: un test, o un backup
+ * importato da un'altra data, e la frase diceva il giorno falso. E il test S9 passava
+ * per caso, non perché la frase fosse giusta.
+ */
+function prossimoGiornoPrevistoTesto(previsti, oggiISO) {
+  const prossimo = prossimoGiornoDopo(previsti, oggiISO || isoGiorno(new Date()));
+  if (!prossimo) return 'il prossimo giorno';
+  const d = new Date(prossimo + 'T12:00:00');
+  if (Number.isNaN(d.getTime())) return 'il prossimo giorno';
+  return NOME_GIORNO[d.getDay()];
 }
 
 const NOME_GIORNO = ['domenica', 'lunedi', 'martedi', 'mercoledi', 'giovedi', 'venerdi', 'sabato'];
 
-function dataLeggibileBreve(iso) {
+function dataLeggibileBreve(iso, oggiISO) {
   const d = new Date(String(iso) + 'T12:00:00');
   if (Number.isNaN(d.getTime())) return iso;
-  const oggi = isoGiorno(new Date());
+  const oggi = oggiISO || isoGiorno(new Date());
   if (iso === oggi) return 'oggi';
   const domani = giornoSuccessivo(oggi);
   if (iso === domani) return 'domani';
