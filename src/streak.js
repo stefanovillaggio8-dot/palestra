@@ -153,12 +153,25 @@ function streckAncoraViva(set, ultimo, oggiISO, previstiSet) {
 }
 
 /** I giorni in cui hai davvero allenato, dal più recente al più vecchio. */
-export function giorniAllenati(sedute) {
+export function giorniAllenati(sedute, oggi = isoGiorno(new Date())) {
   const giorni = new Set();
   for (const s of (sedute || [])) {
     if (!s || s.eliminata) continue;
     if (s.stato !== 'completata') continue;
     const d = String(s.data || '').slice(0, 10);
+    // LE SEDUTE DI DOMANI NON SONO GIORNI ALLENATI.
+    //
+    // Una seduta con data futura viene da un backup fatto su un altro dispositivo
+    // (i fusi orari spostano la data) o da un orologio sbagliato. Prima entrava
+    // nella lista come qualunque altra, e il risultato era assurdo: con una sola
+    // seduta datata 2026-10-12 e oggi che è il 10, l'app scriveva "l'ultimo
+    // allenamento è stato il 2026-10-12", cioè ti diceva che avevi smesso ad
+    // allenarti da quando non ti eri mai allenato. E con i tuoi giorni scelti la
+    // sessione futura "scavalcava" quella vera: streak 1 invece di 2.
+    //
+    // Non è un caso raro: il fuso orario sposta la data di qualche ora e una
+    // seduta delle 23:30 registrata a Tokyo, per esempio, è di domani a Roma.
+    if (d > oggi) continue;
     // IL CONTROLLO DELLA DATA VERA, non solo della forma.
     //
     // Prima bastava che la data assomigliasse a una data: `\d{4}-\d{2}-\d{2}` accetta
@@ -231,7 +244,11 @@ export function isoGiorno(data) {
  * sicuramente saltato.
  */
 export function calcolaStreak(sedute, oggi = isoGiorno(new Date()), profilo = null) {
-  const giorni = giorniAllenati(sedute);
+  // Si passa `oggi` a `giorniAllenati`: senza, il filtro sulle sedute future usa la
+  // data vera del computer e non quella che il chiamante sta usando. In un test, o
+  // con un backup importato, il conto cambia e la streak dice una cosa diversa da
+  // quella che l'app mostra.
+  const giorni = giorniAllenati(sedute, oggi);
   const previsti = giorniPrevistiDa(profilo);
   // IL CASO SENZA SEDUTE HA TUTTI I CAMPI, COME QUELLO CON LE SEDUTE.
   //
@@ -336,6 +353,26 @@ function lunghezzaSequenzaDa(ordinati, daIndice, previsti) {
     const giorniDi = giorniDiCalendario(precedente, corrente);
     // se tra i due c'era un giorno previsto, e non l'hai fatto, la catena si rompe
     if (precedentiSetHa(previstiSet, precedente, corrente)) { break; }
+    // IL SALTO SENZA GIORNI SCELTI È UN BUCO.
+    //
+    // `precedentiSetHa` con `previstiSet` a `null` restituisce sempre `false`, perché
+    // senza i tuoi giorni scelti non c'è niente da controllare. Ma allora la riga
+    // sotto diceva solo `if (giorniDi === 0) break`, cioè la catena si rompeva solo
+    // tra due giorni CONSECUTIVI... no: non si rompeva mai.
+    //
+    // Verificato: sedute del 5, 6, 8 e 9 ottobre, senza `giorni_allenamento`, danno
+    // streak attuale 2 e record 4. Il record contava come una catena unica i giorni
+    // del 5, 6, 8 e 9 anche se il 7 è saltato, e la regola con cui giochi non ti
+    // farà mai arrivare a 4 di fila.
+    //
+    // E il record non è un numero decorativo: `avatar-rpg.js` e `gioco.js` lo usano
+    // per sbloccare armature e medaglie PER SEMPRE. Quindi si poteva sbloccare un
+    // premio da 4 giorni che la regola con cui giochi non ti darà mai.
+    //
+    // Senza giorni scelti vale la regola semplice: i giorni devono essere uno dietro
+    // l'altro. Con i giorni scelti vale quella scelta da te, e i buchi non previsti
+    // non contano.
+    if (!previstiSet && giorniDi > 1) break;
     // il salto di giorni di calendario non conta per la streak: quello che conta È
     // se hai saltato un giorno PREVISTO
     if (giorniDi === 0) break;

@@ -2,9 +2,24 @@
 // Nessuna dipendenza dal DOM così i formati si possono testare con node --test.
 
 import { formattaNumero } from './numeri.js';
+import { isoGiorno } from './streak.js';
 
 export const FORMATO = 'palestra-backup';
 export const VERSIONE_SCHEMA = 1;
+
+/**
+ * Una data esiste davvero?
+ *
+ * La forma non basta: `2026-02-30` ha la forma giusta e il giorno non esiste, e
+ * JavaScript lo "corregge" da solo diventando il 2 marzo. Il controllo vero è
+ * round-trip: si ricostruisce la data e si confronta con quella di partenza.
+ */
+function dataPossibile(iso) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return false;
+  const d = new Date(iso + 'T12:00:00');
+  if (Number.isNaN(d.getTime())) return false;
+  return isoGiorno(d) === iso;
+}
 
 export function creaPacchetto(dati, meta = {}) {
   return {
@@ -29,6 +44,18 @@ export function creaPacchetto(dati, meta = {}) {
       // quelli che avevi davanti. Il peso È la cosa che rende i Rank giusti, quindi
       // se non È nel backup il backup non È un backup.
       pesi: dati.pesi || [],
+      // QUELLO CHE L'APP HA IMPARATO DA TE.
+      //
+      // Nella tabella `appreso` vivono le correzioni che hai dato all'app: quali
+      // livelli hai corretto a mano per un esercizio, e quali parole nuove ha
+      // imparato a riconoscere. Non era nel pacchetto, e `db.esportaTutto()` la
+      // restituisce già: quindi l'app ti dimenticava tutto quello che le avevi
+      // insegnato al backup.
+      //
+      // Il sintomo è subdolo perché sembra funzionare: fai il backup dal telefono,
+      // lo ripristini sull'altro, e l'app ti chiede di nuovo "GRANDE o ISOLAMENTO?"
+      // per ogni esercizio che avevi già corretto una volta sola.
+      appreso: dati.appreso || [],
     },
   };
 }
@@ -72,6 +99,35 @@ export function validaPacchetto(oggetto) {
     const durate = t.sedute.filter((s) => s && s.durata_secondi !== null && s.durata_secondi !== undefined
       && (!Number.isFinite(Number(s.durata_secondi)) || Number(s.durata_secondi) < 0));
     if (durate.length) problemi.push(`${durate.length} sedute hanno una durata non valida.`);
+
+    // LE DATE IMPOSSIBILI.
+    //
+    // Qui si controllava solo che la data "assomigliasse" a una data, e
+    // `\d{4}-\d{2}-\d{2}` accetta anche "2026-13-45", che non esiste. Passava,
+    // l'anteprima scriveva "Periodo: dal 2026-10-01 al 9999-99-99", e poi
+    // `giorniAllenati` scartava quelle sedute IN SILENZIO: giorni di allenamento che
+    // sparivano senza nessun avviso. Il commento in streak.js lo ammetteva già
+    // ("backup.js non valida le date delle sedute"): il buco era noto e non chiuso.
+    const date = t.sedute.filter((s) => s && s.data !== null && s.data !== undefined
+      && !dataPossibile(String(s.data).slice(0, 10)));
+    if (date.length) {
+      const esempi = [...new Set(date.map((s) => String(s.data).slice(0, 10)))].slice(0, 3);
+      problemi.push(`${date.length} sedute hanno una data che non esiste (${esempi.join(', ')}).`);
+    }
+
+    // E I NUMERI NEGATIVI: un peso da -50 kg è un peso perso, non un peso.
+    const negativi = t.sedute.filter((s) => s && ['durata_secondi'].some((k) => Number(s[k]) < 0));
+    if (negativi.length) problemi.push(`${negativi.length} sedute hanno numeri negativi.`);
+  }
+  if (Array.isArray(t.serie)) {
+    // I CHILI NEGATIVI: passavano e finivano nei Rank per davvero.
+    const pesiNegativi = t.serie.filter((s) => s
+      && ((s.peso !== null && s.peso !== undefined && Number(s.peso) < 0)
+        || (s.peso_assistenza !== null && s.peso_assistenza !== undefined && Number(s.peso_assistenza) < 0)
+        || (s.ripetizioni !== null && s.ripetizioni !== undefined && Number(s.ripetizioni) < 0)));
+    if (pesiNegativi.length) {
+      problemi.push(`${pesiNegativi.length} serie hanno un numero negativo (peso, assistenza o ripetizioni).`);
+    }
   }
   const anteprima = problemi.length ? null : riepilogo(t);
   return { valido: problemi.length === 0, problemi, anteprima };
@@ -116,7 +172,19 @@ export function unisci(attuale, importato, tabella) {
     const revImportato = Number(r.rev || 0);
     const revEsistente = Number(esistente.rev || 0);
     if (revImportato > revEsistente) {
-      mappa.set(r.id, { ...r, sync: 'da_salvare', base_rev: Number(esistente.base_rev || 0) });
+      // ACCORCIA, NON SOSTITUISCE.
+      //
+      // Qui c'era `{ ...r }`, che rimpiazza la riga locale con quella del backup: i
+      // campi che esistevano solo da una parte spariscono. Verificato: un esercizio
+      // locale con `carrucola: 'doppia'`, `attrezzatura: 'dischi'` e
+      // `bracciaIndipendenti: true` diventava `{ id, nome, rev, sync, base_rev }`.
+      // Quei tre campi sono esattamente quelli che il progetto aveva già sistemato in
+      // `applicaRemote` ("UNISCE, non sostituisce"): il buco restava qui perché la
+      // sincronizzazione e il backup sono due strade diverse per lo stesso problema.
+      //
+      // Il risultato era che importando un backup di una versione vecchia quei campi
+      // non venivano più recuperati, e il Rank su quel esercizio si dimezzava.
+      mappa.set(r.id, { ...esistente, ...r, sync: 'da_salvare', base_rev: Number(esistente.base_rev || 0) });
       aggiornate++;
     } else {
       lasciate++;
@@ -127,10 +195,22 @@ export function unisci(attuale, importato, tabella) {
 
 function cella(v) {
   if (v === null || v === undefined) return '';
-  // i numeri escono con la virgola, così Excel in italiano li legge come numeri
+  // i numeri escono con la virgola, cosÌ Excel in italiano li legge come numeri
   if (typeof v === 'number' && Number.isFinite(v)) v = formattaNumero(v);
   const s = String(v);
-  return /[",;\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  // LE FORMULE.
+  //
+  // Una cella che comincia per `=`, `+`, `-` o `@` non è un testo per Excel: è
+  // un'istruzione da eseguire. Il pericolo qui è vero e non teorico: se un nome di
+  // esercizio o una nota comincia per `=`, il file che scarichi contiene una
+  // formula, e chi lo apre lo esegue. Con una nota che comincia per `=HYPERLINK(...)`
+  // può succedere quello che succede con i file ricevuti da fuori.
+  //
+  // Il trucco è mettere un apostrofo davanti: Excel lo legge come "questa è una
+  // parola, non un comando", e per l'utente non si vede niente.
+  const pericolosa = /^[=+\-@]/.test(s);
+  const pulita = pericolosa ? "'" + s : s;
+  return /[",;\n]/.test(pulita) ? '"' + pulita.replace(/"/g, '""') + '"' : pulita;
 }
 
 function righeCsv(intestazioni, righe) {

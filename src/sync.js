@@ -112,7 +112,21 @@ async function manda() {
         continue;
       }
       if (decisione === 'identico') {
-        await db.salva(tabella, dopoInvioRiuscito(riga, Number(riga.rev || 0)));
+        // IL `{ segna: false }` CHE MANCAVA.
+        //
+        // Tutti gli altri rami di questo ciclo passano `segna: false`, perché senza
+        // quello `db.salva` rimette la riga in coda di invio e alza `rev` di uno. In
+        // questo ramo la riga NON è stata inviata (è già identica al remoto): se la
+        // si salva con la segna, `rev` sale senza che sia successo niente e il
+        // numero locale diventa maggiore di quello del server.
+        //
+        // Il danno è permanente e silenzioso: in `applicaRemote` c'è
+        // `if (revRemoto < revLocale) return { azione: 'ignora' }`, quindi da quel
+        // momento tutte le modifiche che arrivano dagli altri dispositivi su quella
+        // riga vengono scartate per sempre. Capita quando la rete va a buon fine ma
+        // la scrittura locale finale fallisce: ed è esattamente il caso che tutto il
+        // resto di questo file cerca di coprire.
+        await db.salva(tabella, dopoInvioRiuscito(riga, Number(riga.rev || 0)), { segna: false });
         continue;
       }
       const nuovoRev = Number(riga.rev || 1);

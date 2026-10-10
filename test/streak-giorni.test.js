@@ -94,7 +94,12 @@ test('S4. un allenamento inaspettato conta e non azzera niente', () => {
     giorni.push(settimana(sett, VEN));
     giorni.push(settimana(sett, LUN)); // extra, non previsto
   }
-  const r = calcolaStreak(sedute(giorni), giorni[giorni.length - 1], { giorni_allenamento: previsti });
+  // "oggi" è l'ULTIMO GIORNO IN ORDINE CRONOLOGICO, non l'ultimo della lista: i
+  // giorni sono generati per settimana ma ogni settimana parte dal lunedì, quindi
+  // l'ultimo elemento della lista non è il più recente. Passando quello, il filtro
+  // delle sedute future scartava proprio gli ultimi due allenamenti.
+  const ordinati = [...giorni].sort();
+  const r = calcolaStreak(sedute(giorni), ordinati[ordinati.length - 1], { giorni_allenamento: previsti });
   assert.equal(r.giorni, 9,
     `tutti gli allenamenti contano, anche quelli inaspettati: ${r.giorni}`);
   assert.equal(r.attiva, true);

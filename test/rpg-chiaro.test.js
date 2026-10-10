@@ -43,7 +43,7 @@ test('CARDIO-1. si può dichiarare un esercizio "è cardio" invece di indovinare
   assert.match(corpo('eCardio', srcRpg), /CARDIO\.test\(String\(e\.nome \|\| ''\)\)/,
     'e il nome continua a valere, così gli esercizi già nel catalogo funzionano');
   // e il flag si salva davvero quando crei l'esercizio
-  assert.match(srcApp, /cardio\.value === 'si' \? \{ cardio: true \} : \{\}/,
+  assert.match(srcApp, /eCardioNuovo \? \{ cardio: true \} : \{\}/,
     'il flag viene salvato con l\'esercizio');
   assert.match(srcApp, /È cardio\?|è cardio \(tapis/,
     'e nell\'editor c\'è la scelta da spuntare');
@@ -96,8 +96,62 @@ test('CARDIO-4. sotto la serie c\'è scritto cosa scrivere', () => {
     'la lettera sotto il campo cambia da RIP a MIN quando è cardio');
   assert.match(srcApp, /nota-cardio/,
     'e sotto la riga compare la spiegazione');
-  assert.match(srcApp, /scrivi i minuti \(30 = mezz/,
+  assert.match(srcApp, /Scrivi i minuti: 30 per mezz/,
     'che dice cosa scrivere, con l\'esempio dei secondi');
+});
+
+test('CARDIO-5. sul cardio spariscono i kg, lo spotter e il dropset', () => {
+  // Ste (09/10/2026): "quando scrivo l'esercizio nella scheda mi spunta che devo
+  // mettere anche i kg e che posso mettere i kg se l'ho fatto con lo spotter
+  // dropset ecc.. deve segnare solo che posso mettere i minuti non anche altre cose".
+  //
+  // Non basta nascondere: se il campo resta nel DOM la scheda continua a chiedere
+  // un numero che non devi sapere. Quindi i tre blocchi sono dentro una condizione.
+  const riga = corpo('rigaSerie');
+  assert.match(riga, /const serieCardio = eCardio\(e\)/,
+    'la riga della serie sa se l\'esercizio è cardio');
+  const iCardio = riga.indexOf('if (!serieCardio)');
+  assert.ok(iCardio > 0, 'i campi del carico sono dentro una condizione');
+  // tutto quello che segue la condizione, fino al campo dei minuti
+  const blocco = riga.slice(iCardio, riga.indexOf('const rip = campoNumero'));
+  assert.match(blocco, /campoNumero\(serie\[chiave\]/,
+    'il campo dei kg è dentro: per il cardio non viene disegnato');
+  assert.match(blocco, /riga\.appendChild\(el\('label', \{ class: 'campetto' \}, \[rigaPeso\]\)\)/,
+    'e con lui il gruppo del peso');
+  // spotter: deve stare DENTRO il blocco "non cardio". Verifico che l'ultima
+  // occorrenza di `if (!serieCardio)` prima dello spotter sia l'apertura del blocco,
+  // cioè che non ci sia un `if` che lo chiude prima.
+  const iSpotter = riga.indexOf('riga.appendChild(botSpotter)');
+  const iBloccoSpotter = riga.lastIndexOf('if (!serieCardio)', iSpotter);
+  assert.ok(iSpotter > 0, 'lo spotter viene aggiunto da qualche parte');
+  assert.ok(iBloccoSpotter > 0, 'ed è dentro un blocco "non cardio"');
+  const dentroBlocco = riga.slice(iBloccoSpotter, riga.indexOf('}', iBloccoSpotter));
+  assert.match(dentroBlocco, /botSpotter/,
+    'e quel blocco contiene davvero lo spotter');
+  assert.match(riga, /if \(serie\.dropset && !serieCardio\)/,
+    'il dropset sparisce sul cardio');
+  assert.match(riga, /if \(serie\.spotter && !serieCardio\)/,
+    'e anche le ripetizioni assistite');
+});
+
+test('CARDIO-6. nella creazione esercizio spariscono le domande sul carico', () => {
+  // Ste: "nella creazione esercizio se dico che è cardio devono togliersi le altre
+  // cose tipo KG a dischi ecc".
+  const src = srcApp;
+  assert.match(src, /const bloccoCarico = el\('div', \{ class: 'blocco-carico' \}/,
+    'le domande sul carico sono in un blocco loro');
+  assert.match(src, /bloccoCarico\.hidden = attivo/,
+    'e il blocco si nasconde quando è cardio');
+  // e i campi non vengono salvati
+  assert.match(src, /convenzione: eCardioNuovo \? '' : convenzione\.value/,
+    'la convenzione del carico non viene salvata per il cardio');
+  assert.match(src, /misura: eCardioNuovo \? 'ripetizioni' : misura/,
+    'e la misura diventa "solo ripetizioni", cioè minuti');
+  // e la spunta sta PRIMA del blocco nel dialogo, così la vedi prima di scegliere
+  const iSel = src.indexOf("testo: 'È cardio?' }), cardio,");
+  const iBlocco = src.indexOf('bloccoCarico,');
+  assert.ok(iSel > 0 && iBlocco > iSel,
+    'la scelta "è cardio" viene prima del blocco del carico, non dopo');
 });
 
 test('CLASSE-1. il bottone scelto si vede', async () => {

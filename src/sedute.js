@@ -144,26 +144,76 @@ export function nuovaSerie({ seduta_id, esercizio_id, ordine, esercizio, previst
  * Non sovrascrive niente: le sedute precedenti restano intatte.
  */
 export async function apriSeduta({ scheda_id, versione, giorno, oraInizio = new Date() }) {
-  const attiva = await db.sedutaInCorso();
-  if (attiva) {
-    const errore = new Error('C\'e\' gia\' un allenamento aperto: chiudi quello prima di iniziarne un altro.');
-    errore.codice = 'seduta_aperta';
-    throw errore;
+  // IL BLOCCO CONTRO LE SEDUTE APERTE DUE VOLTE.
+  //
+  // Il controllo e la scrittura sono due `await` di fila, e tra i due c'è tempo per
+  // un secondo tocco. Se tocchi "Inizia allenamento" due volte veloce, entrambe le
+  // chiamate passano il controllo (che in quel momento non trova niente) e vengono
+  // scritte due sedute aperte. Da lì l'app è bloccata: `apriSeduta` dice sempre
+  // "c'è già un allenamento aperto", `sedutaInCorso` restituisce la prima delle due a
+  // caso, e per sbloccare tutto devi andare a cancellare a mano la sessione fantasma.
+  //
+  // La catena `aperturaInCorso` tiene il posto anche se la prima chiamata non è
+  // ancora finita di scrivere. Non è un blocco globale: si sblocca sempre, anche se
+  // la prima chiamata va in errore.
+  if (aperturaInCorso) throw sedutaAperta();
+  aperturaInCorso = true;
+  try {
+    // si controlla solo la seduta DI QUESTA persona: una seduta lasciata aperta da
+    // un altro profilo sullo stesso dispositivo non deve bloccare l'allenamento
+    const attiva = await db.sedutaInCorso(versione && versione.id);
+    if (attiva) throw sedutaAperta();
+    const ora = oraInizio instanceof Date ? oraInizio : new Date(oraInizio);
+    const data = dataPossibileOppureOggi(giorno.dataISO, ora);
+    const seduta = await db.salva('sedute', {
+      id: nuovoId(),
+      scheda_id,
+      versione_id: versione.id,
+      giorno_id: giorno.id,
+      nome_giorno: giorno.nome,
+      data,
+      ora_inizio: ora.toISOString(),
+      ora_fine: null,
+      durata_secondi: null,
+      stato: 'in_corso',
+      note: '',
+    });
+    await creaSeriePreviste(seduta, giorno);
+    return await db.prendi('sedute', seduta.id);
+  } finally {
+    aperturaInCorso = false;
   }
-  const ora = oraInizio instanceof Date ? oraInizio : new Date(oraInizio);
-  const seduta = await db.salva('sedute', {
-    id: nuovoId(),
-    scheda_id,
-    versione_id: versione.id,
-    giorno_id: giorno.id,
-    nome_giorno: giorno.nome,
-    data: giorno.dataISO || isoGiorno(ora),
-    ora_inizio: ora.toISOString(),
-    ora_fine: null,
-    durata_secondi: null,
-    stato: 'in_corso',
-    note: '',
-  });
+}
+
+/** La catena che tiene il posto mentre si apre una seduta. */
+let aperturaInCorso = false;
+
+/** L'errore "c'è già un allenamento aperto", sempre uguale. */
+function sedutaAperta() {
+  const errore = new Error('C\'è già un allenamento aperto: chiudi quello prima di iniziarne un altro.');
+  errore.codice = 'seduta_aperta';
+  return errore;
+}
+
+/**
+ * La data della seduta, controllata.
+ *
+ * Il campo `dataISO` viene dalla scheda, e una scheda importata o scritta a mano
+ * può avere "2026-13-45". Prima finiva così com'è nel database e poi la streak la
+ * scartava in silenzio: una seduta davvero fatta non contava per niente e nessuno
+ * diceva niente. Qui o è una data possibile, o è la data di oggi.
+ */
+function dataPossibileOppureOggi(dataISO, ora) {
+  const testo = String(dataISO || '').slice(0, 10);
+  if (/^\d{4}-\d{2}-\d{2}$/.test(testo)) {
+    const d = new Date(testo + 'T12:00:00');
+    if (!Number.isNaN(d.getTime()) && isoGiorno(d) === testo) return testo;
+  }
+  return isoGiorno(ora);
+}
+
+/** Crea le serie previste per la seduta appena aperta. */
+async function creaSeriePreviste(seduta, giorno) {
   for (const es of (giorno.esercizi || [])) {
     const esercizio = await esercizioDi(es.esercizio_id);
     const previste = es.serie || [];
@@ -236,7 +286,18 @@ export async function chiudiSeduta(idSeduta, oraFine = new Date()) {
     throw errore;
   }
   const fine = oraFine instanceof Date ? oraFine : new Date(oraFine);
-  const secondi = Math.max(0, Math.round((fine.getTime() - new Date(seduta.ora_inizio).getTime()) / 1000));
+  // LA DURATA VA CALCOLATA CON I NUMERI VERI.
+  //
+  // Qui si faceva `new Date(seduta.ora_inizio)` senza controllare che ci sia. E se
+  // non c'è, `new Date(null)` è il 1970: la durata diventava di 56 anni e finiva
+  // nelle statistiche per sempre. Se invece `ora_inizio` era una stringa che non è
+  // una data, il risultato era `NaN`, e `Math.max(0, NaN)` restituisce `NaN`: la
+  // protezione non proteggeva niente.
+  //
+  // Basta una seduta arrivata da un backup (che non validava l'ora di inizio) per
+  // rovinare il totale delle durate in modo definitivo. Ora si usa la funzione
+  // gemella, che già aveva la guardia giusta.
+  const secondi = secondiDiAllenamento({ ...seduta, ora_fine: fine.toISOString() }, fine);
   return db.salva('sedute', {
     ...seduta,
     ora_fine: fine.toISOString(),

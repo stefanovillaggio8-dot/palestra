@@ -382,7 +382,7 @@ async function applicaAggiornamento(res, seduta) {
     g.ordine = pulita.giorni.indexOf(g) + 1;
   }
   await db.salva('versioni', {
-    id: nuovaVersioneId, scheda_id: SCHEDA_ID, numero: nuovoNumero, snapshot: pulita,
+    id: nuovaVersioneId, scheda_id: schedaAttivaId(), numero: nuovoNumero, snapshot: pulita,
     nota: `Aggiornata con la seduta del ${seduta.data}`,
   });
   await db.salva('schede', { ...scheda(), versione_corrente: nuovaVersioneId });
@@ -825,7 +825,9 @@ function vistaHome(zona) {
   // Se cÈ una seduta aperta, questa È la cosa più importante della schermata:
   // la metto in cima, grossa, prima ancora del titolo. Se chiudi l'app a meta'
   // allenamento la trovi subito e la riprendi.
-  db.sedutaInCorso().then((attiva) => {
+  // Solo la seduta di QUESTA persona, per lo stesso motivo di `iniziaAllenamento`.
+  const vCorrente = versioneCorrente();
+  db.sedutaInCorso(vCorrente && vCorrente.id).then((attiva) => {
     const avvisoSeduta = document.getElementById('zona-avviso');
     if (!attiva || !avvisoSeduta) return;
     const quante = V.serie.filter((x) => x.seduta_id === attiva.id && !x.eliminata).length;
@@ -887,7 +889,10 @@ function ultimaSedutaDelGiorno(giornoId) {
 }
 
 async function iniziaAllenamento(giorno) {
-  const attiva = await db.sedutaInCorso();
+  // Solo la seduta di QUESTA persona: una sessione lasciata aperta da un altro
+  // profilo sullo stesso dispositivo non deve bloccare l'allenamento.
+  const v = versioneCorrente();
+  const attiva = await db.sedutaInCorso(v && v.id);
   if (attiva) {
     const ok = await chiediConferma(
       'C\'e\' gia\' un allenamento in corso',
@@ -898,7 +903,7 @@ async function iniziaAllenamento(giorno) {
     return;
   }
   const versione = versioneCorrente();
-  const seduta = await apriSeduta({ scheda_id: SCHEDA_ID, versione, giorno });
+  const seduta = await apriSeduta({ scheda_id: schedaAttivaId(), versione, giorno });
   // IMPORTANTISSIMO: senza questo ricaricamento le serie appena create non
   // sarebbero a schermo, e "+ Aggiungi serie" calcolerebbe l'ordine sbagliato.
   await ricaricaTutto();
@@ -1138,7 +1143,7 @@ function vistaGiorno(zona, giornoId) {
           const nuovoNumero = Math.max(0, ...versioniDellaPersona().map((x) => Number(x.numero) || 0)) + 1;
           const nuovaVersioneId = 'ver-' + nuovoId();
           await db.salva('versioni', {
-            id: nuovaVersioneId, scheda_id: SCHEDA_ID, numero: nuovoNumero,
+            id: nuovaVersioneId, scheda_id: schedaAttivaId(), numero: nuovoNumero,
             snapshot: JSON.parse(JSON.stringify(nuova)),
             nota: `Modificata a mano il ${schedaEvento()}.`,
           });
@@ -1375,7 +1380,22 @@ function rigaSerie(serie, numero, confronto, seduta, pesoRigaSorella = null) {
   const assistenza = e && !convenzioneMisuraCarico(e.convenzione);
   const chiave = assistenza ? 'peso_assistenza' : 'peso';
 
-  const riga = el('div', { class: 'riga-serie', dati: { serieId: serie.id } });
+  // SE L'ESERCIZIO È CARDIO, SU UNA SERIE CI SI SCRIVONO SOLO I MINUTI.
+  //
+  // Ste (09/10/2026): "quando scrivo l'esercizio nella scheda mi spunta che devo
+  // mettere anche i kg e che posso mettere i kg se l'ho fatto con lo spotter
+  // dropset ecc.. deve segnare solo che posso mettere i minuti non anche altre cose".
+  //
+  // Su un tapis NON si scrive il carico, non c'è lo spotter e non c'è il dropset:
+  // sono tre cose che non esistono in quel contesto. Non basta nasconderle: se il
+  // campo del peso resta nel DOM, la scheda continua a chiedere un numero che
+  // non devi sapere, e la serie finisce con `peso: null` in tutti i calcoli.
+  //
+  // Quindi per il cardio la riga si riduce a quattro cose: il numero della serie e
+  // la spunta, il campo dei minuti, la nota e "Elimina".
+  const serieCardio = eCardio(e);
+
+  const riga = el('div', { class: 'riga-serie' + (serieCardio ? ' riga-serie-cardio' : ''), dati: { serieId: serie.id } });
   if (serie.spotter) riga.classList.add('serie-spotter');
   if (serie.ripetizioni !== null && Number(serie.ripetizioni) % 1 !== 0) riga.classList.add('serie-decimale');
   if (eFatta(serie)) riga.classList.add('serie-fatta');
@@ -1396,6 +1416,23 @@ function rigaSerie(serie, numero, confronto, seduta, pesoRigaSorella = null) {
       const fatta = !eFatta(serie);
       segnaAspettoFatto(riga, spunta, fatta, etichettaFatta);
       if (fatta) pulsa();
+      // L'ACCENDERSI DELLA SERIE.
+      // È l'unica animazione che parte da una tua azione e dice cosa è successo:
+      // hai premuto la spunta e la riga si illumina per mezzo secondo. Sparisce
+      // subito, quindi non resta una decorazione attaccata alla schermata.
+      if (fatta) {
+        // forza il ricalcolo dell'animazione: senza questo, togliere e rimettere la
+        // classe nella stessa sessione non riparte e la seconda volta non si vede.
+        // Lo si fa chiedendo al browser un ricalcolo, ma NON con `offsetWidth`:
+        // nei test il DOM finto non ce l'ha, e un difetto di layout non deve
+        // poter far cadere un test che non c'entra niente. Un ricalcolo di stile è
+        // esattamente quello che serve, ed esiste in ogni browser.
+        riga.classList.remove('serie-fatta-adesso');
+        if (typeof getComputedStyle === 'function' && globalThis.window) {
+          try { getComputedStyle(riga); } catch { /* il DOM finto non lo sa fare: pazienza */ }
+        }
+        riga.classList.add('serie-fatta-adesso');
+      }
       const campi = { stato: fatta ? 'fatta' : 'da_fare' };
       // Salvo dentro il peso che avevo quando l'ho fatta: così il record resta
       // legato al peso giusto anche se poi mi peso diversamente.
@@ -1430,45 +1467,48 @@ function rigaSerie(serie, numero, confronto, seduta, pesoRigaSorella = null) {
     },
   }, [el('span', { testo: String(numero) })]));
 
-  const peso = campoNumero(serie[chiave], {
-    etichetta: assistenza ? 'kg di assistenza' : 'kg',
-    onCambio: conRitardo((v) => aggiornaSerie(serie, { [chiave]: Number(String(v).replace(',', '.')) })),
-    onInvalido: (v) => avviso('Non riesco a capire il numero "' + v + '". Il campo com\'era com\'era rimane com\'era.', { tipo: 'errore' }),
-  });
-  peso.classList.add('campo-peso');
+// IL PESO. Sul cardio non lo disegno: vedi la spiegazione di `serieCardio` sopra.
+  if (!serieCardio) {
+    const peso = campoNumero(serie[chiave], {
+      etichetta: assistenza ? 'kg di assistenza' : 'kg',
+      onCambio: conRitardo((v) => aggiornaSerie(serie, { [chiave]: numeroOppureNull(v) })),
+      onInvalido: (v) => avviso('Non riesco a capire il numero "' + v + '". Il campo com\'era com\'era rimane com\'era.', { tipo: 'errore' }),
+    });
+    peso.classList.add('campo-peso');
 
-  // In palestra non si scrive: si tocca. Ste ha detto che i +/- 2,5 kg non gli
-  // servono (li fa a mano), quindi lascio solo "come sopra", che copia il peso
-  // della serie precedente: È il caso più comune e non si può fare a mano
-  // senza rileggere il numero.
-  const scriviPeso = (valore) => {
-    const tondo = Math.round(valore * 100) / 100;
-    peso.value = String(tondo).replace('.', ',');
-    perView[chiave] = tondo;
-    aggiornaSerie(serie, { [chiave]: tondo });
-  };
-  const rigaPeso = el('div', { class: 'gruppo-peso' }, [
-    peso,
-    el('span', { class: 'sotto-campo', testo: assistenza ? 'ASSISTENZA' : 'KG' }),
-    pesoRigaSorella !== null && pesoRigaSorella !== undefined
-      ? el('div', { class: 'passi-peso' }, [
-        bottone('come sopra', {
-          onClick: () => scriviPeso(pesoRigaSorella),
-          classe: 'passo passo-largo',
-          titolo: `Copia ${formattaNumero(pesoRigaSorella)} kg dalla serie precedente`,
-        }),
-      ])
-      : null,
-  ]);
-  riga.appendChild(el('label', { class: 'campetto' }, [rigaPeso]));
+    // In palestra non si scrive: si tocca. Ste ha detto che i +/- 2,5 kg non gli
+    // servono (li fa a mano), quindi lascio solo "come sopra", che copia il peso
+    // della serie precedente: è il caso più comune e non si può fare a mano
+    // senza rileggere il numero.
+    const scriviPeso = (valore) => {
+      const tondo = Math.round(valore * 100) / 100;
+      peso.value = String(tondo).replace('.', ',');
+      perView[chiave] = tondo;
+      aggiornaSerie(serie, { [chiave]: tondo });
+    };
+    const rigaPeso = el('div', { class: 'gruppo-peso' }, [
+      peso,
+      el('span', { class: 'sotto-campo', testo: assistenza ? 'ASSISTENZA' : 'KG' }),
+      pesoRigaSorella !== null && pesoRigaSorella !== undefined
+        ? el('div', { class: 'passi-peso' }, [
+          bottone('come sopra', {
+            onClick: () => scriviPeso(pesoRigaSorella),
+            classe: 'passo passo-largo',
+            titolo: `Copia ${formattaNumero(pesoRigaSorella)} kg dalla serie precedente`,
+          }),
+        ])
+        : null,
+    ]);
+    riga.appendChild(el('label', { class: 'campetto' }, [rigaPeso]));
+  }
 
-  const rip = campoNumero(serie.ripetizioni, {
-    etichetta: 'ripetizioni',
-    onCambio: conRitardo((v) => aggiornaSerie(serie, { ripetizioni: Number(String(v).replace(',', '.')) })),
-    onInvalido: (v) => avviso('Le ripetizioni dev\'essere un numero. Provo a lasciare com\'era.', { tipo: 'errore' }),
+const rip = campoNumero(serie.ripetizioni, {
+    etichetta: serieCardio ? 'minuti' : 'ripetizioni',
+    onCambio: conRitardo((v) => aggiornaSerie(serie, { ripetizioni: numeroOppureNull(v) })),
+    onInvalido: (v) => avviso('Dev\'essere un numero. Provo a lasciare com\'era.', { tipo: 'errore' }),
   });
   rip.addEventListener('input', () => {
-    const v = rip.value === '' ? null : Number(rip.value.replace(',', '.'));
+    const v = numeroOppureNull(rip.value);
     if (v === null || Number.isFinite(v)) { perView.ripetizioni = v; scriviBadgeSpotter(); }
   });
   rip.classList.add('campo-rip');
@@ -1479,17 +1519,15 @@ function rigaSerie(serie, numero, confronto, seduta, pesoRigaSorella = null) {
   // minuti. Scrivere 30 e non sapere se sono secondi, minuti o metri è il motivo per
   // cui il cardio non veniva contato bene. Ora la lettera sotto il campo dice MIN, e
   // sotto la riga c'è scritto cosa scrivere.
-  const esercizioSerie = esercizioPerId(serie.esercizio_id);
-  const serieCardio = eCardio(esercizioSerie);
-  riga.appendChild(el('label', { class: 'campetto' }, [
+  riga.appendChild(el('label', { class: 'campetto' + (serieCardio ? ' campetto-cardio' : '') }, [
     rip,
     el('span', { class: 'sotto-campo', testo: serieCardio ? 'MIN' : 'RIP' }),
   ]));
   if (serieCardio) {
     riga.appendChild(el('p', {
       class: 'nota nota-piccola nota-cardio',
-      testo: 'Cardio: scrivi i minuti (30 = mezz\'ora, 45 = tre quarti d\'ora). '
-        + 'Se scrivi i secondi (1800) l\'app fa la stessa cosa: li riconosce.',
+      testo: 'Scrivi i minuti: 30 per mezz\'ora, 45 per tre quarti. '
+        + 'Se scrivi i secondi (1800) l\'app fa la stessa cosa, li riconosce.',
     }));
   }
 
@@ -1516,15 +1554,23 @@ function rigaSerie(serie, numero, confronto, seduta, pesoRigaSorella = null) {
     },
     classe: serie.spotter ? 'spotter attivo' : 'fantasma',
   });
-  riga.appendChild(botSpotter);
-  riga.appendChild(pulsanteDropset(serie, { perView }));
-  riga.appendChild(badgeSpotter);
+  // IL SPOTTER, IL DROPSET E LE RIPETIZIONE ASSISTITE: NIENTE SUL CARDIO.
+  //
+  // Sono tre cose che esistono solo quando c'è un carico da alleggerire. Sul tapis
+  // non ci sono: Ste li ha tolti di proposito, perché chiedere "quanto hai usato
+  // lo spotter?" su un esercizio a corpo libero è una domanda senza senso, e
+  // obbligarlo a rispondere con un numero lo spinge a scrivere "0" dappertutto.
+  if (!serieCardio) {
+    riga.appendChild(botSpotter);
+    riga.appendChild(pulsanteDropset(serie, { perView }));
+    riga.appendChild(badgeSpotter);
+  }
 
   const campiAssistite = el('div', { class: 'gruppo-assistite' });
-  if (serie.spotter) {
+  if (serie.spotter && !serieCardio) {
     const ass = campoNumero(serie.rip_assistite, {
       etichetta: 'ripetizioni assistite',
-      onCambio: conRitardo((v) => aggiornaSerie(serie, { rip_assistite: v === null ? null : Number(String(v).replace(',', '.')) })),
+      onCambio: conRitardo((v) => aggiornaSerie(serie, { rip_assistite: numeroOppureNull(v) })),
     });
     ass.addEventListener('input', () => {
       const v = ass.value === '' ? null : Number(ass.value.replace(',', '.'));
@@ -1556,7 +1602,7 @@ function rigaSerie(serie, numero, confronto, seduta, pesoRigaSorella = null) {
   ]));
 
   // dropset: i tre giri extra, ma solo se l'hai acceso col pulsante
-  if (serie.dropset) riga.appendChild(bloccoDropset(serie));
+  if (serie.dropset && !serieCardio) riga.appendChild(bloccoDropset(serie));
 
   if (confronto) {
     if (!confronto.haConfronto) {
@@ -2155,7 +2201,7 @@ function rigaStorico(serie, numero, e, s, pesoRigaSorella = null) {
   }, [el('span', { testo: String(numero) })]));
 
   const peso = campoNumero(serie[chiave], {
-    onCambio: conRitardo((v) => aggiornaSerie(serie, { [chiave]: v === '' ? null : Number(String(v).replace(',', '.')) })),
+    onCambio: conRitardo((v) => aggiornaSerie(serie, { [chiave]: numeroOppureNull(v) })),
   });
   peso.classList.add('campo-peso');
   const scriviPeso = (valore) => {
@@ -2181,7 +2227,7 @@ function rigaStorico(serie, numero, e, s, pesoRigaSorella = null) {
   ]));
 
   const rip = campoNumero(serie.ripetizioni, {
-    onCambio: conRitardo((v) => aggiornaSerie(serie, { ripetizioni: v === '' ? null : Number(String(v).replace(',', '.')) })),
+    onCambio: conRitardo((v) => aggiornaSerie(serie, { ripetizioni: numeroOppureNull(v) })),
   });
   rip.classList.add('campo-rip');
   riga.appendChild(el('label', { class: 'campetto' }, [rip, el('span', { class: 'sotto-campo', testo: 'RIP' })]));
@@ -2210,7 +2256,7 @@ riga.appendChild(botSpotter);
   const assistite = el('div', { class: 'gruppo-assistite' });
   if (perView.spotter) {
     const ass = campoNumero(serie.rip_assistite, {
-      onCambio: conRitardo((v) => aggiornaSerie(serie, { rip_assistite: v === null ? null : Number(String(v).replace(',', '.')) })),
+      onCambio: conRitardo((v) => aggiornaSerie(serie, { rip_assistite: numeroOppureNull(v) })),
     });
     ass.classList.add('piccolo');
     assistite.appendChild(el('label', { class: 'campetto' }, [
@@ -2320,7 +2366,7 @@ function vistaScheda(zona) {
         const nuovoNumero = Math.max(0, ...versioniDellaPersona().map((x) => Number(x.numero) || 0)) + 1;
         const nuovaVersioneId = 'ver-' + nuovoId();
         await db.salva('versioni', {
-          id: nuovaVersioneId, scheda_id: SCHEDA_ID, numero: nuovoNumero, snapshot: JSON.parse(JSON.stringify(nuova)),
+          id: nuovaVersioneId, scheda_id: schedaAttivaId(), numero: nuovoNumero, snapshot: JSON.parse(JSON.stringify(nuova)),
           nota: 'Modificata a mano.',
         });
         await db.salva('schede', { ...scheda(), versione_corrente: nuovaVersioneId });
@@ -2598,8 +2644,26 @@ function vistaProgressi(zona) {
     return massimo;
   }
 
-  function aggiorna() {
+function aggiorna() {
     const e = esercizioPerId(selezionato);
+    // L'ESERCIZIO PUÒ NON ESSERCI PIÙ.
+    //
+    // Centocinquanta righe più su, il costruttore del menu scrive
+    // `(esercizioPerId(id) || {}).nome || id`: lì è previsto che l'esercizio manchi.
+    // Qui no: `e.nome` con `e === null` solleva un TypeError, e l'interfaccia
+    // sostituisce tutta la pagina con la schermata d'errore.
+    //
+    // Quando succede: importi un backup fatto su un altro dispositivo con
+    // "sostituzione", gli esercizi del catalogo che non erano in quel backup finiscono
+    // nel cestino, ma restano negli snapshot delle versioni. Apri i Progressi e la
+    // pagina non si carica più.
+    if (!e) {
+      svuota(contenitoreTesto);
+      svuota(contenitoreGrafici);
+      svuota(spazioGenerale);
+      contenitoreTesto.appendChild(el('p', { class: 'nota', testo: 'Questo esercizio non è più nel catalogo, ma le sue serie ci sono ancora. Aggiungilo di nuovo dal catalogo per rivedere i progressi.' }));
+      return;
+    }
     const punti = storicoEsercizio();
     svuota(contenitoreTesto);
     svuota(contenitoreGrafici);
@@ -3027,6 +3091,9 @@ async function esportaJson() {
     sedute: dati.sedute, serie: dati.serie, note: dati.note, conflitti: dati.conflitti,
     profili: dati.profili, missioni: dati.missioni, ricompense: dati.ricompense,
     pesi: dati.pesi,
+    // le correzioni che hai dato all'app: senza queste, il backup dimentica
+    // tutto quello che le hai insegnato (vedi la spiegazione in backup.js)
+    appreso: dati.appreso,
   }, { note: 'Backup dell\'app Palestra' });
   const testo = JSON.stringify(pacchetto, null, 2);
   const blob = new Blob([testo], { type: 'application/json' });
@@ -3662,18 +3729,22 @@ export function bloccoCalendario(profilo, st) {
   ]);
   box.appendChild(testata);
 
-  // ---- I DODICI MESI.
+// ---- I DODICI MESI.
   //
   // Nell'anno in cui ti trovi si parte dal mese della PRIMA seduta, non da gennaio:
   // altrimenti il calendario di quest'anno avrebbe sei mesi vuoti davanti, e sei
-  // mesi vuoti non sono informazione, sono rumore. Negli anni dopo si parte da
-  // gennaio, e l'anno scorso si vede tutto: quello e' lo storico.
+  // mesi vuoti non sono informazione, sono rumore.
+  //
+  // Negli ANNI DOPO si parte da gennaio: è il futuro, e tu non ci sei ancora allenato.
+  //
+  // Negli ANNI PRIMA si parte da gennaio PERCHÉ QUELLI SONO LO STORICO. E qui c'era
+  // un buco: la condizione era invertita e l'anno scorso partiva dal mese della
+  // prima seduta. Il risultato era che andando indietro di un anno (2025, se la
+  // prima seduta è di marzo 2026) gennaio e febbraio sparivano dal calendario, e
+  // se in quei due mesi ti eri allenato i tuoi giorni verdi non c'erano.
   const primoGiorno = giorniFatti.size ? [...giorniFatti].sort()[0] : oggi;
-  const primoAnno = Number(primoGiorno.slice(0, 4));
   const primoMese = Number(primoGiorno.slice(5, 7));
-  const meseIniziale = (anno === oggiAnno)
-    ? primoMese
-    : (anno > oggiAnno ? 1 : primoMese);
+  const meseIniziale = (anno === oggiAnno) ? primoMese : 1;
   const griglia = el('div', { class: 'calendario-anno' });
   for (let m = meseIniziale; m <= 12; m++) {
     griglia.appendChild(bloccoMese(anno, m, previsti, giorniFatti, oggi));
@@ -3803,12 +3874,22 @@ function dettaglioGiorno(iso) {
     box.appendChild(el('p', { class: 'nota', testo: 'Qui non hai allenato.' }));
     return box;
   }
-  for (const s of sedute) {
-    const righe = serieDellaPersona().filter((x) => x.seduta_id === s.id);
+for (const s of sedute) {
+    // Le serie ELIMINATE non si contano: sono nel cestino, e ogni altra schermata
+    // dell'app le filtra via. Qui no, quindi una serie buttata compariva ancora
+    // nella lista del giorno.
+    const righe = serieDellaPersona().filter((x) => x.seduta_id === s.id && !x.eliminata);
     const voci = righe.map((x) => {
       const e = esercizioPerId(x.esercizio_id);
-      const kg = Number(x.peso || 0);
-      return (e ? e.nome : 'esercizio') + (kg ? ` ${String(kg).replace('.', ',')} kg` : '');
+      // I CHILI ASSISTITI: negli esercizi assistiti il numero che hai scritto sta
+      // in `peso_assistenza`, e `peso` è vuoto. Leggendo solo `peso`, l'esercizio
+      // compariva senza i kg anche se li avevi scritti.
+      const kg = Number(x.peso || x.peso_assistenza || 0);
+      const numero = Number(x.ripetizioni || 0);
+      const pezzi = [e ? e.nome : 'esercizio'];
+      if (kg) pezzi.push(`${String(kg).replace('.', ',')} kg`);
+      if (numero) pezzi.push(`${String(numero).replace('.', ',')} ${convenzioneMisuraCarico(e && e.convenzione) ? 'rip' : 'min'}`);
+      return pezzi.join(' ');
     });
     box.appendChild(el('p', { class: 'nota', testo: voci.length ? voci.join(' · ') : 'seduta completata' }));
   }
@@ -3966,6 +4047,36 @@ const GIORNI_SETTIMANA = [
  * non succede niente": è la frase che rende chiara la regola, perché il dubbio che
  * tutti hanno guardando una streak è "ma il riposo me la rompe?".
  */
+/**
+ * Converte quello che arriva da un campo numerico nel NUMERO giusto, o in `null`.
+ *
+ * IL BUG CHE QUESTA FUNZIONE RISOLVE.
+ *
+ * `campoNumero` (ui.js) manda `null` quando il campo è vuoto, non la stringa
+ * vuota: è il suo modo di dire "non c'è niente". Ma il codice faceva
+ * `Number(String(v).replace(',', '.'))`, e `String(null)` è la parola `"null"`, che
+ * `Number` non sa leggere e restituisce `NaN`.
+ *
+ * Il risultato era questo: SVUOTARE il campo dei kg o delle ripetizioni salvava
+ * `NaN` sul database, e al ridisegno il campo mostrava la parola "NaN". Non è un
+ * numero che si vede e non si capisce: è un peso perso, perché i Rank scartano i
+ * valori che non sono numeri e l'esercizio sparisce dalle classifiche.
+ *
+ * Tre righe del file avevano una protezione, ma controllavano `v === ''` mentre il
+ * campo manda `null`: la condizione non era mai vera, quindi il ramo `NaN` partiva
+ * lo stesso. Qui la protezione è una sola e non può sbagliare.
+ */
+function numeroOppureNull(v) {
+  if (v === null || v === undefined) return null;
+  if (typeof v === 'number') return Number.isFinite(v) ? v : null;
+  const testo = String(v).trim();
+  if (testo === '') return null;
+  // sostituisce TUTTE le virgole, non solo la prima: "1,234,5" è un numero solo
+  // scritto male, e togliere una virgola sola lascerebbe "1.234,5" che non è un numero
+  const n = Number(testo.replace(/\./g, '').replace(',', '.'));
+  return Number.isFinite(n) ? n : null;
+}
+
 function bloccoGiorniAllenamento() {
   const profilo = profiloAttivo();
   const salvati = Array.isArray(profilo.giorni_allenamento) ? profilo.giorni_allenamento.slice() : null;
@@ -4483,7 +4594,17 @@ function vistaRank(zona) {
 async function vistaEsercizio(zona, esercizioId) {
   const e = esercizioPerId(esercizioId);
   if (!e) { zona.appendChild(el('p', { testo: 'Esercizio non trovato.' })); return; }
-  const serie = (V.serie || []).filter((x) => x && !x.eliminata && x.esercizio_id === e.id);
+  // LE SERIE SONO DI CHI STA USANDO L'APP, NON DI TUTTI.
+  //
+  // Qui si leggeva `V.serie` grezzo, cioè le serie di TUTTE le persone sul
+  // dispositivo. Tutte le altre schermate usano `serieDellaPersona()`: questa era
+  // l'unica che leggeva la tabella intera.
+  //
+  // Il danno è silenzioso e quindi il peggiore: tu fai chest press 40 kg × 8 e
+  // Andrea 65 kg × 8 sullo stesso esercizio; aprendo "il suo Rank" vedevi il record
+  // di Andrea, con le sue LP e la sua fascia, e l'avviso sul peso corporeo era
+  // calcolato sulla prestazione di Andrea. Numeri giusti, ma non tuoi.
+  const serie = serieDellaPersona().filter((x) => x && !x.eliminata && x.esercizio_id === e.id);
   // il peso corporeo di adesso serve per le prestazioni che non hanno ancora
   // un peso salvato dentro; quelle vecchie mantengono il loro
   const pesoOggi = pesoCorporeoOra();
@@ -4801,9 +4922,18 @@ function vistaAmico(zona, idAmico) {
   zona.appendChild(el('section', { class: 'blocco' }, [
     el('h2', { testo: 'I suoi allenamenti' }),
     voce.sedute.length
-      ? el('ul', { class: 'lista-sedute-amico' }, voce.sedute.slice(0, 20).map((s) => el('li', {
-        testo: `${s.nome_giorno || 'Allenamento'} · ${s.data} · ${s.serie_fatte || 0} serie`,
-      })))
+      ? el('ul', { class: 'lista-sedute-amico' }, voce.sedute.slice(0, 20).map((s) => {
+        // IL NUMERO DI SERIE VA CONTATO, non letto da un campo che non esiste.
+        //
+        // Qui c'era `s.serie_fatte || 0`: quel campo non è scritto da nessuna parte
+        // dell'app (le serie stanno in un'altra tabella, collegate da `seduta_id`), e
+        // quindi la pagina dell'amico diceva SEMPRE "0 serie". Non un numero sbagliato:
+        // un numero che non era mai esistito. Ora si contano davvero.
+        const n = (voce.serie || []).filter((x) => x && x.seduta_id === s.id && !x.eliminata).length;
+        return el('li', {
+          testo: `${s.nome_giorno || 'Allenamento'} · ${s.data} · ${n} serie`,
+        });
+      }))
       : el('p', { class: 'nota', testo: 'Nessun allenamento finito.' }),
   ]));
 
@@ -5230,6 +5360,46 @@ function finestraCreaEsercizio() {
   convenzione.addEventListener('change', aggiornaAnteprima);
   aggiornaAnteprima();
 
+  // IL BLOCCO DEL CARICO: le quattro domande che hanno senso solo se l'esercizio ha
+  // un carico. Va costruito qui e inserito una volta sola nel dialogo.
+  const bloccoCarico = el('div', { class: 'blocco-carico' }, [
+    el('h4', { class: 'titolo-sottosezione', testo: 'Il carico' }),
+    el('label', { class: 'nota', testo: 'Convenzione del carico' }), convenzione,
+    el('label', { class: 'nota', testo: "Com'è fatto il carico? (solo se è un cavo)" }), carrucola,
+    el('label', { class: 'nota', testo: "Che macchina è? (dischi veri o stack)" }), attrezzatura,
+    el('label', { class: 'nota', testo: "Muovi un braccio senza l'altro?" }), braccia,
+    // IL PUNTEGGIO PLATINUM È UN NUMERO DI CHILI, quindi per il cardio sparisce
+    // insieme a tutto il resto: su un tapis non c'è un carico da confrontare con
+    // gli altri. L'anteprima della scala viene nascosta insieme.
+    el('label', { class: 'nota', testo: 'Punteggio PLATINUM (facoltativo: se lo lasci vuoto lo sceglie l\'app)' }), riferimento,
+    anteprimaRiferimento,
+  ]);
+
+  // LA SPUNTA COMANDA IL BLOCCO. È l'unico pezzo di logica in questo form che non è
+  // "disegna e basta": quando cambia, il blocco del carico sparisce e i campi non
+  // vengono salvati, così non resta un "per braccio" fantasma su un tapis.
+  // La funzione è definita più avanti, dove `aggiornaAnteprima` esiste già.
+  const aggiornaPerCardio = () => {
+    const attivo = cardio.value === 'si';
+    bloccoCarico.hidden = attivo;
+    // e il tipo diventa "solo ripetizioni", che è come si misura un cardio: minuti.
+    if (attivo) {
+      tipo.value = 'ripetizioni';
+      convenzione.value = '';
+      carrucola.value = '';
+      attrezzatura.value = '';
+      braccia.value = '';
+      riferimento.value = '';
+    }
+    aggiornaRiconoscimento();
+    aggiornaAnteprima();
+  };
+  // La spunta cardio chiama le due funzioni definite sopra, quindi il listener va
+  // registrato adesso, quando esistono già. E si chiama una volta all'apertura, così
+  // un esercizio cardio si apre già con il blocco del carico nascosto.
+  cardio.addEventListener('change', aggiornaPerCardio);
+  aggiornaPerCardio();
+
   const immagine = el('input', { type: 'file', accept: 'image/*', class: 'campo-testo' });
   let fotoData = null;
   immagine.addEventListener('change', () => {
@@ -5293,20 +5463,27 @@ function finestraCreaEsercizio() {
     el('label', { class: 'nota', testo: 'Nome' }), nome,
     riconosciuto,
     el('label', { class: 'nota', testo: 'Immagine' }), immagine,
-    el('label', { class: 'nota', testo: 'Tipo' }), tipo,
-    el('label', { class: 'nota', testo: 'Convenzione del carico' }), convenzione,
-    el('label', { class: 'nota', testo: "Com'è fatto il carico? (solo se è un cavo)" }), carrucola,
-    el('label', { class: 'nota', testo: "Che macchina è? (dischi veri o stack)" }), attrezzatura,
-    el('label', { class: 'nota', testo: "Muovi un braccio senza l'altro?" }), braccia,
-    el('label', { class: 'nota', testo: "È cardio?" }), cardio,
+    // LA SCELTA "È CARDIO" VIENE PRIMA, PERCHÉ È QUELLA CHE CAMBIA TUTTE LE ALTRE.
+    //
+    // Ste (09/10/2026): "ho creato l'esercizio cardio cioè tapis roulant. prima di
+    // tutto nella creazione esercizio se dico che è cardio devono togliersi le altre
+    // cose tipo KG a dischi ecc".
+    //
+    // Le domande sul carico (quali kg, per braccio o in totale, dischi veri o stack,
+    // muovi un braccio solo) su un tapis non hanno risposta: non ci sono kg. Non
+    // basta scrivere "non applicabile", è una domanda che non va fatta. Per questo
+    // la spunta sta SOPRA, e quando è spuntata il blocco del carico sparisce
+    // davvero e i campi non vengono salvati.
+    el('label', { class: 'nota', testo: 'È cardio?' }), cardio,
     el('p', {
-      class: 'nota nota-piccola',
-      testo: 'Se è cardio, sul scheda il campo sotto il peso diventa i MINUTI e ti '
-        + 'contano per l\'agilità e la stamina. Scrivi 30 per mezz\'ora: se per caso '
-        + 'scrivi i secondi (1800), l\'app capisce che erano secondi e fa 30 minuti.',
+      class: 'nota nota-piccola nota-cardio',
+      testo: 'Se è cardio (tapis, corsa, corda, cyclette), spariscono le domande sui '
+        + 'chili e sulla scheda si scrive solo per quanti minuti. Ti contano per '
+        + 'l\'agilità e la stamina.',
     }),
-    el('label', { class: 'nota', testo: 'Punteggio PLATINUM (facoltativo: se lo lasci vuoto lo sceglie l\'app)' }), riferimento,
-    anteprimaRiferimento,
+// IL BLOCCO DEL CARICO, che sparisce quando è cardio.
+    bloccoCarico,
+    el('label', { class: 'nota', testo: 'Tipo' }), tipo,
     el('label', { class: 'nota', testo: 'Descrizione (come si fa: facoltativa)' }), descrizione,
     el('div', { class: 'dialogo-azioni' }, [
       bottone('Annulla', { onClick: () => box.remove(), classe: 'fantasma' }),
@@ -5326,34 +5503,42 @@ function finestraCreaEsercizio() {
           // scriveranno È di un lato, del carrello o del carico intero, e il
           // riferimento salvato È quello sbagliato. Prima la copia passava solo
           // nome e convenzione.
+          // SE È CARDIO NON SI SALVA NESSUN CARICO. Un "tapis tondo" salvato con
+          // una convenzione del carico farebbe comparire il campo dei kg sulla
+          // scheda e il Rank cercherebbe un numero che non esiste.
+          const eCardioNuovo = cardio.value === 'si';
           const profilo = profiloEsercizio(
             {
               id,
               nome: nomeValore,
-              convenzione: convenzione.value,
-              misura,
-              attrezzatura: attrezzatura.value || null,
-              carrucola: carrucola.value || null,
-              bracciaIndipendenti: braccia.value === 'si',
+              // e la scala del Rank è calcolata sulla convenzione: per un cardio
+              // non c'è convenzione, quindi niente scala di kg da inventare
+              convenzione: eCardioNuovo ? '' : convenzione.value,
+              misura: eCardioNuovo ? 'ripetizioni' : misura,
+              attrezzatura: eCardioNuovo ? null : (attrezzatura.value || null),
+              carrucola: eCardioNuovo ? null : (carrucola.value || null),
+              bracciaIndipendenti: !eCardioNuovo && braccia.value === 'si',
             },
-            Number.isFinite(scritto) && scritto > 0 ? { riferimento: scritto } : {},
+            (Number.isFinite(scritto) && scritto > 0 && !eCardioNuovo) ? { riferimento: scritto } : {},
           );
           await db.salva('esercizi', {
             id,
             nome: nomeValore,
             gruppo: nomeValore,
-            convenzione: convenzione.value,
-            misura,
+            convenzione: eCardioNuovo ? '' : convenzione.value,
+            misura: eCardioNuovo ? 'ripetizioni' : misura,
             // I tre fatti che l'app DEVE sapere. Senza questi l'esercizio nasce
             // sbagliato: sul doppio carrucola il Rank È dimezzato, e una macchina
             // a dischi non È una macchina a stack. E valgono anche per la scala,
             // quindi non solo per il Rank.
-            ...(carrucola.value ? { carrucola: carrucola.value } : {}),
-            ...(attrezzatura.value ? { attrezzatura: attrezzatura.value } : {}),
-            ...(braccia.value === 'si' ? { bracciaIndipendenti: true } : {}),
+            // e i tre fatti del carico solo se NON è cardio: sono già azzerati sopra, ma
+            // queste righe li riscriverebbero con i valori del form.
+            ...(eCardioNuovo ? {} : (carrucola.value ? { carrucola: carrucola.value } : {})),
+            ...(eCardioNuovo ? {} : (attrezzatura.value ? { attrezzatura: attrezzatura.value } : {})),
+            ...(eCardioNuovo ? {} : (braccia.value === 'si' ? { bracciaIndipendenti: true } : {})),
             // Il flag del cardio. Senza questo, un esercizio di cardio si riconosceva
             // solo dal nome ("tapis", "corsa") e ogni altro nome non contava.
-            ...(cardio.value === 'si' ? { cardio: true } : {}),
+            ...(eCardioNuovo ? { cardio: true } : {}),
             tipo: 'standard',
             foto: fotoData || 'img/esercizi/chest-press.png',
             nota_permanente: String(descrizione.value || '').trim(),

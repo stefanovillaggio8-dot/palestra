@@ -368,7 +368,24 @@ export async function svuotaTutto() {
 }
 
 /** La seduta attiva: massimo una, garantito dal database sul lato online. */
-export async function sedutaInCorso() {
+/**
+ * La seduta aperta di UNA persona.
+ *
+ * Il parametro `versioneId` non è una pignoleria: le sedute NON hanno un campo
+ * account (l'app le separa a runtime versione → scheda), quindi senza filtrare qui
+ * una seduta lasciata aperta dal profilo di Luca blocca l'avvio per TUTTI gli altri
+ * profili sullo stesso dispositivo. E quella è esattamente la situazione per cui
+ * Ste ha scritto questa app ("questa app devo darla pure a dei miei compagni").
+ *
+ * Se ci sono più sedute aperte (può succedere con due tocchi veloci), restituisce
+ * la PIÙ RECENTE e non una a caso: altrimenti l'app ti mostrava un allenamento
+ * vecchio mentre quello che hai davanti è un altro.
+ */
+export async function sedutaInCorso(versioneId = null) {
   const righe = await perIndice('sedute', 'stato', 'in_corso');
-  return righe.length ? righe[0] : null;
+  const mie = versioneId ? righe.filter((s) => s.versione_id === versioneId) : righe;
+  if (!mie.length) return null;
+  return mie
+    .slice()
+    .sort((a, b) => String(b.ora_inizio || '').localeCompare(String(a.ora_inizio || '')))[0];
 }

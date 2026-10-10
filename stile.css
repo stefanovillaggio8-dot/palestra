@@ -1144,6 +1144,16 @@ body.scorso .banda-cronometro .bot.grande {
 
 /* la nota che spiega come si scrive il cardio sotto il campo */
 .nota-cardio { flex: 1 0 100%; margin: 2px 0 6px; color: var(--verde); }
+/* il blocco del carico, che sparisce quando l'esercizio è cardio */
+.blocco-carico { display: flex; flex-direction: column; gap: 4px; }
+.blocco-carico[hidden] { display: none; }
+/* LA RIGA DI UNA SERIE CARDIO.
+   Ste: "deve segnare solo che posso mettere i minuti non anche altre cose". Il campo
+   dei minuti prende più spazio perché è l'unico numero che c'è: su un tapis non
+   devi infilare i kg tra una serie e l'altra con le dita grandi e il numero piccolo. */
+.riga-serie-cardio { padding: 10px; }
+.campetto-cardio { flex: 1 1 120px; }
+.campetto-cardio .campo-rip { font-size: 1.25rem; padding: 10px 12px; }
 /* --- il calendario (Profilo) --- */
 /* Ste: "il calendario deve essere grande, da oggi a per sempre e deve segnare solo in
    verde i giorni in cui ci sono andato e in rosso i giorni che ho saltato e in viola
@@ -1422,4 +1432,72 @@ body.scorso .banda-cronometro .bot.grande {
 .riga-esercizio-forza span { font-variant-numeric: tabular-nums; }
 @media (min-width: 640px) {
   .riga-esercizio-forza strong { flex: 1 1 auto; }
+}
+
+/* ---------- le animazioni ----------
+ *
+ * Ste (10/10/2026): "metti ci pure delle animazioni se vuoi".
+ *
+ * LA REGOLA CHE HO USATO, E IL PERCHE'.
+ *
+ * Un'animazione vale se risponde a quello che hai fatto tu: hai premuto, e la
+ * schermata ti dice che e' successo qualcosa. Non vale se si muove da sola: quello
+ * e' rumore che aspetta di essere guardato, e in palestra il telefono sta in tasca,
+ * non davanti agli occhi.
+ *
+ * Per questo qui ci sono TRE animazioni e nient'altro:
+ *
+ *   1. il dialogo che si apre, che viene da sotto e si ferma;
+ *   2. la serie che hai spuntato, che si accende e si spegne (risponde al tocco);
+ *   3. il calendario, quando cambi anno, che entra leggero.
+ *
+ * NON ho messo l'entrata sfumata di ogni sezione all'apertura: quella e' l'effetto
+ * che mette tutto il web, e su un'app che si usa in palestra finisce per essere un
+ * ritardo fra te e il pulsante.
+ */
+
+/* IL DIALOGO.
+   Si apre dal basso e si ferma: 200 ms, non di piu'. Se dura di piu', su un telefono
+   si sente come un'esitazione invece che come una risposta. */
+@keyframes dialogo-entra {
+  from { opacity: 0; transform: translateY(14px) scale(.985); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes sfondo-entra {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.sfondo-dialogo { animation: sfondo-entra .16s ease-out; }
+.dialogo { animation: dialogo-entra .2s cubic-bezier(.2, .9, .3, 1); }
+
+/* LA SERIE APPENA SPUNTATA.
+   Non parte da sola: la classe parte da JavaScript quando salvi la spunta, quindi
+   l'animazione dice esattamente "questa l'hai fatta". */
+@keyframes serie-accesa {
+  0% { box-shadow: inset 0 0 0 999px color-mix(in srgb, var(--verde) 34%, transparent); }
+  100% { box-shadow: inset 0 0 0 999px transparent; }
+}
+.serie-fatta-adesso { animation: serie-accesa .5s ease-out; }
+
+/* IL CALENDARIO quando cambi anno: si rifa', e un leggero "inserimento" dice che
+   e' cambiato qualcosa senza dover leggere l'anno scritto in alto. */
+@keyframes calendario-entra {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+.calendario-anno { animation: calendario-entra .18s ease-out; }
+
+/* CHI NON VUOLE LE ANIMAZIONI.
+   Il pulsante esiste su iOS, su Android e su Windows ("Riduci animazioni"). Se e'
+   acceso, l'app lo ascolta: niente animazioni, niente transizioni lunghe, e i
+   dialoghi compaiono subito. Non e' una gentilezza da aggiungere dopo: e' il
+   motivo per cui le altre animazioni si possono fare senza pensarci due volte,
+   perche' nessuno soffre. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+    scroll-behavior: auto !important;
+  }
 }
