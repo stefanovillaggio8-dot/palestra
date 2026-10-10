@@ -1100,45 +1100,115 @@ body.scorso .banda-cronometro .bot.grande {
 }
 .avatar-scelta.attiva { border-color: var(--viola); box-shadow: 0 0 18px -6px var(--viola); }
 
+/* --- il personaggio che si aggiorna da solo --- */
+/* Ste: "deve aggiornarsi un personaggio che metti dove gli vengono messe cose tipo
+   l'armatura ecc... che si aggiorna automaticamente".
+   Il personaggio cambia colore con la classe e le armature sbloccate si vedono
+   addosso: così la schermata dice a che punto sei senza dover leggere i numeri. */
+.personaggio-scena {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px; margin-bottom: 10px;
+  border: 1px solid var(--bordo); border-radius: 14px;
+  background: var(--card-2);
+}
+.personaggio {
+  --tinta: var(--viola);
+  position: relative; flex: 0 0 auto;
+  width: 76px; height: 88px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 12px;
+  background:
+    radial-gradient(circle at 50% 78%, color-mix(in srgb, var(--tinta) 32%, transparent), transparent 68%),
+    var(--card);
+  border: 1px solid color-mix(in srgb, var(--tinta) 45%, var(--bordo));
+}
+/* ogni classe ha la sua tinta, così il personaggio si riconosce a colpo d'occhio */
+.personaggio-guerriero { --tinta: var(--oro); }
+.personaggio-assassino { --tinta: var(--viola); }
+.personaggio-berserker { --tinta: var(--rosso); }
+.personaggio-nessuna { --tinta: var(--bordo); }
+.personaggio-testa { font-size: 2rem; line-height: 1; }
+/* le due armature: quella sbloccata da piu' tempo in alto, la penultima in basso */
+.personaggio-arma { position: absolute; font-size: .9rem; line-height: 1; opacity: .9; }
+.persona-arma-alta { top: 4px; right: 5px; }
+.persona-arma-bassa { bottom: 5px; left: 5px; }
+.personaggio-dati { display: flex; flex-direction: column; gap: 3px; }
+.spiegazione {
+  margin-top: 10px; padding: 12px 14px;
+  border: 1px solid var(--bordo); border-radius: 12px;
+  background: var(--card-2);
+}
+.rpg-spiegazione p { margin: 0 0 8px; }
+.rpg-spiegazione ul { margin: 0 0 8px; padding-left: 18px; }
+.rpg-spiegazione li { margin-bottom: 5px; }
+
 /* --- il calendario (Profilo) --- */
-/* Ste: "aggiungi un calendario dove mi segna evidenziato i giorni in cui vado in
-   palestra". Tre stati, tre colori: previsto, fatto, saltato. Il saltato e' l'unico
-   che rompe la streak, quindi senza distinguerlo a vista non capisci perche' il
-   numero e' tornato a zero. */
-.nota-grande { font-size: 1rem; margin: 4px 0 12px; }
-.calendario {
-  display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px;
+/* Ste: "il calendario deve essere grande, da oggi a per sempre e deve segnare solo in
+   verde i giorni in cui ci sono andato e in rosso i giorni che ho saltato e in viola
+   quelli di recupero".
+
+   Tre colori, tre significati, e nessuno è decorativo:
+   - VERDE: ci sei andato. È l'unica cosa che conta per la streak.
+   - ROSSO: era un giorno che ti toccava e non l'hai fatto. È L'UNICO che rompe la
+     streak, quindi senza vederlo in rosso non capisci perché il numero è tornato a
+     zero.
+   - VIOLA: giorno di recupero, cioè non ti toccava. NON è una punizione: è il motivo
+     per cui puoi allenarti quattro volte su sette senza perdere niente.
+   - ORO (bordo): oggi. Si vede anche se è anche fatto o saltato. */
+.nota-grande { font-size: 1rem; margin: 4px 0 14px; }
+.calendario-fasce { display: flex; flex-direction: column; gap: 18px; }
+.calendario-blocco { display: flex; flex-direction: column; gap: 6px; }
+.calendario-mese-nome {
+  margin: 0; font-size: .82rem; text-transform: capitalize;
+  letter-spacing: .05em; opacity: .72; font-weight: 600;
 }
-.casella-calendario {
-  display: flex; flex-direction: column; align-items: center; gap: 2px;
-  padding: 7px 2px 6px; border-radius: 9px;
+.calendario-coppie {
+  display: grid; grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+.coppia-giorni {
+  font-size: .6rem; text-transform: uppercase; letter-spacing: .05em;
+  opacity: .5; text-align: center;
+}
+.cella-calendario {
+  aspect-ratio: 1 / 1;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 8px; font-size: .78rem;
   background: var(--card-2); border: 1px solid var(--bordo);
-  opacity: .55;
 }
-.nome-giorno { font-size: .64rem; text-transform: uppercase; letter-spacing: .06em; opacity: .75; }
-.numero-giorno { font-size: 1rem; }
-/* il giorno che hai scelto di allenare: si accende appena, non è "previsto" */
-.casella-calendario.previsto { opacity: 1; border-color: color-mix(in srgb, var(--viola) 45%, var(--bordo)); }
-/* l'hai fatto: verde pieno */
-.casella-calendario.fatto {
-  background: linear-gradient(160deg, color-mix(in srgb, var(--verde) 30%, var(--card-2)), var(--card-2));
-  border-color: color-mix(in srgb, var(--verde) 60%, var(--bordo));
+/* il giorno di recupero: viola ma piano, perché non è un fallo */
+.cella-calendario.recupero {
+  background: color-mix(in srgb, var(--viola) 14%, var(--card-2));
+  border-color: color-mix(in srgb, var(--viola) 32%, var(--bordo));
 }
-/* previsto e non fatto, e il giorno e' passato: ROSSO. E' l'unico che rompe la streak */
-.casella-calendario.saltato {
-  background: linear-gradient(160deg, color-mix(in srgb, var(--rosso) 26%, var(--card-2)), var(--card-2));
-  border-color: color-mix(in srgb, var(--rosso) 55%, var(--bordo));
+/* ci sei andato: verde pieno, è l'unica cosa buona */
+.cella-calendario.fatto {
+  background: linear-gradient(160deg, color-mix(in srgb, var(--verde) 55%, var(--card-2)), var(--card-2));
+  border-color: color-mix(in srgb, var(--verde) 75%, var(--bordo));
+  font-weight: 700;
 }
-/* oggi: il bordo accanto, cosi si vede anche se e' anche fatto */
-.casella-calendario.oggi { box-shadow: inset 0 0 0 2px var(--oro); }
-.legenda-calendario { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+/* previsto e saltato: ROSSO. È il giorno perso */
+.cella-calendario.saltato {
+  background: linear-gradient(160deg, color-mix(in srgb, var(--rosso) 52%, var(--card-2)), var(--card-2));
+  border-color: color-mix(in srgb, var(--rosso) 75%, var(--bordo));
+  font-weight: 700;
+}
+/* previsto e non ancora passato: solo il bordo, perché non è ancora successo */
+.cella-calendario.atteso { border-color: color-mix(in srgb, var(--oro) 60%, var(--bordo)); }
+/* oggi: il bordo oro dentro, si vede anche sopra verde o rosso */
+.cella-calendario.oggi { box-shadow: inset 0 0 0 2px var(--oro); }
+/* giorni fuori dal mese (per allineare le colonne) e giorni futuri */
+.cella-calendario.fuori { opacity: 0; pointer-events: none; }
+.cella-calendario.futuro { opacity: .45; }
+.legenda-calendario { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 14px; }
 .pastiglia {
-  font-size: .72rem; padding: 3px 9px; border-radius: 999px;
+  font-size: .7rem; padding: 3px 9px; border-radius: 999px;
   border: 1px solid var(--bordo); background: var(--card-2);
 }
-.legenda-previsto { border-color: color-mix(in srgb, var(--viola) 45%, var(--bordo)); }
 .legenda-fatto { border-color: color-mix(in srgb, var(--verde) 60%, var(--bordo)); }
-.legenda-saltato { border-color: color-mix(in srgb, var(--rosso) 55%, var(--bordo)); }
+.legenda-saltato { border-color: color-mix(in srgb, var(--rosso) 60%, var(--bordo)); }
+.legenda-recupero { border-color: color-mix(in srgb, var(--viola) 45%, var(--bordo)); }
+.legenda-atteso { border-color: color-mix(in srgb, var(--oro) 60%, var(--bordo)); }
 
 /* --- l'avatar RPG (Profilo) --- */
 .riga-classi { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 4px; }

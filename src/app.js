@@ -3606,7 +3606,7 @@ async function salvaProfilo(campi) {
  * Italia) e la riga sotto ti dice la cosa che serve: se oggi ti tocca, quando ti
  * tocca, e quanti giorni di fila hai.
  */
-function bloccoCalendario(profilo, st) {
+export function bloccoCalendario(profilo, st) {
   const box = el('section', { class: 'blocco' });
   box.appendChild(el('h2', { testo: 'Il tuo calendario' }));
 
@@ -3614,77 +3614,240 @@ function bloccoCalendario(profilo, st) {
   const giorniFatti = new Set((st.streak && st.streak.giorniAllenati) || []);
   const oggi = isoGiorno(new Date());
 
-  // la settimana corrente, dal lunedi' alla domenica
-  const oggiD = new Date(oggi + 'T12:00:00');
-  const lunedi = new Date(oggiD);
-  lunedi.setDate(oggiD.getDate() - ((oggiD.getDay() + 6) % 7));
-  const giorni = [];
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(lunedi);
-    d.setDate(lunedi.getDate() + i);
-    giorni.push({
-      iso: isoGiorno(d),
-      dow: d.getDay(),
-      numero: d.getDate(),
-      passato: isoGiorno(d) < oggi,
-    });
-  }
-
-  // LA RIGA SOPRA: la risposta vera, detta subito. Un calendario senza questa frase
-  // costringe a cercare il giorno di oggi fra sette caselle.
-  const fattoOggi = giorniFatti.has(oggi);
-  const oggiPrevisto = previsti.has(oggiD.getDay());
-  const prossimoIndice = giorni.findIndex((g) => g.iso > oggi && previsti.has(g.dow));
-  const prossimo = prossimoIndice >= 0 ? giorni[prossimoIndice] : null;
-  // i nomi dei giorni: per la frase ("ti tocca marted\u00ec") e per le caselle ("mar").
+  // ---- LA RIGA SOPRA: la risposta, detta subito.
   const NOME_GIORNO = ['Domenica', 'Luned\u00ec', 'Marted\u00ec', 'Mercoled\u00ec', 'Gioved\u00ec', 'Venerd\u00ec', 'Sabato'];
-  const NOMI_CORTI = ['lun', 'mar', 'mer', 'gio', 'ven', 'sab', 'dom'];
+  const oggiDow = new Date(oggi + 'T12:00:00').getDay();
+  const fattoOggi = giorniFatti.has(oggi);
+  const oggiPrevisto = previsti.has(oggiDow);
+  const prossimoGiorno = prossimoGiornoPrevisto(previsti, oggi);
   const frase = !previsti.size
-    ? 'Non hai ancora scelto i giorni in cui alleni: la streak conta solo l\'ultimo allenamento.'
+    ? 'Non hai ancora scelto i giorni in cui alleni: va in Impostazioni, e il calendario si riempie di verde.'
     : (fattoOggi
-      ? 'Oggi hai allenato. La prossima volta ti tocca quando dice il calendario.'
+      ? 'Oggi hai allenato.'
       : (oggiPrevisto
-        ? (prossimo
-          ? `Oggi ti tocca e non l'hai ancora fatto. Dopo, il prossimo giorno e' ${NOME_GIORNO[prossimo.dow].toLowerCase()}.`
+        ? (prossimoGiorno
+          ? `Oggi ti tocca e non l'hai ancora fatto. Dopo, il prossimo giorno e' ${NOME_GIORNO[prossimoGiorno].toLowerCase()}.`
           : 'Oggi ti tocca e non l\'hai ancora fatto.')
-        : (prossimo
-          ? `Oggi e' giorno di riposo: non ti toglie niente. Ti tocca ${NOME_GIORNO[prossimo.dow].toLowerCase()}.`
-          : 'Oggi e\' giorno di riposo: non ti toglie niente.')));
+        : (prossimoGiorno
+          ? `Oggi e' giorno di recupero: non ti toglie niente. Ti tocca ${NOME_GIORNO[prossimoGiorno].toLowerCase()}.`
+          : 'Oggi e\' giorno di recupero: non ti toglie niente.')));
   box.appendChild(el('p', { class: 'nota nota-grande', testo: frase }));
 
-  // LE SETTE CASELLE. L'ordine e' quello italiano: lunedi' in alto.
-  const griglia = el('div', { class: 'calendario' });
-  const ordineItaliano = [1, 2, 3, 4, 5, 6, 0];
-  for (const dow of ordineItaliano) {
-    const info = giorni.find((g) => g.dow === dow);
-    const previsto = previsti.has(dow);
-    const fatto = giorniFatti.has(info.iso);
-    const saltato = info.passato && previsto && !fatto;
-    const oggiQuesta = info.iso === oggi;
-    const classi = ['casella-calendario'];
-    if (previsto) classi.push('previsto');
-    if (fatto) classi.push('fatto');
-    if (saltato) classi.push('saltato');
-    if (oggiQuesta) classi.push('oggi');
-    griglia.appendChild(el('div', {
-      class: classi.join(' '),
-      aria: { label: `${NOMI_CORTI[dow]} ${info.numero}${previsto ? ', giorno di allenamento' : ''}${fatto ? ', allenato' : ''}${saltato ? ', saltato' : ''}` },
-    }, [
-      el('span', { class: 'nome-giorno', testo: NOMI_CORTI[dow] }),
-      el('strong', { class: 'numero-giorno', testo: String(info.numero) }),
-    ]));
-  }
-  box.appendChild(griglia);
+  // ---- IL CALENDARIO GRANDE: da oggi a sempre.
+  //
+  // Ste (09/10/2026): "il calendario deve essere grande, da oggi a per sempre e deve
+  // segnare solo in verde i giorni in cui ci sono andato e in rosso i giorni che ho
+  // saltato e in viola quelli di recupero".
+  //
+  // "Da oggi a per sempre" vuol dire che si vede lo STORICO, non solo la settimana
+  // corrente: e' l'unico posto dove si capisce se la propria abitudine e' regolare o
+  // no. Con sette caselle si vede solo adesso, che e' la parte meno interessante.
+  //
+  // Si parte dal mese in cui e' iniziato ad allenarsi (la prima seduta) e si arriva
+  // a un mese avanti: cosi' c'e' il passato da guardare e c'e' il futuro gia'
+  // pianificato. Un calendario che finisce a oggi non dice nulla, perche' il futuro
+  // e' l'unica parte che puoi cambiare.
+  const primoGiorno = giorniFatti.size ? [...giorniFatti].sort()[0] : oggi;
+  const meseInizio = inizioMese(primoGiorno);
+  const meseFine = aggiungiMesi(oggi, 1);
 
-  // LA LEGENDA. Senza, tre colori diversi e nessuno sa cosa significhino.
-  if (previsti.size) {
-    box.appendChild(el('div', { class: 'legenda-calendario' }, [
-      el('span', { class: 'pastiglia legenda-previsto', testo: 'giorno che alleni' }),
-      el('span', { class: 'pastiglia legenda-fatto', testo: 'allenato' }),
-      el('span', { class: 'pastiglia legenda-saltato', testo: 'saltato' }),
-    ]));
+  // LE FASCE DI MESI: ogni mese e' una riga, con i sette giorni in colonna.
+  const mese = (iso, primo = false) => {
+    const [a, m, g] = iso.split('-').map(Number);
+    const d = new Date(a, m - 1, g, 12);
+    const griglia = el('div', { class: 'calendario-mese' });
+    // le intestazioni dei giorni, una volta sola per la fascia intera
+    if (primo) {
+      const cap = el('div', { class: 'calendario-coppie' });
+      for (const n of ['lun', 'mar', 'mer', 'gio', 'ven', 'sab', 'dom']) {
+        cap.appendChild(el('span', { class: 'coppia-giorni', testo: n }));
+      }
+      griglia.appendChild(cap);
+    }
+    const riga = el('div', { class: 'calendario-coppie' });
+    const primoDelMese = new Date(a, m - 1, 1, 12);
+    // il lunedi' della settimana che contiene il primo del mese
+    const inizioRiga = new Date(primoDelMese);
+    inizioRiga.setDate(primoDelMese.getDate() - ((primoDelMese.getDay() + 6) % 7));
+    const ultimo = new Date(a, m, 0, 12); // giorno 0 del mese dopo = ultimo del mese
+    const fineRiga = new Date(ultimo);
+    fineRiga.setDate(ultimo.getDate() + (6 - ((ultimo.getDay() + 6) % 7)));
+    for (let d = new Date(inizioRiga); d <= fineRiga; d.setDate(d.getDate() + 1)) {
+      const isoCell = isoGiorno(d);
+      const nelMese = d.getMonth() === m - 1 && d.getFullYear() === a;
+      const previsto = nelMese && previsti.has(d.getDay());
+      const fatto = nelMese && giorniFatti.has(isoCell);
+      const passato = isoCell < oggi;
+      const saltato = passato && previsto && !fatto;
+      const recupero = !previsto;
+      const future = isoCell > oggi;
+      const classi = ['cella-calendario'];
+      if (!nelMese) classi.push('fuori');
+      if (fatto) classi.push('fatto');
+      else if (saltato) classi.push('saltato');
+      else if (recupero && passato) classi.push('recupero');
+      if (previsto && !fatto && !saltato) classi.push('atteso');
+      if (isoCell === oggi) classi.push('oggi');
+      if (future) classi.push('futuro');
+      riga.appendChild(el('span', {
+        class: classi.join(' '),
+        aria: { label: ariaGiorno(isoCell, d, previsto, fatto, saltato, recupero) },
+        titolo: `${d.getDate()}/${d.getMonth() + 1}` + (fatto ? ' allenato' : (saltato ? ' saltato' : (previsto ? ' giorno di allenamento' : ' recupero'))),
+      }));
+    }
+    griglia.appendChild(riga);
+    return el('div', { class: 'calendario-blocco' }, [
+      el('h3', { class: 'calendario-mese-nome', testo: NOMI_MESCE[Number(String(iso).split('-')[1]) - 1] }),
+      griglia,
+    ]);
+  };
+  // il mese e' gia' dentro la stringa ISO, quindi il nome si prende da li'
+  const primoIso = meseInizio;
+  void primoIso;
+
+  const fasce = el('div', { class: 'calendario-fasce' });
+  let cursore = primoIso;
+  let primo = true;
+  while (cursore <= meseFine) {
+    fasce.appendChild(mese(cursore, primo));
+    primo = false;
+    cursore = aggiungiMesi(cursore, 1);
   }
+  box.appendChild(fasce);
+
+  // ---- LA LEGENDA. Tre colori, e senza spiegazione non significano niente.
+  box.appendChild(el('div', { class: 'legenda-calendario' }, [
+    el('span', { class: 'pastiglia legenda-fatto', testo: 'allenato' }),
+    el('span', { class: 'pastiglia legenda-saltato', testo: 'saltato' }),
+    el('span', { class: 'pastiglia legenda-recupero', testo: 'giorno di recupero' }),
+    el('span', { class: 'pastiglia legenda-atteso', testo: 'ti tocca' }),
+  ]));
   return box;
+}
+
+const NOMI_MESCE = ['gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno',
+  'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre'];
+
+/** Il primo giorno del mese di una data ISO. */
+function inizioMese(iso) {
+  const [a, m] = String(iso).split('-');
+  return `${a}-${m}-01`;
+}
+
+/** Stessa data, un mese dopo (o un mese prima, con `meno`). */
+function aggiungiMesi(iso, quanto) {
+  const [a, m, g] = String(iso).split('-').map(Number);
+  const d = new Date(a, m - 1 + quanto, 1, 12);
+  const gg = Math.min(g, new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate());
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(gg).padStart(2, '0')}`;
+}
+
+/** Il prossimo giorno della settimana che hai scelto, come indice 0-6. */
+function prossimoGiornoPrevisto(previsti, daIso) {
+  const d = new Date(daIso + 'T12:00:00');
+  for (let i = 1; i <= 8; i++) {
+    const x = new Date(d);
+    x.setDate(d.getDate() + i);
+    if (previsti.has(x.getDay())) return x.getDay();
+  }
+  return null;
+}
+
+/**
+ * IL PERSONAGGIO, che si aggiosta da solo.
+ *
+ * Ste (09/10/2026): "fai che quando scelgo guerriero ecc... deve aggiornarsi un
+ * personaggio che metti dove gli vengono messe cose tipo l'armatura ecc... che si
+ * aggiorna automaticamente".
+ *
+ * La richiesta ha tre parti e tutte e tre hanno una regola dentro:
+ *
+ *  - si aggiorna da SOLO: nessun bottone "salva", nessuna pagina da ricaricare. Il
+ *    personaggio ricalcola tutto dai dati ogni volta che la schermata si disegna,
+ *    quindi non può mai essere sbagliato: è quello che hai fatto ieri, non quello che
+ *    avevi quando hai premuto l'ultimo bottone.
+ *
+ *  - le ARMATURE si mettono da sole quando le sblocchi. Non si sceglie: si
+ *    sbloccano. E non si tolgono: la sequenza più lunga che hai fatto resta nel
+ *    record, quindi saltare una settimana non ti toglie l'armatura (vedi streak.js).
+ *
+ *  - l'aspetto cambia con la classe: ogni Guerriero, Assassino e Berserker ha un
+ *    aspetto proprio, e le armature che hai addosso si vedono sul personaggio. Così
+ *    guardi la schermata e capisci a colpo d'occhio a che punto sei.
+ *
+ * Il riquadro delle armature resta SOTTO, con la lista di tutte e sei: il personaggio
+ * è la foto, la lista è la spiegazione. Il personaggio serve a sentirti come un
+ * personaggio, la lista serve a sapere cosa ti manca.
+ */
+function bloccoPersonaggio(profilo, st) {
+  const rpg = calcolaAvatar(profilo.classe_rpg, serieMie(), seduteMie(), esercizioPerId, {
+    profilo,
+  });
+
+  const box = el('section', { class: 'blocco' });
+  box.appendChild(el('h2', { testo: 'Il tuo personaggio' }));
+
+  // IL PERSONAGGIO. Un riquadro che cambia aspetto, non una foto: cambia il colore
+  // con la classe, e le armature sbloccate si vedono addosso.
+  const scena = el('div', { class: 'personaggio-scena' });
+  const classeId = rpg.classe ? rpg.classe.id : 'nessuna';
+  const indosano = rpg.premi.filter((p) => p.sbloccato);
+  scena.appendChild(el('div', {
+    class: 'personaggio personaggio-' + classeId,
+    aria: { label: `Personaggio ${rpg.classe ? rpg.classe.nome : 'senza classe'}, livello ${rpg.livello}, ${indosano.length} armature su ${rpg.premi.length}` },
+  }, [
+    el('div', { class: 'personaggio-arma persona-arma-alta', testo: indosano[indosano.length - 1] ? indosano[indosano.length - 1].icona : '' }),
+    el('div', { class: 'personaggio-testa', testo: rpg.classe ? rpg.classe.icona : '❔' }),
+    el('div', { class: 'personaggio-arma persona-arma-bassa', testo: indosano[indosano.length - 2] ? indosano[indosano.length - 2].icona : '' }),
+  ]));
+  scena.appendChild(el('div', { class: 'personaggio-dati' }, [
+    el('strong', { testo: (rpg.classe ? rpg.classe.nome : 'Scegli una classe') }),
+    el('span', { class: 'nota', testo: `Livello ${rpg.livello} · ${indosano.length} di ${rpg.premi.length} armature` }),
+  ]));
+  box.appendChild(scena);
+
+// IL PULSANTE CHE SPIEGA. Ste: "metti pure un pulsante che ti spiega come funziona
+  // questo rpg". Non un help che ti manda a un altro schermo: un riquadro che si
+  // apre qui, sotto il personaggio, e spiega le quattro cose che servono: cosa sono
+  // le statistiche, cosa fa la classe, come si sbloccano le armature, e cosa NON
+  // conta (che è la parte che ti evita di giocare al numero invece che allenarsi).
+  //
+  // Il riquadro si mette in fondo al blocco e si apre/chiude da solo: il pulsante
+  // cambia etichetta, così non devi indovinare se è aperto o chiuso.
+  const spiegazione = spiegazioneRpg();
+  spiegazione.hidden = true;
+  const btn = bottone('Come funziona questo RPG?', {
+    classe: 'fantasma',
+    onClick: () => {
+      spiegazione.hidden = !spiegazione.hidden;
+      btn.textContent = spiegazione.hidden ? 'Come funziona questo RPG?' : 'Chiudi la spiegazione';
+    },
+  });
+  box.appendChild(btn);
+  box.appendChild(spiegazione);
+  return box;
+}
+
+/** Il riquadro di spiegazione dell'RPG. */
+function spiegazioneRpg() {
+  return el('div', { class: 'spiegazione rpg-spiegazione' }, [
+    el('p', { testo: 'Le tre statistiche vengono dagli allenamenti veri, non da un numero che scrivi tu.' }),
+    el('ul', {}, [
+      el('li', {}, [el('strong', { testo: 'Forza' }), el('span', { testo: ': kg spostati sui movimenti grossi (panche, spinste, tirate, gambe pesanti). Ogni 500 kg sono un punto.' })]),
+      el('li', {}, [el('strong', { testo: 'Agilita' }), el('span', { testo: ': minuti di cardio (tapis, corsa, corda). Ogni 5 minuti sono un punto.' })]),
+      el('li', {}, [el('strong', { testo: 'Stamina' }), el('span', { testo: ': minuti di cardio e giorni in cui ti alleni. Serve a chi non fa solo forza.' })]),
+    ]),
+    el('p', { testo: 'La classe che sceggi dà il +20% a UNA statistica sola. Non conta per le armature: quelle si sbloccano coi numeri veri, quindi cambiando classe non ti perdi niente.' }),
+    el('p', { testo: 'Le armature si sbloccano con i giorni di fila. Ti restono per sempre: se salti una settimana non le perdi, perche\' si sbloccano con la sequenza piu\' lunga che hai mai fatto, non con quella di adesso.' }),
+    el('p', {}, [el('strong', { testo: 'Cosa NON conta: ' }), el('span', { testo: 'il livello non dipende da quanto sei forte, ma da quanti kg hai spostato in tutto. Il Rank (quello con i nomi e gli LP) e\' quello che misura quanto sei forte. L\'RPG e\' un gioco sopra, e serve per divertirti, non per saper quanto stai.' })]),
+  ]);
+}
+
+/** L'etichetta per chi non distingue i colori. */
+function ariaGiorno(iso, d, previsto, fatto, saltato, recupero) {
+  const NOME = ['domenica', 'luned\u00ec', 'marted\u00ec', 'mercoled\u00ec', 'gioved\u00ec', 'venerd\u00ec', 'sabato'];
+  return `${NOME[d.getDay()]} ${d.getDate()}/${d.getMonth() + 1}: `
+    + (fatto ? 'allenato' : (saltato ? 'saltato, giorno che ti toccava' : (previsto ? 'ti tocca' : 'giorno di recupero')));
 }
 
 const GIORNI_SETTIMANA = [
@@ -4622,6 +4785,13 @@ async function vistaProfilo(zona) {
     }),
   ]));
   zona.appendChild(boxAvatar);
+
+  // ---- il personaggio: si aggiorna da solo e ha il pulsante che spiega come funziona.
+  // Ste: "deve aggiornarsi un personaggio che metti dove gli vengono messe cose tipo
+  // l'armatura ecc... che si aggiorna automaticamente e metti pure un pulsante che ti
+  // spiega come funziona questo rpg". Sta SOPRA il dettaglio delle statistiche perche'
+  // il personaggio e' la foto, e la lista sotto e' la spiegazione.
+  zona.appendChild(bloccoPersonaggio(profilo, st));
 
   // ---- l'avatar RPG: classe, statistiche, livello e armature
   zona.appendChild(bloccoAvatarRpg(profilo, st));
