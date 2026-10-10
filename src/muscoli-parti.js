@@ -1,4 +1,4 @@
-﻿// muscoli-parti.js -- QUALE pezzo di muscolo stai lavorando.
+// muscoli-parti.js -- QUALE pezzo di muscolo stai lavorando.
 //
 // Ste (04/10/2026): "deve capire pure che il petto come il bicipite e le altre
 // parti sono formati da diverse fibre muscolari e ci sono esercizi che per
@@ -19,7 +19,7 @@
 //   1) capire se due esercizi sono davvero diversi o se sono la stessa cosa
 //      due volte (e le missioni non dovrebbero chiederti lo stesso capo due
 //      volte lo stesso giorno);
-//   2) scrivere il giudizio con parole vere: "questa ti spinge piu' in alto".
+//   2) scrivere il giudizio con parole vere: "questa ti spinge più in alto".
 //
 // Quindi qui NON creo un errore clinico: segno DOVE va il lavoro principale,
 // con un avvertimento che la separazione non è mai totale.
@@ -48,14 +48,14 @@ export const PARTI = [
       'crossover', 'crucifix', 'incline single arm pulldown',
       'bench press', 'bench', 'pressione petto', 'horizontal press'],
     // QUI C'ERA "bench pull" E "dumbbell bench pull", E SONO STATI TOLTI L'8/10/2026.
-    // Ste guardando la scheda del Dumbbell Bench Pull: "c'e' scritto 'il lavoro e'
+    // Ste guardando la scheda del Dumbbell Bench Pull: "cÈ scritto 'il lavoro È
     // distribuito, il petto lavora in modo abbastanza uniforme'... ma quello fa
-    // schiena, centro schiena". Ha ragione: il bench pull coi manubri e' una
+    // schiena, centro schiena". Ha ragione: il bench pull coi manubri È una
     // TIRATA prona (maniubri verso il busto, sdraiato sul piano), quindi lavora
-    // la schiena centrale fra le scapole. Non e' un fly col petto: su un fly il
+    // la schiena centrale fra le scapole. Non È un fly col petto: su un fly il
     // peso ti viene davanti, su un bench pull lo tiri indietro.
     //
-    // Il nome e' ambiguo ("bench" puo' voler dire panca o poggiapiedi), quindi se
+    // Il nome È ambiguo ("bench" può voler dire panca o poggiapiedi), quindi se
     // domani un esercizio chiamato "bench pull" intendi un fly col petto, questo
     // elenco va cambiato. Per l'esercizio di Ste vale la schiena.
     nota: 'Il lavoro è distribuito: il petto lavora in modo abbastanza uniforme. Il fly lavora soprattutto il centro del petto.',
@@ -75,7 +75,7 @@ export const PARTI = [
   {
     id: 'dorso_centrale', muscolo: 'dorso', parte: 'dorso centrale',
     parole: ['rematore', 'row', 'tiremento', 'tirate orizzontali', 'prone',
-      // Ste (08/10/2026): il Dumbbell Bench Pull e' una tirata prona coi
+      // Ste (08/10/2026): il Dumbbell Bench Pull È una tirata prona coi
       // manubri, quindi dorso centrale. Stava fra le parole del PETTO e la
       // scheda gli diceva "il petto lavora in modo abbastanza uniforme".
       'bench pull', 'dumbbell bench pull'],
@@ -183,7 +183,7 @@ function conta(testo, parola) {
 /**
  * Cache dei pezzi riconosciuti. Vedi la nota in esercizi-classificatore.js:
  * gli stessi nomi vengono guardati decine di volte quando la pagina disegna una
- * lista, e rifare la conta delle parole ogni volta e' sprecato.
+ * lista, e rifare la conta delle parole ogni volta È sprecato.
  */
 const CACHE = new Map();
 const CACHE_MAX = 500;
@@ -252,7 +252,7 @@ function riconosciParte({ nome = '', descrizione = '' } = {}) {
 
 /**
  * 'Sul petto', 'Sulle spalle': una frase suona bene solo se lo sai. Senza
- * questo l'app scriveva "Sul spalle", che fa capire subito che la cosa e'
+ * questo l'app scriveva "Sul spalle", che fa capire subito che la cosa È
  * fatta a pezzi invece che pensata.
  */
 export const PREP = {
@@ -322,11 +322,11 @@ export function livelloConMuscolo({
     livello = 'assistito';
     motivi.push('è un esercizio col peso del corpo: si contano le ripetizioni');
   } else if (spinta >= 3) {
-    // Un muscolo piccolo e instabile su un movimento di forza: e' piu' duro di
-    // quanto sembra. Il lateral raise e' il caso limite: 4 kg li' sono duri.
+    // Un muscolo piccolo e instabile su un movimento di forza: È più duro di
+    // quanto sembra. Il lateral raise È il caso limite: 4 kg li' sono duri.
     //
-    // Il muscolo puo' solo ALZARE la difficolta', mai abbassarla: se la
-    // macchina ti aiuta, lo sa gia' il classificatore dagli accorgimenti.
+    // Il muscolo può solo ALZARE la difficolta', mai abbassarla: se la
+    // macchina ti aiuta, lo sa già il classificatore dagli accorgimenti.
     // Qui altrimenti si contava due volte e il giudizio finiva sotto terra.
     livello = ordine[Math.min(ordine.length - 1, i + 1)];
     motivi.push(parte.nome + ': muscolo piccolo e instabile, più duro di quanto sembra');

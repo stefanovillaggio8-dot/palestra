@@ -1,5 +1,5 @@
 // backup.js -- esportazione e importazione. Tutto gratis, tutto in locale.
-// Nessuna dipendenza dal DOM cosi' i formati si possono testare con node --test.
+// Nessuna dipendenza dal DOM così i formati si possono testare con node --test.
 
 import { formattaNumero } from './numeri.js';
 
@@ -26,8 +26,8 @@ export function creaPacchetto(dati, meta = {}) {
       // I PESI, aggiunti l'08/10/2026. Mancavano, e senza lo storico del peso
       // corporeo un backup ripristinato ricalcolava tutti i Rank SENZA sapere quanto
       // pesa la persona: i kg a schermo erano gli stessi ma i Rank erano diversi da
-      // quelli che avevi davanti. Il peso e' la cosa che rende i Rank giusti, quindi
-      // se non e' nel backup il backup non e' un backup.
+      // quelli che avevi davanti. Il peso È la cosa che rende i Rank giusti, quindi
+      // se non È nel backup il backup non È un backup.
       pesi: dati.pesi || [],
     },
   };
@@ -35,7 +35,7 @@ export function creaPacchetto(dati, meta = {}) {
 
 /**
  * Valida un file importato. Non lancia eccezioni: restituisce un esito
- * leggibile, cosi' l'interfaccia puo' spiegare cosa c'e' che non va.
+ * leggibile, così l'interfaccia può spiegare cosa cÈ che non va.
  */
 export function validaPacchetto(oggetto) {
   const problemi = [];
@@ -48,7 +48,7 @@ export function validaPacchetto(oggetto) {
   if (typeof oggetto.versione_schema !== 'number') {
     problemi.push('Manca il numero di versione dello schema.');
   } else if (oggetto.versione_schema > VERSIONE_SCHEMA) {
-    problemi.push(`Il backup e' di una versione piu\' nuova (${oggetto.versione_schema}) di questa app. Aggiorna l'app prima di importarlo.`);
+    problemi.push(`Il backup È di una versione piu\' nuova (${oggetto.versione_schema}) di questa app. Aggiorna l'app prima di importarlo.`);
   }
   const t = oggetto.tabelle;
   if (!t || typeof t !== 'object') {
@@ -127,7 +127,7 @@ export function unisci(attuale, importato, tabella) {
 
 function cella(v) {
   if (v === null || v === undefined) return '';
-  // i numeri escono con la virgola, cosi' Excel in italiano li legge come numeri
+  // i numeri escono con la virgola, così Excel in italiano li legge come numeri
   if (typeof v === 'number' && Number.isFinite(v)) v = formattaNumero(v);
   const s = String(v);
   return /[",;\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;

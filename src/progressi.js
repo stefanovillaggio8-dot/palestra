@@ -1,7 +1,7 @@
 // progressi.js -- trasforma i numeri in frasi comprensibili.
 //
 // Ste ha detto: "non capisco moltissimo dai grafici", quindi qui si scrive
-// cosa e' successo in italiano chiaro, senza gonfiare i risultati.
+// cosa È successo in italiano chiaro, senza gonfiare i risultati.
 
 import {
   arrotonda2,
@@ -29,7 +29,7 @@ function frasePercentuale(p) {
 
 /**
  * Costruisce il testo di progresso per un esercizio.
- * storico = [{ data, serie: [...] }] in ordine cronologico (dal piu' vecchio).
+ * storico = [{ data, serie: [...] }] in ordine cronologico (dal più vecchio).
  */
 export function testoProgresso(nomeEsercizio, esercizio, storico, periodoDescrizione = '') {
   const punti = (storico || []).filter((p) => p && (p.serie || []).length);
@@ -53,23 +53,23 @@ export function testoProgresso(nomeEsercizio, esercizio, storico, periodoDescriz
   const prefisso = periodoDescrizione ? `Negli ultimi ${periodoDescrizione}: ` : '';
 
   if (punti.length === 1) {
-    linee.push(`${prefisso}una sola seduta registrata, non c'e' ancora un confronto possibile.`);
+    linee.push(`${prefisso}una sola seduta registrata, non cÈ ancora un confronto possibile.`);
   } else {
     linee.push(`${prefisso}${punti.length} sedute registrate, dal ${primo.data} al ${ultimo.data}.`);
   }
 
   if (assistito) {
-    // esercizi con corpo libero o assistenza: il peso NON e' un carico
+    // esercizi con corpo libero o assistenza: il peso NON È un carico
     const aP = rPrimo.pesoAssistenzaMassimo;
     const aU = rUltimo.pesoAssistenzaMassimo;
     if (aP !== null && aU !== null) {
       const d = differenzaAssoluta(aP, aU);
       if (d === 0) {
-        linee.push(`L'assistenza e' rimasta uguale (${formattaNumero(aU)} kg): lavoro equivalente.`);
+        linee.push(`L'assistenza È rimasta uguale (${formattaNumero(aU)} kg): lavoro equivalente.`);
       } else if (d < 0) {
-        linee.push(`Hai usato ${formattaNumero(Math.abs(d))} kg di assistenza in meno (da ${formattaNumero(aP)} a ${formattaNumero(aU)} kg): in un esercizio assistito meno aiuto significa piu' lavoro da parte tua.`);
+        linee.push(`Hai usato ${formattaNumero(Math.abs(d))} kg di assistenza in meno (da ${formattaNumero(aP)} a ${formattaNumero(aU)} kg): in un esercizio assistito meno aiuto significa più lavoro da parte tua.`);
       } else {
-        linee.push(`L'assistenza e' salita di ${formattaNumero(d)} kg (da ${formattaNumero(aP)} a ${formattaNumero(aU)} kg): in un esercizio assistito piu' aiuto significa lavoro piu' leggero, quindi non e' un passo avanti.`);
+        linee.push(`L'assistenza È salita di ${formattaNumero(d)} kg (da ${formattaNumero(aP)} a ${formattaNumero(aU)} kg): in un esercizio assistito più aiuto significa lavoro più leggero, quindi non È un passo avanti.`);
       }
     }
     if (rUltimo.ripetizioniMedie !== null) {
@@ -86,9 +86,9 @@ export function testoProgresso(nomeEsercizio, esercizio, storico, periodoDescriz
       const d = differenzaAssoluta(pP, pU);
       const perc = differenzaPercentuale(pP, pU);
       if (pP === 0) {
-        linee.push(`Il carico massimo e' passato da 0 kg a ${formattaNumero(pU)} kg. Non calcolo la percentuale perche\' partire da zero la rende inutile.`);
+        linee.push(`Il carico massimo È passato da 0 kg a ${formattaNumero(pU)} kg. Non calcolo la percentuale perche\' partire da zero la rende inutile.`);
       } else if (d === 0) {
-        linee.push(`Il carico massimo e' rimasto a ${formattaNumero(pU)} kg.`);
+        linee.push(`Il carico massimo È rimasto a ${formattaNumero(pU)} kg.`);
       } else {
         linee.push(`Carico massimo: da ${formattaNumero(pP)} kg a ${formattaNumero(pU)} kg, cioe' ${frasePeso(d)} (${frasePercentuale(perc)}).`);
       }
@@ -98,7 +98,7 @@ export function testoProgresso(nomeEsercizio, esercizio, storico, periodoDescriz
       if (pU > pP) {
         const rip = differenzaAssoluta(rPrimo.ripetizioniMedie, rUltimo.ripetizioniMedie);
         if (rip !== null && rip < 0) {
-          linee.push(`Con piu' carico hai fatto ${formattaNumero(Math.abs(rip))} ripetizioni medie in meno: un peso piu' alto non e\' automaticamente meglio, conta anche quanto hai spinto.`);
+          linee.push(`Con più carico hai fatto ${formattaNumero(Math.abs(rip))} ripetizioni medie in meno: un peso più alto non e\' automaticamente meglio, conta anche quanto hai spinto.`);
         }
       }
     }
@@ -164,7 +164,7 @@ export function testoProgresso(nomeEsercizio, esercizio, storico, periodoDescriz
 
 /**
  * Frase con la differenza di UN esercizio: da dove a dove e di quanto.
- * E' quella che appare quando Ste preme su "migliorati", "fermi" o "indietro".
+ * È quella che appare quando Ste preme su "migliorati", "fermi" o "indietro".
  */
 export function fraseVariazione(v) {
   if (!v) return '';
@@ -188,7 +188,7 @@ export function fraseVariazione(v) {
     return `${v.nome}: da ${puntoPartenza} a ${formattaNumero(v.a)} kg, ${su}${numero} kg${eta}.`;
   }
 
-  // Le date contano: Ste non capiva perche' gli usciva fuori un numero che
+  // Le date contano: Ste non capiva perchÈ gli usciva fuori un numero che
   // non era il suo. Mostrando WHICHI due sedute vengono confrontate, si vede
   // subito se il confronto e\' quello giusto.
   const quando = (v.dataDa && v.dataA) ? `seduta del ${v.dataDa} → seduta del ${v.dataA}: ` : '';
@@ -210,7 +210,7 @@ export function fraseVariazione(v) {
   return `${v.nome}: ${quando}da ${formattaNumero(v.da)} a ${formattaNumero(v.a)} kg, ${segno}${numero} kg${eta}, in ${numeroSedute}.`;
 }
 
-/** Elenco dei due gruppi estremi, dal cambiamento piu' grande al piu' piccolo. */
+/** Elenco dei due gruppi estremi, dal cambiamento più grande al più piccolo. */
 function ordinaPerImportanza(lista) {
   return lista.slice().sort((x, y) => Math.abs(y.migliore) - Math.abs(x.migliore));
 }
@@ -218,7 +218,7 @@ function ordinaPerImportanza(lista) {
 /**
  * Riepilogo GENERALE: quanto sei migliorato in tutto, scritto a parole.
  *
- * Ste ha detto: "non solo con i grafici, ma anche scritto, perche' coi grafici
+ * Ste ha detto: "non solo con i grafici, ma anche scritto, perchÈ coi grafici
  * non capisco molto". Questo guarda TUTTI gli esercizi insieme e conta quanti
  * sono migliorati, quanti fermi e quanti indietro, e dice anche le cose scomode
  * (per esempio gli esercizi che sono peggiorati).
@@ -240,7 +240,7 @@ export function riepilogoGenerale(esercizi) {
     // Ste ha detto: "ho messo che ho aumentato di 3 kg ma non spunta negli
     // esercizi migliorati". Con una sola seduta non c'era niente da confrontare,
     // quindi l'esercizio veniva saltato. Ora, se le sedute non bastano, confronto
-    // l'ultima seduta con quello che c'era scritto nella scheda: e' comunque un
+    // l'ultima seduta con quello che c'era scritto nella scheda: È comunque un
     // confronto utile, e gli dico da dove a dove.
     let contro; let da; let a; let dataDa; let dataA; let sequenza = null;
     if (punti.length >= 2) {
@@ -249,8 +249,8 @@ export function riepilogoGenerale(esercizi) {
       a = riassuntoEsercizio(punti[punti.length - 1].serie, e)[chiave];
       dataDa = punti[0].data;
       dataA = punti[punti.length - 1].data;
-      // tutti i valori in ordine cronologico: cosi' si vede subito qual e' il
-      // peso vecchio e qual e' quello nuovo, senza dover fidarsi del riassunto
+      // tutti i valori in ordine cronologico: così si vede subito qual È il
+      // peso vecchio e qual È quello nuovo, senza dover fidarsi del riassunto
       sequenza = punti.map((p) => {
         const r = riassuntoEsercizio(p.serie, e)[chiave];
         return r === null || r === undefined ? null : `${formattaNumero(r)} kg del ${p.data}`;
@@ -326,7 +326,7 @@ export function riepilogoGenerale(esercizi) {
   numeri.push({ etichetta: 'indietro', valore: indietro.length });
 
   if (migliorati.length) {
-    // i tre migliori, cosi' vede subito dove sta andando bene
+    // i tre migliori, così vede subito dove sta andando bene
     const top = migliorati.slice().sort((x, y) => y.migliore - x.migliore).slice(0, 3);
     const frasi = top.map((v) => {
       const perc = differenzaPercentuale(v.da, v.a);
@@ -353,7 +353,7 @@ export function riepilogoGenerale(esercizi) {
     linee.push(`Poi ${fermi.length} esercizi sono fermi sullo stesso numero di prima.`);
   }
 
-  // Ste non capiva perche' il suo esercizio non compariva tra i migliorati.
+  // Ste non capiva perchÈ il suo esercizio non compariva tra i migliorati.
   // Meglio dirglielo esplicitamente invece di lasciare un buco silenzioso.
   if (saltati.length) {
     const quante = saltati.length;

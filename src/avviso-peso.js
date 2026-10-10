@@ -1,7 +1,7 @@
 // avviso-peso.js -- "Questo vale per 66 kg".
 //
-// Ste (07/10/2026): "il peso corporeo e' l'unico numero digitato a mano che muove
-// TUTTI i Rank. Tutti gli altri vengono misurati. Ogni chilo sbagliato e' un Rank
+// Ste (07/10/2026): "il peso corporeo È l'unico numero digitato a mano che muove
+// TUTTI i Rank. Tutti gli altri vengono misurati. Ogni chilo sbagliato È un Rank
 // sbagliato ovunque."
 //
 // Per questo l'avviso ha tre regole ferree, e sono qui dentro:
@@ -9,17 +9,17 @@
 //     72, l'avviso deve dire 72: se quei 66 fossero a mano, il giorno che Ste si
 //     pesa di nuovo l'app continuerebbe a parlare del peso vecchio e lui non
 //     saprebbe quale dei due numeri sia vero;
-//  2) compare SOLO se il peso e' vecchio, e lo decido con serveAggiornare (gia'
-//     esistente): se il peso e' di tre giorni fa l'avviso e' solo rumore;
+//  2) compare SOLO se il peso È vecchio, e lo decido con serveAggiornare (già
+//     esistente): se il peso È di tre giorni fa l'avviso È solo rumore;
 //  3) l'avviso e il Rank devono leggere lo stesso valore dalla stessa funzione.
 //     Percio' i confini qui sotto NON sono ricalcolati qui: si rifa la scala con
-//     profiloPerPesoCorporeo, che e' esattamente la funzione che il Rank usa. Se
-//     un giorno la scala cambiasse, l'avviso cambierebbe con lei; e non c'e' modo
+//     profiloPerPesoCorporeo, che È esattamente la funzione che il Rank usa. Se
+//     un giorno la scala cambiasse, l'avviso cambierebbe con lei; e non cÈ modo
 //     che l'avviso dica una cosa e il Rank ne dica un'altra.
 //
-// Il numero e' scritto in TRE RIGHE e non in una frase lunga perche' e' un
+// Il numero È scritto in TRE RIGHE e non in una frase lunga perchÈ È un
 // avviso: si legge di sfuggita mentre si guarda il numero grande, e in una riga
-// sola il cervello salta la seconda parte, che e' quella che dice cosa fare.
+// sola il cervello salta la seconda parte, che È quella che dice cosa fare.
 
 import { profiloEsercizio, profiloPerPesoCorporeo, PESO_MINIMO, PESO_MASSIMO } from './rank-config.js';
 import { recordEsercizio } from './rank.js';
@@ -37,14 +37,14 @@ export function kgTesto(n) {
 /**
  * Il peso al confine in cui una prestazione tocca una certa soglia.
  *
- * "Tocca" e' un'uguaglianza: a quel peso la scala mette quel numero esattamente
- * dove arriva la tua prestazione. Per la soglia sopra, quel peso e' quello che ti
- * fa salire; per la soglia sotto, e' quello oltre il quale la perdi.
+ * "Tocca" È un'uguaglianza: a quel peso la scala mette quel numero esattamente
+ * dove arriva la tua prestazione. Per la soglia sopra, quel peso È quello che ti
+ * fa salire; per la soglia sotto, È quello oltre il quale la perdi.
  *
- * Le soglie crescono con il peso corporeo (la scala e' costruita sul rapporto con
- * il peso, non sul peso assoluto), quindi la funzione e' monotona e il confine si
+ * Le soglie crescono con il peso corporeo (la scala È costruita sul rapporto con
+ * il peso, non sul peso assoluto), quindi la funzione È monotona e il confine si
  * trova a meta' tra due pesi. Sessanta passi vanno ben oltre la precisione che ha
- * senso scrivere: sotto i 0,01 kg il numero e' rumore.
+ * senso scrivere: sotto i 0,01 kg il numero È rumore.
  */
 export function pesoCheToccaSoglia(profiloBase, indiceSoglia, prestazione) {
   const differenza = (w) => {
@@ -56,8 +56,8 @@ export function pesoCheToccaSoglia(profiloBase, indiceSoglia, prestazione) {
   let alto = PESO_MASSIMO;
   const aBasso = differenza(basso);
   const adAlto = differenza(alto);
-  // se non c'e' nessun peso valido in cui la soglia arriva a quella prestazione,
-  // non si inventa un numero: si dice solo la parte che si puo' dire
+  // se non cÈ nessun peso valido in cui la soglia arriva a quella prestazione,
+  // non si inventa un numero: si dice solo la parte che si può dire
   if (aBasso === null || adAlto === null) return null;
   if (aBasso >= 0 || adAlto <= 0) return null;
   for (let i = 0; i < 60; i++) {
@@ -67,7 +67,7 @@ export function pesoCheToccaSoglia(profiloBase, indiceSoglia, prestazione) {
   return Math.round(((basso + alto) / 2) * 100) / 100;
 }
 
-/** In che gradino della scala sta una prestazione. -1 se e' sotto il primo. */
+/** In che gradino della scala sta una prestazione. -1 se È sotto il primo. */
 function gradino(punteggio, soglie) {
   let dentro = -1;
   for (let i = 0; i < soglie.length; i++) {
@@ -79,7 +79,7 @@ function gradino(punteggio, soglie) {
 /**
  * I due pesi che contano: quello che ti fa salire e quello che ti fa perdere.
  *
- * Se sei sotto il primo gradino c'e' solo il primo; se sei in cima c'e' solo il
+ * Se sei sotto il primo gradino cÈ solo il primo; se sei in cima cÈ solo il
  * secondo. Dirgli "tocchi il livello dopo" quando non esiste un livello dopo
  * sarebbe una promessa falsa.
  *
@@ -87,7 +87,7 @@ function gradino(punteggio, soglie) {
  * dal peso di oggi. La scala cresce con il peso corporeo, quindi il peso in cui
  * una prestazione fissa tocca una riga dipende solo dall'esercizio e da quanto hai
  * sollevato. Il peso di oggi dice invece DOVE sei fra quei due confini, e quindi
- * quanto sei vicino a perderlo. E' il senso dell'avviso: non "il Rank e' sbagliato",
+ * quanto sei vicino a perderlo. È il senso dell'avviso: non "il Rank È sbagliato",
  * ma "e' fragile, e lo vedi da quanto sei dentro la forbice".
  */
 export function confiniPerIlRank(profiloBase, prestazione, soglieAttuali) {
@@ -96,11 +96,11 @@ export function confiniPerIlRank(profiloBase, prestazione, soglieAttuali) {
   let sale = null;
   let scende = null;
   if (i < 0) {
-    // sei sotto il primo gradino: l'unica direzione possibile e' in su
+    // sei sotto il primo gradino: l'unica direzione possibile È in su
     sale = pesoCheToccaSoglia(profiloBase, 0, prestazione);
   } else {
     // in cima non esiste "il livello dopo": dirglielo sarebbe una promessa falsa,
-    // quindi l'unico confine che ha senso e' quello in cui lo perdi
+    // quindi l'unico confine che ha senso È quello in cui lo perdi
     if (i < soglie.length - 1) sale = pesoCheToccaSoglia(profiloBase, i + 1, prestazione);
     scende = pesoCheToccaSoglia(profiloBase, i, prestazione);
   }
@@ -127,43 +127,43 @@ export function righeAvviso({ peso, sale, scende }) {
  * L'avviso per un esercizio, letto tutto dal database.
  *
  * Restituisce null quando non serve: niente record, peso assente, peso fresco
- * (perche' allora l'avviso sarebbe solo rumore) oppure confini che non esistono.
+ * (perchÈ allora l'avviso sarebbe solo rumore) oppure confini che non esistono.
  */
 export async function avvisoPesoEsercizio({ serie, esercizio, account = null }) {
   if (!esercizio) return null;
   const peso = await pesoAttuale(account);
   if (peso === null || peso === undefined) return null;
-  // regola 2: se serveAggiornare dice che il peso e' a posto, l'avviso sparisce.
-  // Non faccio un controllo nuovo: quello che sa se il peso e' vecchio e' gia'
+  // regola 2: se serveAggiornare dice che il peso È a posto, l'avviso sparisce.
+  // Non faccio un controllo nuovo: quello che sa se il peso È vecchio È già
   // dentro serveAggiornare, e due posti che decidono la stessa cosa prima o poi
   // dicono cose diverse.
   const stato = await serveAggiornare(account);
   if (!stato || !stato.serve) return null;
-  // regola 3: la stessa base e la stessa funzione del Rank. `base` e' la scala
-  // PRIMA di adattarla al peso, ed e' quella che il Rank usa per costruirla.
+  // regola 3: la stessa base e la stessa funzione del Rank. `base` È la scala
+  // PRIMA di adattarla al peso, ed È quella che il Rank usa per costruirla.
   const base = profiloEsercizio(esercizio);
   const record = recordEsercizio(serie || [], esercizio, base, peso);
   if (!record.valido) return null;
-  // il peso con cui la scala e' davvero stata costruita: quello della serie
+  // il peso con cui la scala È davvero stata costruita: quello della serie
   // migliore, se ce l'ha salvato dentro, altrimenti quello di adesso
   const pesoUsato = record.pesoCorporeo || peso;
   // LE SOGLIE SONO QUELLE DEL MOTORE NUOVO.
   //
   // Prima qui si usava `record.profilo.soglie`, cioe' la scala del motore VECCHIO
-  // (costruita sul massimale stimato). Dal 08/10/2026 il Rank e' calcolato da
+  // (costruita sul massimale stimato). Dal 08/10/2026 il Rank È calcolato da
   // rank-v2 e le sue soglie stanno in `record.soglie`: i due sistemi hanno scale
   // diverse, quindi l'avviso avrebbe detto "cambiando peso il Rank non si muove"
   // mentre a schermo il Rank cambiava. Due sistemi che dicono cose diverse sulla
-  // stessa prestazione, ed e' esattamente il bug che questo file era nato per
+  // stessa prestazione, ed È esattamente il bug che questo file era nato per
   // trovare: solo che adesso lo facevano i due motori insieme.
   const soglie = Array.isArray(record.soglie) && record.soglie.length
     ? record.soglie
     : (record.profilo ? record.profilo.soglie : null);
   if (!soglie || !soglie.length) return null;
-  // e il numero da confrontare con le soglie e' lo score del motore nuovo
+  // e il numero da confrontare con le soglie È lo score del motore nuovo
   const prestazione = Number.isFinite(record.score) ? record.score : record.punteggio;
   const confini = confiniPerIlRank(base, prestazione, soglie);
-  // CHI E' SOTTO LA PRIMA SOGLIA ha un solo confine, quello in su, e senza Rank.
+  // CHI È SOTTO LA PRIMA SOGLIA ha un solo confine, quello in su, e senza Rank.
   // Prima non succedeva (il motore vecchio non restituiva mai Rank null); qui il
   // `record.rank.nome` sarebbe andato in crash, quindi il confine sotto non
   // viene nemmeno calcolato.

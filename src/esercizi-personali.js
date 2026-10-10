@@ -2,20 +2,20 @@
 //
 // Ste (04/10/2026): "non ho capito bene spiega meglio, comunque si fai tutto".
 //
-// Tre cose, e sono tre modi diversi di diventare piu' bravi:
+// Tre cose, e sono tre modi diversi di diventare più bravi:
 //
-//  1) QUANTO E' PESANTE PER TE.
+//  1) QUANTO È PESANTE PER TE.
 //     Il classificatore guarda il NOME e dice "lateral raise = isolamento".
 //     Ma il nome non dice nulla di te. Se tu nella chest press spingi 40 kg e
-//     sul cable fly ne spingi 4, allora per TE il cable fly e' un esercizio
+//     sul cable fly ne spingi 4, allora per TE il cable fly È un esercizio
 //     leggero, anche se sulla carta sembra impegnativo.
 //     Qui si fa proprio quello: si prende il tuo carico su quell'esercizio e
-//     si divide per il carico piu' alto che raggiungi su un esercizio di forza.
-//     Il risultato e' una percentuale, e da quella una parola.
+//     si divide per il carico più alto che raggiungi su un esercizio di forza.
+//     Il risultato È una percentuale, e da quella una parola.
 //
 //  2) LE TUE CORREZIONI.
 //     Se il classificatore sbaglia, tocchi il pulsante giusto e la correzione
-//     vale per sempre. Non serve piu' che io metta una parola chiave.
+//     vale per sempre. Non serve più che io metta una parola chiave.
 //
 //  3) LE PAROLE CHE NON CONOSCE.
 //     L'app legge i nomi di tutti i tuoi esercizi, trova le parole che nel
@@ -28,16 +28,16 @@ import { profiloPerPesoCorporeo } from './rank-config.js';
 import { nuovoId } from './sincronizzazione.js';
 
 // ---------------------------------------------------------------------------
-// PARTE 1 -- quanto e' pesante per te
+// PARTE 1 -- quanto È pesante per te
 // ---------------------------------------------------------------------------
 
 /**
- * Quanto quell'esercizio e' pesante PER TE.
+ * Quanto quell'esercizio È pesante PER TE.
  *
- * Non guardo il nome: guardo il tuo numero. Lo confronto con il numero piu'
+ * Non guardo il nome: guardo il tuo numero. Lo confronto con il numero più
  * alto che hai mai raggiunto su un esercizio di forza, e ne ricavo una
- * percentuale. Piu' e' bassa, piu' e' un esercizio "spezzato"; piu' e' alta,
- * piu' e' un esercizio che ti impegna davvero.
+ * percentuale. Più È bassa, più È un esercizio "spezzato"; più È alta,
+ * più È un esercizio che ti impegna davvero.
  */
 export function quantoEPesantePerTe({ serie = [], esercizi = [], esercizioId = null, peso = null } = {}) {
   if (!esercizi.length) return null;
@@ -51,7 +51,7 @@ export function quantoEPesantePerTe({ serie = [], esercizi = [], esercizioId = n
   }
   if (!record.size) return null;
 
-  // il riferimento e' il tuo numero piu' alto in assoluto: e' il massimale
+  // il riferimento È il tuo numero più alto in assoluto: È il massimale
   // TUO, non quello di un manuale
   let massimo = 0;
   let nomeMassimo = '';
@@ -61,7 +61,7 @@ export function quantoEPesantePerTe({ serie = [], esercizi = [], esercizioId = n
   if (!massimo) return null;
 
   // se mi chiedi UN esercizio, rispondo su quello; altrimenti faccio la
-  // panoramica di tutti, ordinata dal piu' pesante
+  // panoramica di tutti, ordinata dal più pesante
   const righe = [];
   for (const [, r] of record) {
     const quota = r.punteggio / massimo;
@@ -134,7 +134,7 @@ export async function livelliImparati(accountId) {
   return mappa;
 }
 
-/** Ricorda la correzione: da qui in poi quell'esercizio e' come dici tu. */
+/** Ricorda la correzione: da qui in poi quell'esercizio È come dici tu. */
 export async function correggiLivello(accountId, esercizioId, livello) {
   const validi = ['grande', 'composto', 'isolamento', 'assistito'];
   if (!validi.includes(livello)) return null;
@@ -183,7 +183,7 @@ function paroleDelNome(nome) {
 /**
  * Le parole che l'app non conosce, fra i nomi dei tuoi esercizi.
  *
- * Non ti chiede niente che le sai gia': solo quelle che non trova da sole.
+ * Non ti chiede niente che le sai già: solo quelle che non trova da sole.
  * Ogni parola viene chiesto una volta sola.
  */
 export async function paroleDaChiedere(accountId, esercizi) {

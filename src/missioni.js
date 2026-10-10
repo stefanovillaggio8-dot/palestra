@@ -1,12 +1,12 @@
-﻿// missioni.js -- Daily, Weekly e Secret Missions.
+// missioni.js -- Daily, Weekly e Secret Missions.
 //
 // Tre regole che valgono sempre:
 //  1) le WEEKLY e le SECRET sono DIVERSE PER CIASCUNO. Il seme nasce dalla
-//     settimana (es. 2026-W40) PIU' dall'account, quindi due persone nella
+//     settimana (es. 2026-W40) PIù dall'account, quindi due persone nella
 //     stessa settimana non vedono le stesse sfide.
 //     (Prima erano uguali per tutti: Ste ha chiesto di cambiarlo.)
-//  2) la DAILY e' una per persona al giorno (dipende da utente + giorno) e si
-//     puo' completare una volta sola al giorno.
+//  2) la DAILY È una per persona al giorno (dipende da utente + giorno) e si
+//     può completare una volta sola al giorno.
 //  3) ogni missione completata resta registrata e non viene riproposta:
 //     nessuna sfida si ripete per la stessa persona, mai.
 //
@@ -28,11 +28,11 @@ export const DIFFICOLTA = {
 export const NUMERO_WEEKLY = 5;
 export const NUMERO_SECRET = 2;
 
-/** Una Secret vale di piu' della stessa missione come Weekly. */
+/** Una Secret vale di più della stessa missione come Weekly. */
 export const MOLTIPLICATORE_SECRET = 1.5;
 
 // ---------------------------------------------------------------------------
-// Il pool delle missioni. Tutte qui dentro: aggiungerne una e' una riga.
+// Il pool delle missioni. Tutte qui dentro: aggiungerne una È una riga.
 // ---------------------------------------------------------------------------
 
 const M = (id, titolo, testo, difficolta, extra = {}) => ({
@@ -125,7 +125,7 @@ export const POOL = [
   M('il-segreto', 'IL SEGRETO',
     "Dici all'amico: \"Ho un segreto. Te lo dico solo se arrivi a 8 ripetizioni.\" Se le arriva, raccontagli che non hai davvero nessun segreto.", 'unhinged'),
   M('l-annuncio-duro', "L'ANNUNCIO DURO",
-    "Presentati come \"l'allenatore piu' severo del mondo\". Per tre serie mantieni il personaggio.", 'easy'),
+    "Presentati come \"l'allenatore più severo del mondo\". Per tre serie mantieni il personaggio.", 'easy'),
   M('la-preghiera', 'LA PREGHIERA',
     "Prima della serie dell'amico prega per le sue ripetizioni, a voce bassa, con serietà totale. Lui deve continuare.", 'unhinged'),
   M('il-confronto-storico', 'IL CONFRONTO STORICO',
@@ -147,7 +147,7 @@ export const POOL = [
   M('il-padre', 'IL PADRE',
     "Incoraggia il tuo amico con le frasi più assurde possibili di un padre al debutto in palestra. Poi chiedigli: \"Papà, contenti?\"", 'insane'),
   M('il-dottore', 'IL MEDICO',
-    "Conferma con serietà che con 5 kg in piu' starai meglio. Non dare spiegazioni, non ammettere dubbi.", 'unhinged'),
+    "Conferma con serietà che con 5 kg in più starai meglio. Non dare spiegazioni, non ammettere dubbi.", 'unhinged'),
   M('il-mare-verso', 'IL MARE VERSO',
     'Dopo la prima serie porta le mani alla fronte come se guardassi il mare, e dì: "Stiamo andando benissimo."', 'easy'),
   M('la-lotta', 'LA LOTTA INTERNA',
@@ -155,15 +155,15 @@ export const POOL = [
 
   // ---- le sfide di Ste, scritte da lui il 07/10/2026 ----
   // Queste sono sue, parola per parola nel senso. Livello e punti li ho messi io, e
-  // il criterio e' uno solo: quanto ti mette in imbarazzo se ti vede un amico che
+  // il criterio È uno solo: quanto ti mette in imbarazzo se ti vede un amico che
   // NON sta facendo nessuna delle cose che hai scritto tu.
   //  - easy      (20 aura): lo fai senza accorgertene, e ridi anche tu
   //  - unhinged  (40 aura): te la cavi con faccia seria
   //  - insane    (75 aura): se qualcuno ti vede, ride di te per una settimana
-  //  - legendary (150 aura): va fatta di nascosto, e le SECRET valgono anche di piu'
+  //  - legendary (150 aura): va fatta di nascosto, e le SECRET valgono anche di più
   //
-  // DIECIOTTO su ventidue erano gia' nel pool o ci somigliavano troppo:
-  //  - "intervista post-gara" esiste gia' (id interview-post-gara): stesso testo
+  // DIECIOTTO su ventidue erano già nel pool o ci somigliavano troppo:
+  //  - "intervista post-gara" esiste già (id interview-post-gara): stesso testo
   //    dentro, quindi NON l'ho rimessa
   //  - le altre che si somigliano sono tenute separate apposta: la posa da
   //    vincitore, la foto da campione, l'applauso all'amico e il conto delle
@@ -215,7 +215,7 @@ export const POOL = [
     'Spiega a un amico un esercizio senza mai dirne il nome vero: descrivi solo i movimenti e chiedigli "Quale attrezzo è?" senza svelargli la risposta.', 'insane'),
 
 // ---- sfide con gli sconosciuti: imbarazzo per TE, mai per gli altri ----
-  // Ste ha chiesto che siano piu' difficili delle altre, perche' e' lo
+  // Ste ha chiesto che siano più difficili delle altre, perchÈ È lo
   // sconosciuto a metterti in imbarazzo. Per questo qui dentro non ci sono
   // missioni "easy": si parte da "unhinged" e si sale fino a "legendary".
   // Con lo sconosciuto parli in modo gentile, non lo tocchi e non gli rovini la
@@ -288,7 +288,7 @@ export const POOL = [
   M('il-selfie', 'IL SELFIE',
     'Fai una foto a te stesso con la posa da campione. Poi torna subito a allenarti.', 'easy'),
 
-  // ---- segrete: compaiono coperte e valgono di piu' ----
+  // ---- segrete: compaiono coperte e valgono di più ----
   M('il-patto-segreto', 'IL PATTO',
     'Firma un patto con il tuo amico, a voce, davanti a un altro amico che fa da testimone. Il patto riguarda solo la prossima serie.', 'insane', { segreta: true }),
   M('la-palestra-pirata', 'LA PALESTRA PIRATA',
@@ -307,7 +307,7 @@ export const POOL_PER_ID = new Map(POOL.map((m) => [m.id, m]));
 
 export function missionePerId(id) { return POOL_PER_ID.get(id) || null; }
 
-/** La ricompensa di una missione, sapendo se e' segreta. */
+/** La ricompensa di una missione, sapendo se È segreta. */
 export function ricompensaMissione(missione, { segreta = false } = {}) {
   const d = DIFFICOLTA[missione.difficolta] || DIFFICOLTA.easy;
   const f = segreta ? MOLTIPLICATORE_SECRET : 1;
@@ -347,7 +347,7 @@ export function hashTesto(testo) {
   return h >>> 0;
 }
 
-/** Numeri pseudo-casuali ma SEMPRE uguali, se il seme e' lo stesso. */
+/** Numeri pseudo-casuali ma SEMPRE uguali, se il seme È lo stesso. */
 export function generatoreDa(seme) {
   let stato = (hashTesto(seme) || 1) >>> 0;
   return function prossimo() {
@@ -357,16 +357,16 @@ export function generatoreDa(seme) {
 }
 
 /**
- * Sceglie `quanti` missioni dal pool, saltando quelle gia' viste.
+ * Sceglie `quanti` missioni dal pool, saltando quelle già viste.
  *
- * Ste ha detto: "non possono spuntare piu' volte le stesse sfide, se e' gia'
- * capitata a uno non puo' capitare la stessa cosa alla stessa persona".
- * Quindi il filtro e' sull'elenco di cio' che quella persona ha gia' fatto,
+ * Ste ha detto: "non possono spuntare più volte le stesse sfide, se È già
+ * capitata a uno non può capitare la stessa cosa alla stessa persona".
+ * Quindi il filtro È sull'elenco di cio' che quella persona ha già fatto,
  * non sul caso: ognuno vede ogni missione una volta sola.
  *
- * Se il pool e' ormai finito NON si ricade sulle missioni gia' fatte: sarebbe
+ * Se il pool È ormai finito NON si ricade sulle missioni già fatte: sarebbe
  * una ripetizione, e Ste l'ha detto chiaramente. In quel caso si restituisce
- * quello che rimane, che puo' anche essere vuoto: meglio zero sfide che una
+ * quello che rimane, che può anche essere vuoto: meglio zero sfide che una
  * sfida rifatta.
  */
 function finestra(seme, pool, quanti, passo = 1, escludi = []) {
@@ -395,7 +395,7 @@ function finestra(seme, pool, quanti, passo = 1, escludi = []) {
  * missioni settimanali e secret DIVERSE. Solo la Daily resta una-per-giorno.
  *
  * Resta pero' il filtro: ognuno vede solo le missioni che non gli sono
- * gia' capitate, quindi nessuno rivede la stessa sfida due volte.
+ * già capitate, quindi nessuno rivede la stessa sfida due volte.
  */
 export function setSettimanale(settimana, giaFatte = [], accountId = 'tutti') {
   const segrete = POOL.filter((m) => m.segreta);
@@ -412,7 +412,7 @@ export function setSettimanale(settimana, giaFatte = [], accountId = 'tutti') {
 
 /**
  * La Daily di oggi per un utente: diversa per ciascuno, una volta al giorno,
- * e mai uguale a una missione che quella persona ha gia' fatto.
+ * e mai uguale a una missione che quella persona ha già fatto.
  */
 export function dailyDi(accountId, dataISO, giaFatte = []) {
   const pool = POOL.filter((m) => !m.segreta);
@@ -432,7 +432,7 @@ export const CATEGORIE = {
 
 /**
  * Tutte le missioni di oggi e della settimana, con lo stato di ciascuna.
- * completamenti = le righe gia' salvate nella tabella "missioni".
+ * completamenti = le righe già salvate nella tabella "missioni".
  */
 export function quadroMissioni({ accountId, dataISO, settimana, completamenti = [], giaFatte = [] }) {
   // Cosa escludere. Attenzione: la missione che hai appena completato DEVE
@@ -478,7 +478,7 @@ export function quadroMissioni({ accountId, dataISO, settimana, completamenti = 
 }
 
 /**
- * Una missione si puo' completare adesso?
+ * Una missione si può completare adesso?
  * La Daily una volta al giorno; le Weekly e le Secret una volta a settimana.
  */
 export function puoCompletare(completamenti, { categoria, dataISO, settimana }) {
@@ -508,7 +508,7 @@ export function contaCompletate(completamenti, filtro = {}) {
   return n;
 }
 
-/** Le missioni completate, dalla piu' recente: e' lo storico che vede Ste. */
+/** Le missioni completate, dalla più recente: È lo storico che vede Ste. */
 export function storicoMissioni(completamenti, { limite = 40 } = {}) {
   return (completamenti || [])
     .filter((c) => c && c.completata_il)

@@ -3,15 +3,15 @@
 // Due regole:
 //  1) la privacy si rispetta davvero: se un account ha nascosto le performance,
 //     il confronto non le mostra. Non basta nasconderle a schermo.
-//  2) il confronto e' SEMPRE esercizio per esercizio. Non esiste una classifica
+//  2) il confronto È SEMPRE esercizio per esercizio. Non esiste una classifica
 //     che somma esercizi diversi: sarebbe sbilanciato (i muscoli non sono tutti
 //     uguali e 50 kg di una cosa non valgono 50 kg di un'altra).
 
 import { recordEsercizio } from './rank.js';
 
 /**
- * I quattro interruttori di privacy. Tutti pubblici di default: si puo'
- * chiudere quello che si vuole, e la struttura e' gia' pronta se un domani
+ * I quattro interruttori di privacy. Tutti pubblici di default: si può
+ * chiudere quello che si vuole, e la struttura È già pronta se un domani
  * volessimo aggiungerne un quinto.
  */
 export const PRIVACY_PREDEFINITE = {
@@ -42,7 +42,7 @@ export function privacyDi(profilo) {
 }
 
 /**
- * Un account puo' vedere un pezzo di dato di un altro?
+ * Un account può vedere un pezzo di dato di un altro?
  *
  * se stesso: sempre. altrimenti: se il dato è pubblico sì, se è privato no.
  * Niente codici: Ste li ha tolti il 04/10/2026.
@@ -73,7 +73,7 @@ export function amiciDi(profilo, catalogo = []) {
   return out.sort((a, b) => String(a.username || '').localeCompare(String(b.username || '')));
 }
 
-/** Proposta di amicizia fra due account, se non sono gia' amici. */
+/** Proposta di amicizia fra due account, se non sono già amici. */
 export function propostaAmicizia(mio, altro) {
   if (!mio || !altro || mio.id === altro.id) return null;
   const gia = ((mio.amici || []).indexOf(altro.id) !== -1);
@@ -82,7 +82,7 @@ export function propostaAmicizia(mio, altro) {
     a: altro.id,
     amici: gia,
     testo: gia
-      ? `${altro.username} e' gia' tra i tuoi amici.`
+      ? `${altro.username} È già tra i tuoi amici.`
       : `Vuoi aggiungere ${altro.username} tra gli amici?`,
   };
 }

@@ -1,5 +1,5 @@
 // sedute.js -- la logica di una seduta, tenuta lontana dall'interfaccia.
-// Qui dentro non c'e' nessun elemento della pagina: solo regole. Cosi' si puo'
+// Qui dentro non cÈ nessun elemento della pagina: solo regole. Cosi' si può
 // provare tutto con i test, senza aprire un browser.
 
 import * as db from './db.js';
@@ -115,7 +115,7 @@ export function etichettaSpotterSerie(s) {
   return `${testoRip} · ${testoAss}`;
 }
 
-/** I campi di una serie vuota, gia' pronti per il database. */
+/** I campi di una serie vuota, già pronti per il database. */
 export function nuovaSerie({ seduta_id, esercizio_id, ordine, esercizio, prevista = {} }) {
   const assistito = !!esercizio && !convenzioneMisuraCarico(esercizio.convenzione);
   return {
@@ -127,7 +127,7 @@ export function nuovaSerie({ seduta_id, esercizio_id, ordine, esercizio, previst
     peso_assistenza: prevista.peso_assistenza === undefined ? null : prevista.peso_assistenza,
     ripetizioni: prevista.ripetizioni === undefined ? null : prevista.ripetizioni,
     spotter: !!prevista.spotter,
-    // null vuol dire "non specificato", che e' diverso da zero
+    // null vuol dire "non specificato", che È diverso da zero
     rip_assistite: null,
     dropset: !!prevista.dropset,
     giri_extra: prevista.dropset
@@ -178,7 +178,7 @@ export async function apriSeduta({ scheda_id, versione, giorno, oraInizio = new 
   return seduta;
 }
 
-/** Aggiunge una serie a un esercizio della seduta e la restituisce gia' salvata. */
+/** Aggiunge una serie a un esercizio della seduta e la restituisce già salvata. */
 export async function aggiungiSerie({ seduta_id, esercizio_id, esercizio, ordine, prevista = {} }) {
   const serie = nuovaSerie({ seduta_id, esercizio_id, ordine, esercizio, prevista });
   const salvata = await db.salva('serie', serie);
@@ -188,7 +188,7 @@ export async function aggiungiSerie({ seduta_id, esercizio_id, esercizio, ordine
 // Una coda per ogni serie: i cambiamenti della stessa serie vanno in fila.
 // Senza questo, due scritture quasi contemporanee (per esempio i kg che
 // salvano in ritardo e la spunta) possono leggere la stessa versione vecchia e
-// l'ultima che arriva cancella il cambiamento dell'altra. E' successo a Ste
+// l'ultima che arriva cancella il cambiamento dell'altra. È successo a Ste
 // sul telefono: spuntava la serie e un secondo dopo la spunta spariva.
 const codeSerie = new Map();
 // tutti i salvataggi ancora in volo: serve per aspettarli prima di chiudere
@@ -260,7 +260,7 @@ export function serieDiEsercizio(serie, sedutaId, esercizioId) {
     .sort((a, b) => (a.ordine || 0) - (b.ordine || 0));
 }
 
-/** Le sedute finite, dalla piu' recente. */
+/** Le sedute finite, dalla più recente. */
 export function seduteFinite(sedute) {
   return (sedute || [])
     .filter((s) => s && s.stato === 'completata' && !s.eliminata)

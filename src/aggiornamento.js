@@ -1,12 +1,12 @@
 // aggiornamento.js -- "quello che ho fatto diventa la scheda".
 //
 // Quando finisci un allenamento puoi far salire quello che hai fatto davvero
-// nella scheda, cosi' la prossima volta la trovi gia' aggiornata.
+// nella scheda, così la prossima volta la trovi già aggiornata.
 //
 // Regole che valgono sempre:
 //  - si aggiorna SOLO il giorno che hai allenato, gli altri giorni non si toccano
 //  - si aggiornano solo gli esercizi che hai davvero fatto
-//  - le sedute gia' registrate non cambiano MAI: l'aggiornamento crea una
+//  - le sedute già registrate non cambiano MAI: l'aggiornamento crea una
 //    versione nuova della scheda, quelle vecchie restano com'erano
 //  - niente spotter e niente ripetizioni assistite nella scheda: la scheda
 //    contiene pesi e ripetizioni, il resto sta nello storico
@@ -46,8 +46,8 @@ export function aPrevista(s, esercizio) {
     peso: assistito ? null : numeroOppure(s.peso),
     peso_assistenza: assistito ? numeroOppure(s.peso_assistenza) : null,
     ripetizioni: numeroOppure(s.ripetizioni),
-    // lo spotter finisce nella scheda: se l'hai fatto cosi' una volta, la
-    // prossima volta la serie e' gia' segnata come "da fare con lo spotter"
+    // lo spotter finisce nella scheda: se l'hai fatto così una volta, la
+    // prossima volta la serie È già segnata come "da fare con lo spotter"
     spotter: !!s.spotter,
     dropset: !!s.dropset,
   };
@@ -139,7 +139,7 @@ function spotterCambiato(vecchie, nuove) {
 
 /**
  * Quante ripetizioni hai fatto con lo spotter in questa seduta.
- * Te lo dice a parole, perche' il numero da solo non si capisce:
+ * Te lo dice a parole, perchÈ il numero da solo non si capisce:
  * conta le serie, le ripetizioni totali di quelle serie, e quante di queste
  * sono state assistite davvero (se non le hai segnate, resta "non specificato").
  */
@@ -176,7 +176,7 @@ export function riassuntoSpotter(seriePerEsercizio, nomiEsercizi = new Map()) {
 
   // Prima diceva una cosa sola tre volte: "1 serie con lo spotter, 6
   // ripetizioni in tutto, 1 serie senza il numero delle assistite". Ste:
-  // "togli questo non ha senso". Ora e' una frase sola, e le assistite sono
+  // "togli questo non ha senso". Ora È una frase sola, e le assistite sono
   // un'informazione a se' invece di una frase che sembra un errore.
   const capi = [];
   capi.push(`${serie} ${serie === 1 ? 'serie' : 'serie'} con lo spotter`);
@@ -207,7 +207,7 @@ export function fraseCambiamento(c) {
 /**
  * Come spiegare il cambiamento quando cambiano le SERIE e non solo i numeri.
  * Se aggiungi una serie durante l'allenamento, qui si vede che ne hai
- * aggiunta una: cosi' non ti scappa che stai allungando la scheda.
+ * aggiunta una: così non ti scappa che stai allungando la scheda.
  */
 export function notaSulNumeroSerie(c) {
   if (c.aggiunta) {
@@ -223,7 +223,7 @@ export function notaSulNumeroSerie(c) {
   return '';
 }
 
-/** Quanti kg/ripetizioni in piu' o in meno, per dirlo con le parole. */
+/** Quanti kg/ripetizioni in più o in meno, per dirlo con le parole. */
 export function riassuntoVoce(c) {
   const pezzi = [];
   if (c.pesoCambiato) pezzi.push('pesi aggiornati');

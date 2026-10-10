@@ -101,7 +101,7 @@ test('23. esercizi assistiti: meno contrappeso = piu\' lavoro, mai "record"', ()
     punto('2026-10-01', [s(1, null, 7, { peso_assistenza: 10 })]),
   ]);
   assert.match(testo(r), /5 kg di assistenza in meno/);
-  assert.match(testo(r), /meno aiuto significa piu' lavoro/);
+  assert.match(testo(r), /meno aiuto significa più lavoro/);
   assert.match(testo(r), /non e' un record e il volume non viene calcolato/);
   assert.doesNotMatch(testo(r), /Volume dell'ultima seduta/);
 });
@@ -111,7 +111,7 @@ test('23b. assistenza salita: detto che NON e\' un passo avanti', () => {
     punto('2026-09-01', [s(1, null, 6, { peso_assistenza: 10 })]),
     punto('2026-10-01', [s(1, null, 6, { peso_assistenza: 20 })]),
   ]);
-  assert.match(testo(r), /non e' un passo avanti/);
+  assert.match(testo(r), /non È un passo avanti/);
 });
 
 test('i dati del grafico escono puliti e in ordine', () => {

@@ -3,23 +3,23 @@ import { stimaMassimo } from './rank.js';
 import { riferimentoPerEsercizio } from './rank-config.js';
 
 /**
- * Quanto hai sollevato IN PIU' del tuo corpo, e il rapporto.
+ * Quanto hai sollevato IN PIù del tuo corpo, e il rapporto.
  *
- * Ste (04/10/2026): "con kg intendo il peso che alzo in piu' rispetto al mio
- * corpo. Per esempio io peso 66 kg e faccio 96 di lat machine, alzo 30 kg in piu'
+ * Ste (04/10/2026): "con kg intendo il peso che alzo in più rispetto al mio
+ * corpo. Per esempio io peso 66 kg e faccio 96 di lat machine, alzo 30 kg in più
  * del mio peso".
  *
- * E' la misura piu' onesta che ci sia, perche' mette tutti sulla stessa scala:
+ * È la misura più onesta che ci sia, perchÈ mette tutti sulla stessa scala:
  * chi pesa 66 e solleva 96 ha fatto +30, chi pesa 90 e solleva 96 ha fatto +6. Il
- * secondo e' piu' debole pur avendo gli stessi kg, e questa e' la verita'.
+ * secondo È più debole pur avendo gli stessi kg, e questa È la verita'.
  *
- * Restituisce anche il RAPPORTO (quanto volte il proprio peso), perche' Ste ha
+ * Restituisce anche il RAPPORTO (quanto volte il proprio peso), perchÈ Ste ha
  * chiesto di vedere entrambi: i kg dicono quanto hai spostato, il rapporto dice
  * quanto era difficile per TE.
  *
  * LE GAMBE NON CONTANO, per scelta di Ste (04/10/2026): "non contare esercizi di
- * gambe perche' quelli sballano troppo". Un leg press da 110 kg sposta la media
- * di tutti gli esercizi e la tabella smette di dire qualcosa. Non e' che i
+ * gambe perchÈ quelli sballano troppo". Un leg press da 110 kg sposta la media
+ * di tutti gli esercizi e la tabella smette di dire qualcosa. Non È che i
  * numeri delle gambe spariscano: restano visibili uno per uno, semplicemente non
  * entrano nella media.
  */
@@ -50,7 +50,7 @@ export function gambeEsclusoDaMedia(gruppo, nome) {
  * I kg che hai spostato davvero: prendo la serie fatta più pesante, e scarto le
  * serie non fatte o col solo spotter.
  *
- * Non riuso recordSenzaAssistenza di confronto.js perche' richiede il profilo
+ * Non riuso recordSenzaAssistenza di confronto.js perchÈ richiede il profilo
  * dell'esercizio e restituisce un oggetto { valore, valido, motivo }: qui non
  * serve tutto questo, serve il numero. La regola la applico qui, in tre righe,
  * e si vede.
@@ -70,17 +70,17 @@ export function kgReali(serie) {
 
 /**
  * Una prestazione, pronta per la tabella.
- * opportuno = null se non si puo' calcolare, e va detto PERCHE'.
+ * opportuno = null se non si può calcolare, e va detto PERCHE'.
  */
 export function prestazione({ esercizio, serie, pesoCorporeo, carrucola = null }) {
   const fatti = (serie || []).filter((s) => s && !s.eliminata
     && (!s.stato || s.stato === 'fatta') && s.spotter !== true);
   const letto = kgReali(serie);
   // La carrucola si decide UNA volta e vale per due cose: per dimezzare i kg che
-  // senti, e per dire alla scala in che unita' e' scritto quel numero. Se le due
+  // senti, e per dire alla scala in che unita' È scritto quel numero. Se le due
   // cose prendessero la carrucola da posti diversi, la percentuale sarebbe
   // dimezzata senza che nessuno se ne accorga. Sul doppio carrucola il peso che
-  // senti e' META' di quello sul carrello: senza questo, le alzate laterali
+  // senti È META' di quello sul carrello: senza questo, le alzate laterali
   // finivano con il doppio, la stessa identica dimenticanza che Ste mi ha fatto
   // correggere tre volte sul Rank.
   const carr = carrucola || (esercizio && esercizio.carrucola) || null;
@@ -112,9 +112,9 @@ export function prestazione({ esercizio, serie, pesoCorporeo, carrucola = null }
   //
   // Ste (04/10/2026): "non voglio che calcoli il massimale, ma il massimo che ho
   // fatto in quella seduta in quell'esercizio", e poi: "questa cosa serve a capire
-  // quanto alzo in piu' del mio corpo, non quale e' la mia serie migliore".
+  // quanto alzo in più del mio corpo, non quale È la mia serie migliore".
   //
-  // Quindi niente "1RM stimato" (88 kg x 1,2 = 105.6): e' una mia invenzione, e come
+  // Quindi niente "1RM stimato" (88 kg x 1,2 = 105.6): È una mia invenzione, e come
   // gli avevo detto io sul Cable Fly sbaglia tantissimo quando le ripetizioni sono
   // alte. Qui si confronta il peso che hai davvero sollevato con la scala di
   // quell'esercizio.
@@ -124,8 +124,8 @@ export function prestazione({ esercizio, serie, pesoCorporeo, carrucola = null }
   const riferimento = riferimentoPerEsercizio(
     { id: base.id, nome: nomeEsercizio, convenzione: (esercizio && esercizio.convenzione) || null,
       attrezzatura: (esercizio && esercizio.attrezzatura) || null,
-      // la carrucola va passata ANCHE qui, non solo per dimezzare i kg: e' lei
-      // che dice alla scala in che unita' e' scritto quel numero. Senza, il
+      // la carrucola va passata ANCHE qui, non solo per dimezzare i kg: È lei
+      // che dice alla scala in che unita' È scritto quel numero. Senza, il
       // riferimento di un esercizio al doppio carrucola era il doppio e la
       // percentuale usciva dimezzata.
       carrucola: carr,
@@ -142,7 +142,7 @@ export function prestazione({ esercizio, serie, pesoCorporeo, carrucola = null }
     riferimento,
     percentuale,
     rapporto: Math.round((kg / peso) * 1000) / 1000,
-    // Ste: "quanto alzo in piu' del mio corpo". 96 - 66 = 30.
+    // Ste: "quanto alzo in più del mio corpo". 96 - 66 = 30.
     eccesso: Math.round((kg - peso) * 100) / 100,
   };
 }
@@ -195,8 +195,8 @@ export function classificaGenerale(persone) {
   const righe = (persone || [])
     .map((p) => {
       // Il peso corporeo della PERSONA va passato: senza, "quanto hai sollevato
-      // in piu' del tuo corpo" non si puo' calcolare e la classifica veniva
-      // vuota. E' esattamente la meta' della misura, quindi non e' un dettaglio.
+      // in più del tuo corpo" non si può calcolare e la classifica veniva
+      // vuota. È esattamente la meta' della misura, quindi non È un dettaglio.
       const prestazioni = (p.serie || []).map((s) => prestazione({
         esercizio: s.esercizio,
         serie: s.serie,

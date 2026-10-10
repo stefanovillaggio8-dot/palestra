@@ -1,7 +1,7 @@
 // grafici.js -- grafici in SVG scritti a mano.
-// Nessuna libreria: cosi' funzionano offline senza scaricare nulla e il
+// Nessuna libreria: così funzionano offline senza scaricare nulla e il
 // bundle resta piccolo. Ogni grafico mostra anche i numeri usati per disegnarlo,
-// cosi' niente resta nascosto dietro una linea.
+// così niente resta nascosto dietro una linea.
 
 import { el } from './ui.js';
 import { formattaNumero } from './numeri.js';

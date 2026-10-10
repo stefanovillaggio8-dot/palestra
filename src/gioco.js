@@ -2,7 +2,7 @@
 // statistiche per un account, e dice che cosa guadagni quando finisci un
 // allenamento.
 //
-// Anche questo file e' logica pura: nessun DOM, nessuna scrittura. Chi lo usa
+// Anche questo file È logica pura: nessun DOM, nessuna scrittura. Chi lo usa
 // (l'interfaccia) salva quello che questo file restituisce. Cosi' le regole
 // del gioco si possono provare tutte con i test.
 
@@ -35,7 +35,7 @@ export function gruppiDaSerie(sedute, serie, esercizi) {
 
 /**
  * TUTTO lo stato di gioco di un account in un colpo.
- * Nessuna scrittura: e' una fotografia, si puo' ricalcolare quanto si vuole.
+ * Nessuna scrittura: È una fotografia, si può ricalcolare quanto si vuole.
  */
 export function statoAccount({
   account,
@@ -87,8 +87,8 @@ export function statoAccount({
   // che il record era 20 e ti teneva le armature. Due schermate della stessa pagina
   // che si contraddicevano sullo stesso numero.
   //
-  // Una medaglia che hai vinto non si toglie: si dà con la sequenza piu' lunga che
-  // hai mai fatto, che e' la stessa regola delle armature.
+  // Una medaglia che hai vinto non si toglie: si dà con la sequenza più lunga che
+  // hai mai fatto, che È la stessa regola delle armature.
   const streakPerMedaglie = Math.max(Number(streak.record) || 0, streak.giorni, 1);
   const medaglieVinte = medaglie({
     sedute: completate.length,
@@ -129,11 +129,11 @@ export function statoAccount({
 
 /**
  * Cosa guadagni quando finisci un allenamento.
- * Restituisce la lista delle ricompense NUOVE da salvare: e' il frontend a
- * scriverle, ma non puo' inventarne una qualsiasi, perche' qui c'e' gia' tutto
+ * Restituisce la lista delle ricompense NUOVE da salvare: È il frontend a
+ * scriverle, ma non può inventarne una qualsiasi, perchÈ qui cÈ già tutto
  * deciso e il salvataggio passa dal database.
  *
- * ricompenze = quelle gia' salvate (serve per non ripetere i premi)
+ * ricompenze = quelle già salvate (serve per non ripetere i premi)
  */
 export function ricompenseAllenamento({
   account,
@@ -181,23 +181,23 @@ export function ricompenseAllenamento({
   for (const r of record) {
     // IL CONTROLLO DI `r.rank` MANCAVA, ed era un buco vero.
     //
-    // Un record puo' essere valido (`valido: true`) ma avere `rank: null`: e' il
+    // Un record può essere valido (`valido: true`) ma avere `rank: null`: È il
     // caso di chi si allena ma non ha ancora sbloccato il primo livello su quell'
     // esercizio. Prima qui il controllo era solo `r.valido`, quindi arrivava alla
     // riga della promozione e faceva `r.rank.nome` su un null: crash.
     //
-    // E il crash era SILENZIOSO, perche' chi chiama questa funzione ha un
+    // E il crash era SILENZIOSO, perchÈ chi chiama questa funzione ha un
     // `catch` che scrive in console e restituisce una lista vuota. Quindi
     // finire un allenamento con un esercizio sotto la prima soglia faceva
     // perdere le ricompense di TUTTA la seduta (Aura e XP di ogni esercizio),
-    // senza che sull'app comparisse niente. Il difetto piu' insidioso di tutti,
-    // perche' l'utente lo vede come un problema di ricompense e non di codice.
+    // senza che sull'app comparisse niente. Il difetto più insidioso di tutti,
+    // perchÈ l'utente lo vede come un problema di ricompense e non di codice.
     //
     // Nota: `rank: null` NON vuol dire prestazione sbagliata. Vuol dire che la
-    // prestazione e' sotto la soglia d'ingresso di quell'esercizio, il che e'
+    // prestazione È sotto la soglia d'ingresso di quell'esercizio, il che È
     // normale al primo mese. La ricompensa del record la prende lo stesso
     // (riga 165, che usa `rankId`, non `rank`), quindi non si perde niente: si
-    // evita solo di scrivere il nome di un Rank che non c'e'.
+    // evita solo di scrivere il nome di un Rank che non cÈ.
     if (!r.valido || !r.esercizio) continue;
     const ric = ricompensaRecord(r.rankId);
     aggiungi('record', r.esercizio.id, ric.aura, ric.xp, `${r.esercizio.nome}: ${r.testo}`);

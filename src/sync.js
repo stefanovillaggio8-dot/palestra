@@ -1,7 +1,7 @@
 // sync.js -- il motore di sincronizzazione.
 // Regole che valgono sempre:
 //  - una riga locale non viene MAI cancellata prima della conferma del database
-//  - ogni scrittura remota e' un UPSERT sulla chiave primaria: ritentarla e' sicuro
+//  - ogni scrittura remota È un UPSERT sulla chiave primaria: ritentarla È sicuro
 //  - se un altro dispositivo ha scritto la stessa riga, non si sovrascrive niente:
 //    si conservano entrambe le versioni e le mostriamo a Ste
 
@@ -15,7 +15,7 @@ import {
 const CHIAVE_ULTIMO_PULL = 'palestra-ultimo-pull';
 // LE TABELLE SCENDONO E SALGONO DA QUI.
 //
-// `pesi` E' STATA AGGIUNTA IL 08/10/2026, e fino ad allora mancava. La tabella
+// `pesi` È STATA AGGIUNTA IL 08/10/2026, e fino ad allora mancava. La tabella
 // esiste su Supabase (schema.sql, con la sua policy "propri pesi"), e l'app la
 // scriveva localmente, ma non era in questa lista: quindi il peso corporeo non
 // veniva MAI scaricato al cambio dispositivo. In pratica aprivi l'app sul
@@ -72,7 +72,7 @@ export async function riprovaOra() {
   return sincronizza();
 }
 
-/** Un giro di sincronizzazione. Non parte se un giro e' ancora in corso. */
+/** Un giro di sincronizzazione. Non parte se un giro È ancora in corso. */
 export async function sincronizza() {
   if (inCorso) return { fatto: false, motivo: 'gia-in-corso' };
   if (!sb.collegato()) return { fatto: false, motivo: 'non-collegato' };

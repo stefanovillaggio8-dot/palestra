@@ -1,9 +1,9 @@
-﻿// dati-iniziali.js -- le schede e la lista degli esercizi.
+// dati-iniziali.js -- le schede e la lista degli esercizi.
 // Non viene mai riscritta a runtime: se modifichi una scheda, nasce una nuova
 // versione e lo storico resta quello che era.
 //
 // Ci sono due persone, ognuna con la sua scheda e i suoi allenamenti. Si
-// sceglie dalla URL: ?p=2 (oppure ?p=1, che e' il default). Ogni persona ha un
+// sceglie dalla URL: ?p=2 (oppure ?p=1, che È il default). Ogni persona ha un
 // id scheda proprio, quindi niente si mescola.
 
 import { CONVENZIONI as C } from './numeri.js';
@@ -14,9 +14,9 @@ export const SCHEDA_NOME = 'Palestra';
 /**
  * Le persone che usano l'app. L'ordine non conta, conta l'id nella URL.
  *
- * Ogni riga e' un ACCOUNT a se' stante: ha il suo username, il suo avatar, la
+ * Ogni riga È un ACCOUNT a se' stante: ha il suo username, il suo avatar, la
  * sua scheda, i suoi allenamenti e i suoi rank. Quello che si vede nelle
- * classifiche e' il record MIGLIORE di ciascuno su ciascun esercizio.
+ * classifiche È il record MIGLIORE di ciascuno su ciascun esercizio.
  *
  * Per aggiungere un amico basta mettere una riga qui dentro (o usare
  * l'elenco CONTATTI): nient'altro da cambiare.
@@ -59,11 +59,11 @@ export function accountId(numero) {
  * nome e diventare se stesso".
  *
  * Tre regole, decise insieme:
- *   1) la scheda e' una COPIA di quella di Ste ma SENZA le sue serie;
+ *   1) la scheda È una COPIA di quella di Ste ma SENZA le sue serie;
  *   2) chi sei si ricorda con dispositivo E url, e l'url vince sempre;
  *   3) nessuno finisce nella lista di Ste se non lo aggiunge lui.
  *
- * La `chiave` non e' un vezzo: senza, due amici con lo stesso nome finirebbero
+ * La `chiave` non È un vezzo: senza, due amici con lo stesso nome finirebbero
  * sulla stessa scheda e si scriverebbero addosso. Con la chiave, due link diversi
  * sono due persone diverse anche se si chiamano uguale.
  *
@@ -89,7 +89,7 @@ export function personaDaNome(nome, chiave) {
   };
 }
 
-/** Ricostruisce la persona da quello che si e' scritto nella memoria del dispositivo. */
+/** Ricostruisce la persona da quello che si È scritto nella memoria del dispositivo. */
 export function personaDaMemoria(memoria) {
   if (!memoria || typeof memoria !== 'object') return null;
   if (memoria.p !== undefined && memoria.p !== null) {
@@ -102,27 +102,27 @@ export function personaDaMemoria(memoria) {
 /** Una stringa dentro un campo dell'URL, per chi si chiama "a b" o "a&b". */
 function campoUrl(qs, nome) {
   // si ferma anche al pezzo di scheda (#/seduta/...): nel browser vero quello non
-  // sta nella query, ma cosi' la lettura regge anche se qualcuno lo mette li
+  // sta nella query, ma così la lettura regge anche se qualcuno lo mette li
   const m = new RegExp('[?&]' + nome + '=([^&#]*)').exec(qs);
   if (!m) return null;
   let v = m[1];
-  try { v = decodeURIComponent(v.replace(/\+/g, ' ')); } catch { /* era gia' grezzo */ }
+  try { v = decodeURIComponent(v.replace(/\+/g, ' ')); } catch { /* era già grezzo */ }
   return v.trim() ? v.trim() : null;
 }
 
 /**
  * CHI SEI, in un pezzo solo e testabile.
  *
- * L'ordine e' quello che ha deciso Ste, e ogni ordine ha una ragione:
+ * L'ordine È quello che ha deciso Ste, e ogni ordine ha una ragione:
  *   1) il LINK: ?p=1 / ?p=2 sono le due persone scritte a mano, ?n=nome&k=chiave
- *      e' chi ti ha mandato il link. Vince sempre, perche' il link e' di chi lo
+ *      È chi ti ha mandato il link. Vince sempre, perchÈ il link È di chi lo
  *      manda: se Marco apre il link di Luca sul suo telefono deve diventare Luca.
- *   2) la MEMORIA del dispositivo: cosi' il nome non si chiede due volte, e se
+ *   2) la MEMORIA del dispositivo: così il nome non si chiede due volte, e se
  *      cambio telefono e riapro lo stesso link ritrovo la mia scheda.
- *   3) il caso limite: un dispositivo che ha gia' dentro le schede di Ste NON
+ *   3) il caso limite: un dispositivo che ha già dentro le schede di Ste NON
  *      viene messo davanti alla domanda, altrimenti anche lui si troverebbe una
- *      scheda vuota e non vedrebbe piu' i suoi allenamenti. E' la cosa peggiore
- *      che potesse succedere, quindi e' scritta qui per prima.
+ *      scheda vuota e non vedrebbe più i suoi allenamenti. È la cosa peggiore
+ *      che potesse succedere, quindi È scritta qui per prima.
  *   4) nessuna delle tre: si chiede il nome. Su un dispositivo nuovo non si sa
  *      niente, e non si inventa nessuno.
  */
@@ -134,7 +134,7 @@ export function chiSei({ ricerca = '', memoria = null, schede = [] } = {}) {
     const persona = PERSONE.find((p) => p.id === Number(numero));
     if (persona) return { persona, daChiedere: false, memoria: { p: persona.id } };
     // una persona inesistente NON ti butta fuori dal tuo profilo: si continua
-    // sotto, che vuol dire memoria o schede gia' presenti.
+    // sotto, che vuol dire memoria o schede già presenti.
   }
 
   const nome = campoUrl(qs, 'n');
@@ -167,14 +167,14 @@ export function chiSei({ ricerca = '', memoria = null, schede = [] } = {}) {
  * aggiunto dopo — Chest Press, Cable Lateral Raise, Leg Extension, Cable Fly, i
  * curl — andava nella scheda ma non nella tabella.
  *
- * E la conseguenza e' peggio di una scritta mancante: la lista dei Rank gira sul
+ * E la conseguenza È peggio di una scritta mancante: la lista dei Rank gira sul
  * CATALOGO (recordAccount fa `for (const e of esercizi)`), quindi un esercizio
  * assente dal catalogo non ha una card. Non dice "nessun dato": semplicemente non
- * c'e'. Con 23 esercizi in scheda e un catalogo fermo a 12, 11 sparivano.
+ * cÈ. Con 23 esercizi in scheda e un catalogo fermo a 12, 11 sparivano.
  *
- * Perche' solo i MANCANTI e non tutto il catalogo: gli esercizi gia' presenti non
+ * Perche' solo i MANCANTI e non tutto il catalogo: gli esercizi già presenti non
  * si toccano. Su un dispositivo dove ne hai corretti uno o che sono arrivati dal
- * server, riscrivere tutto ogni avvio perderebbe le correzioni (e i dati, che e'
+ * server, riscrivere tutto ogni avvio perderebbe le correzioni (e i dati, che È
  * la cosa peggiore).
  */
 export function eserciziMancanti(catalogo, ufficiale = ESERCIZI) {
@@ -182,7 +182,7 @@ export function eserciziMancanti(catalogo, ufficiale = ESERCIZI) {
   return (ufficiale || []).filter((e) => e && e.id && !presenti.has(e.id));
 }
 
-// Ogni riga e' una VARIANTA con id proprio: "Chest Press" e "Chest Press - macchina B"
+// Ogni riga È una VARIANTA con id proprio: "Chest Press" e "Chest Press - macchina B"
 // hanno id diversi e quindi non verranno mai confrontati fra loro.
 export const ESERCIZI = [
   { id: 'ex-chest-press', nome: 'Chest Press', gruppo: 'Chest Press', convenzione: C.PER_BRACCIO, attrezzatura: C.MACCHINA_DISCHI, bracciaIndipendenti: true, foto: 'img/esercizi/chest-press.png', tipo: 'standard', nota_permanente: 'Macchina a dischi veri sui perni, e i due bracci sono indipendenti: muovo il destro senza muovere il sinistro.' },
@@ -213,7 +213,7 @@ export const ESERCIZI = [
   { id: 'ex-wrist-curl', nome: 'Wrist Curl', gruppo: 'Wrist Curl', convenzione: C.BILANCIERE, carrucola: C.CARRUCOLA_MONO, foto: 'img/esercizi/wrist-curl.png', tipo: 'standard', nota_permanente: 'Dropset: prima serie fino a cedimento, poi si scende. Ci sono 3 giri extra da riempire.' },
 
   // Esercizi AGGIUNTI, non ancora messi in nessuna scheda: sono disponibili
-  // nella lista cosi' ognuno puo' aggiungerli quando gli servono.
+  // nella lista così ognuno può aggiungerli quando gli servono.
   { id: 'ex-iso-lateral-row', nome: 'Iso-Lateral Row', gruppo: 'Row', convenzione: C.PER_BRACCIO, attrezzatura: C.MACCHINA_DISCHI, foto: 'img/esercizi/iso-lateral-row.png', tipo: 'standard', nota_permanente: 'Macchina a dischi, e ogni braccio e\' indipendente: se i due lati non sono uguali lo senti subito.' },
   { id: 'ex-lat-pulldown-lats', nome: 'Lat Pulldown (lats)', gruppo: 'Lat Pulldown', attrezzatura: C.MACCHINA_STACK, convenzione: C.MACCHINA, foto: 'img/esercizi/lat-pulldown-lats.png', tipo: 'standard', nota_permanente: '' },
   { id: 'ex-db-lateral-raise', nome: 'Dumbbell Lateral Raise', gruppo: 'Lateral Raise', convenzione: C.BILANCIERE, foto: 'img/esercizi/db-lateral-raise.png', tipo: 'standard', nota_permanente: '' },
@@ -270,17 +270,17 @@ export const GIORNI = [
 ];
 
 /**
- * Istantanea completa della scheda: e' questo che finisce in una versione.
+ * Istantanea completa della scheda: È questo che finisce in una versione.
  *
  * `conSerie: false` serve a chi si registra col link: la copia porta i tuoi
  * giorni, i tuoi esercizi, le tue note e le opzionali, ma NON le tue serie.
  * Ste: "fai una copia della mia e loro la modificano... pero' non deve trovarsi
  * dentro 35 kg alla chest press come se fossero suoi".
  *
- * Nota sul perche' non possa rompere niente: gli id delle sedute e delle serie non
+ * Nota sul perchÈ non possa rompere niente: gli id delle sedute e delle serie non
  * vengono da qui, nascono nuovi (nuovoId()) quando l'allenamento parte, e ogni
- * seduta porta scheda_id + versione_id. Quindi la copia di uno non puo' scrivere
- * sulle righe di un altro: non e' che lo impediamo, e' che non e' possibile.
+ * seduta porta scheda_id + versione_id. Quindi la copia di uno non può scrivere
+ * sulle righe di un altro: non È che lo impediamo, È che non È possibile.
  */
 export function costruisciSnapshot({ conSerie = true } = {}) {
   return {

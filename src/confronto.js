@@ -1,6 +1,6 @@
-// confronto.js -- quando e' lecito confrontare due sedute.
+// confronto.js -- quando È lecito confrontare due sedute.
 //
-// Regola d'oro: se non si puo' confrontare, si dice "Confronto non disponibile".
+// Regola d'oro: se non si può confrontare, si dice "Confronto non disponibile".
 // Non si inventano numeri e non si accostano varianti diverse.
 
 import {
@@ -17,7 +17,7 @@ export const NON_DISPONIBILE = 'Confronto non disponibile';
 
 /**
  * Perche' due esercizi non sono confrontabili.
- * Restituisce null quando il confronto e' lecito.
+ * Restituisce null quando il confronto È lecito.
  */
 export function motivoNonConfrontabile(esercizioA, esercizioB) {
   if (!esercizioA || !esercizioB) return 'esercizio sconosciuto';
@@ -32,7 +32,7 @@ export function motivoNonConfrontabile(esercizioA, esercizioB) {
 
 /**
  * Confronto serie per serie fra due sedute, solo se le varianti coincidono.
- * Restituisce sempre un oggetto con `disponibile` e, quando non e' confrontabile,
+ * Restituisce sempre un oggetto con `disponibile` e, quando non È confrontabile,
  * il motivo: l'interfaccia mostra "Confronto non disponibile".
  */
 export function confrontaEsercizio(sedeCorrente, sedePrecedente, esercizioCorrente, esercizioPrecedente) {
@@ -42,8 +42,8 @@ export function confrontaEsercizio(sedeCorrente, sedePrecedente, esercizioCorren
   }
   const conv = esercizioCorrente.convenzione;
   if (conv === CONVENZIONI.ASSISTENZA || conv === CONVENZIONI.CORPO_LIBERO) {
-    // Con gli esercizi assistiti il peso non e' confrontabile come carico:
-    // piu' contrappeso significa lavoro piu' facile. Si mostra il confronto
+    // Con gli esercizi assistiti il peso non È confrontabile come carico:
+    // più contrappeso significa lavoro più facile. Si mostra il confronto
     // dell'assistenza con la parola "meno assistenza = meglio".
     const righe = [];
     const correnti = (sedeCorrente || []).slice().sort((a, b) => a.ordine - b.ordine);
@@ -153,9 +153,9 @@ export function recordSenzaAssistenza(serie, esercizio) {
 }
 
 /**
- * Il risultato "migliore" di un esercizio assistito non e' il peso piu' alto:
+ * Il risultato "migliore" di un esercizio assistito non È il peso più alto:
  * con la macchina o il corpo libero conta quanto hai SOLLEVATO, quindi meno
- * assistenza significa lavoro piu' grande.
+ * assistenza significa lavoro più grande.
  */
 export function miglioreAssistito(serie) {
   const s = (serie || []).filter((x) => x && !x.eliminata

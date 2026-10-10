@@ -1,5 +1,5 @@
 // sincronizzazione.js -- regole di sincronizzazione, isolate dal database.
-// Qui non c'e' nessuna chiamata di rete: solo decisioni, cosi' sono testabili.
+// Qui non cÈ nessuna chiamata di rete: solo decisioni, così sono testabili.
 
 export const TABELLE = ['esercizi', 'schede', 'versioni', 'sedute', 'serie', 'note',
   'profili', 'missioni', 'ricompense', 'pesi'];
@@ -40,7 +40,7 @@ export function rigaPerInvio(riga) {
  * Cosa fare con una riga locale rispetto a quella remota?
  * Restituisce 'identico' | 'crea' | 'aggiorna' | 'conflitto'.
  *
- * 'conflitto' vuol dire: un altro dispositivo ha gia' scritto questa riga dopo
+ * 'conflitto' vuol dire: un altro dispositivo ha già scritto questa riga dopo
  * l'ultima sincronizzazione riuscita. In quel caso NON si sovrascrive niente:
  * si conservano entrambe le versioni e si chiede a Ste quale tenere.
  */
@@ -83,7 +83,7 @@ export function segnaDaSalvare(locale) {
 
 /**
  * Una riga remota va applicata in locale?
- * No se la riga locale ha modifiche non ancora inviate: in quel caso e' un conflitto.
+ * No se la riga locale ha modifiche non ancora inviate: in quel caso È un conflitto.
  */
 export function applicaRemote(locale, remoto) {
   if (!locale) {
@@ -94,8 +94,8 @@ export function applicaRemote(locale, remoto) {
   const revLocale = Number(locale.rev || 0);
   const revRemoto = Number(remoto.rev || 0);
   if (inCoda) {
-    // base_rev e' la revisione remota che conoscevamo all'ultimo sync riuscito.
-    // Se da allora il remoto e' andato avanti, un altro dispositivo ha scritto
+    // base_rev È la revisione remota che conoscevamo all'ultimo sync riuscito.
+    // Se da allora il remoto È andato avanti, un altro dispositivo ha scritto
     // la stessa riga: conflitto, e NON si sovrascrive niente.
     if (revRemoto > base) return { azione: 'conflitto', riga: remoto };
     return { azione: 'ignora', riga: locale };
@@ -106,16 +106,16 @@ export function applicaRemote(locale, remoto) {
   }
   // UNISCE, non sostituisce. Ste (06/10/2026): "quando arriva una riga dal server
   // si prendono i campi che quella riga ha davvero, e quelli che non ha restano.
-  // Cosi' un server con meno colonne non puo' piu' cancellare niente, oggi e per
+  // Cosi' un server con meno colonne non può più cancellare niente, oggi e per
   // qualunque campo aggiungerai domani".
   //
   // Prima qui c'era { ...remoto } e basta: la riga remota SOSTITUIVA la locale, e
   // siccome il server non ha le colonne carrucola / attrezzatura /
   // bracciaIndipendenti, quei tre campi venivano CANCELLATI. Non ignorati:
-  // cancellati. E il catalogo si semina solo se la tabella e' vuota, quindi non
-  // tornavano piu'.
+  // cancellati. E il catalogo si semina solo se la tabella È vuota, quindi non
+  // tornavano più.
   //
-  // Vince il valore che il server HA, anche se e' null (null e' "l'ho tolto", non
+  // Vince il valore che il server HA, anche se È null (null È "l'ho tolto", non
   // "non lo so"). Vincono i campi che ha; quelli che non ha restano come sono.
   return {
     azione: 'applica',
@@ -126,8 +126,8 @@ export function applicaRemote(locale, remoto) {
 /**
  * I tre campi che dicono COME si registra il carico di un esercizio.
  *
- * Ste (06/10/2026): "e' il buco piu' serio di tutti quelli trovati finora,
- * perche' perde dati invece di sbagliare un numero".
+ * Ste (06/10/2026): "e' il buco più serio di tutti quelli trovati finora,
+ * perchÈ perde dati invece di sbagliare un numero".
  *
  * Sono tre campi piccoli e decisivi: la carrucola (mono o doppia), l'attrezzatura
  * (dischi veri o stack) e se i due braccia sono indipendenti. Se uno di questi
@@ -135,7 +135,7 @@ export function applicaRemote(locale, remoto) {
  * senti, e sceglie la scala del carico intero invece di quella per lato.
  *
  * Perche' sono in una lista e non scritti a mano in tre posti: sono tre, ma
- * domani potrebbero essere cinque, e il punto del fix e' che la lista sia il posto
+ * domani potrebbero essere cinque, e il punto del fix È che la lista sia il posto
  * dove si guarda.
  */
 export const CAMPI_CARICO = ['carrucola', 'attrezzatura', 'bracciaIndipendenti'];
@@ -143,9 +143,9 @@ export const CAMPI_CARICO = ['carrucola', 'attrezzatura', 'bracciaIndipendenti']
 /**
  * Rimette i tre campi dal catalogo, per ogni esercizio che li perse.
  *
- * Serve perche' la tabella `esercizi` del database non ha queste colonne: la riga
+ * Serve perchÈ la tabella `esercizi` del database non ha queste colonne: la riga
  * che torna dal server non le contiene, e quindi non basta che il server non le
- * cancelli, i campi sul dispositivo possono essere gia' spariti. Il CATALOGO e'
+ * cancelli, i campi sul dispositivo possono essere già spariti. Il CATALOGO È
  * l'unico posto dove sono scritti per bene, quindi all'avvio si rileggono e si
  * rimettono.
  *
@@ -158,7 +158,7 @@ export const CAMPI_CARICO = ['carrucola', 'attrezzatura', 'bracciaIndipendenti']
  * catalogo non dichiara: se domani un esercizio non ha carrucola, qui non si
  * tocca la sua, anche se per errore ne avesse una.
  *
- * Non crea righe: un esercizio che non c'e' ancora lo crea il semina.
+ * Non crea righe: un esercizio che non cÈ ancora lo crea il semina.
  */
 export function riallineaEsercizi(catalogo, righeLocali) {
   const perId = new Map((righeLocali || []).map((r) => [r && r.id, r]));
@@ -213,7 +213,7 @@ export function risolviConflitto(conflitto, scelta) {
 
 /**
  * Backoff per i ritentativi. Nessuna dipendenza da Date.now: restituisce i
- * millisecondi da aspettare, cosi' resta testabile.
+ * millisecondi da aspettare, così resta testabile.
  */
 export function attesaRiprovo(tentativo) {
   const t = Math.max(1, Number(tentativo) || 1);

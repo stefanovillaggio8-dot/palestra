@@ -1142,6 +1142,8 @@ body.scorso .banda-cronometro .bot.grande {
 .rpg-spiegazione ul { margin: 0 0 8px; padding-left: 18px; }
 .rpg-spiegazione li { margin-bottom: 5px; }
 
+/* la nota che spiega come si scrive il cardio sotto il campo */
+.nota-cardio { flex: 1 0 100%; margin: 2px 0 6px; color: var(--verde); }
 /* --- il calendario (Profilo) --- */
 /* Ste: "il calendario deve essere grande, da oggi a per sempre e deve segnare solo in
    verde i giorni in cui ci sono andato e in rosso i giorni che ho saltato e in viola
@@ -1156,51 +1158,77 @@ body.scorso .banda-cronometro .bot.grande {
      per cui puoi allenarti quattro volte su sette senza perdere niente.
    - ORO (bordo): oggi. Si vede anche se è anche fatto o saltato. */
 .nota-grande { font-size: 1rem; margin: 4px 0 14px; }
-.calendario-fasce { display: flex; flex-direction: column; gap: 18px; }
-.calendario-blocco { display: flex; flex-direction: column; gap: 6px; }
+
+/* LA TESTATA: l'anno e le frecce.
+   Ste: "il calendario deve essere proprio un calendario, che da ora fino al 2027
+   ecc...". Le frecce sono il "ecc...": si parte dall'anno in cui sei e si va avanti di
+   un anno alla volta, e il bottone "A oggi" serve per non perdersi. */
+.calendario-testata {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 14px;
+}
+.calendario-anno-nome { font-size: 1.15rem; min-width: 3.4em; text-align: center; }
+
+/* I MESI IN FILA. Un calendario vero ha i mesi uno accanto all'altro, non uno sotto
+   l'altro: dodici mesi in colonna diventano una lista da scorrere, che non e' un
+   calendario. `auto-fill` con il minimo da 148px mette 3-4 mesi per riga sul
+   computer e 2 sul telefono, che e' come sono fatti i veri calendari annuali. */
+.calendario-anno {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+  gap: 16px 12px;
+}
+.calendario-mese { display: flex; flex-direction: column; gap: 4px; }
 .calendario-mese-nome {
-  margin: 0; font-size: .82rem; text-transform: capitalize;
-  letter-spacing: .05em; opacity: .72; font-weight: 600;
+  display: flex; align-items: baseline; justify-content: space-between; gap: 6px;
+  margin: 0; font-size: .78rem; text-transform: capitalize;
+  letter-spacing: .04em; opacity: .8; font-weight: 600;
 }
-.calendario-coppie {
-  display: grid; grid-template-columns: repeat(7, 1fr);
-  gap: 4px;
-}
+/* quante giornate di allenamento in quel mese: risponde a "marzo com'e' andato?"
+   senza dover leggere il mese giorno per giorno */
+.calendario-conto { font-size: .62rem; opacity: .55; font-weight: 500; text-transform: none; }
+.calendario-coppie { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+.calendario-testata-giorni { margin-bottom: 1px; }
 .coppia-giorni {
-  font-size: .6rem; text-transform: uppercase; letter-spacing: .05em;
-  opacity: .5; text-align: center;
+  font-size: .56rem; text-transform: uppercase; letter-spacing: .02em;
+  opacity: .42; text-align: center;
 }
+/* LA CELLA è un bottone piccolo col NUMERO del giorno. Il numero non si può togliere:
+   sette quadratini colorati senza numero non dicono quando è successo, e col numero
+   diventa "martedì 6" e la memoria lavora da sola. */
 .cella-calendario {
   aspect-ratio: 1 / 1;
   display: flex; align-items: center; justify-content: center;
-  border-radius: 8px; font-size: .78rem;
+  padding: 0; border-radius: 5px;
+  font-size: .62rem; font-variant-numeric: tabular-nums;
   background: var(--card-2); border: 1px solid var(--bordo);
+  color: inherit; font-family: inherit; cursor: pointer;
 }
 /* il giorno di recupero: viola ma piano, perché non è un fallo */
 .cella-calendario.recupero {
   background: color-mix(in srgb, var(--viola) 14%, var(--card-2));
-  border-color: color-mix(in srgb, var(--viola) 32%, var(--bordo));
+  border-color: color-mix(in srgb, var(--viola) 30%, var(--bordo));
 }
 /* ci sei andato: verde pieno, è l'unica cosa buona */
 .cella-calendario.fatto {
-  background: linear-gradient(160deg, color-mix(in srgb, var(--verde) 55%, var(--card-2)), var(--card-2));
-  border-color: color-mix(in srgb, var(--verde) 75%, var(--bordo));
+  background: color-mix(in srgb, var(--verde) 52%, var(--card-2));
+  border-color: color-mix(in srgb, var(--verde) 78%, var(--bordo));
   font-weight: 700;
 }
 /* previsto e saltato: ROSSO. È il giorno perso */
 .cella-calendario.saltato {
-  background: linear-gradient(160deg, color-mix(in srgb, var(--rosso) 52%, var(--card-2)), var(--card-2));
-  border-color: color-mix(in srgb, var(--rosso) 75%, var(--bordo));
+  background: color-mix(in srgb, var(--rosso) 48%, var(--card-2));
+  border-color: color-mix(in srgb, var(--rosso) 76%, var(--bordo));
   font-weight: 700;
 }
 /* previsto e non ancora passato: solo il bordo, perché non è ancora successo */
-.cella-calendario.atteso { border-color: color-mix(in srgb, var(--oro) 60%, var(--bordo)); }
+.cella-calendario.atteso { border-color: color-mix(in srgb, var(--oro) 55%, var(--bordo)); }
 /* oggi: il bordo oro dentro, si vede anche sopra verde o rosso */
-.cella-calendario.oggi { box-shadow: inset 0 0 0 2px var(--oro); }
+.cella-calendario.oggi { box-shadow: inset 0 0 0 2px var(--oro); font-weight: 700; }
+/* il giorno premuto: si distingue da quello premuto prima con un bordo esterno */
+.cella-calendario.aperto { outline: 2px solid var(--oro); outline-offset: 1px; }
 /* giorni fuori dal mese (per allineare le colonne) e giorni futuri */
-.cella-calendario.fuori { opacity: 0; pointer-events: none; }
-.cella-calendario.futuro { opacity: .45; }
-.legenda-calendario { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 14px; }
+.cella-calendario.fuori { visibility: hidden; pointer-events: none; }
+.cella-calendario.futuro { opacity: .5; }
+.legenda-calendario { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 16px; }
 .pastiglia {
   font-size: .7rem; padding: 3px 9px; border-radius: 999px;
   border: 1px solid var(--bordo); background: var(--card-2);
@@ -1217,10 +1245,35 @@ body.scorso .banda-cronometro .bot.grande {
   padding: 9px 13px; border-radius: 10px; font-weight: 600;
 }
 .classe-rpg.attiva {
+  /* IL CERCHIO DELLA CLASSE SCELTA.
+     Ste: "non spunta cosa ti dà in più il guerriero, l'assassino o il berserker".
+     Il bottone aveva già la classe `attiva` ma si vedeva appena: un bordo viola
+     tenue su uno sfondo scuro, a colpo d'occhio è la stessa cosa di non averlo
+     scelto. Ora la spunta è nel TESTO (✓, che si vede anche in alto contrasto),
+     il fondo è pieno e il bordo è spesso. */
   border-color: var(--viola);
+  border-width: 2px;
+  background: color-mix(in srgb, var(--viola) 20%, var(--card));
   box-shadow: 0 0 16px -6px var(--viola), inset 0 0 14px -10px var(--viola);
+  font-weight: 800;
 }
+/* cosa dà ogni classe, scritto sotto: un bottone col solo nome costringe ad andare
+   a leggere la spiegazione per capire la differenza */
+.riga-bonus { gap: 4px 14px; margin-top: -2px; }
+.riga-bonus > * { flex: 0 0 auto; }
 .righe-stat { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 4px; }
+/* LA RIGA CON LA SPIEGAZIONE.
+   Un numero senza la sua unità è rumore: "Forza 10" non dice niente se non sai che
+   10 è "10 volte 500 kg". Ogni riga ha quindi il nome, la spiegazione piccola e il
+   numero grande. */
+.riga-stat-spiegata {
+  flex: 1 1 100%;
+  align-items: center; align-items: flex-start;
+}
+.testo-stat { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.nome-stat { font-weight: 600; font-size: .9rem; }
+.riga-stat-spiegata .nota-piccola { line-height: 1.35; }
+.valore-stat { font-size: 1.3rem; flex: 0 0 auto; }
 .riga-stat {
   flex: 1 1 88px; min-width: 82px;
   display: flex; justify-content: space-between; align-items: baseline; gap: 8px;

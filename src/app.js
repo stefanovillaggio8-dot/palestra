@@ -24,7 +24,7 @@ import { ESERCIZI, SCHEDA_ID, SCHEDA_NOME, PERSONE, CONTATTI, accountId, chiSei,
 import { nuovoId, adesso, TABELLE, riallineaEsercizi } from './sincronizzazione.js';
 // --- il gioco: rank, LP, streak, Aura, missioni, amici ---
 import { statoAccount, ricompenseAllenamento, gruppiDaSerie } from './gioco.js';
-import { calcolaAvatar, CLASSI, classeConsigliata } from './avatar-rpg.js';
+import { calcolaAvatar, CLASSI, classeConsigliata, eCardio } from './avatar-rpg.js';
 import { isoGiorno } from './streak.js';
 import { recordEsercizio, recordAccount, classificaEsercizio, storicoMiglioramenti, giudizioPerformance, distanzaAllaSoglia } from './rank.js';
 import { confrontoGiorno, confrontiMensili, GIORNI_UN_MESE } from './confronto-mensile.js';
@@ -47,7 +47,7 @@ import { avvisoPesoEsercizio } from './avviso-peso.js';
 // a ogni schermata: cambia raramente e il Rank lo usa spesso.
 let PESO_CACHE = { valore: null, pronto: false };
 async function aggiornaPesoInMemoria() {
-  // il peso e' DELLA PERSONA che sta usando l'app: senza questo filtro i due
+  // il peso È DELLA PERSONA che sta usando l'app: senza questo filtro i due
   // profili leggevano lo stesso peso e i Rank erano sbagliati per entrambi
   PESO_CACHE = { valore: await pesoAttuale(accountAttivo()), pronto: true };
   return PESO_CACHE.valore;
@@ -78,22 +78,22 @@ function capitalizza(t) {
 }
 
 const V = {}; // stato dell'app
-const GIRI_DROPSET = 3; // i 3 posti in piu' che ha chiesto Ste
+const GIRI_DROPSET = 3; // i 3 posti in più che ha chiesto Ste
 
 /* ===================== chi sta usando l'app ===================== */
 
 // Ognuno ha la sua scheda e i suoi allenamenti. La scelta sta nel link:
 // ?p=2 per la seconda persona, ?p=1 (o niente) per la prima.
-// TUTTO quello che segue e' gia' filtrato su questa persona: e' quello che
+// TUTTO quello che segue È già filtrato su questa persona: È quello che
 // evita che gli allenamenti di uno finiscano nei progressi dell'altro.
 let persona = null;
 function personaAttiva() {
   if (!persona) {
-    // Non si puo' decidere qui: la scelta dipende dal link E dalla memoria del
-    // dispositivo, e la memoria sta nel database. Chi decide e' risolviPersona(),
-    // chiamata all'avvio prima di qualsiasi schermata. Questo e' solo la rete di
+    // Non si può decidere qui: la scelta dipende dal link E dalla memoria del
+    // dispositivo, e la memoria sta nel database. Chi decide È risolviPersona(),
+    // chiamata all'avvio prima di qualsiasi schermata. Questo È solo la rete di
     // sicurezza: se qualcosa la chiama prima, non deve saltare, e la prima cosa da
-    // proteggere e' la scheda di Ste.
+    // proteggere È la scheda di Ste.
     persona = personaDaMemoria({ p: 1 });
   }
   return persona;
@@ -106,12 +106,12 @@ function schedaAttivaId() { return personaAttiva().schedaId; }
  * Ste (06/10/2026): "quando un amico apre il link vede Stefano. Deve chiedere il
  * nome e diventare se stesso".
  *
- * L'ordine (link, memoria, schede gia' presenti, altrimenti chiedi) e' in
- * `chiSei`, in dati-iniziali.js, ed e' li' che e' scritto perche'. Qui solo si
+ * L'ordine (link, memoria, schede già presenti, altrimenti chiedi) È in
+ * `chiSei`, in dati-iniziali.js, ed È li' che È scritto perchÈ. Qui solo si
  * raccolgono i tre ingredienti e si applica il risultato.
  *
- * La memoria sta nella tabella `meta`, che e' LOCALE e non va sul server: e' una
- * cosa di questo dispositivo ("questo telefono e' di Luca"), non un fatto da
+ * La memoria sta nella tabella `meta`, che È LOCALE e non va sul server: È una
+ * cosa di questo dispositivo ("questo telefono È di Luca"), non un fatto da
  * condividere.
  */
 async function risolviPersona() {
@@ -194,7 +194,7 @@ async function caricaLivelliImparati() {
  * Un solo ascolto per lo scorrimento, per tutta l'app.
  *
  * Ste (07/10/2026): "il coso con scritto 'allenamento iniziato alle', il tempo ecc,
- * e' troppo grosso, fallo piu' piccolo quando scorro verso il basso".
+ * È troppo grosso, fallo più piccolo quando scorro verso il basso".
  *
  * La banda col cronometro sta appiccicata in alto (position: sticky), quindi
  * mentre lavori sulle serie ti mangia un pezzo di schermo per ogni riga. Quando
@@ -204,7 +204,7 @@ async function caricaLivelliImparati() {
  * Perche' una classe sul body e non stili sul nodo della banda: la banda viene
  * ridisegnata a ogni salvataggio (disegna() gira spesso), quindi metterle un
  * ascolto ogni volta creerebbe ascolti a ripetizione, che dopo un po' si chiamano
- * dieci volte per ogni scroll. Qui c'e' UN ascolto solo, e la classe sul body la
+ * dieci volte per ogni scroll. Qui cÈ UN ascolto solo, e la classe sul body la
  * trovano tutte le bande, anche quelle che nascono dopo che hai iniziato a
  * scorrere.
  */
@@ -260,7 +260,7 @@ async function avvia() {
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./sw.js').catch(() => { /* senza service worker funziona lo stesso, solo niente offline */ });
     registraAggiornamentoRapido();
-    // se il browser prende una versione nuova mentre l'app e' aperta, lo dico
+    // se il browser prende una versione nuova mentre l'app È aperta, lo dico
     try {
       navigator.serviceWorker.addEventListener('message', (e) => {
         if (e && e.data && e.data.tipo === 'aggiornata') {
@@ -277,14 +277,14 @@ if ('serviceWorker' in navigator) {
   }
     disegna();
 
-    // Controllo se online c'e' gia' una versione piu' nuova: succede spesso
-    // che Ste veda la v20 mentre la v21 e' gia' online da un po'.
+    // Controllo se online cÈ già una versione più nuova: succede spesso
+    // che Ste veda la v20 mentre la v21 È già online da un po'.
     controllaAggiornamento().then((trovata) => {
       if (!trovata) return;
       registraAggiornamentoRapido();
       avviso(`C\'e\' la versione ${trovata.remota}: ti aggiorno.`, { durata: 3500 });
       prendiVersioneNuova();
-    }).catch(() => { /* senza rete resta com'e' */ });
+    }).catch(() => { /* senza rete resta comÈ */ });
     if (db.MOTORE_SCELTO.tipo === 'memoria del browser') {
       avviso('Attenzione: questo browser blocca il database veloce, sto usando la memoria del browser. Tutto funziona, ma esporta un backup ogni tanto.', { durata: 9000 });
     }
@@ -315,7 +315,7 @@ function installaSpiaErrori() {
 /**
  * "Quello che hai fatto diventa la scheda".
  * Ti mostra cosa cambia e ti chiede conferma: la scheda non si riscrive mai
- * di nascosto. Le sedute gia' fatte restano quelle che sono.
+ * di nascosto. Le sedute già fatte restano quelle che sono.
  */
 async function proponiAggiornamentoScheda(sedutaId) {
   const modalita = await db.leggiMeta('aggiornamento_scheda', MODALITA.CHIEDI);
@@ -450,17 +450,17 @@ async function ricaricaTutto() {
  * avevano una card: sparivano in silenzio, senza nessun avviso.
  *
  * Adesso si aggiungono i MANCANTI a ogni avvio, e solo quelli:
- *  - aggiungere e' sicuro, sono righe nuove;
- *  - NON si riscrivono quelle che ci sono gia', perche' su un dispositivo possono
+ *  - aggiungere È sicuro, sono righe nuove;
+ *  - NON si riscrivono quelle che ci sono già, perchÈ su un dispositivo possono
  *    essere arrivate dal server o essere state corrette, e riscriverle ogni volta
- *    perderebbe dati (che e' la cosa peggiore che possa succedere).
+ *    perderebbe dati (che È la cosa peggiore che possa succedere).
  */
 async function riallineaCatalogo(gi) {
   const mancanti = eserciziMancanti(gi);
   for (const e of mancanti) await db.salva('esercizi', e, { segna: false });
   if (mancanti.length) {
     // i campi del carico (carrucola, attrezzatura, bracciaIndipendenti) li
-    // rimette gia' risistemaCampiCarico, ma solo sugli esercizi che gia' c'erano:
+    // rimette già risistemaCampiCarico, ma solo sugli esercizi che già c'erano:
     // quindi va rilanciato anche sui nuovi, altrimenti restano senza quei campi
     await risistemaCampiCarico([...(gi || []), ...mancanti]);
   }
@@ -478,8 +478,8 @@ async function seminaSeVuoto() {
 /**
  * Rimette i tre campi che dicono come si registra il carico, dal catalogo.
  *
- * Ste (06/10/2026): "e' il buco piu' serio di tutti quelli trovati finora,
- * perche' perde dati invece di sbagliare un numero".
+ * Ste (06/10/2026): "e' il buco più serio di tutti quelli trovati finora,
+ * perchÈ perde dati invece di sbagliare un numero".
  *
  * Il database non ha le colonne carrucola / attrezzatura / bracciaIndipendenti,
  * quindi i campi che tornano dal server non le contengono: senza questo passaggio
@@ -487,10 +487,10 @@ async function seminaSeVuoto() {
  * del peso che senti. Cinque esercizi su venti diventavano OLYMPIAN e il Cable Fly
  * scendeva a GOLD: cinque su cinque erano cavi a doppia carrucola.
  *
- * Si fa qui, all'avvio, perche' il catalogo (ESERCIZI) e' l'unico posto dove quei
+ * Si fa qui, all'avvio, perchÈ il catalogo (ESERCIZI) È l'unico posto dove quei
  * tre campi sono scritti per bene: il database non deve decidere come si registra
- * il carico. E non si rimette in coda di sincronizzazione, perche' il server
- * quella coda non la puo' ricevere.
+ * il carico. E non si rimette in coda di sincronizzazione, perchÈ il server
+ * quella coda non la può ricevere.
  */
 async function risistemaCampiCarico(righe) {
   const daScrivere = riallineaEsercizi(ESERCIZI, righe);
@@ -502,7 +502,7 @@ async function risistemaCampiCarico(righe) {
  * Le persone che su QUESTO dispositivo si possono usare.
  *
  * Ste e Andrea ci sono sempre (sono le due schede scritte a mano). Chi si registra
- * col link c'e' solo se e' lui ad averlo fatto su questo telefono: mettere in lista
+ * col link cÈ solo se È lui ad averlo fatto su questo telefono: mettere in lista
  * dieci amici che non sono qui sarebbe una lista di nomi che non cambiano niente,
  * e lascerebbe l'impressione di poter passare a una scheda che non esiste.
  */
@@ -516,7 +516,7 @@ function personeDiQuestaApp() {
 /**
  * Il link di una persona: `?p=1` / `?p=2` per quelle scritte a mano,
  * `?n=nome&k=chiave` per chi si registra col link. La chiave ci mette dentro
- * appena come nel link che manda lui: e' quella che tiene separata la sua scheda
+ * appena come nel link che manda lui: È quella che tiene separata la sua scheda
  * da quella di un omonimo.
  */
 function linkPersona(p) {
@@ -561,8 +561,8 @@ async function seminaPersona() {
 
 /**
  * Il profilo di ogni account: username, avatar, privacy e amici.
- * Nasce gia' compilato, ma i campi si possono cambiare dopo dal Profilo:
- * quello che finisce nel database e' l'ID dell'avatar, non l'immagine, quindi
+ * Nasce già compilato, ma i campi si possono cambiare dopo dal Profilo:
+ * quello che finisce nel database È l'ID dell'avatar, non l'immagine, quindi
  * lo stesso avatar si vede su tutti i dispositivi.
  */
 async function seminaProfilo(p) {
@@ -579,7 +579,7 @@ async function seminaProfilo(p) {
     //
     // Il campo resta assente di proposito. Se mettessi un valore qui, sarebbe il
     // "giorno 1 = ?, giorno 2 = ?" della scheda, cioe' i MIE giorni, e finirebbero
-    // nel profilo di tutti gli altri. E' esattamente il buco che Ste ha segnalato:
+    // nel profilo di tutti gli altri. È esattamente il buco che Ste ha segnalato:
     // "devo darla pure a dei miei compagni, non tutti fanno i miei stessi giorni".
     //
     // Finche' il campo manca, `calcolaStreak` usa la regola semplice (l'ultimo
@@ -590,9 +590,9 @@ async function seminaProfilo(p) {
 }
 
 /**
- * Ste ha chiesto di chiamare l'app "Palestra". La scheda gia' installata aveva
+ * Ste ha chiesto di chiamare l'app "Palestra". La scheda già installata aveva
  * dentro il nome vecchio ("gym 3"), quindi lo correggo una volta sola: se un
- * giorno cambiera' di nuovo nome, qui non viene piu' toccato niente.
+ * giorno cambiera' di nuovo nome, qui non viene più toccato niente.
  */
 const NOMI_SCHEDA_VECCHI = ['gym 3', 'Gym 3', 'GYM 3'];
 async function sistemaNomeScheda() {
@@ -627,17 +627,17 @@ function disegna() {
   svuota(zona);
   // IL `try/catch` QUI NON COPRIVA LE VISTE ASYNC. Era un buco vero, e grosso.
   //
-  // `disegnaDentro` non e' async ma dentro di lei quattro viste lo sono
+  // `disegnaDentro` non È async ma dentro di lei quattro viste lo sono
   // (`vistaSeduta`, `vistaSedutaPassata`, `vistaEsercizio`, `vistaProfilo`): quelle
   // restituiscono una Promise, e un errore sollevato DOPO un `await` dentro una
   // funzione async viene gestito dalla Promise, NON dal `try` del chiamante.
   // Quindi `disegnaDentro` tornava subito, il `try` passava, e un errore in
   // arrivo dal database dentro una vista async sfuggiva completamente: pagina a
-  // meta' disegnata e nessun messaggio. Il caso reale e' `vistaProfilo`, che fa
-  // `await controlloPeso()` DOPO aver gia' disegnato testa e barra del livello: se
-  // il database e' bloccato da un'altra scheda aperta, l'app si ferma a meta' del
-  // Profilo con l'aria, lo XP e il livello gia' scritti, e senza il blocco del
-  // peso e senza spiegare perche'.
+  // meta' disegnata e nessun messaggio. Il caso reale È `vistaProfilo`, che fa
+  // `await controlloPeso()` DOPO aver già disegnato testa e barra del livello: se
+  // il database È bloccato da un'altra scheda aperta, l'app si ferma a meta' del
+  // Profilo con l'aria, lo XP e il livello già scritti, e senza il blocco del
+  // peso e senza spiegare perchÈ.
   //
   // La correzione: `Promise.resolve(...)` chiama `disegnaDentro` SUBITO (nessun
   // ritardo, nessuno sfarfallio: la pagina si disegna nel medesimo momento di
@@ -646,7 +646,7 @@ function disegna() {
   // `try`, quindi le due protezioni restano entrambe.
   let ancoraQui = true;
   const alErrore = (errore) => {
-    // se nel frattempo la schermata e' stata ridisegnata, l'errore e' vecchio e
+    // se nel frattempo la schermata È stata ridisegnata, l'errore È vecchio e
     // non deve cancellare la pagina nuova
     if (!ancoraQui) return;
     ancoraQui = false;
@@ -663,7 +663,7 @@ function disegna() {
     return;
   }
   if (scrollPrima > 0 && typeof window.scrollTo === 'function') {
-    try { window.scrollTo(0, scrollPrima); } catch { /* in qualche browser non si puo' */ }
+    try { window.scrollTo(0, scrollPrima); } catch { /* in qualche browser non si può */ }
   }
 }
 
@@ -693,7 +693,7 @@ function disegnaDentro(zona) {
 
 function cornice() {
   const rotta = (window.location.hash || '#/').replace(/^#/, '');
-  // la voce del menu in cui ti trovi viene accesa: cosi' sai sempre dove sei
+  // la voce del menu in cui ti trovi viene accesa: così sai sempre dove sei
   const voceAttiva = (percorso) => {
     if (percorso === '/') return rotta === '/' || rotta === '' || rotta.startsWith('/giorno') || rotta.startsWith('/seduta') || rotta.startsWith('/scheda');
     return rotta === percorso || rotta.startsWith(percorso + '/');
@@ -726,11 +726,11 @@ const resto = el('div', { class: 'basso' }, [
 }
 
 /**
- * Misura la barra di stato in alto e dice al CSS quanto e' alta.
+ * Misura la barra di stato in alto e dice al CSS quanto È alta.
  *
  * Senza questo, tutto quello che sta "appiccicato" sotto (il cronometro della
  * seduta) finiva sotto la barra o la tagliava: la barra cresce quando il
- * messaggio va a capo, e a seconda del telefono cresce di piu' o di meno.
+ * messaggio va a capo, e a seconda del telefono cresce di più o di meno.
  * Quindi invece di indovinare un numero fisso nei CSS, lo calcolo qui.
  */
 function misuraBarraInAlto(barra) {
@@ -822,7 +822,7 @@ function vistaHome(zona) {
     zona.appendChild(boxPersone);
   }
 
-  // Se c'e' una seduta aperta, questa e' la cosa piu' importante della schermata:
+  // Se cÈ una seduta aperta, questa È la cosa più importante della schermata:
   // la metto in cima, grossa, prima ancora del titolo. Se chiudi l'app a meta'
   // allenamento la trovi subito e la riprendi.
   db.sedutaInCorso().then((attiva) => {
@@ -862,7 +862,7 @@ function vistaHome(zona) {
     }
     zona.appendChild(el('section', { class: 'scheda-giorno' }, [
       el('div', { class: 'riga-titoli' }, [
-        // il nome del giorno si puo' toccare per vedere la scheda senza allenarsi
+        // il nome del giorno si può toccare per vedere la scheda senza allenarsi
         el('a', { href: '#/giorno/' + g.id, class: 'titolo-collegabile', testo: g.nome }),
         el('span', { class: 'conteggio', testo: `${g.esercizi.length} esercizi · ${serie} serie` + (opzionali ? ` · ${opzionali} opzionali` : '') }),
       ]),
@@ -923,7 +923,7 @@ function vistaGiorno(zona, giornoId) {
   // Ste ha chiesto di poter modificare la scheda anche da questa schermata
   // ("quando apro soltanto la scheda posso anche modificarla"). Uso la stessa
   // bozza e lo stesso "salva come nuova versione" della vista di modifica:
-  // le sedute gia' fatte restano intatte, non si riscrive mai la storia.
+  // le sedute già fatte restano intatte, non si riscrive mai la storia.
   // La pagina parte SEMPRE da sola lettura: si entra in modifica solo se lo
   // chiede lui con il bottone.
   const inModifica = giornoInModifica === giornoId;
@@ -941,7 +941,7 @@ function vistaGiorno(zona, giornoId) {
 
   // SE DUE ESERCIZI FANNO LO STESSO LAVORO. Ste: "ci sono esercizi che per
   // esempio servono per la parte alta e altri esercizi che servono per la
-  // parte bassa del petto". E' anche vero il contrario: due esercizi spesso
+  // parte bassa del petto". È anche vero il contrario: due esercizi spesso
   // finiscono per lavorare lo stesso pezzo di muscolo. Se è il caso te lo
   // dico, così non scopri dopo due mesi che era tutto lo stesso.
   const pezzi = (g.esercizi || [])
@@ -967,11 +967,11 @@ function vistaGiorno(zona, giornoId) {
       el('p', { class: 'nota nota-piccola', testo: AVVERTIMENTO_PARTI }),
     ]));
   }
-  // Ste: "deve capire cosa lavora quell'esercizio e quindi capire se e'
+  // Ste: "deve capire cosa lavora quell'esercizio e quindi capire se È
   // difficile o facile". Ecco il secondo pezzo: se due esercizi sono sullo
-  // stesso muscolo, l'app li mette in fila dal facile al duro. Serve piu'
-  // del livello, perche' il livello dice "isolamento" e non dice quale dei
-  // due ti fa sudare di piu'.
+  // stesso muscolo, l'app li mette in fila dal facile al duro. Serve più
+  // del livello, perchÈ il livello dice "isolamento" e non dice quale dei
+  // due ti fa sudare di più.
   const ordini = ordinePerMuscolo(g.esercizi);
   if (ordini.length) {
     zona.appendChild(el('div', { class: 'tape-duplicati' }, [
@@ -1190,7 +1190,7 @@ async function vistaSeduta(zona, sedutaId) {
   zona.appendChild(el('a', { href: '#/', class: 'indietro', testo: '← tutti i giorni' }));
 
   const cronometro = el('div', { class: 'cronometro', id: 'cronometro', testo: '00:00' });
-  // quante serie hai spuntato: sta sempre in alto, cosi' vedi a che punto sei
+  // quante serie hai spuntato: sta sempre in alto, così vedi a che punto sei
   const avanzamento = el('div', { class: 'avanzamento', id: 'avanzamento-serie', testo: '' });
   zona.appendChild(el('div', { class: 'banda-cronometro' }, [
     el('div', {}, [
@@ -1253,7 +1253,7 @@ async function vistaSeduta(zona, sedutaId) {
   const giorno = (snap.giorni || []).find((g) => g.id === s.giorno_id);
   if (!giorno) { zona.appendChild(el('p', { testo: 'Non trovo il giorno di questa seduta.' })); return; }
 
-  // Non e' async: filtra solo l'elenco che hai gia' in memoria.
+  // Non È async: filtra solo l'elenco che hai già in memoria.
   const serieDi = (esercizioId) => V.serie
     .filter((x) => x.seduta_id === s.id && x.esercizio_id === esercizioId && !x.eliminata)
     .sort((a, b) => a.ordine - b.ordine);
@@ -1356,7 +1356,7 @@ function riassuntoTesto(seduta, esercizio) {
 async function aggiornaNotaSeduta(sedutaId, testo) {
   const s = V.sedute.find((x) => x.id === sedutaId);
   if (!s) return;
-  // aggiorno l'oggetto DENTRO l'array, invece di sostituirlo: cosi' anche le
+  // aggiorno l'oggetto DENTRO l'array, invece di sostituirlo: così anche le
   // schermate aperte (che tengono il riferimento vecchio) vedono la nota nuova
   s.note = testo;
   await db.salva('sedute', { ...s, note: testo });
@@ -1385,7 +1385,7 @@ function rigaSerie(serie, numero, confronto, seduta, pesoRigaSorella = null) {
 
   // la spunta: segna che la serie l'hai fatta. Premendola di nuovo la togli.
   // Nota: cambio l'aspetto SUBITO e con stili scritti direttamente sul nodo,
-  // cosi' non dipende dal ridisegno della pagina ne' dai nomi delle classi CSS.
+  // così non dipende dal ridisegno della pagina ne' dai nomi delle classi CSS.
   const spunta = el('button', {
     type: 'button',
     class: 'bottone-spunta' + (eFatta(serie) ? ' attiva' : ''),
@@ -1397,7 +1397,7 @@ function rigaSerie(serie, numero, confronto, seduta, pesoRigaSorella = null) {
       segnaAspettoFatto(riga, spunta, fatta, etichettaFatta);
       if (fatta) pulsa();
       const campi = { stato: fatta ? 'fatta' : 'da_fare' };
-      // Salvo dentro il peso che avevo quando l'ho fatta: cosi' il record resta
+      // Salvo dentro il peso che avevo quando l'ho fatta: così il record resta
       // legato al peso giusto anche se poi mi peso diversamente.
       if (fatta && pesoCorporeoOra() !== null) campi.peso_corpo = pesoCorporeoOra();
       aggiornaSerie(serie, campi)
@@ -1413,7 +1413,7 @@ function rigaSerie(serie, numero, confronto, seduta, pesoRigaSorella = null) {
   }, [el('span', { class: 'segno-spunta', testo: eFatta(serie) ? '✓' : '' })]);
   riga.appendChild(spunta);
 
-  // anche il numero della serie si puo' toccare: area piu' grande col dito
+  // anche il numero della serie si può toccare: area più grande col dito
   riga.appendChild(el('button', {
     type: 'button',
     class: 'numero-serie numero-serie-bottone',
@@ -1439,7 +1439,7 @@ function rigaSerie(serie, numero, confronto, seduta, pesoRigaSorella = null) {
 
   // In palestra non si scrive: si tocca. Ste ha detto che i +/- 2,5 kg non gli
   // servono (li fa a mano), quindi lascio solo "come sopra", che copia il peso
-  // della serie precedente: e' il caso piu' comune e non si puo' fare a mano
+  // della serie precedente: È il caso più comune e non si può fare a mano
   // senza rileggere il numero.
   const scriviPeso = (valore) => {
     const tondo = Math.round(valore * 100) / 100;
@@ -1472,7 +1472,26 @@ function rigaSerie(serie, numero, confronto, seduta, pesoRigaSorella = null) {
     if (v === null || Number.isFinite(v)) { perView.ripetizioni = v; scriviBadgeSpotter(); }
   });
   rip.classList.add('campo-rip');
-  riga.appendChild(el('label', { class: 'campetto' }, [rip, el('span', { class: 'sotto-campo', testo: 'RIP' })]));
+  // SE L'ESERCIZIO È CARDIO, LA ETICHETTA DICE "MIN" E NON "RIP".
+  //
+  // Ste (09/10/2026): "come segno che faccio tapis roulant?". Il campo si chiama
+  // "ripetizioni" anche per il cardio, e su un tapis non ci sono ripetizioni: ci sono
+  // minuti. Scrivere 30 e non sapere se sono secondi, minuti o metri è il motivo per
+  // cui il cardio non veniva contato bene. Ora la lettera sotto il campo dice MIN, e
+  // sotto la riga c'è scritto cosa scrivere.
+  const esercizioSerie = esercizioPerId(serie.esercizio_id);
+  const serieCardio = eCardio(esercizioSerie);
+  riga.appendChild(el('label', { class: 'campetto' }, [
+    rip,
+    el('span', { class: 'sotto-campo', testo: serieCardio ? 'MIN' : 'RIP' }),
+  ]));
+  if (serieCardio) {
+    riga.appendChild(el('p', {
+      class: 'nota nota-piccola nota-cardio',
+      testo: 'Cardio: scrivi i minuti (30 = mezz\'ora, 45 = tre quarti d\'ora). '
+        + 'Se scrivi i secondi (1800) l\'app fa la stessa cosa: li riconosce.',
+    }));
+  }
 
   // lo spotter: resta salvato e si vede chiaramente
   // tengo una copia "di comodo" della serie che aggiorno mentre digito: serve
@@ -1515,7 +1534,7 @@ function rigaSerie(serie, numero, confronto, seduta, pesoRigaSorella = null) {
     campiAssistite.appendChild(el('label', { class: 'campetto' }, [
       ass, el('span', { class: 'sotto-campo', testo: 'ASSISTITE' }),
     ]));
-    // il "non specificato" lo dice gia' il badge qui accordo alla serie
+    // il "non specificato" lo dice già il badge qui accordo alla serie
   }
   riga.appendChild(campiAssistite);
 
@@ -1558,7 +1577,7 @@ function rigaSerie(serie, numero, confronto, seduta, pesoRigaSorella = null) {
       }
       if (confronto.differenzaAssistenza !== undefined && confronto.differenzaAssistenza !== null) {
         const d = confronto.differenzaAssistenza;
-        pezzi.push(d === 0 ? 'assistenza uguale' : d < 0 ? `${formattaNumero(Math.abs(d))} kg di assistenza in meno` : `${formattaNumero(d)} kg di assistenza in piu'`);
+        pezzi.push(d === 0 ? 'assistenza uguale' : d < 0 ? `${formattaNumero(Math.abs(d))} kg di assistenza in meno` : `${formattaNumero(d)} kg di assistenza in più`);
       }
       if (serie.spotter && confronto.attuale && confronto.attuale.spotter === false) {
         pezzi.push('oggi con lo spotter (prima senza)');
@@ -1585,14 +1604,14 @@ function aggiornaGiro(giri, idx, campo, valore) {
  * Il pulsante DROPSET, che mancava.
  *
  * Ste (07/10/2026): "non esiste ancora il pulsante dropset che ti avevo detto
- * tempo fa". Aveva ragione: i tre giri extra esistevano gia' nel codice
+ * tempo fa". Aveva ragione: i tre giri extra esistevano già nel codice
  * (GIRI_DROPSET = 3, e il blocco per riempirli), ma non c'era NULLA che li
  * accendesse. Il campo `dropset` nasceva false e restava false per sempre: quindi
  * quei tre campi non si erano mai visti nella vita dell'app.
  *
- * Perche' un interruttore e non un campo da compilare sempre: il dropset e' una
+ * Perche' un interruttore e non un campo da compilare sempre: il dropset È una
  * TECNICA, non un dato. Nove serie su dieci non lo fanno, e una riga con tre campi
- * in piu' su ogni serie sarebbe esattamente la riga ingombrante che Ste mi ha
+ * in più su ogni serie sarebbe esattamente la riga ingombrante che Ste mi ha
  * chiesto di togliere. Lo accendi quando lo fai, e li' restano i tre giri.
  */
 function pulsanteDropset(serie, { perView = null } = {}) {
@@ -1613,10 +1632,10 @@ function pulsanteDropset(serie, { perView = null } = {}) {
 }
 
 /**
- * I tre giri a calo, quando il dropset e' acceso.
+ * I tre giri a calo, quando il dropset È acceso.
  *
- * Stessa cosa che c'era gia' nella riga della scheda, ma tirata fuori in una
- * funzione: adesso c'e' anche nello storico, e due copie identiche prima o poi
+ * Stessa cosa che c'era già nella riga della scheda, ma tirata fuori in una
+ * funzione: adesso cÈ anche nello storico, e due copie identiche prima o poi
  * finiscono diverse.
  */
 function bloccoDropset(serie) {
@@ -1655,7 +1674,7 @@ function descriviSerie(x) {
   return pezzi.join(' · ');
 }
 
-/** Porta in vista e lampeggia la riga appena creata, cosi' si vede subito. */
+/** Porta in vista e lampeggia la riga appena creata, così si vede subito. */
 function mettiInEvidenza(idSerie) {
   const contenitore = document.getElementById('contenuto');
   if (!contenitore) return;
@@ -1675,7 +1694,7 @@ function mettiInEvidenza(idSerie) {
   setTimeout(() => { try { trovata.classList.remove('appena-creata'); } catch { /* pazienza */ } }, 1600);
 }
 
-/** Errore breve ma sempre visibile: niente piu' errori che spariscono. */
+/** Errore breve ma sempre visibile: niente più errori che spariscono. */
 function mostraErroreBreve(testo) {
   avviso(testo, { tipo: 'errore', durata: 9000 });
   console.error(testo);
@@ -1683,7 +1702,7 @@ function mostraErroreBreve(testo) {
 
 async function aggiornaSerie(serie, campi) {
   // cambiaSerie rilegge la serie dal database e mette in fila i cambiamenti
-  // della stessa serie: e' quello che impedisce a un campo salvato in ritardo
+  // della stessa serie: È quello che impedisce a un campo salvato in ritardo
   // di cancellare la spunta o lo spotter appena messi.
   const salvata = await cambiaSerie(serie.id, campi);
   const idx = V.serie.findIndex((x) => x.id === serie.id);
@@ -1707,7 +1726,7 @@ async function finisceAllenamento(s) {
   // aggiornarla non comparirebbe.
   await aspettaSalvataggi();
   // I Rank di ADESSO, prima che la seduta diventi "completata". Servono per il
-  // confronto alla fine: e' l'unico modo di sapere se qualcosa e' cambiato davvero.
+  // confronto alla fine: È l'unico modo di sapere se qualcosa È cambiato davvero.
   const rankPrima = mappaRank(V.esercizi, serieMie(), seduteMie());
   // IMPORTANTE: rileggo la seduta dal database invece di usare la copia che
   // avevo in mano. Se nel frattempo hai scritto qualcosa (per esempio le note
@@ -1729,7 +1748,7 @@ async function finisceAllenamento(s) {
   // Ste (08/10/2026): "sistema appena finisci" e poi "tutto quanto deve farsi
   // automaticamente". Qui l'app ti portava allo storico e basta: finivi l'allenamento
   // e non ti diceva SE avevi fatto un primato o SE eri salito di fascia. Il Rank era
-  // gia' calcolato e gia' salvato, nessuno lo mostrava.
+  // già calcolato e già salvato, nessuno lo mostrava.
   annunciaFineSeduta(rankPrima, mappaRank(V.esercizi, serieMie(), seduteMie()));
   vai('/storico/' + s.id);
   // adesso la scheda: quello che hai fatto diventa la scheda per la prossima volta
@@ -1740,10 +1759,10 @@ async function finisceAllenamento(s) {
  * Il nome leggibile di un esercizio, o il suo id se non lo si trova.
  *
  * Serve alle funzioni che costruiscono i messaggi: quelle possono essere chiamate
- * anche quando il catalogo non e' ancora in memoria (i test, e il primo avvio), e
- * un messaggio che spiega cosa e' successo non puo' fallire perche' non ha trovato
+ * anche quando il catalogo non È ancora in memoria (i test, e il primo avvio), e
+ * un messaggio che spiega cosa È successo non può fallire perchÈ non ha trovato
  * una parola da mettere. Fallire qui significa che l'utente non legge NULLA, che
- * e' il caso peggiore: era l'esercizio a non essere pronto, non l'app.
+ * È il caso peggiore: era l'esercizio a non essere pronto, non l'app.
  */
 function nomeEsercizio(id) {
   const e = (V && V.esercizi) ? esercizioPerId(id) : null;
@@ -1751,18 +1770,18 @@ function nomeEsercizio(id) {
 }
 
 /**
- * I Rank di tutti gli esercizi, per capire cosa e' cambiato.
+ * I Rank di tutti gli esercizi, per capire cosa È cambiato.
  *
- * Serve al confronto PRIMA/DOPO: se la mappa e' la stessa, non e' successo niente e
- * non c'e' niente da annunciare. Senza questo, alla fine di ogni seduta comparirebbe
+ * Serve al confronto PRIMA/DOPO: se la mappa È la stessa, non È successo niente e
+ * non cÈ niente da annunciare. Senza questo, alla fine di ogni seduta comparirebbe
  * un messaggio anche quando non hai migliorato niente, che dopo tre settimane diventa
- * un rumore che non guardi piu'.
+ * un rumore che non guardi più.
  *
- * Il peso si puo' passare a mano: serve al confronto del peso corporeo, perche' quando
- * calcoliamo il "prima" il peso salvato e' gia' quello nuovo.
+ * Il peso si può passare a mano: serve al confronto del peso corporeo, perchÈ quando
+ * calcoliamo il "prima" il peso salvato È già quello nuovo.
  *
- * Esportata perche' il confronto merita un test: se sbaglia nel silenzio, l'app smette
- * di dire le cose giuste e nessuno se ne accorge, perche' un avviso che manca non fa
+ * Esportata perchÈ il confronto merita un test: se sbaglia nel silenzio, l'app smette
+ * di dire le cose giuste e nessuno se ne accorge, perchÈ un avviso che manca non fa
  * rumore.
  */
 export function mappaRank(esercizi, serie, sedute, peso = null) {
@@ -1784,7 +1803,7 @@ export function mappaRank(esercizi, serie, sedute, peso = null) {
  * Cosa dire alla fine della seduta.
  *
  * Solo cose vere: un Rank salito, un record battuto, un esercizio nuovo sbloccato.
- * Niente complimenti se non e' successo niente: un avviso che dice sempre "bravo"
+ * Niente complimenti se non È successo niente: un avviso che dice sempre "bravo"
  * smette di dire qualcosa anche quando hai davvero migliorato.
  */
 export function annunciaFineSeduta(prima, dopo) {
@@ -1795,18 +1814,18 @@ export function annunciaFineSeduta(prima, dopo) {
     const p = prima.get(id);
     const nome = nomeEsercizio(id);
     if (!p) {
-      // L'esercizio e' comparso solo adesso: o era nuovo, o non aveva mai avuto un
+      // L'esercizio È comparso solo adesso: o era nuovo, o non aveva mai avuto un
       // Rank.
       //
       // IL PRIMO CASE CHE C'ERA BUGGATO: alla PRIMA seduta in assoluto la mappa
-      // "prima" e' vuota, quindi `prima.size` era 0 e non diceva NIENTE. Ma la
-      // prima seduta e' la piu' importante da annunciare: e' il momento in cui
+      // "prima" È vuota, quindi `prima.size` era 0 e non diceva NIENTE. Ma la
+      // prima seduta È la più importante da annunciare: È il momento in cui
       // sblocchi il tuo primo livello su ogni esercizio, e l'app ti lasciava li'
       // come se non fosse successo niente.
       //
-      // Ora la regola e' semplice e non guarda la mappa: se l'esercizio ha un Rank
-      // adesso, e non ne aveva uno prima, e' una notizia. Che sia la prima seduta
-      // o la centesima, il motivo per cui l'esercizio non c'era prima e' che hai
+      // Ora la regola È semplice e non guarda la mappa: se l'esercizio ha un Rank
+      // adesso, e non ne aveva uno prima, È una notizia. Che sia la prima seduta
+      // o la centesima, il motivo per cui l'esercizio non c'era prima È che hai
       // appena toccato il tuo Rank.
       nuovi.push(`${nome}: ${d.nome} ${d.lp} LP`);
       continue;
@@ -1822,7 +1841,7 @@ export function annunciaFineSeduta(prima, dopo) {
   if (battuti.length) righe.push('Record battuti: ' + battuti.join(' · '));
   if (nuovi.length) righe.push('Primo livello sbloccato: ' + nuovi.join(' · '));
   // il messaggio resta 9 secondi: Ste guarda il telefono in palestra e la schermata
-  // del Rank, che si vede meglio, e' a un tocco da l'i
+  // del Rank, che si vede meglio, È a un tocco da l'i
   return avviso(righe.join(' '), { tipo: 'ok', durata: 9000 });
 }
 
@@ -1831,7 +1850,7 @@ export function annunciaFineSeduta(prima, dopo) {
  *
  * Non si dice "i Rank sono aggiornati" e basta: si dicono i nomi. Il peso cambia gli
  * ingressi e i tetti di ogni esercizio, quindi gli stessi kg possono valere su due
- * fasce diverse da un giorno all'altro, ed e' il punto fragile che Ste aveva gia'
+ * fasce diverse da un giorno all'altro, ed È il punto fragile che Ste aveva già
  * segnalato una volta ("la colonna manca alla prossima mente").
  */
 export function annunciaCambioPeso(prima, dopo, nuovoPeso) {
@@ -1858,7 +1877,7 @@ export function annunciaCambioPeso(prima, dopo, nuovoPeso) {
 /* ===================== vista: storico ===================== */
 
 /**
- * Le sedute scelte da eliminare, e se la modalita' e' aperta.
+ * Le sedute scelte da eliminare, e se la modalita' È aperta.
  *
  * Ste (07/10/2026): "fai un bottone anche che mi fa selezionare nello storico le
  * sedute da eliminare". Prima si eliminava una seduta SOLO aprendo la seduta e
@@ -1945,12 +1964,12 @@ function vistaStorico(zona) {
       el('div', {}, [
         el('strong', { testo: `${s.nome_giorno || 'Seduta'} — ${dataLeggibile(s.data)}` }),
         el('div', { class: 'nota', testo: `${oraLocale(s.ora_inizio)} → ${oraLocale(s.ora_fine)} · durata ${formattaDurata(s.durata_secondi)} · ${serie.length} serie` }),
-        // l'anteprima delle note: cosi' le ritrovi senza aprire ogni seduta
+        // l'anteprima delle note: così le ritrovi senza aprire ogni seduta
         s.note ? el('div', { class: 'anteprima-nota', testo: '“' + String(s.note).slice(0, 90).replace(/\s+/g, ' ') + '”' }) : null,
       ]),
     ];
     if (selezioneStorico.attiva) {
-      // in modalita' scelta la riga NON e' un link: un link che contiene la spunta
+      // in modalita' scelta la riga NON È un link: un link che contiene la spunta
       // fa due cose con un tocco solo (la seleziona e apre la seduta). Qui il
       // tocco seleziona, e per aprire la seduta si esce dalla modalita'.
       const scelta = selezioneStorico.ids.has(s.id);
@@ -1993,7 +2012,7 @@ async function vistaSedutaPassata(zona, sedutaId) {
   }
 
   // Le note della seduta: durante l'allenamento le scivi qui, e adesso tornano
-  // qui sotto. Prima sparivano: le scrivevi e non le ritrovavi piu'.
+  // qui sotto. Prima sparivano: le scrivevi e non le ritrovavi più.
   //
   // IMPORTANTE: rileggo dal database PRIMA di decidere se mostrare la sezione.
   // Prima il controllo veniva prima, quindi se la nota non era ancora in memoria
@@ -2208,7 +2227,7 @@ if (serie.dropset) riga.appendChild(bloccoDropset(serie));
 
 /**
  * La scheda in editing vive qui fuori, non dentro la schermata.
- * Prima la ricreavo a ogni ridisegno e cosi' tutto quello che avevi spostato
+ * Prima la ricreavo a ogni ridisegno e così tutto quello che avevi spostato
  * o tolto spariva: le frecce sembravano premute ma non cambiava niente.
  */
 let bozzaAttiva = null;
@@ -2218,7 +2237,7 @@ function prendiBozza() {
   // il controllo su `snapshot` mancava: se manca, `JSON.stringify(undefined)` restituisce
   // `undefined` (non una stringa) e `JSON.parse(undefined)` LANCIA. Il chiamante pensava
   // solo al caso `null`, quindi l'eccezione saliva fuori e la pagina restava a meta'.
-  // Uno snapshot mancante e' una versione corrotta o un import a meta': meglio dire
+  // Uno snapshot mancante È una versione corrotta o un import a meta': meglio dire
   // "non c'e'" che far esplodere la schermata.
   if (!v || !v.snapshot) return null;
   if (!bozzaAttiva || bozzaAttiva.versioneId !== v.id) {
@@ -2234,7 +2253,7 @@ function vistaScheda(zona) {
   // I DUE `return` MUUTI DI QUI ERANO UN BUTO VERO: se la versione o la bozza non
   // ci sono, la schermata restava VUOTA, senza cornice e senza spiegazione. Un
   // utente che preme "modifica scheda" e vede una pagina bianca pensa che l'app sia
-  // rotta. Le altre viste gia' scrivevano un messaggio ("Giorno non trovato"), quindi
+  // rotta. Le altre viste già scrivevano un messaggio ("Giorno non trovato"), quindi
   // qui mancava solo quello.
   if (!v) {
     zona.appendChild(el('p', { class: 'nota', testo: 'Non trovo nessuna scheda da modificare. Torna alla home e riprova.' }));
@@ -2395,12 +2414,12 @@ function vistaProgressi(zona) {
   zona.appendChild(el('h1', { testo: 'Progressi' }));
 
   // Ste (04/10/2026): "voglio il rapporto peso potenza quindi in base al peso
-  // corporeo". E poi: "con kg intendo il peso che alzo in piu' rispetto al mio
-  // corpo... io peso 66kg e faccio 96 di lat machine, alzo 30kg in piu'".
+  // corporeo". E poi: "con kg intendo il peso che alzo in più rispetto al mio
+  // corpo... io peso 66kg e faccio 96 di lat machine, alzo 30kg in più".
   //
-  // Va PRIMA di tutto il resto, perche' e' la domanda vera: "sto migliorando?"
-  // I kg da soli non lo dicono, perche' se il peso sale le soglie salgono e i
-  // kg possono salire senza che tu sia piu' forte.
+  // Va PRIMA di tutto il resto, perchÈ È la domanda vera: "sto migliorando?"
+  // I kg da soli non lo dicono, perchÈ se il peso sale le soglie salgono e i
+  // kg possono salire senza che tu sia più forte.
   const pesoOraProgressi = pesoCorporeoOra();
   if (pesoOraProgressi) {
     const prestazioniOra = prestazioniDiQuestaPersona();
@@ -2436,14 +2455,14 @@ function vistaProgressi(zona) {
     }
     zona.appendChild(boxForza);
 
-    // Ste (04/10/2026): "voglio che dica chi in generale e' piu' forte, facendo
+    // Ste (04/10/2026): "voglio che dica chi in generale È più forte, facendo
     // una media, e sia che si vedano tutti gli esercizi facendo vedere chi fa di
-    // piu'" e "non voglio solo che si veda chi e' il piu' forte: voglio vedere gli
+    // più" e "non voglio solo che si veda chi È il più forte: voglio vedere gli
     // altri".
     //
     // Tutti gli esercizi in elenco, ognuno con i kg e il rapporto, e in alto la
-    // media. Una classifica che mostra solo il primo e' una pubblicita': qui si vede
-    // anche dove hai i numeri piu' bassi, che e' la parte che serve a capire.
+    // media. Una classifica che mostra solo il primo È una pubblicita': qui si vede
+    // anche dove hai i numeri più bassi, che È la parte che serve a capire.
     if (prestazioniOra.length) {
       const boxTabella = el('div', { class: 'spiegazione generale' });
       boxTabella.appendChild(el('h3', { testo: 'Ogni esercizio, e quanto vali' }));
@@ -2466,7 +2485,7 @@ function vistaProgressi(zona) {
   }
 
   // Il riepilogo generale viene PRIMA di tutto il resto: Ste ha detto che coi
-  // grafici da solo non capisce, quindi la risposta principale e' in parole.
+  // grafici da solo non capisce, quindi la risposta principale È in parole.
   const boxGenerale = el('div', { class: 'spiegazione generale' });
   boxGenerale.appendChild(el('h3', { testo: 'In generale, quanto sei migliorato' }));
   const spazioGenerale = el('div', { id: 'riepilogo-generale' });
@@ -2554,11 +2573,11 @@ function vistaProgressi(zona) {
 
   // Il peso previsto dalla scheda NEL GIORNO IN CUI HAI ALLENATO.
   //
-  // Ste ha fatto cosi': durante l'allenamento ha alzato di 3 kg e poi ha
+  // Ste ha fatto così: durante l'allenamento ha alzato di 3 kg e poi ha
   // confermato "Aggiorna la scheda". A quel punto la scheda corrente contiene
-  // gia' 38 kg, quindi confrontare la seduta con lei dava zero e l'esercizio
+  // già 38 kg, quindi confrontare la seduta con lei dava zero e l'esercizio
   // finiva fra i "fermi". Invece va confrontato con la scheda che hai usato
-  // mentre allenavi: e quella e' ancora salvata, e' la versione della seduta.
+  // mentre allenavi: e quella È ancora salvata, È la versione della seduta.
   function pesoPrevistoPerSessione(esercizioId, seduta) {
     const e = esercizioPerId(esercizioId);
     if (!e || !seduta) return null;
@@ -2602,7 +2621,7 @@ function vistaProgressi(zona) {
     const generale = riepilogoGenerale(vociEsercizi);
     if (generale.numeri.length) {
       // I riquadri si toccano: premendo "migliorati" (o "fermi", o "indietro")
-      // sotto compare la lista esercizio per esercizio con di quanto e' cambiato.
+      // sotto compare la lista esercizio per esercizio con di quanto È cambiato.
       const dettaglio = el('div', { class: 'dettaglio-riepilogo' });
       const colori = { migliorati: 'verde', indietro: 'rosso', fermi: 'neutro' };
       const riquadri = [];
@@ -2792,7 +2811,7 @@ function vistaImpostazioni(zona) {
   versioneBox.appendChild(el('div', { class: 'riga-pulsanti' }, [
     bottone('Aggiorna adesso', {
       onClick: async () => {
-        // Prima prova il modo pulito: se online c'e' la versione nuova prende
+        // Prima prova il modo pulito: se online cÈ la versione nuova prende
         // quella, senza cancellare niente e senza perdere i dati salvati.
         const trovata = await controllaAggiornamento({ forzato: true });
         if (trovata) {
@@ -2998,10 +3017,10 @@ async function esportaJson() {
   //   - le MISSIONI e le RICOMPENSE: Aura e XP a zero, quindi livello 1 di nuovo.
   //   - i PESI: senza lo storico del peso corporeo tutti i Rank venivano ricalcolati
   //     senza sapere quanto pesi, quindi i numeri erano diversi da quelli che avevi
-  //     davanti. Il peso e' la cosa che rende i Rank giusti.
+  //     davanti. Il peso È la cosa che rende i Rank giusti.
   //
   // Verificato prima della correzione: profili 0, missioni 0, ricompense 0, pesi
-  // assenti dal pacchetto. Un backup che perde tutto questo non e' un backup, e' una
+  // assenti dal pacchetto. Un backup che perde tutto questo non È un backup, È una
   // lista di allenamenti.
   const pacchetto = creaPacchetto({
     esercizi: dati.esercizi, schede: dati.schede, versioni: dati.versioni,
@@ -3070,25 +3089,25 @@ async function importaJson(file) {
 
 async function applicaImportazione(oggetto, modo) {
   const t = oggetto.tabelle || {};
-  // LA LISTA DELLE TABELLE VIENE DAL PACCHETTO, NON E' SCRITTA QUI.
+  // LA LISTA DELLE TABELLE VIENE DAL PACCHETTO, NON È SCRITTA QUI.
   //
   // Prima qui c'era un array scritto a mano con nove tabelle, e quando al backup ho
-  // aggiunto i pesi l'elenco e' rimasto com'era: quindi i pesi entravano nel backup e
+  // aggiunto i pesi l'elenco È rimasto com'era: quindi i pesi entravano nel backup e
   // non uscivano mai. In "unione" venivano scartati in silenzio, in "sostituzione"
   // non finivano nel cestino e non arrivavano: ti restava uno stato misto mentre
   // l'app ti diceva "sostituzione completa".
   //
-  // Derivandola dal pacchetto non puo' succedere di nuovo: se domani aggiungi una
+  // Derivandola dal pacchetto non può succedere di nuovo: se domani aggiungi una
   // tabella al backup, entra qui dentro senza toccare niente.
   for (const tabella of Object.keys(t)) {
     const righe = t[tabella] || [];
     if (modo === 'sostituzione') {
-      // QUELLO CHE MANCAVA, ed era il buco piu' grave di tutti.
+      // QUELLO CHE MANCAVA, ed era il buco più grave di tutti.
       //
       // Il ramo metteva `eliminata: true` su tutto quello che c'era, e poi NON
       // scriveva MAI `righe`: la variabile era calcolata e buttata via. Verificato:
       // 3 sedute, 1 serie, 1 scheda, 1 versione, 1 profilo, 1 ricompensa sono
-      // finite nel cestino e non e' entrato NULLA dal backup. Poi compariva
+      // finite nel cestino e non È entrato NULLA dal backup. Poi compariva
       // "Importazione finita (sostituzione)" come se fosse andata bene, quindi non
       // c'era modo di accorgersene: l'utente pensava di aver ripristinato e in
       // realta' aveva perso tutto.
@@ -3139,12 +3158,12 @@ function profiloAttivo() {
       ? !!salvato.amministratore
       : !!p.amministratore,
     amici: (salvato && salvato.amici) || (p.amici || []).map((n) => accountId(n)),
-    // I giorni in cui questa persona va in palestra. Ognuno ha i suoi, perche'
+    // I giorni in cui questa persona va in palestra. Ognuno ha i suoi, perchÈ
     // Ste (08/10/2026) deve dare l'app anche ai suoi compagni e loro non fanno i
     // suoi stessi giorni: senza questo, la streak di chi allena lun/mar/mer/ven si
     // romperebbe ogni sabato, non avendo saltato niente.
     giorni_allenamento: (salvato && salvato.giorni_allenamento) || null,
-    // la classe RPG scelta (guerriero / assassino / berserker). Anche questa e' per
+    // la classe RPG scelta (guerriero / assassino / berserker). Anche questa È per
     // account, quindi i compagni di Ste non vengono misurati con la sua.
     classe_rpg: (salvato && salvato.classe_rpg) || null,
     privacy: privacyDi(salvato || {}),
@@ -3239,31 +3258,31 @@ function badgeRank(rankId, lp, divisione) {
 /**
  * La barra degli LP, e che cosa ci scrive dentro.
  *
- * Ste (06/10/2026): "con 3 serie sei al massimo del tuo range e il passo dopo e'
+ * Ste (06/10/2026): "con 3 serie sei al massimo del tuo range e il passo dopo È
  * lontanissimo". Guardando il suo Dumbbell Bench Pull: barra PIENA, scritta
- * "3 LP", e la frase sotto diceva solo "Sei sul rank piu' alto".
+ * "3 LP", e la frase sotto diceva solo "Sei sul rank più alto".
  *
- * Il equivoco e' che "3 LP" sembrava una progressione quasi finita dentro un rango,
- * mentre non c'e' nessun rango sopra l'OLYMPIAN: li' gli LP crescono senza tetto, e
- * il conto e' semplicemente "(quanto sei sopra la soglia) x 100". Quindi 3 LP vuol
+ * Il equivoco È che "3 LP" sembrava una progressione quasi finita dentro un rango,
+ * mentre non cÈ nessun rango sopra l'OLYMPIAN: li' gli LP crescono senza tetto, e
+ * il conto È semplicemente "(quanto sei sopra la soglia) x 100". Quindi 3 LP vuol
  * dire "3% sopra la soglia dell'OLYMPIAN", non "hai quasi finito".
  *
- * La barra resta piena perche' non c'e' niente da riempire: non esiste un passo
+ * La barra resta piena perchÈ non cÈ niente da riempire: non esiste un passo
  * successivo. Ma l'etichetta deve dirlo, altrimenti una barra piena con "3 LP" a
- * fianco si legge al contrario. Un posto solo per la regola, cosi' la card e la
+ * fianco si legge al contrario. Un posto solo per la regola, così la card e la
  * pagina dell'esercizio non possono dire cose diverse.
  */
 /**
  * L'avvertenza che va sotto la distanza alla soglia, in UN posto solo.
  *
  * Ste (06/10/2026): "la colonna 'manca alla prossima' mente... quindi 'manca 0,15
- * kg' e' una precisione che non esiste. E' la stessa cosa che mi hai detto tu: se non
+ * kg' È una precisione che non esiste. È la stessa cosa che mi hai detto tu: se non
  * lo sai misurarlo, non scriverlo come se fosse misurato".
  *
- * Il numero e' una percentuale adesso, non i kg (vedi distanzaAllaSoglia), e la
+ * Il numero È una percentuale adesso, non i kg (vedi distanzaAllaSoglia), e la
  * percentuale ha un vantaggio che si vede subito: 1 kg di peso corporeo sposta la
- * soglia di circa l'1,5%, quindi se ti manca lo 0,3% la risposta onesta non e' "ti
- * manca cosi' poco", e' "non lo so ancora". Questa frase e' quella risposta.
+ * soglia di circa l'1,5%, quindi se ti manca lo 0,3% la risposta onesta non È "ti
+ * manca così poco", È "non lo so ancora". Questa frase È quella risposta.
  */
 const AVVERTIMENTO_STIMA_SOGLIA = 'Numero stimato: il massimale e\' calcolato, non '
   + 'misurato, e il peso corporee muove la soglia. Non fidarti di decimali.';
@@ -3277,19 +3296,19 @@ function distanzaObiettivo(record) {
 function etichettaLp(record) {
   if (!record || !record.rankId) return '';
   if (record.inTop) return `TOP · +${record.lp}% sulla soglia`;
-  // Quando il bonus e' stato fermato, i LP NON sono la posizione nella fascia: sono
+  // Quando il bonus È stato fermato, i LP NON sono la posizione nella fascia: sono
   // il posto dove ti hanno portato dentro. Scrivere "/ 100" accanto a una barra
-  // mezza piena e' una promessa falsa, quindi l'etichetta non lo promette piu'.
+  // mezza piena È una promessa falsa, quindi l'etichetta non lo promette più.
   if (record.bonusBloccato) return `${record.lp} LP`;
   return `${record.lp} LP / 100`;
 }
 
 /**
- * Quanto e' piena la barra degli LP: gli LP stessi, divisi per 100.
+ * Quanto È piena la barra degli LP: gli LP stessi, divisi per 100.
  *
- * Ste (08/10/2026): "le sbarre del lp sono buggate". Aveva ragione, e il motivo e'
+ * Ste (08/10/2026): "le sbarre del lp sono buggate". Aveva ragione, e il motivo È
  * che la barra veniva riempita con `record.progresso`, che dal giorno in cui la
- * barra e' diventata "solo lavoro vero" NON e' piu' la posizione nella fascia.
+ * barra È diventata "solo lavoro vero" NON È più la posizione nella fascia.
  *
  * Sono due numeri diversi, e nella stessa riga non possono non coincidere:
  *
@@ -3297,12 +3316,12 @@ function etichettaLp(record) {
  *   2x8  -> "25 LP / 100" ma barra al 63%   (non coincide: bug)
  *
  * Quindi la barra degli LP si riempie con gli LP. Il numero che dice "quanto mi
- * manca per il Rank dopo" e' un'altra barra, e usa `progresso`: sono due domande
+ * manca per il Rank dopo" È un'altra barra, e usa `progresso`: sono due domande
  * diverse e non devono stare sulla stessa linea.
  */
 function frazioneLp(record) {
   if (!record || !record.rankId) return 0;
-  if (record.inTop) return 1; // sul Rank piu' alto la barra e' piena
+  if (record.inTop) return 1; // sul Rank più alto la barra È piena
   return Math.max(0, Math.min(1, (Number(record.lp) || 0) / 100));
 }
 
@@ -3314,7 +3333,7 @@ function barraProgresso(frazione, etichetta) {
   ]);
 }
 
-/** La barra degli LP: riempita dagli LP, che e' quello che l'etichetta promette. */
+/** La barra degli LP: riempita dagli LP, che È quello che l'etichetta promette. */
 function barraLp(record) {
   return barraProgresso(frazioneLp(record), etichettaLp(record));
 }
@@ -3331,22 +3350,22 @@ function avatarNodo(profilo, { grande = false, dimensione = 46 } = {}) {
 /**
  * Il teschio della streak.
  *
- * Ste (07/10/2026): "comunque FUOCO sostituiscilo con STREAK. Poi su Casa c'e'
+ * Ste (07/10/2026): "comunque FUOCO sostituiscilo con STREAK. Poi su Casa cÈ
  * scritto 1 normale 1 giorno, sistema".
  *
  * Cosa non andava, e sono due cose diverse:
  *  1) la parola al centro era il NOME DEL LIVELLO (Normale, Giallo, Arancio...).
- *     Ma il livello e' gia' detto dal colore, e la parola "Normale" accanto al
- *     numero dice "tutto regolare", che non e' quello che la streak vuol dire:
- *     vuol dire che hai allenato 1 giorno di fila. Quindi al centro ora c'e' la
+ *     Ma il livello È già detto dal colore, e la parola "Normale" accanto al
+ *     numero dice "tutto regolare", che non È quello che la streak vuol dire:
+ *     vuol dire che hai allenato 1 giorno di fila. Quindi al centro ora cÈ la
  *     parola STREAK, e il livello resta nel colore e nel tooltip;
  *  2) il numero era scritto DUE volte (nel badge e in "1 giorno"): "1" e "1
- *     giorno" nella stessa riga. Ora il numero sta solo nel badge e sotto c'e'
- *     solo il livello. Un numero che compare due volte e' rumore, non
+ *     giorno" nella stessa riga. Ora il numero sta solo nel badge e sotto cÈ
+ *     solo il livello. Un numero che compare due volte È rumore, non
  *     informazione: sembra un numero diverso.
  *
- * "FUOCO" come parola e' sparito anche dai chip: ora si chiama streak dappertutto
- * (ed e' la parola che hai usato tu).
+ * "FUOCO" come parola È sparito anche dai chip: ora si chiama streak dappertutto
+ * (ed È la parola che hai usato tu).
  */
 function teschioStreak(st) {
   const f = st.fuoco;
@@ -3355,13 +3374,13 @@ function teschioStreak(st) {
     style: `--fuoco:${f.colore}`,
     titolo: f.acceso ? `Streak: ${f.giorni} ${f.giorni === 1 ? 'giorno' : 'giorni'} di fila, livello ${f.nome}` : 'Streak spenta',
   }, [
-    // IL NUMERO GRANDE E' UNO SOLO, e la riga sotto non lo ripete.
+    // IL NUMERO GRANDE È UNO SOLO, e la riga sotto non lo ripete.
     //
     // Prima qui c'era il numero grosso nel cerchio del fuoco e la parola "giorno"
     // accanto: si leggeva "STREAKgiorno", cioe' due pezzi attaccati che non
     // formavano una frase. Ste me l'ha fatto vedere con uno screenshot.
     //
-    // Il numero grosso resta dov'e', perche' e' la cosa che guardi per prima. Sotto,
+    // Il numero grosso resta dovÈ, perchÈ È la cosa che guardi per prima. Sotto,
     // la parola STREAK e la frase intera. Il numero compare UNA volta sola: due
     // volte nella stessa card faceva pensare che fossero due cose diverse, e il
     // test gioco-ui lo segnalava ("qui era 2").
@@ -3394,10 +3413,10 @@ function cardRank(record, { compatta = false } = {}) {
   }
   const profilo = r.profilo;
 
-  // Hai allenato, ma sei ancora sotto la soglia del primo rank: non e' un
-  // errore e non e' "nessuna prestazione". Lo dico con le parole giuste e
-  // faccio vedere quanto manca, cosi' Ste vede che il Rank funziona e che
-  // il prossimo obiettivo e' vicino.
+  // Hai allenato, ma sei ancora sotto la soglia del primo rank: non È un
+  // errore e non È "nessuna prestazione". Lo dico con le parole giuste e
+  // faccio vedere quanto manca, così Ste vede che il Rank funziona e che
+  // il prossimo obiettivo È vicino.
   if (r.sottoSoglia) {
     const manca = r.mancaAlPrimo;
     const distanza = distanzaAllaSoglia(r.punteggio, (r.prossimoObiettivo || {}).punteggio || manca);
@@ -3433,19 +3452,19 @@ function cardRank(record, { compatta = false } = {}) {
   //
   // Ste (08/10/2026) guardando la Smith: "di smith machine io faccio 32kg. i rank
   // devono aggiornare i pesi". Qui la riga stampava
-  // `prossimoObiettivo.punteggio`, che NON e' un peso: e' il punteggio interno della
+  // `prossimoObiettivo.punteggio`, che NON È un peso: È il punteggio interno della
   // prestazione, che contiene anche le ripetizioni pesate e il correttivo di
   // meccanica. Sul suo caso diceva "36,3 kg per GOLD" mentre i kg giusti, calcolati
   // dal motore, erano 34,9. Due numeri diversi per la stessa domanda, e quello
   // sbagliato era in grassetto.
   //
-  // Il numero da usare e' `distanza.kgNecessari`: e' il carico che, alle stesse
-  // ripetizioni di oggi, porta alla soglia dopo. Se non c'e' (perche' il motore non
-  // sa convertire, o perche' sei in cima) si dice cosa si sa, senza inventare un peso.
+  // Il numero da usare È `distanza.kgNecessari`: È il carico che, alle stesse
+  // ripetizioni di oggi, porta alla soglia dopo. Se non cÈ (perchÈ il motore non
+  // sa convertire, o perchÈ sei in cima) si dice cosa si sa, senza inventare un peso.
   const prossimoNome = (r.prossimoObiettivo || {}).etichetta || (r.prossimoRank ? r.prossimoRank.nome : null);
   const kgPerIlProssimo = r.distanza && r.distanza.kgNecessari;
   const verso = r.inTop
-    ? `Sei nel rank piu' alto: non c'e' un passo dopo, e ogni LP e' un punto di percentuale sopra la soglia dell'OLYMPIAN (+${r.lp}% adesso).`
+    ? `Sei nel rank più alto: non cÈ un passo dopo, e ogni LP È un punto di percentuale sopra la soglia dell'OLYMPIAN (+${r.lp}% adesso).`
     : (kgPerIlProssimo
       ? `${formattaNumero(kgPerIlProssimo)} ${profilo.unita} per ${prossimoNome}`
         + (distanza && distanza.inGioco ? `, con le ripetizioni che hai` : '')
@@ -3459,9 +3478,9 @@ function cardRank(record, { compatta = false } = {}) {
       ]),
       badgeRank(r.rankId, r.lp, r.divisione),
     ]),
-    // COME E' DIFFICILE l'esercizio e QUANTO ho fatto. Ste: "aggiungi un
-    // qualcosa che identifica se l'esercizio e' facile o difficile e capisce
-    // se e' tanto quello che fai o poco". Il numero da solo non basta: 12 kg
+    // COME È DIFFICILE l'esercizio e QUANTO ho fatto. Ste: "aggiungi un
+    // qualcosa che identifica se l'esercizio È facile o difficile e capisce
+    // se È tanto quello che fai o poco". Il numero da solo non basta: 12 kg
     // su un isolamento sono tantissimi, su un leg press non sono niente.
     el('div', { class: 'card-rank-alto' }, [
       el('span', {
@@ -3472,7 +3491,7 @@ function cardRank(record, { compatta = false } = {}) {
     ]),
 el('div', { class: 'card-rank-basso' }, [
       // la barra degli LP si riempie con gli LP (vedi frazioneLp): il numero che dice
-    // "quanto mi manca per il Rank dopo" e' un'altra barra e sta piu' in basso
+    // "quanto mi manca per il Rank dopo" È un'altra barra e sta più in basso
     barraLp(r),
       el('span', { class: 'nota', testo: verso }),
       r.spiegaBonus ? el('span', { class: 'nota nota-piccola', testo: r.spiegaBonus }) : null,
@@ -3486,7 +3505,7 @@ el('div', { class: 'card-rank-basso' }, [
 
 /**
  * Salva le ricompense guadagnate dopo un allenamento.
- * Nessun numero viene scritto dal frontend: il motore gioco.js decide cosa e'
+ * Nessun numero viene scritto dal frontend: il motore gioco.js decide cosa È
  * stato guadagnato, qui si salvano solo le righe nuove.
  */
 async function assegnaRicompense(sedutaId) {
@@ -3503,9 +3522,9 @@ async function assegnaRicompense(sedutaId) {
       // E I GIORNI IN CUI ALLENO. Mancheranno faceva usare la regola semplice della
       // streak, quindi qui la streak veniva calcolata DIVERSA da quella mostrata a
       // schermo: sullo stesso allenamento a schermo leggevi 12 e il traguardo dei 10
-      // non arrivava mai, perche' il conto per i premi ne vedeva solo 3. Non era un
-      // numero sbagliato a caso: era una regola applicata in due modi diversi, ed e'
-      // lo stesso difetto che questo progetto ha gia' pagato tre volte.
+      // non arrivava mai, perchÈ il conto per i premi ne vedeva solo 3. Non era un
+      // numero sbagliato a caso: era una regola applicata in due modi diversi, ed È
+      // lo stesso difetto che questo progetto ha già pagato tre volte.
       profilo: profiloAttivo(),
     });
     if (!nuove.length) return [];
@@ -3587,135 +3606,85 @@ async function salvaProfilo(campi) {
 }
 
 /**
- * IL CALENDARIO DELL'ALLENAMENTO.
+ * IL CALENDARIO VERO.
  *
- * Ste (09/10/2026): "aggiungi anche un calendario dove mi segna evidenziato i giorni in
- * cui vado in palestra".
+ * Ste (09/10/2026): "il calendario deve essere proprio un calendario, che da ora
+ * fino al 2027 ecc...".
  *
- * Tre cose da vedere insieme, perche' sole non dicono niente:
+ * Due volte gli ho proposto qualcosa di diverso da un calendario e due volte aveva
+ * ragione lui. La prima volta sette caselle (una settimana: il giorno che ti serve
+ * non c'), la seconda volta una striscia di mesi uno sotto l'altro senza numeri. Un
+ * calendario, nel senso di tutti i giorni, e' un'altra cosa: e' una TABELLA, con i
+ * numeri dei giorni, i mesi in fila e l'anno che si cambia con le frecce.
  *
- *   - il giorno PREVISTO: uno di quelli che hai scelto in Impostazioni. E' quello che
- *     ti dice se oggi ti tocca o no, e la risposta deve stare in cima, non in fondo a
- *     una pagina.
- *   - il giorno FATTO: ci sei andato davvero. E' l'unica cosa che conta per la
- *     streak.
- *   - il giorno SALTATO: era previsto e non l'hai fatto. E' l'unico che rompe la
- *     streak, quindi senza vederlo non capisci perche' il numero e' tornato a zero.
+ * Perche' i numeri non si possono togliere: sette quadratini colorati senza numero
+ * non dicono quando e' successo. Col numero diventa "marte' 6", e la memoria
+ * lavora da sola.
  *
- * Il calendario e' ancorato a una settimana reale (con lunedi' in alto, come si usa in
- * Italia) e la riga sotto ti dice la cosa che serve: se oggi ti tocca, quando ti
- * tocca, e quanti giorni di fila hai.
+ * E perchè si parte dal primo allenamento e non dal 1° gennaio: un calendario che
+ * contiene due anni di quadratini vuoti non dice niente, e fa scorrere la pagina per
+ * niente.
  */
+const statoCalendario = { anno: null, giorno: null };
+
 export function bloccoCalendario(profilo, st) {
   const box = el('section', { class: 'blocco' });
-  box.appendChild(el('h2', { testo: 'Il tuo calendario' }));
-
   const previsti = new Set(Array.isArray(profilo.giorni_allenamento) ? profilo.giorni_allenamento : []);
   const giorniFatti = new Set((st.streak && st.streak.giorniAllenati) || []);
   const oggi = isoGiorno(new Date());
+  const oggiAnno = Number(oggi.slice(0, 4));
+  const anno = statoCalendario.anno === null ? oggiAnno : statoCalendario.anno;
 
-  // ---- LA RIGA SOPRA: la risposta, detta subito.
-  const NOME_GIORNO = ['Domenica', 'Luned\u00ec', 'Marted\u00ec', 'Mercoled\u00ec', 'Gioved\u00ec', 'Venerd\u00ec', 'Sabato'];
-  const oggiDow = new Date(oggi + 'T12:00:00').getDay();
-  const fattoOggi = giorniFatti.has(oggi);
-  const oggiPrevisto = previsti.has(oggiDow);
-  const prossimoGiorno = prossimoGiornoPrevisto(previsti, oggi);
-  const frase = !previsti.size
-    ? 'Non hai ancora scelto i giorni in cui alleni: va in Impostazioni, e il calendario si riempie di verde.'
-    : (fattoOggi
-      ? 'Oggi hai allenato.'
-      : (oggiPrevisto
-        ? (prossimoGiorno
-          ? `Oggi ti tocca e non l'hai ancora fatto. Dopo, il prossimo giorno e' ${NOME_GIORNO[prossimoGiorno].toLowerCase()}.`
-          : 'Oggi ti tocca e non l\'hai ancora fatto.')
-        : (prossimoGiorno
-          ? `Oggi e' giorno di recupero: non ti toglie niente. Ti tocca ${NOME_GIORNO[prossimoGiorno].toLowerCase()}.`
-          : 'Oggi e\' giorno di recupero: non ti toglie niente.')));
-  box.appendChild(el('p', { class: 'nota nota-grande', testo: frase }));
+  box.appendChild(el('h2', { testo: 'Il tuo calendario' }));
+  box.appendChild(rigaOggi(previsti, giorniFatti, oggi));
 
-  // ---- IL CALENDARIO GRANDE: da oggi a sempre.
+  // ---- LA TESTATA: l'anno e le frecce per cambiarlo.
   //
-  // Ste (09/10/2026): "il calendario deve essere grande, da oggi a per sempre e deve
-  // segnare solo in verde i giorni in cui ci sono andato e in rosso i giorni che ho
-  // saltato e in viola quelli di recupero".
+  // Ste: "da ora fino al 2027". Le frecce servono per questo: si parte dall'anno in
+  // cui sei e si va avanti di un anno alla volta. Il bottone "a oggi" serve per
+  // non perdersi dopo aver girato fino al 2030.
+  const cambia = (nuovo) => { statoCalendario.anno = nuovo; disegna(); };
+  const testata = el('div', { class: 'calendario-testata' }, [
+    bottone('‹', {
+      classe: 'fantasma',
+      onClick: () => cambia(anno - 1),
+      titolo: 'L\'anno prima',
+    }),
+    el('strong', { class: 'calendario-anno-nome', testo: String(anno) }),
+    bottone('›', {
+      classe: 'fantasma',
+      onClick: () => cambia(anno + 1),
+      titolo: 'L\'anno dopo',
+    }),
+    (anno !== oggiAnno
+      ? bottone('A oggi', { classe: 'fantasma', onClick: () => cambia(oggiAnno) })
+      : null),
+  ]);
+  box.appendChild(testata);
+
+  // ---- I DODICI MESI.
   //
-  // "Da oggi a per sempre" vuol dire che si vede lo STORICO, non solo la settimana
-  // corrente: e' l'unico posto dove si capisce se la propria abitudine e' regolare o
-  // no. Con sette caselle si vede solo adesso, che e' la parte meno interessante.
-  //
-  // Si parte dal mese in cui e' iniziato ad allenarsi (la prima seduta) e si arriva
-  // a un mese avanti: cosi' c'e' il passato da guardare e c'e' il futuro gia'
-  // pianificato. Un calendario che finisce a oggi non dice nulla, perche' il futuro
-  // e' l'unica parte che puoi cambiare.
+  // Nell'anno in cui ti trovi si parte dal mese della PRIMA seduta, non da gennaio:
+  // altrimenti il calendario di quest'anno avrebbe sei mesi vuoti davanti, e sei
+  // mesi vuoti non sono informazione, sono rumore. Negli anni dopo si parte da
+  // gennaio, e l'anno scorso si vede tutto: quello e' lo storico.
   const primoGiorno = giorniFatti.size ? [...giorniFatti].sort()[0] : oggi;
-  const meseInizio = inizioMese(primoGiorno);
-  const meseFine = aggiungiMesi(oggi, 1);
-
-  // LE FASCE DI MESI: ogni mese e' una riga, con i sette giorni in colonna.
-  const mese = (iso, primo = false) => {
-    const [a, m, g] = iso.split('-').map(Number);
-    const d = new Date(a, m - 1, g, 12);
-    const griglia = el('div', { class: 'calendario-mese' });
-    // le intestazioni dei giorni, una volta sola per la fascia intera
-    if (primo) {
-      const cap = el('div', { class: 'calendario-coppie' });
-      for (const n of ['lun', 'mar', 'mer', 'gio', 'ven', 'sab', 'dom']) {
-        cap.appendChild(el('span', { class: 'coppia-giorni', testo: n }));
-      }
-      griglia.appendChild(cap);
-    }
-    const riga = el('div', { class: 'calendario-coppie' });
-    const primoDelMese = new Date(a, m - 1, 1, 12);
-    // il lunedi' della settimana che contiene il primo del mese
-    const inizioRiga = new Date(primoDelMese);
-    inizioRiga.setDate(primoDelMese.getDate() - ((primoDelMese.getDay() + 6) % 7));
-    const ultimo = new Date(a, m, 0, 12); // giorno 0 del mese dopo = ultimo del mese
-    const fineRiga = new Date(ultimo);
-    fineRiga.setDate(ultimo.getDate() + (6 - ((ultimo.getDay() + 6) % 7)));
-    for (let d = new Date(inizioRiga); d <= fineRiga; d.setDate(d.getDate() + 1)) {
-      const isoCell = isoGiorno(d);
-      const nelMese = d.getMonth() === m - 1 && d.getFullYear() === a;
-      const previsto = nelMese && previsti.has(d.getDay());
-      const fatto = nelMese && giorniFatti.has(isoCell);
-      const passato = isoCell < oggi;
-      const saltato = passato && previsto && !fatto;
-      const recupero = !previsto;
-      const future = isoCell > oggi;
-      const classi = ['cella-calendario'];
-      if (!nelMese) classi.push('fuori');
-      if (fatto) classi.push('fatto');
-      else if (saltato) classi.push('saltato');
-      else if (recupero && passato) classi.push('recupero');
-      if (previsto && !fatto && !saltato) classi.push('atteso');
-      if (isoCell === oggi) classi.push('oggi');
-      if (future) classi.push('futuro');
-      riga.appendChild(el('span', {
-        class: classi.join(' '),
-        aria: { label: ariaGiorno(isoCell, d, previsto, fatto, saltato, recupero) },
-        titolo: `${d.getDate()}/${d.getMonth() + 1}` + (fatto ? ' allenato' : (saltato ? ' saltato' : (previsto ? ' giorno di allenamento' : ' recupero'))),
-      }));
-    }
-    griglia.appendChild(riga);
-    return el('div', { class: 'calendario-blocco' }, [
-      el('h3', { class: 'calendario-mese-nome', testo: NOMI_MESCE[Number(String(iso).split('-')[1]) - 1] }),
-      griglia,
-    ]);
-  };
-  // il mese e' gia' dentro la stringa ISO, quindi il nome si prende da li'
-  const primoIso = meseInizio;
-  void primoIso;
-
-  const fasce = el('div', { class: 'calendario-fasce' });
-  let cursore = primoIso;
-  let primo = true;
-  while (cursore <= meseFine) {
-    fasce.appendChild(mese(cursore, primo));
-    primo = false;
-    cursore = aggiungiMesi(cursore, 1);
+  const primoAnno = Number(primoGiorno.slice(0, 4));
+  const primoMese = Number(primoGiorno.slice(5, 7));
+  const meseIniziale = (anno === oggiAnno)
+    ? primoMese
+    : (anno > oggiAnno ? 1 : primoMese);
+  const griglia = el('div', { class: 'calendario-anno' });
+  for (let m = meseIniziale; m <= 12; m++) {
+    griglia.appendChild(bloccoMese(anno, m, previsti, giorniFatti, oggi));
   }
-  box.appendChild(fasce);
+  box.appendChild(griglia);
 
-  // ---- LA LEGENDA. Tre colori, e senza spiegazione non significano niente.
+  // ---- IL DETTAGLIO DEL GIORNO PREMUTO.
+  if (statoCalendario.giorno) {
+    box.appendChild(dettaglioGiorno(statoCalendario.giorno));
+  }
+
   box.appendChild(el('div', { class: 'legenda-calendario' }, [
     el('span', { class: 'pastiglia legenda-fatto', testo: 'allenato' }),
     el('span', { class: 'pastiglia legenda-saltato', testo: 'saltato' }),
@@ -3725,22 +3694,129 @@ export function bloccoCalendario(profilo, st) {
   return box;
 }
 
+/** La frase in cima: la risposta a "oggi mi tocca?", prima di tutto il resto. */
+function rigaOggi(previsti, giorniFatti, oggi) {
+  const NOME = ['Domenica', 'Luned\u00ec', 'Marted\u00ec', 'Mercoled\u00ec', 'Gioved\u00ec', 'Venerd\u00ec', 'Sabato'];
+  const oggiDow = new Date(oggi + 'T12:00:00').getDay();
+  const fattoOggi = giorniFatti.has(oggi);
+  const oggiPrevisto = previsti.has(oggiDow);
+  const prossimo = prossimoGiornoPrevisto(previsti, oggi);
+  const frase = !previsti.size
+    ? 'Non hai ancora scelto i giorni in cui alleni: va in Impostazioni, e il calendario si riempie di verde.'
+    : (fattoOggi
+      ? 'Oggi hai allenato.'
+      : (oggiPrevisto
+        ? (prossimo
+          ? `Oggi ti tocca e non l'hai ancora fatto. Dopo, il prossimo giorno e' ${NOME[prossimo].toLowerCase()}.`
+          : 'Oggi ti tocca e non l\'hai ancora fatto.')
+        : (prossimo
+          ? `Oggi e' giorno di recupero: non ti toglie niente. Ti tocca ${NOME[prossimo].toLowerCase()}.`
+          : 'Oggi e\' giorno di recupero: non ti toglie niente.')));
+  return el('p', { class: 'nota nota-grande', testo: frase });
+}
+
+/** Un mese: nome, i sette giorni in testa, e tutti i giorni con il loro numero. */
+function bloccoMese(anno, mese, previsti, giorniFatti, oggi) {
+  const primoDelMese = new Date(anno, mese - 1, 1, 12);
+  const ultimo = new Date(anno, mese, 0, 12);
+  const prefisso = `${anno}-${String(mese).padStart(2, '0')}-`;
+  const fattiDelMese = [...giorniFatti].filter((g) => g.startsWith(prefisso)).length;
+
+  const box = el('div', { class: 'calendario-mese' });
+
+  box.appendChild(el('h3', { class: 'calendario-mese-nome' }, [
+    NOMI_MESCE[mese - 1],
+    // IL NUMERO DI ALLENAMENTI DEL MESE, accanto al nome. Un calendario senza
+    // questo dice COME e' andato il mese solo se lo leggi giorno per giorno:
+    // metterlo li' risponde subito a "marzo com'e' andato".
+    el('span', {
+      class: 'calendario-conto',
+      testo: `${fattiDelMese} ${fattiDelMese === 1 ? 'giornata' : 'giornate'}`,
+    }),
+  ]));
+
+  const testata = el('div', { class: 'calendario-coppie calendario-testata-giorni' });
+  for (const n of ['lu', 'ma', 'me', 'gi', 've', 'sa', 'do']) {
+    testata.appendChild(el('span', { class: 'coppia-giorni', testo: n }));
+  }
+  box.appendChild(testata);
+
+  const riga = el('div', { class: 'calendario-coppie' });
+  // la prima riga parte dal LUNEDI' della settimana che contiene il primo del mese,
+  // altrimenti ogni mese sarebbe spostato di una colonna e marte' finirebbe sotto
+  // "giovedi".
+  const inizio = new Date(primoDelMese);
+  inizio.setDate(primoDelMese.getDate() - ((primoDelMese.getDay() + 6) % 7));
+  const fine = new Date(ultimo);
+  fine.setDate(ultimo.getDate() + (6 - ((ultimo.getDay() + 6) % 7)));
+
+  for (let d = new Date(inizio); d <= fine; d.setDate(d.getDate() + 1)) {
+    const isoCell = isoGiorno(d);
+    const nelMese = d.getMonth() === mese - 1 && d.getFullYear() === anno;
+    if (!nelMese) {
+      riga.appendChild(el('span', { class: 'cella-calendario fuori' }));
+      continue;
+    }
+    const previsto = previsti.has(d.getDay());
+    const fatto = giorniFatti.has(isoCell);
+    const passato = isoCell < oggi;
+    // IL SALTATO richiede tre cose insieme: che il giorno ti toccasse, che non ci
+    // sei andato, e che sia passato. Oggi non e' un giorno saltato: non e' ancora
+    // successo niente. E un giorno di recupero non e' MAI saltato, perchè non ti
+    // toccava: saltare il riposo non e' colpa di nessuno.
+    const saltato = passato && previsto && !fatto;
+    const classi = ['cella-calendario'];
+    if (fatto) classi.push('fatto');
+    else if (saltato) classi.push('saltato');
+    else if (!previsto && passato) classi.push('recupero');
+    if (previsto && !fatto && !saltato) classi.push('atteso');
+    if (isoCell === oggi) classi.push('oggi');
+    if (isoCell > oggi) classi.push('futuro');
+    const aperto = isoCell === statoCalendario.giorno;
+    if (aperto) classi.push('aperto');
+
+    riga.appendChild(el('button', {
+      type: 'button',
+      class: classi.join(' '),
+      testo: String(d.getDate()),
+      onClick: () => {
+        statoCalendario.giorno = (statoCalendario.giorno === isoCell) ? null : isoCell;
+        disegna();
+      },
+      aria: { label: ariaGiorno(isoCell, d, previsto, fatto, saltato, !previsto) },
+      titolo: `${d.getDate()}/${mese}` + (fatto ? ' allenato' : (saltato ? ' saltato' : (previsto ? ' giorno di allenamento' : ' recupero'))),
+    }));
+  }
+  box.appendChild(riga);
+  return box;
+}
+
+/** Cosa hai fatto in un giorno preciso. */
+function dettaglioGiorno(iso) {
+  const sedute = seduteDellaPersona().filter((s) => String(s.data || '').slice(0, 10) === iso && s.stato === 'completata');
+  const box = el('div', { class: 'spiegazione' });
+  const NOME = ['Domenica', 'Luned\u00ec', 'Marted\u00ec', 'Mercoled\u00ec', 'Gioved\u00ec', 'Venerd\u00ec', 'Sabato'];
+  const d = new Date(iso + 'T12:00:00');
+  box.appendChild(el('h3', { class: 'nota', testo: `${NOME[d.getDay()]} ${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}` }));
+
+  if (!sedute.length) {
+    box.appendChild(el('p', { class: 'nota', testo: 'Qui non hai allenato.' }));
+    return box;
+  }
+  for (const s of sedute) {
+    const righe = serieDellaPersona().filter((x) => x.seduta_id === s.id);
+    const voci = righe.map((x) => {
+      const e = esercizioPerId(x.esercizio_id);
+      const kg = Number(x.peso || 0);
+      return (e ? e.nome : 'esercizio') + (kg ? ` ${String(kg).replace('.', ',')} kg` : '');
+    });
+    box.appendChild(el('p', { class: 'nota', testo: voci.length ? voci.join(' · ') : 'seduta completata' }));
+  }
+  return box;
+}
+
 const NOMI_MESCE = ['gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno',
   'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre'];
-
-/** Il primo giorno del mese di una data ISO. */
-function inizioMese(iso) {
-  const [a, m] = String(iso).split('-');
-  return `${a}-${m}-01`;
-}
-
-/** Stessa data, un mese dopo (o un mese prima, con `meno`). */
-function aggiungiMesi(iso, quanto) {
-  const [a, m, g] = String(iso).split('-').map(Number);
-  const d = new Date(a, m - 1 + quanto, 1, 12);
-  const gg = Math.min(g, new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate());
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(gg).padStart(2, '0')}`;
-}
 
 /** Il prossimo giorno della settimana che hai scelto, come indice 0-6. */
 function prossimoGiornoPrevisto(previsti, daIso) {
@@ -3833,13 +3909,28 @@ function spiegazioneRpg() {
   return el('div', { class: 'spiegazione rpg-spiegazione' }, [
     el('p', { testo: 'Le tre statistiche vengono dagli allenamenti veri, non da un numero che scrivi tu.' }),
     el('ul', {}, [
-      el('li', {}, [el('strong', { testo: 'Forza' }), el('span', { testo: ': kg spostati sui movimenti grossi (panche, spinste, tirate, gambe pesanti). Ogni 500 kg sono un punto.' })]),
-      el('li', {}, [el('strong', { testo: 'Agilita' }), el('span', { testo: ': minuti di cardio (tapis, corsa, corda). Ogni 5 minuti sono un punto.' })]),
-      el('li', {}, [el('strong', { testo: 'Stamina' }), el('span', { testo: ': minuti di cardio e giorni in cui ti alleni. Serve a chi non fa solo forza.' })]),
+      el('li', {}, [el('strong', { testo: 'Forza' }), el('span', { testo: ': quanti kg hai spostato in totale sui movimenti grossi (panche, spinte, tirate, gambe pesanti). Ogni 500 kg sono un punto: se hai spostato 5000 kg in tutto, la Forza è 11 (10 punti più quello di partenza).' })]),
+      el('li', {}, [el('strong', { testo: 'Agilità' }), el('span', { testo: ': quanti minuti di cardio hai fatto. Ogni 5 minuti sono un punto: mezz\'ora di tapis sono 7 punti (6 più quello di partenza).' })]),
+      el('li', {}, [el('strong', { testo: 'Stamina' }), el('span', { testo: ': quanti minuti di cardio hai fatto e in quanti giorni ti sei allenato. Ogni 8 minuti di cardio sono un punto, più un punto ogni 2 giorni di allenamento. È la statistica di chi non fa solo forza.' })]),
+      el('li', {}, [el('span', { testo: 'Tutte e tre partono da 1, mai da 0: se hai cominciato adesso, non sei a zero.' })]),
     ]),
-    el('p', { testo: 'La classe che sceggi dà il +20% a UNA statistica sola. Non conta per le armature: quelle si sbloccano coi numeri veri, quindi cambiando classe non ti perdi niente.' }),
-    el('p', { testo: 'Le armature si sbloccano con i giorni di fila. Ti restono per sempre: se salti una settimana non le perdi, perche\' si sbloccano con la sequenza piu\' lunga che hai mai fatto, non con quella di adesso.' }),
-    el('p', {}, [el('strong', { testo: 'Cosa NON conta: ' }), el('span', { testo: 'il livello non dipende da quanto sei forte, ma da quanti kg hai spostato in tutto. Il Rank (quello con i nomi e gli LP) e\' quello che misura quanto sei forte. L\'RPG e\' un gioco sopra, e serve per divertirti, non per saper quanto stai.' })]),
+
+    el('h4', { class: 'titolo-sottosezione', testo: 'Come si segna il cardio' }),
+    el('p', { testo: 'Il cardio si registra come un esercizio qualsiasi, con una differenza: nel campo sotto il peso scrivi i MINUTI, non le ripetizioni.' }),
+    el('ul', {}, [
+      el('li', { testo: 'Mezz\'ora sul tapis: scrivi 30. Un\'ora: scrivi 60.' }),
+      el('li', { testo: 'Se per caso scrivi i secondi (1800 per mezz\'ora), l\'app li riconosce e conta comunque 30 minuti. Non sbagli.' }),
+      el('li', { testo: 'Se l\'esercizio è nuovo e non lo trovi già nell\'app, crealo e spunta "È cardio": senza quella spunta l\'app non sa che quel movimento è cardio e non te lo conta.' }),
+    ]),
+
+    el('h4', { class: 'titolo-sottosezione', testo: 'La classe' }),
+    el('p', { testo: 'La classe che scegli dà il +20% a UNA statistica sola: Guerriero alla Forza, Assassino all\'Agilità, Berserker alla Stamina. Non conta per le armature, che si sbloccano con i numeri veri: quindi cambiando classe non ti perdi niente, e puoi cambiare quando ti pare.' }),
+    el('p', { testo: 'La scelta dell\'app ("con i tuoi numeri ti verrebbe consigliato il Guerriero") è un\'ipotesi, non un obbligo: consiglia la classe che alza la statistica che hai già più alta.' }),
+
+    el('h4', { class: 'titolo-sottosezione', testo: 'Le armature' }),
+    el('p', { testo: 'Si sbloccano con i giorni di fila, e te le restano per sempre: se salti una settimana non le perdi, perché si sbloccano con la sequenza più lunga che hai mai fatto, non con quella di adesso.' }),
+
+    el('p', {}, [el('strong', { testo: 'Cosa NON conta: ' }), el('span', { testo: 'il livello non dice quanto sei forte, dice quanta pratica hai fatto. Il Rank (quello con i nomi e gli LP) è quello che misura quanto sei forte. L\'RPG è un gioco sopra, e serve per divertirti, non per saper quanto stai.' })]),
   ]);
 }
 
@@ -3922,13 +4013,42 @@ function bloccoGiorniAllenamento() {
 /**
  * L'AVATAR RPG: classe, statistiche, livello e armature.
  *
- * Sta nel PROFILO, non nei Progressi, per la stessa ragione dell'avatar: e' identita'
+ * Sta nel PROFILO, non nei Progressi, per la stessa ragione dell'avatar: È identita'
  * ("chi sei"), mentre i Progressi rispondono a una domanda numerica ("quanto stai
- * sollevando in piu' del tuo corpo"). Vedi anche il test profilo-avatar.test.js.
+ * sollevando in più del tuo corpo"). Vedi anche il test profilo-avatar.test.js.
  *
- * Il sistema e' quello che Ste ha scritto lui (vedi src/avatar-rpg.js, dove sono
- * scritte le tre correzioni fatte e il perche').
+ * Il sistema È quello che Ste ha scritto lui (vedi src/avatar-rpg.js, dove sono
+ * scritte le tre correzioni fatte e il perchÈ).
  */
+/**
+ * LE TRE STATISTICHE, spiegate.
+ *
+ * Ste (09/10/2026), guardando la schermata: "il forza 10 agilità 1 stamina 2 livello
+ * 3 cosa indicano?".
+ *
+ * Un numero senza la sua unità è rumore. "Forza 10" non vuol dire niente se non sai
+ * che 10 è "dieci volte 500 kg spostati in totale", cioè 5000 kg. Ogni riga della
+ * schermata mostra quindi la soglia che la fa crescere, scritta in parole.
+ *
+ * Una statistica per riga, con tre cose: il nome, la spiegazione, e il numero. E il
+ * numero è quello VERO, non quello con il +20%: la differenza è scritta accanto al
+ * nome, perché un numero che cambia a seconda della classe è una domanda.
+ */
+const SPIEGAZIONE_STAT = {
+  forza: {
+    nome: 'Forza',
+    cosa: 'I kg che hai spostato in totale sui movimenti grossi: 1 punto ogni 500 kg (carico × ripetizioni). Parte da 1.',
+  },
+  agilita: {
+    nome: 'Agilità',
+    cosa: 'I minuti di cardio: 1 punto ogni 5 minuti di tapis, corsa o corda. Parte da 1.',
+  },
+  stamina: {
+    nome: 'Stamina',
+    cosa: 'Cardio e costanza: 1 punto ogni 8 minuti di cardio, più 1 ogni 2 giorni in cui ti alleni. Parte da 1.',
+  },
+};
+
 function bloccoAvatarRpg(profilo, st) {
   const box = el('section', { class: 'blocco' });
   const rpg = calcolaAvatar(profilo.classe_rpg, serieMie(), seduteMie(), esercizioPerId, {
@@ -3939,39 +4059,93 @@ function bloccoAvatarRpg(profilo, st) {
   const sceltaClasse = rpg.classe || classeConsigliata(rpg.base);
   box.appendChild(el('h2', { testo: 'Il tuo avatar' }));
   if (!rpg.classe) {
+    // "Con i numeri di adesso ti viene il Guerriero" non diceva niente: non WHICH
+    // numeri, non PERCHÉ quel Guerriero, non cosa cambia scegliendolo.
+    //
+    // Ste (09/10/2026): "che vuol dire con i numeri di adesso ti viene il
+    // guerriero?". Adesso la frase dice i tre numeri, dice perché viene
+    // consigliata quella, e dice che non è un obbligo.
     box.appendChild(el('p', {
       class: 'nota',
       testo: sceltaClasse
-        ? `Non hai ancora scelto una classe. Con i numeri di adesso ti viene il ${sceltaClasse.nome}.`
-        : 'Scegli la tua classe: e\' il bonus che porta una statistica su. Ma prima devi allenarci un po\'.',
+        ? `Non hai ancora scelto una classe. Con i tuoi numeri di adesso ti verrebbe `
+          + `consigliato il ${sceltaClasse.nome}, perché è la tua statistica più alta `
+          + `(${SPIEGAZIONE_STAT[sceltaClasse.bonus].nome.toLowerCase()}) e il suo `
+          + `bonus è il +20% su quella. Ma non è un obbligo: se preferisci un'altra, `
+          + `premi quella che vuoi e cambia quando ti pare.`
+        : 'Scegli la tua classe: è il bonus che alza una statistica su. Prima prova ad allenarci un po\' e i numeri arriveranno.',
     }));
   }
   const grigliaClassi = el('div', { class: 'riga-classi' });
   for (const c of Object.values(CLASSI)) {
-    grigliaClassi.appendChild(bottone(`${c.icona}  ${c.nome}`, {
+    const scelta = !!(rpg.classe && rpg.classe.id === c.id);
+    // LA SPUNTA. Ste: "non spunta cosa ti da in più il guerriero, l'assassino o
+    // il berserker". Il pulsante aveva la classe CSS "attiva" ma da come era
+    // scritta non si vedeva niente: tutti e tre sembravano non scelti. Ora la
+    // spunta è nel testo (si vede anche in alto contrasto) e il pulsante ha un
+    // bordo colorato.
+    grigliaClassi.appendChild(bottone(scelta ? `${c.icona}  ${c.nome}  ✓` : `${c.icona}  ${c.nome}`, {
       onClick: async () => {
         await salvaProfilo({ classe_rpg: c.id });
         avviso(`Sei un ${c.nome}: +20% di ${c.bonus}.`, { tipo: 'ok' });
       },
-      classe: 'classe-rpg' + (rpg.classe && rpg.classe.id === c.id ? ' attiva' : ''),
+      // LA SPUNTA. Ste: "non spunta cosa ti da in più il guerriero, l'assassino o
+      // il berserker". Il pulsante aveva la classe CSS "attiva" ma da come era
+      // scritta non si vedeva niente: tutti e tre sembravano non scelti. Ora la
+      // spunta è nel testo (si vede anche in alto contrasto) e il pulsante ha un
+      // bordo colorato.
+      classe: 'classe-rpg' + (scelta ? ' attiva' : ''),
+      titolo: scelta
+        ? `Hai scelto il ${c.nome}: +20% di ${c.bonus}`
+        : `Scegli il ${c.nome}: +20% di ${c.bonus}`,
+      'aria-pressed': scelta,
     }));
   }
   box.appendChild(grigliaClassi);
+  // E sotto ogni bottone, cosa ti dà. Un bottone che dice solo il nome costringe a
+  // andare a leggere la spiegazione per capire che differenza c'è.
+  const rigaBonus = el('div', { class: 'riga-classi riga-bonus' });
+  for (const c of Object.values(CLASSI)) {
+    rigaBonus.appendChild(el('div', {
+      class: 'nota nota-piccola',
+      testo: `${c.nome}: ${SPIEGAZIONE_STAT[c.bonus].nome} +20%`,
+    }));
+  }
+  box.appendChild(rigaBonus);
 
   // ---- le tre statistiche
+  //
+  // Ste: "il forza 10 agilità 1 stamina 2 livello 3 cosa indicano?".
+  //
+  // Un numero senza la sua unità è rumore: "Forza 10" non vuol dire niente se non
+  // sai che 10 è "10 volte 500 kg spostati in totale". Ogni statistica ha quindi
+  // sotto la soglia che la fa crescere, scritta in parole.
   const righe = el('div', { class: 'righe-stat' });
-  const etichette = { forza: 'Forza', agilita: 'Agilita', stamina: 'Stamina' };
+  const etichette = { forza: 'Forza', agilita: 'Agilità', stamina: 'Stamina' };
   for (const chiave of ['forza', 'agilita', 'stamina']) {
     const valore = rpg.st[chiave] || 1;
     const inRilievo = rpg.classe && rpg.classe.bonus === chiave;
-    righe.appendChild(el('div', { class: 'riga-stat' + (inRilievo ? ' rilievo' : '') }, [
-      el('span', { class: 'nota', testo: etichette[chiave] + (inRilievo ? ' +20%' : '') }),
-      el('strong', { testo: String(valore) }),
+    righe.appendChild(el('div', { class: 'riga-stat riga-stat-spiegata' + (inRilievo ? ' rilievo' : '') }, [
+      el('div', { class: 'testo-stat' }, [
+        el('span', { class: 'nome-stat', testo: etichette[chiave] + (inRilievo ? ' +20%' : '') }),
+        el('span', { class: 'nota nota-piccola', testo: SPIEGAZIONE_STAT[chiave].cosa }),
+      ]),
+      el('strong', { class: 'valore-stat', testo: String(valore) }),
     ]));
   }
-  righe.appendChild(el('div', { class: 'riga-stat' }, [
-    el('span', { class: 'nota', testo: 'Livello' }),
-    el('strong', { testo: String(rpg.livello) }),
+  // IL LIVELLO non è "quanto sei forte": è quanto hai allenato in tutto. La
+  // frase lo dice, perché è la confusione più probabile: si vede "Livello 3" accanto
+  // a "Forza 10" e sembrano la stessa cosa misurata due volte.
+  righe.appendChild(el('div', { class: 'riga-stat riga-stat-spiegata' }, [
+    el('div', { class: 'testo-stat' }, [
+      el('span', { class: 'nome-stat', testo: 'Livello' }),
+      el('span', {
+        class: 'nota nota-piccola',
+        testo: 'Quanta pratica hai fatto in tutto, non quanto sei forte. Sale con i kg '
+          + 'spostati e i minuti di cardio. Per misurare quanto sei forte, guarda il Rank.',
+      }),
+    ]),
+    el('strong', { class: 'valore-stat', testo: String(rpg.livello) }),
   ]));
   box.appendChild(righe);
 
@@ -4050,7 +4224,7 @@ function vistaCasa(zona) {
   for (const voce of st.missioni.secret) zona.appendChild(tesseraMissione(voce));
 
   // --- cronologia delle sfide fatte ---
-  // Ste l'ha chiesto: com'e' che si fa a vedere tutte le sfide che hai
+  // Ste l'ha chiesto: comÈ che si fa a vedere tutte le sfide che hai
   // finito? Prima i dati c'erano (st.storicoMissioni) ma non erano mostrati.
   const finiteSfide = (st.storicoMissioni || []).filter((v) => v && v.missione);
   zona.appendChild(el('section', { class: 'blocco' }, [
@@ -4079,9 +4253,9 @@ function vistaCasa(zona) {
   }
 
   // --- dove mettere il peso corporeo ---
-  // Ste: "dove si mette il peso?". Il peso sta gia' nel Profilo, ma non si
+  // Ste: "dove si mette il peso?". Il peso sta già nel Profilo, ma non si
   // capiva. Qui lo dico con parole chiare e ci metto il link per andarlo a
-  // mettere, cosi' si trova in due secondi.
+  // mettere, così si trova in due secondi.
   const pesoOra = pesoCorporeoOra();
   zona.appendChild(el('section', { class: 'blocco' }, [
     el('h2', { testo: 'Il tuo peso corporeo' }),
@@ -4205,10 +4379,10 @@ function vistaRank(zona) {
   function sezioneMieiRank(stato) {
     contenitore.appendChild(el('p', { class: 'nota', testo: 'Il rank di ogni esercizio e\' tuo e basta: le soglie sono diverse per ogni esercizio, quindi 50 kg di una cosa non valgono 50 kg di un\'altra.' }));
     if (!stato.record.length) {
-      // Ste: "non ho capito perche' non spunta niente se ho gia' messo il mio
-      // peso". Il peso NON c'entra: un rank compare solo quando la seduta e'
+      // Ste: "non ho capito perchÈ non spunta niente se ho già messo il mio
+      // peso". Il peso NON c'entra: un rank compare solo quando la seduta È
       // stata CHIUSA. Prima era scritto solo "chiudi un allenamento", che non
-      // diceva che il peso e' gia' salvato e che quindi il problema e' un
+      // diceva che il peso È già salvato e che quindi il problema È un
       // altro. Ora lo spiego per bene e dico subito cosa fare.
       const aperta = seduteMie().find((s) => s && !s.eliminata && s.stato !== 'completata');
       const finite = seduteMie().filter((s) => s && !s.eliminata && s.stato === 'completata').length;
@@ -4226,7 +4400,7 @@ function vistaRank(zona) {
         box.appendChild(el('a', { href: '#/', class: 'bottone-guarda', testo: 'Inizia ad allenarti' }));
       }
 
-      // Il peso corporeo: confermiamo che l\'ha gia' messo, cos\'e\' non
+      // Il peso corporeo: confermiamo che l\'ha già messo, cos\'e\' non
       // continua a pensare che il Rank dipenda da quello.
       box.appendChild(el('p', { class: 'nota nota-chiaro', testo: peso
         ? `Il tuo peso corporeo e\' gia\' salvato (${formattaNumero(peso)} kg) e\' gia\' usato per i Rank: non e\' quello che manca.`
@@ -4319,8 +4493,8 @@ async function vistaEsercizio(zona, esercizioId) {
   zona.appendChild(el('a', { href: '#/rank', class: 'indietro', testo: 'Torna ai Rank' }));
   zona.appendChild(el('h1', { testo: e.nome }));
 
-  // COME E' DIFFICILE questo esercizio. Ste: "aggiungi un qualcosa che
-  // identifica se l'esercizio e' facile o difficile". Il numero da solo non
+  // COME È DIFFICILE questo esercizio. Ste: "aggiungi un qualcosa che
+  // identifica se l'esercizio È facile o difficile". Il numero da solo non
   // dice niente: 12 kg su un isolamento sono tanti, su un leg press sono niente.
   zona.appendChild(el('div', { class: 'riga-livello' }, [
     el('span', { class: 'tag-livello liv-' + (profilo.livello || 'composto'), testo: descrizioneLivello(profilo.livello) }),
@@ -4331,8 +4505,8 @@ async function vistaEsercizio(zona, esercizioId) {
   // per la parte alta e altri per la parte bassa del petto".
   //
   // (Con un aggiustamento: non sono fibre diverse ma capi diversi dello stesso
-  // muscolo. Infatti qui sotto c'e' l'avvertimento, che spiega la cosa come si
-  // sta davvero invece di dirgli una cosa che non e' vera.)
+  // muscolo. Infatti qui sotto cÈ l'avvertimento, che spiega la cosa come si
+  // sta davvero invece di dirgli una cosa che non È vera.)
   const parte = parteDiMuscolo({ nome: e.nome, descrizione: e.nota_permanente || '' });
   if (parte.trovata) {
     zona.appendChild(el('div', { class: 'riga-giudizio giud-parte' }, [
@@ -4342,9 +4516,9 @@ async function vistaEsercizio(zona, esercizioId) {
       el('span', { class: 'nota nota-piccola', testo: AVVERTIMENTO_PARTI }),
     ]));
 
-    // Ste: "deve capire cosa lavora quell'esercizio e quindi capire se e'
+    // Ste: "deve capire cosa lavora quell'esercizio e quindi capire se È
     // difficile o facile". Sapere il muscolo serve proprio a questo: un
-    // carico bassissimo sul deltoide laterale e' piu duro di uno medio sul
+    // carico bassissimo sul deltoide laterale È piu duro di uno medio sul
     // quadricipite, e senza saperlo l'app darebbe un giudizio sbagliato.
     const conMuscolo = livelloConMuscolo({
       nome: e.nome,
@@ -4367,12 +4541,12 @@ async function vistaEsercizio(zona, esercizioId) {
   }
   zona.appendChild(el('p', { class: 'nota', testo: `${rigaSoglie.join(' · ')}. Soglie: ${profilo.soglie.map((s, i) => `${RANK[i].nome} da ${formattaNumero(s)}`).join(' · ')}` }));
 
-  // L'AVVISO DEL PESO. Ste (07/10/2026): "il peso corporeo e' l'ultima cosa
-  // fragile: e' l'unico numero digitato a mano che muove tutti i Rank".
+  // L'AVVISO DEL PESO. Ste (07/10/2026): "il peso corporeo È l'ultima cosa
+  // fragile: È l'unico numero digitato a mano che muove tutti i Rank".
   //
-  // Va qui, subito sotto la riga delle soglie, perche' e' la stessa cosa: quelle
-  // soglie sono state costruite con quel peso. E appare SOLO se il peso e' vecchio:
-  // se e' fresco l'avviso sarebbe solo rumore, e decideslo lo fa serveAggiornare
+  // Va qui, subito sotto la riga delle soglie, perchÈ È la stessa cosa: quelle
+  // soglie sono state costruite con quel peso. E appare SOLO se il peso È vecchio:
+  // se È fresco l'avviso sarebbe solo rumore, e decideslo lo fa serveAggiornare
   // (non un controllo nuovo fatto qui, vedi avviso-peso.js).
   const avvisoPeso = await avvisoPesoEsercizio({ serie, esercizio: e, account: accountAttivo() });
   if (avvisoPeso) {
@@ -4382,8 +4556,8 @@ async function vistaEsercizio(zona, esercizioId) {
   }
 
   // Ste: "deve capire ancora meglio i rank e le difficolta'". Ora il muscolo
-  // entra nella soglia, e se non lo dico l'app ti chiede solo perche' la tua
-  // soglia e' piu' bassa di quanto ti aspettavi: la spiegazione c'e', ma
+  // entra nella soglia, e se non lo dico l'app ti chiede solo perchÈ la tua
+  // soglia È più bassa di quanto ti aspettavi: la spiegazione cÈ, ma
   // invisibile. Peggio: sembrerebbe un errore.
   const spiegazione = rapportoDifficolta(e).spiegazione;
   if (spiegazione) {
@@ -4395,7 +4569,7 @@ async function vistaEsercizio(zona, esercizioId) {
     return;
   }
 
-  // QUANTO HO FATTO, in parole. Ste: "capisce se e' tanto quello che fai o
+  // QUANTO HO FATTO, in parole. Ste: "capisce se È tanto quello che fai o
   // poco". Il giudizio tiene conto anche del livello di difficolta'.
   const giudizio = giudizioPerformance(profilo, record.punteggio);
   if (giudizio.valido) {
@@ -4405,9 +4579,9 @@ async function vistaEsercizio(zona, esercizioId) {
     ]));
   }
 
-  // QUANTO E' PESANTE PER TE. Il giudizio qui sopra guarda il NOME
+  // QUANTO È PESANTE PER TE. Il giudizio qui sopra guarda il NOME
   // dell'esercizio; questo guarda il TUO numero: se spingi 40 kg in chest press
-  // e 4 kg qui, per te questo esercizio e' leggero anche se il nome sembra duro.
+  // e 4 kg qui, per te questo esercizio È leggero anche se il nome sembra duro.
   const perTe = quantoEPesantePerTe({
     serie: serieMie(), esercizi: V.esercizi, esercizioId: e.id, peso: pesoCorporeoOra(),
   });
@@ -4457,9 +4631,9 @@ async function vistaEsercizio(zona, esercizioId) {
       el('span', {
         class: 'nota',
         testo: record.inTop
-          ? `Sei sul rank piu' alto: non c'e' un passo dopo, e ogni LP e' un punto di percentuale sopra la soglia dell'OLYMPIAN (+${record.lp}% adesso).`
+          ? `Sei sul rank più alto: non cÈ un passo dopo, e ogni LP È un punto di percentuale sopra la soglia dell'OLYMPIAN (+${record.lp}% adesso).`
           // gli stessi KG GIUSTI della card (vedi la spiegazione li' sopra): il
-          // punteggio interno non e' un peso e non va mostrato come se lo fosse
+          // punteggio interno non È un peso e non va mostrato come se lo fosse
           : (record.distanza && record.distanza.kgNecessari
             ? `${formattaNumero(record.distanza.kgNecessari)} ${profilo.unita} per ${(record.prossimoObiettivo || {}).etichetta || (record.prossimoRank ? record.prossimoRank.nome : 'il prossimo rank')}, con le ripetizioni che hai`
             : `Prossimo obiettivo: ${(record.prossimoObiettivo || {}).etichetta || (record.prossimoRank ? record.prossimoRank.nome : 'il prossimo rank')}`
@@ -4520,21 +4694,21 @@ async function vistaEsercizio(zona, esercizioId) {
   }
 
   zona.appendChild(el('p', { class: 'nota nota-piccola', testo: `Le soglie sono calcolate sul riferimento di questo esercizio (${descriviPunteggio(profilo, profilo.riferimento)} = PLATINUM), non su quelle degli altri.` }));
-  // QUI SI DICE CHE IL NUMERO E' UNA STIMA, e non e' una pigna.
+  // QUI SI DICE CHE IL NUMERO È UNA STIMA, e non È una pigna.
   //
   // Ste (06/10/2026): "18.86 viene da un massimale stimato su 5 rip con un
-  // movimento corto, e quindi e' una stima dentro una stima... se ti sembra troppo, il
-  // numero da cambiare e' la base della percentuale, non questo riferimento".
+  // movimento corto, e quindi È una stima dentro una stima... se ti sembra troppo, il
+  // numero da cambiare È la base della percentuale, non questo riferimento".
   //
-  // Ha ragione: il riferimento e' un numero scelto e va bene cosi'. Il fragile e' il
-  // massimale, che qui e' stimato dai kg e dalle ripetizioni con una formula (Epley
-  // fino a 10 rip, Brzycki sopra). E' un calcolo fatto con una regola, non una
-  // misura, e su un movimento corto con poche ripetizioni e' il caso peggiore: il
+  // Ha ragione: il riferimento È un numero scelto e va bene così. Il fragile È il
+  // massimale, che qui È stimato dai kg e dalle ripetizioni con una formula (Epley
+  // fino a 10 rip, Brzycki sopra). È un calcolo fatto con una regola, non una
+  // misura, e su un movimento corto con poche ripetizioni È il caso peggiore: il
   // peso sul cavo finisce prima che il muscolo ceda, quindi la stima sbaglia verso
-  // l'alto. Per questo su un isolamento il Rank qui e' indicativo: la stessa serie
-  // puo' valere mezzo rank di piu' o di meno a seconda di quanto hai indovinato.
+  // l'alto. Per questo su un isolamento il Rank qui È indicativo: la stessa serie
+  // può valere mezzo rank di più o di meno a seconda di quanto hai indovinato.
   //
-  // Non ci scrivo "stimato" nel numero perche' Ste (04/10/2026) ha chiesto
+  // Non ci scrivo "stimato" nel numero perchÈ Ste (04/10/2026) ha chiesto
   // esplicitamente "scrivi massimale non stima": la parola che preferisce lui resta,
   // e l'avvertenza sta qui, dove si spiega da dove viene il numero.
   zona.appendChild(el('p', {
@@ -4677,8 +4851,8 @@ async function vistaProfilo(zona) {
   zona.appendChild(testa);
 
   // ---- il calendario: i giorni che alleni, fatti e saltati, insieme.
-  // Va subito sotto la testa e non in fondo, perche' la domanda che ti fai guardando
-  // il Profilo e' "oggi mi tocca?", e la risposta sta nella riga sopra le caselle.
+  // Va subito sotto la testa e non in fondo, perchÈ la domanda che ti fai guardando
+  // il Profilo È "oggi mi tocca?", e la risposta sta nella riga sopra le caselle.
   zona.appendChild(bloccoCalendario(profilo, st));
 
   zona.appendChild(el('div', { class: 'blocco-progresso-livello' }, [
@@ -4707,7 +4881,7 @@ async function vistaProfilo(zona) {
         return;
       }
       // Ste (08/10/2026): "i rank devono aggiornare i pesi" e poi "tutto quanto deve
-      // farsi automaticamente". Il messaggio diceva gia' "i Rank sono aggiornati",
+      // farsi automaticamente". Il messaggio diceva già "i Rank sono aggiornati",
       // ma non diceva QUANTO: era una promessa, non un'informazione.
       //
       // Qui il Rank viene calcolato DUE volte, col peso di prima e con quello nuovo,
@@ -4747,9 +4921,9 @@ async function vistaProfilo(zona) {
     // ricorda di aggiornarlo..." compariva "Il tuo storico" dentro la stessa card
     // viola, senza niente che dicesse dove finiva una cosa e cominciava l'altra.
     //
-    // Ora e' un titolo vero, con una riga sopra che stacca. Non e' solo questione
-    // di bellezza: uno storico che sembra parte di un'altra scheda e' uno storico
-    // che non usi, perche' non lo vedi come una cosa tua da cui cancellare.
+    // Ora È un titolo vero, con una riga sopra che stacca. Non È solo questione
+    // di bellezza: uno storico che sembra parte di un'altra scheda È uno storico
+    // che non usi, perchÈ non lo vedi come una cosa tua da cui cancellare.
     boxPeso.appendChild(el('h3', { class: 'titolo-sottosezione', testo: 'Il tuo storico' }));
     boxPeso.appendChild(lista);
   }
@@ -4789,8 +4963,8 @@ async function vistaProfilo(zona) {
   // ---- il personaggio: si aggiorna da solo e ha il pulsante che spiega come funziona.
   // Ste: "deve aggiornarsi un personaggio che metti dove gli vengono messe cose tipo
   // l'armatura ecc... che si aggiorna automaticamente e metti pure un pulsante che ti
-  // spiega come funziona questo rpg". Sta SOPRA il dettaglio delle statistiche perche'
-  // il personaggio e' la foto, e la lista sotto e' la spiegazione.
+  // spiega come funziona questo rpg". Sta SOPRA il dettaglio delle statistiche perchÈ
+  // il personaggio È la foto, e la lista sotto È la spiegazione.
   zona.appendChild(bloccoPersonaggio(profilo, st));
 
   // ---- l'avatar RPG: classe, statistiche, livello e armature
@@ -4945,8 +5119,8 @@ function finestraCreaEsercizio() {
     el('option', { value: 'corpo_libero', testo: 'corpo libero' }),
     el('option', { value: 'assistenza', testo: 'kg di assistenza' }),
   ]);
-  // Ste (04/10/2026): "metti che si puo' decidere quando fai un nuovo esercizio se
-  // e' monocarrucola o doppia carrucola".
+  // Ste (04/10/2026): "metti che si può decidere quando fai un nuovo esercizio se
+  // È monocarrucola o doppia carrucola".
   //
   // Prima questi tre fatti stavano SOLO scritti dentro il file: se creavi un
   // esercizio al cavo non potevi dirgli mono o doppia, e l'app sbagliava di 2 sul
@@ -4966,9 +5140,19 @@ function finestraCreaEsercizio() {
     el('option', { value: 'si', testo: 'braccia indipendenti' }),
   ]);
 
+  // Ste (09/10/2026): "come segno che faccio tapis roulant?".
+  //
+  // La risposta prima era "basta che il nome contenga tapis", cioè nessuna: se
+  // l'esercizio si chiama "Camminata veloce" o "Tapis di casa", l'agilità non
+  // contava niente e lui non sapeva perché. Ora si sceglie esplicitamente.
+  const cardio = el('select', { class: 'selettore' }, [
+    el('option', { value: '', testo: 'no, forza normale' }),
+    el('option', { value: 'si', testo: 'sì, è cardio (tapis, corsa, corda...)' }),
+  ]);
+
   // Il riferimento ora si CALCOLA da solo.
   //
-  // Ste (04/10/2026): "non si puo' rendere automatica sta cosa?".
+  // Ste (04/10/2026): "non si può rendere automatica sta cosa?".
   //
   // Prima doveva scrivere a mano "il punteggio PLATINUM" e non sapeva cosa
   // mettere. Ora il campo è FACOLTATIVO: se lo lascia vuoto l'app sceglie da
@@ -4983,7 +5167,7 @@ function finestraCreaEsercizio() {
 
   // Ste (04/10/2026): "deve riconoscere si, per questo ti ho detto se puoi
   // metterci un ia". Quando scrivi il nome, l'app lo RICONOSCE da sola e ti
-  // dice che movimento e' e quanto e' difficile, e PERCHE'. Se sbaglia, te ne
+  // dice che movimento È e quanto È difficile, e PERCHE'. Se sbaglia, te ne
   // accorgi subito e puoi correggerla a mano.
   const riconosciuto = el('div', { class: 'anteprima-riferimento' });
   const aggiornaRiconoscimento = () => {
@@ -5074,7 +5258,7 @@ function finestraCreaEsercizio() {
         el('p', { testo: 'Non devi preoccupartene: lo sceglie l\'app al posto tuo. Lascia il campo vuoto e fa tutto da sola.' }),
         el('p', { testo: 'Come funziona: il PLATINUM è il livello di riferimento, e gli altri gradini nascono da lì con questi scarti:' }),
         // La lista dei gradini la LEGGE la configurazione (MOLTIPLICATORI_SOGLIA),
-        // non e' scritta qui a mano. Prima era scritta qui: diceva Bronzo 55%,
+        // non È scritta qui a mano. Prima era scritta qui: diceva Bronzo 55%,
         // Diamond 118%, Titan 145%, Olympian 185%, mentre i numeri veri sono 50,
         // 110, 122 e 135. Quattro numeri sbagliati in un tutorial che Ste legge per
         // capire come funziona il Rank: la classe di errore di sempre, cioe' una
@@ -5099,7 +5283,7 @@ function finestraCreaEsercizio() {
         el('p', { testo: 'Dice come si leggono i kg che l\'utente scrive.' }),
         // Le voci sono lette da ETICHETTE_CONVENZIONE (numeri.js): anche qui una
         // copia scritta a mano andrebbe out of date, e qui dentro finiva per
-        // mancare proprio "kg per braccio", che e' la voce da cui dipende meta'
+        // mancare proprio "kg per braccio", che È la voce da cui dipende meta'
         // del Rank sulle macchine a dischi.
         el('ul', {}, ['per_manubrio', 'per_braccio', 'macchina', 'macchina_dischi', 'macchina_stack', 'cavo_totali', 'bilanciere', 'assistenza'].map((k) => el('li', { testo: ETICHETTE_CONVENZIONE[k] }))),
         el('p', { testo: 'Questo campo non è una nota: il numero del PLATINUM dipende da qui. Un esercizio registrato per braccio ha una scala diversa dallo stesso esercizio registrato in totale, perché 35 kg per braccio non si confrontano con 35 kg in tutto.' }),
@@ -5114,6 +5298,13 @@ function finestraCreaEsercizio() {
     el('label', { class: 'nota', testo: "Com'è fatto il carico? (solo se è un cavo)" }), carrucola,
     el('label', { class: 'nota', testo: "Che macchina è? (dischi veri o stack)" }), attrezzatura,
     el('label', { class: 'nota', testo: "Muovi un braccio senza l'altro?" }), braccia,
+    el('label', { class: 'nota', testo: "È cardio?" }), cardio,
+    el('p', {
+      class: 'nota nota-piccola',
+      testo: 'Se è cardio, sul scheda il campo sotto il peso diventa i MINUTI e ti '
+        + 'contano per l\'agilità e la stamina. Scrivi 30 per mezz\'ora: se per caso '
+        + 'scrivi i secondi (1800), l\'app capisce che erano secondi e fa 30 minuti.',
+    }),
     el('label', { class: 'nota', testo: 'Punteggio PLATINUM (facoltativo: se lo lasci vuoto lo sceglie l\'app)' }), riferimento,
     anteprimaRiferimento,
     el('label', { class: 'nota', testo: 'Descrizione (come si fa: facoltativa)' }), descrizione,
@@ -5132,8 +5323,8 @@ function finestraCreaEsercizio() {
           // I quattro fatti che dicono COME si registra il carico devono stare
           // anche qui, non solo nell'anteprima e non solo nel salvataggio: senza
           // la convenzione e la carrucola la scala non sa se il numero che
-          // scriveranno e' di un lato, del carrello o del carico intero, e il
-          // riferimento salvato e' quello sbagliato. Prima la copia passava solo
+          // scriveranno È di un lato, del carrello o del carico intero, e il
+          // riferimento salvato È quello sbagliato. Prima la copia passava solo
           // nome e convenzione.
           const profilo = profiloEsercizio(
             {
@@ -5154,12 +5345,15 @@ function finestraCreaEsercizio() {
             convenzione: convenzione.value,
             misura,
             // I tre fatti che l'app DEVE sapere. Senza questi l'esercizio nasce
-            // sbagliato: sul doppio carrucola il Rank e' dimezzato, e una macchina
-            // a dischi non e' una macchina a stack. E valgono anche per la scala,
+            // sbagliato: sul doppio carrucola il Rank È dimezzato, e una macchina
+            // a dischi non È una macchina a stack. E valgono anche per la scala,
             // quindi non solo per il Rank.
             ...(carrucola.value ? { carrucola: carrucola.value } : {}),
             ...(attrezzatura.value ? { attrezzatura: attrezzatura.value } : {}),
             ...(braccia.value === 'si' ? { bracciaIndipendenti: true } : {}),
+            // Il flag del cardio. Senza questo, un esercizio di cardio si riconosceva
+            // solo dal nome ("tapis", "corsa") e ogni altro nome non contava.
+            ...(cardio.value === 'si' ? { cardio: true } : {}),
             tipo: 'standard',
             foto: fotoData || 'img/esercizi/chest-press.png',
             nota_permanente: String(descrizione.value || '').trim(),
@@ -5196,7 +5390,7 @@ function disegnaBarraGioco(contenitore) {
     riga.children[0].setAttribute('style', `--fuoco:${st.fuoco.colore}`);
     contenitore.appendChild(riga);
   } catch (e) {
-    // la barra e' un extra: se qualcosa va storto non deve bloccare l'app
+    // la barra È un extra: se qualcosa va storto non deve bloccare l'app
     console.warn('Barra del gioco non disegnata:', e);
   }
 }
@@ -5206,5 +5400,5 @@ function disegnaBarraGioco(contenitore) {
 avvia();
 
 // Esportato solo per i test: serve a riavviare l'app e verificare che le correzioni
-// al nome della scheda vengano applicate anche a chi l'ha gia' installata.
+// al nome della scheda vengano applicate anche a chi l'ha già installata.
 export { avvia, V };

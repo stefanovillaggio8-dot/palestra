@@ -17,7 +17,7 @@
 // Verificato sui numeri veri di Ste: allenando 4 giorni su 7 la streak arriva a 4 e
 // si azzera.
 //
-// Adesso la regola e' la sua, ed e' quella giusta:
+// Adesso la regola È la sua, ed È quella giusta:
 //
 //   - la streak conta gli ALLENAMENTI, non i giorni di calendario;
 //   - si interrompe SOLO se salti un giorno che avevi detto di allenare;
@@ -26,20 +26,20 @@
 //
 // Perche' "solo se salti un giorno previsto" e non "se passano due giorni": chi
 // allena quattro volte su sette ha diritto al riposo, e se la streak si rompesse
-// per quello non ci sarebbe piu' motivo di allenarsi con regolarita'. Il riposo e'
+// per quello non ci sarebbe più motivo di allenarsi con regolarita'. Il riposo È
 // parte del programma, non una colpa.
 //
 // I giorni sono scelti dalla persona e salvati nel suo profilo: ogni account ha i
 // suoi, quindi i compagni di Ste non vengono misurati con i suoi.
 //
 // SE I GIORNI NON SONO SCELTI, non si rompe mai su niente: si conta solo se
-// l'ultimo allenamento e' oggi o ieri (vedi `calcolaStreak`). Meglio una streak
+// l'ultimo allenamento È oggi o ieri (vedi `calcolaStreak`). Meglio una streak
 // che non azzera per errore che una che ti toglie traguardi giusti.
 
 /**
  * I giorni della settimana in cui alleni, come 0 = domenica ... 6 = sabato.
  *
- * Se non ci sono, si torna alla regola semplice (l'ultimo allenamento e' oggi o
+ * Se non ci sono, si torna alla regola semplice (l'ultimo allenamento È oggi o
  * ieri). Non si indovina: indovinare sarebbe sbagliare la streak di qualcuno.
  */
 export function giorniPrevistiDa(profilo) {
@@ -67,12 +67,12 @@ function giornoSuccessivo(iso) {
 /**
  * Quanti allenamenti di fila, contati sui giorni che hai scelto.
  *
- * Il cammino e' fatto sui GIORNI PREVISTI, non su tutti i giorni: tra un martedi'
- * e un mercoledi' non c'e' nessun giorno previsto in mezzo, quindi sono consecutivi
+ * Il cammino È fatto sui GIORNI PREVISTI, non su tutti i giorni: tra un martedi'
+ * e un mercoledi' non cÈ nessun giorno previsto in mezzo, quindi sono consecutivi
  * anche se il calendario ha dentro un lunedi' che non ti riguarda.
  *
  * Il giorno corrente, se previsto e non ancora fatto, NON azzera: sono le 8 di sera
- * e non ti e' ancora successo niente.
+ * e non ti È ancora successo niente.
  *
  * @param giorni       gli allenamenti, in ordine (non serve siano ordinati)
  * @param previsti     i giorni della settimana scelti; null = regola semplice
@@ -85,8 +85,8 @@ export function contaAllenamentiConsecutiviConGiorni(giorni, previsti, oggiISO) 
   // SENZA GIORNI SCELTI si contano i giorni di CALENDARIO consecutivi che
   // arrivano fino a ieri.
   //
-  // Non e' la regola giusta per chi allena quattro volte su sette (per quello ci
-  // sono i giorni scelti), ma e' quella che non sbaglia nessuno: finche' la
+  // Non È la regola giusta per chi allena quattro volte su sette (per quello ci
+  // sono i giorni scelti), ma È quella che non sbaglia nessuno: finche' la
   // persona non sceglie, si sa solo che gli ultimi due giorni li ha fatti o no.
   // E restituire sempre 1 sarebbe peggio: direbbe che tre allenamenti di fila
   // valgono come uno.
@@ -107,8 +107,8 @@ export function contaAllenamentiConsecutiviConGiorni(giorni, previsti, oggiISO) 
   const previstiSet = new Set(previsti);
   const ordinati = [...set].sort((a, b) => b.localeCompare(a));
   const ultimo = ordinati[0];
-  // Se tra l'ultimo allenamento e oggi c'e' un giorno che avevi scelto e non l'hai
-  // fatto, la streak e' rotta. Il cammino e' in AVANTI e guarda solo i giorni
+  // Se tra l'ultimo allenamento e oggi cÈ un giorno che avevi scelto e non l'hai
+  // fatto, la streak È rotta. Il cammino È in AVANTI e guarda solo i giorni
   // scelti: il riposo non conta, quindi non ti azzera niente.
   if (!streckAncoraViva(set, ultimo, oggiISO, previstiSet)) return 0;
 
@@ -128,9 +128,9 @@ export function contaAllenamentiConsecutiviConGiorni(giorni, previsti, oggiISO) 
 }
 
 /**
- * La streak e' ancora viva?
+ * La streak È ancora viva?
  *
- * La domanda e' una sola, e si fa camminando in AVANTI dall'ultimo allenamento
+ * La domanda È una sola, e si fa camminando in AVANTI dall'ultimo allenamento
  * fino a oggi: hai saltato qualche giorno che avevi detto di fare?
  *
  * Se sì', è rotta. Se no', è viva, e il conteggio lo fa l'altra funzione.
@@ -142,7 +142,7 @@ export function contaAllenamentiConsecutiviConGiorni(giorni, previsti, oggiISO) 
  * lo buca per un riposo che non si era mai chiesto di fare.
  */
 function streckAncoraViva(set, ultimo, oggiISO, previstiSet) {
-  if (ultimo >= oggiISO) return true; // non e' ancora passato nulla
+  if (ultimo >= oggiISO) return true; // non È ancora passato nulla
   let g = giornoSuccessivo(ultimo);
   for (let i = 0; i < 400; i++) {
     if (!g || g > oggiISO) return true; // siamo arrivati a oggi senza saltare niente
@@ -152,7 +152,7 @@ function streckAncoraViva(set, ultimo, oggiISO, previstiSet) {
   return true;
 }
 
-/** I giorni in cui hai davvero allenato, dal piu' recente al piu' vecchio. */
+/** I giorni in cui hai davvero allenato, dal più recente al più vecchio. */
 export function giorniAllenati(sedute) {
   const giorni = new Set();
   for (const s of (sedute || [])) {
@@ -166,16 +166,16 @@ export function giorniAllenati(sedute) {
     // interrotta: l'ultimo allenamento è stato il 2026-13-45") e spostava la testa
     // della lista dei giorni, quindi il conteggio era sbagliato.
     //
-    // Il perche' conta piu' di quanto sembri: `backup.js` non valida le date delle
+    // Il perchÈ conta più di quanto sembri: `backup.js` non valida le date delle
     // sedute, quindi un backup fatto a mano o corrotto te le infila dentro. Un numero
-    // che sembra una data ma non lo e' e' un numero che nessuno controlla, e questi
+    // che sembra una data ma non lo È È un numero che nessuno controlla, e questi
     // finiscono sempre a schermo.
     if (dataPossibile(d)) giorni.add(d);
   }
   return [...giorni].sort((a, b) => b.localeCompare(a));
 }
 
-/** La stringa e' una data che esiste davvero? (niente 2026-13-45, niente 30/02) */
+/** La stringa È una data che esiste davvero? (niente 2026-13-45, niente 30/02) */
 export function dataPossibile(iso) {
   const s = String(iso || '');
   if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return false;
@@ -191,7 +191,7 @@ export function contaConsecutivi(giorni, oggiISO) {
   const set = new Set(giorni || []);
   let n = 0;
   let giorno = oggiISO;
-  // comincia da ieri: la streak di oggi si aggiunge solo se la giornata c'e' gia' stata
+  // comincia da ieri: la streak di oggi si aggiunge solo se la giornata cÈ già stata
   for (;;) {
     const precedente = giornoPrecedente(giorno);
     if (!set.has(precedente)) break;
@@ -226,8 +226,8 @@ export function isoGiorno(data) {
  *                 Se non ci sono, si applica la regola semplice.
  *
  * La regola semplice (quando i giorni non sono scelti): l'ultimo allenamento deve
- * essere oggi o ieri. Non e' la regola giusta per chi allena quattro volte su
- * sette, ma e' quella che non sbaglia nessuno: non azzera niente che non sia
+ * essere oggi o ieri. Non È la regola giusta per chi allena quattro volte su
+ * sette, ma È quella che non sbaglia nessuno: non azzera niente che non sia
  * sicuramente saltato.
  */
 export function calcolaStreak(sedute, oggi = isoGiorno(new Date()), profilo = null) {
@@ -237,7 +237,7 @@ export function calcolaStreak(sedute, oggi = isoGiorno(new Date()), profilo = nu
   //
   // Prima qui l'oggetto aveva otto chiavi invece di tredici: mancavano record,
   // fattoOggi e prossimoGiorno, e `prossimoObiettivo` era null invece di un numero.
-  // Non rompeva niente perche' ogni consumatore faceva `Number(record) || 0`, ma e'
+  // Non rompeva niente perchÈ ogni consumatore faceva `Number(record) || 0`, ma È
   // la forma peggiore di difetto: due oggetti con lo stesso nome e forme diverse.
   // Il prossimo che scrive `record + 1` senza controllare riceve NaN, e il prossimo
   // che mostra `prossimoObiettivo` a schermo stampa "null".
@@ -253,8 +253,8 @@ export function calcolaStreak(sedute, oggi = isoGiorno(new Date()), profilo = nu
   const ultimo = giorni[0];
   const consecutive = contaAllenamentiConsecutiviConGiorni(giorni, previsti, oggi);
   const fattoOggi = ultimo === oggi;
-  // la streak e' viva se l'ultimo allenamento non e' "passato": cioe' oggi non e'
-  // ancora un giorno previsto saltato. Il calcolo dei consecutivi dice gia' tutto.
+  // la streak È viva se l'ultimo allenamento non È "passato": cioe' oggi non È
+  // ancora un giorno previsto saltato. Il calcolo dei consecutivi dice già tutto.
   const viva = consecutive > 0 || (fattoOggi && consecutive >= 0);
   const valore = consecutive;
 
@@ -262,11 +262,11 @@ export function calcolaStreak(sedute, oggi = isoGiorno(new Date()), profilo = nu
   //
   // Senza questo le armature si sbloccherebbero solo con la streak di ADESSO: se
   // la streak si rompe e ricomincia, perdi l'armatura che avevi sbloccato. Ma un
-  // premio che hai gia' ottenuto non si tocca: si sblocca con la streak PIU' LUNGA
+  // premio che hai già ottenuto non si tocca: si sblocca con la streak PIù LUNGA
   // che hai mai fatto.
   //
   // Il record si calcola ricalcolando tutte le serie, quindi costa una passata sui
-  // giorni. Non e' gratis, ma la schermata della streak lo mostra gia' e i dati sono
+  // giorni. Non È gratis, ma la schermata della streak lo mostra già e i dati sono
   // in memoria.
   const record = Math.max(valore, recordStreak(giorni, previsti, oggi));
 
@@ -289,10 +289,10 @@ export function calcolaStreak(sedute, oggi = isoGiorno(new Date()), profilo = nu
 }
 
 /**
- * La sequenza PIU' LUNGA mai fatta, in giorni di fila.
+ * La sequenza PIù LUNGA mai fatta, in giorni di fila.
  *
  * Serve all'avatar RPG: un premio che hai sbloccato resta tuo anche se la streak si
- * e' rotta e ricomincia. Senza questo, saltare una settimana ti toglieva
+ * È rotta e ricomincia. Senza questo, saltare una settimana ti toglieva
  * l'armatura che ti eri guadagnato.
  *
  * IL PERCHÉ DI QUESTA FUNZIONE È SEPARATA: `contaAllenamentiConsecutiviConGiorni`
@@ -336,7 +336,7 @@ function lunghezzaSequenzaDa(ordinati, daIndice, previsti) {
     const giorniDi = giorniDiCalendario(precedente, corrente);
     // se tra i due c'era un giorno previsto, e non l'hai fatto, la catena si rompe
     if (precedentiSetHa(previstiSet, precedente, corrente)) { break; }
-    // il salto di giorni di calendario non conta per la streak: quello che conta e'
+    // il salto di giorni di calendario non conta per la streak: quello che conta È
     // se hai saltato un giorno PREVISTO
     if (giorniDi === 0) break;
     n++;
@@ -356,7 +356,7 @@ function giorniDiCalendario(a, b) {
 /** Tra due giorni c'era un giorno previsto che NON hai allenato? */
 function precedentiSetHa(previstiSet, da, a) {
   if (!previstiSet) return false;
-  // se i due giorni sono consecutivi non c'e' niente in mezzo
+  // se i due giorni sono consecutivi non cÈ niente in mezzo
   if (giorniDiCalendario(da, a) <= 1) return false;
   let g = giornoSuccessivo(da);
   while (g && g < a) {
@@ -414,28 +414,28 @@ function prossimoGiornoDopo(previsti, iso) {
  */
 function testoStreak({ viva, valore, fattoOggi, ultimo, previsti, prossimoGiorno, oggiISO }) {
   if (!previsti) {
-    if (!viva) return `Streak interrotta: l'ultimo allenamento e' stato il ${ultimo}. Allenandoti oggi riparti da 1.`;
+    if (!viva) return `Streak interrotta: l'ultimo allenamento È stato il ${ultimo}. Allenandoti oggi riparti da 1.`;
     return fattoOggi
-      ? `Streak di ${valore} ${valore === 1 ? 'giorno' : 'giorni'}: oggi hai gia' allenato.`
+      ? `Streak di ${valore} ${valore === 1 ? 'giorno' : 'giorni'}: oggi hai già allenato.`
       : `Streak di ${valore} ${valore === 1 ? 'giorno' : 'giorni'}: ti manca solo oggi per continuare.`;
   }
   if (!viva) {
-    return `Streak interrotta: l'ultimo allenamento e' stato il ${ultimo}. Allenandoti al prossimo giorno che hai scelto riparti da 1.`;
+    return `Streak interrotta: l'ultimo allenamento È stato il ${ultimo}. Allenandoti al prossimo giorno che hai scelto riparti da 1.`;
   }
   const giorni = `${valore} ${valore === 1 ? 'allenamento' : 'allenamenti'} di fila`;
   if (prossimoGiorno) {
     const quando = dataLeggibileBreve(prossimoGiorno, oggiISO);
     return `Streak di ${giorni}: ti manca solo ${quando} per continuare.`;
   }
-  // IL CASO CHE DAVA UNA FRASE FALSA. Oggi e' un giorno di riposo, non hai allenato
-  // oggi (fattoOggi = false), ma la frase diceva "oggi hai gia' allenato".
+  // IL CASO CHE DAVA UNA FRASE FALSA. Oggi È un giorno di riposo, non hai allenato
+  // oggi (fattoOggi = false), ma la frase diceva "oggi hai già allenato".
   //
-  // Non e' uno schermo rotto perche' questo testo oggi non viene disegnato da
+  // Non È uno schermo rotto perchÈ questo testo oggi non viene disegnato da
   // nessuna parte (solo dai test), quindi nessuno lo leggeva. Pero' un testo che
-  // mente e' un testo da correggere prima che qualcuno lo mostri, e il giorno in cui
+  // mente È un testo da correggere prima che qualcuno lo mostri, e il giorno in cui
   // lo si mostra la frase falsa diventa subito leggibile.
-  if (fattoOggi) return `Streak di ${giorni}: oggi hai gia' allenato. Ti torna ${prossimoGiornoPrevistoTesto(previsti, oggiISO)}.`;
-  return `Streak di ${giorni}: oggi e' giorno di riposo, non ti toglie niente. Ti torna ${prossimoGiornoPrevistoTesto(previsti, oggiISO)}.`;
+  if (fattoOggi) return `Streak di ${giorni}: oggi hai già allenato. Ti torna ${prossimoGiornoPrevistoTesto(previsti, oggiISO)}.`;
+  return `Streak di ${giorni}: oggi È giorno di riposo, non ti toglie niente. Ti torna ${prossimoGiornoPrevistoTesto(previsti, oggiISO)}.`;
 }
 
 /**
@@ -474,10 +474,10 @@ function dataLeggibileBreve(iso, oggiISO) {
 }
 
 // ---------------------------------------------------------------------------
-// I traguardi: la logica e' dinamica, non una lista scritta a mano fino a 1000.
+// I traguardi: la logica È dinamica, non una lista scritta a mano fino a 1000.
 // ---------------------------------------------------------------------------
 
-/** I traguardi base, fino a 1000. Piu' avanti si continua a mille. */
+/** I traguardi base, fino a 1000. Più avanti si continua a mille. */
 export const TRAGUARDI_BASE = [10, 20, 30, 40, 50, 100, 200, 500, 1000];
 
 /** Tutti i traguardi fino a `giorni`, compreso quello appena superato. */
@@ -494,16 +494,16 @@ export function traguardiFinoA(giorni) {
  * Il prossimo traguardo da raggiungere.
  *
  * IL DIFETTO CHE C'ERA (08/10/2026): con n = 2000 la funzione restituiva 2000, cioe'
- * un traguardo GIA' superato. Lo stesso a 3000, 4000, e cosi' via. Serviva una
+ * un traguardo GIA' superato. Lo stesso a 3000, 4000, e così via. Serviva una
  * streak di cinque anni e mezzo per accorgersene, quindi il bug era nascosto, ma
  * la schermata avrebbe detto "prossimo obiettivo: 2000 giorni" a chi ne aveva
- * gia' fatti 2000. Ora il traguardo restituito e' SEMPRE maggiore di quello fatto.
+ * già fatti 2000. Ora il traguardo restituito È SEMPRE maggiore di quello fatto.
  */
 export function prossimoMilestone(giorni) {
   const n = Math.max(0, Number(giorni) || 0);
   for (const t of TRAGUARDI_BASE) if (t > n) return t;
   // sopra i traguardi base si prosegue di mille in mille, MA sempre sul primo
-  // paletto che non hai ancora raggiunto: e' la differenza fra "prossimo" e "già fatto"
+  // paletto che non hai ancora raggiunto: È la differenza fra "prossimo" e "già fatto"
   return Math.floor(n / 1000) * 1000 + 1000;
 }
 

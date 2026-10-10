@@ -1,41 +1,41 @@
-﻿// esercizi-classificatore.js -- capire che esercizio e' e quanto e' difficile.
+// esercizi-classificatore.js -- capire che esercizio È e quanto È difficile.
 //
 // Ste (04/10/2026): "io voglio che capisca il livello di difficolta', deve essere
-// molto forte questo classificatore, e' la cosa piu' importante quindi falla
+// molto forte questo classificatore, È la cosa più importante quindi falla
 // bene".
 //
 // COME FUNZIONA
 // Non guardo il nome "tutto insieme": guardo le CARATTERISTICHE del movimento,
-// una per una, e ognuna pesa. Un esercizio e' difficile perche' e' un
-// movimento grande, OPPURE perche' e' un movimento piccolo ma fatto in una
+// una per una, e ognuna pesa. Un esercizio È difficile perchÈ È un
+// movimento grande, OPPURE perchÈ È un movimento piccolo ma fatto in una
 // posizione scomoda e instabile. Quindi:
 //
-//   1) che movimento e'  (spinta, tirata, gambe, braccia, spalle, core)
+//   1) che movimento È  (spinta, tirata, gambe, braccia, spalle, core)
 //   2) con che cosa     (macchina, cavo, bilanciere, manubri, corpo libero)
-//   3) come e' fatto    (un braccio solo, panca inclinata, strict, assistito)
+//   3) come È fatto    (un braccio solo, panca inclinata, strict, assistito)
 //
-// Ogni caratteristica da' un peso, e la somma decide il livello. Questo e' un
+// Ogni caratteristica da' un peso, e la somma decide il livello. Questo È un
 // modello vero (non una lista di nomi): "Panca inclinata Smith" e "Incline
 // Bench Press" non compaiono da nessuna parte, ma vengono fuori uguali lo
-// stesso, perche' hanno le stesse tre caratteristiche.
+// stesso, perchÈ hanno le stesse tre caratteristiche.
 //
 // DUE REGOLE che non si negoziano:
 //
 //  - se NON capisce, lo dice ("non sono sicuro") invece di tirare a indovinare.
 //    Su un nome nuovo me lo segnala e tu lo correggi a mano;
-//  - spiega SEMPRE perche' ha deciso cosi'. Se sbaglia, deve dirti su cosa
-//    correggere, altrimenti non e' niente.
+//  - spiega SEMPRE perchÈ ha deciso così. Se sbaglia, deve dirti su cosa
+//    correggere, altrimenti non È niente.
 //
-// Queste regole sono scritte nei test, cosi' non si perdono.
+// Queste regole sono scritte nei test, così non si perdono.
 
 // ---------------------------------------------------------------------------
-// 1. I MOVIMENTI. Il primo numero e' il livello base di quell'esercizio.
+// 1. I MOVIMENTI. Il primo numero È il livello base di quell'esercizio.
 //    "grande" = carichi alti e molta massa muscolare
-//    "composto" = esercizio di forza vero, piu' muscoli insieme
+//    "composto" = esercizio di forza vero, più muscoli insieme
 //    "isolamento" = un muscolo solo, carico basso
 // ---------------------------------------------------------------------------
 const MOVIMENTI = [
-  // --- gambe pesanti: il livello piu' alto ---
+  // --- gambe pesanti: il livello più alto ---
   {
     id: 'gambe_pesanti', livello: 'grande', gruppo: 'gambe',
     parole: ['leg press', 'pressa gambe', 'squat', 'stacco', 'deadlift', 'hip thrust', 'sled press', 'pressa polipette',
@@ -61,20 +61,20 @@ const MOVIMENTI = [
   {
     // LO SHRUG. Scala propria, collegata qui l'8/10/2026.
     //
-    // I valori per questo movimento ESISTEVANO gia' in valori.js ma il classificatore
+    // I valori per questo movimento ESISTEVANO già in valori.js ma il classificatore
     // non produceva mai questo id, quindi erano codice morto: lo shrug finiva dentro
     // "tirata_orizzontale" e prendeva la scala del REMO (ingresso 0,9x = 59 kg su
     // corpo 66). Ste: "dumbbell shrug 47,5 kg x 8 per braccio e non sono manco
     // bronzo?". 47,5 per braccio sono 95 kg di scrollamento, e l'app gli diceva che
     // non aveva ancora sbloccato il primo livello.
     //
-    // Uno shrug NON e' un remo: stai in piedi, le braccia pendono e tiri solo i
-    // trapezi. Il carico che ci metti e' grosso (manubri) ma il movimento non e' una
+    // Uno shrug NON È un remo: stai in piedi, le braccia pendono e tiri solo i
+    // trapezi. Il carico che ci metti È grosso (manubri) ma il movimento non È una
     // tirata orizzontale col busto che parte da braccia lunghe.
     //
     // "shrug" e "scrollata" escono quindi da tirata_orizzontale e vengono qui. La
     // correzione di Ste del 06/10/2026 ("45 kg per braccio non sono un isolamento")
-    // resta vera: per questo il livello e' "composto" e non "isolamento", altrimenti
+    // resta vera: per questo il livello È "composto" e non "isolamento", altrimenti
     // il tetto di realta' lo taglierebbe a 0,85x come tutti gli isolamenti.
     id: 'spalle_trapezio', livello: 'composto', gruppo: 'dorso',
     parole: ['shrug', 'scrollata', 'scrollate', 'shrug con bilanciere', 'scrollamento'],
@@ -93,14 +93,14 @@ const MOVIMENTI = [
     // manubrio singolo per un braccio alla volta sulla panca inclinata col cuscino.
     // Prima finivano dentro "bicipiti", insieme al curl al CAVO, e ne prendevano la
     // scala: tetto 46,2 kg per braccio, che sul cavo si vede (92 kg sul carrello
-    // con la doppia carrucola dimezzata) ma col manubrio in panca non e' realistico.
+    // con la doppia carrucola dimezzata) ma col manubrio in panca non È realistico.
     //
     // Quindi qui: scala propria, ragionata sul corpo (0,4x tetto, 0,15x ingresso).
     // Vedi la nota lunga in valori.js.
     id: 'bicipiti_panca', livello: 'isolamento', gruppo: 'bicipiti',
     parole: ['preacher', 'scott bench', 'panca scott', 'scott', 'incline curl',
       'panchina', 'preacher curl',
-      // Il nome vero del tuo esercizio e' "Scott Bench Curl seduto al contrario":
+      // Il nome vero del tuo esercizio È "Scott Bench Curl seduto al contrario":
       // le parole sono separate dal "curl" in mezzo, quindi "scott bench" da solo
       // non basta e finiva sui bicipiti generici. Metto anche la sequenza intera.
       'scott bench curl', 'curl scott', 'curl alla panca', 'curl panca'],
@@ -129,17 +129,17 @@ const MOVIMENTI = [
       'leg raise', 'adduzione', 'abduction', 'glute'],
   },
   {
-    // il POLSO e' un insieme di muscoli piccoli dell'avambraccio, non un bicipite
+    // il POLSO È un insieme di muscoli piccoli dell'avambraccio, non un bicipite
     // e non una gamba. Avevo messa la parola "polso"/"wrist" sotto le gambe (per
     //che' li avevo tolti di li' quando ho aggiunto il movimento gambe_isolamento),
-    // ma cosi' il "Wrist Curl" prendeva il tetto del leg extension. Ora e' un suo
+    // ma così il "Wrist Curl" prendeva il tetto del leg extension. Ora È un suo
     // movimento, con la sua scala: tetto bassissimo, come deve essere.
     id: 'polso', livello: 'isolamento', gruppo: 'avambraccio',
     parole: ['wrist curl', 'polso', 'wrist', 'avambraccio', 'flexor'],
   },
   {
     id: 'spalle_isolamento', livello: 'isolamento', gruppo: 'spalle',
-    // NOTA: qui NON c'e' "shrug". Lo scrollamento del trapezio e' una tirata con
+    // NOTA: qui NON cÈ "shrug". Lo scrollamento del trapezio È una tirata con
     // pesi, non un isolamento: sta fra le tirate (vedi tirata_orizzontale).
     parole: ['lateral raise', 'alzata laterale', 'alzate laterali', 'raise laterale',
       'side raise', 'rear delt', 'rear deltoid', 'spalle laterali', 'delt raise',
@@ -148,15 +148,15 @@ const MOVIMENTI = [
   {
     // la TIRATA PRONA coi MANUBRI. Ste (08/10/2026) guardando la scheda del
     // Dumbbell Bench Pull: "ma quello fa schiena, centro schiena". Aveva ragione:
-    // e' una tirata prona (manubri verso il busto), quindi dorso centrale, non
+    // È una tirata prona (manubri verso il busto), quindi dorso centrale, non
     // petto. Prima stava dentro "petto_isolamento" insieme al cable fly, quindi
     // la scheda gli diceva "il petto lavora in modo abbastanza uniforme".
     //
-    // Perche' e' un movimento SUO e non dentro le tirate orizzontali con il remo:
+    // Perche' È un movimento SUO e non dentro le tirate orizzontali con il remo:
     // sul remo stai SEDUTO e il carico parte da una posizione di braccia lunga;
     // qui stai PRONO con le braccia che pendono e tiri solo coi dorsali. Il
-    // movimento e' piu' isolato, quindi la soglia deve stare piu' bassa di quella
-    // del remo, anche se il carico che ci metti e' grosso.
+    // movimento È più isolato, quindi la soglia deve stare più bassa di quella
+    // del remo, anche se il carico che ci metti È grosso.
     id: 'tirata_manubri', livello: 'isolamento', gruppo: 'dorso',
     parole: ['bench pull', 'dumbbell bench pull', 'prone row', 'tirata prona'],
   },
@@ -182,7 +182,7 @@ const MOVIMENTI = [
 ];
 
 // ---------------------------------------------------------------------------
-// 2. COME E' FATTO. Ogni voce sposta la difficolta' e dice PERCHE'.
+// 2. COME È FATTO. Ogni voce sposta la difficolta' e dice PERCHE'.
 //    Il peso conta: sotto +3 / -3 non cambia nulla (una macchina non
 //    trasforma un movimento di forza in isolamento), sopra si sale di uno scalino.
 // ---------------------------------------------------------------------------
@@ -200,7 +200,7 @@ const MODIFICATORI = [
   // --- simmetria: una cosa sola e\' molto piu\' difficile ---
   {
   peso: 8,
-  // 'one arm' mancava: e' la stessa cosa di 'single arm' scritta in inglese,
+  // 'one arm' mancava: È la stessa cosa di 'single arm' scritta in inglese,
   // e senza la parola i suoi esercizi monobraccio passavano per bilaterali
   parole: ['single arm', 'single-arm', 'one arm', 'one-arm', 'singolo braccio',
     'un braccio', 'monoarticolare'],
@@ -228,23 +228,23 @@ const MODIFICATORI = [
   { peso: 3, parole: ['burn', 'scottatura', 'a fuoco'], perche: 'in scottatura: la parte difficile arriva alla fine' },
       // Ste (04/10/2026), in due tempi:
     //
-    // 1) "Iso-Lateral Row e' pure a dischi. Ma e' piu' difficile a stack o
+    // 1) "Iso-Lateral Row È pure a dischi. Ma È più difficile a stack o
     //    dischi?" -> questo modificatore aveva il segno GIRO: faceva l'esercizio
-    //    piu' FACILE. Due lati separati non aiutano.
+    //    più FACILE. Due lati separati non aiutano.
     //
-    // 2) "anche nella chest press ogni braccio e' indipendente: ogni lato ha il
-    //    suo disco" -> e questo e' il punto vero. Il ragionamento "un disco per
+    // 2) "anche nella chest press ogni braccio È indipendente: ogni lato ha il
+    //    suo disco" -> e questo È il punto vero. Il ragionamento "un disco per
     //    lato, quindi equilibrio da fare" vale per TUTTE le macchine a dischi,
     //    non solo per la iso-lateral. Percio' quel ragionamento sta dentro
     //    macchina_dischi (che vale -2 proprio per quello), e qui dentro si
-    //    conta SOLO what's in piu': che i due braccia sono indipendenti e puoi
+    //    conta SOLO what's in più: che i due braccia sono indipendenti e puoi
     //    lavorarne uno alla volta.
     //
     // Se tenessi anche qui il conto dei dischi per lato, sarebbe doppio conteggio:
-    // la stessa cosa contata due volte. E' lo stesso errore che facevo prima con
-    // il muscolo e con la macchina insieme, e l'ho gia' corretto una volta.
-        // il testo e' IDENTICO a quello del modificatore che scende dai dati
-    // dell'esercizio (PERCHE_BRACCIA_INDEPENDENTI): e' la stessa cosa detta in
+    // la stessa cosa contata due volte. È lo stesso errore che facevo prima con
+    // il muscolo e con la macchina insieme, e l'ho già corretto una volta.
+        // il testo È IDENTICO a quello del modificatore che scende dai dati
+    // dell'esercizio (PERCHE_BRACCIA_INDEPENDENTI): È la stessa cosa detta in
     // due modi, e se si accendessero insieme il conteggio si ferma al primo.
     { peso: 2, parole: ['iso-lateral', 'isolateral'], perche: "braccia indipendenti: uno per volta, quindi l'equilibrio lo fai tu" },
 ];
@@ -320,8 +320,8 @@ function conta(testo, parola) {
  * Non modifica il testo: ritorna i movimenti "citati" dalle sigle.
  *
  * Prima sostituivo la sigla con il nome interno (es. "leg press" ->
- * "gambe_pesanti") dentro la stringa da cercare: cosi' la sigla spariva e
- * l'esercizio non veniva piu' trovato da nessuna parte. Adesso la sigla
+ * "gambe_pesanti") dentro la stringa da cercare: così la sigla spariva e
+ * l'esercizio non veniva più trovato da nessuna parte. Adesso la sigla
  * vota per il suo movimento e il testo resta intatto.
  */
 function votiDaSigle(testo) {
@@ -348,7 +348,7 @@ function soloNome(nome) {
 }
 
 /**
- * Che cos'e' questo esercizio?
+ * Che cosÈ questo esercizio?
  *
  * nome        = il nome (obbligatorio)
  * descrizione = la descrizione, aiuta a capire
@@ -358,14 +358,14 @@ function soloNome(nome) {
 /**
  * Cache dei risultati.
  *
- * Ste: "migliora tutto quanto, rendi tutto piu' efficente". Misurando: 120.000
- * classificazioni di 6 esercizi ripetuti ci mettevano 15 secondi. Il motivo e'
+ * Ste: "migliora tutto quanto, rendi tutto più efficente". Misurando: 120.000
+ * classificazioni di 6 esercizi ripetuti ci mettevano 15 secondi. Il motivo È
  * che la stessa stringa veniva riguardata decine di volte: la lista Rank, la
  * pagina del giorno e il ricalcolo dei riferimenti chiamano tutti lo stesso
  * classificatore sugli stessi nomi.
  *
- * Il risultato e' un oggetto puro e non lo modifica nessuno, quindi riutilizzarlo
- * e' sicuro. La cache e' limitata a 500 voci: se ne svuota tutta e si ricomincia,
+ * Il risultato È un oggetto puro e non lo modifica nessuno, quindi riutilizzarlo
+ * È sicuro. La cache È limitata a 500 voci: se ne svuota tutta e si ricomincia,
  * invece di tenere in memoria ogni nome mai scritto.
  */
 const CACHE = new Map();
@@ -377,19 +377,19 @@ function ricorda(chiave, valore) {
 }
 
 /**
- * Perche' due braccia indipendenti sono piu' difficili.
+ * Perche' due braccia indipendenti sono più difficili.
  *
  * Ste (04/10/2026), passando dalla chest press all'Iso-Lateral Row:
  * "però quando muovo il braccio destro non muovo anche il sinistro".
  *
- * E' la stessa cosa che diceva dell'iso-lateral, detta di un esercizio che
+ * È la stessa cosa che diceva dell'iso-lateral, detta di un esercizio che
  * "iso-lateral" non si chiama. La parola la cerca il classificatore nel NOME,
- * ma questa macchina si chiama "Chest Press" e quindi la parola non c'e': per
+ * ma questa macchina si chiama "Chest Press" e quindi la parola non cÈ: per
  * questo l'informazione deve poter arrivare anche dai dati dell'esercizio.
  *
- * Il testo e' uguale a quello del modificatore "iso-lateral" di proposito: e' la
+ * Il testo È uguale a quello del modificatore "iso-lateral" di proposito: È la
  * stessa cosa, e se le due regole si accendessero insieme sullo stesso
- * esercizio il conteggio si ferma al primo, cosi' non si paga due volte.
+ * esercizio il conteggio si ferma al primo, così non si paga due volte.
  */
 export const PERCHE_BRACCIA_INDEPENDENTI =
   'braccia indipendenti: uno per volta, quindi l\'equilibrio lo fai tu';
@@ -423,10 +423,10 @@ export function classificaEsercizio({
   const testo = soloNome(nome);
   const testoLungo = testo + ' ' + normalizza(descrizione) + ' ';
 
-  // ---- 0) se e' scritto esplicitamente "corpo libero", quello wins.
-  // "Bodyweight Overhead Tricep Extension" contiene "tricep", ma e' un esercizio
+  // ---- 0) se È scritto esplicitamente "corpo libero", quello wins.
+  // "Bodyweight Overhead Tricep Extension" contiene "tricep", ma È un esercizio
   // col peso del corpo: senza questo controllo finiva come isolamento dei
-  // tricipiti, che e' sbagliato (si contano le ripetizioni).
+  // tricipiti, che È sbagliato (si contano le ripetizioni).
   const dettoCorpo = conta(testoLungo, 'bodyweight') + conta(testoLungo, 'corpo libero')
     + (convenzione === 'corpo_libero' || convenzione === 'assistenza' ? 1 : 0);
   const conCarico = conta(testoLungo, 'bilanciere') + conta(testoLungo, 'barbell')
@@ -444,7 +444,7 @@ export function classificaEsercizio({
     };
   }
 
-  // ---- 1) che movimento e'? (parole lunghe + sigle)
+  // ---- 1) che movimento È? (parole lunghe + sigle)
   const punteggi = [];
   const perId = new Map();
   for (const m of MOVIMENTI) {
@@ -453,7 +453,7 @@ export function classificaEsercizio({
     for (const p of m.parole) {
       const n = conta(testoLungo, p);
       if (n === 0) continue;
-      // una frase vale piu' di una parola sola: "leg curl" batte "curl"
+      // una frase vale più di una parola sola: "leg curl" batte "curl"
       punti += n * (normalizza(p).includes(' ') ? 2 : 1);
       trovate.push(p);
     }
@@ -477,15 +477,15 @@ export function classificaEsercizio({
   // Ste (08/10/2026): nel catalogo c'era "Sled Press Calf Raise", e il
   // classificatore gli dava il tetto del LEG PRESS: 165 kg su corpo 75. Nessuno
   // al mondo fa 165 kg di sollevamento sul pino. Il motivo era la regola "una
-  // frase vale piu' di una parola sola" (linea 401): "sled press" e' una frase e
+  // frase vale più di una parola sola" (linea 401): "sled press" È una frase e
   // valeva 2 punti, "calf" una parola sola e ne valeva 1, quindi vinceva la
-  // macchina. Ma nel nome "Sled Press CALF RAISE" la macchina e' solo DOVE lo
-  // fai, e il muscolo che lavori (i polpacci) e' il CALF RAISE. Sono due cose
+  // macchina. Ma nel nome "Sled Press CALF RAISE" la macchina È solo DOVE lo
+  // fai, e il muscolo che lavori (i polpacci) È il CALF RAISE. Sono due cose
   // diverse, e la scala deve seguirne una.
   //
-  // La regola: se nel nome c'e' una parola che identifica un muscolo o un
-  // isolamento chiaro, quella vince sulla macchina, perche' la macchina dice solo
-  // il mezzo. Non e' un trucco per un nome: e' la differenza fra "sled press" (di
+  // La regola: se nel nome cÈ una parola che identifica un muscolo o un
+  // isolamento chiaro, quella vince sulla macchina, perchÈ la macchina dice solo
+  // il mezzo. Non È un trucco per un nome: È la differenza fra "sled press" (di
   // che cosa) e "calf raise" (che cosa). Se il nome fosse solo "Sled Press",
   // nessuna parola di muscolo ci sarebbe, e la macchina vincerebbe come prima.
   const PAROLE_MUSCOLO = [
@@ -497,13 +497,13 @@ export function classificaEsercizio({
   for (const parola of PAROLE_MUSCOLO) {
     if (conta(testoLungo, parola) > 0) {
       // fra i movimenti che hanno questa parola di muscolo nel nome, prendo quello
-      // con PIU' punti. Se prendo il primo che trovo nell'ordine della lista, il
-      // "Seated Leg Curl" diventava bicipiti solo perche' i bicipiti sono scritti
-      // prima delle gambe, non perche' fosse la risposta giusta.
+      // con PIù punti. Se prendo il primo che trovo nell'ordine della lista, il
+      // "Seated Leg Curl" diventava bicipiti solo perchÈ i bicipiti sono scritti
+      // prima delle gambe, non perchÈ fosse la risposta giusta.
       const candidati = punteggi.filter((p) => p.trovate.some((t) => normalizza(t).includes(parola)));
       const miglioreCandidato = candidati.slice().sort((a, b) => b.punti - a.punti)[0];
       if (miglioreCandidato) {
-        // e vince solo se non e' una macchina pesante: li' la parola di muscolo
+        // e vince solo se non È una macchina pesante: li' la parola di muscolo
         // descrive il movimento, non la sala in cui lo fai
         if (miglioreCandidato.movimento.livello !== 'grande' && miglioreCandidato.movimento.id !== 'gambe_pesanti') {
           movimentoSpecifico = miglioreCandidato;
@@ -512,7 +512,7 @@ export function classificaEsercizio({
       }
     }
   }
-  // se c'e' un isolamento col nome nel testo, mettilo davanti a tutti i compound
+  // se cÈ un isolamento col nome nel testo, mettilo davanti a tutti i compound
   punteggi.sort((a, b) => {
     if (movimentoSpecifico) {
       if (a === movimentoSpecifico) return -1;
@@ -536,7 +536,7 @@ export function classificaEsercizio({
     };
   }
 
-  // ---- 2) come e' fatto: gli accorgimenti
+  // ---- 2) come È fatto: gli accorgimenti
   let peso = 0;
   const motivi = [];
   const giaDaConvenzione = convenzione ? normalizza(convenzione.replace(/_/g, ' ')) : null;
@@ -546,7 +546,7 @@ export function classificaEsercizio({
     for (const p of mod.parole) {
       const n = conta(testoLungo, p);
       if (n === 0) continue;
-      // non conto due volte la stessa cosa: la convenzione scelta gia' la conta
+      // non conto due volte la stessa cosa: la convenzione scelta già la conta
       if (giaDaConvenzione && normalizza(giaDaConvenzione) === normalizza(p)) continue;
       if (visti.has(mod.perche)) continue;
       visti.add(mod.perche);
@@ -555,24 +555,24 @@ export function classificaEsercizio({
     }
   }
 
-  // Ste, con due foto (04/10/2026): "il macchinario e' piu' facile solo se c'e'
-  // questo, nella mia chest press si mettono i pesi reali quindi in teoria e' di
-  // piu' o no?".
+  // Ste, con due foto (04/10/2026): "il macchinario È più facile solo se cÈ
+  // questo, nella mia chest press si mettono i pesi reali quindi in teoria È di
+  // più o no?".
   //
   // Aveva ragione, e la mia v38 aveva sbagliato: davo -6 a TUTTE le macchine.
-  // Ma una macchina a DISCHI non e' la macchina facile. I dischi sono pesi veri
-  // e se i due lati non sono uguali la macchina si stampa, quindi c'e' una
-  // parte di equilibrio da fare come sul bilanciere. Quello che e' davvero
-  // facile e' lo STACK: la resistenza e' un cavo ed e' gia' bilanciata prima
+  // Ma una macchina a DISCHI non È la macchina facile. I dischi sono pesi veri
+  // e se i due lati non sono uguali la macchina si stampa, quindi cÈ una
+  // parte di equilibrio da fare come sul bilanciere. Quello che È davvero
+  // facile È lo STACK: la resistenza È un cavo ed È già bilanciata prima
   // che tu ti muovi, e tu scegli il peso con la linguetta.
   //
   // Perche' 'macchina' da sola vale -2 e non -6: senza sapere se ci sono dischi
-  // o stack, la scelta onesta e' NON dare per scontato che sia facile. Prima
+  // o stack, la scelta onesta È NON dare per scontato che sia facile. Prima
   // davo -6 e gli gonfiavo il Rank: peggio che sbagliarsi in eccesso.
   const CONVENZIONE = {
-    // 'macchina' da sola vale 0 perche' da sola non dice niente: e' la
+    // 'macchina' da sola vale 0 perchÈ da sola non dice niente: È la
     // convenzione che dice COME sono i kg (piastre, pacco, per braccio), e il
-    // campo attrezzatura dice che tipo di macchina e'. Se anche 'macchina'
+    // campo attrezzatura dice che tipo di macchina È. Se anche 'macchina'
     // contasse un peso, sulle macchine a stack si conterebbe due volte.
     macchina: 0, macchina_dischi: -2, macchina_stack: -6, per_braccio: 0,
     cavo_totali: -5, per_manubrio: 5, dischi: 0,
@@ -591,7 +591,7 @@ export function classificaEsercizio({
     visti.add(PERCHE_MONOBRACCIO);
     motivi.push(PERCHE_MONOBRACCIO + ' (doppia carrucola)');
   }
-  // L'attrezzatura sta in un campo separato perche' la convenzione dice gia'
+  // L'attrezzatura sta in un campo separato perchÈ la convenzione dice già
   // "per braccio": senza i due campi separati, o la macchina a dischi si perde o
   // si perde il "35 kg per braccio". Uno dei due, non entrambi.
   if (attrezzatura && CONVENZIONE[attrezzatura]) {
@@ -601,8 +601,8 @@ export function classificaEsercizio({
   // Ste: "però quando muovo il braccio destro non muovo anche il sinistro".
   //
   // Questa macchina si chiama "Chest Press", quindi la parola "iso-lateral" non
-  // compare e il classificatore non la trova: l'informazione puo' arrivare solo
-  // dai dati dell'esercizio. Il testo e' identico a quello del modificatore
+  // compare e il classificatore non la trova: l'informazione può arrivare solo
+  // dai dati dell'esercizio. Il testo È identico a quello del modificatore
   // "iso-lateral", quindi se le due cose si accendessero insieme sullo stesso
   // esercizio si conterebbero una volta sola.
   if (bracciaIndipendenti && !visti.has(PERCHE_BRACCIA_INDEPENDENTI)) {
@@ -616,7 +616,7 @@ export function classificaEsercizio({
   const base = migliore.movimento.livello;
 
   if (base === 'assistito') {
-    // col peso del corpo si contano le ripetizioni: non e' un livello, e' un
+    // col peso del corpo si contano le ripetizioni: non È un livello, È un
     // altro modo di misurare. Ma se aggiungi un sacco di peso, il carico torna
     // a contare e l'esercizio si comporta come gli altri.
     const resoAssistito = peso >= SOGLIA_CAMBIO;
@@ -640,10 +640,10 @@ export function classificaEsercizio({
   //
   // 1) NON si scende MAI di livello. "Sled Press" letto come "sled press calf
   //    raise" scendeva a composto solo perché c'era la parola "calf raise".
-  //    Essere su una macchina rende un esercizio PIU' FACILE, non cambia di
+  //    Essere su una macchina rende un esercizio PIù FACILE, non cambia di
   //    che movimento è: la scala resta quella giusta, cambia solo quanto pesi.
   //
-  // 2) solo i movimenti con i carichi piu' alti possono arrivare a "grande".
+  // 2) solo i movimenti con i carichi più alti possono arrivare a "grande".
   //    Una lat pulldown inclinata a un braccio sola è faticosissima, ma non
   //    spinge 150 kg: resta "composto". Se la facessi salire, il rank
   //    chiederebbe numeri daodysee.

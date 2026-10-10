@@ -5,7 +5,7 @@
 // sapere QUANTO PESAVA la persona il giorno in cui ha fatto quella performance,
 // altrimenti un record di sei mesi fa verrebbe giudicato con il peso di oggi.
 //
-// Qui ci sono tre cose e niente di piu':
+// Qui ci sono tre cose e niente di più:
 //   - il peso attuale
 //   - lo storico (un peso per data)
 //   - il peso che valeva in un certo giorno (per valutare le sedute passate)
@@ -27,8 +27,8 @@ function comeNumero(v) {
 }
 
 /**
- * Il peso attuale. Se non c'e' nessuna misurazione torna null: l'app funziona
- * lo stesso, ma il Rank non puo' valutare la forza relativa.
+ * Il peso attuale. Se non cÈ nessuna misurazione torna null: l'app funziona
+ * lo stesso, ma il Rank non può valutare la forza relativa.
  */
 export async function pesoAttuale(account = null) {
   const pesi = await pesiCronologici(account);
@@ -37,16 +37,16 @@ export async function pesoAttuale(account = null) {
 }
 
 /**
- * Tutte le misurazioni DELLA PERSONA CHE STA USANDO L'APP, dalla piu' vecchia
- * alla piu' recente.
+ * Tutte le misurazioni DELLA PERSONA CHE STA USANDO L'APP, dalla più vecchia
+ * alla più recente.
  *
- * Filtro per `account_id`, e non prendo piu' tutte le righe della tabella:
+ * Filtro per `account_id`, e non prendo più tutte le righe della tabella:
  * prima non c'era nessun filtro e i due profili (Stefano e Altro) finivano per
  * condividere lo stesso peso corporeo. Se uno si pesava 82 kg, anche l'altro
  * risultava 82 kg: e i Rank erano sbagliati per entrambi.
  * Le righe vecchie senza `account_id` restano leggibili: se non ci sono righe
  * della persona, ma ci sono righe senza account, uso quelle (altrimenti
- * chi aggiorna l'app perderebbe il peso che aveva gia' messo).
+ * chi aggiorna l'app perderebbe il peso che aveva già messo).
  */
 export async function pesiCronologici(account = null) {
   const tutte = await db.tutti('pesi');
@@ -61,8 +61,8 @@ export async function pesiCronologici(account = null) {
 }
 
 /**
- * Segna un peso. Se la giornata e' gia' stata compilata la corregge invece di
- * crearne una seconda, cosi' non si accumulano misurazioni identiche.
+ * Segna un peso. Se la giornata È già stata compilata la corregge invece di
+ * crearne una seconda, così non si accumulano misurazioni identiche.
  */
 export async function segnaPeso(kg, { data = null, nota = '', account = null } = {}) {
   const valore = pesoCorporeoValido(kg);
@@ -113,7 +113,7 @@ export async function pesoAllaSeduta(seduta, account = null) {
   return pesoAllaData(seduta.data || schedaEvento(), account);
 }
 
-/** L'ultima pesatura e' troppo vecchia? Serve a ricordare di aggiornare. */
+/** L'ultima pesatura È troppo vecchia? Serve a ricordare di aggiornare. */
 export async function serveAggiornare(account = null) {
   const pesi = await pesiCronologici(account);
   if (!pesi.length) return { serve: true, giorni: null, motivo: 'non hai ancora segnato il peso' };
@@ -137,7 +137,7 @@ function giorniPassati(dataIso) {
 }
 
 /**
- * Il peso da mettere dentro una serie quando la salvi: cosi' la performance
+ * Il peso da mettere dentro una serie quando la salvi: così la performance
  * resta legata al peso che avevi quel giorno, anche se domani ti pesi divers.
  */
 export async function pesoDaMettereInSerie(sede) {

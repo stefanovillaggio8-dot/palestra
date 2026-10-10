@@ -10,7 +10,7 @@ export function el(tag, attributi = {}, figli = []) {
     else if (k.startsWith('on') && typeof v === 'function') nodo.addEventListener(k.slice(2).toLowerCase(), v);
     else if (k === 'dati') for (const [dk, dv] of Object.entries(v)) nodo.dataset[dk] = dv;
     // "titolo" vuol dire l'attributo HTML `title`, quello che fa comparire la
-    // spiegazione quando tieni premuto. Scritto cosi' diventava un attributo
+    // spiegazione quando tieni premuto. Scritto così diventava un attributo
     // `titolo` che nessun browser conosce, quindi il tooltip non compariva MAI.
     //
     // Il motivo per cui faceva danno: quindici pulsanti hanno `titolo` come unica
@@ -38,7 +38,7 @@ export function svuota(nodo) {
 /**
  * Campo numerico: accetta sia la virgola sia il punto, sia sui numeri interi
  * sia sui decimali. Non trasforma mai in intero. Digitando spazio non succede
- * niente, cosi' si puo' usare comodamente con le spalle appoggiate.
+ * niente, così si può usare comodamente con le spalle appoggiate.
  */
 export function campoNumero(valore, { onCambio, onInvalido, id, etichetta, extra = {} } = {}) {
   const input = el('input', {
@@ -50,7 +50,7 @@ export function campoNumero(valore, { onCambio, onInvalido, id, etichetta, extra
     ...extra,
   });
   // il valore va impostato come PROPRIETA' del campo, non come attributo:
-  // e' il modo giusto, e cosi' il bottone "+" o "come sopra" parte sempre dal
+  // È il modo giusto, e così il bottone "+" o "come sopra" parte sempre dal
   // numero giusto invece di trovare il campo vuoto.
   const iniziale = (extra && extra.value !== undefined)
     ? extra.value
@@ -123,7 +123,7 @@ export function chiediConferma(titolo, messaggio, { testoOk = 'Confermo', testoA
  * dentro la scheda di Ste.
  *
  * Restituisce il testo scritto (stringa vuota se annulla), quindi il chiamante
- * decide cosa fare: un nome vuoto non e' un nome, e non lo si trasforma in uno.
+ * decide cosa fare: un nome vuoto non È un nome, e non lo si trasforma in uno.
  */
 export function chiediTesto(titolo, messaggio, { segnaposto = '', testoOk = 'Va bene' } = {}) {
   return new Promise((risolvi) => {

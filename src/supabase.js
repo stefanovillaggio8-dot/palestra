@@ -2,7 +2,7 @@
 // Nessun pacchetto da installare, niente da compilare: serve solo fetch().
 //
 // Sul finestrino pubblico mettiamo solo la chiave "publishable", che per
-// costruzione e' pubblica (come una chiave di Wikipedia). La chiave che
+// costruzione È pubblica (come una chiave di Wikipedia). La chiave che
 // davvero fa paura, la "service_role", non entra MAI in questo progetto.
 // I tuoi dati sono protetti dal database stesso: le regole che ci metto in
 // schema.sql dicono che ogni utente vede solo le proprie righe.
@@ -141,9 +141,9 @@ export async function leggiUno(tabella, id) {
 }
 
 /**
- * Scrive una riga. E' un UPSERT sulla chiave primaria generata da questo
+ * Scrive una riga. È un UPSERT sulla chiave primaria generata da questo
  * dispositivo: mandarne due la stessa riga non crea duplicati, quindi il
- * sync e' idempotente e si puo' ritentare senza paura.
+ * sync È idempotente e si può ritentare senza paura.
  */
 export async function scrivi(tabella, riga) {
   const cfg = leggiConfig();

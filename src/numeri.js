@@ -16,29 +16,29 @@ export const CONVENZIONI = {
   // No, e il buco era grosso. Su una macchina a dischi i dischi si montano su
   // ENTRAMBI i bracci: 35 kg per braccio vuol dire 70 kg in totale. L'app
   // prendeva 35 kg come se fossero 35 in totale, quindi contava meta' del carico
-  // e il Rank veniva sotto. Non e' un dettaglio da visualizzazione: e' il numero
+  // e il Rank veniva sotto. Non È un dettaglio da visualizzazione: È il numero
   // con cui l'app giudica quanto sei forte, quindi sbagliarlo vuol dire
   // sbagliare il Rank.
   //
-  // Esiste gia' PER_GAMBA per lo stesso motivo (17 kg per gamba sulla leg press
-  // obliqua), ma mancava il caso del braccio, che e' quello delle macchine a
+  // Esiste già PER_GAMBA per lo stesso motivo (17 kg per gamba sulla leg press
+  // obliqua), ma mancava il caso del braccio, che È quello delle macchine a
   // dischi.
   PER_BRACCIO: 'per_braccio',
-  // Ste (04/10/2026): "ai cavi c'e' il cavo con mono carrucola e doppia carrucola.
-  // Per esempio di hammer curl faccio 50kg ma e' doppia carrucola quindi sarebbero 25".
+  // Ste (04/10/2026): "ai cavi cÈ il cavo con mono carrucola e doppia carrucola.
+  // Per esempio di hammer curl faccio 50kg ma È doppia carrucola quindi sarebbero 25".
   //
-  // Ha ragione, ed era un buco grosso: sul cavo a doppia carrucola il guadagno e'
-  // 2:1, quindi il carrello segna 50 ma il peso che senti e' 25. E' anche per
+  // Ha ragione, ed era un buco grosso: sul cavo a doppia carrucola il guadagno È
+  // 2:1, quindi il carrello segna 50 ma il peso che senti È 25. È anche per
   // questo che la doppia carrucola si usa su un braccio alla volta.
   //
-  // Non e' un dettaglio di come si scrive: e' META' del carico. Se l'app legge 50
-  // quando il peso reale e' 25 sbaglia di 2 volte, e sbaglia di 2 volte sul Rank
+  // Non È un dettaglio di come si scrive: È META' del carico. Se l'app legge 50
+  // quando il peso reale È 25 sbaglia di 2 volte, e sbaglia di 2 volte sul Rank
   // di tutti gli esercizi al cavo.
   CARRUCOLA_MONO: 'carrucola_mono',
   CARRUCOLA_DOPPIA: 'carrucola_doppia',
-  // "macchina a dischi" non puo' stare in convenzione PERCHE' li' ci vuole anche
+  // "macchina a dischi" non può stare in convenzione PERCHE' li' ci vuole anche
   // "per braccio": due informazioni diverse, e prima che le ho separate la
-  // macchina si perdeva. Percio' l'attrezzatura e' un campo per conto suo.
+  // macchina si perdeva. Percio' l'attrezzatura È un campo per conto suo.
   MACCHINA_DISCHI: 'macchina_dischi',
   MACCHINA_STACK: 'macchina_stack',
   CAVO: 'cavo_totali',
@@ -53,8 +53,8 @@ export const CONVENZIONI = {
   // in totale. L'app prendeva 35 kg come se fossero 35 in totale, quindi
   // contava metta' del carico e il Rank era sbagliato in basso.
   //
-  // Esiste gia' PER_GAMBA per lo stesso motivo (17 kg per gamba sulla leg press
-  // obliqua), ma mancava il caso del braccio, che e' quello delle macchine a
+  // Esiste già PER_GAMBA per lo stesso motivo (17 kg per gamba sulla leg press
+  // obliqua), ma mancava il caso del braccio, che È quello delle macchine a
   // dischi.
   BILANCIERE: 'bilanciere',
   ASSISTENZA: 'assistenza',
@@ -88,7 +88,7 @@ export function arrotonda2(n) {
 
 /**
  * Trasforma un testo digitale in numero decimale.
- * Accetta "7,5" e "7.5". Restituisce null se il testo non e' un numero.
+ * Accetta "7,5" e "7.5". Restituisce null se il testo non È un numero.
  * Non usa mai parseInt e non tronca: 7,5 resta 7,5.
  */
 export function analizzaDecimale(testo) {
@@ -130,7 +130,7 @@ export function convenzioneMisuraCarico(conv) {
   return conv !== CONVENZIONI.ASSISTENZA && conv !== CONVENZIONI.CORPO_LIBERO;
 }
 
-/** Le convenzioni "assistenza" si muovono al contrario: piu' kg = meno lavoro. */
+/** Le convenzioni "assistenza" si muovono al contrario: più kg = meno lavoro. */
 export function convenzioneInvertita(conv) {
   return conv === CONVENZIONI.ASSISTENZA;
 }
@@ -168,8 +168,8 @@ export function differenzaAssoluta(da, a) {
 }
 
 /**
- * Differenza percentuale. Restituisce null se il valore iniziale e' zero:
- * con base zero la percentuale non e' definita e non va inventata.
+ * Differenza percentuale. Restituisce null se il valore iniziale È zero:
+ * con base zero la percentuale non È definita e non va inventata.
  */
 export function differenzaPercentuale(base, valore) {
   if (base === null || valore === null || base === undefined || valore === undefined) return null;

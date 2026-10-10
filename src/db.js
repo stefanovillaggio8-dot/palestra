@@ -1,8 +1,8 @@
 // db.js -- il database locale del dispositivo.
 //
 // Due motori dietro la stessa interfaccia:
-//  - IndexedDB, quando c'e' (e' il modo normale)
-//  - memoria nel browser (localStorage), se IndexedDB e' bloccata o non esiste
+//  - IndexedDB, quando cÈ (e' il modo normale)
+//  - memoria nel browser (localStorage), se IndexedDB È bloccata o non esiste
 // Non importa quale dei due sia: l'app non se ne accorge e non si blocca mai.
 //
 // Tutto viene scritto qui per primo, subito, anche senza rete. Il sync verso
@@ -81,12 +81,12 @@ export function idDispositivo() {
  * La versione del database si calcola da sola partendo dalle tabelle.
  *
  * Prima era scritta a mano (2) e non si alzava quando aggiungevo 'pesi',
- * 'profili' e cosi' via: il gioco apriva la versione 2, non scattava nessun
+ * 'profili' e così via: il gioco apriva la versione 2, non scattava nessun
  * upgrade, la tabella nuova non veniva mai creata e sul telefono compariva
  * "One of the specificied object stores was not found": l'app intera non
- * partiva piu'. Ora basta aggiungere una tabella alla lista e la versione sale
+ * partiva più. Ora basta aggiungere una tabella alla lista e la versione sale
  * da sola, quindi le tabelle nuove vengono davvero create senza perdere i dati
- * gia' salvati.
+ * già salvati.
  */
 export const VERSIONE_IDB = 1 + TABELLE.length;
 
@@ -242,11 +242,11 @@ export async function salva(tabella, riga, { segna = true, seguiErrore = false }
     // scritto qualcos'altro. Il risultato era che la sincronizzazione non poteva
     // registrare NULLA di quello che stava facendo: `sync.manda()` scriveva
     // `in_corso` con `tentativi: N+1` e diventava subito `da_salvare` con
-    // `tentativi: 0`. L'errore non si vedeva perche' nessuno leggeva quei campi,
+    // `tentativi: 0`. L'errore non si vedeva perchÈ nessuno leggeva quei campi,
     // ma il contatore dei tentativi ripartiva da zero a ogni giro, quindi il
     // ritentativo non poteva mai decidere di aspettare.
     //
-    // La regola adesso e' semplice: se il chiamante ha passato uno stato di
+    // La regola adesso È semplice: se il chiamante ha passato uno stato di
     // sincronizzazione esplicito, quello vale; altrimenti la riga si mette in coda
     // come prima. E gli errori si azzerano solo se il chiamante NON li sta scrivendo.
     const statoEsplicito = riga.sync;
@@ -285,7 +285,7 @@ export async function perIndice(tabella, indice, valore) {
   return righe.filter((r) => !r.eliminata);
 }
 
-/** Cancella davvero ma passando dal cestino: si puo' sempre recuperare. */
+/** Cancella davvero ma passando dal cestino: si può sempre recuperare. */
 export async function cestino(tabella, id) {
   const riga = await prendi(tabella, id);
   if (!riga) return null;
@@ -296,12 +296,12 @@ export async function recupera(tabella, id) {
   const riga = await prendi(tabella, id);
   if (!riga) return null;
   // metto false esplicitamente: se si "cancellassero" le chiavi, la versione
-  // piu' vecchia (eliminata = true) ricomparirebbe e la riga resterebbe nel cestino
+  // più vecchia (eliminata = true) ricomparirebbe e la riga resterebbe nel cestino
   return salva(tabella, { ...riga, eliminata: false, eliminata_il: null });
 }
 
 /**
- * Le tabelle che NON vanno online, e perche'.
+ * Le tabelle che NON vanno online, e perchÈ.
  *
  * Sono scelte, non dimenticanze, quindi stanno qui scritte per nome: se un giorno
  * aggiungi una tabella e ti dimentichi di questa lista, il test di coerenza in
@@ -313,7 +313,7 @@ export const TABELLE_SOLO_LOCALI = {
   conflitti: 'scelta locale',
   // le correzioni che Ste ha insegnato all'app, e le parole nuove che gli ha
   // insegnato. NON esistono in schema.sql: spedirle faceva fallire la richiesta a
-  // Supabase, la coda non si svuotava piu' e la barra in alto restava su
+  // Supabase, la coda non si svuotava più e la barra in alto restava su
   // "Salvataggio... (N)" per sempre. Il giorno in cui si vuole la sincronizzazione
   // anche di queste, si crea la tabella lato server e si toglie da qui.
   appreso: 'tabella che non esiste su Supabase',

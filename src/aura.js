@@ -1,8 +1,8 @@
 // aura.js -- Aura, XP e livello.
 //
-// Regola di sicurezza: l'Aura NON e' un numero che si scrive a mano da
-// qualche parte. Nasce dalla tabella "ricompense", che il frontend non puo'
-// arricchire da solo: ogni riga e' stata creata dal sistema quando hai fatto
+// Regola di sicurezza: l'Aura NON È un numero che si scrive a mano da
+// qualche parte. Nasce dalla tabella "ricompense", che il frontend non può
+// arricchire da solo: ogni riga È stata creata dal sistema quando hai fatto
 // qualcosa (una missione, un record, un traguardo di streak). Per cambiare
 // l'Aura bisogna passare dal database, non dall'interfaccia.
 
@@ -37,7 +37,7 @@ export function statoLivello(xp) {
   };
 }
 
-/** I punti che danno le ricompense, per tipo. Tutto qui dentro: si puo' cambiare. */
+/** I punti che danno le ricompense, per tipo. Tutto qui dentro: si può cambiare. */
 export const RICOMPENSE = {
   allenamento:   { aura: 5,   xp: 10,  nome: 'Allenamento completato' },
   record:        { aura: 10,  xp: 25,  nome: 'Nuovo record' },
@@ -46,7 +46,7 @@ export const RICOMPENSE = {
   traguardo:     { aura: 0,   xp: 0,   nome: 'Traguardo di streak' },
 };
 
-/** Bonus per un record, in base a quanto e' alto il rank raggiunto. */
+/** Bonus per un record, in base a quanto È alto il rank raggiunto. */
 export function ricompensaRecord(rankId) {
   const ordine = ['bronze', 'silver', 'gold', 'platinum', 'diamond', 'titan', 'olympian'];
   const i = ordine.indexOf(rankId);
@@ -91,7 +91,7 @@ export function formattaAura(n) {
 
 /**
  * Crea la riga di ricompensa da salvare. Non la salva: la decisione resta
- * fuori, cosi' chi chiama decide e il motore resta testabile.
+ * fuori, così chi chiama decide e il motore resta testabile.
  */
 export function nuovaRicompensa({ id, account, tipo, fonte, aura = 0, xp = 0, dettaglio = '' }) {
   return {
@@ -105,7 +105,7 @@ export function nuovaRicompensa({ id, account, tipo, fonte, aura = 0, xp = 0, de
   };
 }
 
-/** Quante volte e' gia' stata data una ricompensa con quella stessa fonte. */
+/** Quante volte È già stata data una ricompensa con quella stessa fonte. */
 export function giaAssegnata(ricompense, { account, tipo, fonte }) {
   return (ricompense || []).some((r) => r && r.account_id === account && r.tipo === tipo && r.fonte === fonte);
 }

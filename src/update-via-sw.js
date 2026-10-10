@@ -3,7 +3,7 @@
 // Il problema: il service worker vecchio continua a servire i file dalla sua
 // cache, quindi anche chiude e riapre l'app non basta e il telefono resta
 // indietro di versione. Qui sotto, ogni volta che l'app parte, si controlla se
-// online c'e' una versione piu' nuova e, se c'e', si dice al service worker di
+// online cÈ una versione più nuova e, se cÈ, si dice al service worker di
 // prendersela subito invece di aspettare che tutte le schede siano chiuse.
 
 const CONTROLLO = 60 * 60 * 1000; // un'ora: tanto basta, il deploy non è continuo
@@ -22,8 +22,8 @@ function versioneOnline(testo) {
 }
 
 /**
- * Controlla se online c'e' una versione piu' recente.
- * Non usa l'API del service worker perche' su Safari non c'e': va detto con
+ * Controlla se online cÈ una versione più recente.
+ * Non usa l'API del service worker perchÈ su Safari non cÈ: va detto con
  * la parola chiave giusta, altrimenti la pagina si ricarica a ogni avvio.
  */
 export async function controllaAggiornamento({ forzato = false } = {}) {

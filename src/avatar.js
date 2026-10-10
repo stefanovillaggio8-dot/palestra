@@ -4,10 +4,10 @@
 //  1) metti il file in  img/avatar/  (per esempio  img/avatar/dragon.png )
 //  2) aggiungi una riga qui sotto con id, nome, colore e img
 //  3) basta: compare subito nella scelta dell'avatar, su questo dispositivo e
-//     su tutti gli altri, perche' l'id scelto e' quello che va salvato
+//     su tutti gli altri, perchÈ l'id scelto È quello che va salvato
 //     nell'account (non l'immagine).
 //
-// Un avatar senza immagine non e' un avatar rotto: viene disegnato con un
+// Un avatar senza immagine non È un avatar rotto: viene disegnato con un
 // cerchio del suo colore e le iniziali del nome.
 
 export const AVATAR = [

@@ -37,9 +37,10 @@ function corpo(nome) {
 }
 
 /** Le funzioni che servono, con tutte quelle da cui dipendono. */
+const disegna = () => {};
 const NOMI = [
-  'NOMI_MESCE', 'inizioMese', 'aggiungiMesi', 'prossimoGiornoPrevisto',
-  'ariaGiorno', 'bloccoCalendario',
+  'NOMI_MESCE', 'prossimoGiornoPrevisto', 'ariaGiorno', 'rigaOggi',
+  'bloccoMese', 'dettaglioGiorno', 'bloccoCalendario',
 ];
 
 const parti = NOMI.map((n) => {
@@ -54,15 +55,30 @@ const parti = NOMI.map((n) => {
 // `const NOMI_MESCE` dentro un blocco non si può dichiarare due volte, quindi qui la
 // dichiaro come `var` per non rompere il contesto.
 const sorgente = parti.join('\n\n')
-  + '\nreturn { NOMI_MESCE, inizioMese, aggiungiMesi, prossimoGiornoPrevisto, ariaGiorno, bloccoCalendario };\n';
+  + '\nreturn { NOMI_MESCE, prossimoGiornoPrevisto, ariaGiorno, rigaOggi, bloccoMese, dettaglioGiorno, bloccoCalendario };\n';
 
-const fabbrica = new Function('el', 'avviso', 'svuota', 'bottone', 'campoTesto', 'campoNumero', 'perClasse', 'isoGiorno', sorgente);
-const mod = fabbrica(ui.el, () => {}, ui.svuota, ui.bottone, ui.campoTesto, ui.campoNumero, () => [], isoGiorno);
+// LO STATO DEL CALENDARIO.
+//
+// In `src/app.js` e' un oggetto unico che vive nel modulo, e il calendario ci
+// scrive l'anno mostrato e il giorno aperto. Qui lo creo uguale e lo passo dentro:
+// non viene dalla sorgente copiata (la dichiarazione sta FUORI dalle funzioni che
+// estraggo), quindi senza questo parametro il calendario non avrebbe nulla su cui
+// scrivere l'anno.
+const statoCalendario = { anno: null, giorno: null };
+const CONTESTO = new Function(
+  'el', 'avviso', 'svuota', 'bottone', 'campoTesto', 'campoNumero', 'perClasse',
+  'isoGiorno', 'disegna', 'seduteDellaPersona', 'serieDellaPersona', 'esercizioPerId',
+  'statoCalendario',
+  sorgente,
+);
+const mod = CONTESTO(
+  ui.el, () => {}, ui.svuota, ui.bottone, ui.campoTesto, ui.campoNumero, () => [],
+  isoGiorno, () => {}, () => [], () => [], () => null,
+  statoCalendario,
+);
 
 export { isoGiorno };
 export const NOMI_MESCE = mod.NOMI_MESCE;
-export const inizioMese = mod.inizioMese;
-export const aggiungiMesi = mod.aggiungiMesi;
 export const prossimoGiornoPrevisto = mod.prossimoGiornoPrevisto;
 export const ariaGiorno = mod.ariaGiorno;
 export const bloccoCalendario = mod.bloccoCalendario;

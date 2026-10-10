@@ -1,4 +1,4 @@
-﻿// confronto-mensile.js -- "un mese fa su questo esercizio come stavo?"
+// confronto-mensile.js -- "un mese fa su questo esercizio come stavo?"
 //
 // Ste (04/10/2026): "ogni mese fai il confronto appena finisci l'esercizio di
 // tutte le serie con gli stessi esercizi di un mese prima, fai questa cosa per
@@ -8,8 +8,8 @@
 // STESSO esercizio un mese fa e te lo mette fianco a fianco. Vale per tutti i
 // quattro giorni della scheda, ognuno con i suoi esercizi.
 //
-// Il confronto e' esercizio per esercizio: non si sommano kg di muscoli
-// diversi, perche' 50 kg di chest press e 50 kg di curl non sono la stessa
+// Il confronto È esercizio per esercizio: non si sommano kg di muscoli
+// diversi, perchÈ 50 kg di chest press e 50 kg di curl non sono la stessa
 // cosa.
 
 import { recordEsercizio } from './rank.js';
@@ -22,7 +22,7 @@ export const GIORNI_UN_MESE = 30;
 export const MESI_CONFRONTATI = 3;
 
 /**
- * Le sedute finite, dalla piu' recente.
+ * Le sedute finite, dalla più recente.
  */
 function seduteFinite(sedute) {
   return (sedute || [])
@@ -30,7 +30,7 @@ function seduteFinite(sedute) {
     .sort((a, b) => String(b.data).localeCompare(String(a.data)));
 }
 
-/** Oggi, in formato YYYY-MM-DD (ora locale, non UTC: cosi' non rolls a mezzanotte). */
+/** Oggi, in formato YYYY-MM-DD (ora locale, non UTC: così non rolls a mezzanotte). */
 export function isoGiorno(d = new Date()) {
   const p = (n) => String(n).padStart(2, '0');
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
@@ -60,11 +60,11 @@ export function confrontoGiorno({
   giorni = GIORNI_UN_MESE,
 } = {}) {
   if (!seduta || !seduta.data) return null;
-  // Non c'e' nessun filtro sull'eta' di questa seduta: e' la seduta che hai
+  // Non cÈ nessun filtro sull'eta' di questa seduta: È la seduta che hai
   // appena finito, quella da confrontare. Quello che deve essere vecchio di un
-  // mese e' l'ALTRA, quella di riferimento (cercata qui sotto).
-  // Prima mettevo un controllo sull'eta' di questa e non partiva mai, perche'
-  // il giorno che confronti e' per definizione fresco.
+  // mese È l'ALTRA, quella di riferimento (cercata qui sotto).
+  // Prima mettevo un controllo sull'eta' di questa e non partiva mai, perchÈ
+  // il giorno che confronti È per definizione fresco.
   void (oggi || isoGiorno());
 
   // la seduta di un mese fa sullo stesso giorno
@@ -130,7 +130,7 @@ export function confrontoGiorno({
         ? `Un mese fa su ${n === 1 ? 'quest\'esercizio' : 'questi ' + n + ' esercizi'} stavi meglio.`
         : `Un mese fa: meglio su ${quanteMeglio} ${molti === 'esercizio' ? 'esercizio' : 'esercizi'} su ${n}.`));
 
-  // il "+12,67" e' poco leggibile: arrotondo a un numero semplice, e se e'
+  // il "+12,67" È poco leggibile: arrotondo a un numero semplice, e se È
   // una cifra tonda cambio unita' invece di mettere ",00"
   const differenzaLegibile = (d) => {
     const t = Math.round(d * 10) / 10;

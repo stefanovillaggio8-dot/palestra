@@ -1,7 +1,7 @@
 // avatar-rpg.js -- l'avatar RPG: classe, statistiche, livello e armature.
 //
 // Ste (08/10/2026) ha scritto questo sistema e me l'ha dato da mettere nell'app.
-// Qui c'e' la sua logica, con TRE correzioni, e sotto c'e' il perché di ognuna.
+// Qui cÈ la sua logica, con TRE correzioni, e sotto cÈ il perché di ognuna.
 //
 // ---------------------------------------------------------------------------
 // LE TRE CORREZIONI, e perché non ho lasciato le cose come erano
@@ -25,11 +25,11 @@
 // Nel codice originale il cardio contava `ripetizioni`, e la schermata diceva
 // "tapis roulant e corda (scrivi i minuti nelle ripetizioni)". Ma sull'app di Ste i
 // valori si chiamano "ripetizioni" anche quando sono secondi o metri (vedi
-// CAMPO_MISURA in rank-config.js). Quindi funziona, ma il nome e' sbagliato e il
+// CAMPO_MISURA in rank-config.js). Quindi funziona, ma il nome È sbagliato e il
 // numero non lo dice. Qui la funzione accetta il valore come arriva e si chiama
 // `minuti` per chiarezza, con un commento che spiega il trucco.
 //
-// 3. LA CLASSE E' UN BONUS SULLA STATISTICA, NON SULL'AVATAR.
+// 3. LA CLASSE È UN BONUS SULLA STATISTICA, NON SULL'AVATAR.
 //
 // Nel codice originale `st[c.bonus] = round(st[c.bonus] * 1.2)`. Questo funziona
 // MA c'è un problema: riapplica il bonus a ogni ricalcolo della pagina. Siccome è
@@ -42,7 +42,7 @@
 import { classificaEsercizio } from './esercizi-classificatore.js';
 import { calcolaStreak } from './streak.js';
 
-/** Le tre classi. Il bonus e' +20% su una statistica sola. */
+/** Le tre classi. Il bonus È +20% su una statistica sola. */
 export const CLASSI = {
   guerriero: { id: 'guerriero', nome: 'Guerriero', icona: '🛡️', bonus: 'forza', colore: '#ff5f6d' },
   assassino: { id: 'assassino', nome: 'Assassino', icona: '🗡️', bonus: 'agilita', colore: '#7c5cff' },
@@ -79,7 +79,7 @@ const MOVIMENTI_FORZA = new Set([
   'gambe_pesanti', 'spinta_orizzontale', 'spinta_verticale',
   'tirata_verticale', 'tirata_orizzontale', 'tirata_manubri', 'spalle_trapezio',
   // LE TRAZIONI E I DIP SONO FORZA, e senza questo non contavano: il classificatore
-  // li chiama "corpo_libero" perche' non c'e' un carico in kg, ma 10 trazizioni sono
+  // li chiama "corpo_libero" perchÈ non cÈ un carico in kg, ma 10 trazizioni sono
   // lavoro vero quanto 40 kg al remo. Il volume si calcola con peso=0, quindi qui
   // non aggiunge nulla, ma almeno non le ho escluse: se un giorno aggiungi i kg
   // dell'assistenza, contano da sole.
@@ -119,12 +119,27 @@ const CARDIO = /\btapis|treadmill|corsa|corda|rope|salt[o]|sprint|cyclette|bike|
  * Se un giorno aggiungi un esercizio col campo in un'altra unità, questo è l'unico
  * posto da toccare: qui sotto, e in nessun'altra parte dell'app.
  */
+/**
+ * È cardio? Due modi, perché il solo nome non bastava.
+ *
+ * Ste (09/10/2026): "come segno che faccio tapis roulant?". La risposta di prima era
+ * "basta che nel nome ci sia la parola tapis": cioè se l'esercizio si chiama
+ * "Tapis", "Corsa" o "Corda" contava, e se si chiama "Camminata veloce" o
+ * "Tapis di casa" non contava, senza dire niente. Ora chi crea l'esercizio sceglie
+ * "è cardio" e il conto è giusto comunque.
+ */
+export function eCardio(e) {
+  if (!e) return false;
+  if (e.cardio === true) return true;
+  return CARDIO.test(String(e.nome || ''));
+}
+
 export function minutiDiCardio(valore) {
   const n = Number(valore) || 0;
   if (n <= 0) return 0;
   // sopra un'ora di "minuti" il numero non può essere minuti: o sono secondi che
   // hanno superato l'ora, o sono metri. In entrambi i casi non lo trattiamo come
-  // minuti d'agilità, perche' il risultato sarebbe un numero che non ha senso.
+  // minuti d'agilità, perchÈ il risultato sarebbe un numero che non ha senso.
   if (n > 3600) return 0;
   // da 60 in su sono secondi
   if (n >= 60) return n / 60;
@@ -156,8 +171,13 @@ export function calcolaAvatar(classe, serie, sedute, esercizioPerId, { profilo =
     const p = Number(s.peso) || 0;
     const r = Number(s.ripetizioni) || 0;
 
-    // IL CARDIO. Il valore va CONVERTITO in minuti: vedi `minutiDiCardio` perche'.
-    if (CARDIO.test(e.nome)) {
+    // IL CARDIO. Il valore va CONVERTITO in minuti: vedi `minutiDiCardio` perché.
+    //
+    // Si riconosce in DUE modi, e il secondo è quello che mancava: il nome
+    // ("tapis", "corsa", "corda") OPPURE il flag `cardio` che metti quando crei
+    // l'esercizio. Prima contava solo il nome: un esercizio chiamato "Camminata
+    // veloce" non contava niente e non si capiva il perché.
+    if (eCardio(e)) {
       cardio += minutiDiCardio(r);
       continue;
     }
@@ -175,10 +195,10 @@ export function calcolaAvatar(classe, serie, sedute, esercizioPerId, { profilo =
   }
 
   // I GIORNI IN CUI HAI ALLENATO, e la streak con i TUOI giorni.
-// calcolaStreak vuole le SEDUTE, non le date gia' ridotte a stringa: dentro legge
+// calcolaStreak vuole le SEDUTE, non le date già ridotte a stringa: dentro legge
   // `s.data` e `s.stato`, quindi passargli un array di stringhe gli fa trovare zero
   // giorni e la streak risulta sempre 0. Il primo tentativo passava `date` ed
-  // e' stato quello il difetto: nessuna armatura si sblocava mai, e sembrava che il
+  // È stato quello il difetto: nessuna armatura si sblocava mai, e sembrava che il
   // sistema fosse sbagliato quando era solo la chiamata.
   const seduteCompletate = (sedute || []).filter((x) => x && !x.eliminata && x.stato === 'completata');
   const date = seduteCompletate
@@ -195,6 +215,9 @@ export function calcolaAvatar(classe, serie, sedute, esercizioPerId, { profilo =
   // I NUMERI BASE, senza il bonus della classe. Il bonus si applica DOPO, ai
   // numeri base: se lo applicassi a questi e poi ricalcolassi, si moltiplicerebbe
   // a ogni passata.
+  // Tutte e tre le statistiche partono da 1 e non da 0: un personaggio con zero
+  // in tutto non ha niente addosso, e l'app non deve dire "forza 0" a chi ha solo
+  // cominciato.
   const base = {
     forza: 1 + Math.floor(volForza / 500),
     agilita: 1 + Math.floor(cardio / 5),
@@ -222,13 +245,13 @@ export function calcolaAvatar(classe, serie, sedute, esercizioPerId, { profilo =
     //
     // Il bug che c'era: `sbloccato` guardava `st`, cioe' i numeri DOPO il +20%. Tutti
     // e sei i premi chiedono solo la forza, quindi il bonus di un Assassino o di un
-    // Berserker non aiutava nessuno, e cambiando classe perdevi le armature gia'
+    // Berserker non aiutava nessuno, e cambiando classe perdevi le armature già
     // sbloccate: Guerriero con forza base 4 arriva a 5 e sblocca l'armatura di ferro,
-    // Assassino resta a 4 e non la sblocca piu'. E' contro la regola scritta due
+    // Assassino resta a 4 e non la sblocca più. È contro la regola scritta due
     // righe sopra, che dice che un premio non si tocca.
     //
-    // E i bonus di agilita' e stamina non servivano a nulla per progredire, perche'
-    // nessun premio li richiede: non e' un problema, ma la classe deve restare una
+    // E i bonus di agilita' e stamina non servivano a nulla per progredire, perchÈ
+    // nessun premio li richiede: non È un problema, ma la classe deve restare una
     // scelta tua, non una scelta che ti fa perdere cose.
     const haStat = Object.entries(p.richiede).every(([k, min]) => base[k] >= min);
     return {
