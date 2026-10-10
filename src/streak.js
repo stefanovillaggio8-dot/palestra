@@ -226,6 +226,18 @@ export function calcolaStreak(sedute, oggi = isoGiorno(new Date()), profilo = nu
   const viva = consecutive > 0 || (fattoOggi && consecutive >= 0);
   const valore = consecutive;
 
+  // IL RECORD DELLA STREAK, e serve all'avatar RPG (08/10/2026).
+  //
+  // Senza questo le armature si sbloccherebbero solo con la streak di ADESSO: se
+  // la streak si rompe e ricomincia, perdi l'armatura che avevi sbloccato. Ma un
+  // premio che hai gia' ottenuto non si tocca: si sblocca con la streak PIU' LUNGA
+  // che hai mai fatto.
+  //
+  // Il record si calcola ricalcolando tutte le serie, quindi costa una passata sui
+  // giorni. Non e' gratis, ma la schermata della streak lo mostra gia' e i dati sono
+  // in memoria.
+  const record = Math.max(valore, recordStreak(giorni, previsti, oggi));
+
   // il prossimo giorno previsto non ancora fatto: serve a dire "ti manca giovedi"
   const prossimoGiorno = previsti ? prossimoGiornoPrevisto(previsti, ultimo, oggi) : null;
 
@@ -238,9 +250,88 @@ export function calcolaStreak(sedute, oggi = isoGiorno(new Date()), profilo = nu
     ultimoGiorno: ultimo,
     giorniPrevisti: previsti,
     prossimoGiorno,
-    prossimoObiettivo: prossimoMilestone(valore),
+    record,
+    prossimoObiettivo: prossimoMilestone(record),
     testo: testoStreak({ viva, valore, fattoOggi, ultimo, previsti, prossimoGiorno }),
   };
+}
+
+/**
+ * La sequenza PIU' LUNGA mai fatta, in giorni di fila.
+ *
+ * Serve all'avatar RPG: un premio che hai sbloccato resta tuo anche se la streak si
+ * e' rotta e ricomincia. Senza questo, saltare una settimana ti toglieva
+ * l'armatura che ti eri guadagnato.
+ *
+ * IL PERCHÉ DI QUESTA FUNZIONE È SEPARATA: `contaAllenamentiConsecutiviConGiorni`
+ * risponde "la mia streak di ADESSO è viva?", quindi restituisce 0 se non lo è. Per
+ * il record serve un'altra domanda: "qual è stata la sequenza più lunga in tutta la
+ * mia storia?". Quindi qui si conta diversamente: si prende il primo giorno
+ * allenato, si conta quanto dura la sequenza, e poi si salta oltre la fine e si
+ * ricomincia dal primo allenamento successivo.
+ */
+function recordStreak(giorni, previsti, oggiISO) {
+  const ordinati = [...giorni].sort();
+  if (!ordinati.length) return 0;
+
+  let massimo = 0;
+  let inizio = 0;
+  while (inizio < ordinati.length) {
+    const { n, fine } = lunghezzaSequenzaDa(ordinati, inizio, previsti);
+    if (n > massimo) massimo = n;
+    inizio = Math.max(inizio + 1, fine);
+  }
+  return massimo;
+}
+
+/**
+ * Quanto dura la sequenza che parte da `daIndice`, e quanti elementi consuma.
+ *
+ * Restituisce sia la lunghezza in giorni di fila sia l'indice del primo allenamento
+ * dopo la fine della sequenza: il chiamante usa l'indice per non contare due volte
+ * gli stessi giorni.
+ */
+function lunghezzaSequenzaDa(ordinati, daIndice, previsti) {
+  const previstiSet = previsti ? new Set(previsti) : null;
+  let n = 0;
+  let i = daIndice;
+  // i giorni sono in ordine: si avanza e si conta finche' la catena regge
+  while (i < ordinati.length) {
+    if (n === 0) { n = 1; i++; continue; }
+    const precedente = ordinati[i - 1];
+    const corrente = ordinati[i];
+    // quanti giorni di calendario sono tra i due
+    const giorniDi = giorniDiCalendario(precedente, corrente);
+    // se tra i due c'era un giorno previsto, e non l'hai fatto, la catena si rompe
+    if (precedentiSetHa(previstiSet, precedente, corrente)) { break; }
+    // il salto di giorni di calendario non conta per la streak: quello che conta e'
+    // se hai saltato un giorno PREVISTO
+    if (giorniDi === 0) break;
+    n++;
+    i++;
+  }
+  return { n, fine: i };
+}
+
+/** Quanti giorni di calendario da `a` a `b` (esclusi). */
+function giorniDiCalendario(a, b) {
+  const da = new Date(String(a) + 'T12:00:00');
+  const al = new Date(String(b) + 'T12:00:00');
+  if (Number.isNaN(da.getTime()) || Number.isNaN(al.getTime())) return 0;
+  return Math.round((al - da) / 86400000);
+}
+
+/** Tra due giorni c'era un giorno previsto che NON hai allenato? */
+function precedentiSetHa(previstiSet, da, a) {
+  if (!previstiSet) return false;
+  // se i due giorni sono consecutivi non c'e' niente in mezzo
+  if (giorniDiCalendario(da, a) <= 1) return false;
+  let g = giornoSuccessivo(da);
+  while (g && g < a) {
+    if (previstiSet.has(giornoSettimana(g))) return true;
+    g = giornoSuccessivo(g);
+  }
+  return false;
 }
 
 /** Il prossimo giorno previsto che non hai ancora fatto dopo l'ultimo allenamento. */

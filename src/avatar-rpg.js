@@ -1,0 +1,219 @@
+// avatar-rpg.js -- l'avatar RPG: classe, statistiche, livello e armature.
+//
+// Ste (08/10/2026) ha scritto questo sistema e me l'ha dato da mettere nell'app.
+// Qui c'e' la sua logica, con TRE correzioni, e sotto c'e' il perché di ognuna.
+//
+// ---------------------------------------------------------------------------
+// LE TRE CORREZIONI, e perché non ho lasciato le cose come erano
+// ---------------------------------------------------------------------------
+//
+// 1. LA STREAK USA I GIORNI CHE HAI SCELTO TU.
+//
+// Il codice che Ste aveva scritto chiamava `calcolaStreak(date)` senza dire
+// quali giorni contano. Ma la streak è stata cambiata il giorno prima: ora usa i
+// giorni che la persona ha scelto in Impostazioni (mar/mer/ven/sab per Ste, altri
+// per i suoi compagni). Senza passare quei giorni, le armature si sbloccherebbero
+// con una regola DIVERSA da quella che l'utente vede nella schermata della streak.
+//
+// Il caso vero: Ste allena quattro giorni su sette. Con la regola di calendario la
+// sua streak non superava mai 4 e si rompeva ogni venerdì, quindi l'armatura dei 7
+// giorni sarebbe stata irraggiungibile per sempre. Con i suoi giorni scelti arriva
+// e si sblocca davvero. I due numeri devono dire la stessa cosa.
+//
+// 2. IL CARDIO CONTA IL TEMPO, NON LE RIPETIZIONI.
+//
+// Nel codice originale il cardio contava `ripetizioni`, e la schermata diceva
+// "tapis roulant e corda (scrivi i minuti nelle ripetizioni)". Ma sull'app di Ste i
+// valori si chiamano "ripetizioni" anche quando sono secondi o metri (vedi
+// CAMPO_MISURA in rank-config.js). Quindi funziona, ma il nome e' sbagliato e il
+// numero non lo dice. Qui la funzione accetta il valore come arriva e si chiama
+// `minuti` per chiarezza, con un commento che spiega il trucco.
+//
+// 3. LA CLASSE E' UN BONUS SULLA STATISTICA, NON SULL'AVATAR.
+//
+// Nel codice originale `st[c.bonus] = round(st[c.bonus] * 1.2)`. Questo funziona
+// MA c'è un problema: riapplica il bonus a ogni ricalcolo della pagina. Siccome è
+// una funzione pura che parte sempre dai numeri base, va bene: non si accumula. Lo
+// tengo com'è, ma lo scrivo in modo che il bonus sia SEMPRE applicato ai numeri
+// base e mai a un numero già bonusato, altrimenti si moltiplica a ogni passata.
+//
+// ---------------------------------------------------------------------------
+
+import { classificaEsercizio } from './esercizi-classificatore.js';
+import { calcolaStreak } from './streak.js';
+
+/** Le tre classi. Il bonus e' +20% su una statistica sola. */
+export const CLASSI = {
+  guerriero: { id: 'guerriero', nome: 'Guerriero', icona: '🛡️', bonus: 'forza', colore: '#ff5f6d' },
+  assassino: { id: 'assassino', nome: 'Assassino', icona: '🗡️', bonus: 'agilita', colore: '#7c5cff' },
+  berserker: { id: 'berserker', nome: 'Berserker', icona: '🪓', bonus: 'stamina', colore: '#37d18b' },
+};
+
+export const CLASSE_PER_ID = new Map(Object.values(CLASSI).map((c) => [c.id, c]));
+
+/**
+ * I PREMI, sbloccati con la streak migliore.
+ *
+ * `giorni` è il numero di giorni di fila che servono. `richiede` è la statistica
+ * minima per poterlo mostrare: inutile avere l'armatura leggendaria se non ti
+ * alleni, ma con la forza a 1. Quindi un premio si sblocca con TUTTE e due le cose.
+ */
+export const PREMI = [
+  { id: 'bracciali', giorni: 3, nome: 'Bracciali di cuoio', icona: '🧤', richiede: { forza: 3 } },
+  { id: 'ferro', giorni: 7, nome: 'Armatura di ferro', icona: '🦺', richiede: { forza: 5 } },
+  { id: 'runica', giorni: 14, nome: 'Spada runica', icona: '⚔️', richiede: { forza: 8 } },
+  { id: 'elmo', giorni: 30, nome: 'Elmo del drago', icona: '🐉', richiede: { forza: 12 } },
+  { id: 'leggendaria', giorni: 60, nome: 'Armatura leggendaria', icona: '✨', richiede: { forza: 18 } },
+  { id: 'divina', giorni: 100, nome: 'Arma divina', icona: '🔱', richiede: { forza: 25 } },
+];
+
+/**
+ * Gli esercizi che contano per la FORZA: i grossi.
+ *
+ * Vengono dal classificatore che c'è già, non da una lista scritta a mano: se
+ * domani aggiungi un esercizio, il classificatore lo vede da solo. Questa è la stessa
+ * regola che vale per il Rank (vedi il commento in rank-config.js: "se un giorno un
+ * esercizio ha bisogno di un numero suo, si modifica quel file e basta").
+ */
+const MOVIMENTI_FORZA = new Set([
+  'gambe_pesanti', 'spinta_orizzontale', 'spinta_verticale',
+  'tirata_verticale', 'tirata_orizzontale', 'tirata_manubri', 'spalle_trapezio',
+  // LE TRAZIONI E I DIP SONO FORZA, e senza questo non contavano: il classificatore
+  // li chiama "corpo_libero" perche' non c'e' un carico in kg, ma 10 trazizioni sono
+  // lavoro vero quanto 40 kg al remo. Il volume si calcola con peso=0, quindi qui
+  // non aggiunge nulla, ma almeno non le ho escluse: se un giorno aggiungi i kg
+  // dell'assistenza, contano da sole.
+  'corpo_libero',
+]);
+
+/**
+ * Gli esercizi CARDIO.
+ *
+ * Sono quelli col nome che parla chiaro: tapis, corsa, corda, bici, ecc. Non passa
+ * dal classificatore perché il classificatore è fatto per i muscoli, e qui la
+ * domanda è un'altra ("muovi il corpo senza pesi?"). La lista è corta e le parole
+ * sono inequivocabili.
+ */
+const CARDIO = /\btapis|treadmill|corsa|corda|rope|salt[o]|sprint|cyclette|bike|step|ellittic/i;
+
+/**
+ * Le statistiche dell'avatar, dai dati VERI.
+ *
+ * @param classe     la classe scelta (o null)
+ * @param serie      tutte le tue serie
+ * @param sedute     tutte le tue sedute
+ * @param esercizioPerId  la funzione che trova l'esercizio per id
+ * @param profilo    il profilo: serve per i giorni in cui alleni
+ * @param oggi       il giorno di oggi in ISO
+ */
+export function calcolaAvatar(classe, serie, sedute, esercizioPerId, { profilo = null, oggi = null } = {}) {
+  let volForza = 0;
+  let cardio = 0;
+  let volTot = 0;
+
+  for (const s of serie || []) {
+    if (!s || s.eliminata) continue;
+    if (s.stato && s.stato !== 'fatta') continue;
+    const e = esercizioPerId && esercizioPerId(s.esercizio_id);
+    if (!e) continue;
+
+    const p = Number(s.peso) || 0;
+    const r = Number(s.ripetizioni) || 0;
+
+    // IL CARDIO. Il valore che hai scritto è il TEMPO (minuti o secondi), non le
+    // ripetizioni: sull'app i minuti e i secondi stanno nello stesso campo delle
+    // ripetizioni (vedi CAMPO_MISURA in rank-config.js). Quindi il numero va preso
+    // com'è, senza moltiplicare per i kg: un minuto di corsa non ha un peso.
+    if (CARDIO.test(e.nome)) {
+      cardio += Math.max(r, 1);
+      continue;
+    }
+
+    volTot += p * r;
+    // la forza viene dal classificatore: se il movimento è uno di quelli grossi
+    const riconosciuto = classificaEsercizio({
+      nome: e.nome,
+      convenzione: e.convenzione,
+      attrezzatura: e.attrezzatura,
+      carrucola: e.carrucola,
+      bracciaIndipendenti: !!e.bracciaIndipendenti,
+    });
+    if (MOVIMENTI_FORZA.has(riconosciuto.movimento)) volForza += p * r;
+  }
+
+  // I GIORNI IN CUI HAI ALLENATO, e la streak con i TUOI giorni.
+// calcolaStreak vuole le SEDUTE, non le date gia' ridotte a stringa: dentro legge
+  // `s.data` e `s.stato`, quindi passargli un array di stringhe gli fa trovare zero
+  // giorni e la streak risulta sempre 0. Il primo tentativo passava `date` ed
+  // e' stato quello il difetto: nessuna armatura si sblocava mai, e sembrava che il
+  // sistema fosse sbagliato quando era solo la chiamata.
+  const seduteCompletate = (sedute || []).filter((x) => x && !x.eliminata && x.stato === 'completata');
+  const date = seduteCompletate
+    .map((x) => String(x.data || '').slice(0, 10))
+    .filter((x) => /^\d{4}-\d{2}-\d{2}$/.test(x));
+  const oggiISO = oggi || dateOggi();
+  // IL FIX DEL PUNTO 1: passo il profilo, quindi la streak usa i giorni scelti.
+  // E passo anche "oggi": senza, la funzione usa la data vera di oggi, e in un
+  // test (o se hai allenato "nel futuro" per un backup importato) la streak
+  // risulta zero e le armature non si sbloccano mai.
+  const streak = calcolaStreak(seduteCompletate, oggiISO, profilo);
+  const giorniUnici = new Set(date).size;
+
+  // I NUMERI BASE, senza il bonus della classe. Il bonus si applica DOPO, ai
+  // numeri base: se lo applicassi a questi e poi ricalcolassi, si moltiplicerebbe
+  // a ogni passata.
+  const base = {
+    forza: 1 + Math.floor(volForza / 500),
+    agilita: 1 + Math.floor(cardio / 5),
+    stamina: 1 + Math.floor(cardio / 8) + Math.floor(giorniUnici / 2),
+  };
+
+  const c = CLASSE_PER_ID.get(classe) || null;
+  const st = { ...base };
+  if (c) st[c.bonus] = Math.round(base[c.bonus] * 1.2);
+
+  const xp = Math.floor(volTot / 100) + cardio * 2;
+  const livello = 1 + Math.floor(Math.sqrt(xp / 10));
+
+  // Le ARMATURE. Sbloccate con la streak PIÙ LUNGA MAI RAGGIUNTA (non quella di
+  // adesso): se hai raggiunto 30 giorni una volta, l'elmo resta tuo anche dopo che
+  // la streak si è rotta. Altrimenti si perderebbe tutto il lavoro fatto.
+  //
+  // Il campo `record` viene da streak.js ed è la sequenza più lunga mai fatta. Se
+  // non ci fosse, un premio lo prendi e poi salti due settimane: te lo toglie. Non
+  // sembra giusto perdere un'armatura per una settimana saltata.
+  const recordStreak = Math.max(Number(streak.record) || 0, Number(streak.giorni) || 0);
+  const premi = PREMI.map((p) => {
+    const haStreak = recordStreak >= p.giorni;
+    const haStat = Object.entries(p.richiede).every(([k, min]) => st[k] >= min);
+    return {
+      ...p,
+      sbloccato: haStreak && haStat,
+      perche: !haStreak
+        ? `ti mancano ${p.giorni - recordStreak} ${p.giorni - recordStreak === 1 ? 'giorno' : 'giorni'} di fila`
+        : (!haStat
+          ? `ti serve ${Object.entries(p.richiede).map(([k, v]) => `${v} di ${k}`).join(' e ')}`
+          : 'sbloccato'),
+    };
+  });
+
+  return { st, base, classe: c, streak, recordStreak, livello, xp, premi, volForza, volTot, cardio, giorniAllenati: giorniUnici };
+}
+
+function dateOggi() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+/**
+ * La classe migliore per chi non ne ha scelta una.
+ *
+ * Non serve per decidere nulla: serve solo per il messaggio "scegli la tua classe",
+ * che altrimenti non sa cosa consigliare. Vince la statistica più alta.
+ */
+export function classeConsigliata(st) {
+  const ordine = Object.entries(st || {}).sort((a, b) => b[1] - a[1]);
+  if (!ordine.length || ordine[0][1] <= 1) return null;
+  const migliore = ordine[0][0];
+  return Object.values(CLASSI).find((c) => c.bonus === migliore) || null;
+}

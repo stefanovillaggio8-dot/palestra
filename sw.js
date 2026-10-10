@@ -9,7 +9,7 @@
 // e il test I3 che sia quello dell'ultimo commit, altrimenti si alza la cache e si
 // lascia scritto il numero vecchio. E' successo due volte: nella v54 avevo alzato
 // solo questo file, e dopo la v55 avevo smesso di alzarlo del tutto.
-const VERSIONE = 'palestra-v78';
+const VERSIONE = 'palestra-v79';
 
 const FILE = [
   './',
@@ -45,23 +45,21 @@ const FILE = [
   './src/update-via-sw.js',
   './src/rank-config.js',
   './src/rank.js',
-  './src/streak.js',
+'./src/streak.js',
   './src/missioni.js',
   './src/aura.js',
   './src/sociale.js',
   './src/avatar.js',
   './src/gioco.js',
   './src/grafici.js',
-'./src/peso-corporeo.js',
+  './src/peso-corporeo.js',
   './src/avviso-peso.js',
   './src/rank.js',
   './src/rank-config.js',
-  './src/streak.js',
-  './src/missioni.js',
-  './src/aura.js',
-  './src/avatar.js',
-  './src/sociale.js',
-  './src/gioco.js',
+  // l'avatar RPG (08/10/2026). Senza questa riga l'app funziona online ma si rompe
+  // offline: il file non e' in cache, e il Profilo non si disegna. Il test di
+  // integrita' controlla che ogni file che app.js importa sia qui dentro.
+  './src/avatar-rpg.js',
   './img/logo.png',
   './img/logo-512.png',
 ];

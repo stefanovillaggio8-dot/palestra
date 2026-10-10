@@ -24,6 +24,7 @@ import { ESERCIZI, SCHEDA_ID, SCHEDA_NOME, PERSONE, CONTATTI, accountId, chiSei,
 import { nuovoId, adesso, TABELLE, riallineaEsercizi } from './sincronizzazione.js';
 // --- il gioco: rank, LP, streak, Aura, missioni, amici ---
 import { statoAccount, ricompenseAllenamento, gruppiDaSerie } from './gioco.js';
+import { calcolaAvatar, CLASSI, classeConsigliata } from './avatar-rpg.js';
 import { recordEsercizio, recordAccount, classificaEsercizio, storicoMiglioramenti, giudizioPerformance, distanzaAllaSoglia } from './rank.js';
 import { confrontoGiorno, confrontiMensili, GIORNI_UN_MESE } from './confronto-mensile.js';
 import { profiloEsercizio, profiloPerPesoCorporeo, RANK, ETICHETTE_MISURA, descriviPunteggio, descrizioneLivello, livelloEsercizio, impostaLivelliImparati, livelliImparati, rapportoDifficolta, MOLTIPLICATORI_SOGLIA } from './rank-config.js';
@@ -3121,6 +3122,9 @@ function profiloAttivo() {
     // suoi stessi giorni: senza questo, la streak di chi allena lun/mar/mer/ven si
     // romperebbe ogni sabato, non avendo saltato niente.
     giorni_allenamento: (salvato && salvato.giorni_allenamento) || null,
+    // la classe RPG scelta (guerriero / assassino / berserker). Anche questa e' per
+    // account, quindi i compagni di Ste non vengono misurati con la sua.
+    classe_rpg: (salvato && salvato.classe_rpg) || null,
     privacy: privacyDi(salvato || {}),
   };
 }
@@ -3626,6 +3630,78 @@ function bloccoGiorniAllenamento() {
   box.appendChild(griglia);
   scriviRiepilogo();
   box.appendChild(riepilogo);
+  return box;
+}
+
+/**
+ * L'AVATAR RPG: classe, statistiche, livello e armature.
+ *
+ * Sta nel PROFILO, non nei Progressi, per la stessa ragione dell'avatar: e' identita'
+ * ("chi sei"), mentre i Progressi rispondono a una domanda numerica ("quanto stai
+ * sollevando in piu' del tuo corpo"). Vedi anche il test profilo-avatar.test.js.
+ *
+ * Il sistema e' quello che Ste ha scritto lui (vedi src/avatar-rpg.js, dove sono
+ * scritte le tre correzioni fatte e il perche').
+ */
+function bloccoAvatarRpg(profilo, st) {
+  const box = el('section', { class: 'blocco' });
+  const rpg = calcolaAvatar(profilo.classe_rpg, serieMie(), seduteMie(), esercizioPerId, {
+    profilo,
+  });
+
+  // ---- la classe
+  const sceltaClasse = rpg.classe || classeConsigliata(rpg.base);
+  box.appendChild(el('h2', { testo: 'Il tuo avatar' }));
+  if (!rpg.classe) {
+    box.appendChild(el('p', {
+      class: 'nota',
+      testo: sceltaClasse
+        ? `Non hai ancora scelto una classe. Con i numeri di adesso ti viene il ${sceltaClasse.nome}.`
+        : 'Scegli la tua classe: e\' il bonus che porta una statistica su. Ma prima devi allenarci un po\'.',
+    }));
+  }
+  const grigliaClassi = el('div', { class: 'riga-classi' });
+  for (const c of Object.values(CLASSI)) {
+    grigliaClassi.appendChild(bottone(`${c.icona}  ${c.nome}`, {
+      onClick: async () => {
+        await salvaProfilo({ classe_rpg: c.id });
+        avviso(`Sei un ${c.nome}: +20% di ${c.bonus}.`, { tipo: 'ok' });
+      },
+      classe: 'classe-rpg' + (rpg.classe && rpg.classe.id === c.id ? ' attiva' : ''),
+    }));
+  }
+  box.appendChild(grigliaClassi);
+
+  // ---- le tre statistiche
+  const righe = el('div', { class: 'righe-stat' });
+  const etichette = { forza: 'Forza', agilita: 'Agilita', stamina: 'Stamina' };
+  for (const chiave of ['forza', 'agilita', 'stamina']) {
+    const valore = rpg.st[chiave] || 1;
+    const inRilievo = rpg.classe && rpg.classe.bonus === chiave;
+    righe.appendChild(el('div', { class: 'riga-stat' + (inRilievo ? ' rilievo' : '') }, [
+      el('span', { class: 'nota', testo: etichette[chiave] + (inRilievo ? ' +20%' : '') }),
+      el('strong', { testo: String(valore) }),
+    ]));
+  }
+  righe.appendChild(el('div', { class: 'riga-stat' }, [
+    el('span', { class: 'nota', testo: 'Livello' }),
+    el('strong', { testo: String(rpg.livello) }),
+  ]));
+  box.appendChild(righe);
+
+  // ---- le armature
+  box.appendChild(el('h3', { class: 'titolo-sottosezione', testo: 'Armature e armi' }));
+  const listaPremi = el('div', { class: 'lista-premi' });
+  for (const p of rpg.premi) {
+    listaPremi.appendChild(el('div', { class: 'premio' + (p.sbloccato ? ' sbloccato' : '') }, [
+      el('span', { class: 'icona-premio', testo: p.sbloccato ? p.icona : '🔒' }),
+      el('div', { class: 'testo-premio' }, [
+        el('span', { class: 'nome-premio', testo: p.nome }),
+        el('span', { class: 'nota nota-piccola', testo: p.perche }),
+      ]),
+    ]));
+  }
+  box.appendChild(listaPremi);
   return box;
 }
 
@@ -4418,6 +4494,9 @@ async function vistaProfilo(zona) {
     }),
   ]));
   zona.appendChild(boxAvatar);
+
+  // ---- l'avatar RPG: classe, statistiche, livello e armature
+  zona.appendChild(bloccoAvatarRpg(profilo, st));
 
   // statistiche vere
   zona.appendChild(el('section', { class: 'blocco' }, [

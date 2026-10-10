@@ -1100,6 +1100,44 @@ body.scorso .banda-cronometro .bot.grande {
 }
 .avatar-scelta.attiva { border-color: var(--viola); box-shadow: 0 0 18px -6px var(--viola); }
 
+/* --- l'avatar RPG (Profilo) --- */
+.riga-classi { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 4px; }
+.classe-rpg {
+  border: 1px solid var(--bordo); background: var(--card);
+  padding: 9px 13px; border-radius: 10px; font-weight: 600;
+}
+.classe-rpg.attiva {
+  border-color: var(--viola);
+  box-shadow: 0 0 16px -6px var(--viola), inset 0 0 14px -10px var(--viola);
+}
+.righe-stat { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 4px; }
+.riga-stat {
+  flex: 1 1 88px; min-width: 82px;
+  display: flex; justify-content: space-between; align-items: baseline; gap: 8px;
+  padding: 8px 11px; border-radius: 9px;
+  background: var(--card-2); border: 1px solid var(--bordo);
+}
+.riga-stat.rilievo {
+  border-color: color-mix(in srgb, var(--viola) 55%, var(--bordo));
+  box-shadow: inset 0 0 16px -12px var(--viola);
+}
+.riga-stat strong { font-size: 1.15rem; }
+.lista-premi { display: flex; flex-direction: column; gap: 7px; margin-top: 8px; }
+.premio {
+  display: flex; align-items: center; gap: 11px;
+  padding: 9px 12px; border-radius: 10px;
+  background: var(--card-2); border: 1px solid var(--bordo);
+  opacity: .62;
+}
+.premio.sbloccato {
+  opacity: 1;
+  border-color: color-mix(in srgb, var(--oro) 55%, var(--bordo));
+  background: linear-gradient(160deg, color-mix(in srgb, var(--oro) 12%, var(--card-2)), var(--card-2));
+}
+.icona-premio { font-size: 1.4rem; line-height: 1; flex: 0 0 auto; }
+.testo-premio { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.nome-premio { font-weight: 600; }
+
 /* --- il profilo --- */
 /* Il titolo dello storico dei pesi, dentro la card del peso. Serve una riga sopra:
    senza, "Il tuo storico" si leggeva come parte della scheda e non come un blocco. */
