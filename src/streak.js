@@ -272,7 +272,20 @@ export function calcolaStreak(sedute, oggi = isoGiorno(new Date()), profilo = nu
   const fattoOggi = ultimo === oggi;
   // la streak È viva se l'ultimo allenamento non È "passato": cioe' oggi non È
   // ancora un giorno previsto saltato. Il calcolo dei consecutivi dice già tutto.
-  const viva = consecutive > 0 || (fattoOggi && consecutive >= 0);
+  // LA STREAK È VIVA SE CONTA ALMENO UN GIORNO.
+  //
+  // Qui c'era `consecutive > 0 || (fattoOggi && consecutive >= 0)`. La seconda
+  // parte è inutile: `consecutive >= 0` è sempre vero (un numero non può essere
+  // minore di zero), quindi la condizione diventava solo `|| fattoOggi`, e la
+  // streak risultava "viva" anche con il conteggio a zero.
+  //
+  // Ste (10/10/2026): "la streak è accesa ma è a 0". Eccola: la card diceva
+  // "accesa" con il numero 0 dentro, e il colore veniva dal livello zero, che è il
+  // grigio della spenta. Tre informazioni contraddittorie nella stessa riga.
+  //
+  // Se hai allenato oggi, il conteggio ti conta anche oggi: sopra non serve
+  // nessuna scorciatoia.
+  const viva = consecutive > 0;
   const valore = consecutive;
 
   // IL RECORD DELLA STREAK, e serve all'avatar RPG (08/10/2026).
@@ -627,9 +640,23 @@ export function aspettoStreak(streak) {
     daAccendere,
     livello: livello.chiave,
     nome: livello.nome,
-    // IL COLORE DI UN GIORNO CHE ASPETTA NON È QUELLO DI UN GIORNO PERSO.
-    // Ambra, non grigio: dice "manca un passo", non "hai fallito".
-    colore: acceso ? livello.colore : (daAccendere ? '#f0a02a' : LIVELLI_FUOCO[0].colore),
+    // I TRE COLORI.
+    //
+    // Ste (10/10/2026): "la streak è accesa ma è a 0. quando è accesa lasciala
+    // gialla" e, del caso in cui deve ancora allenare: "non che spunta grigia come
+    // se l'avessi persa".
+    //
+    // Prima il colore veniva sempre dal livello (`livelloFuoco(giorni)`), e a livello
+    // zero quel colore è il GRIGIO della spenta: quindi una streak accesa con zero
+    // giorni usciva grigia, e una card in attesa usciva arancione come un avviso.
+    //
+    // Adesso il colore viene dallo STATO e non dal livello:
+    //   - tutto quello che è acceso è GIALLO: sei in fila, o ti manca solo oggi;
+    //   - il grigio è SOLO la streak persa davvero.
+    //
+    // La regola che Ste ha detto senza dirla a parole: il grigio deve voler dire una
+    // cosa sola, e quella cosa è "l'hai persa".
+    colore: acceso ? GIALLO_STREAK : (daAccendere ? GIALLO_ATTESA : LIVELLI_FUOCO[0].colore),
     simbolo: 'fuoco',
     giorni,
     etichetta: acceso
@@ -637,6 +664,16 @@ export function aspettoStreak(streak) {
       : (daAccendere ? 'da accendere oggi' : 'spenta'),
   };
 }
+
+// I due colori che non vengono dai livelli, perché non sono un livello: sono uno
+// stato. Sono qui e non dentro `LIVELLI_FUOCO` perché quel elenco descrive quanto
+// sei stato in fila, e "quanto stai aspettando oggi" non è un livello.
+//
+// Il giallo acceso è pieno; quello dell'attesa è lo stesso giallo un po' più
+// spento, così si vede che è la stessa cosa e non un'altra. Ste: "quando è accesa
+// lasciala gialla".
+const GIALLO_STREAK = '#ffd23f';
+const GIALLO_ATTESA = '#f5b301';
 
 /** Il numero di giorni già allenati oggi. */
 function fattoOggi(streak) {
