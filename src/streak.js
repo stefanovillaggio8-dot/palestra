@@ -276,7 +276,15 @@ function testoStreak({ viva, valore, fattoOggi, ultimo, previsti, prossimoGiorno
     const quando = dataLeggibileBreve(prossimoGiorno);
     return `Streak di ${giorni}: ti manca solo ${quando} per continuare.`;
   }
-  return `Streak di ${giorni}: oggi hai gia' allenato. Ti torna ${prossimoGiornoPrevistoTesto(previsti)}.`;
+  // IL CASO CHE DAVA UNA FRASE FALSA. Oggi e' un giorno di riposo, non hai allenato
+  // oggi (fattoOggi = false), ma la frase diceva "oggi hai gia' allenato".
+  //
+  // Non e' uno schermo rotto perche' questo testo oggi non viene disegnato da
+  // nessuna parte (solo dai test), quindi nessuno lo leggeva. Pero' un testo che
+  // mente e' un testo da correggere prima che qualcuno lo mostri, e il giorno in cui
+  // lo si mostra la frase falsa diventa subito leggibile.
+  if (fattoOggi) return `Streak di ${giorni}: oggi hai gia' allenato. Ti torna ${prossimoGiornoPrevistoTesto(previsti)}.`;
+  return `Streak di ${giorni}: oggi e' giorno di riposo, non ti toglie niente. Ti torna ${prossimoGiornoPrevistoTesto(previsti)}.`;
 }
 
 /** Il nome del prossimo giorno previsto, per la frase. */
@@ -318,12 +326,21 @@ export function traguardiFinoA(giorni) {
   return base;
 }
 
-/** Il prossimo traguardo da raggiungere (null se gia' oltre 1000 senza paletti). */
+/**
+ * Il prossimo traguardo da raggiungere.
+ *
+ * IL DIFETTO CHE C'ERA (08/10/2026): con n = 2000 la funzione restituiva 2000, cioe'
+ * un traguardo GIA' superato. Lo stesso a 3000, 4000, e cosi' via. Serviva una
+ * streak di cinque anni e mezzo per accorgersene, quindi il bug era nascosto, ma
+ * la schermata avrebbe detto "prossimo obiettivo: 2000 giorni" a chi ne aveva
+ * gia' fatti 2000. Ora il traguardo restituito e' SEMPRE maggiore di quello fatto.
+ */
 export function prossimoMilestone(giorni) {
   const n = Math.max(0, Number(giorni) || 0);
   for (const t of TRAGUARDI_BASE) if (t > n) return t;
-  if (n < 2000) return 2000;
-  return Math.ceil(n / 1000) * 1000;
+  // sopra i traguardi base si prosegue di mille in mille, MA sempre sul primo
+  // paletto che non hai ancora raggiunto: e' la differenza fra "prossimo" e "già fatto"
+  return Math.floor(n / 1000) * 1000 + 1000;
 }
 
 /** I traguardi appena superati: servono all'animazione e all'Aura. */

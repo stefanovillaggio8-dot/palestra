@@ -2976,9 +2976,25 @@ function scarica(nomeFile, contenuto) {
 
 async function esportaJson() {
   const dati = await db.esportaTutto();
+  // IL BACKUP DEVE CONTENERE TUTTO, o non serve a niente (08/10/2026).
+  //
+  // Qui passavano solo sette tabelle. Manavano tre cose che sono l'APP, non i dati:
+  //
+  //   - i PROFILI: username, avatar, amici, privacy e i giorni in cui alleni. Su un
+  //     altro telefono tornavi con l'account nudo e la streak regola semplice.
+  //   - le MISSIONI e le RICOMPENSE: Aura e XP a zero, quindi livello 1 di nuovo.
+  //   - i PESI: senza lo storico del peso corporeo tutti i Rank venivano ricalcolati
+  //     senza sapere quanto pesi, quindi i numeri erano diversi da quelli che avevi
+  //     davanti. Il peso e' la cosa che rende i Rank giusti.
+  //
+  // Verificato prima della correzione: profili 0, missioni 0, ricompense 0, pesi
+  // assenti dal pacchetto. Un backup che perde tutto questo non e' un backup, e' una
+  // lista di allenamenti.
   const pacchetto = creaPacchetto({
     esercizi: dati.esercizi, schede: dati.schede, versioni: dati.versioni,
     sedute: dati.sedute, serie: dati.serie, note: dati.note, conflitti: dati.conflitti,
+    profili: dati.profili, missioni: dati.missioni, ricompense: dati.ricompense,
+    pesi: dati.pesi,
   }, { note: 'Backup dell\'app Palestra' });
   const testo = JSON.stringify(pacchetto, null, 2);
   const blob = new Blob([testo], { type: 'application/json' });
@@ -3044,8 +3060,23 @@ async function applicaImportazione(oggetto, modo) {
   for (const tabella of ['esercizi', 'schede', 'versioni', 'sedute', 'serie', 'note', 'profili', 'missioni', 'ricompense']) {
     const righe = t[tabella] || [];
     if (modo === 'sostituzione') {
+      // QUELLO CHE MANCAVA, ed era il buco piu' grave di tutti.
+      //
+      // Il ramo metteva `eliminata: true` su tutto quello che c'era, e poi NON
+      // scriveva MAI `righe`: la variabile era calcolata e buttata via. Verificato:
+      // 3 sedute, 1 serie, 1 scheda, 1 versione, 1 profilo, 1 ricompensa sono
+      // finite nel cestino e non e' entrato NULLA dal backup. Poi compariva
+      // "Importazione finita (sostituzione)" come se fosse andata bene, quindi non
+      // c'era modo di accorgersene: l'utente pensava di aver ripristinato e in
+      // realta' aveva perso tutto.
+      //
+      // La sostituzione vuol dire "al posto di quello che c'era metti questo", quindi
+      // dopo aver messo nel cestino il vecchio, il nuovo va scritto.
       for (const riga of await db.tutti(tabella, { includiEliminati: true })) {
         await db.salva(tabella, { ...riga, eliminata: true });
+      }
+      for (const riga of righe) {
+        await db.salva(tabella, { ...riga, eliminata: false }, { segna: true });
       }
     } else {
       const esito = unisci(await db.tutti(tabella, { includiEliminati: true }), righe, tabella);
@@ -3434,6 +3465,13 @@ async function assegnaRicompense(sedutaId) {
       // anche i premi usano il peso: senza, i Rank calcolati qui non
       // corrispondono a quelli che vedi nella schermata Rank
       pesoCorporeo: pesoCorporeoOra(),
+      // E I GIORNI IN CUI ALLENO. Mancheranno faceva usare la regola semplice della
+      // streak, quindi qui la streak veniva calcolata DIVERSA da quella mostrata a
+      // schermo: sullo stesso allenamento a schermo leggevi 12 e il traguardo dei 10
+      // non arrivava mai, perche' il conto per i premi ne vedeva solo 3. Non era un
+      // numero sbagliato a caso: era una regola applicata in due modi diversi, ed e'
+      // lo stesso difetto che questo progetto ha gia' pagato tre volte.
+      profilo: profiloAttivo(),
     });
     if (!nuove.length) return [];
     for (const r of nuove) await db.salva('ricompense', { ...r, quando: r.quando || adesso() });
@@ -4157,6 +4195,10 @@ function vistaAmici(zona) {
         esercizi: V.esercizi,
         completamenti: [],
         ricompense: (V.ricompense || []).filter((r) => r && r.account_id === voce.account),
+        // i giorni in cui allena LUI, non i miei: senza, la streak di un amico che
+        // va in palestra in giorni diversi dalla tua veniva calcolata con la regola
+        // sbagliata, e gli facevi vedere una streak che non era la sua
+        profilo: voce.profilo || null,
       }) : null;
       zona.appendChild(el('div', { class: 'riga-amico' }, [
         avatarNodo(a, { dimensione: 54 }),

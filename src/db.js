@@ -203,8 +203,25 @@ export function apriDb() {
 
 /* ---------- API usata dall'app ---------- */
 
-/** Scrive una riga e la mette in coda per il sync. */
-export async function salva(tabella, riga, { segna = true } = {}) {
+/**
+ * Scrive una riga e la mette in coda per il sync.
+ *
+ * @param segna   metti in coda per la sincronizzazione (di solito sì)
+ * @param seguiErrore  NON azzerare gli errori di sync già registrati.
+ *
+ * PERCHE' ESISTE `seguiErrore` (08/10/2026): senza, `salva` azzerava SEMPRE
+ * `ultimo_errore` e `tentativi`, quindi quando la sync provava a scrivere
+ * `sync: 'errore'` con il suo messaggio, la riga veniva riscritta subito con
+ * `sync: 'da_salvare'`, `ultimo_errore: null`, `tentativi: 0`.
+ *
+ * Le conseguenze non erano visibili ma erano vere: la barra in alto non mostrava
+ * MAI "Errore (N)", e una riga in conflitto veniva ritentata ogni 45 secondi per
+ * sempre, e a ogni giro nasceva un record di conflitto nuovo: la lista dei conflitti
+ * da scegliere cresceva senza mai fermarsi.
+ *
+ * Ora chi chiama la sync passa `seguiErrore: true` e l'errore resta scritto.
+ */
+export async function salva(tabella, riga, { segna = true, seguiErrore = false } = {}) {
   const m = await apriDb();
   const base = riga.id || uuid();
   const esistente = await m.prendi(tabella, base);
@@ -220,8 +237,16 @@ export async function salva(tabella, riga, { segna = true } = {}) {
     completa.rev = segnata.rev;
     completa.sync = 'da_salvare';
     completa.base_rev = Number((esistente && esistente.base_rev) || 0);
-    completa.ultimo_errore = null;
-    completa.tentativi = 0;
+    // gli errori si azzerano SOLO se non li sta scrivendo proprio la sincronizzazione:
+    // altrimenti la sync registra l'errore e questa riga lo cancella subito
+    if (!seguiErrore) {
+      completa.ultimo_errore = null;
+      completa.tentativi = 0;
+    } else {
+      completa.sync = riga.sync || completa.sync;
+      completa.ultimo_errore = riga.ultimo_errore !== undefined ? riga.ultimo_errore : completa.ultimo_errore;
+      completa.tentativi = riga.tentativi !== undefined ? riga.tentativi : completa.tentativi;
+    }
   } else {
     completa.rev = Number(riga.rev || 1);
     completa.sync = riga.sync || 'pulito';
@@ -263,11 +288,30 @@ export async function recupera(tabella, id) {
   return salva(tabella, { ...riga, eliminata: false, eliminata_il: null });
 }
 
+/**
+ * Le tabelle che NON vanno online, e perche'.
+ *
+ * Sono scelte, non dimenticanze, quindi stanno qui scritte per nome: se un giorno
+ * aggiungi una tabella e ti dimentichi di questa lista, il test di coerenza in
+ * sincronizzazione.test.js te lo dice.
+ */
+export const TABELLE_SOLO_LOCALI = {
+  // nasce da una scelta fra due versioni della stessa riga: scaricare i conflitti
+  // da un altro dispositivo non ha nessun senso
+  conflitti: 'scelta locale',
+  // le correzioni che Ste ha insegnato all'app, e le parole nuove che gli ha
+  // insegnato. NON esistono in schema.sql: spedirle faceva fallire la richiesta a
+  // Supabase, la coda non si svuotava piu' e la barra in alto restava su
+  // "Salvataggio... (N)" per sempre. Il giorno in cui si vuole la sincronizzazione
+  // anche di queste, si crea la tabella lato server e si toglie da qui.
+  appreso: 'tabella che non esiste su Supabase',
+};
+
 /** Tutto quello che aspetta di essere mandato online. */
 export async function codaDiInvio() {
   const out = [];
   for (const t of TABELLE) {
-    if (t === 'conflitti') continue;
+    if (Object.prototype.hasOwnProperty.call(TABELLE_SOLO_LOCALI, t)) continue;
     const righe = await tutti(t, { includiEliminati: true });
     for (const r of righe) {
       if (r.sync === 'da_salvare' || r.sync === 'errore') out.push({ tabella: t, riga: r });

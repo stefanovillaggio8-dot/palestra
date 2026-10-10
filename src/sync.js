@@ -107,7 +107,7 @@ async function manda() {
       const decisione = decidiPush(riga, remoto);
       if (decisione === 'conflitto') {
         await registraConflitto(tabella, riga, remoto);
-        await db.salva(tabella, { ...riga, sync: 'conflitto' });
+        await db.salva(tabella, { ...riga, sync: 'conflitto' }, { seguiErrore: true });
         conflitti++;
         continue;
       }
@@ -126,7 +126,7 @@ async function manda() {
         sync: 'errore',
         ultimo_errore: e && e.message ? e.message : String(e),
         tentativi,
-      });
+      }, { seguiErrore: true });
     }
   }
   return conflitti;
@@ -153,7 +153,7 @@ async function tira() {
           ricevuti++;
         } else if (esito.azione === 'conflitto') {
           await registraConflitto(t, locale, remoto);
-          await db.salva(t, { ...locale, sync: 'conflitto' });
+          await db.salva(t, { ...locale, sync: 'conflitto' }, { seguiErrore: true });
         }
       }
     }

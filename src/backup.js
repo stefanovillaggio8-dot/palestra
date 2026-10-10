@@ -23,6 +23,12 @@ export function creaPacchetto(dati, meta = {}) {
       profili: dati.profili || [],
       missioni: dati.missioni || [],
       ricompense: dati.ricompense || [],
+      // I PESI, aggiunti l'08/10/2026. Mancavano, e senza lo storico del peso
+      // corporeo un backup ripristinato ricalcolava tutti i Rank SENZA sapere quanto
+      // pesa la persona: i kg a schermo erano gli stessi ma i Rank erano diversi da
+      // quelli che avevi davanti. Il peso e' la cosa che rende i Rank giusti, quindi
+      // se non e' nel backup il backup non e' un backup.
+      pesi: dati.pesi || [],
     },
   };
 }
