@@ -195,7 +195,16 @@ const MODIFICATORI = [
   { peso: 5, parole: ['manubrio', 'manubri', 'dumbbell'], perche: 'i manubri sono instabili: tengono anche i polsi' },
   { peso: 6, parole: ['kettlebell'], perche: 'il kettlebell è instabile e difficile da fermare' },
   { peso: -3, parole: ['elastico', 'band', 'banda'], perche: 'l\'elastico ti scarica il peso' },
-  { peso: -2, parole: ['macchina', 'machine', 'apparato', 'leg press', 'pressa'], perche: 'la macchina ti guida: il percorso è fisso' },
+  // LA REGOLA DUPLICATA CHE C'ERA QUI.
+  //
+  // C'era una seconda riga con le stesse parole della prima più 'leg press' e
+  // 'pressa'. Due righe con parole che si sovrappongono vengono contate entrambe:
+  // ogni esercizio con "macchina" nel nome prendeva -6 E -2, cioè -8 invece di -6.
+  // Non è una sfumatura, è il numero con cui l'app giudica la difficoltà.
+  //
+  // Le parole che mancavano sono qui sotto, da sole e senza ripetere quelle che
+  // stanno già sopra: "macchina", "machine" e "apparato" sono già coperte.
+  { peso: -2, parole: ['leg press', 'pressa'], perche: 'la macchina ti guida: il percorso è fisso' },
 
   // --- simmetria: una cosa sola e\' molto piu\' difficile ---
   {

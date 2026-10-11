@@ -899,31 +899,34 @@ body:has(.sfondo-dialogo) .avviso {
  *
  * Ste (10/10/2026): "la streak deve spuntare spenta nel giorno in cui dovrei
  * allenarmi dove non mi sono ancora allenato ma deve spuntare che devo andarci per
- * farla aumentare e farla accendere, non che spunta grigia come se l'avessi persa".
+ * farla aumentare e farla accendere" e poi: "quando devo allenarmi, spunta streak
+ * accesa con lo 0".
  *
- * Prima erano due stati e il caso intermedio finiva nel grigio, che vuol dire
- * "persa": ma il lunedi' mattina, non avendo ancora allenato, non avevi perso
- * niente. La giornata non era finita. Era una cosa falsa, e in alto, dove guardi
- * per prima.
+ * La seconda frase è la correzione di come avevo risolto la prima. Avevo messo
+ * l'ambra e un bordo che pulsa, e così la card sembrava ACCESA: con lo 0 dentro, che
+ * è la cosa più brutta che una card possa dire, perché un contatore acceso sullo
+ * zero vuol dire "è rotto".
  *
- * Adesso l'ambra vuol dire "manca un passo", il grigio vuol dire "hai saltato un
- * giorno che ti toccava", e il verde vuol dire "fatto".
+ * Ma la verità è un'altra: in quel momento la streak NON è accesa. È spenta e ti
+ * aspetta. Quindi la card ha l'aria di una spenta — niente alone, niente pulsazione,
+ * niente numero colorato — e l'unica cosa accesa è l'avviso in fondo, che è l'unica
+ * che deve attirare l'occhio.
+ *
+ * E il numero resta quello vero, anche se è 0: "0" con la frase "oggi ti tocca"
+ * vuol dire "non hai ancora cominciato, e oggi puoi cominciare". "??" avrebbe
+ * significato "l'hai persa", che è falso.
  */
 .teschio-streak.da-accendere {
-  box-shadow: 0 0 26px -4px color-mix(in srgb, var(--fuoco) 70%, transparent),
-              inset 0 0 26px -16px var(--fuoco);
-  /* il bordo pulsa piano: dice "questa è viva, ti sta aspettando" */
-  animation: attesa-streak 2.4s ease-in-out infinite;
+  /* Niente alone e niente pulsazione: una card che pulsa sembra viva, e questa
+     non è viva, è in attesa. */
+  border-color: color-mix(in srgb, var(--oro) 55%, var(--bordo));
 }
-.teschio-streak.da-accendere .fuoco { color: var(--fuoco); }
-/* LA FRASE CHE TI DICE COSA FARE. Un numero in ambra, da solo, è un colore. */
+/* il numero resta col colore normale della card: non deve sembrare "acceso" */
+.teschio-streak.da-accendere .fuoco { color: var(--testo); }
+/* L'AVVISO, invece, è l'unica cosa accesa: è l'unica che devi vedere. */
 .richiamo-streak {
-  margin-top: 4px; font-size: .7rem; font-weight: 800;
-  color: var(--fuoco); letter-spacing: .02em;
-}
-@keyframes attesa-streak {
-  0%, 100% { box-shadow: 0 0 26px -4px color-mix(in srgb, var(--fuoco) 70%, transparent), inset 0 0 26px -16px var(--fuoco); }
-  50% { box-shadow: 0 0 34px 2px color-mix(in srgb, var(--fuoco) 85%, transparent), inset 0 0 30px -14px var(--fuoco); }
+  margin-top: 4px; font-size: .72rem; font-weight: 800;
+  color: var(--oro); letter-spacing: .02em;
 }
 .teschio-streak.spenta .fuoco { opacity: .45; }
 .teschio-streak.spenta { opacity: .62; filter: grayscale(.65); }
@@ -1219,6 +1222,27 @@ body:has(.sfondo-dialogo) .avviso {
 
 /* la nota che spiega come si scrive il cardio sotto il campo */
 .nota-cardio { flex: 1 0 100%; margin: 2px 0 6px; color: var(--verde); }
+/* LA RIGA DEI ZAVORRI.
+   Ste: "nelle trazioni e dips non sono kg assistiti quelli che metto ma sono
+   zavorrati. quindi quelli più anche quello mio corporeo di peso".
+   Qui sotto il campo c'è la verità: il numero che hai scritto PIÙ il tuo corpo.
+   Senza, il numero che vedi è metà di quello che stai spostando davvero. */
+.nota-zavorri {
+  flex: 1 0 100%; margin: 2px 0 6px;
+  color: var(--oro); font-weight: 600;
+}
+
+/* IL GLOSSARIO: le parole dell'app, una volta sola.
+   Ste (10/10/2026): "spiega cosa vuol dire ripetizione isolamento ecc".
+   Ogni voce è un termine, cosa significa, e PERCHÉ conta: senza il perché, una
+   definizione è solo un'altra parola da non sapere. */
+.lista-glossario { margin: 0 0 14px; display: flex; flex-direction: column; gap: 10px; }
+.lista-glossario dt {
+  font-weight: 700; font-size: .92rem; color: var(--testo); margin-top: 4px;
+}
+.lista-glossario dd { margin: 2px 0 0; display: flex; flex-direction: column; gap: 2px; }
+.glossario-cosa { font-size: .86rem; }
+.glossario-motivo { font-size: .82rem; opacity: .82; }
 /* il blocco del carico, che sparisce quando l'esercizio è cardio */
 .blocco-carico { display: flex; flex-direction: column; gap: 4px; }
 .blocco-carico[hidden] { display: none; }

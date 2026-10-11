@@ -27,6 +27,7 @@ import { statoAccount, ricompenseAllenamento, gruppiDaSerie } from './gioco.js';
 import { calcolaAvatar, CLASSI, classeConsigliata, eCardio } from './avatar-rpg.js';
 import { isoGiorno } from './streak.js';
 import { suona, sbloccaAudio, audioSpento, impostaAudioSpento } from './audio.js';
+import { bloccoGlossario } from './glossario-app.js';
 import { recordEsercizio, recordAccount, classificaEsercizio, storicoMiglioramenti, giudizioPerformance, distanzaAllaSoglia } from './rank.js';
 import { confrontoGiorno, confrontiMensili, GIORNI_UN_MESE } from './confronto-mensile.js';
 import { profiloEsercizio, profiloPerPesoCorporeo, RANK, ETICHETTE_MISURA, descriviPunteggio, descrizioneLivello, livelloEsercizio, impostaLivelliImparati, livelliImparati, rapportoDifficolta, MOLTIPLICATORI_SOGLIA } from './rank-config.js';
@@ -2940,6 +2941,18 @@ function vistaImpostazioni(zona) {
 
   zona.appendChild(bloccoSuoni());
 
+  // LE PAROLE DELL'APP.
+  //
+  // Ste (10/10/2026): "spiega cosa vuol dire ripetizione isolamento ecc..".
+  //
+  // Le parole non mancavano: erano sparse in schermate diverse e nessuna spiegava
+  // il PROPRIO significato. "Isolamento" e "composto" si leggono nei nomi dei Rank,
+  // "ripetizioni" è scritta sotto quasi ogni campo, e "LP" e "Aura" compaiono senza
+  // essere mai spiegate una volta.
+  //
+  // Stanno qui sotto, in un posto solo, e una volta lette non servono più.
+  zona.appendChild(bloccoGlossario(el));
+
   const statoBox = el('section', { class: 'blocco' });
   statoBox.appendChild(el('h2', { testo: 'Salvataggio e sincronizzazione' }));
   const lineaStato = el('p', { class: 'nota', id: 'stato-dettaglio', testo: 'Sto controllando...' });
@@ -3602,24 +3615,24 @@ function teschioStreak(st) {
         ? `Oggi ti tocca e non hai ancora allenato: ${f.giorni} ${f.giorni === 1 ? 'giorno' : 'giorni'} di fila, oggi la porti a ${f.giorni + 1}`
         : 'Streak spenta: hai saltato un giorno che ti toccava'),
   }, [
-    // IL NUMERO GRANDE E' UNO SOLO, e la riga sotto non lo ripete.
+    // IL NUMERO GRANDE È UNO SOLO, e la riga sotto non lo ripete.
     //
     // Prima qui c'era il numero grosso nel cerchio del fuoco e la parola "giorno"
     // accanto: si leggeva "STREAKgiorno", cioe' due pezzi attaccati che non
     // formavano una frase. Ste me l'ha fatto vedere con uno screenshot.
     //
-    // Il numero grosso resta dov'e', perchè e' la cosa che guardi per prima. Sotto,
+    // Il numero grosso resta dov'e', perchè è la cosa che guardi per prima. Sotto,
     // la parola STREAK e la frase intera. Il numero compare UNA volta sola: due
     // volte nella stessa card faceva pensare che fossero due cose diverse, e il
     // test gioco-ui lo segnalava ("qui era 2").
     //
-    // E nel caso "da accendere" il numero c'e' lo stesso: la tua streak non e'
-    // sparita, e' a un passo dal salire. Mostrare "??" diceva che avevi perso tutto.
+    // E nel caso "da accendere" il numero c'e' lo stesso: la tua streak non è
+    // sparita, è a un passo dal salire. Mostrare "??" diceva che avevi perso tutto.
     el('span', {
       class: 'fuoco',
       testo: stato === 'spenta' ? '??' : String(f.giorni),
-      // Il numero che appena e' cambiato pulsa: e' l'unico modo per capire se
-      // quello che stai guardando e' il nuovo o il vecchio, senza leggere due volte.
+      // Il numero che appena è cambiato pulsa: è l'unico modo per capire se
+      // quello che stai guardando è il nuovo o il vecchio, senza leggere due volte.
       dati: { giorni: String(f.giorni), stato },
     }),
     el('div', { class: 'riga-streak' }, [
@@ -3876,11 +3889,11 @@ async function salvaProfilo(campi) {
  * Due volte gli ho proposto qualcosa di diverso da un calendario e due volte aveva
  * ragione lui. La prima volta sette caselle (una settimana: il giorno che ti serve
  * non c'), la seconda volta una striscia di mesi uno sotto l'altro senza numeri. Un
- * calendario, nel senso di tutti i giorni, e' un'altra cosa: e' una TABELLA, con i
+ * calendario, nel senso di tutti i giorni, è un'altra cosa: è una TABELLA, con i
  * numeri dei giorni, i mesi in fila e l'anno che si cambia con le frecce.
  *
  * Perche' i numeri non si possono togliere: sette quadratini colorati senza numero
- * non dicono quando e' successo. Col numero diventa "marte' 6", e la memoria
+ * non dicono quando è successo. Col numero diventa "marte' 6", e la memoria
  * lavora da sola.
  *
  * E perchè si parte dal primo allenamento e non dal 1° gennaio: un calendario che
@@ -3973,10 +3986,10 @@ function rigaOggi(previsti, giorniFatti, oggi) {
       ? 'Oggi hai allenato.'
       : (oggiPrevisto
         ? (prossimo
-          ? `Oggi ti tocca e non l'hai ancora fatto. Dopo, il prossimo giorno e' ${NOME[prossimo].toLowerCase()}.`
+          ? `Oggi ti tocca e non l'hai ancora fatto. Dopo, il prossimo giorno è ${NOME[prossimo].toLowerCase()}.`
           : 'Oggi ti tocca e non l\'hai ancora fatto.')
         : (prossimo
-          ? `Oggi e' giorno di recupero: non ti toglie niente. Ti tocca ${NOME[prossimo].toLowerCase()}.`
+          ? `Oggi è giorno di recupero: non ti toglie niente. Ti tocca ${NOME[prossimo].toLowerCase()}.`
           : 'Oggi e\' giorno di recupero: non ti toglie niente.')));
   return el('p', { class: 'nota nota-grande', testo: frase });
 }
@@ -3993,7 +4006,7 @@ function bloccoMese(anno, mese, previsti, giorniFatti, oggi) {
   box.appendChild(el('h3', { class: 'calendario-mese-nome' }, [
     NOMI_MESCE[mese - 1],
     // IL NUMERO DI ALLENAMENTI DEL MESE, accanto al nome. Un calendario senza
-    // questo dice COME e' andato il mese solo se lo leggi giorno per giorno:
+    // questo dice COME è andato il mese solo se lo leggi giorno per giorno:
     // metterlo li' risponde subito a "marzo com'e' andato".
     el('span', {
       class: 'calendario-conto',
@@ -4027,9 +4040,9 @@ function bloccoMese(anno, mese, previsti, giorniFatti, oggi) {
     const fatto = giorniFatti.has(isoCell);
     const passato = isoCell < oggi;
     // IL SALTATO richiede tre cose insieme: che il giorno ti toccasse, che non ci
-    // sei andato, e che sia passato. Oggi non e' un giorno saltato: non e' ancora
-    // successo niente. E un giorno di recupero non e' MAI saltato, perchè non ti
-    // toccava: saltare il riposo non e' colpa di nessuno.
+    // sei andato, e che sia passato. Oggi non è un giorno saltato: non è ancora
+    // successo niente. E un giorno di recupero non è MAI saltato, perchè non ti
+    // toccava: saltare il riposo non è colpa di nessuno.
     const saltato = passato && previsto && !fatto;
     const classi = ['cella-calendario'];
     if (fatto) classi.push('fatto');
@@ -5466,16 +5479,48 @@ function finestraCreaEsercizio() {
   // Prima questi tre fatti stavano SOLO scritti dentro il file: se creavi un
   // esercizio al cavo non potevi dirgli mono o doppia, e l'app sbagliava di 2 sul
   // Rank. Nessuno ci deve pensare da solo, e Ste non deve dipendere da me.
-  const carrucola = el('select', { class: 'selettore' }, [
-    el('option', { value: '', testo: "non lo so / non è un cavo" }),
-    el('option', { value: 'carrucola_mono', testo: 'mono carrucola (cavo singolo)' }),
-    el('option', { value: 'carrucola_doppia', testo: "doppia carrucola (senti metà)" }),
+  // LA CARRUCOLA.
+//
+// Ste (10/10/2026): "fai che devo segnare se è doppia o mono carrucola". La scelta
+// c'era già, ma le due voci dicevano solo "mono carrucola" e "doppia carrucola", che
+// non spiegano niente: se non sai cosa sia non sai quale scegliere, e se sbagli il
+// Rank è sbagliato.
+//
+// Qui sotto ogni voce dice cosa SENTI e cosa cambia nel conto, che è l'unica cosa che
+// serve per decidere.
+const carrucola = el('select', { class: 'selettore' }, [
+    el('option', { value: '', testo: 'non è un cavo' }),
+    el('option', { value: 'carrucola_mono', testo: 'MONO carrucola — un cavo solo, e il numero che scrivi è quello che senti' }),
+    el('option', { value: 'carrucola_doppia', testo: 'DOPPIA carrucola — due cavi che si dividono: se segni 50 ne senti 25' }),
   ]);
+  const spiegazioneCarrucola = el('p', { class: 'nota nota-piccola nota-zavorri' });
+  const scriviSpiegazioneCarrucola = () => {
+    svuota(spiegazioneCarrucola);
+    if (carrucola.value === 'carrucola_mono') {
+      spiegazioneCarrucola.appendChild(el('span', { testo: 'Mono carrucola: un cavo solo. 50 sul bilanciere sono 50 che senti.' }));
+    } else if (carrucola.value === 'carrucola_doppia') {
+      spiegazioneCarrucola.appendChild(el('span', { testo: 'Doppia carrucola: il carico si divide fra due cavi. Se il bilanciere dice 50, ai due lati senti 25, quindi l\'app ti mette 25. E su una doppia carrucola si lavora su UN braccio alla volta.' }));
+    }
+  };
+  carrucola.addEventListener('change', () => { scriviSpiegazioneCarrucola(); aggiornaAnteprima(); });
+  scriviSpiegazioneCarrucola();
+
   const attrezzatura = el('select', { class: 'selettore' }, [
-    el('option', { value: '', testo: "non è una macchina" }),
-    el('option', { value: 'macchina_dischi', testo: 'macchina a DISCHI veri' }),
-    el('option', { value: 'macchina_stack', testo: 'macchina a STACK (linguetta)' }),
+    el('option', { value: '', testo: 'non è una macchina' }),
+    el('option', { value: 'macchina_dischi', testo: 'macchina a DISCHI veri — li carico io e li metto sui due lati (quindi il numero che scrivi è per lato)' }),
+    el('option', { value: 'macchina_stack', testo: 'macchina a STACK — pacco di dischi con la linguetta (il numero che scrivi è già per entrambi i lati)' }),
   ]);
+  const spiegazioneAttrezzatura = el('p', { class: 'nota nota-piccola nota-zavorri' });
+  const scriviSpiegazioneAttrezzatura = () => {
+    svuota(spiegazioneAttrezzatura);
+    if (attrezzatura.value === 'macchina_dischi') {
+      spiegazioneAttrezzatura.appendChild(el('span', { testo: 'Dischi veri: i dischi si montano su ENTRAMBI i lati, quindi 20 per lato vuol dire 40 in tutto. È il caso della chest press.' }));
+    } else if (attrezzatura.value === 'macchina_stack') {
+      spiegazioneAttrezzatura.appendChild(el('span', { testo: 'Stack: infili la linguetta e il pacco è già per entrambi i lati. 50 sono 50 in tutto, non vanno dimezzati. È il caso di leg press, lat pulldown, leg curl.' }));
+    }
+  };
+  attrezzatura.addEventListener('change', () => { scriviSpiegazioneAttrezzatura(); aggiornaAnteprima(); });
+  scriviSpiegazioneAttrezzatura();
   const braccia = el('select', { class: 'selettore' }, [
     el('option', { value: '', testo: 'i due bracci vanno insieme' }),
     el('option', { value: 'si', testo: 'braccia indipendenti' }),
@@ -5576,8 +5621,10 @@ function finestraCreaEsercizio() {
   const bloccoCarico = el('div', { class: 'blocco-carico' }, [
     el('h4', { class: 'titolo-sottosezione', testo: 'Il carico' }),
     el('label', { class: 'nota', testo: 'Convenzione del carico' }), convenzione,
-    el('label', { class: 'nota', testo: "Com'è fatto il carico? (solo se è un cavo)" }), carrucola,
-    el('label', { class: 'nota', testo: "Che macchina è? (dischi veri o stack)" }), attrezzatura,
+    el('label', { class: 'nota', testo: 'Il cavo è doppio o singolo?' }), carrucola,
+    spiegazioneCarrucola,
+    el('label', { class: 'nota', testo: 'La macchina è a dischi veri o a stack?' }), attrezzatura,
+    spiegazioneAttrezzatura,
     el('label', { class: 'nota', testo: "Muovi un braccio senza l'altro?" }), braccia,
     // IL PUNTEGGIO PLATINUM È UN NUMERO DI CHILI, quindi per il cardio sparisce
     // insieme a tutto il resto: su un tapis non c'è un carico da confrontare con

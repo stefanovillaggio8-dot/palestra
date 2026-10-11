@@ -9,7 +9,7 @@
 // e il test I3 che sia quello dell'ultimo commit, altrimenti si alza la cache e si
 // lascia scritto il numero vecchio. E' successo due volte: nella v54 avevo alzato
 // solo questo file, e dopo la v55 avevo smesso di alzarlo del tutto.
-const VERSIONE = 'palestra-v88';
+const VERSIONE = 'palestra-v89';
 
 const FILE = [
   './',
@@ -24,7 +24,7 @@ const FILE = [
   // Il numero deve essere uguale a quello di `stile.css?v=` in index.html e a
   // `window.PALESTRA_VERSIONE`: se i tre non coincidono, l'app carica un foglio di
   // stile e dice un altro numero.
-  './stile.css?v=88',
+  './stile.css?v=89',
 './manifest.webmanifest',
   './manifest-p1.webmanifest',
   './manifest-p2.webmanifest',
@@ -60,6 +60,10 @@ const FILE = [
   // c'è rete: non parte nessun errore, semplicemente non si sente niente, ed è il
   // modo peggiore in cui può rompersi una cosa che dovrebbe funzionare sempre.
   './src/audio.js',
+  // il glossario. Come i suoni, se non sta nella cache l'app non parte senza rete,
+  // e questa volta la cosa che manca è una pagina di spiegazioni: si apre e non
+  // c'è, e sembra che l'app sia rotta.
+  './src/glossario-app.js',
   './src/missioni.js',
   './src/aura.js',
   './src/sociale.js',

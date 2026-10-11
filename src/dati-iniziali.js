@@ -200,7 +200,18 @@ export const ESERCIZI = [
   { id: 'ex-seated-leg-curl', nome: 'Seated Leg Curl', gruppo: 'Leg Curl', attrezzatura: C.MACCHINA_STACK, convenzione: C.MACCHINA, foto: 'img/esercizi/seated-leg-curl.png', tipo: 'opzionale', nota_permanente: 'Opzionale.' },
 
   { id: 'ex-smith-incline-bench', nome: 'Smith Machine Incline Bench Press', gruppo: 'Bench Press', convenzione: C.PER_BRACCIO, attrezzatura: 'macchina_dischi', foto: 'img/esercizi/smith-machine-incline-bench-press.png', tipo: 'standard', nota_permanente: '30 gradi. Conto solo i dischi, il bilanciere no.' },
-  { id: 'ex-seated-cable-row', nome: 'Seated Cable Row', gruppo: 'Row', convenzione: C.CAVO, carrucola: C.CARRUCOLA_MONO, attrezzatura: C.MACCHINA_DISCHI, foto: 'img/esercizi/seated-cable-row.png', tipo: 'standard', nota_permanente: 'Il coso nero e grigio.' },
+  { id: 'ex-seated-cable-row', nome: 'Seated Cable Row', gruppo: 'Row', convenzione: C.CAVO, carrucola: C.CARRUCOLA_MONO,
+    // Ste (10/10/2026): "il macchinario con i pesi che devo mettere io i dischi è solo
+    // la chest press invece ne segna anche altri".
+    //
+    // Qui era `MACCHINA_DISCHI`, e su una macchina a CAVO è sbagliato due volte: i
+    // dischi non li metti, e il carico è un pacco di dischi infilato con una spina.
+    //
+    // Serve perché i due campi contano cose diverse: "dischi" raddoppia il numero
+    // che scrivi (i dischi stanno su entrambi i lati), "stack" lo dimezza (la spina
+    // è già per entrambi). Sbagliandola, il Rank di questo esercizio era fuori di un
+    // fattore due.
+    attrezzatura: C.MACCHINA_STACK, foto: 'img/esercizi/seated-cable-row.png', tipo: 'standard', nota_permanente: 'Il coso nero e grigio.' },
   { id: 'ex-chest-supported-shrug', nome: 'Chest Supported Dumbbell Shrug', gruppo: 'Shrug', convenzione: C.PER_MANUBRIO, foto: 'img/esercizi/chest-supported-dumbbell-shrug.png', tipo: 'standard', nota_permanente: '54 gradi.' },
   { id: 'ex-sled-press-calf-raise', nome: 'Sled Press Calf Raise', gruppo: 'Calf Raise', attrezzatura: C.MACCHINA_STACK, convenzione: C.MACCHINA, foto: 'img/esercizi/sled-press-calf-raise.png', tipo: 'standard', nota_permanente: 'Monogamba, pressa orizzontale.' },
   { id: 'ex-single-leg-press', nome: 'Single Leg Press', gruppo: 'Leg Press', convenzione: C.PER_GAMBA, attrezzatura: C.MACCHINA_STACK, foto: 'img/esercizi/single-leg-press.png', tipo: 'standard', nota_permanente: 'Obliqua, altrimenti lavorano due gambe. 17 kg per gamba (prima facevo la leg press normale con 100 kg per lato).' },
