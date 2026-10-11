@@ -105,3 +105,29 @@ test('G4. i file si possono caricare: la grammatica non ha rotto il codice', () 
 function carteldaUrl(base, nome) {
   return new URL(nome, base);
 }
+test('G5. nei file non ci sono caratteri invisibili', async () => {
+  // IL MIO ERRORE, e il tipo di difetto piu' subdolo in assoluto.
+  //
+  // Scrivendo `src/sigillo-classe.js` mi e' finito un carattere NUL (U+0000) dentro
+  // una stringa di codice: la riga che doveva essere `String(sale) + '' + String(parola)`
+  // era diventata `String(sale) + '<NUL>' + String(parola)`. Il carattere non si vede,
+  // il file sembrava giusto, `node --check` passava, e i test che arrotondavano la
+  // verifica passavano tutti: l'hash era semplicemente sbagliato.
+  //
+  // Il sintomo che l'ha smascherato e' che il file risultava "binario" a un editor di
+  // testo. Un carattere di controllo dentro il codice non e' mai voluto, quindi qui si
+  // cercano e si segnala: Costa poco e evita di perdere un'ora a capire un hash.
+  const sospetti = [];
+  for (const nome of nomi) {
+    const testo = await readFile(join(cartella, nome), 'utf8');
+    // NUL e gli altri caratteri di controllo, escluso il fine riga (\n) e il
+    // ritorno a capo (\r), che in un file di testo sono normali.
+    for (const m of testo.matchAll(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g)) {
+      const riga = testo.slice(0, m.index).split('\n').length;
+      sospetti.push(`${nome}:${riga}  carattere U+${m[0].codePointAt(0).toString(16).padStart(4, '0')}`);
+      break; // uno per file basta: se c'e' uno, il file va sistemato comunque
+    }
+  }
+  assert.deepEqual(sospetti, [],
+    'ci sono caratteri invisibili nel codice:\n  ' + sospetti.join('\n  '));
+});

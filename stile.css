@@ -1500,6 +1500,16 @@ body:has(.sfondo-dialogo) .avviso {
    * Quindi qui si toglie anche l'altezza fissa: con `height: auto` il riquadro
    * cresce quanto è alta l'immagine e non c'è niente da tagliare. */
   height: auto;
+  /* LO SFONDO VIOLA, che Ste ha visto al primo colpo: "troppo blu lo sfondo".
+   *
+   * Qui sotto c'era lo sfondo con il colore della classe (`--tinta`, che per
+   * l'assassino è viola). Sotto la foto non serve e la faceva sembrare una foto
+   * tinta di blu. Qui la foto è già una scena con il suo sfondo: il riquadro deve
+   * restare neutro, al massimo una luce appena accennata in alto. */
+  background:
+    radial-gradient(120% 60% at 50% 0%, rgba(255, 255, 255, .045), transparent 70%),
+    linear-gradient(180deg, #0a0813, #06050c);
+  border-color: var(--bordo);
 }
 .personaggio-scena-grafica.con-foto .personaggio-ritratto {
   position: static;
@@ -1531,7 +1541,14 @@ body:has(.sfondo-dialogo) .avviso {
   max-width: 400px;
   margin: 0 auto;
   border-radius: 14px;
-  mix-blend-mode: screen;
+  /* Niente `mix-blend-mode` qui, e questa e' la cosa che rendeva la foto slavata.
+   *
+   * Lo scherzo era pensato per i PEZZI sciolti, che avevano uno sfondo nero da
+   * ritagliare: con `screen` il nero sparisce e si vede solo il pezzo. Ma adesso
+   * la foto e' una SCENA intera con il suo sfondo scuro e la sua vignettatura:
+   * mescolarla con lo schermo la schiariva tutta (e sembrava sfocata perche' lo
+   * era, ma peggio) e faceva trasparire il viola del riquadro, quindi la foto
+   * sembrava tingersi di blu. Senza, ogni pixel e' quello che e'. */
   animation: personaggio-vestizione .55s ease-out;
 }
 @keyframes personaggio-vestizione {
@@ -1716,8 +1733,9 @@ body:has(.sfondo-dialogo) .avviso {
 .pezzo-img {
   width: 100%; max-width: 96px; height: auto; display: block;
   border-radius: 6px;
-  /* lo sfondo dei pezzi è nero: senza, il rettangolo si vede sul riquadro */
-  mix-blend-mode: screen;
+  /* Anche qui niente `mix-blend-mode`: serviva quando i pezzi erano ritagliati con
+   * lo sfondo nero. Adesso sono miniature della scena vera, e schermarle le
+   * slavava. */
 }
 .pezzo-nome { font-size: .68rem; font-weight: 700; line-height: 1.15; }
 .pezzo-quando { font-size: .62rem; opacity: .7; }

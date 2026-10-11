@@ -100,11 +100,15 @@ export function campoNumero(valore, { onCambio, onInvalido, id, etichetta, extra
   return input;
 }
 
-export function campoTesto(valore, { onCambio, segnaposto, righe = 1, classe = '' } = {}) {
+// `tipo` serve per il campo del sigillo: `password` nasconde i puntini, altrimenti
+// la parola segreta si legge a schermo mentre la scrivi.
+export function campoTesto(valore, { onCambio, segnaposto, righe = 1, classe = '', tipo = '' } = {}) {
   const t = el(righe > 1 ? 'textarea' : 'input', {
     class: 'campo-testo ' + classe,
     placeholder: segnaposto || '',
     rows: righe > 1 ? righe : null,
+    type: righe > 1 ? null : (tipo || 'text'),
+    autocomplete: tipo === 'password' ? 'current-password' : null,
   });
   t.value = valore || '';
   t.addEventListener('input', () => { if (onCambio) onCambio(t.value); });
@@ -159,11 +163,11 @@ export function chiediConferma(titolo, messaggio, { testoOk = 'Confermo', testoA
  * Restituisce il testo scritto (stringa vuota se annulla), quindi il chiamante
  * decide cosa fare: un nome vuoto non È un nome, e non lo si trasforma in uno.
  */
-export function chiediTesto(titolo, messaggio, { segnaposto = '', testoOk = 'Va bene' } = {}) {
+export function chiediTesto(titolo, messaggio, { segnaposto = '', testoOk = 'Va bene', tipo = '' } = {}) {
   return new Promise((risolvi) => {
     const fine = (v) => { sfondo.remove(); document.removeEventListener('keydown', esc); risolvi(v); };
     const esc = (e) => { if (e.key === 'Escape') fine(''); };
-    const campo = campoTesto('', { segnaposto, righe: 1 });
+    const campo = campoTesto('', { segnaposto, righe: 1, tipo });
     const invia = () => fine(String(campo.value || '').trim());
     campo.addEventListener('keydown', (e) => { if (e.key === 'Enter') invia(); });
     const sfondo = el('div', { class: 'sfondo-dialogo' }, [

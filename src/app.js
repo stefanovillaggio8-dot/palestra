@@ -25,6 +25,7 @@ import { nuovoId, adesso, TABELLE, riallineaEsercizi } from './sincronizzazione.
 // --- il gioco: rank, LP, streak, Aura, missioni, amici ---
 import { statoAccount, ricompenseAllenamento, gruppiDaSerie } from './gioco.js';
 import { calcolaAvatar, CLASSI, classeConsigliata, eCardio, nomePremio, statoVisivo, percorsoStato, STATI_IMMAGINE } from './avatar-rpg.js';
+import { haSigillo, creaSigillo, verificaSigillo } from './sigillo-classe.js';
 import { isoGiorno } from './streak.js';
 import { suona, sbloccaAudio, audioSpento, impostaAudioSpento } from './audio.js';
 import { bloccoGlossario } from './glossario-app.js';
@@ -4778,45 +4779,129 @@ function bloccoAvatarRpg(profilo, st) {
     }));
   }
 const grigliaClassi = el('div', { class: 'riga-classi' });
-  // IL VINCOLO: LA CLASSE È PER SEMPRE.
+  // IL VINCOLO, CORRETTO.
   //
   // Ste (10/10/2026): "una volta che l'utente sceglie la classe, questa scelta è
   // permanente e non può essere modificata".
   //
-  // Prima il bottone salvava ogni volta che lo premevi, e il testo diceva anche "cambia
-  // quando ti pare". Così un Assassino a 60 giorni di streak poteva diventare
-  // Berserker: non solo era vietato, era anche conveniente, perché ricominciavi
-  // l'equipaggiamento.
+  // Ste (12/10/2026): "fai in modo che SOLO io possa cambiare la mia classe quando
+  // voglio senza ovviamente perdere i progressi dell'altra classe, ma attenzione:
+  // devo essere solo io in grado di farlo".
   //
-  // Adesso, se il personaggio esiste già, i tre bottoni non sono più cliccabili e
-  // sotto c'è la spiegazione. Non un avviso "non puoi": un bottone che non fa niente
-  // e la ragione scritta sotto, che è più onesto di un errore che compare e sparisce.
+  // Sono due richieste in una, e una corregge l'altra. Il vincolo del 10/10 era
+  // giusto nel SUO motivo: all'epoca un premio pretendeva anche una statistica, quindi
+  // cambiando classe si ripartiva da capo e il vincolo serviva a evitare di approfittarne.
+  // Da allora lo sblocco guarda solo la streak (vedi `calcolaAvatar`), quindi il
+  // cambio classe NON costa niente: restano gli stessi giorni e le stesse armature.
+  //
+  // Però il vincolo non si butta via: diventa una PAROLA SEGRETA. La sceglie Ste
+  // (quindi non è scritta da nessuna parte nel codice e la conosce solo lui) e senza
+  // quella parola la classe non si tocca. Vedi src/sigillo-classe.js, che spiega
+  // anche i limiti di una protezione fatta dal lato del browser.
+  //
+  // Per cambiare si salva SOLO `classe_rpg`: nient'altro viene toccato, quindi non si
+  // può perdere nulla per via. Le tre classi restano comunque tutte raggiungibili in
+  // qualunque momento, con lo stesso equipaggiamento.
   const classeGiaScelta = !!(profilo.classe_rpg && rpg.classe);
+  // `sbloccatoPerMe` vuol dire: la parola è già stata messa in questa sessione, e
+  // quindi i bottoni restano cliccabili senza ridigitarla a ogni tentativo.
+  let sbloccatoPerMe = false;
+  // `stoCambiando` serve solo per non far partire due dialoghi insieme.
+  let stoCambiando = false;
+
+  /** Il dialogo della parola, sia quando la crea sia quando la chiede. */
+  const chiediParola = async () => {
+    if (haSigillo(profilo)) {
+      const parola = await chiediTesto('Cambiare classe',
+        'Scrivi la tua parola segreta per cambiare classe. Nessuno la conosce: l\'app '
+        + 'non la può leggere e non la vede nessuno.', {
+        segnaposto: 'parola segreta',
+        testoOk: 'Sblocca',
+        tipo: 'password',
+      });
+      if (!parola) return false;
+      if (!(await verificaSigillo(parola, profilo))) {
+        avviso('Parola sbagliata: la classe non è cambiata.', { tipo: 'errore' });
+        return false;
+      }
+      sbloccatoPerMe = true;
+      return true;
+    }
+    // La prima volta la parola non c'è: la crea. Due domande, perché una parola
+    // sbagliata scritta due volte non lascia il profillo in una situazione da cui
+    // non si esce più.
+    const avviso1 = await chiediTesto('Scegli la tua parola segreta',
+      'Nessuno la vedrà: nel profilo finisce solo la sua impronta, non la parola. '
+      + 'Ti servirà per cambiare classe.', {
+      segnaposto: 'almeno 4 caratteri', testoOk: 'Avanti', tipo: 'password',
+    });
+    if (!avviso1) return false;
+    const avviso2 = await chiediTesto('Ripetila',
+      'Scrivila uguale. Serve per essere sicuri di non sbagliare.', {
+      segnaposto: 'ripeti la parola', testoOk: 'Salva', tipo: 'password',
+    });
+    if (!avviso2) return false;
+    if (avviso1.trim() !== avviso2.trim()) {
+      avviso('Le due parole non sono uguali: riprova.', { tipo: 'errore' });
+      return false;
+    }
+    let sigillo;
+    try {
+      sigillo = await creaSigillo(avviso1, new Date().toISOString());
+    } catch (e) {
+      avviso(String(e.message || e), { tipo: 'errore' });
+      return false;
+    }
+    // `classe_rpg` NON viene toccato qui: si cambia solo quando sceglie davvero.
+    await salvaProfilo({ sigillo_classe: sigillo });
+    sbloccatoPerMe = true;
+    avviso('Parola salvata. Da qui in puoi cambiare classe quando vuoi.', { tipo: 'ok' });
+    return true;
+  };
+
+  /** Il click su una classe, con il controllo della parola se serve. */
+  const scegliClasse = async (c) => {
+    if (stoCambiando) return;
+    if (classeGiaScelta && !sbloccatoPerMe) {
+      stoCambiando = true;
+      try {
+        const aperto = await chiediParola();
+        if (!aperto) { disegna(); return; }
+      } finally {
+        stoCambiando = false;
+      }
+    }
+    // QUI il salvataggio. Solo `classe_rpg`: il record di streak si ricalcola da
+    // solo dalle sedute, quindi l'equipaggiamento resta identico.
+    await salvaProfilo({ classe_rpg: c.id, personaggio_creato: true });
+    avviso(`Sei un ${c.nome}: +20% di ${c.bonus}. L'armatura che hai è la stessa di prima.`, { tipo: 'ok' });
+  };
+
   for (const c of Object.values(CLASSI)) {
     const scelta = classeGiaScelta && rpg.classe.id === c.id;
     grigliaClassi.appendChild(bottone(scelta ? `${c.icona}  ${c.nome}  ✓` : `${c.icona}  ${c.nome}`, {
-      onClick: async () => {
-        if (classeGiaScelta) return; // il vincolo: qui dentro non si arriva
-        await salvaProfilo({ classe_rpg: c.id, personaggio_creato: true });
-        avviso(`Sei un ${c.nome}: +20% di ${c.bonus}. Adesso è tuo per sempre.`, { tipo: 'ok' });
-      },
-      classe: 'classe-rpg' + (scelta ? ' attiva' : '') + (classeGiaScelta && !scelta ? ' bloccata' : ''),
+      onClick: () => scegliClasse(c),
+      classe: 'classe-rpg' + (scelta ? ' attiva' : '') + (classeGiaScelta && !scelta && !sbloccatoPerMe ? ' bloccata' : ''),
       titolo: scelta
-        ? `Hai scelto il ${c.nome}: +20% di ${c.bonus}`
+        ? `Sei un ${c.nome}: +20% di ${c.bonus}`
         : (classeGiaScelta
-          ? `Non puoi più cambiarlo: sei un ${rpg.classe.nome}`
+          ? `Cambiare in ${c.nome}: serve la tua parola segreta`
           : `Scegli il ${c.nome}: +20% di ${c.bonus}`),
       'aria-pressed': scelta,
-      disabilitato: classeGiaScelta && !scelta,
+      disabilitato: false,
     }));
   }
   box.appendChild(grigliaClassi);
   if (classeGiaScelta) {
+    const notaSigillo = haSigillo(profilo)
+      ? 'Per cambiarla serve la tua parola segreta. Se te la dimentichi non puoi più '
+        + 'cambiarla, ma non perdi n\'altro: la classe non influenza l\'armatura.'
+      : 'Non hai ancora una parola segreta: la crei la prima volta che provi a '
+        + 'cambiare classe.';
     box.appendChild(el('p', {
       class: 'nota nota-piccola',
-      testo: `Sei un ${rpg.classe.nome} e resti un ${rpg.classe.nome}: la classe si sceglie `
-        + 'una volta sola. Cambiare ora rifarebbe da capo tutto l\'equipaggiamento che hai '
-        + 'sbloccato con i giorni di fila.',
+      testo: `Sei un ${rpg.classe.nome}. Puoi cambiarlo quando vuoi e non perdi nulla: `
+        + 'le armature dipendono dai tuoi giorni di fila, non dalla classe. ' + notaSigillo,
     }));
   }
   // E sotto ogni bottone, cosa ti dà. Un bottone che dice solo il nome costringe a

@@ -9,7 +9,7 @@
 // e il test I3 che sia quello dell'ultimo commit, altrimenti si alza la cache e si
 // lascia scritto il numero vecchio. E' successo due volte: nella v54 avevo alzato
 // solo questo file, e dopo la v55 avevo smesso di alzarlo del tutto.
-const VERSIONE = 'palestra-v116';
+const VERSIONE = 'palestra-v117';
 
 const FILE = [
   './',
@@ -24,7 +24,7 @@ const FILE = [
   // Il numero deve essere uguale a quello di `stile.css?v=` in index.html e a
   // `window.PALESTRA_VERSIONE`: se i tre non coincidono, l'app carica un foglio di
   // stile e dice un altro numero.
-  './stile.css?v=116',
+  './stile.css?v=117',
 './manifest.webmanifest',
   './manifest-p1.webmanifest',
   './manifest-p2.webmanifest',
@@ -73,6 +73,9 @@ const FILE = [
   './src/personaggio-svg.js',
   // lo stato dell'avatar: il modulo con la classe permanente e la progressione.
   './src/avatar-stato.js',
+  // la parola segreta che tiene chiusa la scelta della classe. Se non sta in cache,
+  // l'app parte ma il cambio classe non funziona e sembra un bug.
+  './src/sigillo-classe.js',
   // LE FOTO DEI PERSONAGGI: SEI PER CLASSE, una per ogni livello di armatura.
   //
   // Ste (11/10/2026): "ogni volta che sblocco qualcosa quell'immagine deve
