@@ -134,21 +134,45 @@ test('T4. la streak distingue "da accendere" da "persa"', () => {
     'e il grigio della spenta è diverso dall\'ambra di chi deve ancora andare');
 });
 
-test('T5. la card della streak dice cosa fare, non solo il colore', () => {
-  // Un numero in ambra, da solo, è un colore. Serve la frase che dice cosa fare.
+test('T5. la card dice cosa fare, e non sembra accesa quando non lo è', () => {
+  // Ste, due volte: la prima "deve spuntare che devo andarci per farla aumentare e
+  // farla accendere", la seconda "quando devo allenarmi, spunta streak accesa con
+  // lo 0".
+  //
+  // La seconda frase è la correzione di come avevo risolto la prima. Avevo messo
+  // l'ambra e un bordo che pulsa, e la card sembrava accesa col contatore a zero: un
+  // contatore acceso sullo zero vuol dire "è rotto".
+  //
+  // Ma la verità è che in quel momento la streak NON è accesa: è spenta e ti aspetta.
   const card = corpo('teschioStreak');
   assert.match(card, /f\.stato \|\| \(f\.acceso \? 'acceso' : 'spenta'\)/,
     'la card legge i tre stati');
-  assert.match(card, /▲ oggi ti tocca/, 'e nel caso "da accendere" dice cosa fare');
-  assert.match(card, /allenati e sale a \$\{f\.giorni \+ 1\}/,
-    'e quanto sale se vai, che è la domanda che ti fai guardandola');
-  // il numero non sparisce: "??" diceva che avevi perso tutto
+  assert.match(card, /▲ Non è ancora accesa: oggi ti tocca/,
+    'e quando è zero, dice che non è ancora accesa e cosa fare');
+  assert.match(card, /▲ Oggi ti tocca: allenati e sale a \$\{f\.giorni \+ 1\}/,
+    'e quando ha giorni, dice quanto sale se vai: è la domanda che ti fai guardandola');
+  // il numero resta quello vero, anche a zero: "??" avrebbe significato "l'hai persa"
   assert.match(card, /stato === 'spenta' \? '\?\?' : String\(f\.giorni\)/,
     'il numero resta anche quando devi ancora accenderla');
-  // e lo stile
-  assert.match(css, /\.teschio-streak\.da-accendere \{[\s\S]{0,400}?animation:/,
-    'la card in attesa pulsa piano: dice "questa è viva, ti sta aspettando"');
-  assert.match(css, /@keyframes attesa-streak/, 'con un’animazione sua');
+
+  // E LA CARD NON DEVE SEMBRARE ACCESA.
+  //
+  // Niente alone e niente pulsazione: una card che pulsa sembra viva, e quella non è
+  // viva, è in attesa. L'unica cosa accesa deve essere l'avviso.
+  const inAttesa = /\.teschio-streak\.da-accendere \{[\s\S]{0,300}?\}/.exec(css);
+  assert.ok(inAttesa, 'c\'è lo stile del caso "da accendere"');
+  assert.equal(/box-shadow/.test(inAttesa[0]), false,
+    'niente alone: la card non deve sembrare accesa');
+  assert.equal(/animation/.test(inAttesa[0]), false,
+    'niente pulsazione: una card che pulsa sembra viva, e questa è in attesa');
+  assert.match(inAttesa[0], /border-color:[^;]*oro/,
+    'ma il bordo è colorato: la differenza con una spenta si vede');
+  // e il numero non è colorato
+  const numero = /\.teschio-streak\.da-accendere \.fuoco \{[^}]*\}/.exec(css);
+  assert.match(numero[0], /var\(--testo\)/,
+    'il numero resta col colore normale: un numero colorato sembra un dato acceso');
+  // l'avviso invece è acceso, e marcato
+  assert.match(css, /\.richiamo-streak \{[\s\S]{0,200}?font-weight: 800/, 'l\'avviso è forte');
 });
 
 // ---- 4. LE ANIMAZIONI ----
@@ -172,7 +196,9 @@ test('T6. le animazioni si sentono, non si notano appena', () => {
     ['tocco', /@keyframes tocco/],
     ['serie-accesa', /@keyframes serie-accesa/],
     ['calendario-entra', /@keyframes calendario-entra/],
-    ['attesa-streak', /@keyframes attesa-streak/],
+    // "attesa-streak" non deve più esserci: era quella che faceva sembrare la card
+    // ACCESA mentre è spelta e in attesa. Ste: "quando devo allenarmi, spunta streak
+    // accesa con lo 0".
   ]) {
     assert.match(css, segno, `manca l'animazione ${nome}`);
   }

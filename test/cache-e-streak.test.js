@@ -137,10 +137,14 @@ test('C3. le animazioni ci sono davvero, tutte', async () => {
   for (const nome of [
     'dialogo-entra', 'dialogo-esce', 'avviso-entra', 'avviso-esce',
     'numero-pulse', 'cella-pulse', 'tocco', 'serie-accesa', 'calendario-entra',
-    'attesa-streak',
   ]) {
     assert.ok(css.includes('@keyframes ' + nome), `manca l'animazione ${nome}`);
   }
+  // "attesa-streak" NON deve più esserci: era l'animazione che faceva sembrare la card
+  // accesa quando invece è spenta e in attesa. Ste: "quando devo allenarmi, spunta
+  // streak accesa con lo 0".
+  assert.equal(css.includes('attesa-streak'), false,
+    'la pulsazione della card in attesa dev\'essere sparita: la faceva sembrare accesa');
   // e non ci sono regole che le annullano: una `animation: none` nascosta
   // farebbe fallire tutto senza che se ne accorga nessuno
   assert.equal(/^\s*animation:\s*none/m.test(css), false,

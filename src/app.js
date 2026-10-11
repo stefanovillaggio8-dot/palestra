@@ -3610,12 +3610,23 @@ function teschioStreak(st) {
             : f.nome),
       }),
     ]),
-    // LA SPUNTA DEL GIORNO CHE ASPETTA.
+    // L'AVVISO DEL GIORNO CHE ASPETTA.
     //
-    // Un numero in ambra, da solo, non dice "fai qualcosa". Questo dice "questa è
-    // l'ora di accenderla": è l'unica cosa che ti serve sapere guardando la home.
+    // Ste (10/10/2026): "quando devo allenarmi, spunta streak accesa con lo 0". Aveva
+    // ragione: la card sembrava accesa col contatore a zero, che è la cosa più brutta
+    // che una card possa dire, perché un contatore acceso sullo zero vuol dire "è
+    // rotto".
+    //
+    // Ma la verità è che in quel momento la streak NON è accesa: è spenta e ti
+    // aspetta. Quindi l'unica cosa accesa è questa riga, che è l'unica che deve
+    // attirare l'occhio: il resto della card è spenta come una spenta.
     stato === 'da accendere'
-      ? el('span', { class: 'richiamo-streak', testo: '▲ oggi ti tocca' })
+      ? el('span', {
+        class: 'richiamo-streak',
+        testo: f.giorni === 0
+          ? '▲ Non è ancora accesa: oggi ti tocca. Allenati e parte da 1.'
+          : `▲ Oggi ti tocca: allenati e sale a ${f.giorni + 1}`,
+      })
       : null,
   ]);
 }
