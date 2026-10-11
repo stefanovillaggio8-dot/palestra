@@ -29,6 +29,9 @@ import { PREMI, CLASSE_PER_ID, nomePremio } from '../src/avatar-rpg.js';
 import { readFileSync } from 'node:fs';
 
 const css = readFileSync(new URL('../stile.css', import.meta.url), 'utf8');
+// Serve `app.js` perché il bug che questo file blocca era proprio fra il codice e il
+// CSS: una classe scritta in un posto e non nell'altro.
+const app = readFileSync(new URL('../src/app.js', import.meta.url), 'utf8');
 
 const ids = (svg) => [...svg.matchAll(/data-pezzo="([\w-]+)"/g)].map((m) => m[1]);
 
@@ -290,6 +293,66 @@ test('le scanline e la banda prendono il colore della classe', () => {
     assert.doesNotMatch(svg, /currentColor/,
       `${classe}: currentColor dentro l'SVG è il colore del testo, non quello della classe`);
   }
+});
+
+test('ogni classe che il codice usa esiste nel CSS', () => {
+  // Il bug vero del 10/10/2026. Nel CSS il riquadro del personaggio si chiamava
+  // `persono-scena-grafica` e in app.js `personaggio-scena-grafica`: due nomi
+  // diversi, quindi nessuna regola valeva mai. Il personaggio è uscito piccolo e
+  // senza bordo perché non c'era niente che lo regolasse, e sembrava un problema di
+  // misure invece che un nome scritto male.
+  //
+  // Il controllo è sulle classi che il JS mette davvero, non su tutte quelle che il
+  // CSS sa scrivere: quelle non servono e non devono far fallire niente.
+  const usate = [...app.matchAll(/class:\s*'([^']+)'/g)]
+    .flatMap((m) => m[1].split(/\s+/))
+    // `personaggio-' + classeId` è metà di un nome: la parte che segue al segno
+    // più diventa `guerriero`, `assassino` o `berserker`. Queste non si possono
+    // controllare come una classe intera, perché da sole non esistono.
+    .filter((c) => c.startsWith('persona'))
+    // `personaggio-' + classeId` è metà di un nome: la parte che segue al segno
+    // più diventa `guerriero`, `assassino` o `berserker`. Queste non si possono
+    // controllare come una classe intera, perché da sole non esistono. E
+    // `personaggio-` finisce con il trattino, quindi passa il controllo dei
+    // caratteri anche se non è un nome: va escluso per nome.
+    .filter((c) => /^[\w-]+$/.test(c) && c !== 'personaggio-');
+  assert.ok(usate.length > 0, 'il codice deve usare qualche classe persona*');
+  for (const c of [...new Set(usate)]) {
+    assert.ok(new RegExp('\\.' + c + '(?![\\w-])').test(css),
+      `la classe "${c}" è nel codice ma non nel CSS: tutte le sue regole verrebbero ignorate`);
+  }
+});
+
+test('la foto del personaggio è grande, non una figurina', () => {
+  // Dalla foto del 10/10/2026: il riquadro era 132×168 px e sul telefono il
+  // personaggio era una macchietta. La foto è alta e stretta, quindi si dà la
+  // larghezza e si lascia che l'altezza la decida l'immagine.
+  const i = css.indexOf('.personaggio-scena-grafica {');
+  const blocco = css.slice(i, css.indexOf('}', i));
+  assert.doesNotMatch(blocco, /\bheight:\s*\d+px/,
+    'l\'altezza non va fissata in pixel: si lascia all\'aspect-ratio, altrimenti la '
+    + 'foto viene schiacciata o tagliata');
+  assert.match(blocco, /aspect-ratio/, 'deve dire le proporzioni della foto');
+  assert.match(blocco, /width:\s*clamp\(/,
+    'e la larghezza deve crescere con lo schermo, non essere fissa');
+  // e la foto non deve essere spenta
+  const r = css.slice(css.indexOf('.personaggio-ritratto'));
+  const b = r.slice(0, r.indexOf('}'));
+  assert.doesNotMatch(b, /opacity:\s*0?\.[0-6]\d*;/,
+    'la foto non deve essere trasparente: è il personaggio, non uno sfondo');
+});
+
+test('la foto compare solo quando la classe è scelta', () => {
+  // Con la classe scelta la foto È il personaggio. Senza, non c'è nessun
+  // personaggio da fotografare: si vede il disegno a pezzi, che dice "non esiste
+  // ancora". Le due insieme sarebbero state un omino di bastoni sopra una foto.
+  assert.match(app, /if \(classeScelta\)/, 'la scelta della classe decide cosa si vede');
+  assert.match(app, /personaggio-ritratto/, 'la foto c\'è');
+  assert.match(app, /persono-ologramma/, 'il disegno c\'è');
+  const i = app.indexOf('if (classeScelta)');
+  const ramo = app.slice(i, i + 900);
+  assert.match(ramo, /else \{[\s\S]{0,300}persono-ologramma/,
+    'e il disegno sta nel ramo opposto: non insieme alla foto');
 });
 
 test('i pezzi sbloccati restano distinguibili anche come ologramma', () => {

@@ -4426,27 +4426,33 @@ function bloccoPersonaggio(profilo, st) {
     class: 'personaggio-scena-grafica personaggio personaggio-' + classeId,
     aria: { label: `Personaggio ${rpg.classe ? rpg.classe.nome : 'senza classe'}, livello ${rpg.livello}, ${indosano.length} armature su ${rpg.premi.length}` },
   });
-  // LA FOTO DELLA CLASSE.
+  // LA FOTO DELLA CLASSE È IL PERSONAGGIO.
   //
   // Ste (10/10/2026): "se scegli il berserker devi mettere che il tuo personaggio è
-  // il berserker trasportando la foto che ti ho mandato nell'app". Le tre figure
-  // vengono da img/personaggi/, tagliate dalla scheda che mi ha mandato.
+  // il berserker trasportando la foto che ti ho mandato nell'app".
   //
-  // La foto sostituisce il disegno olografico SOLO quando la classe è già stata
-  // scelta: se non hai scelto, il disegno a pezzi dice "manchi tre pezzi" meglio di
-  // una figura che non è ancora la tua. E il ritratto non copre i pezzi: si vede
-  // accanto, e la scena resta quella che si riempie.
-  const ritratto = document.createElement('img');
-  ritratto.className = 'personaggio-ritratto';
-  ritratto.src = 'img/personaggi/' + classeId + '.png';
-  ritratto.alt = '';
-  ritratto.loading = 'lazy';
-  ritratto.decoding = 'async';
-  ritratto.width = 226;
-  ritratto.height = 540;
-  grafica.appendChild(ritratto);
-  grafica.appendChild(el('div', { class: 'persono-ologramma' }));
-  grafica.lastChild.innerHTML = personaggioSvg({ classe: classeId, sbloccati: idsIndossati });
+  // La foto viene dalle tre schede in Downloads/rpg.png, tagliate in
+  // img/personaggi/. È il personaggio vero, quindi sta DAVANTI e grande.
+  //
+  // Il disegno olografico si vede SOLO quando non hai ancora scelto la classe: lì
+  // dice "il tuo personaggio non esiste ancora", che è vero. Con la classe scelta
+  // sarebbe un omino di bastoni copritovi addosso una foto vera, e cioè il peggio
+  // dei due.
+  const classeScelta = !!(rpg.classe && rpg.classe.id);
+  if (classeScelta) {
+    const ritratto = el('img', {
+      class: 'personaggio-ritratto',
+      src: 'img/personaggi/' + classeId + '.png',
+      alt: `${rpg.classe.nome}: il tuo personaggio`,
+      loading: 'lazy',
+      decoding: 'async',
+    });
+    grafica.appendChild(ritratto);
+  } else {
+    const attesa = el('div', { class: 'persono-ologramma' });
+    attesa.innerHTML = personaggioSvg({ classe: classeId, sbloccati: idsIndossati });
+    grafica.appendChild(attesa);
+  }
   scena.appendChild(grafica);
   scena.appendChild(el('div', { class: 'personaggio-dati' }, [
     el('strong', { testo: (rpg.classe ? rpg.classe.nome : 'Scegli una classe') }),
