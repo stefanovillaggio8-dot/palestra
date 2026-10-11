@@ -279,7 +279,14 @@ export const GIORNI = [
       { id: 'es-3-5', esercizio_id: 'ex-single-leg-press', serie: [s(17, 8), s(17, 8)], opzionale: false, nota: '' },
       { id: 'es-3-6', esercizio_id: 'ex-one-arm-preacher-curl', serie: [s(18, 6), s(18, 5), s(18, 5)], opzionale: false, nota: '' },
       { id: 'es-3-7', esercizio_id: 'ex-bodyweight-overhead-tricep', serie: [conAss(28, 6), conAss(28, 6)], opzionale: false, nota: '' },
-      { id: 'es-3-8', esercizio_id: 'ex-one-arm-cable-reverse-fly', serie: [s(25, 9), s(25, 9), s(25, 9)], opzionale: false, nota: '' },
+      // Ste (10/10/2026): "One Arm Cable Fly è veramente così tanto 28kg alla doppia
+// carrucola".
+//
+// Sul carrello segna 28, ma alla doppia carrucola quello che SENTE sono 14: il
+// dimezzamento lo fa `pesoReale`, una volta sola, e la scala del cavo non lo
+// tocca (vedi il commento in scala-esercizi.js: il riferimento è già nel numero
+// che il confronto usa).
+{ id: 'es-3-8', esercizio_id: 'ex-one-arm-cable-reverse-fly', serie: [s(28, 9), s(28, 9), s(28, 9)], opzionale: false, nota: '' },
     ],
   },
   {
