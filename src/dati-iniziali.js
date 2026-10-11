@@ -213,7 +213,19 @@ export const ESERCIZI = [
     // fattore due.
     attrezzatura: C.MACCHINA_STACK, foto: 'img/esercizi/seated-cable-row.png', tipo: 'standard', nota_permanente: 'Il coso nero e grigio.' },
   { id: 'ex-chest-supported-shrug', nome: 'Chest Supported Dumbbell Shrug', gruppo: 'Shrug', convenzione: C.PER_MANUBRIO, foto: 'img/esercizi/chest-supported-dumbbell-shrug.png', tipo: 'standard', nota_permanente: '54 gradi.' },
-  { id: 'ex-sled-press-calf-raise', nome: 'Sled Press Calf Raise', gruppo: 'Calf Raise', attrezzatura: C.MACCHINA_STACK, convenzione: C.MACCHINA, foto: 'img/esercizi/sled-press-calf-raise.png', tipo: 'standard', nota_permanente: 'Monogamba, pressa orizzontale.' },
+  // Ste (10/10/2026): "polpacci lo faccio monogamba e non li metto io i pesi".
+//
+// "Non li metto io i pesi" vuol dire che la macchina ha la linguetta, quindi
+// attrezzatura MACCHINA_STACK: era già giusta.
+//
+// "Monogamba" invece era scritto solo nella nota e NON nei dati: la convenzione
+// era MACCHINA, che vuol dire che il numero vale per le due gambe insieme.
+// Adesso e' PER_GAMBA come la single leg press, che fa la stessa cosa.
+//
+// Il peso non cambia: PER_GAMBA nel moltiplicatore vale 1 come tutto il resto
+// (vedi PER_CORPO in rank-config.js), serve solo a far scrivere "KG PER GAMBA"
+// sopra il campo, così il numero non è più ambiguo.
+{ id: 'ex-sled-press-calf-raise', nome: 'Sled Press Calf Raise', gruppo: 'Calf Raise', attrezzatura: C.MACCHINA_STACK, convenzione: C.PER_GAMBA, foto: 'img/esercizi/sled-press-calf-raise.png', tipo: 'standard', nota_permanente: 'Monogamba, pressa orizzontale.' },
   { id: 'ex-single-leg-press', nome: 'Single Leg Press', gruppo: 'Leg Press', convenzione: C.PER_GAMBA, attrezzatura: C.MACCHINA_STACK, foto: 'img/esercizi/single-leg-press.png', tipo: 'standard', nota_permanente: 'Obliqua, altrimenti lavorano due gambe. 17 kg per gamba (prima facevo la leg press normale con 100 kg per lato).' },
   { id: 'ex-one-arm-preacher-curl', nome: 'One Arm Dumbbell Preacher Curl', gruppo: 'Curl bilanciere', convenzione: C.PER_MANUBRIO, foto: 'img/esercizi/one-arm-dumbbell-preacher-curl.png', tipo: 'standard', nota_permanente: '' },
   { id: 'ex-bodyweight-overhead-tricep', nome: 'Bodyweight Overhead Tricep Extension', gruppo: 'Overhead Tricep Extension', convenzione: C.ASSISTENZA, foto: 'img/esercizi/bodyweight-overhead-tricep-ext.png', tipo: 'assistente', nota_permanente: 'Al cavo, altezza sopra il culo. Il numero e\' il peso di assistenza che aggiungo.' },

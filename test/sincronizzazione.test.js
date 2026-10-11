@@ -171,7 +171,14 @@ test('31. il catalogo rimette i tre campi a ogni avvio, anche se il database li 
   );
   assert.deepEqual(conAltro, [], 'il catalogo non dichiara la carrucola: non si cancella');
 
-  assert.deepEqual([...CAMPI_CARICO].sort(), ['attrezzatura', 'bracciaIndipendenti', 'carrucola']);
+  // Ste (10/10/2026): `convenzione` è stata aggiunta qui per i polpacci. Lui li fa
+  // MONOGAMBA, ma la correzione stava solo nel catalogo: la tabella `esercizi` non
+  // ha la colonna fra quelle che si rileggono, quindi sul suo telefono l'esercizio
+  // restava `macchina` e la correzione non arrivava a nessuno.
+  assert.deepEqual(
+    [...CAMPI_CARICO].sort(),
+    ['attrezzatura', 'bracciaIndipendenti', 'carrucola', 'convenzione'],
+  );
 });
 
 test('32. una riga remota SENZA quei campi non cancella quelli locali', () => {

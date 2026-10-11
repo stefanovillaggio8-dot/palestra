@@ -138,7 +138,21 @@ export function applicaRemote(locale, remoto) {
  * domani potrebbero essere cinque, e il punto del fix È che la lista sia il posto
  * dove si guarda.
  */
-export const CAMPI_CARICO = ['carrucola', 'attrezzatura', 'bracciaIndipendenti'];
+// Ste (10/10/2026): la `convenzione` è stata aggiunta qui per colpa dei polpacci.
+//
+// Lui fa il calf raise MONOGAMBA, e la sua nota lo diceva da sempre, ma nei DATI la
+// convenzione era ancora `macchina`: cioè l'app credeva che il numero valesse per le
+// due gambe insieme e scriveva "KG" sopra il campo invece di "KG PER GAMBA".
+//
+// Il catalogo era già corretto e i test passavano, ma il fix non arrivava a lui: la
+// tabella `esercizi` non ha la colonna `convenzione` fra quelle che si rileggono dal
+// catalogo, quindi sul suo telefono l'esercizio restava come prima. Un campo che c'è
+// in `ESERCIZI`, che l'app usa per contare il carico, e che non è in questa lista è un
+// buco che aspetta solo che qualcuno se ne accorga.
+//
+// Ordine: prima quelli che c'erano, poi `convenzione`. La lista si legge come una
+// frase, quindi i campi nuovi vanno in fondo e non in mezzo.
+export const CAMPI_CARICO = ['carrucola', 'attrezzatura', 'bracciaIndipendenti', 'convenzione'];
 
 /**
  * Rimette i tre campi dal catalogo, per ogni esercizio che li perse.
