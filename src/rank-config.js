@@ -611,6 +611,17 @@ export const RIFERIMENTO_DEFAULT = {
   [MISURE.KG_TEMPO]: 120,
 };
 
+// Il riferimento degli ESERCIZI CON I ZAVORRI.
+//
+// Non è "tuo corpo più i zavorri" scritto da qualche parte: è il peso da cui parte
+// la scala, e serve a un esercizio che non ha ancora un numero. 80 kg è il peso di
+// una persona che fa trazioni con i zavorri, quindi il suo livello di partenza è
+// quello di chi tira il proprio peso più qualcosa.
+//
+// Non si prende il peso di adesso: se la scala cambiasse ogni volta che ti pesi, il
+// Rank cambierebbe da solo e non ci sarebbe più nessun primato da battere.
+export const RIFERIMENTO_ZAVORRI_DEFAULT = 80;
+
 /**
  * Quanto vale 1 kg di assistenza, in ripetizioni perse.
  * Serve per gli esercizi assistiti (trazioni, dip, push up con zavorra):
@@ -808,6 +819,11 @@ export function profiloEsercizio(esercizio, extra = {}) {
   const configurato = Object.assign({}, PROFILI[id] || {}, extra || {});
   const convenzione = (esercizio && esercizio.convenzione) || null;
   const assistito = convenzione === 'assistenza' || convenzione === 'corpo_libero';
+  // I ZAVORRI NON SONO ASSISTITI: sono il contrario esatto. L'assistenza ti REGGE e
+  // va contata al contrario, i zavorri ti SCHIACCIANO e si sommano al tuo corpo.
+  // Se qui finissero sotto `assistito`, le trazioni con i zavorri sarebbero contate
+  // come se la macchina ti aiutasse: il contrario del vero.
+  const conZavorri = convenzione === 'zavorri';
   const misura = configurato.misura
     || (esercizio && esercizio.misura)
     || (assistito ? MISURE.SOLO_REPS : MISURE.KG_REPS);
@@ -832,6 +848,19 @@ export function profiloEsercizio(esercizio, extra = {}) {
   let riferimento;
   if (scritto) {
     riferimento = Number(configurato.riferimento);
+  } else if (conZavorri) {
+    // I ZAVORRI: il numero che conta è "tuo corpo + zavorri", quindi il riferimento
+    // è un CARICO, non un numero di ripetizioni. Il riferimento parte da un peso di
+    // partenza (80 kg, quanto pesa di solito chi fa trazioni con i zavorri) e su
+    // quello viene costruita la scala.
+    //
+    // Non si prende il peso di adesso qui: la scala deve stare ferma nel tempo, o
+    // il Rank cambierebbe da solo quando ti pesi. Il peso vero lo aggiunge
+    // `punteggioSerie` al momento della serie, con il peso del giorno.
+    riferimento = Number(configurato.riferimentoCorpo) > 0
+      ? Number(configurato.riferimentoCorpo)
+      : RIFERIMENTO_ZAVORRI_DEFAULT;
+    if (!Number.isFinite(riferimento) || riferimento <= 0) riferimento = RIFERIMENTO_ZAVORRI_DEFAULT;
   } else if (misura === MISURE.SOLO_REPS) {
     // assistito: il riferimento sono le ripetizioni, e non dipendono dal peso
     riferimento = defaultRiferimentoPerMisura(misura);
@@ -874,6 +903,10 @@ export function profiloEsercizio(esercizio, extra = {}) {
     nome: (esercizio && esercizio.nome) || id,
     misura,
     assistito,
+    // I zavorri vanno tracciati come una cosa a sé. Non sono "assistito": l'assistenza
+    // va contata al contrario e i zavorri si sommano al corpo, e `punteggioSerie`
+    // decide in base a questo campo.
+    conZavorri,
     // La convenzione del carico viaggia dentro il profilo, e non solo con
     // l'esercizio: profiloPerPesoCorporeo ricalcola il riferimento da qui e,
     // senza questo campo, non saprebbe più se i kg che l'utente scrive sono di

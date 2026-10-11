@@ -9,7 +9,7 @@ import { el, svuota, campoNumero, campoTesto, bottone, chiediConferma, chiediTes
 import { graficoLinea, graficoBarre } from './grafici.js';
 import {
   formattaNumero, formattaPeso, formattaRipetizioni, formattaCronometro, formattaDurata,
-  ETICHETTE_CONVENZIONE, CONVENZIONI, convenzioneMisuraCarico, etichettaUnita, campoCarico,
+  ETICHETTE_CONVENZIONE, CONVENZIONI, convenzioneMisuraCarico, convenzioneConCorpo, etichettaUnita, campoCarico,
 } from './numeri.js';
 import { confrontaEsercizio, riassuntoEsercizio, NON_DISPONIBILE } from './confronto.js';
 import { prossimoOrdine, apriSeduta, nuovaSerie, seduteFinite, eFatta, commutaFatta, pulsa, segnaAspettoFatto, registra, REGISTRO, cambiaSerie, etichettaSpotterSerie, aspettaSalvataggi } from './sedute.js';
@@ -1523,8 +1523,21 @@ function rigaSerie(serie, numero, confronto, seduta, pesoRigaSorella = null) {
 
 // IL PESO. Sul cardio non lo disegno: vedi la spiegazione di `serieCardio` sopra.
   if (!serieCardio) {
+    // I ZAVORRI HANNO UN'ETICHETTA DIVERSA.
+    //
+    // Ste (10/10/2026): "nelle trazioni e dips non sono kg assistiti quelli che metto
+    // ma sono zavorrati. quindi quelli più anche quello mio corporeo di peso".
+    //
+    // Se sotto il campo ci fosse scritto solo "KG", sembrerebbe che 20 kg siano tutto:
+    // ma su una trazione con i zavorri stai spostando il tuo corpo PIÙ 20, e
+    // nasconderlo vuol dire guardare un numero che è metà della realtà.
+    const conZavorri = !!e && convenzioneConCorpo(e.convenzione);
+    const corpoOggi = pesoCorporeoOra();
+    const totaleConCorpo = conZavorri && corpoOggi !== null
+      ? corpoOggi + Number(serie[chiave] || 0)
+      : null;
     const peso = campoNumero(serie[chiave], {
-      etichetta: assistenza ? 'kg di assistenza' : 'kg',
+      etichetta: conZavorri ? 'kg di zavorri' : (assistenza ? 'kg di assistenza' : 'kg'),
       onCambio: conRitardo((v) => aggiornaSerie(serie, { [chiave]: numeroOppureNull(v) })),
       onInvalido: (v) => avviso('Non riesco a capire il numero "' + v + '". Il campo com\'era com\'era rimane com\'era.', { tipo: 'errore' }),
     });
@@ -1542,7 +1555,7 @@ function rigaSerie(serie, numero, confronto, seduta, pesoRigaSorella = null) {
     };
     const rigaPeso = el('div', { class: 'gruppo-peso' }, [
       peso,
-      el('span', { class: 'sotto-campo', testo: assistenza ? 'ASSISTENZA' : 'KG' }),
+      el('span', { class: 'sotto-campo', testo: conZavorri ? 'ZAVORRI' : (assistenza ? 'ASSISTENZA' : 'KG') }),
       pesoRigaSorella !== null && pesoRigaSorella !== undefined
         ? el('div', { class: 'passi-peso' }, [
           bottone('come sopra', {
@@ -1554,6 +1567,16 @@ function rigaSerie(serie, numero, confronto, seduta, pesoRigaSorella = null) {
         : null,
     ]);
     riga.appendChild(el('label', { class: 'campetto' }, [rigaPeso]));
+    if (conZavorri) {
+      // IL TOTALE CHE STAI SPOSTANDO. È la riga che dice la verità: il numero che
+      // hai scritto più il tuo corpo.
+      riga.appendChild(el('p', {
+        class: 'nota nota-piccola nota-zavorri',
+        testo: corpoOggi === null
+          ? 'Zavorri: sono i kg che metti SUL tuo corpo. Metti il tuo peso nel Profilo e l\'app aggiunge anche quello al conto.'
+          : `Zavorri: ${formattaNumero(Number(serie[chiave] || 0))} kg + i tuoi ${formattaNumero(corpoOggi)} kg = ${formattaNumero(totaleConCorpo)} kg che stai spostando.`,
+      }));
+    }
   }
 
 const rip = campoNumero(serie.ripetizioni, {

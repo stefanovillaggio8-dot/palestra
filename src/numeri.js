@@ -58,9 +58,33 @@ export const CONVENZIONI = {
   // dischi.
   BILANCIERE: 'bilanciere',
   ASSISTENZA: 'assistenza',
+  // I ZAVORRI.
+  //
+  // Ste (10/10/2026): "nelle trazioni e dips non sono kg assistiti quelli che metto
+  // ma sono zavorrati. quindi quelli più anche quello mio corporeo di peso".
+  //
+  // La differenza con l'assistenza non è una sfumatura, è il segno. I kg ASSISTITI
+  // sono quello che la macchina ti REGGE: più ne metti e meno fatica fai, quindi il
+  // conteggio va al contrario. I ZAVORRI sono il contrario esatto: sono un peso che
+  // ti schiaccia per terra, e più ne metti e più fatica fai.
+  //
+  // Sull'app i due casi finivano nello stesso campo e nello stesso conto, quindi
+  // chi scriveva i zavorri si trovava contata l'assistenza: le trazioni con 20 kg
+  // davano un punteggio come se la macchina ti avesse aiutato di 20 kg, cioè il
+  // contrario del vero.
+  //
+  // E il corpo conta. Su una trazione con 20 kg di zavorri stai spostando il tuo
+  // peso più 20: senza il corpo, il numero che l'app mostra è metà di quello che
+  // hai fatto davvero.
+  ZAVORRI: 'zavorri',
   CORPO_LIBERO: 'corpo_libero',
   ALTRO: 'altro',
 };
+
+/** Questo esercizio si misura con i kg che metti SOPRA il tuo corpo. */
+export function convenzioneConCorpo(conv) {
+  return conv === CONVENZIONI.ZAVORRI;
+}
 
 export const ETICHETTE_CONVENZIONE = {
   [CONVENZIONI.MACCHINA]: 'kg piastre macchina',
@@ -72,7 +96,11 @@ export const ETICHETTE_CONVENZIONE = {
   [CONVENZIONI.PER_GAMBA]: 'kg per gamba',
   [CONVENZIONI.PER_BRACCIO]: 'kg per braccio (totale = doppio)',
   [CONVENZIONI.BILANCIERE]: 'kg bilanciere',
-  [CONVENZIONI.ASSISTENZA]: 'kg di assistenza (corpo libero)',
+  [CONVENZIONI.ASSISTENZA]: 'kg di assistenza (la macchina ti aiuta)',
+  // L'etichetta dei zavorri dice due cose che servono entrambe: il numero che
+  // scrivi e il fatto che l'app aggiunge il tuo corpo. Se scrivi solo "kg", chi legge
+  // pensa che 20 kg siano tutto.
+  [CONVENZIONI.ZAVORRI]: 'kg di zavorri SOPRA il tuo corpo (trazioni, dips)',
   [CONVENZIONI.CORPO_LIBERO]: 'corpo libero',
   [CONVENZIONI.ALTRO]: 'altro',
 };

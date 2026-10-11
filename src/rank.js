@@ -89,6 +89,46 @@ export function punteggioSerie(serie, profilo) {
   const rip = numero(serie.ripetizioni);
   const assistenza = numero(serie.peso_assistenza);
 
+  // I ZAVORRI: IL TUO CORPO CONTA.
+  //
+  // Ste (10/10/2026): "nelle trazioni e dips non sono kg assistiti quelli che metto
+  // ma sono zavorrati. quindi quelli più anche quello mio corporeo di peso".
+  //
+  // Su una trazione con 20 kg di zavorri stai spostando il tuo peso PIÙ 20. Se
+  // l'app guarda solo i 20, guarda metà di quello che hai fatto davvero, e il Rank è
+  // fuori di mezzo.
+  //
+  // Il peso del corpo è quello del GIORNO in cui hai fatto la serie (`peso_corpo`),
+  // non quello di adesso: se ti sei pesato dopo, la prestazione di tre mesi fa deve
+  // restare com'era. È la stessa regola che usa già il resto del file.
+  if (p.convenzione === 'zavorri') {
+    const aggiunti = peso;
+    // IL PESO È QUELLO DELLA SERIE, non quello del profilo.
+    //
+    // Il profilo porta il peso di ADESSO (passa da `performanceEsercizio`, che
+    // riceve il peso attuale), ma in ogni serie c'è anche `peso_corpo`: il peso che
+    // avevi il giorno in cui l'hai fatta. Se si usa quello del profilo, un record di
+    // tre mesi fa cambia da solo il giorno in cui ti pesi di nuovo, e i record non
+    // sono più record di niente.
+    //
+    // `pesoPerSerie` fa esattamente questa scelta e la fa già per il resto del file:
+    // si riusa invece di riscriverla, così i due posti non possono divergere.
+    const corpo = pesoPerSerie(serie, p.pesoCorporeo);
+    if (aggiunti === null || aggiunti <= 0) {
+      return { ...vuoto, motivo: 'mancano i kg di zavorri' };
+    }
+    if (rip === null || rip <= 0) return { ...vuoto, motivo: 'mancano le ripetizioni' };
+    const totale = corpo === null ? aggiunti : corpo + aggiunti;
+    const stimaZ = stimaMassimo(totale, rip);
+    if (stimaZ === null) return { ...vuoto, motivo: 'mancano i kg o le ripetizioni' };
+    return {
+      valido: true,
+      punteggio: stimaZ,
+      testo: `${aggiunti} kg di zavorri${corpo === null ? '' : ` + ${corpo} kg del tuo corpo`} x ${rip} = ${totale} kg (massimale ${stimaZ} kg)`,
+      tipo: 'stima',
+    };
+  }
+
   if (p.misura === M.KG_REPS) {
     // Ste (04/10/2026): "deve capire che sono 35 kg per braccio per chest press
     // di petto, lo sa questo no?"
