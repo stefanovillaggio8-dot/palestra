@@ -109,7 +109,7 @@ test('c\'è un bottone che mostra un\'animazione vera', () => {
   // Da fuori non si può capire se il problema è il browser, la copia vecchia della
   // pagina, o il fatto che le animazioni dell'app scattano solo quando tocchi
   // qualcosa e lui stava guardando una schermata ferma. Serve qualcosa che si
-  // muove quando lo chiedi, senza doverlo indoviare.
+  // muove quando lo chiedi, senza doverlo indovinare.
   assert.ok(app.includes('PROVA ANIMAZIONE'), 'il bottone c\'è');
   assert.ok(css.includes('.prova-pallina.in-corso'), 'e muove qualcosa');
   assert.ok(css.includes('@keyframes prova-gira'), 'una rotazione');
@@ -117,6 +117,32 @@ test('c\'è un bottone che mostra un\'animazione vera', () => {
   // due animazioni diverse: se il browser ne ignora una, si vede lo stesso
   assert.ok(/animation:[^;]*prova-gira[^;]*prova-pulse/.test(css),
     'le due devono partire insieme');
+});
+
+test('il bottone della prova viene davvero aggiunto a schermo', () => {
+  // Il bug vero di Ste: "non ce ne sono palline".
+  //
+  // Il bottone veniva costruito con `bottone('PROVA ANIMAZIONE', {...})` e il
+  // risultato buttato via: non è mai finito nella pagina. La pallina c'era, ma non
+  // c'era il bottone per farla muovere, quindi sembrava che le animazioni non
+  // funzionassero.
+  //
+  // Il controllo è sul testo del codice, non sull'esecuzione: vale per tutti i
+  // bottone di questa schermata, non solo per quello della prova.
+  const schermata = app.slice(app.indexOf('function bloccoAnimazioni'));
+  const fine = schermata.indexOf('\nfunction vistaImpostazioni');
+  const corpo = fine > 0 ? schermata.slice(0, fine) : schermata;
+
+  // ogni bottone(...) deve finire dentro box.appendChild(...)
+  const chiamate = [...corpo.matchAll(/^\s*bottone\(/gm)];
+  for (const c of chiamate) {
+    const riga = corpo.slice(0, c.index).split('\n').pop();
+    assert.ok(/box\.appendChild\(bottone\(/.test(corpo.slice(Math.max(0, c.index - 20), c.index + 1)),
+      `un bottone costruito ma non aggiunto: "${riga.trim()}"`);
+  }
+  // e ci sono davvero i due bottoni che devono esserci
+  assert.ok(/box\.appendChild\(bottone\('PROVA ANIMAZIONE'/.test(corpo), 'manca il bottone della prova');
+  assert.ok(/rigaAggiorna\.appendChild\(bottone\('AGGIORNA ORA'/.test(corpo), 'manca il bottone aggiorna');
 });
 
 test('c\'è un modo per buttare via la copia vecchia', () => {

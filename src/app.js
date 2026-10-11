@@ -3020,7 +3020,15 @@ function bloccoAnimazioni() {
     pallina,
     el('span', { class: 'nota nota-piccola', testo: 'Premi: se la pallina si muove, le animazioni funzionano.' }),
   ]);
-  bottone('PROVA ANIMAZIONE', {
+  // IL BOTTONE DEVE ESSERE AGGIUNTO AL BOX.
+  //
+  // Qui c'era `bottone('PROVA ANIMAZIONE', {...})` senza `box.appendChild`: la
+  // funzione costruiva il bottone e buttava via il risultato. Il bottone non
+  // esisteva a schermo, e la pallina restava ferma per sempre: sembrava che le
+  // animazioni non funzionassero, ma il bottone per accenderle non c'era mai stato.
+  //
+  // È il motivo per cui qui il bottone si mette dentro il box e non da solo.
+  box.appendChild(bottone('PROVA ANIMAZIONE', {
     onClick: () => {
       // si riavvia l'animazione togliendo e rimettendo la classe: senza, un
       // secondo giro sulla stessa classe non riparte e sembra che non funzioni
@@ -3029,7 +3037,7 @@ function bloccoAnimazioni() {
       pallina.classList.add('in-corso');
     },
     classe: 'fantasma',
-  });
+  }));
   box.appendChild(prova);
 
   // LO STATO VERO, letto dal browser e non indovinato.
