@@ -111,12 +111,22 @@ export function campoTesto(valore, { onCambio, segnaposto, righe = 1, classe = '
   return t;
 }
 
-export function bottone(testo, { onClick, classe = '', tipo = 'button', disabilitato = false, figli = [] } = {}) {
+// `titolo` mette il testo che appare fermando il dito (o il mouse) sopra il
+  // bottone. Serve per i bottoni che hanno una parola corta e una spiegazione
+  // lunga: sul computer si vede al passaggio, sul telefono no (per quello la
+  // spiegazione deve stare anche scritta sotto, non solo nel title).
+export function bottone(testo, { onClick, classe = '', tipo = 'button', disabilitato = false, figli = [], titolo = '' } = {}) {
   return el('button', {
     type: tipo,
     class: ('bot ' + classe).trim(),
     onclick: onClick,
     disabled: disabilitato || false,
+    // `titolo` e non `title`: in questo progetto la chiave `titolo` è quella che
+    // `el` trasforma nell'attributo HTML `title`. Scrivendo `title` qui passerebbe
+    // per la chiave generica del fondo, che funziona, ma `titolo` è il nome che
+    // il resto del file usa e quello che i lettori si aspettano.
+    titolo: titolo || null,
+    aria: titolo ? { label: titolo } : null,
   }, testo ? [testo, ...(Array.isArray(figli) ? figli : [figli])] : (Array.isArray(figli) ? figli : [figli]));
 }
 

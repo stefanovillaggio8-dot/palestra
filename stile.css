@@ -1248,6 +1248,62 @@ body:has(.sfondo-dialogo) .avviso {
 .riga-parola-da-chiedere .parola { font-weight: 800; color: var(--giallo); }
 .riga-parola-da-chiedere .nota { flex: 1 1 120px; font-size: .74rem; }
 .riga-parola-da-chiedere .chip { font-size: .6rem; padding: 4px 7px; }
+
+/* LE SPIEGAZIONI DELLE QUATTRO PAROLE.
+ * Ste (10/10/2026), dalla foto: quattro bottoni, GRANDE / COMPOSTO / ISOLAMENTO /
+ * RIPETIZIONI, e nessuna spiegazione. Erano le parole che l'app usa per capire
+ * l'esercizio, quindi la domatica era "indovina": quattro bottoni tutti uguali.
+ *
+ * Il `title` del bottone aiuta sul computer, ma sul telefono non lo vedi. Quindi la
+ * spiegazione è scritta sotto, e le due righe hanno un compito diverso:
+ *  - la prima dice COSA VUOL DIRE la parola
+ *  - la seconda dice COME SI SCEGLIE, che è la parte che serve davvero
+ */
+.riga-parola-con-aiuto {
+  padding: 10px 0 4px;
+  border-top: 1px solid color-mix(in srgb, var(--bordo) 70%, transparent);
+}
+.aiuto-livelli { margin: 8px 0 2px; }
+.aiuto-livelli-titolo {
+  font-size: .72rem; text-transform: uppercase; letter-spacing: .06em;
+  color: var(--testo-2, #8b86a0); margin: 0 0 6px; font-weight: 700;
+}
+.aiuto-livello {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas: 'nome voce' 'vuoto come';
+  gap: 2px 10px;
+  margin: 0 0 8px;
+  font-size: .84rem;
+  line-height: 1.35;
+}
+.aiuto-livello strong {
+  grid-area: nome;
+  color: var(--giallo);
+  font-weight: 800;
+  font-size: .72rem;
+  letter-spacing: .04em;
+  white-space: nowrap;
+  padding-top: .15em;
+}
+.aiuto-livello > span { grid-area: voce; }
+/* La riga "come sceglierlo" è quella che ti fa premere il bottone giusto: sta in
+   grigio sotto, per essere letta dopo la prima e non insieme. */
+.aiuto-livello .aiuto-come {
+  grid-area: come;
+  opacity: .8;
+  font-size: .8rem;
+}
+/* su uno schermo stretto le tre righe vanno incolonnate: la colonna della parola
+   ruberebbe metà della riga e "RIPETIZIONI" non ci starebbe. */
+@media (max-width: 520px) {
+  .aiuto-livello {
+    grid-template-columns: 1fr;
+    grid-template-areas: 'nome' 'voce' 'come';
+    gap: 0;
+  }
+  .aiuto-livello .aiuto-come { margin-top: 2px; }
+}
 .livello-interrogativo { margin-top: 16px; }
 .livello-interrogativo > summary { cursor: pointer; list-style: none; font-size: .74rem; font-weight: 900; letter-spacing: .1em; color: var(--viola); }
 .livello-interrogativo > summary::-webkit-details-marker { display: none; }
@@ -1331,6 +1387,82 @@ body:has(.sfondo-dialogo) .avviso {
    l'armatura ecc... che si aggiorna automaticamente".
    Il personaggio cambia colore con la classe e le armature sbloccate si vedono
    addosso: così la schermata dice a che punto sei senza dover leggere i numeri. */
+/* IL PERSONAGGIO SVG.
+ *
+ * Ste (10/10/2026): "fai un personaggio tipo all'inizio nudo, che mano a mano che
+ * sblocchi le cose si riempe di cose... fai una bella grafica come hai fatto con
+ * l'ologramma nella dashboard".
+ *
+ * Un riquadro scuro con dentro un omino stilizzato, fatto di pezzi che si accendono.
+ * La classe ci mette dentro il colore (guerriero rosso, assassino viola, berserker
+ * verde), il resto è sempre lo stesso: è la CLASSE che cambia l'aspetto, non il
+ * numero di pezzi.
+ *
+ * Il corpo è sempre presente: all'inizio il personaggio è nudo, e si vede che è
+ * lì anche senza un premio. I premi si accendono sopra.
+ *
+ * L'ombra sotto i piedi sta sempre: è quella che fa capire che l'ominio è in
+ * piedi e non un disegno appeso. Senza, con il fondo scuro, sembra stampato. */
+.persono-scena-grafica {
+  position: relative;
+  flex: 0 0 auto;
+  width: 132px; height: 168px;
+  border-radius: 14px;
+  background:
+    radial-gradient(120% 90% at 50% 8%,
+      color-mix(in srgb, var(--tinta) 26%, transparent) 0%,
+      transparent 62%),
+    linear-gradient(180deg, var(--card-2), var(--nero-2, #100d18));
+  border: 1px solid var(--bordo);
+  overflow: hidden;
+  display: grid;
+  place-items: end center;
+}
+.persono-svg { width: 100%; height: 100%; display: block; }
+
+.persono-ombra {
+  position: absolute;
+  bottom: 12px; left: 50%; transform: translateX(-50%);
+  width: 62px; height: 9px;
+  background: radial-gradient(50% 50% at 50% 50%,
+    color-mix(in srgb, var(--tinta) 55%, transparent) 0%,
+    transparent 72%);
+}
+
+/* Il corpo e l'arma: contorni netti, riempimento scuro. Sono sempre accesi. */
+.persono-pezzo { fill: #171325; stroke: var(--tinta); stroke-width: 2; stroke-linejoin: round; }
+.persono-pezzo .pieno { fill: color-mix(in srgb, var(--tinta) 34%, #171325); }
+.persono-pezzo .tratto { fill: none; stroke: var(--tinta); stroke-width: 1.6; stroke-linecap: round; }
+.persono-pezzo .punto { fill: var(--tinta); }
+
+/* Un premio sbloccato: si accende con una breve dissolvenza, così si vede che è
+ * appena comparso invece di essere sempre stato lì. */
+.persono-premio {
+  opacity: 1;
+  animation: persona-si-accende .5s cubic-bezier(.2, .9, .3, 1) both;
+}
+@keyframes persona-si-accende {
+  from { opacity: 0; transform: translateY(-5px) scale(.97); }
+  to   { opacity: 1; transform: none; }
+}
+/* Il pezzo appena sbloccato pulsa una volta sola: è l'annuncio del traguardo. */
+.persono-premio-aperto { animation: persona-si-accende .5s cubic-bezier(.2, .9, .3, 1) both,
+                                    persona-pulse .9s ease-out .5s 1; }
+@keyframes persona-pulse {
+  0%   { filter: none; }
+  40%  { filter: brightness(1.7) drop-shadow(0 0 7px var(--tinta)); }
+  100% { filter: none; }
+}
+
+/* `persono-sempre` non ha regole proprie: è la marcatura che dice "questo pezzo non
+   è un premio, c'è da quando inizi". Sta qui perché un test controlla che ogni classe
+   usata dall'SVG esista davvero: una classe senza regola è unpezzo che si disegna
+   male e non si capisce perché. */
+.persono-sempre { }
+
+/* Il personaggio respira, come il resto delle cose vive. */
+.personaggio { animation: personaggio-respira 4s ease-in-out infinite; }
+
 .personaggio-scena {
   display: flex; align-items: center; gap: 14px;
   padding: 14px; margin-bottom: 10px;

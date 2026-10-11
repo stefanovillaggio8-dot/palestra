@@ -176,15 +176,43 @@ test('C14. il calendario sta nel Profilo e legge i giorni dal profilo', () => {
 // l'armatura ecc... che si aggiorna automaticamente e metti pure un pulsante che ti
 // spiega come funziona questo rpg".
 
+// Ste (10/10/2026): il personaggio era un quadrato con dentro due emoji (una spada e
+// un guanto). Ora è un disegno in src/personaggio-svg.js che si riempie pezzo per
+// pezzo, e la classe ci mette dentro il colore.
 test('P1. il personaggio cambia aspetto con la classe e porta le armature', () => {
   const per = corpo('bloccoPersonaggio');
-  assert.match(per, /class: 'personaggio personaggio-' \+ classeId/, 'cambia con la classe');
-  assert.match(per, /personaggio-arma persona-arma-alta/, 'e le armature si vedono addosso');
+  assert.match(per, /personaggio personaggio-' \+ classeId/, 'cambia con la classe');
   assert.match(per, /indosano = rpg\.premi\.filter\(\(p\) => p\.sbloccato\)/,
     'le armature cambiano quando le sblocchi');
+  // il disegno vero, non più le emoji: il riquadro si riempie con i pezzi sbloccati
+  assert.match(per, /personaggioSvg\(\{/, 'il personaggio è disegnato');
+  assert.match(per, /sbloccati: idsIndossati/, 'e riceve i premi sbloccati');
+  assert.doesNotMatch(per, /personaggio-testa/,
+    'e non è più fatto di emoji');
 });
 
-test('P2. c\'è il pulsante che spiega come funziona l\'RPG', () => {
+test('P2. le quattro parole sono spiegate, non solo scritte', () => {
+  // Ste (10/10/2026), dalla foto: quattro bottoni, GRANDE / COMPOSTO / ISOLAMENTO /
+  // RIPETIZIONI, e nessuna spiegazione. Erano le parole che l'app usa per capire
+  // l'esercizio, quindi la domatica era "indovina": quattro bottoni tutti uguali.
+  // i chip sono dentro `vistaProfilo`, non dentro una funzione tutta sua
+  const app = corpo('vistaProfilo');
+  for (const id of ['grande', 'composto', 'isolamento', 'assistito']) {
+    assert.match(app, new RegExp(id + ':'), `manca la spiegazione di "${id}"`);
+  }
+  // e ogni voce ha DUE righe: cosa vuol dire, e come si sceglie. La seconda è la
+  // parte che serve: se ci fosse solo la definizione, resterebbe tutto da indovinare.
+  assert.match(app, /SPIEGA_LIVELLO\s*=\s*\{/, 'le spiegazioni stanno in una tabella sola');
+  const blocco = app.slice(app.indexOf('SPIEGA_LIVELLO'));
+  const voci = [...blocco.matchAll(/(?:voce|come):/g)].map((m) => m[1]);
+  assert.equal(voci.length, 8, 'quattro voci per due righe ciascuna');
+  // e la spiegazione è anche scritta sotto, perché il title sul telefono non si vede
+  assert.match(app, /aiuto-livello/, 'la spiegazione compare sotto i bottoni');
+  assert.match(app, /aiuto-come/, 'e la riga "come sceglierlo" è separata');
+  assert.match(app, /titolo: `\$\{testo\}/, 'e sul computer si vede anche fermando il dito');
+});
+
+test('P3. c\'è il pulsante che spiega come funziona l\'RPG', () => {
   const per = corpo('bloccoPersonaggio');
   assert.match(per, /bottone\('Come funziona questo RPG\?'/, 'il pulsante c\'è');
   assert.match(per, /spiegazione\.hidden = !spiegazione\.hidden/, 'si apre e si chiude');

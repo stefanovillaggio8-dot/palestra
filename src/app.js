@@ -47,6 +47,7 @@ import {
   serveAggiornare, PESO_RIFERIMENTO,
 } from './peso-corporeo.js';
 import { avvisoPesoEsercizio } from './avviso-peso.js';
+import { personaggioSvg } from './personaggio-svg.js';
 
 // Il peso corporeo sta in una variabile semplice per non rileggerlo dal database
 // a ogni schermata: cambia raramente e il Rank lo usa spesso.
@@ -4383,19 +4384,34 @@ function bloccoPersonaggio(profilo, st) {
   const box = el('section', { class: 'blocco' });
   box.appendChild(el('h2', { testo: 'Il tuo personaggio' }));
 
-  // IL PERSONAGGIO. Un riquadro che cambia aspetto, non una foto: cambia il colore
-  // con la classe, e le armature sbloccate si vedono addosso.
+// IL PERSONAGGIO.
+  //
+  // Ste (10/10/2026), dalla foto: qui c'era un quadrato con dentro una spada e un
+  // guanto presi dal testo delle emoji. E la richiesta era precisa: "fai un
+  // personaggio tipo all'inizio nudo, che mano a mano che sblocchi le cose si riempie
+  // di cose. l'assassino ha in mano un coltello, il guerriero uno scudo e il berserker
+  // l'ascia. fai una bella grafica".
+  //
+  // Il disegno è in src/personaggio-svg.js: ogni parte è un pezzo con un nome, quindi
+  // si accende quando il premio è sbloccato, e la classe ci mette dentro il colore.
+  //
+  // `sbloccati` DEVE essere nell'ordine in cui sono arrivati, non in ordine alfabetico:
+  // se i pezzi si accendessero dal basso verso l'alto senza ordine, il personaggio
+  // sembrerebbe montarsi al contrario.
   const scena = el('div', { class: 'personaggio-scena' });
   const classeId = rpg.classe ? rpg.classe.id : 'nessuna';
   const indosano = rpg.premi.filter((p) => p.sbloccato);
-  scena.appendChild(el('div', {
-    class: 'personaggio personaggio-' + classeId,
+  const idsIndossati = indosano.map((p) => p.id);
+  // `personaggio personaggio-<classe>` va anche sul riquadro nuovo: sono due classi
+  // diverse che fanno due cose diverse. `personaggio-<classe>` è quella che dà il
+  // colore (guerriero oro, assassino viola, berserker verde) e senza quella il
+  // personaggio sarebbe tutto grigio. `personaggio` è quella che fa respirare.
+  const grafica = el('div', {
+    class: 'personaggio-scena-grafica personaggio personaggio-' + classeId,
     aria: { label: `Personaggio ${rpg.classe ? rpg.classe.nome : 'senza classe'}, livello ${rpg.livello}, ${indosano.length} armature su ${rpg.premi.length}` },
-  }, [
-    el('div', { class: 'personaggio-arma persona-arma-alta', testo: indosano[indosano.length - 1] ? indosano[indosano.length - 1].icona : '' }),
-    el('div', { class: 'personaggio-testa', testo: rpg.classe ? rpg.classe.icona : '❔' }),
-    el('div', { class: 'personaggio-arma persona-arma-bassa', testo: indosano[indosano.length - 2] ? indosano[indosano.length - 2].icona : '' }),
-  ]));
+  });
+  grafica.innerHTML = personaggioSvg({ classe: classeId, sbloccati: idsIndossati });
+  scena.appendChild(grafica);
   scena.appendChild(el('div', { class: 'personaggio-dati' }, [
     el('strong', { testo: (rpg.classe ? rpg.classe.nome : 'Scegli una classe') }),
     el('span', { class: 'nota', testo: `Livello ${rpg.livello} · ${indosano.length} di ${rpg.premi.length} armature` }),
@@ -5625,22 +5641,71 @@ async function vistaProfilo(zona) {
       el('h3', { testo: 'Parole che non conosco' }),
       el('p', { class: 'nota nota-piccola', testo: 'Non ti chiedo niente che già so: solo le parole che mi sfuggono. Rispondi una volta sola e non te lo chiedo più.' }),
     ]);
-    for (const voce of daChiedere) {
+    // LE QUATTRO PAROLE, CON LA LORO SPIEGAZIONE.
+  //
+  // Ste (10/10/2026), dalla foto: quattro bottoni senza spiegazione, GRANDE,
+  // COMPOSTO, ISOLAMENTO e RIPETIZIONI. Erano le parole che l'app usa per capire
+  // l'esercizio, e senza dire cosa volessero dire la domanda era equivalente a
+  // "indovina": quattro bottoni, tutti uguali, e nessuna pista su quale premere.
+  //
+  // Ogni voce ha due righe: cosa significa la parola e come si capisce quale
+  // scegliere. La seconda riga è la parte che serve davvero: se dovesse dire solo
+  // "movimento grosso", resterebbe tutto da indovinare.
+  const SPIEGA_LIVELLO = {
+    grande: {
+      voce: 'Un movimento grosso che chiede molta forza e molta tecnica insieme. '
+        + 'Se ti scappa di mano non è un peso che non hai ancora imparato.',
+      come: 'Lo fai per prime, con i pesi alti, e fa sudare.',
+    },
+    composto: {
+      voce: 'Un movimento che lavora più muscoli insieme: panca, squat, stacco, trazioni.',
+      come: 'Ti scaldano e ti fanno spendere calorie. Vengono per primi.',
+    },
+    isolamento: {
+      voce: 'Un movimento che lavora un muscolo solo, senza gli altri: curl, french press, leg extension.',
+      come: 'Viene dopo i composti, per dare una spinta a un muscolo solo.',
+    },
+    assistito: {
+      voce: 'Un esercizio che si conta in ripetizioni, non in kg: trazioni, dip, anche le macchine assistite.',
+      come: 'Non ci sono dischi da mettere: conta quante volte lo fai.',
+    },
+  };
+
+  for (const voce of daChiedere) {
       const riga = el('div', { class: 'riga-parola-da-chiedere' }, [
         el('span', { class: 'parola', testo: voce.parole.join(', ') }),
         el('span', { class: 'nota', testo: voce.nome }),
       ]);
       for (const [id, testo] of [['grande', 'GRANDE'], ['composto', 'COMPOSTO'], ['isolamento', 'ISOLAMENTO'], ['assistito', 'RIPETIZIONI']]) {
+        const spiegazione = SPIEGA_LIVELLO[id];
+        // il `title` sul bottone basta sui computer, ma sul telefono non lo vedi:
+        // senza un `title` Safari lo legge come stringa vuota. Per quello la
+        // spiegazione sta anche in un riquadro sotto i bottoni.
         riga.appendChild(bottone(testo, {
           onClick: async () => {
             for (const parola of voce.parole) await imparaParola(accountAttivo(), parola, id);
             avviso('Ok, imparato. Non te lo chiedo più.', { tipo: 'ok' });
             disegna();
           },
-          classe: 'chip' + (voce.livoloIndovinato === id ? ' attivo' : ''),
+          classe: 'chip' + (voce.livelloIndovinato === id ? ' attivo' : ''),
+          titolo: `${testo}. ${spiegazione.voce} Come sceglierlo: ${spiegazione.come}`,
         }));
       }
-      boxParole.appendChild(riga);
+      // LA SPIEGAZIONE VISTA. Qui sotto i quattro bottoni, perché sul telefono il
+      // `title` del bottone non si vede e la domatica resterebbe quella di prima.
+      const aiuto = el('div', { class: 'aiuto-livelli' }, [
+        el('p', { class: 'aiuto-livelli-titolo', testo: 'Cosa vuol dire ognuna' }),
+      ]);
+      for (const [id, testo] of [['grande', 'GRANDE'], ['composto', 'COMPOSTO'], ['isolamento', 'ISOLAMENTO'], ['assistito', 'RIPETIZIONI']]) {
+        const s = SPIEGA_LIVELLO[id];
+        aiuto.appendChild(el('p', { class: 'aiuto-livello' }, [
+          el('strong', { testo }),
+          el('span', { testo: s.voce }),
+          el('span', { class: 'aiuto-come', testo: 'Come sceglierlo: ' + s.come }),
+        ]));
+      }
+      const contenitore = el('div', { class: 'riga-parola-con-aiuto' }, [riga, aiuto]);
+      boxParole.appendChild(contenitore);
     }
     zona.appendChild(boxParole);
   }
