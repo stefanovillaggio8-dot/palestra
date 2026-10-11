@@ -388,7 +388,7 @@ assert.match(css, /@media \(prefers-reduced-motion: reduce\)/,
   // sono più entro 400 caratteri: la finestra si allarga, il blocco c'è sempre.
   // Si parte da `@media` e non dalla prima parola `prefers-reduced-motion`, che sta
   // nel commento qui sopra e non nel blocco vero.
-  const i = css.indexOf('@media (prefers-reduced-motion');
+  const i = css.indexOf('@media (prefers-reduced-motion: reduce)');
   const blocco = css.slice(i, i + 700);
   assert.match(blocco, /animation-duration/, 'e azzera le animazioni');
   assert.match(blocco, /transition-duration/, 'e le transizioni');

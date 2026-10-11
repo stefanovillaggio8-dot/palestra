@@ -1387,6 +1387,31 @@ body:has(.sfondo-dialogo) .avviso {
    l'armatura ecc... che si aggiorna automaticamente".
    Il personaggio cambia colore con la classe e le armature sbloccate si vedono
    addosso: così la schermata dice a che punto sei senza dover leggere i numeri. */
+/* LA VERSIONE DELL'APP, IN BASSO A DESTRA.
+ *
+ * Ste (10/10/2026): "ma non è cambiato nulla", quattro volte in due giorni, sempre
+ * perché il telefono aveva la copia di prima. Un numero qui evita di rifare la
+ * conversazione: se dice 105 e la cosa non è cambiata, il problema è la cache.
+ *
+ * Piccolo e spento: si guarda solo se lo cerchi, ma c'è. */
+.versione-app {
+  position: fixed;
+  right: 8px;
+  bottom: calc(58px + env(safe-area-inset-bottom));
+  z-index: 19;
+  font-size: .62rem;
+  letter-spacing: .06em;
+  color: var(--testo-2, #8b86a0);
+  opacity: .38;
+  pointer-events: none;
+  user-select: none;
+}
+@media (max-width: 520px) { .versione-app { right: 6px; font-size: .58rem; } }
+@media (prefers-reduced-motion: no-preference) {
+  .versione-app { transition: opacity .2s; }
+  .versione-app:hover { opacity: .8; }
+}
+
 /* IL PERSONAGGIO, PROIETTATO COME L'OLOGRAMMA DELLA DASHBOARD.
  *
  * Ste (10/10/2026): "fa cacare l'ologramma così".
@@ -1534,11 +1559,10 @@ body:has(.sfondo-dialogo) .avviso {
 .personaggio-assassino { --tinta: var(--viola); }
 .personaggio-berserker { --tinta: var(--rosso); }
 .personaggio-nessuna { --tinta: var(--bordo); }
-.personaggio-testa { font-size: 2rem; line-height: 1; }
-/* le due armature: quella sbloccata da piu' tempo in alto, la penultima in basso */
-.personaggio-arma { position: absolute; font-size: .9rem; line-height: 1; opacity: .9; }
-.persona-arma-alta { top: 4px; right: 5px; }
-.persona-arma-bassa { bottom: 5px; left: 5px; }
+/* Il personaggio adesso è un disegno in src/personaggio-svg.js: le regole di prima
+   (.personaggio-testa, .personaggio-arma, .persona-arma-alta, .persona-arma-bassa)
+   erano per le emoji del quadratino e sono state tolte. Restano solo quelle che
+   servono ancora: il colore della classe e i dati accanto al disegno. */
 .personaggio-dati { display: flex; flex-direction: column; gap: 3px; }
 .spiegazione {
   margin-top: 10px; padding: 12px 14px;

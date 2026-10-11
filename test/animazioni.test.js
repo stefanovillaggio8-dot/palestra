@@ -30,7 +30,7 @@ test('il blocco che azzera le animazioni c\'è ancora', () => {
 test('ma non quando l\'utente ha scelto "sempre accese"', () => {
   // Il punto di tutta la modifica. Senza questo, l'app non poteva superare una
   // scelta di Windows, e per Ste l'app restava senza animazioni per sempre.
-  const i = css.indexOf('@media (prefers-reduced-motion');
+  const i = css.indexOf('@media (prefers-reduced-motion: reduce)');
   const blocco = css.slice(i, i + 700);
   assert.match(blocco, /animation-duration/, 'azzera le animazioni');
   assert.match(blocco, /transition-duration/, 'e le transizioni');
@@ -179,7 +179,7 @@ test('il pannello di diagnostica non può rompere l\'app', () => {
 test('il blocco reduced-motion sta in fondo al CSS', () => {
   // Se sta in mezzo, una regola dopo con la stessa importanza lo annulla e le
   // animazioni si spengono anche quando Ste ha scelto "sempre accese".
-  const i = css.indexOf('@media (prefers-reduced-motion');
+  const i = css.indexOf('@media (prefers-reduced-motion: reduce)');
   const dentro = css.slice(i);
   assert.ok(!/@keyframes/.test(dentro),
     'non deve stare niente dopo: deve essere l\'ultima regola del file');
@@ -304,6 +304,23 @@ test('la respirazione non ruba l\'animazione del numero che è cambiato', () => 
   // e il numero deve poter pulsare da solo
   assert.match(css, /\.numero-cambiado|\.numero-cambiato\s*\{[^}]*numero-pulse/,
     'il numero deve poter pulsare quando il valore cambia');
+});
+
+test('la versione dell\'app si vede sempre', () => {
+  // Ste (10/10/2026): "ma non è cambiato nulla", quattro volte in due giorni.
+  //
+  // In tutti e quattro i casi la copia giusta era online e il telefono mostrava
+  // quella di prima. Senza un numero a vista non c'è modo di accorgersene e ogni
+  // volta si rifà la stessa conversazione.
+  assert.match(app, /versione-app/, 'il numero della versione deve esistere');
+  assert.match(app, /window\.PALESTRA_VERSIONE/,
+    'e deve prendere la versione vera, non una scritta a mano: altrimenti dice sempre '
+    + 'la stessa cosa e non serve a niente');
+  assert.match(css, /\.versione-app\s*\{/, 'e deve avere uno stile, altrimenti non si vede');
+  assert.match(css, /\.versione-app\s*\{[\s\S]*?position:\s*fixed/,
+    'deve stare fisso, così si vede anche scorrendo');
+  assert.match(css, /\.versione-app\s*\{[\s\S]*?pointer-events:\s*none/,
+    'e non deve rubare i tocchi al menu sotto');
 });
 
 test('una sola animazione si prende la scena', () => {

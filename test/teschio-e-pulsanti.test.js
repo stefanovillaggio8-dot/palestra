@@ -223,7 +223,7 @@ assert.match(css, /@media \(prefers-reduced-motion: reduce\)/, 'il blocco c\'è'
   // selettore `html:not(.animazioni-sempre)` davanti, quindi la finestra si allarga.
   // Si parte da `@media` e non dalla prima parola `prefers-reduced-motion`, che sta
   // nel commento qui sopra e non nel blocco vero.
-  const blocco = css.slice(css.indexOf('@media (prefers-reduced-motion'), css.indexOf('@media (prefers-reduced-motion') + 700);
+  const blocco = css.slice(css.indexOf('@media (prefers-reduced-motion: reduce)'), css.indexOf('@media (prefers-reduced-motion: reduce)') + 700);
 assert.match(blocco, /animation-duration/, 'e azzera le animazioni');
   assert.match(blocco, /transition-duration/, 'e le transizioni');
   assert.match(blocco, /html:not\(.animazioni-sempre\)/,

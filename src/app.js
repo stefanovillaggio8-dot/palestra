@@ -780,6 +780,17 @@ const resto = el('div', { class: 'basso' }, [
       voce('/casa', 'Casa', '/casa'),
       voce('/profilo', 'Profilo', '/profilo'),
     ]),
+    // LA VERSIONE, SEMPRE VISIBILE.
+    //
+    // Ste (10/10/2026): "ma non è cambiato nulla", e quattro volte in due giorni.
+    // In tutti e quattro i casi la copia giusta era online e il telefono mostrava
+    // quella di prima: senza un numero a vista non c'è modo di accorgersene, e ogni
+    // volta si rifaceva la stessa conversazione.
+    //
+    // È un numero piccolo e spento nell'angolo, sopra la barra: non distrae e basta
+    // guardarlo. Se dice 105 e tu vedi il personaggio di prima, il problema è la copia
+    // vecchia e lo dice subito.
+    el('div', { class: 'versione-app', testo: 'v' + (window.PALESTRA_VERSIONE || '?') }),
   ]);
   return resto;
 }
