@@ -77,13 +77,13 @@ test('R10e. le 18 immagini esistono tutte davvero', () => {
 });
 
 test('R10f. il percorso dell\'immagine e\' pulito e non esce dalla cartella', () => {
-  assert.equal(percorsoStato('guerriero', 0), 'img/personaggi/stati/guerriero-0.png');
-  assert.equal(percorsoStato('assassino', 5), 'img/personaggi/stati/assassino-5.png');
+  assert.equal(percorsoStato('guerriero', 0), 'img/personaggi/stati/guerriero-0.webp');
+  assert.equal(percorsoStato('assassino', 5), 'img/personaggi/stati/assassino-5.webp');
   // I numeri strani non devono costruire percorsi assurdi: `calcolaAvatar` non
   // sbaglia, ma un valore letto da un profilo salvato male puo' arrivare.
-  assert.equal(percorsoStato('guerriero', -3), 'img/personaggi/stati/guerriero-0.png');
-  assert.equal(percorsoStato('guerriero', 99), 'img/personaggi/stati/guerriero-5.png');
-  assert.equal(percorsoStato('guerriero', 'pippo'), 'img/personaggi/stati/guerriero-0.png');
+  assert.equal(percorsoStato('guerriero', -3), 'img/personaggi/stati/guerriero-0.webp');
+  assert.equal(percorsoStato('guerriero', 99), 'img/personaggi/stati/guerriero-5.webp');
+  assert.equal(percorsoStato('guerriero', 'pippo'), 'img/personaggi/stati/guerriero-0.webp');
 });
 
 test('R10g. senza premi la lista vuota non fa crashare', () => {
@@ -174,3 +174,51 @@ test('R10k. la foto non viene tagliata in basso', async () => {
   assert.match(img[1], /height:\s*auto/, 'la foto deve avere height: auto, cosi\' l\'altezza la decide lei');
   assert.doesNotMatch(img[1], /max-height/, 'sulla foto non deve esserci max-height: taglierebbe la figura');
 });
+test('R10l. le immagini sono piu\' grandi di quanto le vedeva il telefono', async () => {
+  // Ste (11/10/2026): "non puoi aumentargli la qualita'?".
+  //
+  // La griglia di partenza era piccola (190x170 per personaggio), e la foto grande
+  // si vedeva a circa 400 px: il browser allungava l'immagine di due volte e la
+  // faceva sembrare sfocata. Le immagini sono state ingrandite di 3 volte a mano.
+  //
+  // Il controllo e' sui pixel, perche' e' li che dicono se l'immagine e' grande
+  // abbastanza: un test che guardasse solo il nome del file passerebbe anche con
+  // un'immagine minuscola.
+  const { readdir } = await import('node:fs/promises');
+  const cartella = join(RADICE, 'img', 'personaggi', 'stati');
+  const nomi = (await readdir(cartella)).filter((n) => n.endsWith('.webp'));
+  assert.equal(nomi.length, 18, 'devono esserci 18 immagini webp');
+
+  const MINIMO = 400; // la foto grande arriva a 400 px: sotto, si allunga da sola
+  for (const n of nomi) {
+    const p = join(cartella, n);
+    const b = await readFile(p);
+    // WebP lossless e' "VP8L", con compressione lossy e' "VP8 ". Il primo byte
+    // del chunk e' gia' la firma, quindi basta guardare i quattro caratteri.
+    const firma = b.toString('latin1', 0, 4);
+    assert.ok(firma === 'RIFF', `${n}: non sembra un file WebP valido`);
+    const bmp = await readFile(p).then((buf) => buf);
+    assert.ok(bmp.length > 4000, `${n}: troppo piccola (${bmp.length} byte), sembra non ingrandita`);
+  }
+
+  // E la larghezza vera, letta dall'intestazione WebP (VP8X / VP8 / VP8L).
+  const larghezze = [];
+  for (const n of nomi) {
+    larghezze.push(larghezzaWebp(await readFile(join(cartella, n))));
+  }
+  const piccola = Math.min(...larghezze);
+  assert.ok(piccola >= MINIMO,
+    `le immagini devono essere larghe almeno ${MINIMO} px, la piu\' piccola e\' ${piccola}`);
+});
+
+/** La larghezza in pixel di un file WebP, letta dalla sua intestazione. */
+function larghezzaWebp(buf) {
+  const tipo = buf.toString('latin1', 12, 16);
+  if (tipo === 'VP8X') return 1 + buf.readUIntLE(24, 3);
+  if (tipo === 'VP8 ') return buf.readUInt16LE(26) & 0x3fff;
+  if (tipo === 'VP8L') {
+    const b = buf.readUInt32LE(21);
+    return (b & 0x3fff) + 1;
+  }
+  throw new Error('formato WebP non riconosciuto: ' + tipo);
+}

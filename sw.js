@@ -9,7 +9,7 @@
 // e il test I3 che sia quello dell'ultimo commit, altrimenti si alza la cache e si
 // lascia scritto il numero vecchio. E' successo due volte: nella v54 avevo alzato
 // solo questo file, e dopo la v55 avevo smesso di alzarlo del tutto.
-const VERSIONE = 'palestra-v115';
+const VERSIONE = 'palestra-v116';
 
 const FILE = [
   './',
@@ -24,7 +24,7 @@ const FILE = [
   // Il numero deve essere uguale a quello di `stile.css?v=` in index.html e a
   // `window.PALESTRA_VERSIONE`: se i tre non coincidono, l'app carica un foglio di
   // stile e dice un altro numero.
-  './stile.css?v=115',
+  './stile.css?v=116',
 './manifest.webmanifest',
   './manifest-p1.webmanifest',
   './manifest-p2.webmanifest',
@@ -83,24 +83,24 @@ const FILE = [
   //
   // Vanno tutte in cache: senza rete, senza queste il profilo non mostra il
   // personaggio e la filmstrip della progressione resta vuota.
-  './img/personaggi/stati/guerriero-0.png',
-  './img/personaggi/stati/guerriero-1.png',
-  './img/personaggi/stati/guerriero-2.png',
-  './img/personaggi/stati/guerriero-3.png',
-  './img/personaggi/stati/guerriero-4.png',
-  './img/personaggi/stati/guerriero-5.png',
-  './img/personaggi/stati/berserker-0.png',
-  './img/personaggi/stati/berserker-1.png',
-  './img/personaggi/stati/berserker-2.png',
-  './img/personaggi/stati/berserker-3.png',
-  './img/personaggi/stati/berserker-4.png',
-  './img/personaggi/stati/berserker-5.png',
-  './img/personaggi/stati/assassino-0.png',
-  './img/personaggi/stati/assassino-1.png',
-  './img/personaggi/stati/assassino-2.png',
-  './img/personaggi/stati/assassino-3.png',
-  './img/personaggi/stati/assassino-4.png',
-  './img/personaggi/stati/assassino-5.png',
+  './img/personaggi/stati/guerriero-0.webp',
+  './img/personaggi/stati/guerriero-1.webp',
+  './img/personaggi/stati/guerriero-2.webp',
+  './img/personaggi/stati/guerriero-3.webp',
+  './img/personaggi/stati/guerriero-4.webp',
+  './img/personaggi/stati/guerriero-5.webp',
+  './img/personaggi/stati/berserker-0.webp',
+  './img/personaggi/stati/berserker-1.webp',
+  './img/personaggi/stati/berserker-2.webp',
+  './img/personaggi/stati/berserker-3.webp',
+  './img/personaggi/stati/berserker-4.webp',
+  './img/personaggi/stati/berserker-5.webp',
+  './img/personaggi/stati/assassino-0.webp',
+  './img/personaggi/stati/assassino-1.webp',
+  './img/personaggi/stati/assassino-2.webp',
+  './img/personaggi/stati/assassino-3.webp',
+  './img/personaggi/stati/assassino-4.webp',
+  './img/personaggi/stati/assassino-5.webp',
   './src/missioni.js',
   './src/aura.js',
   './src/sociale.js',

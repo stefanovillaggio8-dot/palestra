@@ -197,13 +197,19 @@ export function statoVisivo(premi) {
 /**
  * Il percorso dell'immagine di quello stato.
  *
+ * Sono file `.webp`, non `.png`. Le foto sono state ingrandite di 3 volte
+ * (Lanczos + maschera di contrasto) perché la griglia da cui vengono era piccola:
+ * senza, sul telefono il browser le allungava e diventavano sfocate. WebP tiene la
+ * stessa immagine a meta' dei byte, quindi si possono tenere tutte e 18 in cache
+ * senza appesantire l'app.
+ *
  * @param classeId  l'id della classe (guerriero, berserker, assassino)
  * @param indice    lo stato, da `statoVisivo`
  */
 export function percorsoStato(classeId, indice) {
   const ultimo = STATI_IMMAGINE.length - 1;
   const n = Math.max(0, Math.min(ultimo, Math.round(Number(indice) || 0)));
-  return `img/personaggi/stati/${classeId}-${n}.png`;
+  return `img/personaggi/stati/${classeId}-${n}.webp`;
 }
 
 /**

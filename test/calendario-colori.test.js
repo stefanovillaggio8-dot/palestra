@@ -92,11 +92,25 @@ test('COLORI-3. un giorno che NON hai scelto e\' VIOLA (recupero), MAI rosso', (
 });
 
 /** Quanti giorni di quel tipo sono passati nel mese corrente (che è il primo mese
- *  mostrato quando non ci sono sedute). */
+ *  mostrato quando non ci sono sedute).
+ *
+ *  IL DIFETTO CHE HA FATTO SALTARE QUESTO TEST, e la ragione per cui la parola
+ *  chiave è "GIORNI FINITI".
+ *
+ *  Il loop finiva con `d <= oggi`, quindi contava ANCHE oggi. Ma un giorno non può
+ *  essere "saltato" mentre non è ancora finito: l'app lo marca `oggi`, non
+ *  `saltato`, e fa bene. Il test però contava oggi come passato e chiedeva un rosso
+ *  in più, e quindi falliva.
+ *
+ *  Perché è venuto fuori solo adesso e non prima: il test falliva SOLO nei giorni
+ *  in cui oggi è proprio il giorno di cui si parla, cioè il lunedì. Negli altri sei
+ *  giorni la differenza non si vedeva. È il tipo di difetto che aspetta mesi in un
+ *  calendario e poi si rompe da solo di lunedì mattina. */
 function contaGiorniPassati(dow) {
   const primoDelMese = new Date(oggi.getFullYear(), oggi.getMonth(), 1);
+  const inizioOggi = new Date(oggi.getFullYear(), oggi.getMonth(), oggi.getDate());
   let n = 0;
-  for (let d = new Date(primoDelMese); d <= oggi; d.setDate(d.getDate() + 1)) {
+  for (let d = new Date(primoDelMese); d < inizioOggi; d.setDate(d.getDate() + 1)) {
     if (d.getDay() === dow) n++;
   }
   return n;
