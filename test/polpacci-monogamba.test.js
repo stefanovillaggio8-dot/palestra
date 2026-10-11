@@ -24,6 +24,7 @@ import assert from 'node:assert/strict';
 import { ESERCIZI } from '../src/dati-iniziali.js';
 import { CONVENZIONI, etichettaUnita } from '../src/numeri.js';
 import { pesoReale } from '../src/rank-config.js';
+import { recordEsercizio } from '../src/rank.js';
 import { CAMPI_CARICO, riallineaEsercizi } from '../src/sincronizzazione.js';
 
 const perId = (id) => ESERCIZI.find((e) => e.id === id);
@@ -43,10 +44,24 @@ test('sopra il campo dei polpacci ora dice KG PER GAMBA', () => {
 });
 
 test('PER_GAMBA non cambia il numero che gli scrivi', () => {
-  // È la parte che sembra un bug ma non lo è: se per_gamba raddoppiasse, 60 kg
-  // diventerebbero 120 e il Rank del calf raise esploderebbe. Vale 1 come tutto
-  // il resto, serve solo come etichetta.
-  assert.equal(pesoReale(60, { carrucola: null, perBraccio: false }), 60);
+  // I suoi numeri veri: "i polpacci è 110kg monogamba sulla macchina orizzontale".
+  //
+  // È la parte che sembra un bug ma non lo è. Se per_gamba raddoppiasse, i suoi 110
+  // diventerebbero 220 e il Rank dei polpacci esploderebbe di colpo: da GOLD a
+  // qualcosa che non esiste più. Vale 1 come tutto il resto, serve solo come
+  // etichetta.
+  assert.equal(pesoReale(110, { carrucola: null, perBraccio: false }), 110);
+  assert.equal(pesoReale(110, { carrucola: 'carrucola_doppia' }), 55,
+    'sulla doppia carrucola invece si dimezza davvero: è un fatto meccanico');
+});
+
+test('i suoi 110 kg monogamba stanno al loro posto nella scala', () => {
+  // Il numero non si è spostato, ma il controllo serve a far notare se un giorno
+  // cambiano le soglie: i 110 kg sono al livello GOLD, non al tetto.
+  const polpacci = perId('ex-sled-press-calf-raise');
+  const record = recordEsercizio([{ peso: 110, ripetizioni: 6 }], polpacci, null, null);
+  assert.ok(record.rank, 'deve avere un Rank');
+  assert.equal(record.rank.nome, 'GOLD');
 });
 
 test('la macchina a dischi resta solo dove i dischi li metti davvero', () => {
