@@ -239,7 +239,27 @@ export const ESERCIZI = [
 // dimezza niente), ma è un dato falso che la logica della carrucola non deve
 // trovare mai, e se un giorno il bilanciere venisse trattato come il cavo avrebbe
 // dimezzato un numero che non si dimezza.
-{ id: 'ex-wrist-curl', nome: 'Wrist Curl', gruppo: 'Wrist Curl', convenzione: C.BILANCIERE, foto: 'img/esercizi/wrist-curl.png', tipo: 'standard', nota_permanente: 'Dropset: prima serie fino a cedimento, poi si scende. Ci sono 3 giri extra da riempire.' },
+// Ste (10/10/2026): "nel wrist curl io lo faccio al cavo monocarrucola con la
+// presa grigia".
+//
+// Qui c'era una catena di errori, uno dietro l'altro, e per due volte sono stato io a
+// sbagliare.
+//
+//  1. Era `bilanciere`. Non lo è: è un CAVO. Il bilanciere è un peso con due mani,
+//     questo è un cavo con la presa grigia attaccata.
+//
+//  2. Aveva anche `carrucola: carrucola_mono` che insieme a `bilanciere` era un dato
+//     falso (la carrucola sta solo sui cavi). Io l'avevo tolto, ma era la mossa
+//     sbagliata: avevo tolto il sintomo invece della causa.
+//
+//  3. La carrucola mono c'era per la ragione giusta: è un cavo, e sulla presa grigia
+//     (la corda) c'è UN solo cavo, quindi il numero che segna il carrello è il numero
+//     che senti. Il fattore della mono è 1, non dimezza: 25 kg restano 25 kg.
+//
+// Il Rank non cambia (25 kg restano 25 in entrambi i casi), ma il dato ora dice la
+// verità, e se un giorno questo esercizio passasse a un cavo a doppia carrucola
+// l'app ha già il campo giusto per accorgersene.
+{ id: 'ex-wrist-curl', nome: 'Wrist Curl', gruppo: 'Wrist Curl', convenzione: C.CAVO, carrucola: C.CARRUCOLA_MONO, foto: 'img/esercizi/wrist-curl.png', tipo: 'standard', nota_permanente: 'Cavo monocarrucola con la presa grigia (la corda). Dropset: prima serie fino a cedimento, poi si scende. Ci sono 3 giri extra da riempire.' },
 
   // Esercizi AGGIUNTI, non ancora messi in nessuna scheda: sono disponibili
   // nella lista così ognuno può aggiungerli quando gli servono.

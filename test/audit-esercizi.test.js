@@ -102,11 +102,28 @@ test('ogni esercizio in kg ha una scala con ingresso e tetto sensati', () => {
 });
 
 test('i due esercizi corretti sono corretti', () => {
-  // I due puntiprecisi, scritti uno per uno, cosi' il motivo non si perde.
-  assert.equal(perId('ex-wrist-curl').carrucola, undefined,
-    'il Wrist Curl è un bilanciere: niente carrucola');
-  assert.equal(perId('ex-wrist-curl').convenzione, CONVENZIONI.BILANCIERE,
-    'e resta un bilanciere');
+  // I due punti precisi, scritti uno per uno, così il motivo non si perde.
+  //
+  // Il Wrist Curl è il caso che mi ha fatto sbagliare due volte: avevo tolto la
+  // carrucola perché sembrava un dato falso accanto a `bilanciere`, ma la verità è
+  // che è un CAVO (Ste: "lo faccio al cavo monocarrucola con la presa grigia").
+  // Tolto il sintomo invece della causa. Ora è un cavo, e la carrucola mono è il
+  // dato giusto: sulla corda c'è un cavo solo, quindi il numero non si dimezza.
+  const wrist = perId('ex-wrist-curl');
+  assert.equal(wrist.convenzione, CONVENZIONI.CAVO, 'il Wrist Curl è un cavo');
+  assert.equal(wrist.carrucola, 'carrucola_mono', 'monocarrucola, con la presa grigia');
+  assert.ok(/presa grigia/i.test(wrist.nota_permanente), 'e la nota lo dice');
+
   assert.equal(perId('ex-db-lateral-raise').convenzione, CONVENZIONI.PER_MANUBRIO,
     'il Dumbbell Lateral Raise è per manubrio');
+});
+
+test('il Wrist Curl da cavo non cambia di movimento né di tetto', () => {
+  // Il controllo che mancava: se passare da bilanciere a cavo avesse spostato il
+  // movimento, il tetto del polso (0,5x) cambierebbe e il Rank pure. Non deve.
+  const r = classificaEsercizio(perId('ex-wrist-curl'));
+  assert.equal(r.movimento, 'polso', 'resta polso');
+  assert.equal(r.livello, 'isolamento', 'e resta isolamento');
+  assert.equal(tettoPerEsercizio(r.livello, r.movimento, perId('ex-wrist-curl')), 0.5,
+    'il tetto del polso non cambia');
 });
