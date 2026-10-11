@@ -4447,6 +4447,9 @@ function bloccoPersonaggio(profilo, st) {
   // vive solo lì dentro: fuori è come se non esistesse, e la pagina si fermava con
   // "Can't find variable: viso".
   const viso = statoVisivo(rpg.premi);
+  // Dichiarata qui fuori perché la riga sotto il personaggio la usa, e quella sta
+  // fuori dal blocco `if`. Vedi il commento sopra.
+  let rigaStati = null;
   if (classeScelta) {
     // LA FOTO CAMBIA DA SOLA.
     //
@@ -4480,7 +4483,10 @@ function bloccoPersonaggio(profilo, st) {
     // e' più un puzzle di pezzi ritagliati, ma la progressione vera: vedi dove
     // sei e cosa ti aspetta. Quelle che non hai ancora sono spente e scrivono
     // quanti giorni ti mancano.
-    const rigaStati = el('div', { class: 'riga-pezzi' });
+    // La striscia si prepara qui dentro, ma si mette a schermo DOPO la foto e il
+    // nome. Per questo è `let` e non `const`: il codice che la mette sta sotto,
+    // fuori da questo blocco.
+    rigaStati = el('div', { class: 'riga-pezzi' });
     rigaStati.appendChild(el('p', {
       class: 'nota nota-piccola',
       testo: viso.completo
@@ -4507,14 +4513,21 @@ function bloccoPersonaggio(profilo, st) {
         el('span', { class: 'pezzo-nome', testo: s.nome }),
         el('span', {
           class: 'pezzo-quando',
-          testo: acceso
-            ? (i === viso.indice ? 'questo sei tu' : 'sbloccato')
-            : (mancano === null ? 'sbloccato' : `ti mancano ${mancano} ${mancano === 1 ? 'giorno' : 'giorni'}`),
+          // Lo stato 0 non è una ricompensa: è il punto da cui si parte. Prima
+          // scriveva "sbloccato" anche lui, e sembrava un premio come gli altri.
+          testo: i === 0
+            ? 'da cui parti'
+            : acceso
+              ? (i === viso.indice ? 'questo sei tu' : 'sbloccato')
+              : (mancano === null ? 'sbloccato' : `ti mancano ${mancano} ${mancano === 1 ? 'giorno' : 'giorni'}`),
         }),
       ]));
     }
     rigaStati.appendChild(striscia);
-    scena.appendChild(rigaStati);
+    // La striscia NON viene aggiunta qui: si mette DOPO la foto e dopo il nome.
+    // Ste (11/10/2026): "deve esserci il mio attuale più grande". Prima la striscia
+    // entrava per prima e, prendendo tutta la riga, spingeva la foto in fondo e
+    // piccola. Ora l'ordine è: foto grande, nome, e POI la progressione.
   } else {
     const attesa = el('div', { class: 'persono-ologramma' });
     attesa.innerHTML = personaggioSvg({ classe: classeId, sbloccati: idsIndossati });
@@ -4529,9 +4542,13 @@ scena.appendChild(grafica);
       // hai: e' la cosa che cambia da sola quando la streak cresce.
       testo: classeScelta
         ? `Livello ${rpg.livello} · ${viso.stato.riga} · ${indosano.length} di ${rpg.premi.length} armature`
-        : `Livello ${rpg.livello} · ${indosano.length} di ${rpg.premi.length} armature`,
+: `Livello ${rpg.livello} · ${indosano.length} di ${rpg.premi.length} armature`,
     }),
   ]));
+  // E SOLO ADESSO la progressione, sotto tutto il resto. Ste: "deve esserci il mio
+  // attuale più grande": la foto grande viene per prima, e la fila degli stati
+  // è quello che le sta sotto, non davanti.
+  if (rigaStati) scena.appendChild(rigaStati);
   box.appendChild(scena);
 
 // IL PULSANTE CHE SPIEGA. Ste: "metti pure un pulsante che ti spiega come funziona

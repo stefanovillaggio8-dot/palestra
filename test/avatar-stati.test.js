@@ -124,3 +124,30 @@ test('R10h. lo stato visivo esiste FUORI dal blocco che lo usa', async () => {
   const quante = righe.filter((r) => /^\s*const viso\s*=/.test(r)).length;
   assert.equal(quante, 1, '"viso" deve essere dichiarato una volta sola');
 });
+test('R10i. la foto grande viene PRIMA della fila degli stati', async () => {
+  // Ste (11/10/2026), dalla foto del telefono: "deve esserci il mio attuale piu'
+  // grande". La striscia degli stati si metteva per prima, prendeva tutta la riga
+  // (`flex: 1 0 100%`) e spingeva la foto in fondo, piccola.
+  //
+  // L'ordine con cui gli elementi vengono aggiunti a `scena` e' quello con cui il
+  // browser li disegna: non si vede in anteprima e nessun test lo controllava.
+  const app = await readFile(join(RADICE, 'src', 'app.js'), 'utf8');
+  const posFoto = app.indexOf('scena.appendChild(grafica)');
+  const posStriscia = app.indexOf('if (rigaStati) scena.appendChild(rigaStati)');
+
+  assert.ok(posFoto >= 0, 'la foto deve essere aggiunta alla scena');
+  assert.ok(posStriscia >= 0, 'la fila degli stati deve essere aggiunta alla scena');
+  assert.ok(posFoto < posStriscia,
+    'la foto grande deve venire PRIMA della fila degli stati, altrimenti finisce in fondo e piccola');
+});
+
+test('R10j. la foto non resta stretta in una scatola', async () => {
+  // Lo stesso difetto, dal lato del CSS: `.con-foto` aveva solo `display: block`,
+  // quindi restava la `width: clamp(150px, 46%, 260px)` della scatola piccola e sul
+  // telefono la foto non cresceva mai. Ora la foto prende tutta la riga.
+  const css = await readFile(join(RADICE, 'stile.css'), 'utf8');
+  const m = css.match(/\.personaggio-scena-grafica\.con-foto\s*\{([^}]*)\}/);
+  assert.ok(m, 'in stile.css deve esserci la regola .personaggio-scena-grafica.con-foto');
+  assert.match(m[1], /flex:\s*1 0 100%/,
+    'il riquadro della foto deve prendere tutta la riga: senza, resta stretto');
+});

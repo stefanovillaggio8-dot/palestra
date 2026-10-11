@@ -1474,7 +1474,22 @@ body:has(.sfondo-dialogo) .avviso {
  *
  * Il `aspect-ratio` resta solo per l'ologramma, che è un disegno e non una foto e
  * quindi ha bisogno di una forma sua. */
-.personaggio-scena-grafica.con-foto { display: block; }
+/* QUANDO C'È LA FOTO, LA SCATOLA PRENDE TUTTA LA RIGA.
+ *
+ * Ste (11/10/2026), dalla foto del telefono: "deve esserci il mio attuale più
+ * grande". Prima la foto era una scatola piccola in mezzo alla riga (`width:
+ * clamp(150px, 46%, 260px)`) e sul telefono restava stretta, mentre la striscia
+ * degli stati si metteva davanti e la spingeva in fondo, minuscola.
+ *
+ * Quindi adesso la foto fa una riga tutta sua (`flex: 1 0 100%`), e sotto ci
+ * stanno il nome e la fila degli stati. La larghezza vera la decide
+ * l'immagine, non il contenitore: `width: 100%` sul riquadro e `max-width`
+ * sull'immagine. */
+.personaggio-scena-grafica.con-foto {
+  display: block;
+  flex: 1 0 100%;
+  width: 100%;
+}
 .personaggio-scena-grafica.con-foto .personaggio-ritratto {
   position: static;
   display: block;
@@ -1502,7 +1517,7 @@ body:has(.sfondo-dialogo) .avviso {
  * La transizione serve perché il cambiamento si vede: quando l'armatura si
  * sblocca, l'animazione rende conto del cambiamento invece di cambiare di colpo. */
 .personaggio-scena-grafica.con-foto .personaggio-ritratto {
-  max-width: 340px;
+  max-width: 400px;
   margin: 0 auto;
   border-radius: 14px;
   mix-blend-mode: screen;
