@@ -12,6 +12,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
+import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
@@ -93,4 +94,33 @@ test('R10g. senza premi la lista vuota non fa crashare', () => {
     assert.equal(v.sbloccati, 0);
     assert.equal(v.aura, false);
   }
+});
+
+test('R10h. lo stato visivo esiste FUORI dal blocco che lo usa', async () => {
+  // IL MIO ERRORE, e la ragione di questo test.
+  //
+  // Avevo scritto `const viso = statoVisivo(rpg.premi)` DENTRO a
+  // `if (classeScelta) { ... }`, e poi lo riusavo piu' in basso nella riga sotto il
+  // personaggio, che sta FUORI da quel blocco. In JavaScript un `const` dentro le
+  // graffe esiste solo li dentro: fuori e' come se non esistesse, e la pagina si
+  // fermava con "Can't find variable: viso" senza disegnare il profilo.
+  //
+  // Il difetto e' invisibile a `node --check`: il file e' sintatticamente giusto, e
+  // un errore di ambito viene fuori solo quando la pagina viene disegnata davvero.
+  // Percio' qui si controlla l'ordine delle righe: `viso` deve essere dichiarato
+  // PRIMA di `if (classeScelta)`, e non ridichiarato dentro.
+  const app = await readFile(join(RADICE, 'src', 'app.js'), 'utf8');
+  const righe = app.split('\n');
+  const dichiara = righe.findIndex((r) => /^\s*const viso\s*=/.test(r));
+  const apreIf = righe.findIndex((r) => /^\s*if \(classeScelta\)/.test(r));
+
+  assert.ok(dichiara >= 0, 'in app.js deve esserci "const viso = ..."');
+  assert.ok(apreIf >= 0, 'in app.js deve esserci "if (classeScelta)"');
+  assert.ok(dichiara < apreIf,
+    '"viso" va dichiarato PRIMA di "if (classeScelta)", altrimenti fuori dal blocco non esiste');
+
+  // E non deve essere dichiarato due volte: il secondo annullerebbe il controllo
+  // qui sopra, perche' la riga sotto continuerebbe a puntare a una viso che non c'e'.
+  const quante = righe.filter((r) => /^\s*const viso\s*=/.test(r)).length;
+  assert.equal(quante, 1, '"viso" deve essere dichiarato una volta sola');
 });

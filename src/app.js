@@ -4439,6 +4439,14 @@ function bloccoPersonaggio(profilo, st) {
   // sarebbe un omino di bastoni copritovi addosso una foto vera, e cioè il peggio
   // dei due.
   const classeScelta = !!(rpg.classe && rpg.classe.id);
+  // Lo stato visivo si calcola PRIMA del blocco `if`, non dentro.
+  //
+  // Prima era dichiarato dentro `if (classeScelta) { ... }`, ma più in giù lo riuso
+  // anche nella riga sotto il personaggio ("Livello 10 · corazza aperta · ..."), che
+  // sta FUORI da quel blocco. In JavaScript un `const` dichiarato dentro le graffe
+  // vive solo lì dentro: fuori è come se non esistesse, e la pagina si fermava con
+  // "Can't find variable: viso".
+  const viso = statoVisivo(rpg.premi);
   if (classeScelta) {
     // LA FOTO CAMBIA DA SOLA.
     //
@@ -4447,11 +4455,10 @@ function bloccoPersonaggio(profilo, st) {
     // e quelli non tornavano: erano ritagliati da un'altra scheda, in un'altra
     // posa, e sembravano appiccicati.
     //
-    // Adesso c'e' una foto per ogni livello di armatura e si sceglie da sola
+    // Adesso c'è una foto per ogni livello di armatura e si sceglie da sola
     // contando quanti premi hai preso. Il numero viene da `statoVisivo`, che
     // guarda il RECORD di streak: se smetti una settimana non ti spogli di dosso
     // quello che ti sei guadagnato.
-    const viso = statoVisivo(rpg.premi);
     // `con-foto` toglie al riquadro qualsiasi altezza: la foto e' un elemento nel
     // flusso e l'altezza la decide lei. Senza scatola il browser non può
     // decidere come infilarla e la taglia.
