@@ -147,8 +147,21 @@ test('C3. le animazioni ci sono davvero, tutte', async () => {
     'la pulsazione della card in attesa dev\'essere sparita: la faceva sembrare accesa');
   // e non ci sono regole che le annullano: una `animation: none` nascosta
   // farebbe fallire tutto senza che se ne accorga nessuno
-  assert.equal(/^\s*animation:\s*none/m.test(css), false,
-    'nessuna regola deve disattivare le animazioni');
+  //
+  // Ste (10/10/2026): "devono esserci animazioni anche senza che faccio qualcosa".
+  // La fiamma dello streak ora respira da sola, ma SOLO quando è accesa: una fiamma
+  // che pulsa mentre è spenta dice "stai andando bene" quando non è vero, ed è
+  // esattamente il difetto che Ste aveva segnalato prima ("streak accesa con lo 0").
+  //
+  // Quindi `animation: none` è ammesso SE E SOLO SE la regola è condizionata a uno
+  // stato: quelle che si spengono da sole, senza condizione, sono il buco che
+  // questo test cerca.
+  const regoleSpente = [...css.matchAll(/([^{}]+)\{\s*animation:\s*none\s*;/g)]
+    .map((m) => m[1].trim());
+  for (const selettore of regoleSpente) {
+    assert.match(selettore, /:not\(|:not |[.-](acceso|spenta|da-accendere|mai|non)\b/,
+      `questa regola spegne le animazioni SENZA condizione e fa fallire tutto: "${selettore}"`);
+  }
   // e il blocco "riduci animazioni" è sempre l\'ultima cosa, così vince su tutto
   const riduci = css.indexOf('@media (prefers-reduced-motion: reduce)');
   assert.ok(riduci > css.length - 1200,

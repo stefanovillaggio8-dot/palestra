@@ -864,6 +864,90 @@ body:has(.sfondo-dialogo) .avviso {
          box-shadow: none; }
 }
 
+/* LE TRE COSE CHE SI MUOVONO DA SOLE.
+ *
+ * Ste (10/10/2026): "devono esserci animazioni anche senza che faccio qualcosa".
+ *
+ * La regola del design è che il movimento non-triggerato si usa con parsimonia e
+ * solo per attirare l'attenzione: le animazioni a caso su ogni scheda si leggono
+ * come rumore e dopo due giorni danno fastidio. Quindi qui ci sono TRE cose, non
+ * trenta, e ognuna ha un motivo per esistere:
+ *
+ *  1. IL FIAMMONE DELLO STREAK respira. Una fiamma che è spenta non è una
+ *     fiamma: se i tuoi giorni sono accesi, il fuoco respira piano. Se la
+ *     cardinalità è spenta o in attesa NON respira (vedi la regola sotto), perché
+ *     una fiamma che si muove mentre è spenta mente su quello che dice.
+ *
+ *  2. IL PERSONAGGIO respira. È un personaggio: se sta in piedi fermo sembra
+ *     un'icona, se respira sembra vivo.
+ *
+ *  3. LA BARRA DELLA PROGRESSIONE ha un luccichio che la attraversa. Dice una
+ *     cosa vera: quella strada non è ancora finita. Il luccichio parte dalla
+ *     sinistra e va verso destra, cioè verso il prossimo Rank.
+ *
+ * Tutte e tre sono lente (3-4 secondi), minuscole (qualche percento) e non
+ * toccano il testo: durante un allenamento non devono rubare l'attenzione. */
+
+/* 1. LA FIAMMA CHE RESPIRA.
+ *
+ * Sta sulla CARD e non sul numero, per un motivo preciso: il numero ha già la sua
+ * animazione, quella che parte quando il valore è appena cambiato. Se la
+ * respirazione fosse anche sul numero, le due si contenderebbero `transform` e
+ * vincerebbe sempre la più specifica: il "questo numero è nuovo" non si vedrebbe
+ * MAI. Il numero dice una cosa, la card dice un'altra, quindi ognuno sul suo. */
+.teschio-streak.acceso {
+  animation: fiamma-respira 3.2s ease-in-out infinite;
+}
+@keyframes fiamma-respira {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.012); }
+}
+/* La fiamma spenta e quella "da accendere" NON respirano: una che pulsa mentre
+   è spenta dice "stai andando bene" quando invece non è vero. Ste ha segnalato
+   proprio questa cosa (la card "da accendere" sembrava viva), quindi qui la
+   condizione è esplicita e non si affida al colore.
+
+   Gli stati vengono da `aspettoStreak()` in streak.js e sono tre: "acceso",
+   "da accendere", "spenta". Quindi va bene anche scrivere `.acceso` da solo senza
+   `:not(...)`: se un giorno gli stati cambiano, il `:not` continuerebbe a
+   nascondere l'animazione a uno stato nuovo che magari dovrebbe respirare. */
+.teschio-streak:not(.acceso) {
+  animation: none;
+}
+
+/* 2. IL PERSONAGGIO CHE RESPIRA. */
+.personaggio {
+  animation: personaggio-respira 4s ease-in-out infinite;
+}
+@keyframes personaggio-respira {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50%      { transform: translateY(-3px) scale(1.015); }
+}
+
+/* 3. IL LUCCICHIO SULLA STRADA VERSO IL PROSSIMO RANK. */
+.barra-piena {
+  position: relative;
+  overflow: hidden;
+}
+.barra-piena::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--testo) 42%, transparent) 50%,
+    transparent 100%);
+  /* -60% sta FUORI a sinistra, così il luccichio entra tutto invece di partire
+     già dentro e sembrare una macchia ferma. */
+  transform: translateX(-60%);
+  animation: strada-luccichio 3.6s ease-in-out infinite;
+}
+@keyframes strada-luccichio {
+  0%   { transform: translateX(-60%); opacity: 0; }
+  15%  { opacity: .9; }
+  85%  { opacity: .9; }
+  100% { transform: translateX(60%); opacity: 0; }
+}
+
 /* IL TRAGUARDO: l'unica animazione che si prende la scena.
  *
  * Ste (10/10/2026): "aggiungi più animazioni".

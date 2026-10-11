@@ -264,8 +264,49 @@ test('il campo conferma il numero quando ESCI, non a ogni tasto', () => {
   assert.ok(css.includes('@keyframes campo-confermato'), 'e deve avere il movimento');
 });
 
+test('ci sono tre animazioni che si muovono da sole', () => {
+  // Ste (10/10/2026): "devono esserci animazioni anche senza che faccio qualcosa".
+  //
+  // La regola del design è che il movimento senza gesto si usa con parsimonia e solo
+  // per attirare l'attenzione: animazioni a caso su ogni scheda si leggono come
+  // rumore e dopo due giorni danno fastidio. Quindi qui sono TRE, non trenta.
+  for (const nome of ['fiamma-respira', 'personaggio-respira', 'strada-luccichio']) {
+    assert.ok(css.includes('@keyframes ' + nome), 'manca ' + nome);
+  }
+  // e tutte e tre devono essere lente: se una dura mezzo secondo e ricomincia,
+  // l'app sembra lampeggiare invece di respirare
+  for (const nome of ['fiamma-respira', 'personaggio-respira', 'strada-luccichio']) {
+    const uso = new RegExp('animation:\\s*' + nome + '\\s+([\\d.]+)s').exec(css);
+    assert.ok(uso, nome + ' non è usata da nessuna parte');
+    assert.ok(Number(uso[1]) >= 2.5,
+      `${nome} dura ${uso[1]}s: sotto due secondi e mezzo non è "respirare", è lampeggiare`);
+  }
+});
+
+test('la fiamma respira SOLO quando è accesa', () => {
+  // Una fiamma che pulsa mentre è spenta dice "stai andando bene" quando non è
+  // vero. È il difetto che Ste aveva già segnalato una volta, con un'altra
+  // animazione: non deve tornare da un'altra parte.
+  assert.match(css, /\.teschio-streak\.acceso\s*\{[\s\S]*?fiamma-respira/,
+    'la respirazione deve stare sulla card accesa');
+  assert.match(css, /\.teschio-streak:not\(\.acceso\)\s*\{[\s\S]*?animation:\s*none/,
+    'e le altre devono stare ferme');
+});
+
+test('la respirazione non ruba l\'animazione del numero che è cambiato', () => {
+  // Se la fiamma respirasse anche sul NUMERO, le due animazioni si contenderebbero
+  // `transform` e vincerebbe sempre la più specifica: il "questo numero è nuovo"
+  // non si vedrebbe MAI. Sono due informazioni diverse e ognuna sul suo elemento.
+  const fiammata = /\.teschio-streak[^{]*\{[^}]*fiamma-respira/;
+  assert.doesNotMatch(css, /\.fuoco[^{]*\{[^}]*fiamma-respira/,
+    'la respirazione non deve stare sul numero: li\' condividerebbero il transform');
+  assert.ok(fiammata.test(css), 'deve stare sulla card');
+  // e il numero deve poter pulsare da solo
+  assert.match(css, /\.numero-cambiado|\.numero-cambiato\s*\{[^}]*numero-pulse/,
+    'il numero deve poter pulsare quando il valore cambia');
+});
+
 test('una sola animazione si prende la scena', () => {
-  // "Spend your boldness in one place."
   //
   // Il modo di capire se un'animazione si prende la scena NON è quanto scala: una
   // cella del calendario che si allarga del 18% è riscontro, non show. È l'ALONE
