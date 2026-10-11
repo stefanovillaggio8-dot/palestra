@@ -1580,12 +1580,66 @@ body:has(.sfondo-dialogo) .avviso {
 /* Il personaggio respira, come il resto delle cose vive. */
 .personaggio { animation: personaggio-respira 4s ease-in-out infinite; }
 
+/* Lo SCENARIO: la foto a sinistra, i dati a destra.
+ *
+ * Ma quando ci sono anche i PEZZI sbloccati, quelli vanno SOTTO tutto, non di
+ * fianco: in una riga sola non ci starebbero e la foto diventerebbe stretta.
+ *
+ * Il `:has()` dice "se dentro c'è una riga di pezzi". È supportato dai browser
+ * che Ste usa, e se non lo fosse i pezzi resterebbero semplicemente nella riga
+ * laterale: peggio, ma non rotto. */
 .personaggio-scena {
   display: flex; align-items: center; gap: 14px;
+  flex-wrap: wrap;
   padding: 14px; margin-bottom: 10px;
   border: 1px solid var(--bordo); border-radius: 14px;
   background: var(--card-2);
 }
+.personaggio-scena:has(.riga-pezzi) { align-items: flex-start; }
+
+/* I PEZZI CHE HAI ADDOSSO.
+ *
+ * Ste (10/10/2026): "mano a mano che sblocchi le cose, tutta l'armatura la spada ecc.
+ * deve aggiornarsi".
+ *
+ * I pezzi vengono dalla scheda che mi ha mandato, ritagliati dalla colonna a destra
+ * di ogni classe: lì sono disegnati uno per uno. Non si incollano sulla foto: nella
+ * scheda ogni pezzo è da solo e in un'altra posa, e incollati venivano storti.
+ *
+ * Qui stanno in fila e si ACCENDONO con la streak. Spento vuol dire non ancora
+ * sbloccato: si vede lo stesso pezzo in grigio, così sai che esiste e quanto
+ * ti manca. Sparito sarebbe meno chiaro. */
+.riga-pezzi { flex: 1 0 100%; margin-top: 10px; }
+.striscia-pezzi {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(84px, 1fr));
+  gap: 8px;
+  margin-top: 6px;
+}
+.pezzo {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 8px 6px 7px;
+  border-radius: 10px;
+  border: 1px solid var(--bordo);
+  background: #0d0a16;
+  text-align: center;
+}
+/* Il pezzo sbloccato è acceso e ha il bordo della classe. */
+.pezzo.acceso {
+  border-color: color-mix(in srgb, var(--tinta) 62%, var(--bordo));
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--tinta) 13%, #0d0a16), #0d0a16);
+}
+/* quello non ancora sbloccato è spento ma SI VEDE: devi sapere che esiste. */
+.pezzo.spento { opacity: .5; }
+.pezzo-img {
+  width: 100%; max-width: 96px; height: auto; display: block;
+  border-radius: 6px;
+  /* lo sfondo dei pezzi è nero: senza, il rettangolo si vede sul riquadro */
+  mix-blend-mode: screen;
+}
+.pezzo-nome { font-size: .68rem; font-weight: 700; line-height: 1.15; }
+.pezzo-quando { font-size: .62rem; opacity: .7; }
 .personaggio {
   --tinta: var(--viola);
   position: relative; flex: 0 0 auto;

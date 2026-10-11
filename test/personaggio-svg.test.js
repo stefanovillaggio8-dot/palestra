@@ -398,10 +398,19 @@ test('la foto compare solo quando la classe è scelta', () => {
   assert.match(app, /if \(classeScelta\)/, 'la scelta della classe decide cosa si vede');
   assert.match(app, /personaggio-ritratto/, 'la foto c\'è');
   assert.match(app, /persono-ologramma/, 'il disegno c\'è');
-  const i = app.indexOf('if (classeScelta)');
-  const ramo = app.slice(i, i + 900);
-  assert.match(ramo, /else \{[\s\S]{0,300}persono-ologramma/,
-    'e il disegno sta nel ramo opposto: non insieme alla foto');
+  // Il ramo `else` è LONTANO dal suo `if`: dentro il ramo della foto c\'è tutta la
+  // striscia dei pezzi, quindi non basta guardare i trecento caratteri dopo la
+  // graffa. Si prende il pezzo fra la foto e il `else` e si controlla che il
+  // disegno stia DOPO, non dentro.
+  const ramo = app.slice(app.indexOf('if (classeScelta)'));
+  const iElse = ramo.indexOf('} else {');
+  assert.ok(iElse > 0, 'deve esserci il ramo opposto');
+  const dentroFoto = ramo.slice(0, iElse);
+  const dopoElse = ramo.slice(iElse);
+  assert.doesNotMatch(dentroFoto, /persono-ologramma/,
+    'il disegno non deve stare insieme alla foto');
+  assert.match(dopoElse.slice(0, 400), /persono-ologramma/,
+    'il disegno sta nel ramo opposto: non insieme alla foto');
 });
 
 test('i pezzi sbloccati restano distinguibili anche come ologramma', () => {

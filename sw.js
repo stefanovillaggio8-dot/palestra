@@ -9,7 +9,7 @@
 // e il test I3 che sia quello dell'ultimo commit, altrimenti si alza la cache e si
 // lascia scritto il numero vecchio. E' successo due volte: nella v54 avevo alzato
 // solo questo file, e dopo la v55 avevo smesso di alzarlo del tutto.
-const VERSIONE = 'palestra-v110';
+const VERSIONE = 'palestra-v111';
 
 const FILE = [
   './',
@@ -24,7 +24,7 @@ const FILE = [
   // Il numero deve essere uguale a quello di `stile.css?v=` in index.html e a
   // `window.PALESTRA_VERSIONE`: se i tre non coincidono, l'app carica un foglio di
   // stile e dice un altro numero.
-  './stile.css?v=110',
+  './stile.css?v=111',
 './manifest.webmanifest',
   './manifest-p1.webmanifest',
   './manifest-p2.webmanifest',
@@ -79,6 +79,22 @@ const FILE = [
   './img/personaggi/guerriero.png',
   './img/personaggi/berserker.png',
   './img/personaggi/assassino.png',
+  // I PEZZI, uno per uno, dalle colonne della scheda.
+  './img/personaggi/pezzi/guerriero-bracciali.png',
+  './img/personaggi/pezzi/guerriero-torso.png',
+  './img/personaggi/pezzi/guerriero-protezione.png',
+  './img/personaggi/pezzi/guerriero-arma.png',
+  './img/personaggi/pezzi/guerriero-completo.png',
+  './img/personaggi/pezzi/berserker-bracciali.png',
+  './img/personaggi/pezzi/berserker-torso.png',
+  './img/personaggi/pezzi/berserker-protezione.png',
+  './img/personaggi/pezzi/berserker-arma.png',
+  './img/personaggi/pezzi/berserker-completo.png',
+  './img/personaggi/pezzi/assassino-bracciali.png',
+  './img/personaggi/pezzi/assassino-torso.png',
+  './img/personaggi/pezzi/assassino-protezione.png',
+  './img/personaggi/pezzi/assassino-arma.png',
+  './img/personaggi/pezzi/assassino-completo.png',
   './src/missioni.js',
   './src/aura.js',
   './src/sociale.js',

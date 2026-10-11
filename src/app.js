@@ -4452,6 +4452,60 @@ function bloccoPersonaggio(profilo, st) {
       loading: 'lazy',
       decoding: 'async',
     }));
+
+    // I PEZZI CHE HAI, SOTTO LA FOTO.
+    //
+    // Ste (10/10/2026): "mano a mano che sblocchi le cose, tutta l'armatura la spada
+    // ecc. deve aggiornarsi".
+    //
+    // I pezzi sono presi dalla scheda che mi ha mandato, ritagliati dalla colonna a
+    // destra di ogni classe: lì sono disegnati uno per uno. Qui si mettono in fila
+    // e si accendono con la streak.
+    //
+    // La foto e i pezzi NON si incollano: nella scheda ogni pezzo è mostrato da solo
+    // e in un'altra posa (i bracciali sono uno di fianco all'altro, sul personaggio
+    // sono uno per braccio e in verticale; la spada è in orizzontale). Incollarli
+    // veniva male, e il personaggio sembrava rotto. Qui sono invece una fila: la foto
+    // resta la foto, e sotto si vede che cosa ti hai messo addosso e quanto.
+    const PEZZI_SLOT = [
+      { id: 'bracciali', premio: 'bracciali', nome: null },
+      { id: 'torso', premio: 'ferro', nome: null },
+      { id: 'protezione', premio: 'runica', nome: null },
+      { id: 'arma', premio: 'elmo', nome: null },
+      { id: 'completo', premio: 'leggendaria', nome: null },
+    ];
+    const rigaPezzi = el('div', { class: 'riga-pezzi' });
+    rigaPezzi.appendChild(el('p', {
+      class: 'nota nota-piccola',
+      testo: 'Quello che hai addosso. Si accende da solo con i giorni di fila.',
+    }));
+    const striscia = el('div', { class: 'striscia-pezzi' });
+    for (const slot of PEZZI_SLOT) {
+      // Il NOME dipende dalla classe: il berserker non ha "armatura di cuoio" ma "pelo
+      // e pelliccia", e l'assassino non ha "spada" ma "pugnale".
+      const nome = slot.premio === 'bracciali' ? 'Bracciali di cuoio' : nomePremio(slot.premio, classeId);
+      const premio = rpg.premi.find((p) => p.id === slot.premio);
+      const acceso = !!premio && !!premio.sbloccato;
+      striscia.appendChild(el('div', {
+        class: 'pezzo' + (acceso ? ' acceso' : ' spento'),
+        title: nome,
+      }, [
+        el('img', {
+          class: 'pezzo-img',
+          src: `img/personaggi/pezzi/${classeId}-${slot.id}.png`,
+          alt: acceso ? nome : `Non ancora sbloccato: ${nome}`,
+          loading: 'lazy',
+          decoding: 'async',
+        }),
+        el('span', { class: 'pezzo-nome', testo: nome }),
+        el('span', {
+          class: 'pezzo-quando',
+          testo: acceso ? 'sbloccato' : `ti mancano ${premio ? Math.max(0, premio.giorni - rpg.recordStreak) : '?'} giorni`,
+        }),
+      ]));
+    }
+    rigaPezzi.appendChild(striscia);
+    scena.appendChild(rigaPezzi);
   } else {
     const attesa = el('div', { class: 'persono-ologramma' });
     attesa.innerHTML = personaggioSvg({ classe: classeId, sbloccati: idsIndossati });
