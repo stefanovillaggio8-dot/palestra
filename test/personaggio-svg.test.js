@@ -296,11 +296,20 @@ test('le scanline e la banda prendono il colore della classe', () => {
 });
 
 test('ogni classe che il codice usa esiste nel CSS', () => {
-  // Il bug vero del 10/10/2026. Nel CSS il riquadro del personaggio si chiamava
-  // `persono-scena-grafica` e in app.js `personaggio-scena-grafica`: due nomi
-  // diversi, quindi nessuna regola valeva mai. Il personaggio è uscito piccolo e
-  // senza bordo perché non c'era niente che lo regolasse, e sembrava un problema di
-  // misure invece che un nome scritto male.
+  // Il CSS deve essere bilanciato. Il 10/10/2026, cancellando un blocco vecchio è
+  // rimasta appesa una `}` senza la sua `{`, e da quel momento tutta la parte di CSS
+  // dopo quel punto era dentro una regola sbagliata: il browser la ignorava senza
+  // dire niente e la pagina usciva a metà. Nessun test lo aveva notato, perché i
+  // test guardavano la presenza di una classe, non se il file si può leggere.
+  const graffe = (css.match(/\{/g) || []).length;
+  const chiuse = (css.match(/\}/g) || []).length;
+  assert.equal(graffe, chiuse,
+    `il CSS non è bilanciato: ${graffe} graffe aperte e ${chiuse} chiuse. Tutto quello `
+    + 'che viene dopo viene letto male, in silenzio');
+
+  // Il blocco che il codice usa deve esistere davvero nel CSS: è il bug vero del
+  // 10/10/2026. Nel CSS il riquadro si chiamava `persono-scena-grafica` e in app.js
+  // `personaggio-scena-grafica`: due nomi diversi, quindi nessuna regola valeva mai.
   //
   // Il controllo è sulle classi che il JS mette davvero, non su tutte quelle che il
   // CSS sa scrivere: quelle non servono e non devono far fallire niente.
@@ -308,13 +317,10 @@ test('ogni classe che il codice usa esiste nel CSS', () => {
     .flatMap((m) => m[1].split(/\s+/))
     // `personaggio-' + classeId` è metà di un nome: la parte che segue al segno
     // più diventa `guerriero`, `assassino` o `berserker`. Queste non si possono
-    // controllare come una classe intera, perché da sole non esistono.
-    .filter((c) => c.startsWith('persona'))
-    // `personaggio-' + classeId` è metà di un nome: la parte che segue al segno
-    // più diventa `guerriero`, `assassino` o `berserker`. Queste non si possono
     // controllare come una classe intera, perché da sole non esistono. E
     // `personaggio-` finisce con il trattino, quindi passa il controllo dei
     // caratteri anche se non è un nome: va escluso per nome.
+    .filter((c) => c.startsWith('persona'))
     .filter((c) => /^[\w-]+$/.test(c) && c !== 'personaggio-');
   assert.ok(usate.length > 0, 'il codice deve usare qualche classe persona*');
   for (const c of [...new Set(usate)]) {
@@ -324,49 +330,62 @@ test('ogni classe che il codice usa esiste nel CSS', () => {
 });
 
 test('la foto non viene mai tagliata', () => {
-  // Ste (10/10/2026), dalla foto: "adesso spunta solo la sua gamba".
+  // Ste (10/10/2026), dalla foto: prima "adesso spunta solo la sua gamba", e dopo
+  // il primotentativo ancora "ancora è tagliata".
   //
-  // Era `object-fit: cover`, che RIEMPIE il riquadro tagliando ciò che eccede, e
-  // quello che eccedeva era la figura: a schermo stretto restava solo la gamba. E
-  // c'era pure un `object-position: 50% 26%` per aggiustare l'inquadratura, che
-  // spostava il taglio invece di toglierlo.
+  // Il primo era `object-fit: cover`, che riempie il riquadro tagliando. Il secondo
+  // tentativo è stato `contain`, che è già meglio: MA finché la foto sta dentro una
+  // scatola di altezza fissata, il browser deve ancora decidere come infilarla, e
+  // ogni decisione può tagliarla.
   //
-  // Con una persona, la regola è una sola: la foto entra INTERA. `contain` è
-  // l'unico modo che lo garantisce; `cover` per definizione taglia.
-  const r = css.slice(css.indexOf('.personaggio-ritratto'));
+  // La soluzione non è un altro valore di `object-fit`: è NON AVERE UNA SCATOLA.
+  // La foto sta nel flusso con `height: auto`, così l'altezza la decide l'immagine
+  // ed è matematicamente impossibile che venga tagliata.
+  //
+  // E non serve nessuna di queste cose: `object-fit`, `object-position`,
+  // `aspect-ratio`, `min-height`, `max-height`. Meno regole, meno modi di sbagliare.
+  // La regola da leggere è quella che parla DELL'IMMAGINE, non quella che accende
+  // il `display:block` sul riquadro: se si taglia sul primo `}` si legge l'altra e
+  // il test dice "manca height:auto" su un file che ce l'ha già.
+  const inizio = css.indexOf('.personaggio-scena-grafica.con-foto .personaggio-ritratto');
+  assert.ok(inizio > 0, 'deve esserci una regola per la foto dentro il riquadro con foto');
+  const r = css.slice(inizio);
   const b = r.slice(0, r.indexOf('}'));
-  assert.match(b, /object-fit:\s*contain/,
-    'la foto deve entrare intera: con "cover" spunta solo una parte del personaggio');
-  assert.doesNotMatch(b, /object-fit:\s*cover/, '"cover" taglia sempre qualcosa');
-  assert.doesNotMatch(b, /object-position:/,
-    'e non serve un object-position: serve solo a nascondere il taglio');
-  // e il riquadro non deve poter diventare più piccolo di una figura
+
+  assert.match(b, /height:\s*auto/, 'la foto deve stare nel flusso con height:auto');
+  assert.doesNotMatch(b, /object-fit/, 'e non serve object-fit: non c\'è più una scatola');
+  assert.doesNotMatch(b, /position:\s*absolute/, 'la foto non è più posizionata a mano');
+  // `transform: none` va bene: è lui che ANNULLA una scala. Quello che non deve
+  // esserci è una scala vera, perché su una foto dentro un riquadro stretto
+  //Ingrossare è l'altro modo di far uscire qualcosa dalla cornice.
+  assert.doesNotMatch(b, /transform:\s*(?!none)[^;]*scale/,
+    'la foto non deve essere scalata: si taglierebbe fuori');
+
+  // il riquadro, quando c'è la foto, non ha altezza propria
   const i = css.indexOf('.personaggio-scena-grafica {');
   const blocco = css.slice(i, css.indexOf('}', i));
-  assert.match(blocco, /min-height:\s*\d+px/,
-    'il riquadro ha un\'altezza minima, altrimenti su uno schermo stretto è una macchietta');
-  assert.match(blocco, /max-height:\s*\d+v?h/,
-    'e un\'altezza massima, altrimenti su uno schermo alto copre tutta la pagina');
+  assert.doesNotMatch(blocco, /(?<!-)\bheight:\s*\d+px/,
+    'l\'altezza non va fissata in pixel: la decide la foto');
+  assert.doesNotMatch(blocco, /aspect-ratio/,
+    'e non c\'è un aspect-ratio: sarebbe un altro modo di imporre una forma fissa');
+  // l'aspect-ratio resta SOLO per l'ologramma, che è un disegno e non una foto
+  assert.match(css, /personaggio-scena-grafica:not\(\.con-foto\)\s*\{[^}]*aspect-ratio/,
+    'l\'ologramma invece ha bisogno di una forma sua');
+  // e il codice mette la classe
+  assert.match(app, /classList\.add\('con-foto'\)/,
+    'il codice deve dire che qui dentro c\'è una foto');
 });
 
 test('la foto del personaggio è grande, non una figurina', () => {
   // Dalla foto del 10/10/2026: il riquadro era 132×168 px e sul telefono il
-  // personaggio era una macchietta. La foto è alta e stretta, quindi si dà la
-  // larghezza e si lascia che l'altezza la decida l'immagine.
+  // personaggio era una macchietta.
   const i = css.indexOf('.personaggio-scena-grafica {');
   const blocco = css.slice(i, css.indexOf('}', i));
-  // `min-height` e `max-height` NON sono un'altezza fissa: sono limiti. Il controllo
-  // guarda il `height:` nudo, quindi serve il lookbehind: senza, la barra iniziale
-  // di "min" fa scattare il confronto e sembra che l'altezza sia fissata.
-  assert.doesNotMatch(blocco, /(?<!-)\bheight:\s*\d+px/,
-    'l\'altezza non va fissata in pixel: si lascia all\'aspect-ratio, altrimenti la '
-    + 'foto viene schiacciata o tagliata');
-  assert.match(blocco, /min-height/, 'ma un minimo e un massimo sì: devono stare');
-  assert.match(blocco, /aspect-ratio/, 'deve dire le proporzioni della foto');
   assert.match(blocco, /width:\s*clamp\(/,
-    'e la larghezza deve crescere con lo schermo, non essere fissa');
+    'la larghezza deve crescere con lo schermo, non essere fissa');
   // e la foto non deve essere spenta
-  const r = css.slice(css.indexOf('.personaggio-ritratto'));
+  const inizio = css.indexOf('.personaggio-scena-grafica.con-foto .personaggio-ritratto');
+  const r = css.slice(inizio);
   const b = r.slice(0, r.indexOf('}'));
   assert.doesNotMatch(b, /opacity:\s*0?\.[0-6]\d*;/,
     'la foto non deve essere trasparente: è il personaggio, non uno sfondo');

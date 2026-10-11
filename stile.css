@@ -1445,17 +1445,7 @@ body:has(.sfondo-dialogo) .avviso {
 .personaggio-scena-grafica {
   position: relative;
   flex: 0 0 auto;
-  /* La scatola era 132×168 e sul telefono il personaggio sembrava una figurina
-     in un francobollo. La foto è alta e stretta: si dà la larghezza e si lascia
-     che l'altezza la decida la foto, così non si taglia nessun piede. */
   width: clamp(150px, 46%, 260px);
-  aspect-ratio: 226 / 540;
-  /* L'altezza minima serve perché su uno schermo stretto la larghezza si stringe,
-   * e senza questa il personaggio diventerebbe una macchietta. Con il ritratto in
-   * `contain` un riquadro più grande del necessario lascia solo due margini, e i
-   * piedi restano dentro. */
-  min-height: 260px;
-  max-height: 60vh;
   border-radius: 14px;
   background:
     radial-gradient(130% 95% at 50% 4%,
@@ -1468,53 +1458,41 @@ body:has(.sfondo-dialogo) .avviso {
   place-items: center;
   perspective: 600px;
 }
-  /* l'apparecchio è inclinato verso di noi: è quello che fa "ologramma" e non
-     "immagine su uno sfondo". */
-  perspective: 600px;
+/* QUANDO C'È LA FOTO, LA SCATOLA NON ESISTE.
+ *
+ * Ste (10/10/2026): "ancora è tagliata", dopo che avevo cambiato `cover` in
+ * `contain`.
+ *
+ * Il punto è che finché la foto sta dentro una scatola di altezza fissata, il
+ * browser deve DECIDERE come infilarla, e ogni decisione può tagliarla. Provare
+ * `cover`, poi `contain`, poi le altezze: è ancora una lotta con la cornice.
+ *
+ * Qui non c'è più nessuna cornice. La foto è un semplice elemento nel flusso con
+ * `width: 100%; height: auto`: l'altezza la decide l'immagine, quindi è IMPOSSIBILE
+ * che venga tagliata. Non serve `object-fit`, non serve `aspect-ratio`, non servono
+ * min-height e max-height. Meno regole, meno modi di sbagliare.
+ *
+ * Il `aspect-ratio` resta solo per l'ologramma, che è un disegno e non una foto e
+ * quindi ha bisogno di una forma sua. */
+.personaggio-scena-grafica.con-foto { display: block; }
+.personaggio-scena-grafica.con-foto .personaggio-ritratto {
+  position: static;
+  display: block;
+  width: 100%;
+  height: auto; /* l'altezza la decide la foto: non si può tagliare */
+  transform: none;
+  filter: contrast(1.04) saturate(1.02) brightness(1.04);
 }
-/* LA FOTO DELLA CLASSE.
- *
- * Ste (10/10/2026): "se scegli il berserker devi mettere che il tuo personaggio è il
- * berserker trasportando la foto che ti ho mandato nell'app".
- *
- * La foto STA DIETRO all'ologramma e non al posto suo: il disegno a pezzi dice
- * "questo è quello che ti manca", la foto dice "questo sei tu". Insieme dicono la
- * cosa giusta: chi sei adesso, e quanto ti resta.
- *
- * Il ritratto è leggermente più grande e spenta sotto, così l'ologramma davanti
- * sembra la versione "proiettata" della stessa figura e non un'altra immagine. */
-.personaggio-ritratto {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      /* `contain`, NON `cover`. Ste (10/10/2026), dalla foto: "adesso spunta solo
-       * la sua gamba".
-       *
-       * Il problema è che `cover` RIEMPIE il riquadro tagliando ciò che eccede, e
-       * quello che eccedeva era la figura: a schermo stretto restava solo la
-       * gamba. `contain` invece fa entrare l'immagine INTERA e lascia vuoto quello
-       * che non serve, che è l'unica cosa giusta quando la foto è una persona: non
-       * si taglia mai una gamba per far entrare una cornice.
-       *
-       * Con il `cover` non serviva nemmeno il `object-position`: era un aggiustamento
-       * per nascondere il taglio, non per inquadrare. */
-      object-fit: contain;
-      /* La foto è alta e stretta: un pelo di zoom, per non restare un bordo
-       * bianco se il riquadro non è esattamente della sua forma. */
-      transform: scale(1.015);
-      filter: contrast(1.04) saturate(1.02) brightness(1.04);
-    }
   .persono-ologramma {
-    position: absolute;
-    inset: 0;
-    display: grid;
-    place-items: center;
-  }
-  .persono-ologramma .persono-svg { width: 100%; height: 100%; }
-
-/* Senza classe non c'è nessuna foto da mettere: il posto resta al disegno. */
-.personaggio-scena-grafica:not(:has(.personaggio-ritratto)) .persono-ologramma { position: absolute; }
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+.persono-ologramma .persono-svg { width: 100%; height: 100%; }
+/* L'ologramma è un DISEGNO, non una foto: lui ha bisogno di una forma sua, altrimenti
+   si stira. Quindi lui sì ha il riquadro con le proporzioni fisse. */
+.personaggio-scena-grafica:not(.con-foto) { aspect-ratio: 226 / 540; }
 
 .persono-ologramma { opacity: 1; }
 

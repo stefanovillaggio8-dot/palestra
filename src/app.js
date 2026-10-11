@@ -4440,14 +4440,18 @@ function bloccoPersonaggio(profilo, st) {
   // dei due.
   const classeScelta = !!(rpg.classe && rpg.classe.id);
   if (classeScelta) {
-    const ritratto = el('img', {
+    // `con-foto` toglie al riquadro qualsiasi altezza: la foto è un elemento nel
+    // flusso e l'altezza la decide lei. Ste (10/10/2026): "ancora è tagliata" —
+    // finché la foto sta in una scatola di misura fissa, il browser deve decidere
+    // come infilarla e può tagliarla. Senza scatola non può.
+    grafica.classList.add('con-foto');
+    grafica.appendChild(el('img', {
       class: 'personaggio-ritratto',
       src: 'img/personaggi/' + classeId + '.png',
       alt: `${rpg.classe.nome}: il tuo personaggio`,
       loading: 'lazy',
       decoding: 'async',
-    });
-    grafica.appendChild(ritratto);
+    }));
   } else {
     const attesa = el('div', { class: 'persono-ologramma' });
     attesa.innerHTML = personaggioSvg({ classe: classeId, sbloccati: idsIndossati });
