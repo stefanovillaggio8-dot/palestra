@@ -151,3 +151,26 @@ test('R10j. la foto non resta stretta in una scatola', async () => {
   assert.match(m[1], /flex:\s*1 0 100%/,
     'il riquadro della foto deve prendere tutta la riga: senza, resta stretto');
 });
+test('R10k. la foto non viene tagliata in basso', async () => {
+  // LA STESSA FOTO, LA STESSA CAUSA, una volta di piu'. Dopo R10j si vedeva solo
+  // la testa e le spalle.
+  //
+  // Il riquadro ha due classi: `personaggio-scena-grafica` e `personaggio`. La
+  // seconda viene dal quadratino piccolo del disegno e porta `width: 76px;
+  // height: 88px`. Nella regola `.con-foto` si toccava la larghezza ma non
+  // l'altezza, e con `overflow: hidden` sulla regola vecchia la foto veniva
+  // ritagliata a 88 pixel.
+  //
+  // Il controllo e' sul CSS, perche' e' il CSS a decidere quanto e' alta la scatola.
+  const css = await readFile(join(RADICE, 'stile.css'), 'utf8');
+  const m = css.match(/\.personaggio-scena-grafica\.con-foto\s*\{([^}]*)\}/);
+  assert.ok(m, 'in stile.css deve esserci la regola .personaggio-scena-grafica.con-foto');
+  assert.match(m[1], /height:\s*auto/,
+    'il riquadro della foto deve avere height: auto: con un\'altezza fissa la foto viene tagliata');
+
+  // E la regola vecchia non deve poter reintrodurre l'altezza fissa sulla foto.
+  const img = css.match(/\.personaggio-scena-grafica\.con-foto\s+\.personaggio-ritratto\s*\{([^}]*)\}/);
+  assert.ok(img, 'deve esserci la regola sulla foto dentro .con-foto');
+  assert.match(img[1], /height:\s*auto/, 'la foto deve avere height: auto, cosi\' l\'altezza la decide lei');
+  assert.doesNotMatch(img[1], /max-height/, 'sulla foto non deve esserci max-height: taglierebbe la figura');
+});

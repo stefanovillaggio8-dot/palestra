@@ -1489,6 +1489,17 @@ body:has(.sfondo-dialogo) .avviso {
   display: block;
   flex: 1 0 100%;
   width: 100%;
+  /* IL DIFETTO DELLA FOTO TAGLIATA, e la terza volta che lo stesso problema si
+   * presenta. Il riquadro ha DUE classi: `personaggio-scena-grafica` e
+   * `personaggio`. La seconda è il quadratino piccolo di quando il personaggio era
+   * un disegno, e porta con sé `width: 76px; height: 88px`. Soprasso sul `width`
+   * ma non sull'`height`, e siccome la regola più vecchia ha
+   * `overflow: hidden`, la foto veniva ritagliata a 88 px: si vedeva solo la testa
+   * e le spalle.
+   *
+   * Quindi qui si toglie anche l'altezza fissa: con `height: auto` il riquadro
+   * cresce quanto è alta l'immagine e non c'è niente da tagliare. */
+  height: auto;
 }
 .personaggio-scena-grafica.con-foto .personaggio-ritratto {
   position: static;
