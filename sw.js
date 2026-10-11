@@ -9,7 +9,7 @@
 // e il test I3 che sia quello dell'ultimo commit, altrimenti si alza la cache e si
 // lascia scritto il numero vecchio. E' successo due volte: nella v54 avevo alzato
 // solo questo file, e dopo la v55 avevo smesso di alzarlo del tutto.
-const VERSIONE = 'palestra-v111';
+const VERSIONE = 'palestra-v112';
 
 const FILE = [
   './',
@@ -24,7 +24,7 @@ const FILE = [
   // Il numero deve essere uguale a quello di `stile.css?v=` in index.html e a
   // `window.PALESTRA_VERSIONE`: se i tre non coincidono, l'app carica un foglio di
   // stile e dice un altro numero.
-  './stile.css?v=111',
+  './stile.css?v=112',
 './manifest.webmanifest',
   './manifest-p1.webmanifest',
   './manifest-p2.webmanifest',
@@ -73,28 +73,34 @@ const FILE = [
   './src/personaggio-svg.js',
   // lo stato dell'avatar: il modulo con la classe permanente e la progressione.
   './src/avatar-stato.js',
-  // LE FOTO DEI PERSONAGGI. Ste: "se scegli il berserker devi mettere che il tuo
-  // personaggio è il berserker trasportando la foto che ti ho mandato nell'app".
-  // Senza rete, senza queste il profilo mostra il personaggio a pezzi e basta.
-  './img/personaggi/guerriero.png',
-  './img/personaggi/berserker.png',
-  './img/personaggi/assassino.png',
-  // I PEZZI, uno per uno, dalle colonne della scheda.
-  './img/personaggi/pezzi/guerriero-bracciali.png',
-  './img/personaggi/pezzi/guerriero-torso.png',
-  './img/personaggi/pezzi/guerriero-protezione.png',
-  './img/personaggi/pezzi/guerriero-arma.png',
-  './img/personaggi/pezzi/guerriero-completo.png',
-  './img/personaggi/pezzi/berserker-bracciali.png',
-  './img/personaggi/pezzi/berserker-torso.png',
-  './img/personaggi/pezzi/berserker-protezione.png',
-  './img/personaggi/pezzi/berserker-arma.png',
-  './img/personaggi/pezzi/berserker-completo.png',
-  './img/personaggi/pezzi/assassino-bracciali.png',
-  './img/personaggi/pezzi/assassino-torso.png',
-  './img/personaggi/pezzi/assassino-protezione.png',
-  './img/personaggi/pezzi/assassino-arma.png',
-  './img/personaggi/pezzi/assassino-completo.png',
+  // LE FOTO DEI PERSONAGGI: SEI PER CLASSE, una per ogni livello di armatura.
+  //
+  // Ste (11/10/2026): "ogni volta che sblocco qualcosa quell'immagine deve
+  // vedersi meglio". Prima c'era una foto sola e una fila di pezzi sciolti, presi da
+  // un'altra scheda e in un'altra posa: incollarli veniva male. Adesso c'è una foto
+  // per stato e l'app sceglie da sola quella giusta (vedi statoVisivo in
+  // src/avatar-rpg.js).
+  //
+  // Vanno tutte in cache: senza rete, senza queste il profilo non mostra il
+  // personaggio e la filmstrip della progressione resta vuota.
+  './img/personaggi/stati/guerriero-0.png',
+  './img/personaggi/stati/guerriero-1.png',
+  './img/personaggi/stati/guerriero-2.png',
+  './img/personaggi/stati/guerriero-3.png',
+  './img/personaggi/stati/guerriero-4.png',
+  './img/personaggi/stati/guerriero-5.png',
+  './img/personaggi/stati/berserker-0.png',
+  './img/personaggi/stati/berserker-1.png',
+  './img/personaggi/stati/berserker-2.png',
+  './img/personaggi/stati/berserker-3.png',
+  './img/personaggi/stati/berserker-4.png',
+  './img/personaggi/stati/berserker-5.png',
+  './img/personaggi/stati/assassino-0.png',
+  './img/personaggi/stati/assassino-1.png',
+  './img/personaggi/stati/assassino-2.png',
+  './img/personaggi/stati/assassino-3.png',
+  './img/personaggi/stati/assassino-4.png',
+  './img/personaggi/stati/assassino-5.png',
   './src/missioni.js',
   './src/aura.js',
   './src/sociale.js',

@@ -131,6 +131,81 @@ export function nomePremio(id, classe) {
   return p ? p.nome : id;
 }
 
+// ===========================================================================
+// LE FOTO DEL PERSONAGGIO, UNA PER OGNI ARMATURA
+// ===========================================================================
+//
+// Ste (11/10/2026): "ogni volta che sblocco qualcosa quell'immagine deve
+// vedersi meglio", cioe' il personaggio deve cambiare da solo.
+//
+// Prima c'era UNA foto sola (quella grande di rpg.png) più una fila di pezzi
+// sciolti presi dalla scheda. I pezzi non tornavano: venivano ritagliati da una
+// scheda diversa e con un'altra posa, quindi sembravano appiccicati addosso.
+//
+// Adesso c'e' UNA FOTO PER OGNI LIVELLO, e si cambia da sola contando quanti
+// premi hai preso. Il numero di premi sbloccati dice il livello: 0 armature =
+// nudo, 1 = bracciali, 2 = corazza, e così via.
+//
+// La cosa importante: si conta il RECORD DI STREAK (quello che hai già
+// raggiunto una volta), non la streak di oggi. Se smetti una settimana non ti
+// spogli di dosso l'armatura che ti sei guadagnato.
+//
+// I 6 stati corrispondono ai 6 premi di `PREMI`:
+//
+//   stato 0 = nessun premio sbloccato -> nudo
+//   stato 1 = 1 premio  (bracciali)   -> bracciali
+//   stato 2 = 2 premi  (corazza)      -> corazza aperta
+//   stato 3 = 3 premi  (armatura)     -> armatura di ferro
+//   stato 4 = 4 premi  (arma)         -> armatura + prima arma
+//   stato 5 = 5 o 6 premi             -> completo
+//
+// Il 6o premio (quello a 75 giorni) non ha un'immagine tutta sua: e' l'AURA,
+// una luce che si accende sopra il personaggio già completo. Perche' nella
+// scheda ci sono 6 righe e 6 armature, e l'ultima riga e' già "tutto addosso".
+
+/** I sei stati visivi del personaggio, dal nudo al completo. */
+export const STATI_IMMAGINE = [
+  { id: 'nudo', nome: 'Senza armatura', riga: 'niente addosso' },
+  { id: 'bracciali', nome: 'Bracciali', riga: 'bracciali di cuoio' },
+  { id: 'corazza', nome: 'Corazza', riga: 'corazza aperta' },
+  { id: 'armatura', nome: 'Armatura', riga: 'armatura di ferro' },
+  { id: 'arma', nome: 'Arma', riga: 'armatura e arma' },
+  { id: 'completo', nome: 'Completo', riga: 'tutto addosso' },
+];
+
+/**
+ * In che stato si vede il personaggio, dato quello che ha già sbloccato.
+ *
+ * @param premi  la lista di `premi` che arriva da `calcolaAvatar`
+ */
+export function statoVisivo(premi) {
+  const lista = premi || [];
+  const sbloccati = lista.filter((p) => p && p.sbloccato).length;
+  const ultimo = STATI_IMMAGINE.length - 1;
+  const indice = Math.max(0, Math.min(ultimo, sbloccati));
+  return {
+    indice,
+    stato: STATI_IMMAGINE[indice],
+    sbloccati,
+    totale: lista.length,
+    // L'AURA arriva col 6o premio, quello che non ha un'immagine tutta sua.
+    aura: sbloccati >= lista.length && lista.length > 0,
+    completo: sbloccati >= ultimo,
+  };
+}
+
+/**
+ * Il percorso dell'immagine di quello stato.
+ *
+ * @param classeId  l'id della classe (guerriero, berserker, assassino)
+ * @param indice    lo stato, da `statoVisivo`
+ */
+export function percorsoStato(classeId, indice) {
+  const ultimo = STATI_IMMAGINE.length - 1;
+  const n = Math.max(0, Math.min(ultimo, Math.round(Number(indice) || 0)));
+  return `img/personaggi/stati/${classeId}-${n}.png`;
+}
+
 /**
  * Gli esercizi che contano per la FORZA: i grossi.
  *

@@ -1483,6 +1483,61 @@ body:has(.sfondo-dialogo) .avviso {
   transform: none;
   filter: contrast(1.04) saturate(1.02) brightness(1.04);
 }
+
+/* ---------------------------------------------------------------------------
+ * LE FOTO DEI SEI STATI (Ste, 11/10/2026)
+ * ---------------------------------------------------------------------------
+ * Adesso il personaggio è UNA FOTO PER OGNI ARMATURA e cambia da solo quando la
+ * streak cresce. Le foto hanno già uno sfondo scuro con la vignettatura, quindi
+ * non serve una cornice: il rettangolo si scioglie nella scheda.
+ *
+ * `max-width` c'è perché le foto sono piccole (190×170). Senza, su un telefono
+ * largo 360 px verrebbero ingrandite quasi al doppio e diventerebbero sfocate.
+ * Qui si fermano quasi alla loro dimensionevera.
+ *
+ * `mix-blend-mode: screen` serve a una cosa sola: toglie il nero dello sfondo,
+ * così l'immagine si fonde con la scheda invece di stare dentro una cornice
+ * rettangolare. Le figure restano accese perché sono chiare.
+ *
+ * La transizione serve perché il cambiamento si vede: quando l'armatura si
+ * sblocca, l'animazione rende conto del cambiamento invece di cambiare di colpo. */
+.personaggio-scena-grafica.con-foto .personaggio-ritratto {
+  max-width: 340px;
+  margin: 0 auto;
+  border-radius: 14px;
+  mix-blend-mode: screen;
+  animation: personaggio-vestizione .55s ease-out;
+}
+@keyframes personaggio-vestizione {
+  0%   { opacity: .35; filter: brightness(1.5) saturate(.7); }
+  60%  { opacity: 1;   filter: brightness(1.14) saturate(1.1); }
+  100% { opacity: 1;   filter: contrast(1.04) saturate(1.02) brightness(1.04); }
+}
+
+/* L'AURA: il sesto premio non ha un'immagine tutta sua (l'ultima riga è già
+   "tutto addosso"), quindi è una luce che si accende intorno alla foto. */
+.personaggio-scena-grafica.personaggio-aura::after {
+  content: '';
+  position: absolute;
+  inset: 6% 12%;
+  border-radius: 50%;
+  pointer-events: none;
+  box-shadow:
+    0 0 26px 6px color-mix(in srgb, var(--tinta) 46%, transparent),
+    0 0 60px 18px color-mix(in srgb, var(--tinta) 22%, transparent);
+  animation: personaggio-aura 3.4s ease-in-out infinite;
+}
+@keyframes personaggio-aura {
+  0%, 100% { opacity: .45; transform: scale(.97); }
+  50%      { opacity: .95; transform: scale(1.03); }
+}
+
+/* Lo stato in cui sei ADESSO, marcato nella fila. Così sai subito quale sei. */
+.pezzo.adesso {
+  outline: 2px solid color-mix(in srgb, var(--tinta) 78%, transparent);
+  outline-offset: 1px;
+}
+.pezzo.adesso .pezzo-quando { opacity: 1; font-weight: 700; }
   .persono-ologramma {
   position: absolute;
   inset: 0;
