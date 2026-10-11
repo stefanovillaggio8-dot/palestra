@@ -24,7 +24,7 @@ import { ESERCIZI, SCHEDA_ID, SCHEDA_NOME, PERSONE, CONTATTI, accountId, chiSei,
 import { nuovoId, adesso, TABELLE, riallineaEsercizi } from './sincronizzazione.js';
 // --- il gioco: rank, LP, streak, Aura, missioni, amici ---
 import { statoAccount, ricompenseAllenamento, gruppiDaSerie } from './gioco.js';
-import { calcolaAvatar, CLASSI, classeConsigliata, eCardio } from './avatar-rpg.js';
+import { calcolaAvatar, CLASSI, classeConsigliata, eCardio, nomePremio } from './avatar-rpg.js';
 import { isoGiorno } from './streak.js';
 import { suona, sbloccaAudio, audioSpento, impostaAudioSpento } from './audio.js';
 import { bloccoGlossario } from './glossario-app.js';
@@ -4719,12 +4719,19 @@ function bloccoAvatarRpg(profilo, st) {
 
   // ---- le armature
   box.appendChild(el('h3', { class: 'titolo-sottosezione', testo: 'Armature e armi' }));
+  // Il NOME dipende dalla classe, non dal premio generico.
+  //
+  // Ste (10/10/2026), dalla scheda delle tre classi: il secondo pezzo è "armatura di
+  // cuoio" per il guerriero, "pelo e pelliccia" per il berserker e "vesti leggeri" per
+  // l'assassino. Qui si mostrava sempre "Armatura di ferro" anche al berserker, che di
+  // ferro non ha niente.
+  const classePerIpremi = rpg.classe ? rpg.classe.id : null;
   const listaPremi = el('div', { class: 'lista-premi' });
   for (const p of rpg.premi) {
     listaPremi.appendChild(el('div', { class: 'premio' + (p.sbloccato ? ' sbloccato' : '') }, [
       el('span', { class: 'icona-premio', testo: p.sbloccato ? p.icona : '🔒' }),
       el('div', { class: 'testo-premio' }, [
-        el('span', { class: 'nome-premio', testo: p.nome }),
+        el('span', { class: 'nome-premio', testo: nomePremio(p.id, classePerIpremi) }),
         el('span', { class: 'nota nota-piccola', testo: p.perche }),
       ]),
     ]));

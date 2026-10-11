@@ -67,6 +67,52 @@ export const PREMI = [
   { id: 'divina', giorni: 100, nome: 'Arma divina', icona: '🔱', richiede: { forza: 25 } },
 ];
 
+// IL NOME CHE VEDE VOI DIPENDE DALLA CLASSE.
+//
+// Ste (10/10/2026), dalla scheda delle tre classi: il secondo pezzo è "armatura di
+// cuoio" per il guerriero, "pelo e pelliccia" per il berserker e "vesti leggeri" per
+// l'assassino. Il quarto è ferro per tutti. E l'arma è spada, ascia o coltello.
+//
+// Quindi un solo `nome` per tutti e tre non basta: mostrerebbe "armatura di ferro" al
+// berserker, che di ferro non ha niente, e "spada runica" all'assassino.
+//
+// I `PREMI` sopra restano come sono, perché `id`, `giorni` e `richiede` sono la LOGICA
+// dello sblocco e non si toccano: qui sotto cambia solo la parola che si vede. Il
+// default è il nome generico, così un esercizio creato a mano o un pezzo nuovo non
+// finiscono con un nome sbagliato.
+
+/** Il nome di un premio per la classe che hai scelto. */
+const NOMI_PER_CLASSE = {
+  guerriero: {
+    ferro: 'Armatura di cuoio',
+    runica: 'Spada',
+    elmo: 'Elmo del guerriero',
+  },
+  berserker: {
+    ferro: 'Pelo e pelliccia',
+    runica: 'Ascia da guerra',
+    elmo: 'Elmo corno',
+  },
+  assassino: {
+    ferro: 'Vesti leggeri',
+    runica: 'Coltello',
+    elmo: 'Cappuccio e maschera',
+  },
+};
+
+/**
+ * Il nome di un premio, detto come lo dice la classe che lo porta.
+ *
+ * @param id     l'id del premio
+ * @param classe la classe scelta
+ */
+export function nomePremio(id, classe) {
+  const perClasse = NOMI_PER_CLASSE[classe];
+  if (perClasse && perClasse[id]) return perClasse[id];
+  const p = PREMI.find((x) => x.id === id);
+  return p ? p.nome : id;
+}
+
 /**
  * Gli esercizi che contano per la FORZA: i grossi.
  *

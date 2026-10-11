@@ -25,12 +25,30 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
 import { personaggioSvg } from '../src/personaggio-svg.js';
-import { PREMI, CLASSE_PER_ID } from '../src/avatar-rpg.js';
+import { PREMI, CLASSE_PER_ID, nomePremio } from '../src/avatar-rpg.js';
 import { readFileSync } from 'node:fs';
 
 const css = readFileSync(new URL('../stile.css', import.meta.url), 'utf8');
 
 const ids = (svg) => [...svg.matchAll(/data-pezzo="([\w-]+)"/g)].map((m) => m[1]);
+
+// Il pezzo e il PREMIO non sono la stessa cosa, e non devono diventarlo.
+//
+// Il pezzo si chiama come la parte del corpo che disegna (`torso`), il premio è
+// quello che lo sblocca (`ferro`). Sono due nomi diversi di proposito: lo stesso
+// premio, su una classe diversa, disegna una parte diversa — per il berserker il
+// "ferro" è la pelliccia, non un corpetto d'acciaio.
+//
+// Si legge l'attributo `data-premio` direttamente dal `<g>`: ogni pezzo ha la sua
+// apertura su una riga sola, quindi non serve andare a cercare il `</g>` giusto e
+// il test non si rompe se il disegno dentro cambia.
+const pezziDelPremio = (svg, premio) => {
+  const fuori = [];
+  for (const m of svg.matchAll(/data-pezzo="([\w-]+)"[^>]*/g)) {
+    if (m[0].includes(`data-premio="${premio}"`)) fuori.push(m[1]);
+  }
+  return fuori;
+};
 
 test('all\'inizio il personaggio ha solo il corpo e l\'arma', () => {
   // "un personaggio tipo all'inizio nudo": niente premiche, niente elmo, niente
@@ -63,7 +81,8 @@ test('ogni premio sbloccato aggiunge il suo pezzo', () => {
     // corpo + arma della classe + un pezzo per ogni premio sbloccato
     assert.equal(ids(svg).length, 2 + aperti.length,
       `dopo aver sbloccato ${aperti.length} premi devono esserci ${2 + aperti.length} pezzi`);
-    assert.ok(ids(svg).includes(id), `il pezzo di "${id}" deve comparire`);
+    assert.ok(pezziDelPremio(svg, id).length === 1,
+      `sbloccando "${id}" deve comparire il pezzo che quel premio disegna`);
   }
   // e con tutti i sei premi il personaggio è completo
   const completo = ids(personaggioSvg({ classe: 'guerriero', sbloccati: tutti }));
@@ -80,8 +99,8 @@ test('i pezzi si accendono nell\'ordine in cui sono sbloccati', () => {
 });
 
 test('ogni classe ha la sua arma', () => {
-  // Ste: "l'assassino ha in mano un coltello, il guerriero uno scudo e il berserker
-  // l'ascia".
+  // Ste (10/10/2026): "l'assassino ha in mano un coltello, il guerriero uno scudo e il
+  // berserker l'ascia".
   for (const [id, atteso] of [
     ['guerriero', 'arma-guerriero'],
     ['assassino', 'arma-assassino'],
@@ -98,6 +117,63 @@ test('ogni classe ha la sua arma', () => {
       assert.ok(!pezzi.includes(altro), `${id} non deve avere anche ${altro}`);
     }
   }
+});
+
+test('le tre classi non sono lo stesso personaggio', () => {
+  // Dalla scheda di Ste: il secondo pezzo è "armatura di cuoio" per il guerriero,
+  // "pelo e pelliccia" per il berserker e "vesti leggeri" per l'assassino. Il ferro
+  // è un pezzo solo, ma disegna tre cose diverse.
+  const tutti = PREMI.map((p) => p.id);
+  const disegni = ['guerriero', 'berserker', 'assassino'].map((c) =>
+    personaggioSvg({ classe: c, sbloccati: tutti }));
+
+  // stesso numero di pezzi (la progressione è uguale), ma disegno DIVERSO.
+  // Il conto è: corpo + arma di classe (che ci sono sempre) + un pezzo per ciascuno
+  // dei sei premi. Nove non sono: sono otto.
+  for (const d of disegni) {
+    assert.equal(ids(d).length, 2 + tutti.length,
+      `il personaggio completo deve avere ${2 + tutti.length} pezzi, ne ha ${ids(d).length}`);
+  }
+  assert.notEqual(disegni[0], disegni[1], 'guerriero e berserker devono essere diversi');
+  assert.notEqual(disegni[1], disegni[2], 'berserker e assassino devono essere diversi');
+
+  // e il pezzo del "ferro" ha un nome diverso per classe, perché è un'altra cosa
+  const titoli = disegni.map((d) => {
+    const m = /<title>([^<]+)<\/title>/.exec(d.slice(d.indexOf('data-premio="ferro"')));
+    return m ? m[1] : '';
+  });
+  assert.equal(new Set(titoli).size, 3,
+    `il pezzo del ferro si chiama in tre modi diversi, invece ne ha uno solo: ${titoli.join(' / ')}`);
+});
+
+test('i nomi dei premi cambiano con la classe', () => {
+  // Nell'app si mostrava sempre "Armatura di ferro" anche al berserker, che di ferro
+  // non ha niente. Il nome che vede l'utente dipende dalla classe.
+  assert.equal(nomePremio('ferro', 'guerriero'), 'Armatura di cuoio');
+  assert.equal(nomePremio('ferro', 'berserker'), 'Pelo e pelliccia');
+  assert.equal(nomePremio('ferro', 'assassino'), 'Vesti leggeri');
+  assert.equal(nomePremio('runica', 'guerriero'), 'Spada');
+  assert.equal(nomePremio('runica', 'berserker'), 'Ascia da guerra');
+  assert.equal(nomePremio('runica', 'assassino'), 'Coltello');
+  // e un premio senza nome per la classe, o una classe che non esiste, non devono
+  // lasciare il buco: tornano al nome generico
+  assert.equal(nomePremio('bracciali', 'berserker'), 'Bracciali di cuoio');
+  assert.equal(nomePremio('ferro', 'nessuna-classe'), 'Armatura di ferro');
+  assert.equal(nomePremio('non-esiste', 'guerriero'), 'non-esiste');
+});
+
+test('le regole dello sblocco NON cambiano con la classe', () => {
+  // Il nome che vedi cambia, ma i numeri che decidono quando un pezzo si accende no:
+  // altrimenti il berserker sbloccherebbe tutto prima del guerriero e la progressione
+  // non sarebbe più la stessa.
+  for (const p of PREMI) {
+    assert.ok(Number.isFinite(p.giorni), `il premio ${p.id} deve avere i giorni`);
+    assert.ok(p.richiede, `il premio ${p.id} deve dire cosa richiede`);
+  }
+  // lo stesso premio, nelle tre classi, ha gli stessi giorni
+  const perId = new Map(PREMI.map((p) => [p.id, p.giorni]));
+  assert.equal(perId.get('ferro'), 7);
+  assert.equal(perId.get('runica'), 14);
 });
 
 test('ogni pezzo ha un nome che si può leggere', () => {
