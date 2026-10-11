@@ -34,43 +34,58 @@ const CHIAVE = 'animazioni';
 /** Le tre scelte, nell'ordine in cui compaiono nel menù. */
 export const SCELTE_ANIMAZIONI = [
   {
-    id: 'auto',
-    testo: 'Come su Windows',
-    spiegazione: 'Se Windows ha le animazioni spente, l\'app non le fa. È la scelta '
-      + 'più prudente, e funziona se le animazioni ti danno fastidio o il mal di testa.',
-  },
-  {
     id: 'sempre',
     testo: 'Sempre accese',
-    spiegazione: 'Le animazioni si fanno anche se Windows le ha spente. Le 13 '
-      + 'animazioni dell\'app sono brevi, mezzo secondo, e si muovono solo quando '
-      + 'tocchi qualcosa.',
+    spiegazione: 'Le animazioni si fanno sempre, anche se il telefono o il computer '
+      + 'chiedono poco movimento. Sono brevi, mezzo secondo, e si muovono solo quando '
+      + 'tocchi qualcosa. È la scelta di default.',
+  },
+  {
+    id: 'auto',
+    testo: 'Come sul dispositivo',
+    spiegazione: 'Se il telefono o il computer hanno le animazioni spente, l\'app '
+      + 'non le fa. Serve se le animazioni ti danno fastidio o il mal di testa, o se '
+      + 'vuoi risparmiare la batteria.',
   },
   {
     id: 'mai',
     testo: 'Spente',
-    spiegazione: 'Niente animazioni, sempre. Utile se ti danno fastidio.',
+    spiegazione: 'Niente animazioni, sempre. L\'app funziona uguale, solo senza i '
+      + 'movimenti.',
   },
 ];
 
 const PREFS = 'palestra-animazioni';
 
 function memoria() {
+  // IL DEFAULT È "SEMPRE", E NON "COME SU WINDOWS".
+  //
+  // Ste (10/10/2026): "le animazioni voglio vederle anche da telefono".
+  //
+  // Con il default "auto" le animazioni dipendevano dal sistema, e su telefono il
+  // sistema le spegne più spesso che sul PC: iPhone con "Riduci movimento" attivo,
+  // Android con il risparmio batteria. Quindi le vedeva sul PC (dopo averlo scelto
+  // a mano) e non le vedeva da telefono, per un motivo che non aveva niente a che
+  // fare con l'app.
+  //
+  // Il default è "sempre", e le tre scelte restano tre: se le animazioni non ti
+  // vanno, "spente" le spegne davvero e l'app funziona uguale, solo senza i
+  // movimenti. La scelta viene ricordata anche sul telefono.
   try {
-    return window.localStorage.getItem(PREFS) || 'auto';
+    return window.localStorage.getItem(PREFS) || 'sempre';
   } catch (e) {
-    return 'auto';
+    return 'sempre';
   }
 }
 
 /** La scelta salvata: 'auto', 'sempre' o 'mai'. */
 export function sceltaAnimazioni() {
   const v = memoria();
-  return SCELTE_ANIMAZIONI.some((s) => s.id === v) ? v : 'auto';
+  return SCELTE_ANIMAZIONI.some((s) => s.id === v) ? v : 'sempre';
 }
 
 export function impostaSceltaAnimazioni(id) {
-  const v = SCELTE_ANIMAZIONI.some((s) => s.id === id) ? id : 'auto';
+  const v = SCELTE_ANIMAZIONI.some((s) => s.id === id) ? id : 'sempre';
   try {
     window.localStorage.setItem(PREFS, v);
   } catch (e) { /* senza memoria la scelta vale solo per questa sessione */ }

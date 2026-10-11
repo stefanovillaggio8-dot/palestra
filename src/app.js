@@ -2966,7 +2966,8 @@ function bloccoAnimazioni() {
   box.appendChild(el('p', {
     class: 'nota',
     testo: 'I movimenti quando tocchi qualcosa: la spunta di una serie, il dialogo '
-      + 'che si apre, i numeri che cambiano. Sono brevi,mezzo secondo.',
+      + 'che si apre, i numeri che cambiano. Sono brevi, mezzo secondo. La scelta vale '
+      + 'sia sul computer sia sul telefono.',
   }));
 
   const riga = el('div', { class: 'riga-animazioni' });
@@ -2986,13 +2987,16 @@ function bloccoAnimazioni() {
   box.appendChild(riga);
   box.appendChild(spiegazione);
 
-  // cosa sta succedendo davvero, adesso, su questo PC
+  // cosa sta succedendo davvero, adesso, su questo dispositivo
   const stato = el('p', { class: 'nota nota-piccola' });
   if (sceltaAnimazioni() === 'sempre') {
-    stato.textContent = 'Adesso le animazioni sono accese, anche se Windows le ha spente.';
+    stato.textContent = 'Adesso le animazioni sono accese, su questo e sull\'altro '
+      + 'dispositivo, anche se il sistema chiede poco movimento.';
+  } else if (sceltaAnimazioni() === 'mai') {
+    stato.textContent = 'Adesso le animazioni sono spente.';
   } else if (pocoMovimento()) {
-    stato.textContent = 'Adesso Windows chiede poco movimento, quindi le animazioni '
-      + 'non si vedono. Se le vuoi, scegli "Sempre accese".';
+    stato.textContent = 'Adesso questo dispositivo chiede poco movimento, quindi le '
+      + 'animazioni non si vedono. Scegli "Sempre accese" per vederle comunque.';
   } else {
     stato.textContent = 'Adesso le animazioni si vedono.';
   }

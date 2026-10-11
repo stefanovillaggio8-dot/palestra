@@ -70,8 +70,8 @@ test('le Impostazioni hanno il blocco delle animazioni', () => {
   assert.ok(app.includes('bloccoAnimazioni'), 'il blocco esiste');
   assert.ok(app.includes('bloccoAnimazioni()'), 'e viene chiamato');
   // e dice cosa sta succedendo adesso, così se le animazioni non si vedono lo sa
-  assert.ok(app.includes('Windows chiede poco movimento'),
-    'il blocco deve spiegare quando Windows le ha spente');
+  assert.ok(app.includes('chiede poco movimento'),
+    'il blocco deve spiegare quando il dispositivo le ha spente');
 });
 
 test('il modulo delle animazioni è nella cache del service worker', () => {
@@ -81,11 +81,24 @@ test('il modulo delle animazioni è nella cache del service worker', () => {
   assert.ok(sw.includes('./src/animazioni.js'), 'manca dalla cache');
 });
 
-test('la scelta "auto" resta quella di default', () => {
-  // Se il default cambiasse in "sempre", chi soffre di mal di testa si troverebbe
-  // le animazioni accese senza averlo chiesto. Il default deve continuare a
-  // ubbidire al sistema.
+test('il default è "sempre accese", anche da telefono', () => {
+  // Ste (10/10/2026): "le animazioni voglio vederle anche da telefono".
+  //
+  // Con il default "auto" dipendevano dal sistema, e i telefoni le spengono più
+  // spesso del computer (iPhone con "Riduci movimento", Android col risparmio
+  // batteria): quindi si vedevano sul PC e non da telefono, per un motivo che non
+  // c'entrava con l'app.
   const mod = readFileSync(new URL('../src/animazioni.js', import.meta.url), 'utf8');
-  assert.ok(mod.includes("return 'auto'"), 'senza memoria la scelta è auto');
-  assert.ok(mod.includes("v) ? v : 'auto'"), 'una scelta ignota torna ad auto, non a sempre');
+  assert.ok(mod.includes("|| 'sempre'"), 'senza memoria la scelta è sempre');
+  // e una scelta ignota o corrotta non deve diventare "spente" né "auto":
+  // il fallback è quello che l'utente voleva
+  assert.ok(mod.includes("v) ? v : 'sempre'"), 'una scelta ignota torna a sempre');
+});
+
+test('"spente" esiste davvero, se un giorno le animazioni non vanno', () => {
+  // Il default being "sempre" non vuol dire che non si possa spegnerle: se un
+  // giorno danno fastidio, l'app deve potersi spegnere da sola.
+  const mod = readFileSync(new URL('../src/animazioni.js', import.meta.url), 'utf8');
+  assert.ok(mod.includes("id: 'mai'"), 'la scelta "spente" esiste');
+  assert.ok(mod.includes('animazioni-mai'), 'e mette una classe che il CSS può ascoltare');
 });

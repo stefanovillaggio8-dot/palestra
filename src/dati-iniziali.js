@@ -233,13 +233,26 @@ export const ESERCIZI = [
 
   { id: 'ex-pull-ups', nome: 'Pull Ups', gruppo: 'Pull Ups', convenzione: C.ASSISTENZA, foto: 'img/esercizi/pull-ups.png', tipo: 'assistente', nota_permanente: 'Zavorra: il numero e\' l\'assistenza che uso.' },
   { id: 'ex-dips', nome: 'Dips', gruppo: 'Dips', convenzione: C.ASSISTENZA, foto: 'img/esercizi/dips.png', tipo: 'assistente', nota_permanente: 'Zavorra: il numero e\' l\'assistenza che uso.' },
-  { id: 'ex-wrist-curl', nome: 'Wrist Curl', gruppo: 'Wrist Curl', convenzione: C.BILANCIERE, carrucola: C.CARRUCOLA_MONO, foto: 'img/esercizi/wrist-curl.png', tipo: 'standard', nota_permanente: 'Dropset: prima serie fino a cedimento, poi si scende. Ci sono 3 giri extra da riempire.' },
+  // Ste (10/10/2026), audit: questo esercizio aveva `carrucola: carrucola_mono` ma
+// convenzione `bilanciere`. La carrucola sta solo sui CAVI: un bilanciere non ha
+// un carrello da cui il peso si dimezzi. Qui non cambiava il Rank (il bilanciere non
+// dimezza niente), ma è un dato falso che la logica della carrucola non deve
+// trovare mai, e se un giorno il bilanciere venisse trattato come il cavo avrebbe
+// dimezzato un numero che non si dimezza.
+{ id: 'ex-wrist-curl', nome: 'Wrist Curl', gruppo: 'Wrist Curl', convenzione: C.BILANCIERE, foto: 'img/esercizi/wrist-curl.png', tipo: 'standard', nota_permanente: 'Dropset: prima serie fino a cedimento, poi si scende. Ci sono 3 giri extra da riempire.' },
 
   // Esercizi AGGIUNTI, non ancora messi in nessuna scheda: sono disponibili
   // nella lista così ognuno può aggiungerli quando gli servono.
   { id: 'ex-iso-lateral-row', nome: 'Iso-Lateral Row', gruppo: 'Row', convenzione: C.PER_BRACCIO, attrezzatura: C.MACCHINA_DISCHI, foto: 'img/esercizi/iso-lateral-row.png', tipo: 'standard', nota_permanente: 'Macchina a dischi, e ogni braccio e\' indipendente: se i due lati non sono uguali lo senti subito.' },
   { id: 'ex-lat-pulldown-lats', nome: 'Lat Pulldown (lats)', gruppo: 'Lat Pulldown', attrezzatura: C.MACCHINA_STACK, convenzione: C.MACCHINA, foto: 'img/esercizi/lat-pulldown-lats.png', tipo: 'standard', nota_permanente: '' },
-  { id: 'ex-db-lateral-raise', nome: 'Dumbbell Lateral Raise', gruppo: 'Lateral Raise', convenzione: C.BILANCIERE, foto: 'img/esercizi/db-lateral-raise.png', tipo: 'standard', nota_permanente: '' },
+  // Ste (10/10/2026), audit: questo era `bilanciere` ma si fa coi MANUBRI. Tutti gli
+// altri esercizi coi manubri del catalogo sono `per_manubrio`: bench pull, shoulder
+// press, scott curl, shrug, preacher curl. Qui era l'unico rimasto indietro.
+//
+// I due non sono la stessa cosa: `bilanciere` vuol dire un peso tieni con due mani,
+// `per_manubrio` dice che il numero che scrivi è quello di UN manubrio. Sui lateral
+// raise è un manubrio per mano, quindi il numero è per mano.
+{ id: 'ex-db-lateral-raise', nome: 'Dumbbell Lateral Raise', gruppo: 'Lateral Raise', convenzione: C.PER_MANUBRIO, foto: 'img/esercizi/db-lateral-raise.png', tipo: 'standard', nota_permanente: '' },
   { id: 'ex-lying-cable-curl', nome: 'Incline Single Arm Pulldown', gruppo: 'Lat Pulldown', convenzione: C.CAVO, carrucola: C.CARRUCOLA_MONO, foto: 'img/esercizi/incline-single-arm-pulldown.png', tipo: 'standard', nota_permanente: 'Braccio singolo: sto sulla panca inclinata col petto appoggiato e tiro il cavo alto verso di me con la presa piccola. Dorso. Quello che diciamo "liac".' },
 ];
 
