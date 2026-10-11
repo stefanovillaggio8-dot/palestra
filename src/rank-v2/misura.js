@@ -64,7 +64,7 @@ function mediana(numeri) {
  * anche i motivi del "no", cosi' la schermata puo' dirti "non ho spostato niente:
  * mi servono 8 risposte e ne ho 4" invece di sembrare rotta.
  */
-export function affinaVertice({ verticeDichiarato, risposte = [], livello = 'composto', pesoCorporeo = 70, movimento = null }) {
+export function affinaVertice({ verticeDichiarato, risposte = [], livello = 'composto', pesoCorporeo = 70, movimento = null, esercizio = null }) {
   const dichiarato = Number(verticeDichiarato);
   if (!Number.isFinite(dichiarato) || dichiarato <= 0) {
     return { vertice: dichiarato, mosso: false, motivo: 'nessun numero dichiarato', quante: 0 };
@@ -107,7 +107,9 @@ export function affinaVertice({ verticeDichiarato, risposte = [], livello = 'com
   // tagliato a 0,85x il corpo. Qui la regola deve essere LA STESSA che usa la
   // scala, altrimenti la misura potrebbe muovere un numero e poi la scala lo
   // taglierebbe dietro: due regole diverse sullo stesso numero.
-  const tetto = tettoPerEsercizio(livello, movimento);
+  // l'esercizio serve per i tetti che cambiano da macchina a macchina (i polpacci:
+  // carrello e pressa orizzontale non reggono lo stesso carico)
+  const tetto = tettoPerEsercizio(livello, movimento, esercizio);
   const limite = Number(pesoCorporeo) * tetto;
   const misuraLimitata = Math.min(misurato, limite);
   const tettoMesso = misurato > limite;

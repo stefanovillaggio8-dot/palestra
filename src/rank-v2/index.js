@@ -76,7 +76,7 @@ export function valutaEsercizio({ esercizio, serie = [], pesoCorporeo = null, ri
 
   // le soglie: tre valori dell'esercizio, riportati sul tuo corpo e convertiti
   // nell'unita' dello score (kg-equivalenti per 8 rip)
-  const tre = sogliePerEsercizio(valori, livello, pesoCorporeo, movimento);
+  const tre = sogliePerEsercizio(valori, livello, pesoCorporeo, movimento, esercizio || {});
   if (!tre) {
     return { valido: false, motivo: 'peso corporeo non disponibile', movimento, livello };
   }
@@ -107,6 +107,8 @@ export function valutaEsercizio({ esercizio, serie = [], pesoCorporeo = null, ri
     livello,
     movimento,
     pesoCorporeo: pesoCorporeo || 70,
+    // l'esercizio serve per i tetti che cambiano da macchina a macchina
+    esercizio: esercizio || {},
   });
 
   return {

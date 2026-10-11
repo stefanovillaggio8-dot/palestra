@@ -25,9 +25,15 @@ import { ESERCIZI } from '../src/dati-iniziali.js';
 import { CONVENZIONI, etichettaUnita } from '../src/numeri.js';
 import { pesoReale } from '../src/rank-config.js';
 import { recordEsercizio } from '../src/rank.js';
+import { valutaEsercizio } from '../src/rank-v2/index.js';
+import { valoriPerEsercizio, tettoPerEsercizio } from '../src/rank-v2/valori.js';
 import { CAMPI_CARICO, riallineaEsercizi } from '../src/sincronizzazione.js';
 
 const perId = (id) => ESERCIZI.find((e) => e.id === id);
+
+// I SUOI NUMERI. Ste (10/10/2026): "no i polpacci è 110kg monogamba sulla macchina
+// orizzontale", e poi "sono ancora olympian di polpacci". Il peso, 66 kg, è il suo.
+const STEFANO = 66;
 
 test('i polpacci sono per gamba, non macchina', () => {
   const polpacci = perId('ex-sled-press-calf-raise');
@@ -62,6 +68,58 @@ test('i suoi 110 kg monogamba stanno al loro posto nella scala', () => {
   const record = recordEsercizio([{ peso: 110, ripetizioni: 6 }], polpacci, null, null);
   assert.ok(record.rank, 'deve avere un Rank');
   assert.equal(record.rank.nome, 'GOLD');
+});
+
+test('i polpacci hanno due tetti, uno per macchina', () => {
+  // Il carrello e la pressa orizzontale sono due macchine che non reggono lo stesso
+  // carico, ma per il classificatore sono lo stesso movimento ("polpacci"). Senza
+  // due tetti il Rank non poteva distinguerle.
+  const carrello = tettoPerEsercizio('isolamento', 'polpacci', { nome: 'Standing Calf Raise' });
+  const pressa = tettoPerEsercizio('isolamento', 'polpacci', { nome: 'Sled Press Calf Raise' });
+  assert.ok(carrello < pressa, `il carrello deve stare sotto la pressa: ${carrello} contro ${pressa}`);
+  // e la pressa resta sotto la leg press: i polpacci sono più piccoli dei quadricipiti
+  const legPress = tettoPerEsercizio('composto', 'gambe_pesanti');
+  assert.ok(pressa < legPress, `i polpacci devono stare sotto la leg press: ${pressa} contro ${legPress}`);
+});
+
+test('i suoi 110 kg non sono più Olympian', () => {
+  // Il bug vero. I polpacci non avevano un tetto dedicato, quindi finivano sotto
+  // quello generico degli isolamenti (0,85x il corpo = 56 kg su corpo 66). Lui ne
+  // spinge 110, che sono 1,66x il corpo: sopra il tetto il Rank era OLYMPIAN a
+  // tutti i costi, e il numero non diceva più niente.
+  //
+  // Sulla pressa orizzontale il tetto è 1,8x il corpo (119 kg): le gambe spingono
+  // una pila di dischi come in una leg press. I suoi 110 ci stanno sotto.
+  const es = perId('ex-sled-press-calf-raise');
+  const res = valutaEsercizio({ serie: [{ peso: 110, ripetizioni: 6 }], esercizio: es, pesoCorporeo: STEFANO });
+  assert.ok(res.valido, 'la prestazione deve essere valutabile');
+  assert.notEqual(res.rank.nome, 'OLYMPIAN',
+    `110 kg su corpo ${STEFANO} non possono dare Olympian: il tetto e' 1,8x`);
+  assert.equal(res.rank.nome, 'TITAN');
+});
+
+test('la scala dei polpacci copre tutte le fasce, non solo il tetto', () => {
+  // Se il tetto è giusto ma la scala è compressa, due terzi delle fasce non si
+  // raggiungono mai e il Rank non dice niente. Qui si controlla che la scala si
+  // possa attraversare dal basso in alto con numeri plausibili.
+  const es = perId('ex-sled-press-calf-raise');
+  const ranghi = [];
+  for (const kg of [40, 60, 80, 100, 110]) {
+    const res = valutaEsercizio({ serie: [{ peso: kg, ripetizioni: 10 }], esercizio: es, pesoCorporeo: STEFANO });
+    ranghi.push(res.rank ? res.rank.nome : '?');
+  }
+  const unici = [...new Set(ranghi)];
+  assert.ok(unici.length >= 4,
+    `la scala deve attraversare piu' fasce, ne attraversa ${unici.length}: ${unici.join(', ')}`);
+});
+
+test('il valore dei polpacci sulla pressa segue la macchina', () => {
+  const carrello = valoriPerEsercizio('polpacci', { nome: 'Standing Calf Raise' });
+  const pressa = valoriPerEsercizio('polpacci', { nome: 'Sled Press Calf Raise' });
+  assert.ok(pressa.multiplo > carrello.multiplo,
+    `la pressa regge piu' del carrello: ${pressa.multiplo} contro ${carrello.multiplo}`);
+  assert.ok(pressa.multiplo <= 2.2,
+    `la pressa non puo' superare la leg press (2,2x): chiede ${pressa.multiplo}`);
 });
 
 test('la macchina a dischi resta solo dove i dischi li metti davvero', () => {

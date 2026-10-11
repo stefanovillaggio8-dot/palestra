@@ -235,18 +235,27 @@ test('C14b. nel nome, il MUSCOLO vince sulla MACCHINA', async () => {
   // il caso che ha fatto scattare tutto: il tetto dei polpacci non puo' essere
   // quello del leg press. 165 kg su corpo 75 per un calf raise non esiste.
   const v2 = await import('../src/rank-v2/index.js');
-  const calf = { id: 'x', nome: 'Sled Press Calf Raise', convenzione: 'macchina' };
+  // Due macchine diverse, due tetti diversi. Ste (10/10/2026): "110 kg monogamba
+  // sulla macchina orizzontale", e con un tetto unico era OLYMPIAN a tutti i costi.
+  // Il carrello resta sotto il tetto della pressa; la pressa orizzontale puo' stare
+  // vicino alla leg press perche' le gambe spingono una pila di dischi come li',
+  // ma non lo supera.
+  const carrello = { id: 'x', nome: 'Standing Calf Raise', convenzione: 'macchina' };
+  const pressaCalf = { id: 'x', nome: 'Sled Press Calf Raise', convenzione: 'macchina' };
   const pressa = { id: 'y', nome: 'Single Leg Press', convenzione: 'macchina' };
-  const rCalf = v2.valutaEsercizio({ esercizio: calf, serie: [{ id: 's', peso: 20, ripetizioni: 8 }], pesoCorporeo: 75 });
+  const rCarrello = v2.valutaEsercizio({ esercizio: carrello, serie: [{ id: 's', peso: 20, ripetizioni: 8 }], pesoCorporeo: 75 });
+  const rCalf = v2.valutaEsercizio({ esercizio: pressaCalf, serie: [{ id: 's', peso: 20, ripetizioni: 8 }], pesoCorporeo: 75 });
   const rPressa = v2.valutaEsercizio({ esercizio: pressa, serie: [{ id: 's', peso: 20, ripetizioni: 8 }], pesoCorporeo: 75 });
+  assert.ok(rCarrello.vertice < rCalf.vertice,
+    `il carrello e la pressa orizzontale non possono avere lo stesso tetto: ${rCarrello.vertice} contro ${rCalf.vertice}`);
   assert.ok(rCalf.vertice < rPressa.vertice,
     `i polpacci non possono avere il tetto della pressa: ${rCalf.vertice} contro ${rPressa.vertice}`);
-  // il numero esatto del tetto dei polpacci non e' fissato qui (0,85x il corpo e'
-  // il tetto di realta' per un isolamento): quello che conta e' che resti sotto
-  // la pressa e che sia un numero umano. 165 kg per un calf raise non esistono,
-  // e il test deve dirlo senza dover fissare il multiplo esatto.
-  assert.ok(rCalf.vertice <= 75,
-    `un calf raise non chiede piu' di 1x il corpo (75 kg), e chiede ${rCalf.vertice}`);
+  // il numero esatto dei due tetti non e' fissato qui: quello che conta e' che il
+  // carrello resti sotto il tetto della pressa orizzontale, che a sua volta resti
+  // sotto la leg press, e che i numeri siano umani. 165 kg su corpo 75 per un calf
+  // raise col carrello non esistono, e il test deve dirlo senza fissare il multiplo.
+  assert.ok(rCarrello.vertice <= 75,
+    `un calf raise col carrello non chiede piu' di 1x il corpo (75 kg), e chiede ${rCarrello.vertice}`);
 });
 
 

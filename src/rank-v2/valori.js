@@ -330,7 +330,42 @@ export const VALORI_MOVIMENTO = {
   },
   polpacci: {
     multiplo: 1.0, ingressoMultiplo: 0.34, fonte: 'stima',
-    nota: 'Calf raise e sled press calf raise: tetto 1,0x il corpo, ingresso 0,4x. I polpacci (gemelli e soleo) sono muscoli piccoli come il polso, ma il carico e\' piu\' grosso perche\' ci metti i dischi della pressa sotto i piedi. 75 kg su corpo 75 sono gia\' il tetto per i polpacci. Ste (08/10/2026): il classificatore gli dava il tetto del leg press (2,2x = 165 kg) perche\' leggeva "sled press" e ignorava "calf raise", ma 165 kg per un calf raise non esistono in nessuna palestra.',
+    // I polpacci si fanno su DUE macchine che non hanno niente a che fare:
+    //  - il calf raise col CARRELLO, dove spingi con le piastre dello stesso carico
+    //    delle altre macchine (piccolo, tetto ~1,0x il corpo)
+    //  - la PRESSA ORIZZONTALE a dischi sotto i piedi (sled press), dove il carico
+    //    è una pila di dischi e le gambe spingono come in una leg press
+    //
+    // Ste (10/10/2026): "no i polpacci è 110kg monogamba sulla macchina orizzontale"
+    // e poi "sono ancora olympian di polpacci". 110 kg su corpo 66 sono 1,66x: con
+    // un tetto unico da 1,0x il Rank era OLYMPIAN regalato a chiunque, e su una
+    // pressa orizzontale invece è realistico: le gambe stanno facendo un lavoro da
+    // leg press.
+    //
+    // Le due macchine hanno quindi due tetti, e li distingue l'attrezzatura, che è
+    // il fatto vero. La variante scelta si chiama in `scegliConMacchina` qui sotto.
+    scegliConMacchina: (e) => {
+      const id = String(e.id || '');
+      const nome = String(e.nome || '').toLowerCase();
+      // la pressa orizzontale a dischi: si chiama "sled press" e la nota dice
+      // "pressa orizzontale". Il resto sono i calf raise col carrello.
+      if (id.includes('sled') || nome.includes('sled press')) return 'pressa';
+      if (nome.includes('pressa') || nome.includes('sled')) return 'pressa';
+      return 'carrello';
+    },
+    varianti: {
+      // il carrello normale: tetto 1,0x il corpo, ingresso 0,34x
+      carrello: {
+        multiplo: 1.0, ingressoMultiplo: 0.34, fonte: 'stima',
+        nota: 'Calf raise col carrello: piccolo carico, tetto 1,0x il corpo.',
+      },
+      // la pressa orizzontale a dischi: tetto 2,0x il corpo, ingresso 0,5x
+      pressa: {
+        multiplo: 2.0, ingressoMultiplo: 0.5, fonte: 'stima',
+        nota: 'Calf raise su pressa orizzontale a dischi (sled press): le gambe spingono come in una leg press, quindi regge molto piu\' di un carrello. Tetto 2,0x il corpo. Non e\' il tetto della leg press (2,2x): i polpacci sono piu\' piccoli dei quadricipiti.',
+      },
+    },
+    nota: 'Calf raise e sled press calf raise: due macchine, due tetti. I polpacci (gemelli e soleo) sono muscoli piccoli come il polso, quindi il tetto e\' leggermente piu\' basso dei quadricipiti; ma sulla pressa orizzontale a dischi il carico e\' grosso e le gambe lavorano come in una leg press.',
   },
   // NOTA: spalle_trapezio sta fra le tirate perche\' lo scrollamento del trapezio e\' una
   // tirata con i pesi (vedi il commento nel classificatore). Lo shrug e\' pesante e
@@ -382,8 +417,40 @@ export const TETTO_MOVIMENTO = {
   polso: 0.5,
 };
 
+// I TETTI CHE DIPENDONO DALLA MACCHINA.
+//
+// Sono separati da TETTO_MOVIMENTO perche' lì la chiave è il movimento, e il
+// movimento è uno solo: i polpacci sono "polpacci" sia sul carrello sia sulla pressa
+// orizzontale, ma i due non reggono lo stesso carico. Qui la chiave è la macchina.
+//
+// Ste (10/10/2026): peso 66 kg, "110 kg monogamba sulla macchina orizzontale".
+// Sul carrello il tetto resta basso come gli altri isolamenti (0,85x = 56 kg),
+// perche' il carico e' piccolo. Sulla pressa orizzontale a dischi sale a 1,8x
+// (= 119 kg): le gambe spingono una pila di dischi come in una leg press, ma i
+// polpacci sono piu' piccoli dei quadricipiti, quindi sotto i 2,2x della leg press.
+export const TETTO_CON_MACCHINA = {
+  polpacci: { carrello: 0.85, pressa: 1.8 },
+};
+
 /** Se il vertice e' dentro i tetti di realta' per quell'esercizio. */
-export function tettoPerEsercizio(livello, movimento = null) {
+export function tettoPerEsercizio(livello, movimento = null, esercizio = null) {
+  // I POLPACCI hanno due tetti, uno per macchina, e senza l'esercizio non si sa
+  // quale prendere: il movimento dice solo "polpacci".
+  //
+  // Ste (10/10/2026): "110 kg monogamba sulla macchina orizzontale", e il Rank gli
+  // dava OLYMPIAN. Senza questo passaggio il tetto era quello generico degli
+  // isolamenti (0,85x = 56 kg su corpo 66), e 110 kg sono 1,66x il corpo: sopra il
+  // tetto, il Rank era OLYMPIAN a tutti i costi e il numero non diceva piu' niente.
+  //
+  // Il parametro è in fondo e facoltativo, così le chiamate vecchie continuano a
+  // funzionare e non si rompe nessun altro movimento.
+  if (movimento && TETTO_CON_MACCHINA[movimento] && esercizio) {
+    const base = VALORI_MOVIMENTO[movimento];
+    const scegli = base && base.scegliConMacchina;
+    const chiave = scegli ? scegli(esercizio) : null;
+    const tetto = chiave ? TETTO_CON_MACCHINA[movimento][chiave] : null;
+    if (Number.isFinite(tetto)) return tetto;
+  }
   if (movimento && TETTO_MOVIMENTO[movimento]) return TETTO_MOVIMENTO[movimento];
   return livello === 'isolamento' ? TETTO_ISOLAMENTI : TETTO_PER_PESO;
 }
@@ -403,6 +470,29 @@ export function tettoPerEsercizio(livello, movimento = null) {
 export function valoriPerEsercizio(movimento, esercizio = {}) {
   const base = VALORI_MOVIMENTO[movimento];
   if (!base || !base.varianti) return base;
+
+  // I POLPACCI hanno un modo tutto loro di scegliere la variante: la macchina.
+  //
+  // Il codice qui sotto sceglieva "pesante" o "cavo" guardando la convenzione, che
+  // è giusta per il petto ma non per i polpacci: sui polpacci la convenzione dice
+  // solo come si conta il carico (per gamba), e due macchine diverse ce l'hanno
+  // identica. Quindi prima si prova la variante "macchina", e se il movimento non
+  // la usa si scivola nel codice di prima, che non viene toccato.
+  if (base.scegliConMacchina) {
+    const chiave = base.scegliConMacchina(esercizio || {});
+    const v = chiave ? base.varianti[chiave] : null;
+    if (v) {
+      return {
+        ...base,
+        varianti: undefined,
+        multiplo: v.multiplo,
+        ingressoMultiplo: v.ingressoMultiplo,
+        fonte: v.fonte || base.fonte,
+        nota: v.nota,
+      };
+    }
+  }
+
   const pesante = esercizio
     && (esercizio.convenzione === 'per_manubrio' || esercizio.convenzione === 'bilanciere');
   const chiave = pesante ? 'pesante' : 'cavo';
@@ -423,10 +513,10 @@ export function valoriPerEsercizio(movimento, esercizio = {}) {
  * Il peso corporeo entra qui e in un solo posto: il tetto e' un multiplo del peso,
  * quindi tutto il resto (ingresso incluso) segue da solo.
  */
-export function verticePerCorpo(valori, livello, pesoCorporeo, movimento = null) {
+export function verticePerCorpo(valori, livello, pesoCorporeo, movimento = null, esercizio = null) {
   const peso = Number(pesoCorporeo);
   if (!Number.isFinite(peso) || peso <= 0) return null;
-  const tetto = tettoPerEsercizio(livello, movimento);
+  const tetto = tettoPerEsercizio(livello, movimento, esercizio);
   const grezzo = peso * valori.multiplo;
   const limite = peso * tetto;
   return {
@@ -445,8 +535,8 @@ export function verticePerCorpo(valori, livello, pesoCorporeo, movimento = null)
  * in una riga: se l'ingresso fosse una quota del tetto, chi pesa di piu' si
  * troverebbe sotto la prima soglia con lo stesso carico che gli dava un Rank.
  */
-export function sogliePerEsercizio(valori, livello, pesoCorporeo, movimento = null) {
-  const v = verticePerCorpo(valori, livello, pesoCorporeo, movimento);
+export function sogliePerEsercizio(valori, livello, pesoCorporeo, movimento = null, esercizio = null) {
+  const v = verticePerCorpo(valori, livello, pesoCorporeo, movimento, esercizio);
   if (!v) return null;
   const peso = Number(pesoCorporeo);
   const ingresso = Math.round(peso * valori.ingressoMultiplo * 100) / 100;
