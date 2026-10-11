@@ -1981,12 +1981,23 @@ export function annunciaFineSeduta(prima, dopo) {
   }
   if (!saliti.length && !nuovi.length && !battuti.length) return null;
   const righe = [];
-  if (saliti.length) righe.push('Sei salito: ' + saliti.join(' · '));
+if (saliti.length) righe.push('Sei salito: ' + saliti.join(' · '));
   if (battuti.length) righe.push('Record battuti: ' + battuti.join(' · '));
   if (nuovi.length) righe.push('Primo livello sbloccato: ' + nuovi.join(' · '));
   // il messaggio resta 9 secondi: Ste guarda il telefono in palestra e la schermata
-  // del Rank, che si vede meglio, È a un tocco da l'i
-  return avviso(righe.join(' '), { tipo: 'ok', durata: 9000 });
+  // del Rank, che si vede meglio, è a un tocco da l'i
+  //
+  // IL TIPO È "TRAGUARDO", NON "ok".
+  //
+  // Ste (10/10/2026): "aggiungi più animazioni". Questo è l'unico momento dell'app in
+  // cui qualcosa di vero è successo: un Rank salito, un record battuto. Aveva la
+  // stessa animazione di "questo esercizio è opzionale" — sale dal basso, sparisce —
+  // cioè esattamente l'opposto di quello che è.
+  //
+  // Il tipo "traguardo" scatta come un pulsante fisico e ha un alone che va via
+  // subito. È l'unica animazione dell'app che si prende la scena: tutto il resto
+  // resta discreto, e va bene così.
+  return avviso(righe.join(' '), { tipo: 'traguardo', durata: 9000 });
 }
 
 /**

@@ -73,6 +73,30 @@ export function campoNumero(valore, { onCambio, onInvalido, id, etichetta, extra
     const n = Number(input.value.replace(',', '.'));
     if (Number.isFinite(n)) input.value = String(Math.round(n * 100) / 100).replace('.', ',');
   });
+
+  // IL CAMPO CHE DICE "QUESTO NUMERO È QUELLO CHE HAI SCRITTO".
+  //
+  // Ste (10/10/2026): "aggiungi più animazioni".
+  //
+  // Non qui: l'evento `input` parte a ogni tasto premuto, e far lampeggiare il
+  // campo a ogni cifra diventa una cosa fastidiosa che non dice niente.
+  //
+  // Qui, quando esci dal campo: il numero è finito, e il campo lo conferma con
+  // una luce verde che passa in mezzo secondo. È la regola della skill: il
+  // movimento risponde a un'azione e mostra che cosa è cambiato. Prima scrivevi
+  // 85 e non sapevi se era finito li' o se mancava ancora qualcosa.
+  input.addEventListener('change', () => {
+    if (input.value === '') return;
+    const n = Number(input.value.replace(',', '.'));
+    if (!Number.isFinite(n)) return;
+    input.classList.remove('campo-confermato');
+    // senza forzare il ricalcolo, togliere e rimettere la classe nello stesso
+    // momento non riparte e la seconda volta non si vede
+    if (typeof globalThis.getComputedStyle === 'function') {
+      try { globalThis.getComputedStyle(input); } catch { /* il DOM finito non lo sa fare */ }
+    }
+    input.classList.add('campo-confermato');
+  });
   return input;
 }
 

@@ -843,6 +843,70 @@ body:has(.sfondo-dialogo) .avviso {
   to { opacity: 0; transform: translateX(-50%) translateY(10px); }
 }
 .avviso.via { animation: avviso-esce .3s ease-in forwards; }
+
+/* IL CAMPO CHE CONFERMA IL NUMERO.
+ *
+ * Non parte a ogni tasto premuto, ma quando esci dal campo: il numero è finito e
+ * una luce verde passa in mezzo secondo. Serve a una cosa sola, dirti che quel
+ * numero è stato preso, e non è il colore da solo: chi non nota le sfumature non
+ * si accorgerebbe di niente. */
+.campo-num.campo-confermato,
+.campo-peso.campo-confermato,
+.campo-rip.campo-confermato {
+  animation: campo-confermato .55s ease-out;
+}
+@keyframes campo-confermato {
+  0%   { border-color: var(--verde);
+         box-shadow: 0 0 0 3px color-mix(in srgb, var(--verde) 45%, transparent); }
+  60%  { border-color: var(--verde);
+         box-shadow: 0 0 0 3px color-mix(in srgb, var(--verde) 25%, transparent); }
+  100% { border-color: var(--bordo);
+         box-shadow: none; }
+}
+
+/* IL TRAGUARDO: l'unica animazione che si prende la scena.
+ *
+ * Ste (10/10/2026): "aggiungi più animazioni".
+ *
+ * Tutte le altre animazioni dell'app rispondono a un'azione e restanoDiscrete: un
+ * bottone che scende, un dialogo che entra, una spunta che si accende. Questa no.
+ *
+ * Questa parte quando hai FINITO un allenamento e qualcosa di vero è cambiato:
+ * un Rank salito, un record battuto, un livello sbloccato. È il momento per cui
+ * l'app esiste, e aveva la stessa animazione di un avviso qualsiasi: saliva dal
+ * basso come "questo esercizio è opzionale". Sbagliato: è l'opposto.
+ *
+ * Quindi qui il traguardo ESPLODE: parte un po' più piccolo e scatta sopra la sua
+ * misura, come quando premi un pulsante fisico che scatta indietro. E per un
+ * momento ha alone: non un bagliore che resta, ma un'ombra che va via subito,
+ * come la luce su una medaglia che tiri su di lei.
+ *
+ * Non si ripete: l'animazione parte una volta sola, all'arrivo del messaggio. */
+/* Due animazioni insieme sullo stesso elemento non possono animare la stessa
+   proprietà, quindi qui sono due elementi diversi: `transform` sul riquadro e
+   `box-shadow` sull alone. */
+.avviso-traguardo {
+  border-color: var(--giallo);
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--giallo) 16%, var(--card-2)),
+    var(--card-2));
+  animation: traguardo .55s cubic-bezier(.16, 1.1, .3, 1) both,
+             alone-traguardo 1.15s ease-out .18s both;
+}
+@keyframes traguardo {
+  0%   { transform: translateX(-50%) scale(.8);  opacity: 0; }
+  55%  { transform: translateX(-50%) scale(1.06); opacity: 1; }
+  75%  { transform: translateX(-50%) scale(.99); }
+  100% { transform: translateX(-50%) scale(1); }
+}
+/* L alone parte subito e va via: non resta addosso al messaggio, e dopo non
+   ingombra i tasti. */
+@keyframes alone-traguardo {
+  0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--giallo) 60%, transparent),
+                      0 10px 40px rgba(0, 0, 0, .6); }
+  100% { box-shadow: 0 0 0 22px color-mix(in srgb, var(--giallo) 0%, transparent),
+                      0 10px 40px rgba(0, 0, 0, .6); }
+}
 .avviso-info { border-color: #24325c; }
 /* La regola `opacity: 0` che stava qui e' stata toglta: combatteva con l'animazione
    di uscita, che fa gia' salire e sbiadire da sola. Con due regole insieme

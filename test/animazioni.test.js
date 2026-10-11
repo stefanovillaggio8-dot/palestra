@@ -221,3 +221,88 @@ test('il tocco su un bottone si sente davvero', () => {
   assert.ok(minimo <= 0.9,
     `il bottone deve abbassarsi almeno del 10% quando lo tocc: scende al ${minimo}`);
 });
+
+test('il traguardo ha un\'animazione sua, diversa da tutti gli altri avvisi', () => {
+  // Ste (10/10/2026): "aggiungi più animazioni".
+  //
+  // Questo è l'unico momento dell'app in cui qualcosa di vero è successo: un Rank
+  // salito, un record battuto. Aveva la stessa animazione di "questo esercizio è
+  // opzionale". La skill dice che il movimento deve rispondere a un'azione e
+  // mostrare che cosa è cambiato: qui è esattamente il contrario.
+  assert.ok(css.includes('@keyframes traguardo'), 'il traguardo ha un\'animazione sua');
+  assert.ok(/\.avviso-traguardo\s*\{/.test(css), 'e il suo stile');
+  assert.ok(css.includes('alone-traguardo'), 'con anche l\'alone che va via');
+  // non deve essere uno scivolamento dal basso come un avviso qualsiasi
+  const i = css.indexOf('@keyframes traguardo {');
+  const blocco = css.slice(i, css.indexOf('}', css.indexOf('100%', i)));
+  assert.ok(/scale\(\.8\)/.test(blocco), 'deve partire più piccolo');
+  assert.ok(/scale\(1\.0[0-9]/.test(blocco), 'e scattare sopra la sua misura');
+});
+
+test('l\'annuncio dei Rank saliti usa il tipo traguardo', () => {
+  // Se tornasse a "ok", l'annuncio più importante dell'app avrebbe l'animazione di
+  // un messaggio qualsiasi.
+  const i = app.indexOf('export function annunciaFineSeduta');
+  const fine = app.indexOf('\nexport function', i + 10);
+  const corpo = fine > 0 ? app.slice(i, fine) : app.slice(i, i + 2500);
+  assert.match(corpo, /tipo: 'traguardo'/, 'deve dire quale tipo di avviso è');
+  assert.doesNotMatch(corpo, /tipo: 'ok'/, 'e non "ok"');
+});
+
+test('il campo conferma il numero quando ESCI, non a ogni tasto', () => {
+  // La regola della skill: il movimento risponde a un'azione. Se il campo
+  // lampeggiasse a ogni tasto premuto diventa una cosa fastidiosa che non dice
+  // niente: è il rumore di fondo che rende le animazioni insopportabili.
+  const ui = readFileSync(new URL('../src/ui.js', import.meta.url), 'utf8');
+  const i = ui.indexOf('campo-confermato');
+  assert.ok(i > 0, 'la classe deve esistere');
+  const blocco = ui.slice(Math.max(0, i - 400), i);
+  assert.match(blocco, /addEventListener\('change'/,
+    'deve stare su "change", che parte quando esci dal campo');
+  assert.doesNotMatch(blocco, /addEventListener\('input'/,
+    'e NON su "input", che parte a ogni tasto');
+  assert.ok(css.includes('@keyframes campo-confermato'), 'e deve avere il movimento');
+});
+
+test('una sola animazione si prende la scena', () => {
+  // "Spend your boldness in one place."
+  //
+  // Il modo di capire se un'animazione si prende la scena NON è quanto scala: una
+  // cella del calendario che si allarga del 18% è riscontro, non show. È l'ALONE
+  // che si espande in un alone che esce dal riquadro, perché quello cattura l'occhio
+  // anche se non stai guardando lì.
+  //
+  // Quindi si controlla che l'alone ce l'abbia solo il traguardo. Se un domani
+  // un'altra animazione aggiunge un alone che si espande, il messaggio del traguardo
+  // smette di dire niente: due cose urlano insieme e non si sente nessuna.
+  const conAlone = [...css.matchAll(/@keyframes\s+([\w-]+)\s*\{([\s\S]*?)\n\}/g)]
+    .filter(([, , corpo]) => {
+      // un alone che si ESPANDE: i valori di `0 0 0 N` non sono tutti uguali.
+      // Il primo spesso è `0 0 0 0` senza `px`, quindi la regex non può pretendere
+      // l'unità: altrimenti l'alone del traguardo non verrebbe visto e il test
+      // passerebbe mentre non controlla niente.
+      const spread = [...corpo.matchAll(/0 0 0\s+([\d.]+)(?:px)?/g)].map((m) => Number(m[1]));
+      return spread.length >= 2 && Math.max(...spread) > Math.min(...spread) + 4;
+    })
+    .map(([, nome]) => nome);
+  assert.deepEqual(conAlone, ['alone-traguardo'],
+    `solo il traguardo può avere un alone che si espande, ma lo hanno anche: ${conAlone.join(', ')}`);
+});
+
+test('le scale esagerate sono solo nei posti giusti', () => {
+  // Una scala forte ha senso dove il numero o l'oggetto è il contenuto (la pallina
+  // della prova, una cella che compare) e nel tocco, dove il dito la aspetta.
+  // Non ha senso su un riquadro intero che arriva dal basso: quello è un messaggio,
+  // e un messaggio che si ingrandisce sembra un errore.
+  const eccezioni = new Set(['traguardo', 'cella-pulse', 'numero-pulse', 'prova-gira', 'tocco']);
+  const esagerate = [...css.matchAll(/@keyframes\s+([\w-]+)\s*\{([\s\S]*?)\n\}/g)]
+    // `[, nome]` e non `[nome]`: il primo elemento di un match è TUTTO il testo
+    // trovato ("@keyframes cella-pulse {..."), non il nome catturato. Con `[nome]`
+    // l'eccezione non scattava mai e il test accusava anche i nomi giusti.
+    .filter(([, nome]) => !eccezioni.has(nome))
+    .map(([, nome, corpo]) => [nome, [...corpo.matchAll(/scale\(([\d.]+)\)/g)].map((m) => Number(m[1]))])
+    .filter(([, scale]) => scale.some((s) => s >= 1.15 || s <= 0.6))
+    .map(([nome]) => nome);
+  assert.deepEqual(esagerate, [],
+    `scala esagerata dove non serve: ${esagerate.join(', ')}`);
+});
