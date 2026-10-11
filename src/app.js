@@ -3001,7 +3001,133 @@ function bloccoAnimazioni() {
     stato.textContent = 'Adesso le animazioni si vedono.';
   }
   box.appendChild(stato);
+
+  // IL BOTtone di prova.
+  //
+  // Ste: "ma io ancora sul telefono non ne vedo animazioni". Da fuori non si può
+  // capire perché: può essere il browser che chiede poco movimento, può essere
+  // una copia vecchia della pagina, può essere che le animazioni scattano solo
+  // quando tocchi qualcosa e lui stava guardando una schermata ferma.
+  //
+  // Qui si preme un bottone e si vede qualcosa che si muove. Se non si muove,
+  // il problema è il CSS o il browser; se si muove, le animazioni funzionano e
+  // quelle dell'app erano semplicemente troppo discrete per accorgersene guardando.
+  // La pallina viene tenuta in mano invece di andare a cercarla col selettore: il
+  // comando serve per riavviare l'animazione, e cercare nel DOM a ogni pressione
+  // non serve a niente. Tenere il riferimento è anche più semplice da leggere.
+  const pallina = el('div', { class: 'prova-pallina' });
+  const prova = el('div', { class: 'prova-animazione' }, [
+    pallina,
+    el('span', { class: 'nota nota-piccola', testo: 'Premi: se la pallina si muove, le animazioni funzionano.' }),
+  ]);
+  bottone('PROVA ANIMAZIONE', {
+    onClick: () => {
+      // si riavvia l'animazione togliendo e rimettendo la classe: senza, un
+      // secondo giro sulla stessa classe non riparte e sembra che non funzioni
+      pallina.classList.remove('in-corso');
+      void pallina.offsetWidth;
+      pallina.classList.add('in-corso');
+    },
+    classe: 'fantasma',
+  });
+  box.appendChild(prova);
+
+  // LO STATO VERO, letto dal browser e non indovinato.
+  box.appendChild(el('h3', { class: 'titolo-sottosezione', testo: 'Cosa dice questo browser' }));
+  const dettaglio = el('div', { class: 'nota nota-piccola' });
+  for (const r of righeAnimazioni()) dettaglio.appendChild(el('p', { testo: r }));
+  box.appendChild(dettaglio);
+
+  // IL PULSANTE "AGGIORNA ORA".
+  //
+  // Ste: "ma io ancora sul telefono non ne vedo animazioni". La causa più probabile
+  // su un telefono è la COPIA VECCHIA: l'app è già aperta da prima, il service
+  // worker ha già la sua copia in cache, e anche se il sito è cambiato da ore
+  // quella copia continua a servire il CSS di ieri. Il reload automatico c'è già,
+  // ma funziona solo quando il browser si accorge del cambio: se non se ne accorge,
+  // non riparte mai.
+  //
+  // Qui si butta via la cache e si ricarica, senza toccare i dati: l'account, le
+  // sedute e i record stanno in IndexedDB, che questa funzione non tocca.
+  // I dati NON si toccano: l'account, le sedute e i record stanno in IndexedDB, che
+  // questa funzione non guarda. Cancella solo la copia dei FILE (service worker e
+  // cache HTTP), cioè il CSS e i moduli vecchi.
+  const rigaAggiorna = el('div', { class: 'riga-pulsanti' });
+  rigaAggiorna.appendChild(bottone('AGGIORNA ORA', {
+    onClick: async () => {
+      avviso('Sto cancellando la copia vecchia e ricarico...', { durata: 2500 });
+      try {
+        if ('serviceWorker' in navigator) {
+          const rs = await navigator.serviceWorker.getRegistrations();
+          await Promise.all(rs.map((r) => r.unregister()));
+        }
+        if (window.caches && window.caches.keys) {
+          const chiavi = await window.caches.keys();
+          await Promise.all(chiavi.map((k) => window.caches.delete(k)));
+        }
+      } catch (e) { /* pazienza: il reload lo fa comunque */ }
+      window.location.reload();
+    },
+    classe: 'fantasma',
+  }));
+  box.appendChild(rigaAggiorna);
+  box.appendChild(el('p', {
+    class: 'nota nota-piccola',
+    testo: 'Se le animazioni non cambiano, prova "Aggiorna ora": butta via la copia '
+      + 'vecchia della pagina e ricarica. I tuoi dati non si toccano.',
+  }));
   return box;
+}
+
+/**
+ * Lo stato delle animazioni, letto dal browser.
+ *
+ * Tutto dentro un try: qui si legge il DOM vero (`document.documentElement`,
+ * `getComputedStyle`, i `cssRules` dei fogli di stile) e nessuno di questi è
+ * garantito. Un pannello che serve a diagnosticare non può essere lui stesso la
+ * cosa che rompe l'app, quindi se qualcosa non c'è la riga dice "non disponibile"
+ * e l'app va avanti.
+ */
+function righeAnimazioni() {
+  const fuori = [];
+  const si = (v) => (v ? 'sì' : 'no');
+  const prova = (fn, fallback = 'non disponibile') => {
+    try {
+      const r = fn();
+      return r === undefined || r === null ? fallback : String(r);
+    } catch (e) {
+      return fallback;
+    }
+  };
+  const root = () => document.documentElement;
+
+  fuori.push('Classe "animazioni-sempre" sul documento: '
+    + prova(() => si(root().classList.contains('animazioni-sempre')), 'non disponibile'));
+  fuori.push('Il browser chiede poco movimento: '
+    + prova(() => si(pocoMovimento()), 'non disponibile'));
+  fuori.push('Animazioni dichiarate nel CSS: '
+    + prova(() => contaAnimazioniCss()));
+  fuori.push('Scelta salvata: ' + prova(() => sceltaAnimazioni()));
+  fuori.push('Versione della pagina: ' + prova(() => window.PALESTRA_VERSIONE, 'sconosciuta'));
+  return fuori;
+}
+
+/** Conta gli @keyframes presenti in un foglio di stile già caricato dal browser. */
+function contaAnimazioniCss() {
+  let n = 0;
+  for (const f of Array.from(document.styleSheets || [])) {
+    let regole = null;
+    try {
+      regole = f.cssRules;
+    } catch (e) {
+      continue; // foglio di un altro sito: il browser non lo fa leggere
+    }
+    if (!regole) continue;
+    for (const r of Array.from(regole)) {
+      if (r.type === CSSRule.KEYFRAMES_RULE) n += 1;
+    }
+  }
+  return n;
 }
 
 function vistaImpostazioni(zona) {

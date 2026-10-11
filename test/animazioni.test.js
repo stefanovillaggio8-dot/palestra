@@ -102,3 +102,59 @@ test('"spente" esiste davvero, se un giorno le animazioni non vanno', () => {
   assert.ok(mod.includes("id: 'mai'"), 'la scelta "spente" esiste');
   assert.ok(mod.includes('animazioni-mai'), 'e mette una classe che il CSS può ascoltare');
 });
+
+test('c\'è un bottone che mostra un\'animazione vera', () => {
+  // Ste: "ma io ancora sul telefono non ne vedo animazioni".
+  //
+  // Da fuori non si può capire se il problema è il browser, la copia vecchia della
+  // pagina, o il fatto che le animazioni dell'app scattano solo quando tocchi
+  // qualcosa e lui stava guardando una schermata ferma. Serve qualcosa che si
+  // muove quando lo chiedi, senza doverlo indoviare.
+  assert.ok(app.includes('PROVA ANIMAZIONE'), 'il bottone c\'è');
+  assert.ok(css.includes('.prova-pallina.in-corso'), 'e muove qualcosa');
+  assert.ok(css.includes('@keyframes prova-gira'), 'una rotazione');
+  assert.ok(css.includes('@keyframes prova-pulse'), 'e un cambio di opacità');
+  // due animazioni diverse: se il browser ne ignora una, si vede lo stesso
+  assert.ok(/animation:[^;]*prova-gira[^;]*prova-pulse/.test(css),
+    'le due devono partire insieme');
+});
+
+test('c\'è un modo per buttare via la copia vecchia', () => {
+  // Ste: "ma io ancora sul telefono non ne vedo animazioni". La causa più probabile
+  // su un telefono è la copia in cache: l'app è aperta da prima e continua a
+  // servire il CSS di ieri, anche se il sito è cambiato.
+  assert.ok(app.includes('AGGIORNA ORA'), 'il bottone c\'è');
+  assert.ok(app.includes('getRegistrations'), 'tira via il service worker');
+  assert.ok(app.includes('caches.delete'), 'e la cache dei file');
+  assert.ok(app.includes('location.reload'), 'poi ricarica');
+});
+
+test('"aggiorna ora" non tocca i dati', () => {
+  // Il rischio vero di una funzione così: se cancellasse anche IndexedDB, gli
+  // perderei account, sedute e record. Qui si cancellano solo i FILE.
+  const i = app.indexOf('AGGIORNA ORA');
+  const corpo = app.slice(i, i + 900);
+  assert.ok(!/indexedDB|cancellaTutto|Elimina tutto|azzeraTutto/.test(corpo),
+    'non deve toccare IndexedDB: i dati del account stanno lì');
+});
+
+test('il pannello di diagnostica non può rompere l\'app', () => {
+  // Il pannello legge cose che non sono garantite (`document.documentElement`,
+  // `getComputedStyle`, i `cssRules` dei fogli di stile). Se una manca, la riga
+  // deve dire "non disponibile" e l'app va avanti: un pannello che serve a
+  // diagnosticare non può essere lui stesso la cosa che rompe.
+  assert.ok(app.includes('function righeAnimazioni'), 'la lettura è in una funzione');
+  assert.ok(app.includes('non disponibile'), 'e ha un fallback');
+  const corpo = app.slice(app.indexOf('function righeAnimazioni'));
+  const fine = corpo.indexOf('\n}');
+  assert.ok(corpo.slice(0, fine).includes('try'), 'la lettura è dentro un try');
+});
+
+test('il blocco reduced-motion sta in fondo al CSS', () => {
+  // Se sta in mezzo, una regola dopo con la stessa importanza lo annulla e le
+  // animazioni si spengono anche quando Ste ha scelto "sempre accese".
+  const i = css.indexOf('@media (prefers-reduced-motion');
+  const dentro = css.slice(i);
+  assert.ok(!/@keyframes/.test(dentro),
+    'non deve stare niente dopo: deve essere l\'ultima regola del file');
+});

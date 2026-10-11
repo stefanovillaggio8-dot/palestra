@@ -1678,6 +1678,38 @@ body:has(.sfondo-dialogo) .avviso {
    dialoghi compaiono subito. Non e' una gentilezza da aggiungere dopo: e' il
    motivo per cui le altre animazioni si possono fare senza pensarci due volte,
    perche' nessuno soffre. */
+/* IL PULSANTE DELLE ANIMAZIONI */
+.riga-animazioni { display: flex; gap: 8px; flex-wrap: wrap; margin: 6px 0 2px; }
+.riga-animazioni .bottone.scelto { border-color: var(--oro); color: var(--oro); }
+
+/* LA PROVA DELLE ANIMAZIONI.
+   Ste (10/10/2026): "ma io ancora sul telefono non ne vedo animazioni".
+
+   Da fuori non si può capire se il problema è il browser, la copia vecchia della
+   pagina, o il fatto che le animazioni dell'app scattano solo quando tocchi
+   qualcosa. Qui c'è un bottone che muove qualcosa di grosso e lento: se non si
+   muove, il problema è il CSS o il browser; se si muove, le animazioni
+   funzionano e quelle dell'app erano troppo discrete per accorgersene a occhio.
+
+   La pallina gira e pulsa insieme: due animazioni diverse, così si vede se
+   funzionano sia le `transform` sia quelle che cambiano colore. */
+.prova-animazione { display: flex; align-items: center; gap: 12px; margin: 10px 0 4px; }
+.prova-pallina {
+  width: 46px; height: 46px; border-radius: 50%; flex: 0 0 auto;
+  background: var(--oro); box-shadow: 0 0 12px -2px var(--oro);
+}
+.prova-pallina.in-corso { animation: prova-gira 1.1s ease-in-out 2, prova-pulse 1.1s ease-in-out 2; }
+@keyframes prova-gira {
+  from { transform: rotate(0deg) scale(1); }
+  50%  { transform: rotate(180deg) scale(1.25); }
+  to   { transform: rotate(360deg) scale(1); }
+}
+@keyframes prova-pulse {
+  from { opacity: 1; }
+  50%  { opacity: .35; }
+  to   { opacity: 1; }
+}
+
 /* LE ANIMAZIONI E LA SCELTA DI STEFANO.
    Ste (10/10/2026): "comunque io le animazioni non le vedo".
 
@@ -1687,9 +1719,12 @@ body:has(.sfondo-dialogo) .avviso {
    in Impostazioni > Accessibilità > Effetti visivi. Sul PC di Ste era spento, quindi
    tutte e 13 le animazioni diventavano istantanee da un pezzo.
 
-   Il default continua a ubbidire a Windows. Ma se nell'app sceglie "sempre accese",
-   la classe `animazioni-sempre` sul <html> fa saltare questa regola: la scelta
-   esplicita dell'utente vale più del segnale del sistema. */
+   Sta IN FONDO di proposito: se una regola dopo venisse con la stessa importanza,
+   ci starebbe dentro e la app si metterebbe a spegnere le animazioni anche quando
+   Ste ha scelto "sempre accese". È l'ultima parola.
+
+   E comunque non può colpire i due casi in cui le animazioni sono volute o spente
+   per decisione: il selettore esclude `html` con la classe `animazioni-sempre`. */
 @media (prefers-reduced-motion: reduce) {
   html:not(.animazioni-sempre) *,
   html:not(.animazioni-sempre) *::before,
@@ -1700,10 +1735,3 @@ body:has(.sfondo-dialogo) .avviso {
     scroll-behavior: auto !important;
   }
 }
-
-/* E se invece ha scelto "spente", le animazioni non ci sono comunque: qui non
-   serve toccare niente, semplicemente non vengono riavviate. */
-
-/* IL PULSANTE DELLE ANIMAZIONI */
-.riga-animazioni { display: flex; gap: 8px; flex-wrap: wrap; margin: 6px 0 2px; }
-.riga-animazioni .bottone.scelto { border-color: var(--oro); color: var(--oro); }
