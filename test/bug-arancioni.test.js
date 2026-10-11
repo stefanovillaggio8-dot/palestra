@@ -381,10 +381,18 @@ test('M1. le animazioni ci sono, ma chi le spegne viene ascoltato', async () => 
   // Il pulsante esiste su iOS, Android e Windows. Non è una gentilezza da aggiungere
   // dopo: è il motivo per cui le altre animazioni si possono fare senza pensarci due
   // volte, perché nessuno soffre.
-  assert.match(css, /@media \(prefers-reduced-motion: reduce\)/,
+assert.match(css, /@media \(prefers-reduced-motion: reduce\)/,
     'c\'è il blocco per chi chiede meno animazioni');
-  const i = css.indexOf('prefers-reduced-motion');
-  const blocco = css.slice(i, i + 400);
+  // Ste (10/10/2026): "io le animazioni non le vedo". Il blocco adesso ha il
+  // selettore `html:not(.animazioni-sempre)` davanti, quindi le dichiarazioni non
+  // sono più entro 400 caratteri: la finestra si allarga, il blocco c'è sempre.
+  // Si parte da `@media` e non dalla prima parola `prefers-reduced-motion`, che sta
+  // nel commento qui sopra e non nel blocco vero.
+  const i = css.indexOf('@media (prefers-reduced-motion');
+  const blocco = css.slice(i, i + 700);
   assert.match(blocco, /animation-duration/, 'e azzera le animazioni');
   assert.match(blocco, /transition-duration/, 'e le transizioni');
+  // e la scelta esplicita dell'utente vale più del segnale di Windows
+  assert.match(blocco, /html:not\(.animazioni-sempre\)/,
+    'ma non quando l\'utente ha scelto "sempre accese"');
 });

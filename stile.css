@@ -1678,11 +1678,32 @@ body:has(.sfondo-dialogo) .avviso {
    dialoghi compaiono subito. Non e' una gentilezza da aggiungere dopo: e' il
    motivo per cui le altre animazioni si possono fare senza pensarci due volte,
    perche' nessuno soffre. */
+/* LE ANIMAZIONI E LA SCELTA DI STEFANO.
+   Ste (10/10/2026): "comunque io le animazioni non le vedo".
+
+   Il motivo NON era un CSS rotto: era questa regola. I browser chiedono
+   `prefers-reduced-motion: reduce` quando il sistema dice "non voglio le
+   animazioni", e su Windows quel segnale è l'interruttore "Effetti di animazione"
+   in Impostazioni > Accessibilità > Effetti visivi. Sul PC di Ste era spento, quindi
+   tutte e 13 le animazioni diventavano istantanee da un pezzo.
+
+   Il default continua a ubbidire a Windows. Ma se nell'app sceglie "sempre accese",
+   la classe `animazioni-sempre` sul <html> fa saltare questa regola: la scelta
+   esplicita dell'utente vale più del segnale del sistema. */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  html:not(.animazioni-sempre) *,
+  html:not(.animazioni-sempre) *::before,
+  html:not(.animazioni-sempre) *::after {
     animation-duration: .001ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: .001ms !important;
     scroll-behavior: auto !important;
   }
 }
+
+/* E se invece ha scelto "spente", le animazioni non ci sono comunque: qui non
+   serve toccare niente, semplicemente non vengono riavviate. */
+
+/* IL PULSANTE DELLE ANIMAZIONI */
+.riga-animazioni { display: flex; gap: 8px; flex-wrap: wrap; margin: 6px 0 2px; }
+.riga-animazioni .bottone.scelto { border-color: var(--oro); color: var(--oro); }

@@ -28,6 +28,9 @@ import { calcolaAvatar, CLASSI, classeConsigliata, eCardio } from './avatar-rpg.
 import { isoGiorno } from './streak.js';
 import { suona, sbloccaAudio, audioSpento, impostaAudioSpento } from './audio.js';
 import { bloccoGlossario } from './glossario-app.js';
+import {
+  SCELTE_ANIMAZIONI, sceltaAnimazioni, impostaSceltaAnimazioni, pocoMovimento, avviaAnimazioni,
+} from './animazioni.js';
 import { recordEsercizio, recordAccount, classificaEsercizio, storicoMiglioramenti, giudizioPerformance, distanzaAllaSoglia } from './rank.js';
 import { confrontoGiorno, confrontiMensili, GIORNI_UN_MESE } from './confronto-mensile.js';
 import { profiloEsercizio, profiloPerPesoCorporeo, RANK, ETICHETTE_MISURA, descriviPunteggio, descrizioneLivello, livelloEsercizio, impostaLivelliImparati, livelliImparati, rapportoDifficolta, MOLTIPLICATORI_SOGLIA } from './rank-config.js';
@@ -227,6 +230,13 @@ function ascoltaScorrimento() {
 async function avvia() {
   const radice = document.getElementById('app');
   installaSpiaErrori();
+
+  // LE ANIMAZIONI, PRIMA DI DISEGNARE.
+  //
+  // Deve stare qui e non dentro una pagina: la classe sul <html> va messa prima che
+  // qualcosa venga disegnato, altrimenti la prima schermata parte con la scelta
+  // vecchia e le animazioni della prima apertura non si vedono.
+  avviaAnimazioni();
 
   // SBLOCA L'AUDIO AL PRIMO TOCCO.
   //
@@ -2934,10 +2944,68 @@ function bloccoSuoni() {
   return box;
 }
 
+/**
+ * Le animazioni: accese, spente, o come le vuole Windows.
+ *
+ * Ste (10/10/2026): "comunque io le animazioni non le vedo".
+ *
+ * Non erano un CSS rotto: il CSS ha la regola di accessibilità standard che
+ * spegne tutto quando il browser dice `prefers-reduced-motion`, e quel segnale su
+ * Windows viene da un interruttore in Impostazioni > Accessibilità > Effetti
+ * visivi, che sul suo PC era spento. Quindi le 13 animazioni erano spente apposta,
+ * e da un pezzo.
+ *
+ * Qui si sceglie cosa fare. Il default è "come su Windows", che è la scelta
+ * prudente. Ma se le vuoi e Windows le ha spente per un motivo che non c'entra,
+ * "sempre accese" mette una classe sul <html> e la regola di accessibilità non
+ * scatta più: la tua scelta vale più del segnale del sistema.
+ */
+function bloccoAnimazioni() {
+  const box = el('section', { class: 'blocco' });
+  box.appendChild(el('h2', { testo: 'Animazioni' }));
+  box.appendChild(el('p', {
+    class: 'nota',
+    testo: 'I movimenti quando tocchi qualcosa: la spunta di una serie, il dialogo '
+      + 'che si apre, i numeri che cambiano. Sono brevi,mezzo secondo.',
+  }));
+
+  const riga = el('div', { class: 'riga-animazioni' });
+  const spiegazione = el('p', { class: 'nota nota-piccola' });
+  const disegna = () => {
+    svuota(riga);
+    for (const s of SCELTE_ANIMAZIONI) {
+      riga.appendChild(bottone(s.testo, {
+        onClick: () => { impostaSceltaAnimazioni(s.id); disegna(); },
+        classe: 'fantasma' + (sceltaAnimazioni() === s.id ? ' scelto' : ''),
+      }));
+    }
+    const scelta = SCELTE_ANIMAZIONI.find((s) => s.id === sceltaAnimazioni());
+    spiegazione.textContent = scelta ? scelta.spiegazione : '';
+  };
+  disegna();
+  box.appendChild(riga);
+  box.appendChild(spiegazione);
+
+  // cosa sta succedendo davvero, adesso, su questo PC
+  const stato = el('p', { class: 'nota nota-piccola' });
+  if (sceltaAnimazioni() === 'sempre') {
+    stato.textContent = 'Adesso le animazioni sono accese, anche se Windows le ha spente.';
+  } else if (pocoMovimento()) {
+    stato.textContent = 'Adesso Windows chiede poco movimento, quindi le animazioni '
+      + 'non si vedono. Se le vuoi, scegli "Sempre accese".';
+  } else {
+    stato.textContent = 'Adesso le animazioni si vedono.';
+  }
+  box.appendChild(stato);
+  return box;
+}
+
 function vistaImpostazioni(zona) {
   zona.appendChild(el('h1', { testo: 'Impostazioni' }));
 
   zona.appendChild(bloccoGiorniAllenamento());
+
+  zona.appendChild(bloccoAnimazioni());
 
   zona.appendChild(bloccoSuoni());
 

@@ -215,8 +215,14 @@ test('T6. le animazioni si sentono, non si notano appena', () => {
 test('T7. chi ha "riduci animazioni" acceso non vede animazioni', () => {
   // Non è una gentilezza aggiunta dopo: è il motivo per cui le altre animazioni si
   // possono fare senza pensarci due volte, perché nessuno soffre.
-  assert.match(css, /@media \(prefers-reduced-motion: reduce\)/, 'il blocco c\'è');
-  const blocco = css.slice(css.indexOf('prefers-reduced-motion'), css.indexOf('prefers-reduced-motion') + 400);
-  assert.match(blocco, /animation-duration/, 'e azzera le animazioni');
+assert.match(css, /@media \(prefers-reduced-motion: reduce\)/, 'il blocco c\'è');
+  // Ste (10/10/2026): "io le animazioni non le vedo". Il blocco adesso ha il
+  // selettore `html:not(.animazioni-sempre)` davanti, quindi la finestra si allarga.
+  // Si parte da `@media` e non dalla prima parola `prefers-reduced-motion`, che sta
+  // nel commento qui sopra e non nel blocco vero.
+  const blocco = css.slice(css.indexOf('@media (prefers-reduced-motion'), css.indexOf('@media (prefers-reduced-motion') + 700);
+assert.match(blocco, /animation-duration/, 'e azzera le animazioni');
   assert.match(blocco, /transition-duration/, 'e le transizioni');
+  assert.match(blocco, /html:not\(.animazioni-sempre\)/,
+    'ma non quando l\'utente ha scelto "sempre accese"');
 });
