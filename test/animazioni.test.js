@@ -184,3 +184,40 @@ test('il blocco reduced-motion sta in fondo al CSS', () => {
   assert.ok(!/@keyframes/.test(dentro),
     'non deve stare niente dopo: deve essere l\'ultima regola del file');
 });
+
+test('ogni animazione dura abbastanza da essere vista', () => {
+  // Ste (10/10/2026): "funziona ma le vedo solo lì le animazioni".
+  //
+  // La pallina di prova si vedeva, e quella gira per 1,1s due volte. Le altre erano
+  // di 0,14s e 0,18s: un decimo e un quinto di secondo. Su un telefono non si
+  // vedono, e il caso peggiore è che erano le più corte proprio quelle che
+  // scattano più spesso (toccare un bottone, aprire il calendario).
+  //
+  // Sotto i 0,25s un'animazione non è un'animazione: è un salto. Le uscite restano
+  // sotto, e devono restarci: uscire è più veloce che entrare, altrimenti l'app
+  // sembra lentissima quando chiudi una cosa.
+  const soglie = { entra: 0.25, esce: 0.12 };
+  const problemi = [];
+  for (const m of css.matchAll(/animation:\s*([\w-]+)\s+([\d.]+)s/g)) {
+    const [, nome, secondi] = m;
+    const durata = Number(secondi);
+    const minimo = /-esce$/.test(nome) ? soglie.esce : soglie.entra;
+    if (durata < minimo) {
+      problemi.push(`${nome} dura ${secondi}s (minimo ${minimo}s)`);
+    }
+  }
+  assert.deepEqual(problemi, [],
+    `animazioni troppo rapide per essere viste: ${problemi.join(', ')}`);
+});
+
+test('il tocco su un bottone si sente davvero', () => {
+  // Il caso più frequente di tutti: si tocca un bottone, e non si vede niente.
+  // Controlla che l'effetto ci sia e non sia una sfumatura impercettibile.
+  const i = css.indexOf('@keyframes tocco {');
+  const blocco = css.slice(i, css.indexOf('}', css.indexOf('100%', i)));
+  const scale = [...blocco.matchAll(/scale\(([\d.]+)\)/g)].map((m) => Number(m[1]));
+  assert.ok(scale.length >= 2, 'il tocco deve avere almeno inizio e fine');
+  const minimo = Math.min(...scale);
+  assert.ok(minimo <= 0.9,
+    `il bottone deve abbassarsi almeno del 10% quando lo tocc: scende al ${minimo}`);
+});
