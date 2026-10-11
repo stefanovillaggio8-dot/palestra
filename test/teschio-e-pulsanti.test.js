@@ -165,7 +165,10 @@ test('T5. la card dice cosa fare, e non sembra accesa quando non lo è', () => {
     'niente alone: la card non deve sembrare accesa');
   assert.equal(/animation/.test(inAttesa[0]), false,
     'niente pulsazione: una card che pulsa sembra viva, e questa è in attesa');
-  assert.match(inAttesa[0], /border-color:[^;]*oro/,
+  // Ste (10/10/2026): il colore era `var(--oro)`, e `--oro` non era definita da
+  // nessuna parte: la dichiarazione non valeva e il bordo restava senza colore.
+  // Ora la variabile si chiama `--giallo`, ed è questa che il test controlla.
+  assert.match(inAttesa[0], /border-color:[^;]*giallo/,
     'ma il bordo è colorato: la differenza con una spenta si vede');
   // e il numero non è colorato
   const numero = /\.teschio-streak\.da-accendere \.fuoco \{[^}]*\}/.exec(css);

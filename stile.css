@@ -919,14 +919,14 @@ body:has(.sfondo-dialogo) .avviso {
 .teschio-streak.da-accendere {
   /* Niente alone e niente pulsazione: una card che pulsa sembra viva, e questa
      non è viva, è in attesa. */
-  border-color: color-mix(in srgb, var(--oro) 55%, var(--bordo));
+  border-color: color-mix(in srgb, var(--giallo) 55%, var(--bordo));
 }
 /* il numero resta col colore normale della card: non deve sembrare "acceso" */
 .teschio-streak.da-accendere .fuoco { color: var(--testo); }
 /* L'AVVISO, invece, è l'unica cosa accesa: è l'unica che devi vedere. */
 .richiamo-streak {
   margin-top: 4px; font-size: .72rem; font-weight: 800;
-  color: var(--oro); letter-spacing: .02em;
+  color: var(--giallo); letter-spacing: .02em;
 }
 .teschio-streak.spenta .fuoco { opacity: .45; }
 .teschio-streak.spenta { opacity: .62; filter: grayscale(.65); }
@@ -1201,7 +1201,7 @@ body:has(.sfondo-dialogo) .avviso {
   border: 1px solid color-mix(in srgb, var(--tinta) 45%, var(--bordo));
 }
 /* ogni classe ha la sua tinta, così il personaggio si riconosce a colpo d'occhio */
-.personaggio-guerriero { --tinta: var(--oro); }
+.personaggio-guerriero { --tinta: var(--giallo); }
 .personaggio-assassino { --tinta: var(--viola); }
 .personaggio-berserker { --tinta: var(--rosso); }
 .personaggio-nessuna { --tinta: var(--bordo); }
@@ -1229,7 +1229,7 @@ body:has(.sfondo-dialogo) .avviso {
    Senza, il numero che vedi è metà di quello che stai spostando davvero. */
 .nota-zavorri {
   flex: 1 0 100%; margin: 2px 0 6px;
-  color: var(--oro); font-weight: 600;
+  color: var(--giallo); font-weight: 600;
 }
 
 /* IL GLOSSARIO: le parole dell'app, una volta sola.
@@ -1329,12 +1329,12 @@ body:has(.sfondo-dialogo) .avviso {
   font-weight: 700;
 }
 /* previsto e non ancora passato: solo il bordo, perché non è ancora successo */
-.cella-calendario.atteso { border-color: color-mix(in srgb, var(--oro) 55%, var(--bordo)); }
+.cella-calendario.atteso { border-color: color-mix(in srgb, var(--giallo) 55%, var(--bordo)); }
 /* oggi: il bordo oro dentro, si vede anche sopra verde o rosso */
-.cella-calendario.oggi { box-shadow: inset 0 0 0 2px var(--oro); font-weight: 700; }
+.cella-calendario.oggi { box-shadow: inset 0 0 0 2px var(--giallo); font-weight: 700; }
 /* il giorno premuto: si distingue da quello premuto prima con un bordo esterno */
 .cella-calendario.aperto {
-  outline: 2px solid var(--oro); outline-offset: 1px;
+  outline: 2px solid var(--giallo); outline-offset: 1px;
   animation: cella-pulse .3s cubic-bezier(.2, .9, .3, 1);
 }
 /* giorni fuori dal mese (per allineare le colonne) e giorni futuri */
@@ -1348,7 +1348,7 @@ body:has(.sfondo-dialogo) .avviso {
 .legenda-fatto { border-color: color-mix(in srgb, var(--verde) 60%, var(--bordo)); }
 .legenda-saltato { border-color: color-mix(in srgb, var(--rosso) 60%, var(--bordo)); }
 .legenda-recupero { border-color: color-mix(in srgb, var(--viola) 45%, var(--bordo)); }
-.legenda-atteso { border-color: color-mix(in srgb, var(--oro) 60%, var(--bordo)); }
+.legenda-atteso { border-color: color-mix(in srgb, var(--giallo) 60%, var(--bordo)); }
 
 /* --- l'avatar RPG (Profilo) --- */
 .riga-classi { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 4px; }
@@ -1430,8 +1430,8 @@ body:has(.sfondo-dialogo) .avviso {
 }
 .premio.sbloccato {
   opacity: 1;
-  border-color: color-mix(in srgb, var(--oro) 55%, var(--bordo));
-  background: linear-gradient(160deg, color-mix(in srgb, var(--oro) 12%, var(--card-2)), var(--card-2));
+  border-color: color-mix(in srgb, var(--giallo) 55%, var(--bordo));
+  background: linear-gradient(160deg, color-mix(in srgb, var(--giallo) 12%, var(--card-2)), var(--card-2));
 }
 .icona-premio { font-size: 1.4rem; line-height: 1; flex: 0 0 auto; }
 .testo-premio { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
@@ -1680,7 +1680,7 @@ body:has(.sfondo-dialogo) .avviso {
    perche' nessuno soffre. */
 /* IL PULSANTE DELLE ANIMAZIONI */
 .riga-animazioni { display: flex; gap: 8px; flex-wrap: wrap; margin: 6px 0 2px; }
-.riga-animazioni .bottone.scelto { border-color: var(--oro); color: var(--oro); }
+.riga-animazioni .bottone.scelto { border-color: var(--giallo); color: var(--giallo); }
 
 /* LA PROVA DELLE ANIMAZIONI.
    Ste (10/10/2026): "ma io ancora sul telefono non ne vedo animazioni".
@@ -1696,7 +1696,7 @@ body:has(.sfondo-dialogo) .avviso {
 .prova-animazione { display: flex; align-items: center; gap: 12px; margin: 10px 0 4px; }
 .prova-pallina {
   width: 46px; height: 46px; border-radius: 50%; flex: 0 0 auto;
-  background: var(--oro); box-shadow: 0 0 12px -2px var(--oro);
+  background: var(--giallo); box-shadow: 0 0 12px -2px var(--giallo);
 }
 .prova-pallina.in-corso { animation: prova-gira 1.1s ease-in-out 2, prova-pulse 1.1s ease-in-out 2; }
 @keyframes prova-gira {
