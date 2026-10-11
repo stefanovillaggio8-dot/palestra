@@ -123,3 +123,68 @@ test('l\'SVG è accessibile e non si rompe', () => {
     assert.ok(definite.has(c), `la classe "${c}" non esiste nel CSS: il pezzo sarebbe invisibile`);
   }
 });
+
+test('l\'ologramma ha le tre cose che lo fanno ologramma', () => {
+  // Ste (10/10/2026): "fa cacare l'ologramma così".
+  //
+  // Il materiale `holoMat` della dashboard fa tre cose, e sono quelle che
+  // distinguono un ologramma da una figurina colorata:
+  //   1. la luce sta sui bordi (alone)
+  //   2. le scanline orizzontali che scorrono
+  //   3. la banda che sale dal basso
+  // Se manca una di queste tre, non è più un ologramma.
+  //
+  // 1. l alone: il drop-shadow sul disegno intero, non per pezzo
+  const disegno = css.slice(css.indexOf('.persono-disegno {'));
+  const bloccoDisegno = disegno.slice(0, disegno.indexOf('}'));
+  assert.match(bloccoDisegno, /drop-shadow/, 'la luce deve stare sui bordi');
+  // Il blocco va letto FINO ALLA SUA CHIUSURA. Senza il taglio, `[\s\S]*?`
+  // proseguirebbe per tutto il file e troverebbe un `filter:` molto più in giù,
+  // in un'altra regola: è già successo e il test dava un falso "va tutto bene".
+  const perPezzo = css.slice(css.indexOf('.persono-pezzo {'));
+  const bloccoPezzo = perPezzo.slice(0, perPezzo.indexOf('}'));
+  assert.doesNotMatch(bloccoPezzo, /filter:/,
+    'l\'alone non va per pezzo: sei filtri su un telefono fanno tremare tutto');
+  // 2. le scanline
+  assert.match(css, /\.persono-scanline\s*\{/, 'le scanline ci devono essere');
+  assert.match(css, /\.persono-proiezione\s*\{[\s\S]*?pointer-events:\s*none/,
+    'la proiezione non deve rubare i tocchi al personaggio');
+  // 3. la banda che sale
+  assert.match(css, /@keyframes proiezione-banda/, 'la banda che sale deve esistere');
+  const k = css.slice(css.indexOf('@keyframes proiezione-banda'));
+  assert.match(k.slice(0, 400), /translateY\(200px\)/,
+    'e deve salire tutta: senza, è una macchia ferma');
+
+  // e i gradienti che le disegna devono stare nel `defs`: un `repeating-linear-
+  // gradient` non si può scrivere dentro un attributo fill
+  const svg = personaggioSvg({ classe: 'guerriero', sbloccati: [] });
+  assert.match(svg, /<defs>/, 'i gradienti stanno in un defs');
+  assert.match(svg, /persono-scanline-grad/, 'il gradiente delle scanline');
+  assert.match(svg, /persono-banda-grad/, 'quello della banda');
+  assert.match(svg, /url\(#persono-scanline-grad\)/, 'e le scanline lo usano davvero');
+});
+
+test('le scanline e la banda prendono il colore della classe', () => {
+  // Dentro l'SVG `currentColor` vale il colore del TESTO, che è il bianco dei
+  // caratteri. Se le scanline restassero su `currentColor`, sarebbero bianche su
+  // tutte e tre le classi e il colore dell'ologramma sarebbe perso.
+  const per = { guerriero: '#ffb020', assassino: '#a97bff', berserker: '#37d18b' };
+  for (const [classe, tinta] of Object.entries(per)) {
+    const svg = personaggioSvg({ classe, sbloccati: [] });
+    assert.match(svg, new RegExp('fill="' + tinta + '"'),
+      `le scanline di ${classe} devono essere ${tinta}`);
+    assert.doesNotMatch(svg, /currentColor/,
+      `${classe}: currentColor dentro l'SVG è il colore del testo, non quello della classe`);
+  }
+});
+
+test('i pezzi sbloccati restano distinguibili anche come ologramma', () => {
+  // Con l alone e le scanline, due pezzi sovrapposti si somigliano: un bracciale
+  // sopra un braccio, un'elmo sopra la testa. Devono restare leggibili, quindi i
+  // pezzi hanno contorni spessi e i tratti interni sono un tono più chiaro.
+  const cssPezzo = css.slice(css.indexOf('.persono-pezzo {'));
+  const blocco = cssPezzo.slice(0, cssPezzo.indexOf('}'));
+  const spessore = /stroke-width:\s*([\d.]+)/.exec(blocco);
+  assert.ok(spessore && Number(spessore[1]) >= 2,
+    `il contorno deve essere spesso, almeno 2: è ${spessore ? spessore[1] : 'assente'}`);
+});

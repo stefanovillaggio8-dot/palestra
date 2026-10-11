@@ -1387,53 +1387,102 @@ body:has(.sfondo-dialogo) .avviso {
    l'armatura ecc... che si aggiorna automaticamente".
    Il personaggio cambia colore con la classe e le armature sbloccate si vedono
    addosso: così la schermata dice a che punto sei senza dover leggere i numeri. */
-/* IL PERSONAGGIO SVG.
+/* IL PERSONAGGIO, PROIETTATO COME L'OLOGRAMMA DELLA DASHBOARD.
  *
- * Ste (10/10/2026): "fai un personaggio tipo all'inizio nudo, che mano a mano che
- * sblocchi le cose si riempe di cose... fai una bella grafica come hai fatto con
- * l'ologramma nella dashboard".
+ * Ste (10/10/2026): "fa cacare l'ologramma così".
  *
- * Un riquadro scuro con dentro un omino stilizzato, fatto di pezzi che si accendono.
- * La classe ci mette dentro il colore (guerriero rosso, assassino viola, berserker
- * verde), il resto è sempre lo stesso: è la CLASSE che cambia l'aspetto, non il
- * numero di pezzi.
+ * Il materiale dell'ologramma nella dashboard (sito/pc3d-v103.html, `holoMat`) fa
+ * tre cose, e qui si copiano tutte e tre: sono loro che fanno "ologramma" e non
+ * "figurina colorata".
  *
- * Il corpo è sempre presente: all'inizio il personaggio è nudo, e si vede che è
- * lì anche senza un premio. I premi si accendono sopra.
+ *  1. LA LUCE STA SUI BORDI. Il riflesso è `pow(1-abs(dot(normale,sguardo)), 2)`:
+ *     la superficie guarda la luce dal più di lato solo sul contorno, il centro
+ *     resta scuro. Per questo il corpo si vede come un guscio di luce e non come
+ *     una macchia piena: qui si ottiene con il riempimento scuro e il contorno
+ *     acceso, e con il `drop-shadow` che accende i bordi per davvero.
  *
- * L'ombra sotto i piedi sta sempre: è quella che fa capire che l'ominio è in
- * piedi e non un disegno appeso. Senza, con il fondo scuro, sembra stampato. */
+ *  2. LE SCANLINE. Righe orizzontali che scorrono verso l'alto, come nel materiale.
+ *     Non sono decorazione: sono quello che dice "proiettato", non "dipinto".
+ *
+ *  3. LA BANDA CHE SALE. La scansione del proiettore che parte dal basso e risale.
+ *
+ * Tutte e tre le fa il CSS e non l'SVG: un filtro SVG per ogni pezzo, su un
+ * telefono, fa tremare tutto. Qui una sola passata sul disegno intero. */
 .persono-scena-grafica {
   position: relative;
   flex: 0 0 auto;
   width: 132px; height: 168px;
   border-radius: 14px;
   background:
-    radial-gradient(120% 90% at 50% 8%,
-      color-mix(in srgb, var(--tinta) 26%, transparent) 0%,
-      transparent 62%),
-    linear-gradient(180deg, var(--card-2), var(--nero-2, #100d18));
-  border: 1px solid var(--bordo);
+    radial-gradient(130% 95% at 50% 4%,
+      color-mix(in srgb, var(--tinta) 34%, transparent) 0%,
+      transparent 64%),
+    linear-gradient(180deg, #0d0a16, #060510);
+  border: 1px solid color-mix(in srgb, var(--tinta) 38%, var(--bordo));
   overflow: hidden;
   display: grid;
-  place-items: end center;
+  place-items: center;
+  /* l'apparecchio è inclinato verso di noi: è quello che fa "ologramma" e non
+     "immagine su uno sfondo". */
+  perspective: 600px;
 }
 .persono-svg { width: 100%; height: 100%; display: block; }
 
+/* il disegno: guscio di luce. Riempimento scuro, contorno acceso, e il drop-shadow
+   fa l'alone sui bordi che è la parte vera dell'ologramma. */
+.persono-disegno {
+  filter:
+    drop-shadow(0 0 3px var(--tinta))
+    drop-shadow(0 0 9px color-mix(in srgb, var(--tinta) 60%, transparent));
+  animation: ologramma-pulse 3.6s ease-in-out infinite;
+}
+@keyframes ologramma-pulse {
+  0%, 100% { opacity: .92; }
+  50%      { opacity: 1; }
+}
+.persono-pezzo {
+  fill: #0b0918;
+  stroke: var(--tinta);
+  stroke-width: 2.2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.persono-pezzo .pieno { fill: color-mix(in srgb, var(--tinta) 30%, #0b0918); }
+.persono-pezzo .tratto { fill: none; stroke: var(--tinta); stroke-width: 1.7; }
+.persono-pezzo .punto { fill: var(--tinta); }
+
+/* il pavimento su cui è proiettato */
 .persono-ombra {
   position: absolute;
-  bottom: 12px; left: 50%; transform: translateX(-50%);
-  width: 62px; height: 9px;
+  bottom: 14px; left: 50%; transform: translateX(-50%);
+  width: 78px; height: 12px;
+  border-radius: 50%;
   background: radial-gradient(50% 50% at 50% 50%,
-    color-mix(in srgb, var(--tinta) 55%, transparent) 0%,
+    color-mix(in srgb, var(--tinta) 70%, transparent) 0%,
     transparent 72%);
+  animation: ologramma-pavimento 3.6s ease-in-out infinite;
+}
+@keyframes ologramma-pavimento {
+  0%, 100% { transform: translateX(-50%) scale(1);    opacity: .75; }
+  50%      { transform: translateX(-50%) scale(1.08); opacity: 1; }
 }
 
-/* Il corpo e l'arma: contorni netti, riempimento scuro. Sono sempre accesi. */
-.persono-pezzo { fill: #171325; stroke: var(--tinta); stroke-width: 2; stroke-linejoin: round; }
-.persono-pezzo .pieno { fill: color-mix(in srgb, var(--tinta) 34%, #171325); }
-.persono-pezzo .tratto { fill: none; stroke: var(--tinta); stroke-width: 1.6; stroke-linecap: round; }
-.persono-pezzo .punto { fill: var(--tinta); }
+/* LE SCANLINE: righe orizzontali che scorrono verso l'alto. */
+.persono-proiezione { pointer-events: none; }
+.persono-scanline {
+  fill: url(#persono-scanline-grad);
+  opacity: .5;
+}
+.persono-banda {
+  fill: url(#persono-banda-grad);
+  animation: proiezione-banda 3.2s linear infinite;
+}
+@keyframes proiezione-banda {
+  0%   { transform: translateY(0);    opacity: 0; }
+  12%  { opacity: .85; }
+  88%  { opacity: .85; }
+  100% { transform: translateY(200px); opacity: 0; }
+}
 
 /* Un premio sbloccato: si accende con una breve dissolvenza, così si vede che è
  * appena comparso invece di essere sempre stato lì. */
