@@ -323,15 +323,45 @@ test('ogni classe che il codice usa esiste nel CSS', () => {
   }
 });
 
+test('la foto non viene mai tagliata', () => {
+  // Ste (10/10/2026), dalla foto: "adesso spunta solo la sua gamba".
+  //
+  // Era `object-fit: cover`, che RIEMPIE il riquadro tagliando ciò che eccede, e
+  // quello che eccedeva era la figura: a schermo stretto restava solo la gamba. E
+  // c'era pure un `object-position: 50% 26%` per aggiustare l'inquadratura, che
+  // spostava il taglio invece di toglierlo.
+  //
+  // Con una persona, la regola è una sola: la foto entra INTERA. `contain` è
+  // l'unico modo che lo garantisce; `cover` per definizione taglia.
+  const r = css.slice(css.indexOf('.personaggio-ritratto'));
+  const b = r.slice(0, r.indexOf('}'));
+  assert.match(b, /object-fit:\s*contain/,
+    'la foto deve entrare intera: con "cover" spunta solo una parte del personaggio');
+  assert.doesNotMatch(b, /object-fit:\s*cover/, '"cover" taglia sempre qualcosa');
+  assert.doesNotMatch(b, /object-position:/,
+    'e non serve un object-position: serve solo a nascondere il taglio');
+  // e il riquadro non deve poter diventare più piccolo di una figura
+  const i = css.indexOf('.personaggio-scena-grafica {');
+  const blocco = css.slice(i, css.indexOf('}', i));
+  assert.match(blocco, /min-height:\s*\d+px/,
+    'il riquadro ha un\'altezza minima, altrimenti su uno schermo stretto è una macchietta');
+  assert.match(blocco, /max-height:\s*\d+v?h/,
+    'e un\'altezza massima, altrimenti su uno schermo alto copre tutta la pagina');
+});
+
 test('la foto del personaggio è grande, non una figurina', () => {
   // Dalla foto del 10/10/2026: il riquadro era 132×168 px e sul telefono il
   // personaggio era una macchietta. La foto è alta e stretta, quindi si dà la
   // larghezza e si lascia che l'altezza la decida l'immagine.
   const i = css.indexOf('.personaggio-scena-grafica {');
   const blocco = css.slice(i, css.indexOf('}', i));
-  assert.doesNotMatch(blocco, /\bheight:\s*\d+px/,
+  // `min-height` e `max-height` NON sono un'altezza fissa: sono limiti. Il controllo
+  // guarda il `height:` nudo, quindi serve il lookbehind: senza, la barra iniziale
+  // di "min" fa scattare il confronto e sembra che l'altezza sia fissata.
+  assert.doesNotMatch(blocco, /(?<!-)\bheight:\s*\d+px/,
     'l\'altezza non va fissata in pixel: si lascia all\'aspect-ratio, altrimenti la '
     + 'foto viene schiacciata o tagliata');
+  assert.match(blocco, /min-height/, 'ma un minimo e un massimo sì: devono stare');
   assert.match(blocco, /aspect-ratio/, 'deve dire le proporzioni della foto');
   assert.match(blocco, /width:\s*clamp\(/,
     'e la larghezza deve crescere con lo schermo, non essere fissa');

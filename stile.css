@@ -1450,6 +1450,12 @@ body:has(.sfondo-dialogo) .avviso {
      che l'altezza la decida la foto, così non si taglia nessun piede. */
   width: clamp(150px, 46%, 260px);
   aspect-ratio: 226 / 540;
+  /* L'altezza minima serve perché su uno schermo stretto la larghezza si stringe,
+   * e senza questa il personaggio diventerebbe una macchietta. Con il ritratto in
+   * `contain` un riquadro più grande del necessario lascia solo due margini, e i
+   * piedi restano dentro. */
+  min-height: 260px;
+  max-height: 60vh;
   border-radius: 14px;
   background:
     radial-gradient(130% 95% at 50% 4%,
@@ -1478,17 +1484,27 @@ body:has(.sfondo-dialogo) .avviso {
  * Il ritratto è leggermente più grande e spenta sotto, così l'ologramma davanti
  * sembra la versione "proiettata" della stessa figura e non un'altra immagine. */
 .personaggio-ritratto {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: 50% 26%;
-    /* La foto è il personaggio, quindi sta DAVANTI e piena. Prima era a opacità
-     * .5 e con `saturate(.75)`: sembrava una foto appoggiata sullo sfondo per
-     * riempire, non il personaggio. Un accenno di contrasto basta. */
-    filter: contrast(1.04) saturate(1.02) brightness(1.04);
-  }
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      /* `contain`, NON `cover`. Ste (10/10/2026), dalla foto: "adesso spunta solo
+       * la sua gamba".
+       *
+       * Il problema è che `cover` RIEMPIE il riquadro tagliando ciò che eccede, e
+       * quello che eccedeva era la figura: a schermo stretto restava solo la
+       * gamba. `contain` invece fa entrare l'immagine INTERA e lascia vuoto quello
+       * che non serve, che è l'unica cosa giusta quando la foto è una persona: non
+       * si taglia mai una gamba per far entrare una cornice.
+       *
+       * Con il `cover` non serviva nemmeno il `object-position`: era un aggiustamento
+       * per nascondere il taglio, non per inquadrare. */
+      object-fit: contain;
+      /* La foto è alta e stretta: un pelo di zoom, per non restare un bordo
+       * bianco se il riquadro non è esattamente della sua forma. */
+      transform: scale(1.015);
+      filter: contrast(1.04) saturate(1.02) brightness(1.04);
+    }
   .persono-ologramma {
     position: absolute;
     inset: 0;
