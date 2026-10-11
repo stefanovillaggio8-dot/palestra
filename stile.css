@@ -1451,7 +1451,42 @@ body:has(.sfondo-dialogo) .avviso {
      "immagine su uno sfondo". */
   perspective: 600px;
 }
-.persono-svg { width: 100%; height: 100%; display: block; }
+/* LA FOTO DELLA CLASSE.
+ *
+ * Ste (10/10/2026): "se scegli il berserker devi mettere che il tuo personaggio è il
+ * berserker trasportando la foto che ti ho mandato nell'app".
+ *
+ * La foto STA DIETRO all'ologramma e non al posto suo: il disegno a pezzi dice
+ * "questo è quello che ti manca", la foto dice "questo sei tu". Insieme dicono la
+ * cosa giusta: chi sei adesso, e quanto ti resta.
+ *
+ * Il ritratto è leggermente più grande e spenta sotto, così l'ologramma davanti
+ * sembra la versione "proiettata" della stessa figura e non un'altra immagine. */
+.personaggio-ritratto {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center bottom;
+  /* la foto è scura e il riquadro è scuro: senza questa si perdono i bordi */
+  opacity: .5;
+  filter: saturate(.75) contrast(1.05);
+  transform: scale(1.04);
+}
+.persono-ologramma {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  opacity: .95;
+}
+.persono-ologramma .persono-svg { width: 100%; height: 100%; }
+
+/* Senza classe non c'è nessuna foto da mettere: il posto resta al disegno. */
+.personaggio-scena-grafica:not(:has(.personaggio-ritratto)) .persono-ologramma { position: absolute; }
+
+.persono-ologramma { opacity: 1; }
 
 /* il disegno: guscio di luce. Riempimento scuro, contorno acceso, e il drop-shadow
    fa l'alone sui bordi che è la parte vera dell'ologramma. */

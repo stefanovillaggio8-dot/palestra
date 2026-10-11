@@ -91,11 +91,15 @@ test('ogni premio sbloccato aggiunge il suo pezzo', () => {
 
 test('i pezzi si accendono nell\'ordine in cui sono sbloccati', () => {
   // Se si accendessero a caso il personaggio sembrerebbe montarsi al contrario:
-  // prima l'elmo, poi i bracciali.
+  // prima l'armatura, poi i bracciali.
+  //
+  // I nomi dei PEZZI non sono i nomi dei PREMI: il pezzo si chiama come la parte del
+  // corpo che disegna (`pugnale`, `piastre`), il premio è quello che lo sblocca
+  // (`elmo`, `runica`). Sono due nomi diversi di proposito.
   const uno = ids(personaggioSvg({ classe: 'assassino', sbloccati: ['bracciali'] }));
   const due = ids(personaggioSvg({ classe: 'assassino', sbloccati: ['bracciali', 'elmo'] }));
-  assert.ok(uno.indexOf('bracciali') < due.indexOf('elmo'),
-    'bracciali viene prima di elmo: è l\'ordine in cui si sbloccano');
+  assert.ok(uno.indexOf('bracciali') < due.indexOf('pugnale'),
+    'bracciali viene prima del pugnale: è l\'ordine in cui si sbloccano');
 });
 
 test('ogni classe ha la sua arma', () => {
@@ -147,19 +151,49 @@ test('le tre classi non sono lo stesso personaggio', () => {
 });
 
 test('i nomi dei premi cambiano con la classe', () => {
-  // Nell'app si mostrava sempre "Armatura di ferro" anche al berserker, che di ferro
-  // non ha niente. Il nome che vede l'utente dipende dalla classe.
+  // Dalla seconda versione della scheda: l'assassino NON ha l'armatura di ferro, ha
+  // la cintura da assassino. E il guerriero ha lo scudo sempre più la spada come
+  // quinto pezzo.
   assert.equal(nomePremio('ferro', 'guerriero'), 'Armatura di cuoio');
   assert.equal(nomePremio('ferro', 'berserker'), 'Pelo e pelliccia');
   assert.equal(nomePremio('ferro', 'assassino'), 'Vesti leggeri');
-  assert.equal(nomePremio('runica', 'guerriero'), 'Spada');
-  assert.equal(nomePremio('runica', 'berserker'), 'Ascia da guerra');
-  assert.equal(nomePremio('runica', 'assassino'), 'Coltello');
+  // il terzo pezzo è ferro per i due muscoli e cintura per l'assassino
+  assert.equal(nomePremio('runica', 'guerriero'), 'Armatura di ferro');
+  assert.equal(nomePremio('runica', 'berserker'), 'Armatura di ferro');
+  assert.equal(nomePremio('runica', 'assassino'), 'Cintura da assassino');
+  // il quarto è l'arma
+  assert.equal(nomePremio('elmo', 'guerriero'), 'Spada');
+  assert.equal(nomePremio('elmo', 'berserker'), 'Ascia da guerra');
+  assert.equal(nomePremio('elmo', 'assassino'), 'Pugnale');
   // e un premio senza nome per la classe, o una classe che non esiste, non devono
   // lasciare il buco: tornano al nome generico
   assert.equal(nomePremio('bracciali', 'berserker'), 'Bracciali di cuoio');
   assert.equal(nomePremio('ferro', 'nessuna-classe'), 'Armatura di ferro');
   assert.equal(nomePremio('non-esiste', 'guerriero'), 'non-esiste');
+});
+
+test('l\'assassino non ha le piastre, ha la cintura', () => {
+  // È la differenza vera fra le due versioni della scheda. Se all\'assassino
+  // tornassero le piastre, i due muscoli avrebbero lo stesso equipaggiamento e la
+  // progressione per classe non esisterebbe più.
+  const a = personaggioSvg({ classe: 'assassino', sbloccati: ['runica'] });
+  assert.ok(!ids(a).includes('piastre'), 'l\'assassino non si copre di ferro');
+  assert.ok(ids(a).includes('cintura'), 'ha la cintura');
+  const g = personaggioSvg({ classe: 'guerriero', sbloccati: ['runica'] });
+  assert.ok(ids(g).includes('piastre'), 'il guerriero sì');
+  const b = personaggioSvg({ classe: 'berserker', sbloccati: ['runica'] });
+  assert.ok(ids(b).includes('piastre'), 'il berserker sì');
+});
+
+test('la spada del guerriero si vede e non sparisce sotto l\'armatura', () => {
+  // Nella prima versione la spada era disegnata dietro al corpo e, con le piastre
+  // addosso, spariva: il pezzo era "sbloccato" ma non si vedeva. Il pezzo deve
+  // stare nella mano LIBERA, cioè dalla parte opposta allo scudo.
+  const g = personaggioSvg({ classe: 'guerriero', sbloccati: ['elmo'] });
+  assert.ok(ids(g).includes('spada'), 'la spada deve comparire');
+  const soloSpada = /data-pezzo="spada"[^>]*><title>[^<]*<\/title>([\s\S]*?)<\/g>/.exec(g);
+  assert.ok(soloSpada, 'deve esserci il pezzo della spada');
+  assert.ok(soloSpada[1].trim().length > 20, 'e deve avere del disegno dentro');
 });
 
 test('le regole dello sblocco NON cambiano con la classe', () => {
@@ -170,10 +204,14 @@ test('le regole dello sblocco NON cambiano con la classe', () => {
     assert.ok(Number.isFinite(p.giorni), `il premio ${p.id} deve avere i giorni`);
     assert.ok(p.richiede, `il premio ${p.id} deve dire cosa richiede`);
   }
-  // lo stesso premio, nelle tre classi, ha gli stessi giorni
+  // lo stesso premio, nelle tre classi, ha gli stessi giorni.
+  // Le soglie sono quelle di Ste del 10/10/2026: 3, 7, 15, 30, 50, 75. Prima erano
+  // 3, 7, 14, 30, 60, 100.
   const perId = new Map(PREMI.map((p) => [p.id, p.giorni]));
   assert.equal(perId.get('ferro'), 7);
-  assert.equal(perId.get('runica'), 14);
+  assert.equal(perId.get('runica'), 15);
+  assert.equal(perId.get('elmo'), 30);
+  assert.equal(perId.get('leggendaria'), 50);
 });
 
 test('ogni pezzo ha un nome che si può leggere', () => {

@@ -3617,6 +3617,11 @@ function profiloAttivo() {
     // la classe RPG scelta (guerriero / assassino / berserker). Anche questa È per
     // account, quindi i compagni di Ste non vengono misurati con la sua.
     classe_rpg: (salvato && salvato.classe_rpg) || null,
+    // Il flag che dice "il personaggio esiste già". Sta SEPARATO da `classe_rpg` per
+    // un motivo preciso: se `classe_rpg` tornasse vuoto per un errore di lettura,
+    // questo flag continua a dire che la scelta c'è stata e l'app non te la fa
+    // rifare. Vedi `personaggio_creato` in src/avatar-stato.js.
+    personaggio_creato: !!(salvato && (salvato.personaggio_creato || salvato.classe_rpg)),
     privacy: privacyDi(salvato || {}),
   };
 }
@@ -4421,7 +4426,27 @@ function bloccoPersonaggio(profilo, st) {
     class: 'personaggio-scena-grafica personaggio personaggio-' + classeId,
     aria: { label: `Personaggio ${rpg.classe ? rpg.classe.nome : 'senza classe'}, livello ${rpg.livello}, ${indosano.length} armature su ${rpg.premi.length}` },
   });
-  grafica.innerHTML = personaggioSvg({ classe: classeId, sbloccati: idsIndossati });
+  // LA FOTO DELLA CLASSE.
+  //
+  // Ste (10/10/2026): "se scegli il berserker devi mettere che il tuo personaggio è
+  // il berserker trasportando la foto che ti ho mandato nell'app". Le tre figure
+  // vengono da img/personaggi/, tagliate dalla scheda che mi ha mandato.
+  //
+  // La foto sostituisce il disegno olografico SOLO quando la classe è già stata
+  // scelta: se non hai scelto, il disegno a pezzi dice "manchi tre pezzi" meglio di
+  // una figura che non è ancora la tua. E il ritratto non copre i pezzi: si vede
+  // accanto, e la scena resta quella che si riempie.
+  const ritratto = document.createElement('img');
+  ritratto.className = 'personaggio-ritratto';
+  ritratto.src = 'img/personaggi/' + classeId + '.png';
+  ritratto.alt = '';
+  ritratto.loading = 'lazy';
+  ritratto.decoding = 'async';
+  ritratto.width = 226;
+  ritratto.height = 540;
+  grafica.appendChild(ritratto);
+  grafica.appendChild(el('div', { class: 'persono-ologramma' }));
+  grafica.lastChild.innerHTML = personaggioSvg({ classe: classeId, sbloccati: idsIndossati });
   scena.appendChild(grafica);
   scena.appendChild(el('div', { class: 'personaggio-dati' }, [
     el('strong', { testo: (rpg.classe ? rpg.classe.nome : 'Scegli una classe') }),
@@ -4655,32 +4680,48 @@ function bloccoAvatarRpg(profilo, st) {
         : 'Scegli la tua classe: è il bonus che alza una statistica su. Prima prova ad allenarci un po\' e i numeri arriveranno.',
     }));
   }
-  const grigliaClassi = el('div', { class: 'riga-classi' });
+const grigliaClassi = el('div', { class: 'riga-classi' });
+  // IL VINCOLO: LA CLASSE È PER SEMPRE.
+  //
+  // Ste (10/10/2026): "una volta che l'utente sceglie la classe, questa scelta è
+  // permanente e non può essere modificata".
+  //
+  // Prima il bottone salvava ogni volta che lo premevi, e il testo diceva anche "cambia
+  // quando ti pare". Così un Assassino a 60 giorni di streak poteva diventare
+  // Berserker: non solo era vietato, era anche conveniente, perché ricominciavi
+  // l'equipaggiamento.
+  //
+  // Adesso, se il personaggio esiste già, i tre bottoni non sono più cliccabili e
+  // sotto c'è la spiegazione. Non un avviso "non puoi": un bottone che non fa niente
+  // e la ragione scritta sotto, che è più onesto di un errore che compare e sparisce.
+  const classeGiaScelta = !!(profilo.classe_rpg && rpg.classe);
   for (const c of Object.values(CLASSI)) {
-    const scelta = !!(rpg.classe && rpg.classe.id === c.id);
-    // LA SPUNTA. Ste: "non spunta cosa ti da in più il guerriero, l'assassino o
-    // il berserker". Il pulsante aveva la classe CSS "attiva" ma da come era
-    // scritta non si vedeva niente: tutti e tre sembravano non scelti. Ora la
-    // spunta è nel testo (si vede anche in alto contrasto) e il pulsante ha un
-    // bordo colorato.
+    const scelta = classeGiaScelta && rpg.classe.id === c.id;
     grigliaClassi.appendChild(bottone(scelta ? `${c.icona}  ${c.nome}  ✓` : `${c.icona}  ${c.nome}`, {
       onClick: async () => {
-        await salvaProfilo({ classe_rpg: c.id });
-        avviso(`Sei un ${c.nome}: +20% di ${c.bonus}.`, { tipo: 'ok' });
+        if (classeGiaScelta) return; // il vincolo: qui dentro non si arriva
+        await salvaProfilo({ classe_rpg: c.id, personaggio_creato: true });
+        avviso(`Sei un ${c.nome}: +20% di ${c.bonus}. Adesso è tuo per sempre.`, { tipo: 'ok' });
       },
-      // LA SPUNTA. Ste: "non spunta cosa ti da in più il guerriero, l'assassino o
-      // il berserker". Il pulsante aveva la classe CSS "attiva" ma da come era
-      // scritta non si vedeva niente: tutti e tre sembravano non scelti. Ora la
-      // spunta è nel testo (si vede anche in alto contrasto) e il pulsante ha un
-      // bordo colorato.
-      classe: 'classe-rpg' + (scelta ? ' attiva' : ''),
+      classe: 'classe-rpg' + (scelta ? ' attiva' : '') + (classeGiaScelta && !scelta ? ' bloccata' : ''),
       titolo: scelta
         ? `Hai scelto il ${c.nome}: +20% di ${c.bonus}`
-        : `Scegli il ${c.nome}: +20% di ${c.bonus}`,
+        : (classeGiaScelta
+          ? `Non puoi più cambiarlo: sei un ${rpg.classe.nome}`
+          : `Scegli il ${c.nome}: +20% di ${c.bonus}`),
       'aria-pressed': scelta,
+      disabilitato: classeGiaScelta && !scelta,
     }));
   }
   box.appendChild(grigliaClassi);
+  if (classeGiaScelta) {
+    box.appendChild(el('p', {
+      class: 'nota nota-piccola',
+      testo: `Sei un ${rpg.classe.nome} e resti un ${rpg.classe.nome}: la classe si sceglie `
+        + 'una volta sola. Cambiare ora rifarebbe da capo tutto l\'equipaggiamento che hai '
+        + 'sbloccato con i giorni di fila.',
+    }));
+  }
   // E sotto ogni bottone, cosa ti dà. Un bottone che dice solo il nome costringe a
   // andare a leggere la spiegazione per capire che differenza c'è.
   const rigaBonus = el('div', { class: 'riga-classi riga-bonus' });

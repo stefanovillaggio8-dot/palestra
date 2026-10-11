@@ -55,9 +55,12 @@ const PEZZI = {
     {
       id: 'arma-guerriero', quando: 'sempre',
       spiegazione: 'lo scudo del guerriero',
-      d: `<path d="M84 60 q17 3 20 19 q-3 20 -20 27 q-9 -8 -9 -23 q0 -15 9 -23 Z"/>
-          <path d="M84 65 v36" class="tratto"/><path d="M78 78 h12" class="tratto"/>
-          <circle cx="84" cy="85" r="4.5" class="punto"/>`,
+      // Lo scudo è la cosa che distingue il guerriero e sta DAVANTI, coprendo il
+      // fianco: è quello che tiene alzato mentre l'altra mano va avanti. Nella prima
+      // versione stava dietro e non si vedeva quasi.
+      d: `<path d="M86 56 q22 4 25 25 q-4 26 -25 34 q-12 -10 -12 -29 q0 -19 12 -30 Z"/>
+          <path d="M86 63 v44" class="tratto"/><path d="M78 82 h16" class="tratto"/>
+          <circle cx="86" cy="93" r="6" class="punto"/>`,
     },
     {
       id: 'bracciali', premio: 'bracciali', spiegazione: 'i bracciali di cuoio',
@@ -70,23 +73,30 @@ const PEZZI = {
           <path d="M60 53 v24" class="tratto"/><path d="M47 70 h26" class="tratto"/>`,
     },
     {
-      id: 'spada', premio: 'runica', spiegazione: 'la spada',
-      d: `<path d="M22 118 l34 -40 l5 4 l-34 41 Z"/>
-          <path d="M16 122 l8 -6 l5 4 l-8 6 Z" class="tratto"/>
-          <path d="M54 78 l7 6" class="tratto"/>`,
+      id: 'piastre', premio: 'runica', spiegazione: "l'armatura di ferro",
+      // le piastre stanno SOPRA la pelle e SOTTO le braccia: se coprono tutto, il
+      // bracciali di cuoio spariscono e non si vede che sono due pezzi diversi
+      d: `<path d="M44 53 q16 -7 32 0 l-2 24 q-14 6 -28 0 Z" class="pieno"/>
+          <path d="M44 56 q-10 5 -13 22 l-4 24 q8 3 13 0 l5 -33 Z" class="pieno"/>
+          <path d="M76 56 q10 5 13 22 l4 24 q-8 3 -13 0 l-5 -33 Z" class="pieno"/>
+          <path d="M60 52 v28" class="tratto"/>`,
     },
     {
-      id: 'elmo', premio: 'elmo', spiegazione: "l'elmo del guerriero",
-      d: `<path d="M47 33 q0 -18 13 -18 q13 0 13 18 q0 12 -13 13 q-13 -1 -13 -13 Z" class="pieno"/>
-          <path d="M50 24 h20" class="tratto"/>
-          <path d="M53 30 h14" class="tratto"/>`,
+      id: 'spada', premio: 'elmo', spiegazione: 'la spada',
+      // La spada sta nella MANO LIBERA, cioè quella opposta allo scudo, e punta in
+      // basso: è l'arma di chi si mette in guardia. Nella prima versione era
+      // dietro al corpo e spariva sotto l'armatura.
+      d: `<path d="M24 128 l34 -44 l6 4 l-34 45 Z"/>
+          <path d="M18 132 l8 -6 l5 4 l-8 6 Z" class="tratto"/>
+          <path d="M56 84 l8 7" class="tratto"/>`,
     },
     {
       id: 'leggendaria', premio: 'leggendaria', spiegazione: "l'armatura leggendaria",
-      d: `<path d="M47 60 q-12 3 -15 16 l-3 14 q9 4 16 1 Z" class="pieno"/>
-          <path d="M73 60 q12 3 15 16 l3 14 q-9 4 -16 1 Z" class="pieno"/>
-          <path d="M46 100 q14 7 28 0 l-1 11 q-13 6 -26 0 Z" class="pieno"/>
-          <circle cx="60" cy="86" r="6" class="pieno"/>`,
+      d: `<path d="M46 61 q-13 3 -16 17 l-3 14 q10 4 17 1 Z" class="pieno"/>
+          <path d="M74 61 q13 3 16 17 l3 14 q-10 4 -17 1 Z" class="pieno"/>
+          <path d="M46 99 q14 7 28 0 l-1 11 q-13 6 -26 0 Z" class="pieno"/>
+          <path d="M49 66 l22 30" class="tratto"/>
+          <circle cx="60" cy="85" r="6.5" class="pieno"/>`,
     },
     {
       id: 'divina', premio: 'divina', spiegazione: "l'arma divina",
@@ -117,18 +127,20 @@ const PEZZI = {
           <path d="M84 62 q6 6 6 16" class="tratto"/>`,
     },
     {
-      id: 'ascia', premio: 'runica', spiegazione: "l'ascia da guerra",
+      id: 'piastre', premio: 'runica', spiegazione: "l'armatura di ferro",
+      // la pelliccia RESTA: nella scheda il berserker ha "pelo e pelliccia" E poi
+      // "armatura di ferro" sopra. Sostituire la pelliccia con il ferro farebbe
+      // sparire il pelo, che è la cosa che lo distingue dagli altri due.
+      d: `<path d="M45 53 q15 -6 30 0 l-2 24 q-14 6 -28 0 Z" class="pieno"/>
+          <path d="M60 52 v28" class="tratto"/><path d="M47 70 h26" class="tratto"/>
+          <path d="M46 100 q14 7 28 0 l-1 10 q-13 6 -26 0 Z" class="pieno"/>`,
+    },
+    {
+      id: 'ascia', premio: 'elmo', spiegazione: "l'ascia da guerra",
       d: `<path d="M20 126 l44 -50 l7 6 l-44 51 Z"/>
           <path d="M58 76 q22 -22 38 -6 q-11 25 -33 18 Z"/>
           <path d="M56 73 l10 7" class="tratto"/>
           <path d="M60 68 l8 -5" class="tratto"/>`,
-    },
-    {
-      id: 'elmo', premio: 'elmo', spiegazione: "l'elmo corno del berserker",
-      d: `<path d="M47 33 q0 -18 13 -18 q13 0 13 18 q0 12 -13 13 q-13 -1 -13 -13 Z" class="pieno"/>
-          <path d="M46 24 q-9 -8 -13 -14 q11 2 15 12" class="pieno"/>
-          <path d="M74 24 q9 -8 13 -14 q-11 2 -15 12" class="pieno"/>
-          <path d="M53 31 h14" class="tratto"/>`,
     },
     {
       id: 'leggendaria', premio: 'leggendaria', spiegazione: "l'armatura leggendaria",
@@ -167,17 +179,21 @@ const PEZZI = {
           <path d="M75 52 q13 6 15 24 l3 16 q-10 3 -15 0 Z" class="pieno"/>`,
     },
     {
-      id: 'coltello', premio: 'runica', spiegazione: 'il pugnale',
+      id: 'cintura', premio: 'runica', spiegazione: 'la cintura da assassino',
+      // L'ASSASSINO NON HA L'ARMATURA DI FERRO. Nella scheda il suo terzo pezzo è
+      // "cintura da assassino". Quindi qui non ci sono piastre: ci sono le fasce
+      // strette e una fibbia. È quello che lo distingue dai due muscoli, che si
+      // coprono di metallo.
+      d: `<path d="M46 99 q14 7 28 0 l-1 11 q-13 6 -26 0 Z" class="pieno"/>
+          <path d="M50 101 q10 5 20 0" class="tratto"/>
+          <rect x="56" y="100" width="8" height="8" rx="1.5" class="punto"/>
+          <path d="M60 108 q3 6 0 11" class="tratto"/>`,
+    },
+    {
+      id: 'pugnale', premio: 'elmo', spiegazione: 'il pugnale',
       d: `<path d="M14 100 l36 -36 l7 7 l-36 37 Z"/>
           <path d="M9 106 l9 -9 l7 7 l-9 9 Z" class="tratto"/>
           <path d="M50 62 l6 -6" class="tratto"/><path d="M57 54 l5 5" class="tratto"/>`,
-    },
-    {
-      id: 'elmo', premio: 'elmo', spiegazione: "il cappuccio dell'assassino",
-      // il cappuccio e la maschera: copre la faccia, che è il tratto dell'assassino
-      d: `<path d="M46 34 q0 -20 14 -20 q14 0 14 20 q0 13 -14 14 q-14 -1 -14 -14 Z" class="pieno"/>
-          <path d="M52 30 h16" class="pieno"/>
-          <path d="M50 38 q10 7 20 0 q-2 8 -10 8 q-8 0 -10 -8 Z" class="pieno"/>`,
     },
     {
       id: 'leggendaria', premio: 'leggendaria', spiegazione: "l'armatura leggendaria",

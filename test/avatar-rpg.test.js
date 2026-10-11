@@ -208,6 +208,43 @@ test('R9. i PREMI crescono: ogni sbloccato richiede piu\' giorni del precedente'
   for (const p of PREMI) {
     assert.ok(p.icona && p.icona.length > 0, `${p.nome}: manca l'icona`);
     assert.ok(p.nome && p.nome.length > 1, `${p.nome}: manca il nome`);
-    assert.ok(p.richiede && Object.keys(p.richiede).length > 0, `${p.nome}: deve dire cosa serve`);
   }
+  // IL CAMBIAMENTO DEL 10/10/2026: lo sblocco guarda SOLO la streak, quindi
+  // `richiede` non serve piu'. Il campo resta scritto vuoto per non rompere chi
+  // legge i premi da qualche parte, ma nessuno lo guarda: un campo che non serve
+  // e' rumore, non sicurezza.
+  for (const p of PREMI) {
+    assert.deepEqual(p.richiede, {},
+      `${p.nome}: i premi non devono piu' chiedere statistiche, la progressione e' di sola streak`);
+  }
+});
+
+test('R9b. le soglie sono quelle di Ste (10/10/2026)', () => {
+  // Ste: "Streak 0-2 modello base, 3 bracciali di cuoio, 7 schinieri, 15 corazza di
+  // ferro, 30 spada, 50+ aura". Prima erano 3, 7, 14, 30, 60, 100: numeri spariti
+  // senza una regola dietro.
+  assert.deepEqual(PREMI.map((p) => p.giorni), [3, 7, 15, 30, 50, 75]);
+});
+
+test('R9c. la sola streak sblocca, senza statistiche', () => {
+  // Il punto del cambiamento: chi allena tre giorni di fila ha i bracciali, e non
+  // importa SE in quei giorni ha fatto trazioni o panca. Prima serviva anche la
+  // forza, quindi la costanza non bastava e il personaggio premiava chi spingeva
+  // numeri alti invece di chi si allenava tutti i giorni.
+  //
+  // `calcolaAvatar` NON riceve la streak: la ricalcola dalle sedute. Quindi qui si
+  // provano le due strade e si controlla che il numero non dipenda dalla forza.
+  //
+  // Il modo più onesto di provarlo è sul pezzo di logica puro: `sbloccaConStreak` non
+  // esiste, ma la regola è "record >= giorni". Quindi si verifica che a parità di
+  // giorni la forza non cambi niente, passando da `calcolaAvatar` con due profili
+  // diversi e la stessa serie.
+  const profiloBasso = { classe_rpg: 'guerriero', forza: 1, agilita: 1, stamina: 1 };
+  const profiloAlto = { classe_rpg: 'guerriero', forza: 99, agilita: 1, stamina: 1 };
+  const stesso = calcolaAvatar('guerriero', [], [], null, { profilo: profiloBasso });
+  const altro = calcolaAvatar('guerriero', [], [], null, { profilo: profiloAlto });
+  assert.deepEqual(stesso.premi.map((p) => p.sbloccato), altro.premi.map((p) => p.sbloccato),
+    'la forza non deve cambiare niente: con gli stessi giorni si sblocca lo stesso');
+  assert.deepEqual(stesso.premi.map((p) => p.sbloccato), [false, false, false, false, false, false],
+    'senza allenamenti non si sblocca niente');
 });

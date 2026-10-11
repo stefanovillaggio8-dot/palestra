@@ -58,45 +58,63 @@ export const CLASSE_PER_ID = new Map(Object.values(CLASSI).map((c) => [c.id, c])
  * minima per poterlo mostrare: inutile avere l'armatura leggendaria se non ti
  * alleni, ma con la forza a 1. Quindi un premio si sblocca con TUTTE e due le cose.
  */
+// LE SOGLIE SONO QUELLE DI STE.
+//
+// Ste (10/10/2026): streak 3 i bracciali, 7 gli schinieri, 15 la corazza di ferro,
+// 30 l'arma, 50+ l'aura. Prima erano 3, 7, 14, 30, 60, 100: numeri spariti senza
+// una regola dietro.
+//
+// `richiede` non c'è più: lo sblocco guarda solo la streak. Il campo resta scritto
+// vuoto per non rompere chi legge i premi da qualche parte, ma nessuno lo guarda
+// più, e va bene così.
 export const PREMI = [
-  { id: 'bracciali', giorni: 3, nome: 'Bracciali di cuoio', icona: '🧤', richiede: { forza: 3 } },
-  { id: 'ferro', giorni: 7, nome: 'Armatura di ferro', icona: '🦺', richiede: { forza: 5 } },
-  { id: 'runica', giorni: 14, nome: 'Spada runica', icona: '⚔️', richiede: { forza: 8 } },
-  { id: 'elmo', giorni: 30, nome: 'Elmo del drago', icona: '🐉', richiede: { forza: 12 } },
-  { id: 'leggendaria', giorni: 60, nome: 'Armatura leggendaria', icona: '✨', richiede: { forza: 18 } },
-  { id: 'divina', giorni: 100, nome: 'Arma divina', icona: '🔱', richiede: { forza: 25 } },
+  { id: 'bracciali', giorni: 3, nome: 'Bracciali di cuoio', icona: '🧤', richiede: {} },
+  { id: 'ferro', giorni: 7, nome: 'Armatura di ferro', icona: '🦺', richiede: {} },
+  { id: 'runica', giorni: 15, nome: 'Spada runica', icona: '⚔️', richiede: {} },
+  { id: 'elmo', giorni: 30, nome: 'Elmo del drago', icona: '🐉', richiede: {} },
+  { id: 'leggendaria', giorni: 50, nome: 'Armatura leggendaria', icona: '✨', richiede: {} },
+  { id: 'divina', giorni: 75, nome: 'Arma divina', icona: '🔱', richiede: {} },
 ];
 
 // IL NOME CHE VEDE VOI DIPENDE DALLA CLASSE.
 //
-// Ste (10/10/2026), dalla scheda delle tre classi: il secondo pezzo è "armatura di
-// cuoio" per il guerriero, "pelo e pelliccia" per il berserker e "vesti leggeri" per
-// l'assassino. Il quarto è ferro per tutti. E l'arma è spada, ascia o coltello.
+// Ste (10/10/2026), dalle due versioni della scheda delle tre classi.
 //
-// Quindi un solo `nome` per tutti e tre non basta: mostrerebbe "armatura di ferro" al
-// berserker, che di ferro non ha niente, e "spada runica" all'assassino.
+// La seconda versione ha due differenze rispetto alla prima, e non sono cosmetiche:
+//
+//  1. IL GUERRIERO ha uno scudo grande (col leone) E la spada. Sono due cose diverse:
+//     lo scudo lo porta sempre, è quello che sei; la spada è un premio. Nella mia
+//     prima versione lo scudo c'era ma la spada non si vedeva mai, perché il pezzo
+//     dell'arma era disegnato dietro al corpo.
+//
+//  2. L'ASSASSINO NON ha l'armatura di ferro. Al suo posto c'è la "cintura da
+//     assassino". Quindi i due muscoli sono davvero diversi e la progressione non è
+//     la stessa: il guerriero e il berserker si coprono di ferro, l'assassino si
+//     copre di tessuto e si stringe una cintura.
+//
+// Quindi qui sotto ogni classe ha i SUOI quattro pezzi, nell'ordine della scheda.
 //
 // I `PREMI` sopra restano come sono, perché `id`, `giorni` e `richiede` sono la LOGICA
-// dello sblocco e non si toccano: qui sotto cambia solo la parola che si vede. Il
-// default è il nome generico, così un esercizio creato a mano o un pezzo nuovo non
-// finiscono con un nome sbagliato.
+// dello sblocco e non si toccano: qui cambia solo la parola che si vede. Il default è
+// il nome generico, così un pezzo nuovo o un esercizio creato a mano non finiscono con
+// un nome sbagliato.
 
 /** Il nome di un premio per la classe che hai scelto. */
 const NOMI_PER_CLASSE = {
   guerriero: {
     ferro: 'Armatura di cuoio',
-    runica: 'Spada',
-    elmo: 'Elmo del guerriero',
+    runica: 'Armatura di ferro',
+    elmo: 'Spada',
   },
   berserker: {
     ferro: 'Pelo e pelliccia',
-    runica: 'Ascia da guerra',
-    elmo: 'Elmo corno',
+    runica: 'Armatura di ferro',
+    elmo: 'Ascia da guerra',
   },
   assassino: {
     ferro: 'Vesti leggeri',
-    runica: 'Coltello',
-    elmo: 'Cappuccio e maschera',
+    runica: 'Cintura da assassino',
+    elmo: 'Pugnale',
   },
 };
 
@@ -285,29 +303,28 @@ export function calcolaAvatar(classe, serie, sedute, esercizioPerId, { profilo =
   // non ci fosse, un premio lo prendi e poi salti due settimane: te lo toglie. Non
   // sembra giusto perdere un'armatura per una settimana saltata.
   const recordStreak = Math.max(Number(streak.record) || 0, Number(streak.giorni) || 0);
+  // LO SBLOCCO ADESSO GUARDA SOLO LA STREAK.
+  //
+  // Ste (10/10/2026): "l'avatar deve cambiare aspetto visivo automaticamente in
+  // base alla streak attuale di allenamento". Solo la streak.
+  //
+  // Prima ci voleva anche la statistica (`haStreak && haStat`). È stato tolto, e la
+  // ragione è che la statistica non dice se sei costante: dice quanto sei forte in
+  // un numero, e chi si allena tre giorni di fila con la panca e chi con i trazioni
+  // ha la stessa costanza ma statistiche diverse. Il personaggio premia la
+  // costanza, quindi la costanza deve essere l'unica cosa che conta.
+  //
+  // Il record di streak resta la metrica, non la streak di oggi: se ti fermi una
+  // settimana non ti spogli di dosso l'armatura che ti sei guadagnato.
   const premi = PREMI.map((p) => {
     const haStreak = recordStreak >= p.giorni;
-    // IL CONTROLLO USA I NUMERI BASE, NON QUELLI COL BONUS DELLA CLASSE.
-    //
-    // Il bug che c'era: `sbloccato` guardava `st`, cioe' i numeri DOPO il +20%. Tutti
-    // e sei i premi chiedono solo la forza, quindi il bonus di un Assassino o di un
-    // Berserker non aiutava nessuno, e cambiando classe perdevi le armature già
-    // sbloccate: Guerriero con forza base 4 arriva a 5 e sblocca l'armatura di ferro,
-    // Assassino resta a 4 e non la sblocca più. È contro la regola scritta due
-    // righe sopra, che dice che un premio non si tocca.
-    //
-    // E i bonus di agilita' e stamina non servivano a nulla per progredire, perchÈ
-    // nessun premio li richiede: non È un problema, ma la classe deve restare una
-    // scelta tua, non una scelta che ti fa perdere cose.
-    const haStat = Object.entries(p.richiede).every(([k, min]) => base[k] >= min);
+    const mancano = Math.max(0, p.giorni - recordStreak);
     return {
       ...p,
-      sbloccato: haStreak && haStat,
-      perche: !haStreak
-        ? `ti mancano ${p.giorni - recordStreak} ${p.giorni - recordStreak === 1 ? 'giorno' : 'giorni'} di fila`
-        : (!haStat
-          ? `ti serve ${Object.entries(p.richiede).map(([k, v]) => `${v} di ${k}`).join(' e ')}`
-          : 'sbloccato'),
+      sbloccato: haStreak,
+      perche: haStreak
+        ? 'sbloccato'
+        : `ti mancano ${mancano} ${mancano === 1 ? 'giorno' : 'giorni'} di fila`,
     };
   });
 
