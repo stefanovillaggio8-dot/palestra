@@ -1535,7 +1535,7 @@ body:has(.sfondo-dialogo) .avviso {
    * i neri. Per una figura scura su fondo nero e' esattamente quello che serve:
    * si vede di piu' e resta pulita. E soprattutto e' un filtro del browser, quindi il
    * file non viene toccato e si puo' cambiare o disfare in qualsiasi momento. */
-  filter: contrast(1.1) saturate(1.05) brightness(1.03);
+  filter: contrast(1.05) saturate(1.04) brightness(1.04);
 }
 
 /* ---------------------------------------------------------------------------
@@ -1636,7 +1636,27 @@ body:has(.sfondo-dialogo) .avviso {
  *
  * Tutto d'oro in tutte e tre le classi: se il colore cambiasse sembrerebbe parte
  * della classe e non una ricompensa. Il colore passa da `--aura`. */
-.personaggio-scena-grafica { --aura: var(--giallo, #ffd35c); }
+.personaggio-scena-grafica { --aura: #fff4de; }
+
+/* IL COLORE DELL'AURA NON E' GIALLO, E QUESTO E' IL PEZZO CHE MANCAVA.
+ *
+ * Ste (12/10/2026): "non e' cambiato niente, non ha piu' la qualita' dell'inizio,
+ * era piu' bella".
+ *
+ * L'aura era `#ffd35c`, che e' giallo pieno. Ma la miscela `screen` non somma colori,
+ * li schiaccia: su uno sfondo scuro e FREDDO, un giallo pieno schermato viene fuori
+ * VERDE OLIVA. Per questo il riquadro sembrava malato invece che luminoso, e per
+ * questo "nero e giallo": era giallo sopra nero, che si vede male e basta.
+ *
+ * La luce vera non e' gialla. Il sole, la fiamma, una lampada, un riflesso sull'acciaio
+ * sono BIANCHI con appena un tocco caldo, e il giallo viene dopo, piu' in fuori.
+ * Passando a un bianco caldo (`#fff4de`) il verde sparisce, la luce sembra luce, e
+ * la figura non sembra dipinta.
+ *
+ * Resta un pezzo di oro, ma solo li' dove e' giusto: nell alone LONTANO dal
+ * personaggio, dove la luce si e' gia' sciolta e il giallo non tocca piu' la
+ * figura. Sulla figura la luce e' bianca, e appunto per questo non la tinge. */
+.personaggio-scena-grafica { --aura-oro: #ffd35c; }
 
 /* LA FORZA DELL'AURA.
  *
@@ -1710,21 +1730,33 @@ body:has(.sfondo-dialogo) .avviso {
       color-mix(in srgb, var(--aura) calc(14% * var(--forza)), transparent) 0deg 5deg,
       transparent 5deg 26deg);
   /* UNA sola maschera: `mask-composite` su Safari si comporta diversamente da
-     Chrome e faceva cambiare l'aura da telefono a telefono. */
-  -webkit-mask-image: radial-gradient(92% 96% at 50% 38%, #000 32%, transparent 97%);
-  mask-image: radial-gradient(92% 96% at 50% 38%, #000 32%, transparent 97%);
+     Chrome e faceva cambiare l'aura da telefono a telefono.
+     *
+     * E qui si risolve la richiesta che Ste aveva fatto al primo colpo ("qui non
+     * e' giallo pure ai bordi come gli altri") SENZA la cornice luminosa. La
+     * maschera finiva al 97%, quindi i fazzi si spegnevano prima del bordo e si
+     * vedeva il taglio. Ora arriva al 100% e la luce arriva al bordo da sola: e'
+     * quello che Ste chiedeva davvero, non una cornice disegnata sopra. */
+  -webkit-mask-image: radial-gradient(100% 100% at 50% 38%, #000 40%, transparent 100%);
+  mask-image: radial-gradient(100% 100% at 50% 38%, #000 40%, transparent 100%);
   opacity: .7;
   animation: aura-fassi 24s ease-in-out infinite alternate;
-  /* L'ALONE LUNGO IL BORDO. Sta su questo strato e non sul riquadro perche' il
-     riquadro lo disegna SOTTO il contenuto, e il contenuto del riquadro e' la foto:
-     con l'Assassino (foto al 100%) l'alone finiva coperto e non si vedeva, con gli
-     altri (foto all'86-88%) si vedeva solo ai lati. */
-  /* IL BORDO ERA LA PARTE CHE SI VEDEVA DI PIU'. Con 22 px di luce su un riquadro di
-     400 diventava una cornice d'oro, e quella mangiava il disegno: si guardava la
-     cornice e non il personaggio. Qui resta un accenno, e sparisce verso i bordi. */
-  box-shadow:
-    inset 0 0 14px -6px color-mix(in srgb, var(--aura) calc(62% * var(--forza)), transparent),
-    inset 0 0 48px -26px color-mix(in srgb, var(--aura) calc(46% * var(--forza)), transparent);
+  /* LA CORNICE E' STATA TOLTA, E NON CON UN ACCENNO.
+   *
+   * Qui c'era un `box-shadow` interno che disegnava una cornice luminosa lungo il
+   * riquadro. E' passato per tre versioni: 22 px, poi 14 px con "-6" per farlo
+   * sfumare, e ogni volta Ste guardava e diceva che era troppo acceso.
+   *
+   * Adesso e' sparito del tutto, e il motivo e' che io continuavo a VOLERLO a meta'.
+   * Una cornice luminosa non e' "un po' d'aura": e' una cornice. Come cornice si
+   * vede cornice, e il primo pezzo che si guarda smette di essere il personaggio e
+   * diventa il rettangolo. Dimezzandola non si dimezza l'attenzione, si rende solo
+   * piu' subdola.
+   *
+   * Il primo errore (22 px) l'avevo messo apposta perche' Ste aveva chiesto che
+   * l'aura arrivasse anche ai bordi: ma lui chiedeva che la FOTO arrivasse ai
+   * bordi, e la foto arriva gia' al 100% perche' non ha piu' cornice. Erano due
+   * richieste diverse che ho scambiato per una sola. */
 }
 
 /* IL FIATO DELL'AURA.
@@ -1773,22 +1805,15 @@ body:has(.sfondo-dialogo) .avviso {
  * la divisione del lavoro. */
 .personaggio-scena-grafica.personaggio-aura .personaggio-ritratto {
   filter:
-    contrast(1.08) saturate(1.05) brightness(1.04)
-    /* IL FILO BIANCO CALDO, e viene PRIMO perche' in `filter` il primo e' quello
-     * piu' vicino all'elemento: e' la luce vera, quella che scotta.
-     *
-     * Ste (12/10/2026): "e ancora piu' nero e giallo". Il giallo era tutto uguale,
-     * dal filo alla larga alone, e una cosa tutta dello stesso colore non sembra
-     * luce: sembra vernice. La luce vera ha il centro bianco e il bordo colorato,
-     * come una lampada o come il sole dietro una figura. Con il filo bianco dentro,
-     * l'oro non e' piu' una tinta sopra il personaggio ma il alone intorno a una
-     * cosa che scotta, e il giallo si vede meno anche perche' non e' piu' tutto
-     * giallo. */
+    contrast(1.05) saturate(1.05) brightness(1.04)
+    /* il filo bianco caldo, e viene PRIMO perche' in `filter` il primo e' quello
+     * piu' vicino all'elemento: e' la luce vera, quella che scotta. */
     drop-shadow(0 0 2px rgba(255, 252, 240, .8))
     /* il bordo acceso, stretto */
     drop-shadow(0 0 5px color-mix(in srgb, var(--aura) calc(88% * var(--forza)), transparent))
-    /* l alone che si sparge intorno, piu' largo e piu' tenue */
-    drop-shadow(0 0 18px color-mix(in srgb, var(--aura) calc(48% * var(--forza)), transparent));
+    /* l alone piu' largo: QUI e' che il giallo ci va, perche' a questa distanza e'
+     * davvero un alone e non un colore sopra la figura. */
+    drop-shadow(0 0 18px color-mix(in srgb, var(--aura-oro) calc(48% * var(--forza)), transparent));
 }
 
 /* LE SCINTILLE che salgono dal pavimento. */
