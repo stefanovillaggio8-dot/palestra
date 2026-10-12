@@ -1557,23 +1557,29 @@ body:has(.sfondo-dialogo) .avviso {
   100% { opacity: 1;   filter: contrast(1.04) saturate(1.02) brightness(1.04); }
 }
 
-/* L'AURA: il sesto premio, "Arma divina".
+/* L'AURA DIVINA: il sesto premio, 75 giorni di fila.
  *
- * Ste (12/10/2026): "l'arma divina deve essere bella".
+ * Ste (12/10/2026): "l'arma divina deve essere bella" e poi "fai l'aura piu' bella,
+ * impegnati". Aveva ragione a-insistere: la prima versione era un cono di raggi che
+ * partivano da un punto solo, e sembrava il raggio di un sole disegnato, non una
+ * luce. Il difetto non era la quantita' di luce, era che la luce aveva una FORMA
+ * geometrica evidente.
  *
- * Prima era una sola macchia: due `box-shadow` dietro la foto, che con la cornice
- * quadrata del riquadro sembravano un alone grigio, non una luce. E il colore era
- * quello della classe, quindi su tre classi non si capiva se fosse una ricompensa o
- * solo la classe.
+ * Quindi qui non ci sono piu' i raggi a stella. La luce e' fatta di cose che nella
+ * vita vera non hanno gli spigoli:
  *
- * Adesso sono tre strati, tutti d'oro (una ricompensa divina è d'oro in tutte e tre
- * le classi: se cambiasse colore sembrerebbe parte della classe):
+ *   - l'ALONE, dietro il personaggio: un alone morbido, senza bordo;
+ *   - la LUCE AI PIEDI, che sale dal pavimento: e' quella che fa capire che la
+ *     persona e' illuminata dal basso e non incollata davanti a uno sfondo;
+ *   - i FAZZI, larghi e sfocati, che passano dietro le spalle: si muovono lentissimi
+ *     e sono cosi' tenui che si sentono piu' che non si vedono;
+ *   - le SCINTILLE, che salgono e spengono, piccole e di grandezze diverse;
+ *   - il CONTORNO DORATO sul personaggio, che e' la parte che rende tutto credibile:
+ *     una luce dietro una figura senza contorno sembra una foto appoggiata a uno
+ *     sfondo, con il contorno diventa una figura dentro una luce.
  *
- *   - la luce dietro la figura, che pulsa piano;
- *   - i raggi, che girano lentissimi e si spengono ai bordi con una maschera;
- *   - le scintille, che salgono e spengono, e sono l'unica parte che si muove veloce.
- *
- * Il colore passa da `--aura`, che di default è il giallo dell'app. */
+ * Tutto d'oro, in tutte e tre le classi: se il colore cambiasse sembrerebbe parte
+ * della classe e non una ricompensa. Il colore passa da `--aura`. */
 .personaggio-scena-grafica { --aura: var(--giallo, #ffd35c); }
 
 .personaggio-scena-grafica.personaggio-aura::before,
@@ -1583,70 +1589,99 @@ body:has(.sfondo-dialogo) .avviso {
   inset: 0;
   pointer-events: none;
 }
-/* la luce, dietro */
+
+/* L'ALONE e la LUCE AI PIEDI: dietro la figura, morbidi, senza bordi. */
 .personaggio-scena-grafica.personaggio-aura::before {
   background:
-    radial-gradient(58% 46% at 50% 76%,
-      color-mix(in srgb, var(--aura) 52%, transparent) 0%,
+    /* la luce che sale dal pavimento, stretta e bassa */
+    radial-gradient(56% 13% at 50% 93%,
+      color-mix(in srgb, var(--aura) 60%, transparent) 0%,
+      transparent 74%),
+    /* l'alone dietro il busto */
+    radial-gradient(34% 42% at 50% 46%,
+      color-mix(in srgb, var(--aura) 40%, transparent) 0%,
       transparent 72%),
-    radial-gradient(40% 30% at 50% 40%,
-      color-mix(in srgb, var(--aura) 26%, transparent) 0%,
+    /* l'aria calda intorno, la piu' larga e la piu' debole */
+    radial-gradient(86% 74% at 50% 58%,
+      color-mix(in srgb, var(--aura) 13%, transparent) 0%,
       transparent 76%);
-  filter: blur(14px);
-  animation: aura-pulse 3.8s ease-in-out infinite;
+  filter: blur(22px);
+  animation: aura-pulse 4.6s ease-in-out infinite;
 }
-/* i raggi, davanti e leggerissimi */
+
+/* I FAZZI: larghi, sfocati, e lontanissimi l'uno dall'altro. */
 .personaggio-scena-grafica.personaggio-aura::after {
   background:
-    repeating-conic-gradient(from 0deg at 50% 62%,
-      color-mix(in srgb, var(--aura) 20%, transparent) 0deg 2.5deg,
-      transparent 2.5deg 13deg);
-  -webkit-mask-image: radial-gradient(58% 58% at 50% 62%, #000 12%, transparent 78%);
-  mask-image: radial-gradient(58% 58% at 50% 62%, #000 12%, transparent 78%);
+    repeating-linear-gradient(97deg,
+      color-mix(in srgb, var(--aura) 13%, transparent) 0deg 5deg,
+      transparent 5deg 26deg);
+  -webkit-mask-image:
+    radial-gradient(46% 62% at 50% 34%, #000 0%, transparent 78%),
+    linear-gradient(180deg, #000 0%, transparent 88%);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    radial-gradient(46% 62% at 50% 34%, #000 0%, transparent 78%),
+    linear-gradient(180deg, #000 0%, transparent 88%);
+  mask-composite: intersect;
   mix-blend-mode: screen;
-  animation: aura-giro 34s linear infinite;
+  opacity: .75;
+  animation: aura-fassi 19s ease-in-out infinite alternate;
 }
+
 @keyframes aura-pulse {
-  0%, 100% { opacity: .62; transform: scale(.98); }
-  50%      { opacity: 1;   transform: scale(1.03); }
+  0%, 100% { opacity: .58; transform: scale(.985); }
+  50%      { opacity: 1;   transform: scale(1.02); }
 }
-@keyframes aura-giro {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
+@keyframes aura-fassi {
+  from { transform: translateX(-9px) rotate(-1.6deg); opacity: .58; }
+  to   { transform: translateX(9px)  rotate(1.6deg);  opacity: .85; }
 }
-/* le scintille che salgono */
+
+/* IL CONTORNO DORATO: la parte che rende credibile la luce. */
+.personaggio-scena-grafica.personaggio-aura .personaggio-ritratto {
+  filter:
+    contrast(1.05) saturate(1.06) brightness(1.06)
+    drop-shadow(0 0 4px color-mix(in srgb, var(--aura) 70%, transparent))
+    drop-shadow(0 0 14px color-mix(in srgb, var(--aura) 34%, transparent));
+}
+
+/* LE SCINTILLE: piccole, di grandezze diverse, e non tutte dallo stesso punto. */
 .aura-scie {
   position: absolute;
   inset: 0;
   pointer-events: none;
   overflow: hidden;
   border-radius: inherit;
+  mix-blend-mode: screen;
 }
 .aura-scie i {
   position: absolute;
-  bottom: 12%;
+  bottom: 14%;
   left: var(--x);
-  width: 5px; height: 5px;
+  width: var(--grandezza, 4px);
+  height: var(--grandezza, 4px);
   border-radius: 50%;
-  background: var(--aura);
-  box-shadow: 0 0 7px 1px color-mix(in srgb, var(--aura) 80%, transparent);
+  background: var(--colore, var(--aura));
+  box-shadow: 0 0 6px 1px color-mix(in srgb, var(--aura) 85%, transparent);
   opacity: 0;
   animation: aura-sali var(--durata) linear var(--ritardo) infinite;
 }
 @keyframes aura-sali {
   /* Le scale restano dentro i limiti che il progetto usa: una scala forte ha senso
-     solo dove l'oggetto È il contenuto. Qui la scintilla parte già quasi della sua
-     misura e si allarga piano mentre sale; l'opacità fa il resto del lavoro. */
-  0%   { opacity: 0;   transform: translateY(0) scale(.7); }
-  18%  { opacity: .95; }
-  100% { opacity: 0;   transform: translateY(-230px) scale(1.1); }
+     solo dove l'oggetto E' il contenuto. Qui la scintilla parte gia' quasi della sua
+     misura e si allarga piano mentre sale; l'opacita' fa il resto del lavoro. */
+  0%   { opacity: 0;   transform: translate3d(0, 0, 0) scale(.7); }
+  14%  { opacity: 1; }
+  70%  { opacity: .7; }
+  100% { opacity: 0;   transform: translate3d(var(--deriva, 8px), -250px, 0) scale(1.1); }
 }
-/* Chi ha scelto "mai" non vede i raggi girare né le scintille: resta la luce ferma,
-   che non è un'animazione ma un colore. Il nome della classe è quello che mette
-   src/animazioni.js (`html.animazioni-mai`), non uno inventato qui. */
+
+/* Chi ha scelto "mai" non vede i fazzi muoversi ne' le scintelle salire: restano
+   l'alone e il contorno, che non sono animazioni ma colori. Il nome della classe e'
+   quello che mette src/animazioni.js (`html.animazioni-mai`), non uno inventato qui. */
 html.animazioni-mai .personaggio-scena-grafica.personaggio-aura::after,
-html.animazioni-mai .personaggio-scena-grafica.personaggio-aura::before,
-html.animazioni-mai .aura-scie i { animation: none; opacity: .5; }
+html.animazioni-mai .aura-scie i { animation: none; }
+html.animazioni-mai .aura-scie i { opacity: .55; }
 
 /* Lo stato in cui sei ADESSO, marcato nella fila. Così sai subito quale sei. */
 .pezzo.adesso {

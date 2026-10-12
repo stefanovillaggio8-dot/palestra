@@ -4471,17 +4471,32 @@ function bloccoPersonaggio(profilo, st) {
     // già "tutto addosso"), quindi e' una luce che si accende sopra la foto.
     if (viso.aura) {
       grafica.classList.add('personaggio-aura');
-      // LE SCINTILLE. La luce e i raggi li fa il CSS, ma le scintille che salgono
-      // hanno bisogno di posizioni e ritardi diversi l'una dall'altra, quindi sono
-      // elementi veri. Sono quattro: la più lenta parte in basso, la più veloce
-      // parte dal centro, così non sembrano un treno.
+      // LE SCINTILLE. La luce, i fazzi e il contorno li fa il CSS; le scintille
+      // sono elementi veri perché ognuna ha una posizione, una grandezza, una
+      // deriva e un momento di partenza tutti diversi. Se fossero uguali salirebbero
+      // insieme e sembrerebbero una palla sola che sale.
+      //
+      // Sei, non quattro: con quattro si leggevano come un corteo regolare. Ogni
+      // `deriva` spinge la scintilla di lato mentre sale, così il gruppo si apre
+      // invece di restare una colonna.
       const scie = el('div', { class: 'aura-scie', aria: { hidden: 'true' } });
-      const posizioni = [26, 44, 58, 72];
-      const ritardi = [0, 1.1, 2.3, 3.4];
-      const durate = [4.2, 5.1, 4.6, 5.6];
+      const posizioni = [20, 31, 41, 50, 59, 68, 79];
+      const ritardi = [0, .9, 1.7, 2.4, 3.1, 3.9, 4.6];
+      const durate = [4.4, 5.3, 4.8, 5.8, 4.1, 5.0, 4.6];
+      const grandezze = [5, 3, 4, 3, 6, 3, 4];
+      const derive = [14, -9, 6, -13, 10, -6, 16];
       for (let i = 0; i < posizioni.length; i++) {
         scie.appendChild(el('i', {
-          stile: `--x:${posizioni[i]}%; --ritardo:${ritardi[i]}s; --durata:${durate[i]}s`,
+          stile: [
+            `--x:${posizioni[i]}%`,
+            `--ritardo:${ritardi[i]}s`,
+            `--durata:${durate[i]}s`,
+            `--grandezza:${grandezze[i]}px`,
+            `--deriva:${derive[i]}px`,
+            // Due su sette sono quasi bianche: una scintilla tutta d'oro fa "oro",
+            // una scintilla bianca fa "luce".
+            i % 3 === 1 ? '--colore:#fff6d8' : '',
+          ].filter(Boolean).join(';'),
         }));
       }
       grafica.appendChild(scie);

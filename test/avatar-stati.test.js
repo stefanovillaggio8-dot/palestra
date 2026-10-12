@@ -332,7 +332,8 @@ test('R10s. l\'aura ha luce, raggi e scintille, e rispetta chi non vuole le anim
   assert.match(css, /personaggio-aura::before/, 'deve esserci la luce dietro');
   assert.match(css, /personaggio-aura::after/, 'deve esserci qualcosa davanti');
   assert.match(css, /@keyframes aura-sali/, 'le scintille che salgono');
-  assert.match(css, /aura-giro/, 'i raggi che girano');
+  assert.match(css, /aura-fassi/, 'i fazzi di luce che passano dietro');
+  assert.match(css, /drop-shadow\(0 0 4px/, "il contorno dorato sul personaggio: e' la parte che rende credibile la luce");
   // L'aura e' una ricompensa: dev'essere d'oro in tutte e tre le classi, altrimenti
   // su due classi sembra parte del personaggio e su una no.
   assert.match(css, /--aura:\s*var\(--giallo/, 'il colore dell\'aura e\' il giallo dell\'app');
@@ -343,6 +344,6 @@ test('R10s. l\'aura ha luce, raggi e scintille, e rispetta chi non vuole le anim
   // sembrano un\'unica palla.
   const app = await readFile(join(RADICE, 'src', 'app.js'), 'utf8');
   assert.match(app, /--ritardo:\$\{ritardi\[i\]\}s/, 'le scintille si creano da una lista sola');
-  assert.match(app, /const posizioni = \[26, 44, 58, 72\]/, 'quattro scintille a quattro posizioni');
-  assert.match(app, /const ritardi = \[0, 1\.1, 2\.3, 3\.4\]/, 'quattro ritardi diversi: se fossero uguali salirebbero insieme');
+  assert.match(app, /const posizioni = \[20, 31, 41, 50, 59, 68, 79\]/, 'sette scintille a sette posizioni');
+  assert.match(app, /const derive = \[14, -9, 6, -13, 10, -6, 16\]/, 'ogni scintilla sbandiera di lato: altrimenti salgono in fila');
 });
