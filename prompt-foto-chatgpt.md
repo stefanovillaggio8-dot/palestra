@@ -1,237 +1,424 @@
-# I prompt per ChatGPT — le 18 foto del personaggio
+# I 15 prompt per ChatGPT
 
-Questi sono per **ChatGPT** (non Gemini). Ogni prompt è già pronto: si copia,
-si incolla e si genera.
+5 per classe, dal nudo all'arma.
 
-## Come usarli (due minuti, ti fa risparmiare un sacco di tentativi)
+Ogni prompt è completo e sta in piedi da solo: **copialo, incollalo, genera**.
+Non serve incollare nient'altro prima.
 
-**Primo messaggio:** incolla il Blocco STILE (più sotto). È la descrizione della
-scena, dello sfondo e del personaggio.
+Il "completo" non c'è perché è già fatto (sono le tre immagini nella cartella
+Downloads). L'aura non c'è perché non è un'immagine: è un effetto che l'app mette
+sopra la foto del completo.
 
-**Poi, uno per volta:** incolla il prompt del livello che ti serve e scrivi
-`genera l'immagine`.
-
-Fallo **per tutti e sei i livelli della stessa classe nella stessa conversazione**,
-senza aprire una chat nuova. ChatGPT ricorda il contesto, quindi lo sfondo resta
-identico: è quello il punto, perché se lo sfondo cambia a ogni immagine il
-personaggio si vede saltare da uno stato all'altro.
-
-Dopo ogni immagine controlla **una cosa sola**: che la figura sia intera e al
-centro. Se non lo è, riscrivi `rigenera con il personaggio a figura intera,
-centrato, dalla testa ai piedi` prima di passare al livello successivo.
-
-Lo stato 6 (il completo) per le tre classi **è già fatto** e non serve
-rigenerarlo. Quindi i prompt che ti servono davvero sono 15, ma i 18 sono qui per
-completitudine.
+Falli tutti e cinque di una classe **nella stessa conversazione**, senza aprirne
+una nuova: è così che lo sfondo resta uguale e il personatore non salta da una
+immagine all'altra.
 
 ---
 
-# IL BLOCCO STILE (copialo e incollalo come primo messaggio)
+# GUERRIERO
+
+## 1/15 — Guerriero, senza armatura
 
 ```
-Crea una immagine, formato verticale 2:3, di un personaggio medievale a figura
-intera: dalla cima della testa fino ai piedi, interamente dentro l'inquadratura,
-in piedi e fermo al centro dell'immagine, che guarda verso la camera.
+Immagine verticale 2:3. Un guerriero medievale adulto, corporatura forte e
+sicura, senza elmo e senza corazza: indossa solo mutande di lino e scarponi da
+fatica, ha il torace nero e i capelli corti. Tiene nella mano sinistra un grande
+scudo rotondo di acciaio inciso con un leone rampante.
 
-Stile di resa: fotorealista e molto dettagliato, come una fotografia
-realizzata in studio di fotografia cinematografico. Materiali veri e sporchi:
-metallo brunito, bronzo, cuoio consunto, tessuto ruvido. Niente colori brillanti,
-niente plastica, niente resa da videogioco.
+La persona è a figura intera: dalla cima della testa fino ai piedi, interamente
+dentro l'inquadratura, in piedi e ferma al centro, e guarda verso la camera.
 
-Sfondo: nero caldo e profondo. Una luce dorata forte arriva dall'alto a sinistra
-e sfuma verso il basso a destra. In alto c'è una nebbia calda che avvolge la
-scena. Sotto i piedi c'è una pozza di luce ellittica sul pavimento di terra
-battuta. Il resto resta nel buio, con i bordi quasi neri.
+Resa fotorealistica e molto dettagliata, come una fotografia di studio
+cinematografico. Materiali veri e sporchi: acciaio brunito, bronzo, cuoio
+consunto, tessuto ruvido. Niente colori brillanti, niente plastica, niente resa
+da videogioco.
 
-La luce deve venire da un unico punto (in alto a sinistra) e illuminare la
-personaggio dalla stessa direzione in ogni immagine: è quello che rende
-credibile la scena.
+Sfondo: nero caldo e profondo. Una luce dorata forte arriva dall'alto a sinistra e
+sfuma verso il basso a destra. In alto c'è una nebbia calda che avvolge la scena.
+Sotto i piedi c'è una pozza di luce ellittica sul pavimento di terra battuta. Il
+resto resta nel buio, con i bordi quasi neri.
 
-Non scrivere testo, non aggiungere didascalie, non mettere cornici, non firmare
-l'immagine.
-```
-
----
-
-# GUERRIERO — sei livelli
-
-Prima il Blocco STILE, poi questi uno alla volta.
-
-**Livello 1 — Senza armatura**
-```
-Un guerriero medievale adulto, corporatura forte e sicura, braccia larghe, senza
-elmo e senza corazza: indossa solo mutande di lino e scarponi da fatica, il
-torace nero e il capo scoperto con capelli corti. Porta nella mano sinistra un
-grande scudo rotondo di acciaio inciso con un leone rampante, tenuto davanti al
-corpo.
+Nessun testo, nessuna didascalia, nessuna firma, nessuna cornice.
 ```
 
-**Livello 2 — Bracciali**
-```
-Lo stesso guerriero del Livello 1, identico in volto, corporatura e posizione
-delle braccia. Ora ha bracciali di cuoio robusti con tre fibbie di ottone ai
-polsi e agli avambracci. Nient'altro di nuovo: nessun elmo, nessuna corazza.
-Scudo col leone sempre nella mano sinistra, stessa posizione.
-```
+## 2/15 — Guerriero, bracciali
 
-**Livello 3 — Corazza**
 ```
-Lo stesso guerriero, identico. Sopra i bracciali di cuoio ha una corazza di cuoio
-chiaro aperta sul petto, con tre fibbie di cuoio e borchie di ottone ai bordi.
-La corazza lascia vedere il collo e le braccia. Nessun elmo, nessuna spada.
-Scudo col leone sempre nella mano sinistra, stessa posizione.
-```
-
-**Livello 4 — Armatura**
-```
-Lo stesso guerriero, identico. Indossa l'armatura di ferro completa: elmo aperto
-senza visiera, corazza a maglia con petto bombato, spallacci, guantoni, gambali
-con ginocchia e stivali di ferro. La spada non c'è ancora. Scudo col leone
-sempre nella mano sinistra, stessa posizione.
-```
-
-**Livello 5 — Arma**
-```
-Lo stesso guerriero con la stessa armatura del Livello 4, identico. Nella mano
-destra tiene una spada lunga a lama stretta, punta rivolta verso il basso e
-appoggiata al fianco. Scudo col leone nella mano sinistra, stessa posizione.
-```
-
-**Livello 6 — Leggendaria (già fatto, non serve rigenerarlo)**
-```
-Lo stesso guerriero con l'armatura completa e la spada. L'elmo ora ha la visiera
-chiusa con tre fessure orizzontali, e sull'elmo c'è una piccola corona di ottone
-lucidata.
-```
-
----
-
-# BERSERKER — sei livelli
-
-Prima il Blocco STILE, poi questi.
-
-**Livello 1 — Senza armatura**
-```
-Un guerriero vichingo molto barbuto, alto e massiccio, spalle larghe. Porta un
-tutto di pelo rossiccio che gli copre le spalle e scende a forma di mantello
-naturale, il torace nudo e peloso, e in basso solo un perizoma di lino e stivali
-di cuoio. Niente elmo, niente corazza. Nella mano sinistra uno scudo tondo di
-legno rivestito di pelle con borchie di ferro.
-```
-
-**Livello 2 — Bracciali**
-```
-Lo stesso personaggio del Livello 1, identico in volto, barba, corporatura e
-posizione delle braccia. Ora ha un elmo di cuoio rinforzato con borchie di ferro
-e dei bracciali di cuoio spessi ai polsi e agli avambracci. Torace ancora nudo e
-peloso, niente corazza. Scudo di legno e pelle sempre nella mano sinistra,
-stessa posizione.
-```
-
-**Livello 3 — Corazza**
-```
-Lo stesso personaggio del Livello 2, identico. All'elmo borchiato ha aggiunto
-una fascia di cuoio larga con tre fibbie e borchie che gli attraversa il torace
-nudo e peloso. Niente corazza di ferro. Scudo di legno e pelle sempre nella mano
-sinistra, stessa posizione.
-```
-
-**Livello 4 — Armatura**
-```
-Lo stesso personaggio, identico. Sopra il pelo indossa l'armatura di ferro
-completa: elmo di ferro borchiato, corazza, spallacci, guantoni, gambali e
-stivali. Il pelo si vede ancora sulle spalle e sulle braccia sotto l'armatura.
-Nessuna ascia. Scudo di legno e pelle nella mano sinistra, stessa posizione.
-```
-
-**Livello 5 — Arma**
-```
-Lo stesso personaggio con la stessa armatura del Livello 4, identico. Nella mano
-destra tiene un'ascia da guerra pesante con lama di ferro larga e manico lungo di
-legno, lama alzata di lato. Scudo di legno e pelle nella mano sinistra, stessa
+Immagine verticale 2:3. Lo stesso guerriero della versione precedente, identico
+in volto, corporatura e posizione delle braccia. Ora ha bracciali di cuoio robusti
+con tre fibbie di ottone ai polsi e agli avambracci, niente altro di nuovo: nessun
+elmo, nessuna corazza, la spada non c'è. Continua a tenere nella mano sinistra il
+grande scudo rotondo di acciaio inciso con un leone rampante, nella stessa
 posizione.
+
+La persona è a figura intera: dalla cima della testa fino ai piedi, interamente
+dentro l'inquadratura, in piedi e ferma al centro, e guarda verso la camera.
+
+Resa fotorealistica e molto dettagliata, come una fotografia di studio
+cinematografico. Materiali veri e sporchi: acciaio brunito, bronzo, cuoio
+consunto, tessuto ruvido. Niente colori brillanti, niente plastica, niente resa
+da videogioco.
+
+Sfondo: nero caldo e profondo. Una luce dorata forte arriva dall'alto a sinistra e
+sfuma verso il basso a destra. In alto c'è una nebbia calda che avvolge la scena.
+Sotto i piedi c'è una pozza di luce ellittica sul pavimento di terra battuta. Il
+resto resta nel buio, con i bordi quasi neri.
+
+Nessun testo, nessuna didascalia, nessuna firma, nessuna cornice.
 ```
 
-**Livello 6 — Leggendaria (già fatto, non serve rigenerarlo)**
+## 3/15 — Guerriero, corazza
+
 ```
-Lo stesso personaggio con l'armatura e l'ascia. L'elmo di ferro ora ha due corna
-una per lato, e tra le due corna c'è una piccola corona di ottone lucidata.
+Immagine verticale 2:3. Lo stesso guerriero delle versioni precedenti, identico.
+Sopra i bracciali di cuoio ha una corazza di cuoio chiaro aperta sul petto, con tre
+fibbie di cuoio e borchie di ottone ai bordi; la corazza lascia vedere il collo e
+le braccia. Nessun elmo, nessuna spada. Continua a tenere nella mano sinistra il
+grande scudo rotondo di acciaio inciso con un leone rampante, nella stessa
+posizione.
+
+La persona è a figura intera: dalla cima della testa fino ai piedi, interamente
+dentro l'inquadratura, in piedi e ferma al centro, e guarda verso la camera.
+
+Resa fotorealistica e molto dettagliata, come una fotografia di studio
+cinematografico. Materiali veri e sporchi: acciaio brunito, bronzo, cuoio
+consunto, tessuto ruvido. Niente colori brillanti, niente plastica, niente resa
+da videogioco.
+
+Sfondo: nero caldo e profondo. Una luce dorata forte arriva dall'alto a sinistra e
+sfuma verso il basso a destra. In alto c'è una nebbia calda che avvolge la scena.
+Sotto i piedi c'è una pozza di luce ellittica sul pavimento di terra battuta. Il
+resto resta nel buio, con i bordi quasi neri.
+
+Nessun testo, nessuna didascalia, nessuna firma, nessuna cornice.
+```
+
+## 4/15 — Guerriero, armatura
+
+```
+Immagine verticale 2:3. Lo stesso guerriero delle versioni precedenti, identico.
+Indossa l'armatura di ferro completa: elmo aperto senza visiera, corazza a maglia
+con petto bombato, spallacci, guantoni, gambali con ginocchia e stivali di ferro.
+La spada non c'è ancora. Continua a tenere nella mano sinistra il grande scudo
+rotondo di acciaio inciso con un leone rampante, nella stessa posizione.
+
+La persona è a figura intera: dalla cima della testa fino ai piedi, interamente
+dentro l'inquadratura, in piedi e ferma al centro, e guarda verso la camera.
+
+Resa fotorealistica e molto dettagliata, come una fotografia di studio
+cinematografico. Materiali veri e sporchi: acciaio brunito, bronzo, cuoio
+consunto, tessuto ruvido. Niente colori brillanti, niente plastica, niente resa
+da videogioco.
+
+Sfondo: nero caldo e profondo. Una luce dorata forte arriva dall'alto a sinistra e
+sfuma verso il basso a destra. In alto c'è una nebbia calda che avvolge la scena.
+Sotto i piedi c'è una pozza di luce ellittica sul pavimento di terra battuta. Il
+resto resta nel buio, con i bordi quasi neri.
+
+Nessun testo, nessuna didascalia, nessuna firma, nessuna cornice.
+```
+
+## 5/15 — Guerriero, arma
+
+```
+Immagine verticale 2:3. Lo stesso guerriero delle versioni precedenti, identico,
+con la stessa armatura di ferro completa. Nella mano destra tiene una spada lunga
+a lama stretta, punta rivolta verso il basso e appoggiata al fianco. Nella mano
+sinistra il grande scudo rotondo di acciaio inciso con un leone rampante, nella
+stessa posizione di sempre.
+
+La persona è a figura intera: dalla cima della testa fino ai piedi, interamente
+dentro l'inquadratura, in piedi e ferma al centro, e guarda verso la camera.
+
+Resa fotorealistica e molto dettagliata, come una fotografia di studio
+cinematografico. Materiali veri e sporchi: acciaio brunito, bronzo, cuoio
+consunto, tessuto ruvido. Niente colori brillanti, niente plastica, niente resa
+da videogioco.
+
+Sfondo: nero caldo e profondo. Una luce dorata forte arriva dall'alto a sinistra e
+sfuma verso il basso a destra. In alto c'è una nebbia calda che avvolge la scena.
+Sotto i piedi c'è una pozza di luce ellittica sul pavimento di terra battuta. Il
+resto resta nel buio, con i bordi quasi neri.
+
+Nessun testo, nessuna didascalia, nessuna firma, nessuna cornice.
 ```
 
 ---
 
-# ASSASSINO — sei livelli
+# BERSERKER
 
-Prima il Blocco STILE, poi questi.
+## 6/15 — Berserker, senza armatura
 
-**Livello 1 — Senza armatura**
 ```
-Un assassino medievale adulto, corporatura asciutta e asciutta, con un cappuccio
-scuro tirato avanti sulla testa che gli nasconde metà del viso: si vedono solo
-gli occhi, fermi e attenti. In basso solo mutande di lino e stivali morbidi
-scuri. Niente corazza, niente cintura, nessun pugnale.
-```
+Immagine verticale 2:3. Un guerriero vichingo molto barbuto, alto e massiccio,
+spalle larghe. Porta un tutto di pelo rossiccio che gli copre le spalle e scende
+a forma di mantello naturale, il torace nudo e peloso, e in basso solo un
+perizoma di lino e stivali di cuoio. Niente elmo, niente corazza. Nella mano
+sinistra tiene uno scudo tondo di legno rivestito di pelle con borchie di ferro.
 
-**Livello 2 — Bracciali**
-```
-Lo stesso assassino del Livello 1, identico in occhi, corporatura e posizione.
-Ora ha bracciali di cuoio scuro ai polsi e agli avambracci e due cinghie di cuoio
-che si avvolgono sugli avambracci. Cappuccio sempre sulla testa. Niente corazza,
-nessun pugnale.
-```
+La persona è a figura intera: dalla cima della testa fino ai piedi, interamente
+dentro l'inquadratura, in piedi e ferma al centro, e guarda verso la camera.
 
-**Livello 3 — Corazza**
-```
-Lo stesso assassino del Livello 2, identico. Indossa una tunica corta di cuoio
-scuro aperta sul petto con tre fibbie, sopra le cinghie agli avambracci. Cappuccio
-sempre sulla testa. Nessuna cintura da assassino, nessun pugnale.
-```
+Resa fotorealistica e molto dettagliata, come una fotografia di studio
+cinematografico. Pelo ben leggibile, ferro brunito, bronzo, cuoio consunto.
+Niente colori brillanti, niente plastica, niente resa da videogioco.
 
-**Livello 4 — Armatura**
-```
-Lo stesso assassino, identico. Indossa il vestito completo di cuoio e tessuto
-scuro: tunica con maniche lunghe, pantaloni aderenti, stivali alti fino al
-ginocchio, e il cappuccio sulla testa. Nessun pugnale, nessuna cintura speciale.
+Sfondo: nero caldo e profondo. Una luce dorata forte arriva dall'alto a sinistra e
+sfuma verso il basso a destra. In alto c'è una nebbia calda che avvolge la scena.
+Sotto i piedi c'è una pozza di luce ellittica sul pavimento di terra battuta. Il
+resto resta nel buio, con i bordi quasi neri.
+
+Nessun testo, nessuna didascalia, nessuna firma, nessuna cornice.
 ```
 
-**Livello 5 — Arma**
+## 7/15 — Berserker, bracciali
+
 ```
-Lo stesso assassino con il vestito completo del Livello 4, identico. Nella mano
-destra tiene un pugnale sottile, punta verso il basso. In vita ha una cintura
+Immagine verticale 2:3. Lo stesso guerriero vichingo della versione precedente,
+identico in volto, barba, corporatura e posizione delle braccia. Ora ha un elmo di
+cuoio rinforzato con borchie di ferro e dei bracciali di cuoio spessi ai polsi e
+agli avambracci. Il torace è ancora nudo e peloso, non c'è corazza di ferro, non
+c'è ascia. Nella mano sinistra lo scudo tondo di legno e pelle con borchie di
+ferro, nella stessa posizione.
+
+La persona è a figura intera: dalla cima della testa fino ai piedi, interamente
+dentro l'inquadratura, in piedi e ferma al centro, e guarda verso la camera.
+
+Resa fotorealistica e molto dettagliata, come una fotografia di studio
+cinematografico. Pelo ben leggibile, ferro brunito, bronzo, cuoio consunto.
+Niente colori brillanti, niente plastica, niente resa da videogioco.
+
+Sfondo: nero caldo e profondo. Una luce dorata forte arriva dall'alto a sinistra e
+sfuma verso il basso a destra. In alto c'è una nebbia calda che avvolge la scena.
+Sotto i piedi c'è una pozza di luce ellittica sul pavimento di terra battuta. Il
+resto resta nel buio, con i bordi quasi neri.
+
+Nessun testo, nessuna didascalia, nessuna firma, nessuna cornice.
+```
+
+## 8/15 — Berserker, corazza
+
+```
+Immagine verticale 2:3. Lo stesso guerriero vichingo delle versioni precedenti,
+identico. All'elmo di cuoio borchiato ha aggiunto una fascia di cuoio larga con tre
+fibbie e borchie che gli attraversa il torace nudo e peloso. Non c'è corazza di
+ferro e non c'è ascia. Nella mano sinistra lo scudo tondo di legno e pelle con
+borchie di ferro, nella stessa posizione.
+
+La persona è a figura intera: dalla cima della testa fino ai piedi, interamente
+dentro l'inquadratura, in piedi e ferma al centro, e guarda verso la camera.
+
+Resa fotorealistica e molto dettagliata, come una fotografia di studio
+cinematografico. Pelo ben leggibile, ferro brunito, bronzo, cuoio consunto.
+Niente colori brillanti, niente plastica, niente resa da videogioco.
+
+Sfondo: nero caldo e profondo. Una luce dorata forte arriva dall'alto a sinistra e
+sfuma verso il basso a destra. In alto c'è una nebbia calda che avvolge la scena.
+Sotto i piedi c'è una pozza di luce ellittica sul pavimento di terra battuta. Il
+resto resta nel buio, con i bordi quasi neri.
+
+Nessun testo, nessuna didascalia, nessuna firma, nessuna cornice.
+```
+
+## 9/15 — Berserker, armatura
+
+```
+Immagine verticale 2:3. Lo stesso guerriero vichingo delle versioni precedenti,
+identico. Sopra il pelo indossa l'armatura di ferro completa: elmo di ferro
+borchiato, corazza, spallacci, guantoni, gambali e stivali. Il pelo si vede ancora
+sulle spalle e sulle braccia sotto l'armatura. Non c'è ancora l'ascia. Nella mano
+sinistra lo scudo tondo di legno e pelle con borchie di ferro, nella stessa
+posizione.
+
+La persona è a figura intera: dalla cima della testa fino ai piedi, interamente
+dentro l'inquadratura, in piedi e ferma al centro, e guarda verso la camera.
+
+Resa fotorealistica e molto dettagliata, come una fotografia di studio
+cinematografico. Pelo ben leggibile, ferro brunito, bronzo, cuoio consunto.
+Niente colori brillanti, niente plastica, niente resa da videogioco.
+
+Sfondo: nero caldo e profondo. Una luce dorata forte arriva dall'alto a sinistra e
+sfuma verso il basso a destra. In alto c'è una nebbia calda che avvolge la scena.
+Sotto i piedi c'è una pozza di luce ellittica sul pavimento di terra battuta. Il
+resto resta nel buio, con i bordi quasi neri.
+
+Nessun testo, nessuna didascalia, nessuna firma, nessuna cornice.
+```
+
+## 10/15 — Berserker, arma
+
+```
+Immagine verticale 2:3. Lo stesso guerriero vichingo delle versioni precedenti,
+identico, con la stessa armatura di ferro completa. Nella mano destra tiene
+un'ascia da guerra pesante, con lama di ferro larga e manico lungo di legno, alzata
+di lato. Nella mano sinistra lo scudo tondo di legno e pelle con borchie di ferro,
+nella stessa posizione di sempre.
+
+La persona è a figura intera: dalla cima della testa fino ai piedi, interamente
+dentro l'inquadratura, in piedi e ferma al centro, e guarda verso la camera.
+
+Resa fotorealistica e molto dettagliata, come una fotografia di studio
+cinematografico. Pelo ben leggibile, ferro brunito, bronzo, cuoio consunto.
+Niente colori brillanti, niente plastica, niente resa da videogioco.
+
+Sfondo: nero caldo e profondo. Una luce dorata forte arriva dall'alto a sinistra e
+sfuma verso il basso a destra. In alto c'è una nebbia calda che avvolge la scena.
+Sotto i piedi c'è una pozza di luce ellittica sul pavimento di terra battuta. Il
+resto resta nel buio, con i bordi quasi neri.
+
+Nessun testo, nessuna didascalia, nessuna firma, nessuna cornice.
+```
+
+---
+
+# ASSASSINO
+
+## 11/15 — Assassino, senza armatura
+
+```
+Immagine verticale 2:3. Un assassino medievale adulto, corporatura asciutta e
+svelta, con un cappuccio scuro tirato avanti sulla testa che gli nasconde metà del
+viso: si vedono solo gli occhi, fermi e attenti. In basso ha solo mutande di lino
+e stivali morbidi scuri. Niente corazza, niente cintura, nessun pugnale.
+
+La persona è a figura intera: dalla cima della testa fino ai piedi, interamente
+dentro l'inquadratura, in piedi e ferma al centro, e guarda verso la camera.
+
+Resa fotorealistica e molto dettagliata, come una fotografia di studio
+cinematografico. Tessuti scuri e cuoio morbido, quasi neri ma con riflessi
+chiaramente visibili sulle spalle. Niente colori brillanti, niente plastica,
+niente resa da videogioco.
+
+Sfondo: nero caldo e profondo. Una luce dorata forte arriva dall'alto a sinistra e
+sfuma verso il basso a destra. In alto c'è una nebbia calda che avvolge la scena.
+Sotto i piedi c'è una pozza di luce ellittica sul pavimento di terra battuta. Il
+resto resta nel buio, con i bordi quasi neri.
+
+Nessun testo, nessuna didascalia, nessuna firma, nessuna cornice.
+```
+
+## 12/15 — Assassino, bracciali
+
+```
+Immagine verticale 2:3. Lo stesso assassino della versione precedente, identico
+negli occhi, nella corporatura e nella posizione delle braccia. Ora ha bracciali di
+cuoio scuro ai polsi e agli avambracci e due cinghie di cuoio che si avvolgono
+sugli avambracci. Il cappuccio scuro è sempre sulla testa. Non c'è corazza, non
+c'è cintura, nessun pugnale.
+
+La persona è a figura intera: dalla cima della testa fino ai piedi, interamente
+dentro l'inquadratura, in piedi e ferma al centro, e guarda verso la camera.
+
+Resa fotorealistica e molto dettagliata, come una fotografia di studio
+cinematografico. Tessuti scuri e cuoio morbido, quasi neri ma con riflessi
+chiaramente visibili sulle spalle. Niente colori brillanti, niente plastica,
+niente resa da videogioco.
+
+Sfondo: nero caldo e profondo. Una luce dorata forte arriva dall'alto a sinistra e
+sfuma verso il basso a destra. In alto c'è una nebbia calda che avvolge la scena.
+Sotto i piedi c'è una pozza di luce ellittica sul pavimento di terra battuta. Il
+resto resta nel buio, con i bordi quasi neri.
+
+Nessun testo, nessuna didascalia, nessuna firma, nessuna cornice.
+```
+
+## 13/15 — Assassino, corazza
+
+```
+Immagine verticale 2:3. Lo stesso assassino delle versioni precedenti, identico.
+Indossa una tunica corta di cuoio scuro aperta sul petto con tre fibbie, sopra le
+cinghie agli avambracci. Il cappuccio scuro è sempre sulla testa. Non c'è la
+cintura da assassino e non c'è nessun pugnale.
+
+La persona è a figura intera: dalla cima della testa fino ai piedi, interamente
+dentro l'inquadratura, in piedi e ferma al centro, e guarda verso la camera.
+
+Resa fotorealistica e molto dettagliata, come una fotografia di studio
+cinematografico. Tessuti scuri e cuoio morbido, quasi neri ma con riflessi
+chiaramente visibili sulle spalle. Niente colori brillanti, niente plastica,
+niente resa da videogioco.
+
+Sfondo: nero caldo e profondo. Una luce dorata forte arriva dall'alto a sinistra e
+sfuma verso il basso a destra. In alto c'è una nebbia calda che avvolge la scena.
+Sotto i piedi c'è una pozza di luce ellittica sul pavimento di terra battuta. Il
+resto resta nel buio, con i bordi quasi neri.
+
+Nessun testo, nessuna didascalia, nessuna firma, nessuna cornice.
+```
+
+## 14/15 — Assassino, armatura
+
+```
+Immagine verticale 2:3. Lo stesso assassino delle versioni precedenti, identico.
+Indossa il vestito completo di cuoio e tessuto scuro: tunica con maniche lunghe,
+pantaloni aderenti, stivali alti fino al ginocchio, e il cappuccio sulla testa.
+Non c'è nessun pugnale e non c'è la cintura speciale.
+
+La persona è a figura intera: dalla cima della testa fino ai piedi, interamente
+dentro l'inquadratura, in piedi e ferma al centro, e guarda verso la camera.
+
+Resa fotorealistica e molto dettagliata, come una fotografia di studio
+cinematografico. Tessuti scuri e cuoio morbido, quasi neri ma con riflessi
+chiaramente visibili sulle spalle. Niente colori brillanti, niente plastica,
+niente resa da videogioco.
+
+Sfondo: nero caldo e profondo. Una luce dorata forte arriva dall'alto a sinistra e
+sfuma verso il basso a destra. In alto c'è una nebbia calda che avvolge la scena.
+Sotto i piedi c'è una pozza di luce ellittica sul pavimento di terra battuta. Il
+resto resta nel buio, con i bordi quasi neri.
+
+Nessun testo, nessuna didascalia, nessuna firma, nessuna cornice.
+```
+
+## 15/15 — Assassino, arma
+
+```
+Immagine verticale 2:3. Lo stesso assassino delle versioni precedenti, identico,
+con lo stesso vestito completo di cuoio e tessuto scuro e il cappuccio. Nella mano
+destra tiene un pugnale sottile con la punta verso il basso. In vita ha una cintura
 da assassino di cuoio con tre borchie d'argento.
-```
 
-**Livello 6 — Leggendaria (già fatto, non serve rigenerarlo)**
-```
-Lo stesso assassino con il vestito completo, il pugnale e la cintura. Attorno al
-collo ha una sciarpa di seta viola, e sul petto un fermaglio d'argento a forma di
-mezzaluna. Nella mano sinistra tiene un secondo pugnale.
+La persona è a figura intera: dalla cima della testa fino ai piedi, interamente
+dentro l'inquadratura, in piedi e ferma al centro, e guarda verso la camera.
+
+Resa fotorealistica e molto dettagliata, come una fotografia di studio
+cinematografico. Tessuti scuri e cuoio morbido, quasi neri ma con riflessi
+chiaramente visibili sulle spalle. Niente colori brillanti, niente plastica,
+niente resa da videogioco.
+
+Sfondo: nero caldo e profondo. Una luce dorata forte arriva dall'alto a sinistra e
+sfuma verso il basso a destra. In alto c'è una nebbia calda che avvolge la scena.
+Sotto i piedi c'è una pozza di luce ellittica sul pavimento di terra battuta. Il
+resto resta nel buio, con i bordi quasi neri.
+
+Nessun testo, nessuna didascalia, nessuna firma, nessuna cornice.
 ```
 
 ---
 
-# SE NON TI PIACE UN LIVELLO
+# SE UN'IMMAGINE ESCE MALE
 
-Non rifare tutto, correggi solo quello. Le frasi che funzionano:
+Non rifare tutto. Incolla solo la frase giusta:
 
-- `Il personaggio non è a figura intera. Rigenera con la figura intera, centrata,
-  dalla testa ai piedi, e i piedi non toccano il bordo dell'immagine.`
-- `Lo sfondo è diverso dalle altre immagini. Rigenera con lo stesso sfondo nero
-  caldo, luce dall'alto a sinistra, nebbia in alto e pozza di luce sotto i piedi.`
-- `La persona non è la stessa. Mantieni esattamente il viso, il fisico e la posizione
-  delle braccia dell'immagine precedente, cambia solo i vestiti.`
-- `C'è del testo nell'immagine. Rigenera senza alcun testo né dicitura.`
+**Personaggio non a figura intera**
+```
+Rigenera con la persona a figura intera, centrata, dalla cima della testa fino ai
+piedi, e i piedi che non toccano il bordo in basso dell'immagine.
+```
 
----
+**Sfondo diverso dalle altre**
+```
+Rigenera con lo sfondo nero caldo, la luce dorata che arriva dall'alto a sinistra,
+la nebbia calda in alto e la pozza di luce sotto i piedi.
+```
 
-# QUANDO ME LE MANDI
+**Volto o fisico cambiati**
+```
+Rigenera mantenendo esattamente il viso, il fisico e la posizione delle braccia
+dell'immagine precedente. Cambia solo i vestiti.
+```
 
-Salvale in `Downloads` con nomi tipo `guerriero-1.png`, `berserker-3.png`. Io:
-
-1. verifico che siano a figura intera e che lo sfondo torni;
-2. ridimensiono a 900×1350 (uguale alle tre foto dello stato 6 che sono già a
-   posto) senza ridurre la qualità, perché ridimensiono solo se l'originale è
-   più grande;
-3. misuro il tono contro lo stato 6 della stessa classe e correggo quanto basta
-   perché le sei facce sembrino lo stesso personaggio;
-4. le metto al posto giusto e le pubblichi.
+**C'è del testo dentro**
+```
+Rigenera senza alcun testo, senza didascalie e senza firma.
+```
