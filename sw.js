@@ -9,11 +9,17 @@
 // e il test I3 che sia quello dell'ultimo commit, altrimenti si alza la cache e si
 // lascia scritto il numero vecchio. E' successo due volte: nella v54 avevo alzato
 // solo questo file, e dopo la v55 avevo smesso di alzarlo del tutto.
-const VERSIONE = 'palestra-v133';
+const VERSIONE = 'palestra-v134';
 
 const FILE = [
   './',
   './index.html',
+  // ANCHE L'ANTEPRIMA va precaricata. Ste (12/10/2026) ha guardato l'anteprima per
+  // tre versioni di fila e ha detto "non e' cambiato nulla": l'anteprima chiedeva il
+  // CSS come `./stile.css`, senza numero, e il browser lo teneva in cache per sempre.
+  // Con il file nella lista, anche quando la pagina non ha rete c'e' una copia
+  // buona, e il fallback per le navigazioni può mandare qui quando serve.
+  './anteprima-aura.html',
   // IL FOGLIO DI STILE HA LA VERSIONE, come il collegamento in index.html.
   //
   // Ste (10/10/2026): "le animazioni non le vedo". Il CSS era online e aggiornato,
@@ -24,7 +30,7 @@ const FILE = [
   // Il numero deve essere uguale a quello di `stile.css?v=` in index.html e a
   // `window.PALESTRA_VERSIONE`: se i tre non coincidono, l'app carica un foglio di
   // stile e dice un altro numero.
-  './stile.css?v=133',
+  './stile.css?v=134',
 './manifest.webmanifest',
   './manifest-p1.webmanifest',
   './manifest-p2.webmanifest',

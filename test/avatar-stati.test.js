@@ -398,9 +398,17 @@ test('R10s. l\'aura ha luce, raggi e scintille, e rispetta chi non vuole le anim
   const contorno = css.match(/personaggio-aura \.personaggio-ritratto\s*\{[\s\S]*?\n\}/);
   assert.ok(contorno, 'il contorno del personaggio deve esistere');
   const alone = [...contorno[0].matchAll(/drop-shadow\(0 0 (\d+)px/g)].map(m => Number(m[1]));
-  assert.ok(alone.length >= 2 && alone[1] >= 16,
-    `l'alone del contorno deve essere largo, non solo la linea: ${alone.join(', ')}`);
-  assert.ok(/95% \* var\(--forza\)/.test(contorno[0]),
+  assert.ok(alone.length === 3, `il contorno deve avere tre strati, ne' ha ${alone.length}: ${alone.join(', ')}`);
+  assert.ok(alone[2] >= 16,
+    `l'alone esterno deve essere largo, non solo la linea: ${alone.join(', ')}`);
+  // Ste (12/10/2026): "e ancora piu' nero e giallo". Il giallo era tutto dello stesso
+  // colore dal filo all'alone, e una cosa tutta uguale non sembra luce: sembra
+  // vernice. La luce vera ha il CENTRO BIANCO e il bordo colorato.
+  assert.match(contorno[0], /drop-shadow\(0 0 2px rgba\(255,\s*252,\s*240/,
+    'il filo piu\' vicino alla figura deve essere bianco caldo: e\' la luce, non la tinta');
+  assert.ok(alone[0] < alone[1] && alone[1] < alone[2],
+    `i tre strati devono crescere verso l'esterno: ${alone.join(', ')}`);
+  assert.ok(/95% \* var\(--forza\)|88% \* var\(--forza\)/.test(contorno[0]),
     'la forza dell\'aura va messa sul contorno, che e\' l\'unico strato che tocca la figura');
 
   // Ste (12/10/2026): "non e' cambiato molto" e, guardando l'anteprima, una X bianca
