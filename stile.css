@@ -1625,6 +1625,14 @@ body:has(.sfondo-dialogo) .avviso {
   mix-blend-mode: screen;
   opacity: .8;
   animation: aura-fassi 19s ease-in-out infinite alternate;
+  /* L'ALONE LUNGO IL BORDO. Sta su questo strato e non sul riquadro perche' il
+     riquadro lo disegna SOTTO il contenuto, e il contenuto del riquadro e' la foto:
+     con l'Assassino (foto al 100%) l'alone finiva coperto e non si vedeva, con gli
+     altri (foto all'86-88%) si vedeva solo ai lati. La stessa aura sembrava due cose
+     diverse. Qui questo strato sta sopra la foto, quindi il bordo si illumina sempre. */
+  box-shadow:
+    inset 0 0 22px -2px color-mix(in srgb, var(--aura) 62%, transparent),
+    inset 0 0 64px -18px color-mix(in srgb, var(--aura) 46%, transparent);
 }
 
 @keyframes aura-pulse {
@@ -1689,13 +1697,8 @@ body:has(.sfondo-dialogo) .avviso {
  * sotto, quindi l'aura ha lo stesso bordo in tutte e tre le classi. `inset` vuol
  * dire che la luce sta DENTRO, e non esce fuori dal riquadro.
  */
-.personaggio-scena-grafica.personaggio-aura {
-  box-shadow:
-    inset 0 0 26px -4px color-mix(in srgb, var(--aura) 58%, transparent),
-    inset 0 0 70px -22px color-mix(in srgb, var(--aura) 42%, transparent);
-}
 
-html.animazioni-mai .personaggio-scena-grafica.personaggio-aura::after,
+
 html.animazioni-mai .personaggio-scena-grafica.personaggio-aura::after,
 html.animazioni-mai .aura-scie i { animation: none; }
 html.animazioni-mai .aura-scie i { opacity: .55; }

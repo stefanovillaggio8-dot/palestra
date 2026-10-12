@@ -354,10 +354,24 @@ test("R10t. l'aura arriva al bordo e non usa mask-composite", async () => {
   // sembrava due cose diverse.
   const css = await readFile(join(RADICE, 'stile.css'), 'utf8');
 
-  // 1) Il riquadro si illumina DENTRO, lungo il bordo: cosi' non dipende dalla foto
-  //    sotto e tutte e tre le classi hanno lo stesso bordo.
-  assert.match(css, /\.personaggio-scena-grafica\.personaggio-aura\s*\{[^}]*inset 0 0/,
-    "il riquadro con l'aura deve avere una luce interna lungo il bordo");
+  // 1) La luce del bordo DEVE stare sullo strato che e' SOPRA la foto, non sul
+  //    riquadro. Il riquadro la disegna sotto il contenuto, e il contenuto del
+  //    riquadro e' la foto: con l'Assassino (foto al 100%) l'alone finiva coperto e
+  //    non si vedeva proprio li', mentre con gli altri (foto all'86-88%) si vedeva.
+  // Ci sono DUE regole `::after`: una mette a posto posizione e dimensioni (ha
+  // `inset: 0`) e l'altra disegna i fazzi ed e' quella che porta l'alone del bordo.
+  // Controllare la prima sbaglierebbe: quindi si cercano tutte e si guarda se una
+  // delle due ha davvero la luce interna.
+  const regoleAfter = [...css.matchAll(/\.personaggio-scena-grafica\.personaggio-aura::after\s*\{([^}]*)\}/g)]
+    .map((m) => m[1]);
+  assert.ok(regoleAfter.length >= 1, 'deve esserci la regola dei fazzi');
+  assert.ok(regoleAfter.some((corpo) => /inset 0 0/.test(corpo)),
+    "l'alone del bordo sta sullo strato sopra la foto");
+  assert.doesNotMatch(
+    css.match(/\.personaggio-scena-grafica\.personaggio-aura\s*\{([^}]*)\}/)?.[1] || '',
+    /inset 0 0/,
+    'l\'alone NON deve stare sul riquadro: la foto lo coprirebbe',
+  );
 
   // 2) UNA sola maschera. `mask-composite` su Safari si comporta diversamente da
   //    Chrome, e l'aura cambiava da telefono a telefono.
