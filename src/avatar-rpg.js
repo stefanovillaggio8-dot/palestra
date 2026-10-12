@@ -209,7 +209,29 @@ export function statoVisivo(premi) {
 export function percorsoStato(classeId, indice) {
   const ultimo = STATI_IMMAGINE.length - 1;
   const n = Math.max(0, Math.min(ultimo, Math.round(Number(indice) || 0)));
-  return `img/personaggi/stati/${classeId}-${n}.webp`;
+  return `img/personaggi/stati/${classeId}-${n}.webp${versioneRisorse()}`;
+}
+
+/**
+ * IL NUMERO DI VERSIONE ANCHE NELL'INDIRIZZO DELLE FOTO.
+ *
+ * Ste (12/10/2026), la terza volta che la stessa cosa morde: "ma non è cambiato
+ * nulla", con la foto nuova già online e verificata byte per byte.
+ *
+ * Il CSS aveva il numero (`stile.css?v=137`) e quindi si aggiornava. Le foto
+ * no: l'indirizzo era sempre `img/personaggi/stati/berserker-5.webp`, identico
+ * per sempre, e su GitHub Pages i file statici hanno una scadenza lunghissima.
+ * Il browser restituiva la copia di prima, per sempre, e io cambiavo il file
+ * guardando i numeri salire senza che la pagina cambiasse.
+ *
+ * La lezione e' la stessa del CSS, e stavolta la si applica dove mancava: se
+ * il contenuto di un file cambia, il SUO INDIRIZZO deve cambiare. Il numero
+ * viene letto da `window.PALESTRA_VERSIONE`, che index.html dichiara prima dei
+ * moduli, quindi non si può dimenticare di allinearlo a mano.
+ */
+function versioneRisorse() {
+  const v = (typeof globalThis !== 'undefined' && globalThis.PALESTRA_VERSIONE) || '';
+  return v ? `?v=${v}` : '';
 }
 
 /**

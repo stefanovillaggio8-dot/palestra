@@ -3,13 +3,33 @@
 // anche senza rete. I dati NON stanno qui: stanno in IndexedDB, quindi
 // cancellare la cache non cancella niente del tuo allenamento.
 
-// Il numero di versione sta anche in index.html (window.PALESTRA_VERSIONE), perche'
+// Il numero di versione sta anche in index.html (window.PALESTRA_VERSIONE), perché
 // e' quello che l'app mostra e quello con cui si controlla che il sito sia davvero
 // aggiornato. Sono due numeri in due file: il test I2 controlla che dicano lo stesso
 // e il test I3 che sia quello dell'ultimo commit, altrimenti si alza la cache e si
 // lascia scritto il numero vecchio. E' successo due volte: nella v54 avevo alzato
 // solo questo file, e dopo la v55 avevo smesso di alzarlo del tutto.
-const VERSIONE = 'palestra-v137';
+const VERSIONE = 'palestra-v138';
+
+// LE 18 FOTO DEI PERSONAGGI, CON LA VERSIONE DENTRO.
+//
+// Il numero viene preso da `palestra-v138` invece di essere scritto due volte: e'
+// l'unico posto in cui il numero compare, quindi la lista non può restare
+// indietro. Prima le 18 righe erano scritte a mano ed e' esattamente li' che il
+// numero era rimasto indietro due volte.
+const NUMERO = VERSIONE.replace(/^palestra-v/, '');
+
+/** Le sei foto di ogni classe, tutte e tre le classi. */
+function immaginiPersonaggi() {
+  const out = [];
+  for (const classe of ['guerriero', 'berserker', 'assassino']) {
+    for (let n = 0; n < 6; n++) {
+      out.push(`./img/personaggi/stati/${classe}-${n}.webp?v=${NUMERO}`);
+    }
+  }
+  return out;
+}
+
 
 const FILE = [
   './',
@@ -23,14 +43,14 @@ const FILE = [
   // IL FOGLIO DI STILE HA LA VERSIONE, come il collegamento in index.html.
   //
   // Ste (10/10/2026): "le animazioni non le vedo". Il CSS era online e aggiornato,
-  // ma la cache del browser continuava a restituire il vecchio perche' l'indirizzo
+  // ma la cache del browser continuava a restituire il vecchio perché l'indirizzo
   // era sempre lo stesso. Con `?v=84` anche qui la chiave cambia a ogni versione,
   // quindi la cache vecchia non viene più richiesta.
   //
   // Il numero deve essere uguale a quello di `stile.css?v=` in index.html e a
   // `window.PALESTRA_VERSIONE`: se i tre non coincidono, l'app carica un foglio di
   // stile e dice un altro numero.
-  './stile.css?v=137',
+  './stile.css?v=138',
 './manifest.webmanifest',
   './manifest-p1.webmanifest',
   './manifest-p2.webmanifest',
@@ -92,24 +112,19 @@ const FILE = [
   //
   // Vanno tutte in cache: senza rete, senza queste il profilo non mostra il
   // personaggio e la filmstrip della progressione resta vuota.
-  './img/personaggi/stati/guerriero-0.webp',
-  './img/personaggi/stati/guerriero-1.webp',
-  './img/personaggi/stati/guerriero-2.webp',
-  './img/personaggi/stati/guerriero-3.webp',
-  './img/personaggi/stati/guerriero-4.webp',
-  './img/personaggi/stati/guerriero-5.webp',
-  './img/personaggi/stati/berserker-0.webp',
-  './img/personaggi/stati/berserker-1.webp',
-  './img/personaggi/stati/berserker-2.webp',
-  './img/personaggi/stati/berserker-3.webp',
-  './img/personaggi/stati/berserker-4.webp',
-  './img/personaggi/stati/berserker-5.webp',
-  './img/personaggi/stati/assassino-0.webp',
-  './img/personaggi/stati/assassino-1.webp',
-  './img/personaggi/stati/assassino-2.webp',
-  './img/personaggi/stati/assassino-3.webp',
-  './img/personaggi/stati/assassino-4.webp',
-  './img/personaggi/stati/assassino-5.webp',
+  //
+  // LE FOTO HANNO IL NUMERO DI VERSIONE NELL'INDIRIZZO, e la lista le costruisce
+  // da sola invece di scriverle a mano.
+  //
+  // Ste (12/10/2026): "ma non è cambiato nulla", con il file nuovo già online e
+  // verificato byte per byte. Le foto avevano l'indirizzo fisso, identico per
+  // sempre, e su GitHub Pages i file statici hanno una scadenza lunghissima: il
+  // browser restituiva la copia di prima. Lo stesso difetto che aveva colpito il
+  // CSS due versioni prima, e che si era ripetuto sulle immagini.
+  //
+  // Qui la lista viene generata dalla stessa versione, quindi le foto non
+  // possono restare indietro quando si alza il numero.
+  ...immaginiPersonaggi(),
   './src/missioni.js',
   './src/aura.js',
   './src/sociale.js',
@@ -209,7 +224,7 @@ self.addEventListener('message', (evento) => {
 // PRIMA LA RETE, poi la cache.
 // Prima facevo il contrario (prima la cache) e il telefono continuava a usare
 // i file vecchi anche dopo che avevo pubblicato quelli nuovi: la spunta non
-// spuntava perche' quella versione proprio non c'era.
+// spuntava perché quella versione proprio non c'era.
 // Se non c'e' rete si usa la cache: l'app funziona lo stesso offline.
 self.addEventListener('fetch', (evento) => {
   const richiesta = evento.request;

@@ -1,10 +1,10 @@
 /* UNA SOLA VERSIONE, OVUNQUE.
  *
- * Questo test esiste perche' Ste ha perso tre versioni di fila.
+ * Questo test esiste perché Ste ha perso tre versioni di fila.
  *
  * Cosa era successo: l'app chiedeva il CSS come `stile.css?v=130`, l'anteprima lo
  * chiedeva come `stile.css`, senza numero. Due indirizzi diversi per lo stesso
- * file. Il browser tiene in cache il secondo per sempre, perche' GitHub Pages manda
+ * file. Il browser tiene in cache il secondo per sempre, perché GitHub Pages manda
  * le cartelle statiche con una scadenza lunghissima, e quindi l'anteprima mostrava
  * il CSS di TRE VERSIONI FA per sempre.
  *
@@ -64,6 +64,91 @@ test('T2. nessuna pagina chiede stile.css senza numero', async () => {
         'cachea per sempre e la pagina mostra sempre il CSS di una volta fa',
       );
     }
+  }
+});
+
+test('T3. nessuna pagina chiede una foto senza numero di versione', async () => {
+  // Lo stesso difetto del CSS, ma sulle immagini, e Ste l'ha trovato per la terza
+  // volta: "ma non e' cambiato nulla", con il file nuovo gia' online e verificato
+  // byte per byte. Il CSS aveva `?v=137`, le foto no: indirizzo identico per
+  // sempre, scadenza lunghissima, e il browser restituiva la copia di prima.
+  //
+  // `src="./img/....webp"` e' un indirizzo valido e funziona: nessuno lo rifiuta.
+  // Semplicemente non si aggiorna piu'.
+  const anteprima = await LEGGI('anteprima-aura.html');
+  const foto = [...anteprima.matchAll(/src="(\.\/img\/personaggi\/stati\/[^"]+)"/g)].map((m) => m[1]);
+  assert.ok(foto.length > 0, 'l\'anteprima deve mostrare le foto');
+  for (const indirizzo of foto) {
+    assert.match(indirizzo, /\?v=\d+$/,
+      `l'anteprima chiede "${indirizzo}" senza numero: il browser lo tiene in cache ` +
+      'per sempre e le foto non si aggiornano piu\'');
+  }
+
+  // E l'app deve fare lo stesso, altrimenti l'anteprima e' aggiornata e l'app no.
+  const avatar = await LEGGI('src/avatar-rpg.js');
+  assert.match(
+    avatar, /percorsoStato[\s\S]{0,1500}\?v=\$\{/,
+    'percorsoStato() deve mettere la versione nell\'indirizzo della foto',
+  );
+  assert.match(
+    avatar, /globalThis\.PALESTRA_VERSIONE/,
+    'la versione delle foto va letta da window.PALESTRA_VERSIONE, cosi\' non si ' +
+    'dimentica di allinearla a mano',
+  );
+});
+
+test('T4. la lista di immagini del service worker usa la versione dichiarata', async () => {
+  // Le 18 foto in cache erano scritte a mano, una per riga, e sono state
+  // dimenticate due volte. Ora la lista le genera dalla versione, quindi non può
+  // piu' restare indietro. Qui si controlla tre cose: che la generazione ci sia,
+  // che non restino indirizzi scritti a mano, e che il numero sia unico in tutto
+  // il progetto (se ne divergono due, la pagina mente su se stessa).
+  const sw = await LEGGI('sw.js');
+  assert.match(sw, /function immaginiPersonaggi\(\)/,
+    'sw.js deve generare la lista delle foto invece di scriverla a mano');
+  assert.doesNotMatch(sw, /'\.\/img\/personaggi\/stati\/[a-z]+-\d\.webp',/,
+    'non ci devono piu\' essere indirizzi di foto scritti a mano: si generano');
+  assert.match(sw, /\$\{classe\}-\$\{n\}\.webp\?v=\$\{NUMERO\}/,
+    'la lista generata deve mettere la versione nell\'indirizzo');
+
+  const versione = sw.match(/const VERSIONE = 'palestra-v(\d+)'/)?.[1];
+  assert.ok(versione, 'sw.js deve dichiarare la versione');
+  const numeri = new Set([versione]);
+  for (const n of [...(await LEGGI('index.html')).matchAll(/stile\.css\?v=(\d+)/g)].map((m) => m[1])) {
+    numeri.add(n);
+  }
+  for (const n of [...(await LEGGI('anteprima-aura.html')).matchAll(/stile\.css\?v=(\d+)/g)].map((m) => m[1])) {
+    numeri.add(n);
+  }
+  for (const n of [...sw.matchAll(/stile\.css\?v=(\d+)/g)].map((m) => m[1])) {
+    numeri.add(n);
+  }
+  assert.equal(numeri.size, 1,
+    `i numeri di versione non coincidono: ${[...numeri].join(', ')}`);
+});
+
+test('T5. le 18 foto ci sono davvero in cache, tutte e 18', async () => {
+  // La funzione che genera la lista viene eseguita davvero, non solo letta: se
+  // qualcuno la cambia e sbaglia il numero di stati, o la dimentica di chiamare,
+  // questo test lo dice. Si riesegue la funzione copiata dal service worker.
+  const sw = await LEGGI('sw.js');
+  const corpo = sw.match(/function immaginiPersonaggi\(\)\s*\{[\s\S]*?\n\}/)?.[0];
+  assert.ok(corpo, 'la funzione che genera la lista deve esistere in sw.js');
+  const NUMERO = sw.match(/const VERSIONE = 'palestra-v(\d+)'/)?.[1];
+  // Si rilegge il corpo della funzione e si esegue davvero: `function X() {...}`
+  // diventa `return function() {...}`, che e' gia' un corpo valido. Serve perché
+  // una lista generata e' buona solo se genera davvero quello che dice.
+  const eseguibile = corpo.replace('function immaginiPersonaggi()', 'return function()');
+  // La funzione va richiamata due volte: la prima eseguita il corpo (che
+  // restituisce la funzione), la seconda eseguita la funzione per ottenere l'elenco.
+  const immagini = new Function('NUMERO', eseguibile)(NUMERO)();
+  assert.equal(immagini.length, 18, `devono essere 18 foto, ne' sono ${immagini.length}`);
+  for (const classe of ['guerriero', 'berserker', 'assassino']) {
+    const sue = immagini.filter((u) => u.includes(`${classe}-`));
+    assert.equal(sue.length, 6, `${classe}: devono essere 6 foto, ne' sono ${sue.length}`);
+  }
+  for (const u of immagini) {
+    assert.ok(u.endsWith(`?v=${NUMERO}`), `${u} non ha il numero di versione`);
   }
 });
 
