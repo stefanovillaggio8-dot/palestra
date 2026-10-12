@@ -33,10 +33,10 @@ Crea una immagine, formato verticale 2:3, di un personaggio medievale a figura
 intera: dalla cima della testa fino ai piedi, interamente dentro l'inquadratura,
 in piedi e fermo al centro dell'immagine, che guarda verso la camera.
 
-Stile di rendering: fotorealista e molto dettagliato, come una fotografia
+Stile di resa: fotorealista e molto dettagliato, come una fotografia
 realizzata in studio di fotografia cinematografico. Materiali veri e sporchi:
 metallo brunito, bronzo, cuoio consunto, tessuto ruvido. Niente colori brillanti,
-niente plastica, nienteRendering da videogioco.
+niente plastica, niente resa da videogioco.
 
 Sfondo: nero caldo e profondo. Una luce dorata forte arriva dall'alto a sinistra
 e sfuma verso il basso a destra. In alto c'è una nebbia calda che avvolge la
@@ -69,7 +69,7 @@ corpo.
 **Livello 2 — Bracciali**
 ```
 Lo stesso guerriero del Livello 1, identico in volto, corporatura e posizione
-delle braccia. Ora ha bracciali di cuoio Robusti con tre fibbie di ottone ai
+delle braccia. Ora ha bracciali di cuoio robusti con tre fibbie di ottone ai
 polsi e agli avambracci. Nient'altro di nuovo: nessun elmo, nessuna corazza.
 Scudo col leone sempre nella mano sinistra, stessa posizione.
 ```
@@ -148,7 +148,7 @@ Nessuna ascia. Scudo di legno e pelle nella mano sinistra, stessa posizione.
 ```
 Lo stesso personaggio con la stessa armatura del Livello 4, identico. Nella mano
 destra tiene un'ascia da guerra pesante con lama di ferro larga e manico lungo di
-legno, blade alzata di lato. Scudo di legno e pelle nella mano sinistra, stessa
+legno, lama alzata di lato. Scudo di legno e pelle nella mano sinistra, stessa
 posizione.
 ```
 
