@@ -138,14 +138,21 @@
 </div>
 
 <script>
-  // Le scintille: le stesse sette dell'app, con le stesse posizioni, grandezze,
-  // derive e tempi di src/app.js. Se qui ne fossero diverse, la pagina mostrerebbe
-  // un'aura diversa da quella nell'app e l'anteprima servirebbe a poco.
+  // Le scintille e le stelle: le stesse dell'app, con le stesse posizioni,
+  // grandezze, derive e tempi di src/app.js. Se qui fossero diverse, la pagina
+  // mostrerebbe un'aura diversa da quella nell'app e l'anteprima servirebbe a poco.
   const posizioni = [20, 31, 41, 50, 59, 68, 79];
   const ritardi = [0, .9, 1.7, 2.4, 3.1, 3.9, 4.6];
   const durate = [4.4, 5.3, 4.8, 5.8, 4.1, 5.0, 4.6];
   const grandezze = [5, 3, 4, 3, 6, 3, 4];
   const derive = [14, -9, 6, -13, 10, -6, 16];
+  const Stelle = [
+    { x: 17, y: 19, g: 8, r: 0, d: 3.2 },
+    { x: 81, y: 26, g: 6, r: 1.1, d: 4.1 },
+    { x: 26, y: 41, g: 5, r: 2.3, d: 3.6 },
+    { x: 87, y: 52, g: 7, r: .7, d: 4.6 },
+    { x: 11, y: 62, g: 5, r: 1.9, d: 3.9 },
+  ];
   document.querySelectorAll('[data-scie]').forEach((box) => {
     const scie = document.createElement('div');
     scie.className = 'aura-scie';
@@ -163,6 +170,22 @@
       scie.appendChild(s);
     }
     box.appendChild(scie);
+
+    const stelle = document.createElement('div');
+    stelle.className = 'aura-stelle';
+    stelle.setAttribute('aria-hidden', 'true');
+    for (const st of Stelle) {
+      const s = document.createElement('i');
+      s.style.cssText = `--x:${st.x}%; --y:${st.y}%; --grandezza:${st.g}px; `
+        + `--ritardo:${st.r}s; --durata:${st.d}s`;
+      stelle.appendChild(s);
+    }
+    box.appendChild(stelle);
+
+    const lustro = document.createElement('div');
+    lustro.className = 'aura-lustro';
+    lustro.setAttribute('aria-hidden', 'true');
+    box.appendChild(lustro);
   });
 </script>
 </body>

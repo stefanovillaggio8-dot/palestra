@@ -4471,9 +4471,9 @@ function bloccoPersonaggio(profilo, st) {
     // già "tutto addosso"), quindi e' una luce che si accende sopra la foto.
     if (viso.aura) {
       grafica.classList.add('personaggio-aura');
-      // LE SCINTILLE. La luce, i fazzi e il contorno li fa il CSS; le scintille
-      // sono elementi veri perché ognuna ha una posizione, una grandezza, una
-      // deriva e un momento di partenza tutti diversi. Se fossero uguali salirebbero
+      // LE SCINTILLE. La luce, i fazzi, l'anello e il contorno li fa il CSS; le
+      // scintille sono elementi veri perché ognuna ha una posizione, una grandezza,
+      // una deriva e un momento di partenza tutti diversi. Se fossero uguali salirebbero
       // insieme e sembrerebbero una palla sola che sale.
       //
       // Sei, non quattro: con quattro si leggevano come un corteo regolare. Ogni
@@ -4500,6 +4500,30 @@ function bloccoPersonaggio(profilo, st) {
         }));
       }
       grafica.appendChild(scie);
+
+      // LE STELLE che scintillano intorno alla figura: cinque, in punti alti e
+      // bassi, con tempi diversi. Non stanno ferme: una stella fissa sembra una
+      // macchiolina, una stella che si accende e spegne sembra viva.
+      const stelle = el('div', { class: 'aura-stelle', aria: { hidden: 'true' } });
+      const Stelle = [
+        { x: 17, y: 19, g: 8, r: 0, d: 3.2 },
+        { x: 81, y: 26, g: 6, r: 1.1, d: 4.1 },
+        { x: 26, y: 41, g: 5, r: 2.3, d: 3.6 },
+        { x: 87, y: 52, g: 7, r: .7, d: 4.6 },
+        { x: 11, y: 62, g: 5, r: 1.9, d: 3.9 },
+      ];
+      for (const s of Stelle) {
+        stelle.appendChild(el('i', {
+          stile: `--x:${s.x}%; --y:${s.y}%; --grandezza:${s.g}px; `
+            + `--ritardo:${s.r}s; --durata:${s.d}s`,
+        }));
+      }
+      grafica.appendChild(stelle);
+
+      // IL BAGLIORE: una banda di luce che attraversa la figura ogni sei secondi e
+      // mezzo. È quella che fa capire che l'armatura è "divina" e non solo colorata:
+      // la luce ci passa sopra, davvero, e non è un colore fermo.
+      grafica.appendChild(el('div', { class: 'aura-lustro', aria: { hidden: 'true' } }));
     }
     grafica.appendChild(el('img', {
       class: 'personaggio-ritratto',

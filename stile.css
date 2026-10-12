@@ -1559,26 +1559,26 @@ body:has(.sfondo-dialogo) .avviso {
 
 /* L'AURA DIVINA: il sesto premio, 75 giorni di fila.
  *
- * Ste (12/10/2026): "l'arma divina deve essere bella" e poi "fai l'aura piu' bella,
- * impegnati". Aveva ragione a-insistere: la prima versione era un cono di raggi che
- * partivano da un punto solo, e sembrava il raggio di un sole disegnato, non una
- * luce. Il difetto non era la quantita' di luce, era che la luce aveva una FORMA
- * geometrica evidente.
+ * Ste (12/10/2026): "deve essere il livello finale quindi qualcosa di bello bello".
  *
- * Quindi qui non ci sono piu' i raggi a stella. La luce e' fatta di cose che nella
- * vita vera non hanno gli spigoli:
+ * Le prime due versioni non erano brutte, erano POCHE. Una luce morbida dietro una
+ * figura dice "ti guardo"; ma il livello finale di un gioco non ti guarda, ti
+ * incorona. Quindi qui ci sono cinque cose, e ognuna ha un compito:
  *
- *   - l'ALONE, dietro il personaggio: un alone morbido, senza bordo;
- *   - la LUCE AI PIEDI, che sale dal pavimento: e' quella che fa capire che la
- *     persona e' illuminata dal basso e non incollata davanti a uno sfondo;
- *   - i FAZZI, larghi e sfocati, che passano dietro le spalle: si muovono lentissimi
- *     e sono cosi' tenui che si sentono piu' che non si vedono;
- *   - le SCINTILLE, che salgono e spengono, piccole e di grandezze diverse;
- *   - il CONTORNO DORATO sul personaggio, che e' la parte che rende tutto credibile:
- *     una luce dietro una figura senza contorno sembra una foto appoggiata a uno
- *     sfondo, con il contorno diventa una figura dentro una luce.
+ *   - l'ALONE dietro la testa: e' la cosa che fa capire subito che e' una luce
+ *     sacra e non una lampada accesa dietro;
+ *   - l'ARIA calda intorno e la LUCE AI PIEDI, che fanno capire che la figura e'
+ *     illuminata dal basso e non incollata davanti a uno sfondo;
+ *   - i FAZZI, larghi e sfocati, che passano dietro le spalle e si muovono piano;
+ *   - l'ANELLO che gira, lento, appena percettibile: se lo guardi non lo vedi, ma
+ *     se il personaggio sta fermo un attimo lo senti;
+ *   - le STELLE che scintillano e il BAGLIORE che attraversa la figura.
  *
- * Tutto d'oro, in tutte e tre le classi: se il colore cambiasse sembrerebbe parte
+ * Il contorno dorato sul personaggio resta la parte che rende credibile tutto il
+ * resto: una luce dietro una figura senza contorno sembra una foto appoggiata a
+ * uno sfondo; col contorno diventa una figura dentro una luce.
+ *
+ * Tutto d'oro in tutte e tre le classi: se il colore cambiasse sembrerebbe parte
  * della classe e non una ricompensa. Il colore passa da `--aura`. */
 .personaggio-scena-grafica { --aura: var(--giallo, #ffd35c); }
 
@@ -1588,55 +1588,62 @@ body:has(.sfondo-dialogo) .avviso {
   position: absolute;
   inset: 0;
   pointer-events: none;
+  mix-blend-mode: screen;
 }
 
-/* L'ALONE e la LUCE AI PIEDI: dietro la figura, morbidi, senza bordi. */
+/* L'ALONE, la LUCE AI PIEDI e l'ARIA CALDA. */
 .personaggio-scena-grafica.personaggio-aura::before {
   background:
-    /* la luce che sale dal pavimento, stretta e bassa */
-    radial-gradient(62% 16% at 50% 94%,
-      color-mix(in srgb, var(--aura) 66%, transparent) 0%,
+    /* l'alone dietro la testa: un anello sottile, non una macchia */
+    radial-gradient(circle at 50% 23%,
+      transparent 0 9.5%,
+      color-mix(in srgb, var(--aura) 62%, transparent) 10.5% 13.5%,
+      transparent 14.5%),
+    radial-gradient(circle at 50% 23%,
+      transparent 0 6%,
+      color-mix(in srgb, var(--aura) 30%, transparent) 7% 22%,
+      transparent 30%),
+    /* la luce che sale dal pavimento */
+    radial-gradient(66% 17% at 50% 94%,
+      color-mix(in srgb, var(--aura) 70%, transparent) 0%,
       transparent 80%),
-    /* l'alone dietro il busto */
-    radial-gradient(42% 50% at 50% 44%,
-      color-mix(in srgb, var(--aura) 44%, transparent) 0%,
-      transparent 78%),
-    /* l'aria calda intorno: arriva fino al bordo, e arriva anche in alto e in
-       basso, cosi' non c'e' una fascia sopra e sotto senza luce */
-    radial-gradient(115% 105% at 50% 50%,
-      color-mix(in srgb, var(--aura) 20%, transparent) 0%,
-      transparent 94%);
-  filter: blur(26px);
+    /* l'aria calda intorno: arriva fino al bordo, in alto e in basso */
+    radial-gradient(118% 108% at 50% 50%,
+      color-mix(in srgb, var(--aura) 21%, transparent) 0%,
+      transparent 95%);
+  filter: blur(18px);
   animation: aura-pulse 4.6s ease-in-out infinite;
 }
 
-/* I FAZZI: larghi, sfocati, e lontanissimi l'uno dall'altro. */
+/* I FAZZI e l'ANELLO CHE GIRA, e l'ALONE LUNGO IL BORDO DEL RIQUADRO. */
 .personaggio-scena-grafica.personaggio-aura::after {
   background:
+    /* l'anello: un anello enorme e lentissimo, appena visibile */
+    repeating-conic-gradient(from 0deg at 50% 46%,
+      transparent 0deg 7deg,
+      color-mix(in srgb, var(--aura) 12%, transparent) 7deg 8deg,
+      transparent 8deg 15deg),
+    /* i fazzi, larghi e lontani l'uno dall'altro */
     repeating-linear-gradient(97deg,
-      color-mix(in srgb, var(--aura) 13%, transparent) 0deg 5deg,
+      color-mix(in srgb, var(--aura) 14%, transparent) 0deg 5deg,
       transparent 5deg 26deg);
-  /* UNA sola maschera, e rotonda: cosi' non si appoggia a "mask-composite", che su
-     Safari si comporta diversamente da Chrome e faceva cambiare l'aura da telefono
-     a telefono. La maschera arriva vicino al bordo (94%), quindi l'oro si vede
-     anche li'. */
-  -webkit-mask-image: radial-gradient(88% 92% at 50% 40%, #000 34%, transparent 96%);
-  mask-image: radial-gradient(88% 92% at 50% 40%, #000 34%, transparent 96%);
-  mix-blend-mode: screen;
+  /* UNA sola maschera: `mask-composite` su Safari si comporta diversamente da
+     Chrome e faceva cambiare l'aura da telefono a telefono. */
+  -webkit-mask-image: radial-gradient(92% 96% at 50% 38%, #000 32%, transparent 97%);
+  mask-image: radial-gradient(92% 96% at 50% 38%, #000 32%, transparent 97%);
   opacity: .8;
   animation: aura-fassi 19s ease-in-out infinite alternate;
   /* L'ALONE LUNGO IL BORDO. Sta su questo strato e non sul riquadro perche' il
      riquadro lo disegna SOTTO il contenuto, e il contenuto del riquadro e' la foto:
      con l'Assassino (foto al 100%) l'alone finiva coperto e non si vedeva, con gli
-     altri (foto all'86-88%) si vedeva solo ai lati. La stessa aura sembrava due cose
-     diverse. Qui questo strato sta sopra la foto, quindi il bordo si illumina sempre. */
+     altri (foto all'86-88%) si vedeva solo ai lati. */
   box-shadow:
     inset 0 0 22px -2px color-mix(in srgb, var(--aura) 62%, transparent),
     inset 0 0 64px -18px color-mix(in srgb, var(--aura) 46%, transparent);
 }
 
 @keyframes aura-pulse {
-  0%, 100% { opacity: .58; transform: scale(.985); }
+  0%, 100% { opacity: .62; transform: scale(.985); }
   50%      { opacity: 1;   transform: scale(1.02); }
 }
 @keyframes aura-fassi {
@@ -1649,11 +1656,12 @@ body:has(.sfondo-dialogo) .avviso {
   filter:
     contrast(1.05) saturate(1.06) brightness(1.06)
     drop-shadow(0 0 4px color-mix(in srgb, var(--aura) 70%, transparent))
-    drop-shadow(0 0 14px color-mix(in srgb, var(--aura) 34%, transparent));
+    drop-shadow(0 0 15px color-mix(in srgb, var(--aura) 36%, transparent));
 }
 
-/* LE SCINTILLE: piccole, di grandezze diverse, e non tutte dallo stesso punto. */
-.aura-scie {
+/* LE SCINTILLE che salgono dal pavimento. */
+.aura-scie,
+.aura-stelle {
   position: absolute;
   inset: 0;
   pointer-events: none;
@@ -1675,33 +1683,62 @@ body:has(.sfondo-dialogo) .avviso {
 }
 @keyframes aura-sali {
   /* Le scale restano dentro i limiti che il progetto usa: una scala forte ha senso
-     solo dove l'oggetto E' il contenuto. Qui la scintilla parte gia' quasi della sua
-     misura e si allarga piano mentre sale; l'opacita' fa il resto del lavoro. */
+     solo dove l'oggetto E' il contenuto. */
   0%   { opacity: 0;   transform: translate3d(0, 0, 0) scale(.7); }
   14%  { opacity: 1; }
   70%  { opacity: .7; }
   100% { opacity: 0;   transform: translate3d(var(--deriva, 8px), -250px, 0) scale(1.1); }
 }
 
-/* Chi ha scelto "mai" non vede i fazzi muoversi ne' le scintelle salire: restano
-   l'alone e il contorno, che non sono animazioni ma colori. Il nome della classe e'
-   quello che mette src/animazioni.js (`html.animazioni-mai`), non uno inventato qui. */
-/* L'ALONE SUL BORDO DEL RIQUADRO.
- *
- * Ste (12/10/2026): "qui non e' giallo pure ai bordi come gli altri". La luce
- * arrivava al centro e si spegneva prima del bordo, quindi su un'immagine con
- * sfondo chiaro (l'assassino) si vedeva che l'oro non c'era, e su una con sfondo
- * scuro sembrava che ci fosse.
- *
- * Qui il bordo del riquadro si illumina direttamente: non dipende da quello che c'e'
- * sotto, quindi l'aura ha lo stesso bordo in tutte e tre le classi. `inset` vuol
- * dire che la luce sta DENTRO, e non esce fuori dal riquadro.
- */
+/* LE STELLE: piccole scintille a quattro punte, che accendono e spengono. */
+.aura-stelle i {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: var(--grandezza, 7px);
+  height: var(--grandezza, 7px);
+  background: var(--colore, #fff6d8);
+  clip-path: polygon(50% 0%, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0% 50%, 40% 40%);
+  opacity: 0;
+  animation: aura-stella var(--durata) ease-in-out var(--ritardo) infinite;
+}
+@keyframes aura-stella {
+  /* Le scale restano dentro i limiti del progetto: una scala forte ha senso solo
+     dove l'oggetto E' il contenuto, e qui la stella si accende e si spegne. */
+  0%, 100% { opacity: 0;   transform: scale(.7) rotate(0deg); }
+  50%      { opacity: 1;   transform: scale(1.05) rotate(45deg); }
+}
 
+/* IL BAGLIORE che attraversa la figura, ogni tanto. */
+.aura-lustro {
+  position: absolute;
+  inset: -25% -55%;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  background: linear-gradient(104deg,
+    transparent 40%,
+    color-mix(in srgb, var(--aura) 38%, transparent) 48%,
+    rgba(255, 250, 230, .42) 51%,
+    color-mix(in srgb, var(--aura) 30%, transparent) 54%,
+    transparent 62%);
+  animation: aura-lustro 6.5s ease-in-out infinite;
+}
+@keyframes aura-lustro {
+  0%   { transform: translateX(-72%); }
+  60%, 100% { transform: translateX(72%); }
+}
 
+/* Chi ha scelto "mai" non vede niente muoversi: restano l'alone, il contorno e la
+   luce ai piedi, che non sono animazioni ma colori. Il nome della classe e' quello
+   che mette src/animazioni.js (`html.animazioni-mai`), non uno inventato qui. */
 html.animazioni-mai .personaggio-scena-grafica.personaggio-aura::after,
-html.animazioni-mai .aura-scie i { animation: none; }
-html.animazioni-mai .aura-scie i { opacity: .55; }
+html.animazioni-mai .personaggio-scena-grafica.personaggio-aura::before,
+html.animazioni-mai .aura-scie i,
+html.animazioni-mai .aura-stelle i,
+html.animazioni-mai .aura-lustro { animation: none; }
+html.animazioni-mai .aura-scie i,
+html.animazioni-mai .aura-stelle i { opacity: .55; }
+html.animazioni-mai .aura-lustro { display: none; }
 
 /* Lo stato in cui sei ADESSO, marcato nella fila. Così sai subito quale sei. */
 .pezzo.adesso {

@@ -332,6 +332,16 @@ test('R10s. l\'aura ha luce, raggi e scintille, e rispetta chi non vuole le anim
   assert.match(css, /personaggio-aura::before/, 'deve esserci la luce dietro');
   assert.match(css, /personaggio-aura::after/, 'deve esserci qualcosa davanti');
   assert.match(css, /@keyframes aura-sali/, 'le scintille che salgono');
+  // Ste (12/10/2026): "deve essere il livello finale quindi qualcosa di bello bello".
+  // Un livello finale non si distingue perche' ha piu' luce: si distingue perche'
+  // ha delle cose che gli altri livelli non hanno. Qui si controlla che ci siano.
+  assert.match(css, /radial-gradient\(circle at 50% 23%/, "l'alone dietro la testa");
+  assert.match(css, /repeating-conic-gradient/, "l'anello che gira piano");
+  assert.match(css, /@keyframes aura-stella/, 'le stelle che si accendono e spengono');
+  assert.match(css, /@keyframes aura-lustro/, 'il bagliore che attraversa la figura');
+  const app0 = await readFile(join(RADICE, 'src', 'app.js'), 'utf8');
+  assert.match(app0, /class: 'aura-stelle'/, 'le stelle sono create dal codice');
+  assert.match(app0, /class: 'aura-lustro'/, "il bagliore e' creato dal codice");
   assert.match(css, /aura-fassi/, 'i fazzi di luce che passano dietro');
   assert.match(css, /drop-shadow\(0 0 4px/, "il contorno dorato sul personaggio: e' la parte che rende credibile la luce");
   // L'aura e' una ricompensa: dev'essere d'oro in tutte e tre le classi, altrimenti
