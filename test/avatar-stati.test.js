@@ -412,7 +412,7 @@ test('R10s. l\'aura ha luce, raggi e scintille, e rispetta chi non vuole le anim
     `il contorno deve avere linea e alone come nella foto di riferimento: ${alone.join(', ')}`);
   assert.ok(alone[0] < alone[1],
     'la linea deve essere stretta e l\'alone largo, non il contrario');
-  assert.ok(/70% \* var\(--forza\)/.test(contorno[0]),
+  assert.ok(/50% \* var\(--forza\)/.test(contorno[0]),
     'la forza dell\'aura va messa sul contorno, che tocca la figura');
 
 
@@ -471,7 +471,13 @@ test('R10s. l\'aura ha luce, raggi e scintille, e rispetta chi non vuole le anim
 
   // L'aura e' una ricompensa: dev'essere d'oro in tutte e tre le classi, altrimenti
   // su due classi sembra parte del personaggio e su una no.
-  assert.match(css, /--aura:\s*var\(--giallo/, 'il colore dell\'aura e\' il giallo dell\'app');
+  // Il colore non e' piu' il giallo pieno dell'app. Ste (12/10/2026): "c'e' troppo
+  // giallo e nero". Il giallo saturo schermato sopra uno scuro freddo esce oliva, e
+  // due colori che si pestano non sono una luce. Ora e' crema caldo: la stessa
+  // famiglia, ma non una vernice. Resta comunque uguale nelle tre classi, altrimenti
+  // su due sembrerebbe parte della classe e su una no.
+  assert.match(css, /--aura:\s*#ffe9bd/, 'il colore dell\'aura e\' crema caldo, non giallo pieno');
+  assert.doesNotMatch(css, /--aura:\s*var\(--giallo/, 'il giallo pieno schermato diventa oliva');
   // E chi ha scelto "mai" non deve vedere niente muoversi.
   assert.match(css, /html\.animazioni-mai[^{]*\{[^}]*animation:\s*none/,
     'chi sceglie "mai" non deve vedere l\'aura muoversi');
@@ -524,21 +530,15 @@ test("R10t. l'aura arriva al bordo e non usa mask-composite", async () => {
 
   // 3) La luce NON arriva al bordo.
   //
-  // L'ARIA CALDA RESTA AL 18% SU 72x64, E IL TEST LO DICE PER SCRITTO.
+  // Ste (12/10/2026): "c'e' troppo giallo e nero". L'aria era al 18% col giallo
+  // pieno dell'app, e la miscela `screen` non somma colori: giallo saturo sopra uno
+  // scuro freddo esce oliva, cioe' una tinta e non una luce. Per questo l'aura
+  // sembrava "giallo e nero": due colori che si pestano invece di una luce.
   //
-  // Nella v134 questo valore era stato portato a 9% su 60x54, e il motivo scritto
-  // nei commenti era: "su uno sfondo nero la luce sul vuoto non dice niente, quindi
-  // l'aria scende a un accenno e lascia il posto al contorno".
-  //
-  // Era una teoria, non una misura. Ste ha poi detto "devi farlo uguale a qua",
-  // allegando la foto della v132, e il confronto fra le due build ha mostrato che
-  // la differenza visibile era proprio l'aria: dimezzata, il riquadro dell'aura
-  // diventava scuro e lui non lo riconosceva piu'.
-  //
-  // Quindi il numero torna al 18% su 72x64. La regola che resta vera e che questo
-  // test presidia e' un'altra, ed e' quella che serve: l'aria non puo' superare il
-  // riquadro, altrimenti tinge gli angoli di marrone. Il 118% x 108% della v131
-  // era quello, e quello e' sparito.
+  // Quindi l'aria scende a 11% e il colore diventa crema caldo. Il riquadro resta
+  // riconoscibile, ma non e' piu' giallo. E la regola che resta vera, e che questo
+  // test presidia, e' un'altra: l'aria non puo' superare il riquadro, altrimenti
+  // tinge gli angoli di marrone. Il 118% x 108% della v131 era quello.
   const soloAura = css.match(/personaggio-aura::before\s*\{[\s\S]*?\n\}/);
   assert.ok(soloAura, "il primo strato dell'aura deve esistere");
   // I commenti si tolgono prima di guardare: dentro il blocco c'e' la spiegazione
@@ -548,7 +548,14 @@ test("R10t. l'aura arriva al bordo e non usa mask-composite", async () => {
   assert.doesNotMatch(soloAuraSenzaCommenti, /radial-gradient\(1[0-9]{2}%/,
     'nell\'aura nessun gradiente può essere più largo del riquadro: tingerebbe gli angoli');
   assert.match(soloAura[0], /radial-gradient\(72% 64% at 50% 46%/,
-    "l'aria deve essere quella della foto che Ste ha scelto: 72% x 64%");
-  assert.match(soloAura[0], /--aura\) calc\(18% \* var\(--forza\)\)/,
-    "l'aria deve stare al 18%: sotto, il riquadro dell'aura resta scuro");
+    "l'aria deve essere quella della foto di riferimento: 72% x 64%");
+  assert.match(soloAuraSenzaCommenti, /--aura\) calc\(11% \* var\(--forza\)\)/,
+    "l'aria deve stare all'11%: al 18% col giallo pieno diventava una tinta oliva");
+
+  // E il colore non puo' tornare al giallo saturo dell'app: schermato, esce oliva.
+  const senzaCommenti = css.replace(/\/\*[\s\S]*?\*\//g, '');
+  assert.match(senzaCommenti, /--aura:\s*#ffe9bd/,
+    "la luce dev'essere crema caldo: il giallo pieno schermato esce oliva");
+  assert.doesNotMatch(senzaCommenti, /--aura:\s*var\(--giallo/,
+    'il giallo pieno dell\'app, schermato sopra lo scuro freddo, diventa oliva');
 });

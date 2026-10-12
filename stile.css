@@ -1622,7 +1622,19 @@ body:has(.sfondo-dialogo) .avviso {
  *
  * Tutto d'oro in tutte e tre le classi: se il colore cambiasse sembrerebbe parte
  * della classe e non una ricompensa. Il colore passa da `--aura`. */
-.personaggio-scena-grafica { --aura: var(--giallo, #ffd35c); }
+/* IL COLORE DELL'AURA.
+ *
+ * Ste (12/10/2026): "c'e' troppo giallo e nero".
+ *
+ * Era il giallo pieno dell'app (#ffd35c) e la miscela screen non somma colori, li
+ * schiaccia: un giallo saturo schermato sopra uno scuro freddo esce OLIVA, cioe'
+ * una tinta, non una luce. Per questo l'aura sembrava "giallo e nero": due colori
+ * che si pestano, invece di una luce.
+ *
+ * La luce vera non e' gialla: il sole, la fiamma, una lampada sono bianchi con un
+ * tocco caldo. Quindi qui il colore diventa un crema caldo (#ffe9bd): mantiene il
+ * calore dell'oro ma non e' piu' una vernice, e resta riconoscibile come luce. */
+.personaggio-scena-grafica { --aura: #ffe9bd; }
 
 /* LA FORZA DELL'AURA.
  *
@@ -1675,7 +1687,7 @@ body:has(.sfondo-dialogo) .avviso {
      * angoli tornano neri, che è quello che fa sembrare la foto una foto e non
      * una vignetta. */
     radial-gradient(72% 64% at 50% 46%,
-      color-mix(in srgb, var(--aura) calc(18% * var(--forza)), transparent) 0%,
+      color-mix(in srgb, var(--aura) calc(11% * var(--forza)), transparent) 0%,
       transparent 88%);
   filter: blur(18px);
   animation: aura-pulse 4.6s ease-in-out infinite;
@@ -1707,8 +1719,8 @@ body:has(.sfondo-dialogo) .avviso {
      400 diventava una cornice d'oro, e quella mangiava il disegno: si guardava la
      cornice e non il personaggio. Qui resta un accenno, e sparisce verso i bordi. */
   box-shadow:
-    inset 0 0 14px -6px color-mix(in srgb, var(--aura) calc(62% * var(--forza)), transparent),
-    inset 0 0 48px -26px color-mix(in srgb, var(--aura) calc(46% * var(--forza)), transparent);
+    inset 0 0 12px -7px color-mix(in srgb, var(--aura) calc(40% * var(--forza)), transparent),
+    inset 0 0 44px -28px color-mix(in srgb, var(--aura) calc(30% * var(--forza)), transparent);
 }
 
 /* IL FIATO DELL'AURA.
@@ -1748,8 +1760,8 @@ body:has(.sfondo-dialogo) .avviso {
 .personaggio-scena-grafica.personaggio-aura .personaggio-ritratto {
   filter:
     contrast(1.04) saturate(1.04) brightness(1.02)
-    drop-shadow(0 0 3px color-mix(in srgb, var(--aura) calc(70% * var(--forza)), transparent))
-    drop-shadow(0 0 12px color-mix(in srgb, var(--aura) calc(36% * var(--forza)), transparent));
+    drop-shadow(0 0 3px color-mix(in srgb, var(--aura) calc(50% * var(--forza)), transparent))
+    drop-shadow(0 0 12px color-mix(in srgb, var(--aura) calc(26% * var(--forza)), transparent));
 }
 
 /* LE SCINTILLE che salgono dal pavimento. */
