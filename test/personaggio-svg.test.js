@@ -159,7 +159,7 @@ test('i nomi dei premi cambiano con la classe', () => {
   // quinto pezzo.
   assert.equal(nomePremio('ferro', 'guerriero'), 'Armatura di cuoio');
   assert.equal(nomePremio('ferro', 'berserker'), 'Pelo e pelliccia');
-  assert.equal(nomePremio('ferro', 'assassino'), 'Vesti leggeri');
+  assert.equal(nomePremio('ferro', 'assassino'), 'Vestiti leggeri');
   // il terzo pezzo è ferro per i due muscoli e cintura per l'assassino
   assert.equal(nomePremio('runica', 'guerriero'), 'Armatura di ferro');
   assert.equal(nomePremio('runica', 'berserker'), 'Armatura di ferro');

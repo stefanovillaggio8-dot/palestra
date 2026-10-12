@@ -4469,7 +4469,23 @@ function bloccoPersonaggio(profilo, st) {
     grafica.classList.add('con-foto');
     // L'AURA e' il sesto premio: non ha un'immagine tutta sua (l'ultima riga e'
     // già "tutto addosso"), quindi e' una luce che si accende sopra la foto.
-    if (viso.aura) grafica.classList.add('personaggio-aura');
+    if (viso.aura) {
+      grafica.classList.add('personaggio-aura');
+      // LE SCINTILLE. La luce e i raggi li fa il CSS, ma le scintille che salgono
+      // hanno bisogno di posizioni e ritardi diversi l'una dall'altra, quindi sono
+      // elementi veri. Sono quattro: la più lenta parte in basso, la più veloce
+      // parte dal centro, così non sembrano un treno.
+      const scie = el('div', { class: 'aura-scie', aria: { hidden: 'true' } });
+      const posizioni = [26, 44, 58, 72];
+      const ritardi = [0, 1.1, 2.3, 3.4];
+      const durate = [4.2, 5.1, 4.6, 5.6];
+      for (let i = 0; i < posizioni.length; i++) {
+        scie.appendChild(el('i', {
+          stile: `--x:${posizioni[i]}%; --ritardo:${ritardi[i]}s; --durata:${durate[i]}s`,
+        }));
+      }
+      grafica.appendChild(scie);
+    }
     grafica.appendChild(el('img', {
       class: 'personaggio-ritratto',
       src: percorsoStato(classeId, viso.indice),
@@ -4507,7 +4523,7 @@ function bloccoPersonaggio(profilo, st) {
     // fuori da questo blocco.
     const caselle = schedaProgressione(rpg.premi, classeId, rpg.recordStreak)
       .map((c) => ({ ...c, inCorso: c.immagine === viso.indice && (!c.aura || viso.aura) }));
-    rigaStati = el('div', { class: 'riga-pezzi' });
+    rigaStati = el('div', { class: 'riga-pezzi personaggio-' + classeId });
     rigaStati.appendChild(el('p', {
       class: 'nota nota-piccola',
       testo: viso.completo

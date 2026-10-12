@@ -112,7 +112,7 @@ const NOMI_PER_CLASSE = {
     elmo: 'Ascia da guerra',
   },
   assassino: {
-    ferro: 'Vesti leggeri',
+    ferro: 'Vestiti leggeri',
     runica: 'Cintura da assassino',
     elmo: 'Pugnale',
   },

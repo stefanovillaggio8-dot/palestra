@@ -1557,23 +1557,96 @@ body:has(.sfondo-dialogo) .avviso {
   100% { opacity: 1;   filter: contrast(1.04) saturate(1.02) brightness(1.04); }
 }
 
-/* L'AURA: il sesto premio non ha un'immagine tutta sua (l'ultima riga è già
-   "tutto addosso"), quindi è una luce che si accende intorno alla foto. */
+/* L'AURA: il sesto premio, "Arma divina".
+ *
+ * Ste (12/10/2026): "l'arma divina deve essere bella".
+ *
+ * Prima era una sola macchia: due `box-shadow` dietro la foto, che con la cornice
+ * quadrata del riquadro sembravano un alone grigio, non una luce. E il colore era
+ * quello della classe, quindi su tre classi non si capiva se fosse una ricompensa o
+ * solo la classe.
+ *
+ * Adesso sono tre strati, tutti d'oro (una ricompensa divina è d'oro in tutte e tre
+ * le classi: se cambiasse colore sembrerebbe parte della classe):
+ *
+ *   - la luce dietro la figura, che pulsa piano;
+ *   - i raggi, che girano lentissimi e si spengono ai bordi con una maschera;
+ *   - le scintille, che salgono e spengono, e sono l'unica parte che si muove veloce.
+ *
+ * Il colore passa da `--aura`, che di default è il giallo dell'app. */
+.personaggio-scena-grafica { --aura: var(--giallo, #ffd35c); }
+
+.personaggio-scena-grafica.personaggio-aura::before,
 .personaggio-scena-grafica.personaggio-aura::after {
   content: '';
   position: absolute;
-  inset: 6% 12%;
-  border-radius: 50%;
+  inset: 0;
   pointer-events: none;
-  box-shadow:
-    0 0 26px 6px color-mix(in srgb, var(--tinta) 46%, transparent),
-    0 0 60px 18px color-mix(in srgb, var(--tinta) 22%, transparent);
-  animation: personaggio-aura 3.4s ease-in-out infinite;
 }
-@keyframes personaggio-aura {
-  0%, 100% { opacity: .45; transform: scale(.97); }
-  50%      { opacity: .95; transform: scale(1.03); }
+/* la luce, dietro */
+.personaggio-scena-grafica.personaggio-aura::before {
+  background:
+    radial-gradient(58% 46% at 50% 76%,
+      color-mix(in srgb, var(--aura) 52%, transparent) 0%,
+      transparent 72%),
+    radial-gradient(40% 30% at 50% 40%,
+      color-mix(in srgb, var(--aura) 26%, transparent) 0%,
+      transparent 76%);
+  filter: blur(14px);
+  animation: aura-pulse 3.8s ease-in-out infinite;
 }
+/* i raggi, davanti e leggerissimi */
+.personaggio-scena-grafica.personaggio-aura::after {
+  background:
+    repeating-conic-gradient(from 0deg at 50% 62%,
+      color-mix(in srgb, var(--aura) 20%, transparent) 0deg 2.5deg,
+      transparent 2.5deg 13deg);
+  -webkit-mask-image: radial-gradient(58% 58% at 50% 62%, #000 12%, transparent 78%);
+  mask-image: radial-gradient(58% 58% at 50% 62%, #000 12%, transparent 78%);
+  mix-blend-mode: screen;
+  animation: aura-giro 34s linear infinite;
+}
+@keyframes aura-pulse {
+  0%, 100% { opacity: .62; transform: scale(.98); }
+  50%      { opacity: 1;   transform: scale(1.03); }
+}
+@keyframes aura-giro {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+/* le scintille che salgono */
+.aura-scie {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  border-radius: inherit;
+}
+.aura-scie i {
+  position: absolute;
+  bottom: 12%;
+  left: var(--x);
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--aura);
+  box-shadow: 0 0 7px 1px color-mix(in srgb, var(--aura) 80%, transparent);
+  opacity: 0;
+  animation: aura-sali var(--durata) linear var(--ritardo) infinite;
+}
+@keyframes aura-sali {
+  /* Le scale restano dentro i limiti che il progetto usa: una scala forte ha senso
+     solo dove l'oggetto È il contenuto. Qui la scintilla parte già quasi della sua
+     misura e si allarga piano mentre sale; l'opacità fa il resto del lavoro. */
+  0%   { opacity: 0;   transform: translateY(0) scale(.7); }
+  18%  { opacity: .95; }
+  100% { opacity: 0;   transform: translateY(-230px) scale(1.1); }
+}
+/* Chi ha scelto "mai" non vede i raggi girare né le scintille: resta la luce ferma,
+   che non è un'animazione ma un colore. Il nome della classe è quello che mette
+   src/animazioni.js (`html.animazioni-mai`), non uno inventato qui. */
+html.animazioni-mai .personaggio-scena-grafica.personaggio-aura::after,
+html.animazioni-mai .personaggio-scena-grafica.personaggio-aura::before,
+html.animazioni-mai .aura-scie i { animation: none; opacity: .5; }
 
 /* Lo stato in cui sei ADESSO, marcato nella fila. Così sai subito quale sei. */
 .pezzo.adesso {
@@ -1761,6 +1834,33 @@ body:has(.sfondo-dialogo) .avviso {
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--tinta) 70%, transparent),
               0 0 10px 2px color-mix(in srgb, var(--tinta) 45%, transparent);
 }
+
+/* LA SCALA DEI PERSONAGGI, PER CLASSE.
+ *
+ * Ste (12/10/2026): "il guerriero e il berserker sono troppo grossi orizzontalmente,
+ * tipo larghi". Guardando la fila: il Berserker con ascia e scudo e il Guerriero con
+ * spada e scudo arrivano ai bordi della casella, l'Assassino no, e la fila sembrava
+ * fatta di personaggi di misure diverse.
+ *
+ * PRIMA HO PROVATO A RIDURLE NEL FILE, ed è stato un errore. Per far stare il
+ * personaggio più piccolo dentro la stessa casella serve aggiungere sfondo ai lati,
+ * e lo sfondo della foto è una vignettatura, non un colore piatto: con un colore
+ * fisso si vedeva un rettangolo scuro, e riempiendo a specchio si vedevano strisce
+ * verticali. Nessuna delle due è un'immagine, è una toppa.
+ *
+ * Quindi l'immagine resta intera e si riduce qui, con la larghezza in percentuale:
+ * il browser la stringe (e ridurre è sempre più nitido che allargare), e lo sfondo
+ * si stringe con lei senza nessun ritocco.
+ *
+ * Un numero solo per classe, non uno per livello: dentro una classe i sei livelli
+ * restano della stessa misura, altrimenti il personaggio si rimpicciolisce ogni volta
+ * che si arma e la progressione sembra che si raddrizzi. */
+.personaggio-scena-grafica.personaggio-guerriero .personaggio-ritratto { width: 88%; }
+.personaggio-scena-grafica.personaggio-berserker .personaggio-ritratto { width: 86%; }
+.personaggio-scena-grafica.personaggio-assassino .personaggio-ritratto { width: 100%; }
+.riga-pezzi.personaggio-guerriero .pezzo-img { width: 88%; }
+.riga-pezzi.personaggio-berserker .pezzo-img { width: 86%; }
+.riga-pezzi.personaggio-assassino .pezzo-img { width: 100%; }
 
 .pezzo-nome { font-size: .68rem; font-weight: 700; line-height: 1.15; }
 .pezzo-quando { font-size: .62rem; opacity: .7; }

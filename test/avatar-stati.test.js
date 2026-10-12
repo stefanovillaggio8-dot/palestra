@@ -256,7 +256,7 @@ test('R10n. la fila ha la casella di partenza e poi tutti i premi', () => {
   assert.equal(lista[0].sbloccato, true, 'senza armatura si parte sempre da li');
   // E i nomi dell'Assassino, che sono quelli che hanno fatto notare la cosa.
   assert.deepEqual(lista.slice(1).map((c) => c.nome), [
-    'Bracciali di cuoio', 'Vesti leggeri', 'Cintura da assassino',
+    'Bracciali di cuoio', 'Vestiti leggeri', 'Cintura da assassino',
     'Pugnale', 'Armatura leggendaria', 'Arma divina',
   ]);
 });
@@ -290,4 +290,59 @@ test('R10q. le foto delle caselle esistono', () => {
       assert.ok(existsSync(p), `manca l'immagine: ${percorsoStato(classe, c.immagine)}`);
     }
   }
+});
+test('R10r. ogni classe ha la sua misura, e il CSS la dichiara', async () => {
+  // Ste (12/10/2026): "il guerriero e il berserker sono troppo grossi
+  // orizzontalmente, tipo larghi". Il Berserker con ascia e scudo e il Guerriero
+  // con spada e scudo arrivavano ai bordi della casella, l'Assassino no.
+  //
+  // Il PRIMO tentativo e' sbagliato ed e' pericoloso: per far stare il personaggio
+  // piu' piccolo dentro la stessa casella bisogna aggiungere sfondo ai lati, e lo
+  // sfondo della foto e' una vignettatura, non un colore piatto. Con un colore fisso
+  // si vedeva un rettangolo scuro intorno al personaggio; riempiendo a specchio si
+  // vedevano strisce verticali. Nessuna delle due e' un'immagine, e' una toppa.
+  //
+  // Quindi l'immagine resta INTERA e si riduce nel CSS, in percentuale. Qui si
+  // controlla che tutte e tre le classi abbiano una percentuale: una classe senza
+  // regola resterebbe larga e il difetto tornerebbe senza che nessuno se ne accorga.
+  const css = await readFile(join(RADICE, 'stile.css'), 'utf8');
+  for (const c of Object.keys(CLASSI)) {
+    const m = css.match(
+      new RegExp(`\\.personaggio-scena-grafica\\.personaggio-${c} \\.personaggio-ritratto\\s*\\{\\s*width:\\s*(\\d+)%`),
+    );
+    assert.ok(m, `manca la misura della classe "${c}" in stile.css`);
+    const w = Number(m[1]);
+    assert.ok(w > 50 && w <= 100, `la classe "${c}" ha una misura fuori senso: ${w}%`);
+  }
+  // E il berserker, che e' il piu' largo, deve essere il piu' ridotto.
+  const misura = (c) => Number(css.match(
+    new RegExp(`\\.personaggio-scena-grafica\\.personaggio-${c} \\.personaggio-ritratto\\s*\\{\\s*width:\\s*(\\d+)%`),
+  )[1]);
+  assert.ok(misura('berserker') <= misura('guerriero'),
+    'il berserker e\' il piu\' largo: deve essere ridotto almeno quanto il guerriero');
+  assert.ok(misura('guerriero') <= misura('assassino'),
+    'l\'assassino e\' il piu\' snello: non va ridotto quanto gli altri');
+});
+
+test('R10s. l\'aura ha luce, raggi e scintille, e rispetta chi non vuole le animazioni', async () => {
+  // Ste (12/10/2026): "l\'arma divina deve essere bella". Prima era una sola macchia
+  // grigia fatta di due box-shadow, e con il colore della classe sembrava parte del
+  // personaggio invece che una ricompensa.
+  const css = await readFile(join(RADICE, 'stile.css'), 'utf8');
+  assert.match(css, /personaggio-aura::before/, 'deve esserci la luce dietro');
+  assert.match(css, /personaggio-aura::after/, 'deve esserci qualcosa davanti');
+  assert.match(css, /@keyframes aura-sali/, 'le scintille che salgono');
+  assert.match(css, /aura-giro/, 'i raggi che girano');
+  // L'aura e' una ricompensa: dev'essere d'oro in tutte e tre le classi, altrimenti
+  // su due classi sembra parte del personaggio e su una no.
+  assert.match(css, /--aura:\s*var\(--giallo/, 'il colore dell\'aura e\' il giallo dell\'app');
+  // E chi ha scelto "mai" non deve vedere niente muoversi.
+  assert.match(css, /html\.animazioni-mai[^{]*\{[^}]*animation:\s*none/,
+    'chi sceglie "mai" non deve vedere l\'aura muoversi');
+  // Le quattro scintille devono avere tempi diversi, altrimenti salgono insieme e
+  // sembrano un\'unica palla.
+  const app = await readFile(join(RADICE, 'src', 'app.js'), 'utf8');
+  assert.match(app, /--ritardo:\$\{ritardi\[i\]\}s/, 'le scintille si creano da una lista sola');
+  assert.match(app, /const posizioni = \[26, 44, 58, 72\]/, 'quattro scintille a quattro posizioni');
+  assert.match(app, /const ritardi = \[0, 1\.1, 2\.3, 3\.4\]/, 'quattro ritardi diversi: se fossero uguali salirebbero insieme');
 });

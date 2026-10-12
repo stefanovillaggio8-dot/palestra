@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Anteprima aura — Palestra</title>
+<link rel="stylesheet" href="./stile.css">
+<style>
+  /* Questa pagina esiste solo per mostrare l'arma divina nelle tre classi.
+     Usa il CSS vero dell'app (quello che c'è in stile.css), non una copia: se
+     l'aura qui sembra diversa da quella nell'app, è un bug, e si vede subito. */
+  body { padding: 16px 14px 40px; }
+  .anteprima { max-width: 520px; margin: 0 auto; }
+  .anteprima h1 { font-size: 1.25rem; margin: 0 0 4px; }
+  .anteprima .nota { margin: 0 0 18px; }
+  .box {
+    margin: 0 0 22px;
+    padding: 12px;
+    border: 1px solid var(--bordo);
+    border-radius: 16px;
+    background: var(--card-2);
+  }
+  .box > h2 { margin: 0 0 8px; font-size: 1rem; }
+  .riga-confronto { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .riga-confronto > figure { margin: 0; text-align: center; }
+  .riga-confronto figcaption { font-size: .68rem; opacity: .7; margin-top: 4px; }
+  .scena {
+    position: relative;
+    display: block;
+    border-radius: 14px;
+    overflow: hidden;
+    background:
+      radial-gradient(120% 60% at 50% 0%, rgba(255,255,255,.045), transparent 70%),
+      linear-gradient(180deg, #0a0813, #06050c);
+  }
+  .scena .personaggio-ritratto { display: block; margin: 0 auto; height: auto; }
+</style>
+</head>
+<body>
+<div class="anteprima">
+  <h1>Arma divina — l'aura</h1>
+  <p class="nota nota-piccola">
+    A sinistra il personaggio com'è adesso, a destra con l'accensione del sesto
+    premio (75 giorni di fila). Le tre classi hanno la stessa aura d'oro: se cambiasse
+    colore sembrerebbe parte della classe, e non è.
+  </p>
+
+  <div class="box">
+    <h2>Guerriero</h2>
+    <div class="riga-confronto">
+      <figure>
+        <div class="scena"><img class="personaggio-ritratto" style="width:88%"
+          src="./img/personaggi/stati/guerriero-5.webp" alt="Guerriero completo"></div>
+        <figcaption>senza aura</figcaption>
+      </figure>
+      <figure>
+        <div class="scena personaggio-scena-grafica personaggio-guerriero personaggio-aura" data-scie>
+          <img class="personaggio-ritratto" style="width:88%"
+            src="./img/personaggi/stati/guerriero-5.webp" alt="Guerriero con l'aura">
+        </div>
+        <figcaption>con l'aura</figcaption>
+      </figure>
+    </div>
+  </div>
+
+  <div class="box">
+    <h2>Berserker</h2>
+    <div class="riga-confronto">
+      <figure>
+        <div class="scena"><img class="personaggio-ritratto" style="width:86%"
+          src="./img/personaggi/stati/berserker-5.webp" alt="Berserker completo"></div>
+        <figcaption>senza aura</figcaption>
+      </figure>
+      <figure>
+        <div class="scena personaggio-scena-grafica personaggio-berserker personaggio-aura" data-scie>
+          <img class="personaggio-ritratto" style="width:86%"
+            src="./img/personaggi/stati/berserker-5.webp" alt="Berserker con l'aura">
+        </div>
+        <figcaption>con l'aura</figcaption>
+      </figure>
+    </div>
+  </div>
+
+  <div class="box">
+    <h2>Assassino</h2>
+    <div class="riga-confronto">
+      <figure>
+        <div class="scena"><img class="personaggio-ritratto"
+          src="./img/personaggi/stati/assassino-5.webp" alt="Assassino completo"></div>
+        <figcaption>senza aura</figcaption>
+      </figure>
+      <figure>
+        <div class="scena personaggio-scena-grafica personaggio-assassino personaggio-aura" data-scie>
+          <img class="personaggio-ritratto"
+            src="./img/personaggi/stati/assassino-5.webp" alt="Assassino con l'aura">
+        </div>
+        <figcaption>con l'aura</figcaption>
+      </figure>
+    </div>
+  </div>
+
+  <p class="nota nota-piccola">
+    Le scintille sono le quattro che salgono dal basso: nell'app sono create dal
+    codice, qui sono le stesse, messe a mano per non dipendere dall'app.
+  </p>
+</div>
+
+<script>
+  // Le scintille: le stesse posizioni, ritardi e durate di src/app.js.
+  const posizioni = [26, 44, 58, 72];
+  const ritardi = [0, 1.1, 2.3, 3.4];
+  const durate = [4.2, 5.1, 4.6, 5.6];
+  document.querySelectorAll('[data-scie]').forEach((box) => {
+    const scie = document.createElement('div');
+    scie.className = 'aura-scie';
+    scie.setAttribute('aria-hidden', 'true');
+    for (let i = 0; i < posizioni.length; i++) {
+      const s = document.createElement('i');
+      s.style.cssText =
+        `--x:${posizioni[i]}%; --ritardo:${ritardi[i]}s; --durata:${durate[i]}s`;
+      scie.appendChild(s);
+    }
+    box.appendChild(scie);
+  });
+</script>
+</body>
+</html>
