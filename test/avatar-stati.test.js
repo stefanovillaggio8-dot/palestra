@@ -344,11 +344,20 @@ test('R10s. l\'aura ha luce, raggi e scintille, e rispetta chi non vuole le anim
   // controlla il numero, perche' e' una cosa che si dimentica di cambiare.
   assert.match(css, /aura-lustro 4\.5s/, 'il bagliore deve passare ogni 4,5 secondi');
   assert.doesNotMatch(css, /aura-lustro 6\.5s/, 'non deve restare il vecchio tempo di 6,5');
-  // E il rosso sulle armi.
-  assert.match(css, /\.aura-sangue\s*\{/, 'deve esserci il rosso sulle armi');
-  assert.match(css, /#ff4a3d|#d81f26/, "il sangue e' rosso caldo, non il giallo dell'aura");
+  // IL ROSSO SULL'ARME E' STATO TOLTO.
+  //
+  // Ste (12/10/2026): avevo chiesto "metti anche nelle spade tipo sporche di sangue",
+  // e avevo risposto con un alone rosso sulla zona delle braccia. Guardandola ha
+  // detto: "no ma che è sto coso rosso, brutto toglilo". Aveva ragione: non sembrava
+  // sangue sulla lama, sembrava una macchia rossa appoggiata addosso al personaggio,
+  // e guastava tutta l'aura.
+  //
+  // Il controllo resta perche' il colore era troppo facile da rimettere: e' una cosa
+  // che si rifa' senza accorgersene, e senza questo test nessuno se ne accorgerebbe.
   const appS = await readFile(join(RADICE, 'src', 'app.js'), 'utf8');
-  assert.match(appS, /class: 'aura-sangue'/, "il rosso sulle armi e' creato dal codice");
+  assert.doesNotMatch(css, /aura-sangue/, "l'alone rosso sulle armi e' stato tolto");
+  assert.doesNotMatch(appS, /aura-sangue/, "e non deve restare nel codice");
+  assert.doesNotMatch(css, /#c3221f/, "ne' il rosso sul bordo del riquadro");
   const app0 = await readFile(join(RADICE, 'src', 'app.js'), 'utf8');
   assert.match(app0, /class: 'aura-stelle'/, 'le stelle sono create dal codice');
   assert.match(app0, /class: 'aura-lustro'/, "il bagliore e' creato dal codice");
