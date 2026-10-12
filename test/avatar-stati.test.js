@@ -1,13 +1,13 @@
 // avatar-stati.test.js -- le sei foto del personaggio, una per armatura.
 //
 // Ste (11/10/2026): "ogni volta che sblocco qualcosa quell'immagine deve vedersi
-// meglio". Prima c'era UNA foto fissa piu' una fila di pezzi sciolti ritagliati da
+// meglio". Prima c'era UNA foto fissa più una fila di pezzi sciolti ritagliati da
 // un'altra scheda, in un'altra posa, e incollarli veniva male. Adesso c'e' una foto
 // per ogni livello di armatura e l'app la sceglie da sola.
 //
 // Qui si controlla la regola che decide QUALE foto mostrare, e che le immagini
 // citate esistano davvero: una foto mancante si vedrebbe come un quadratino
-// vuoto, e su un telefono senza rete non si saprebbe nemmeno perche'.
+// vuoto, e su un telefono senza rete non si saprebbe nemmeno perché.
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -17,12 +17,12 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 import {
-  STATI_IMMAGINE, PREMI, CLASSI, statoVisivo, percorsoStato,
+  STATI_IMMAGINE, PREMI, CLASSI, statoVisivo, percorsoStato, schedaProgressione, nomePremio,
 } from '../src/avatar-rpg.js';
 
 const RADICE = join(dirname(fileURLToPath(import.meta.url)), '..');
 
-/** Una lista di premi con i primi `n` gia' sbloccati. */
+/** Una lista di premi con i primi `n` già sbloccati. */
 function conSbloccati(n) {
   return PREMI.map((p, i) => ({ ...p, sbloccato: i < n }));
 }
@@ -35,8 +35,8 @@ test('R10a. nessuna armatura sbloccata = personaggio nudo', () => {
 });
 
 test('R10b. ogni premio in piu\' cambia stato, e l\'ordine e\' quello giusto', () => {
-  // Il punto della richiesta: un premio in piu' = un pezzo in piu' addosso.
-  // Si controlla uno per uno, perche' se due stati fossero uguali si vedrebbe
+  // Il punto della richiesta: un premio in più = un pezzo in più addosso.
+  // Si controlla uno per uno, perché se due stati fossero uguali si vedrebbe
   // che la progressione e' ferma anche se il numero conta.
   const attesi = ['nudo', 'bracciali', 'corazza', 'armatura', 'arma', 'completo'];
   for (let n = 0; n <= 5; n++) {
@@ -63,7 +63,7 @@ test('R10d. i sei stati sono sei e i sei premi sono sei', () => {
 });
 
 test('R10e. le 18 immagini esistono tutte davvero', () => {
-  // Il controllo che vale di piu': senza, un file dimenticato si vede come un
+  // Il controllo che vale di più: senza, un file dimenticato si vede come un
   // quadratino vuoto sul profilo, e su un telefono senza rete non si capisce che
   // e' un'immagine mancante invece che un errore dell'app.
   const mancanti = [];
@@ -80,7 +80,7 @@ test('R10f. il percorso dell\'immagine e\' pulito e non esce dalla cartella', ()
   assert.equal(percorsoStato('guerriero', 0), 'img/personaggi/stati/guerriero-0.webp');
   assert.equal(percorsoStato('assassino', 5), 'img/personaggi/stati/assassino-5.webp');
   // I numeri strani non devono costruire percorsi assurdi: `calcolaAvatar` non
-  // sbaglia, ma un valore letto da un profilo salvato male puo' arrivare.
+  // sbaglia, ma un valore letto da un profilo salvato male può arrivare.
   assert.equal(percorsoStato('guerriero', -3), 'img/personaggi/stati/guerriero-0.webp');
   assert.equal(percorsoStato('guerriero', 99), 'img/personaggi/stati/guerriero-5.webp');
   assert.equal(percorsoStato('guerriero', 'pippo'), 'img/personaggi/stati/guerriero-0.webp');
@@ -100,7 +100,7 @@ test('R10h. lo stato visivo esiste FUORI dal blocco che lo usa', async () => {
   // IL MIO ERRORE, e la ragione di questo test.
   //
   // Avevo scritto `const viso = statoVisivo(rpg.premi)` DENTRO a
-  // `if (classeScelta) { ... }`, e poi lo riusavo piu' in basso nella riga sotto il
+  // `if (classeScelta) { ... }`, e poi lo riusavo più in basso nella riga sotto il
   // personaggio, che sta FUORI da quel blocco. In JavaScript un `const` dentro le
   // graffe esiste solo li dentro: fuori e' come se non esistesse, e la pagina si
   // fermava con "Can't find variable: viso" senza disegnare il profilo.
@@ -120,12 +120,12 @@ test('R10h. lo stato visivo esiste FUORI dal blocco che lo usa', async () => {
     '"viso" va dichiarato PRIMA di "if (classeScelta)", altrimenti fuori dal blocco non esiste');
 
   // E non deve essere dichiarato due volte: il secondo annullerebbe il controllo
-  // qui sopra, perche' la riga sotto continuerebbe a puntare a una viso che non c'e'.
+  // qui sopra, perché la riga sotto continuerebbe a puntare a una viso che non c'e'.
   const quante = righe.filter((r) => /^\s*const viso\s*=/.test(r)).length;
   assert.equal(quante, 1, '"viso" deve essere dichiarato una volta sola');
 });
 test('R10i. la foto grande viene PRIMA della fila degli stati', async () => {
-  // Ste (11/10/2026), dalla foto del telefono: "deve esserci il mio attuale piu'
+  // Ste (11/10/2026), dalla foto del telefono: "deve esserci il mio attuale più
   // grande". La striscia degli stati si metteva per prima, prendeva tutta la riga
   // (`flex: 1 0 100%`) e spingeva la foto in fondo, piccola.
   //
@@ -152,7 +152,7 @@ test('R10j. la foto non resta stretta in una scatola', async () => {
     'il riquadro della foto deve prendere tutta la riga: senza, resta stretto');
 });
 test('R10k. la foto non viene tagliata in basso', async () => {
-  // LA STESSA FOTO, LA STESSA CAUSA, una volta di piu'. Dopo R10j si vedeva solo
+  // LA STESSA FOTO, LA STESSA CAUSA, una volta di più. Dopo R10j si vedeva solo
   // la testa e le spalle.
   //
   // Il riquadro ha due classi: `personaggio-scena-grafica` e `personaggio`. La
@@ -161,7 +161,7 @@ test('R10k. la foto non viene tagliata in basso', async () => {
   // l'altezza, e con `overflow: hidden` sulla regola vecchia la foto veniva
   // ritagliata a 88 pixel.
   //
-  // Il controllo e' sul CSS, perche' e' il CSS a decidere quanto e' alta la scatola.
+  // Il controllo e' sul CSS, perché e' il CSS a decidere quanto e' alta la scatola.
   const css = await readFile(join(RADICE, 'stile.css'), 'utf8');
   const m = css.match(/\.personaggio-scena-grafica\.con-foto\s*\{([^}]*)\}/);
   assert.ok(m, 'in stile.css deve esserci la regola .personaggio-scena-grafica.con-foto');
@@ -181,7 +181,7 @@ test('R10l. le immagini sono piu\' grandi di quanto le vedeva il telefono', asyn
   // si vedeva a circa 400 px: il browser allungava l'immagine di due volte e la
   // faceva sembrare sfocata. Le immagini sono state ingrandite di 3 volte a mano.
   //
-  // Il controllo e' sui pixel, perche' e' li che dicono se l'immagine e' grande
+  // Il controllo e' sui pixel, perché e' li che dicono se l'immagine e' grande
   // abbastanza: un test che guardasse solo il nome del file passerebbe anche con
   // un'immagine minuscola.
   const { readdir } = await import('node:fs/promises');
@@ -194,7 +194,7 @@ test('R10l. le immagini sono piu\' grandi di quanto le vedeva il telefono', asyn
     const p = join(cartella, n);
     const b = await readFile(p);
     // WebP lossless e' "VP8L", con compressione lossy e' "VP8 ". Il primo byte
-    // del chunk e' gia' la firma, quindi basta guardare i quattro caratteri.
+    // del chunk e' già la firma, quindi basta guardare i quattro caratteri.
     const firma = b.toString('latin1', 0, 4);
     assert.ok(firma === 'RIFF', `${n}: non sembra un file WebP valido`);
     const bmp = await readFile(p).then((buf) => buf);
@@ -222,3 +222,72 @@ function larghezzaWebp(buf) {
   }
   throw new Error('formato WebP non riconosciuto: ' + tipo);
 }
+test('R10m. la fila della progressione e\' la STESSA lista delle ricompense', () => {
+  // Ste (12/10/2026): "nelle foto piccole spunta senza armatura, bracciali, corazza,
+  // armatura, arma, completo. ma giu' nelle ricompense spunta bracciali di cuoio,
+  // vesti leggeri, cintura da assassino, pugnale, armatura leggendaria, arma divina:
+  // che sono cose diverse".
+  //
+  // Il difetto era che la fila usava i nomi degli STATI ("Corazza", "Armatura") e la
+  // lista delle ricompense usava i nomi della CLASSE ("Vesti leggeri", "Cintura da
+  // assassino"). Due vocabolari per la stessa cosa, e quello giusto non si capiva.
+  //
+  // Qui si controlla che ogni casella, meno la prima, abbia ESATTAMENTE il nome del
+  // premio che sblocca: e' la definizione di "la stessa lista".
+  for (const classe of Object.keys(CLASSI)) {
+    const lista = schedaProgressione(conSbloccati(6), classe, 100);
+    const ricompense = lista.slice(1);
+    assert.equal(ricompense.length, PREMI.length,
+      `${classe}: una casella per ogni ricompensa`);
+    for (const p of PREMI) {
+      const casella = ricompense.find((c) => c.chiave === p.id);
+      assert.ok(casella, `${classe}: manca la casella del premio "${p.id}"`);
+      assert.equal(casella.nome, nomePremio(p.id, classe),
+        `${classe}: la casella di "${p.id}" dice "${casella.nome}" e la ricompensa `
+        + `dice "${nomePremio(p.id, classe)}": devono essere la stessa cosa`);
+    }
+  }
+});
+
+test('R10n. la fila ha la casella di partenza e poi tutti i premi', () => {
+  const lista = schedaProgressione(conSbloccati(6), 'assassino', 100);
+  assert.equal(lista.length, PREMI.length + 1, 'sette caselle: la partenza e poi i sei premi');
+  assert.equal(lista[0].chiave, 'niente', "la prima casella non e' una ricompensa");
+  assert.equal(lista[0].sbloccato, true, 'senza armatura si parte sempre da li');
+  // E i nomi dell'Assassino, che sono quelli che hanno fatto notare la cosa.
+  assert.deepEqual(lista.slice(1).map((c) => c.nome), [
+    'Bracciali di cuoio', 'Vesti leggeri', 'Cintura da assassino',
+    'Pugnale', 'Armatura leggendaria', 'Arma divina',
+  ]);
+});
+
+test('R10o. l\'ultima casella e\' l\'aura e riusa l\'ultima foto', () => {
+  // Il sesto premio non ha una foto tutta sua: l'ultima riga e' già "tutto addosso".
+  // Se la casella non lo dice, sembrerebbe che "Arma divina" non esista.
+  const lista = schedaProgressione(conSbloccati(6), 'guerriero', 100);
+  const ultima = lista[lista.length - 1];
+  const penultima = lista[lista.length - 2];
+  assert.equal(ultima.aura, true, 'l\'ultima casella deve dire che e\' l\'aura');
+  assert.equal(ultima.immagine, penultima.immagine,
+    'aura e completo mostrano la stessa foto: l\'aura e\' la luce sopra, non un\'altra figura');
+  assert.equal(ultima.chiave, 'divina', 'l\'aura e\' il sesto premio');
+});
+
+test('R10p. ogni casella dice quanti giorni mancano', () => {
+  const lista = schedaProgressione(conSbloccati(1), 'guerriero', 4);
+  const chiusa = lista.find((c) => c.chiave === 'ferro');
+  assert.equal(chiusa.sbloccato, false);
+  assert.equal(chiusa.mancano, 7 - 4, 'con 4 giorni di fila, all\'armatura ne mancano 3');
+  const aperta = lista.find((c) => c.chiave === 'bracciali');
+  assert.equal(aperta.sbloccato, true);
+  assert.equal(aperta.mancano, 0, 'una ricompensa presa non ha giorni mancanti');
+});
+
+test('R10q. le foto delle caselle esistono', () => {
+  for (const classe of Object.keys(CLASSI)) {
+    for (const c of schedaProgressione(conSbloccati(6), classe, 100)) {
+      const p = join(RADICE, percorsoStato(classe, c.immagine));
+      assert.ok(existsSync(p), `manca l'immagine: ${percorsoStato(classe, c.immagine)}`);
+    }
+  }
+});

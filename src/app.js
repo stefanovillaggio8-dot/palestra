@@ -24,7 +24,7 @@ import { ESERCIZI, SCHEDA_ID, SCHEDA_NOME, PERSONE, CONTATTI, accountId, chiSei,
 import { nuovoId, adesso, TABELLE, riallineaEsercizi } from './sincronizzazione.js';
 // --- il gioco: rank, LP, streak, Aura, missioni, amici ---
 import { statoAccount, ricompenseAllenamento, gruppiDaSerie } from './gioco.js';
-import { calcolaAvatar, CLASSI, classeConsigliata, eCardio, nomePremio, statoVisivo, percorsoStato, STATI_IMMAGINE } from './avatar-rpg.js';
+import { calcolaAvatar, CLASSI, classeConsigliata, eCardio, nomePremio, statoVisivo, percorsoStato, schedaProgressione, STATI_IMMAGINE } from './avatar-rpg.js';
 import { haSigillo, creaSigillo, verificaSigillo } from './sigillo-classe.js';
 import { isoGiorno } from './streak.js';
 import { suona, sbloccaAudio, audioSpento, impostaAudioSpento } from './audio.js';
@@ -4480,13 +4480,33 @@ function bloccoPersonaggio(profilo, st) {
 
     // LA FILMSTRIP: sei miniature, una per stato.
     //
-    // Le miniature sono le STESSE foto del personaggio, piccole. Cosi' la fila non
-    // e' più un puzzle di pezzi ritagliati, ma la progressione vera: vedi dove
-    // sei e cosa ti aspetta. Quelle che non hai ancora sono spente e scrivono
-    // quanti giorni ti mancano.
+    // LA FILA DELLA PROGRESSIONE: una casella per PREMIO, col nome che dice la classe.
+    //
+    // Ste (12/10/2026): "nelle foto piccole spunta senza armatura, bracciali,
+    // corazza, armatura, arma, completo. ma giu' nelle ricompense, dove c'e' anche
+    // il lucchetto, spunta bracciali di cuoio, vesti leggeri, cintura da assassino,
+    // pugnale, armatura leggendaria, arma divina: che sono cose diverse".
+    //
+    // Aveva ragione, e il difetto era mio. Qui si usavano i nomi degli STATI
+    // ("Corazza", "Armatura", "Arma"), un vocabolario inventato, mentre la lista
+    // delle ricompense usava i nomi veri della classe. Due elenchi diversi per la
+    // stessa cosa: la casella diceva "Corazza" e la ricompensa "Vesti leggere" per
+    // lo stesso sblocco, e non si capiva quale dei due fosse quello giusto.
+    //
+    // Adesso e' la stessa lista: una casella per ogni premio di `PREMI`, con il nome
+    // di `nomePremio`. Davanti c'e' la casella "Senza armatura", che non e' una
+    // ricompensa ma il punto da cui si parte.
+    //
+    // Le caselle sono SETTE e le immagini sei: l'ultima casella e' "Arma divina", il
+    // sesto premio, che non ha una foto tutta sua perché l'ultima riga e' già
+    // "tutto addosso". Quella mostra l'ultima foto con l'AURA accesa sopra, che e'
+    // quello che dice `viso.aura`.
+    //
     // La striscia si prepara qui dentro, ma si mette a schermo DOPO la foto e il
-    // nome. Per questo è `let` e non `const`: il codice che la mette sta sotto,
+    // nome. Per questo e' `let` e non `const`: il codice che la mette sta sotto,
     // fuori da questo blocco.
+    const caselle = schedaProgressione(rpg.premi, classeId, rpg.recordStreak)
+      .map((c) => ({ ...c, inCorso: c.immagine === viso.indice && (!c.aura || viso.aura) }));
     rigaStati = el('div', { class: 'riga-pezzi' });
     rigaStati.appendChild(el('p', {
       class: 'nota nota-piccola',
@@ -4495,32 +4515,35 @@ function bloccoPersonaggio(profilo, st) {
         : 'Il personaggio si veste da solo con i giorni di fila.',
     }));
     const striscia = el('div', { class: 'striscia-pezzi' });
-    for (let i = 0; i < STATI_IMMAGINE.length; i++) {
-      const s = STATI_IMMAGINE[i];
-      const acceso = i <= viso.indice;
-      const prossimo = rpg.premi[i];
-      const mancano = prossimo ? Math.max(0, prossimo.giorni - rpg.recordStreak) : null;
+    for (const c of caselle) {
       striscia.appendChild(el('div', {
-        class: 'pezzo' + (acceso ? ' acceso' : ' spento') + (i === viso.indice ? ' adesso' : ''),
-        title: s.nome,
+        class: 'pezzo' + (c.sbloccato ? ' acceso' : ' spento') + (c.inCorso ? ' adesso' : ''),
+        title: c.nome,
       }, [
+        // LA SPUNTA. Dice "questo l'hai preso" senza dover leggere la riga sotto, e
+        // sta solo dove il premio e' davvero sbloccato: e' un segno, non una
+        // decorazione. Sulle caselle ancora chiuse c'e' un puntino, così la fila si
+        // legge tutta di un colpo.
+        el('span', {
+          class: 'pezzo-spunta' + (c.sbloccato ? ' acceso' : ''),
+          testo: c.sbloccato ? '\u2713' : '\u00b7',
+          aria: { hidden: 'true' },
+        }),
         el('img', {
-          class: 'pezzo-img',
-          src: percorsoStato(classeId, i),
-          alt: acceso ? s.nome : `Non ancora sbloccato: ${s.nome}`,
+          class: 'pezzo-img' + (c.aura ? ' con-aura' : ''),
+          src: percorsoStato(classeId, c.immagine),
+          alt: c.sbloccato ? c.nome : `Non ancora sbloccato: ${c.nome}`,
           loading: 'lazy',
           decoding: 'async',
         }),
-        el('span', { class: 'pezzo-nome', testo: s.nome }),
+        el('span', { class: 'pezzo-nome', testo: c.nome }),
         el('span', {
           class: 'pezzo-quando',
-          // Lo stato 0 non è una ricompensa: è il punto da cui si parte. Prima
-          // scriveva "sbloccato" anche lui, e sembrava un premio come gli altri.
-          testo: i === 0
-            ? 'da cui parti'
-            : acceso
-              ? (i === viso.indice ? 'questo sei tu' : 'sbloccato')
-              : (mancano === null ? 'sbloccato' : `ti mancano ${mancano} ${mancano === 1 ? 'giorno' : 'giorni'}`),
+          testo: c.sbloccato
+            ? (c.inCorso ? 'questo sei tu' : 'sbloccato')
+            : (c.chiave === 'niente'
+              ? 'da cui parti'
+              : `ti mancano ${c.mancano} ${c.mancano === 1 ? 'giorno' : 'giorni'}`),
         }),
       ]));
     }

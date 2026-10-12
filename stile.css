@@ -1737,6 +1737,31 @@ body:has(.sfondo-dialogo) .avviso {
    * lo sfondo nero. Adesso sono miniature della scena vera, e schermarle le
    * slavava. */
 }
+/* LA SPUNTA della progressione.
+ *
+ * Ste (12/10/2026): "nelle foto piccole, dove ci sono le anteprime, spunta senza
+ * armatura, bracciali, corazza...". Il segno sta in alto a sinistra della casella e
+ * dice solo una cosa: questo l'hai preso o non l'hai preso. Sulle chiuse c'è un
+ * puntino grigio, così la fila si legge tutta di un colpo senza leggere i nomi. */
+.pezzo { position: relative; }
+.pezzo-spunta {
+  position: absolute;
+  top: 4px; left: 5px;
+  font-size: .78rem;
+  font-weight: 900;
+  line-height: 1;
+  color: var(--bordo);
+  pointer-events: none;
+}
+.pezzo-spunta.acceso { color: color-mix(in srgb, var(--tinta) 85%, white); }
+
+/* L'AURA sulla casella del sesto premio: non ha una foto tutta sua, quindi è la
+   stessa immagine di "completo" con una luce attorno. */
+.pezzo-img.con-aura {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--tinta) 70%, transparent),
+              0 0 10px 2px color-mix(in srgb, var(--tinta) 45%, transparent);
+}
+
 .pezzo-nome { font-size: .68rem; font-weight: 700; line-height: 1.15; }
 .pezzo-quando { font-size: .62rem; opacity: .7; }
 .personaggio {

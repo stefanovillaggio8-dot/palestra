@@ -213,6 +213,74 @@ export function percorsoStato(classeId, indice) {
 }
 
 /**
+ * LA FILA DELLA PROGRESSIONE: una casella per premio, con il NOME GIUSTO.
+ *
+ * Ste (12/10/2026): "nelle foto piccole spunta senza armatura, bracciali, corazza,
+ * armatura, arma, completo. ma giù nelle ricompense, dove c'è anche il lucchetto,
+ * spunta bracciali di cuoio, vesti leggeri, cintura da assassino, pugnale,
+ * armatura leggendaria, arma divina: che sono cose diverse".
+ *
+ * Ha ragione, e il difetto era mio. La fila usava i nomi degli STATI ("Corazza",
+ * "Armatura", "Arma"), cioè un vocabolario inventato, mentre la lista delle ricompense
+ * usa i nomi di `PREMI` rimescolati per classe ("Vesti leggeri", "Cintura da
+ * assassino", "Pugnale"). Due elenchi diversi per la stessa cosa: uno dice "Corazza"
+ * e l'altro "Vesti leggere" per lo stesso sblocco, e non si capisce quale sia
+ * quello giusto.
+ *
+ * Qui le due liste sono la stessa lista: una casella per ogni premio di `PREMI`, con
+ * il nome che dice la classe di chi guarda. C'è in più la casella "senza armatura",
+ * che non è una ricompensa ma il punto da cui si parte.
+ *
+ * Perché le caselle sono SETTE e le immagini sei: la settima casella è "Arma divina",
+ * il sesto premio, che non ha una foto tutta sua (l'ultima riga è già "tutto
+ * addosso"). Quindi quella casella mostra l'ultima foto CON l'aura accesa sopra,
+ * che è quello che `viso.aura` dice.
+ *
+ * @param premi        la lista di `premi` da `calcolaAvatar`
+ * @param classeId     la classe scelta, per i nomi
+ * @param recordStreak il record di giorni di fila: serve per dire quanti ne mancano
+ */
+export function schedaProgressione(premi, classeId, recordStreak = 0) {
+  const lista = premi || [];
+  const record = Number(recordStreak) || 0;
+  const caselle = [{
+    chiave: 'niente',
+    nome: STATI_IMMAGINE[0].nome,
+    riga: STATI_IMMAGINE[0].riga,
+    immagine: 0,
+    sbloccato: true,
+    inCorso: false,
+    aura: false,
+    giorni: 0,
+    mancano: 0,
+  }];
+
+  for (let i = 0; i < lista.length; i++) {
+    const p = lista[i];
+    // LA FOTO DELLA CASELLA. `i` parte da 0 e la casella 0 e' "senza armatura", che
+    // e' già la foto nuda: quindi il PRIMO premio (i = 0) deve mostrare la foto con
+    // i bracciali, che e' lo stato 1. Il `+ 1` e' quel passaggio, e senza sembrava
+    // che ogni ricompensa mostrasse la foto di quella prima.
+    // Poi si ferma a 5: il sesto premio non ha una foto tutta sua (l'ultima riga e'
+    // già "tutto addosso"), quindi riusa quella e ci mette l'aura sopra.
+    const immagine = Math.min(i + 1, STATI_IMMAGINE.length - 1);
+    caselle.push({
+      chiave: p.id,
+      nome: nomePremio(p.id, classeId),
+      riga: STATI_IMMAGINE[immagine].riga,
+      immagine,
+      sbloccato: !!p.sbloccato,
+      inCorso: false,
+      // L'AURA è l'ultimo premio: non un'immagine nuova, ma una luce sopra l'ultima.
+      aura: i === lista.length - 1,
+      giorni: p.giorni,
+      mancano: Math.max(0, (Number(p.giorni) || 0) - record),
+    });
+  }
+  return caselle;
+}
+
+/**
  * Gli esercizi che contano per la FORZA: i grossi.
  *
  * Vengono dal classificatore che c'è già, non da una lista scritta a mano: se
