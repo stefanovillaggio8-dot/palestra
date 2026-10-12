@@ -1582,6 +1582,20 @@ body:has(.sfondo-dialogo) .avviso {
  * della classe e non una ricompensa. Il colore passa da `--aura`. */
 .personaggio-scena-grafica { --aura: var(--giallo, #ffd35c); }
 
+/* LA FORZA DELL'AURA.
+ *
+ * Ste (12/10/2026), dopo aver visto il risultato: "adesso non è forse troppo acceso?
+ * dimmi tu". Era troppo acceso, e il motivo è uno solo: ogni strato di luce usa la
+ * miscela `screen`, che SOMMA, e io ne avevo accalcati nove. Schermo più schermo più
+ * schermo non è "un po' di luce": è quasi bianco. Il Guerriero diventava una
+ * statua d'oro e dell'Assassino non si vedeva più il nero del cuoio.
+ *
+ * Qui c'è un numero solo che decide quanto è forte tutto. Sotto i valori sono gia'
+ * abbassati a mano: si vede la luce, ma il personaggio resta se' con i SUOI colori,
+ * che è quello che vuol dire "divina": una persona circonfusa di luce, non dipinta
+ * d'oro. */
+.personaggio-scena-grafica.personaggio-aura { --forza: .58; }
+
 .personaggio-scena-grafica.personaggio-aura::before,
 .personaggio-scena-grafica.personaggio-aura::after {
   content: '';
@@ -1597,19 +1611,19 @@ body:has(.sfondo-dialogo) .avviso {
     /* l'alone dietro la testa: un anello sottile, non una macchia */
     radial-gradient(circle at 50% 23%,
       transparent 0 9.5%,
-      color-mix(in srgb, var(--aura) 62%, transparent) 10.5% 13.5%,
+      color-mix(in srgb, var(--aura) calc(62% * var(--forza)), transparent) 10.5% 13.5%,
       transparent 14.5%),
     radial-gradient(circle at 50% 23%,
       transparent 0 6%,
-      color-mix(in srgb, var(--aura) 30%, transparent) 7% 22%,
+      color-mix(in srgb, var(--aura) calc(30% * var(--forza)), transparent) 7% 22%,
       transparent 30%),
     /* la luce che sale dal pavimento */
     radial-gradient(66% 17% at 50% 94%,
-      color-mix(in srgb, var(--aura) 70%, transparent) 0%,
+      color-mix(in srgb, var(--aura) calc(70% * var(--forza)), transparent) 0%,
       transparent 80%),
     /* l'aria calda intorno: arriva fino al bordo, in alto e in basso */
     radial-gradient(118% 108% at 50% 50%,
-      color-mix(in srgb, var(--aura) 21%, transparent) 0%,
+      color-mix(in srgb, var(--aura) calc(21% * var(--forza)), transparent) 0%,
       transparent 95%);
   filter: blur(18px);
   animation: aura-pulse 4.6s ease-in-out infinite;
@@ -1621,25 +1635,28 @@ body:has(.sfondo-dialogo) .avviso {
     /* l'anello: un anello enorme e lentissimo, appena visibile */
     repeating-conic-gradient(from 0deg at 50% 46%,
       transparent 0deg 7deg,
-      color-mix(in srgb, var(--aura) 12%, transparent) 7deg 8deg,
+      color-mix(in srgb, var(--aura) calc(12% * var(--forza)), transparent) 7deg 8deg,
       transparent 8deg 15deg),
     /* i fazzi, larghi e lontani l'uno dall'altro */
     repeating-linear-gradient(97deg,
-      color-mix(in srgb, var(--aura) 14%, transparent) 0deg 5deg,
+      color-mix(in srgb, var(--aura) calc(14% * var(--forza)), transparent) 0deg 5deg,
       transparent 5deg 26deg);
   /* UNA sola maschera: `mask-composite` su Safari si comporta diversamente da
      Chrome e faceva cambiare l'aura da telefono a telefono. */
   -webkit-mask-image: radial-gradient(92% 96% at 50% 38%, #000 32%, transparent 97%);
   mask-image: radial-gradient(92% 96% at 50% 38%, #000 32%, transparent 97%);
-  opacity: .8;
+  opacity: .7;
   animation: aura-fassi 24s ease-in-out infinite alternate;
   /* L'ALONE LUNGO IL BORDO. Sta su questo strato e non sul riquadro perche' il
      riquadro lo disegna SOTTO il contenuto, e il contenuto del riquadro e' la foto:
      con l'Assassino (foto al 100%) l'alone finiva coperto e non si vedeva, con gli
      altri (foto all'86-88%) si vedeva solo ai lati. */
+  /* IL BORDO ERA LA PARTE CHE SI VEDEVA DI PIU'. Con 22 px di luce su un riquadro di
+     400 diventava una cornice d'oro, e quella mangiava il disegno: si guardava la
+     cornice e non il personaggio. Qui resta un accenno, e sparisce verso i bordi. */
   box-shadow:
-    inset 0 0 22px -2px color-mix(in srgb, var(--aura) 62%, transparent),
-    inset 0 0 64px -18px color-mix(in srgb, var(--aura) 46%, transparent);
+    inset 0 0 14px -6px color-mix(in srgb, var(--aura) calc(62% * var(--forza)), transparent),
+    inset 0 0 48px -26px color-mix(in srgb, var(--aura) calc(46% * var(--forza)), transparent);
 }
 
 @keyframes aura-pulse {
@@ -1668,9 +1685,9 @@ body:has(.sfondo-dialogo) .avviso {
 /* IL CONTORNO DORATO: la parte che rende credibile la luce. */
 .personaggio-scena-grafica.personaggio-aura .personaggio-ritratto {
   filter:
-    contrast(1.05) saturate(1.06) brightness(1.06)
-    drop-shadow(0 0 4px color-mix(in srgb, var(--aura) 70%, transparent))
-    drop-shadow(0 0 15px color-mix(in srgb, var(--aura) 36%, transparent));
+    contrast(1.04) saturate(1.04) brightness(1.02)
+    drop-shadow(0 0 3px color-mix(in srgb, var(--aura) calc(70% * var(--forza)), transparent))
+    drop-shadow(0 0 12px color-mix(in srgb, var(--aura) calc(36% * var(--forza)), transparent));
 }
 
 /* LE SCINTILLE che salgono dal pavimento. */
@@ -1743,8 +1760,8 @@ body:has(.sfondo-dialogo) .avviso {
   mix-blend-mode: screen;
   background:
     linear-gradient(0deg,
-      color-mix(in srgb, var(--aura) 40%, transparent) 0%,
-      color-mix(in srgb, var(--aura) 16%, transparent) 42%,
+      color-mix(in srgb, var(--aura) calc(40% * var(--forza)), transparent) 0%,
+      color-mix(in srgb, var(--aura) calc(16% * var(--forza)), transparent) 42%,
       transparent 86%);
   -webkit-mask-image: radial-gradient(34% 100% at 50% 52%, #000 0%, transparent 84%);
   mask-image: radial-gradient(34% 100% at 50% 52%, #000 0%, transparent 84%);

@@ -370,7 +370,16 @@ test('R10s. l\'aura ha luce, raggi e scintille, e rispetta chi non vuole le anim
   assert.match(app0, /class: 'aura-stelle'/, 'le stelle sono create dal codice');
   assert.match(app0, /class: 'aura-lustro'/, "il bagliore e' creato dal codice");
   assert.match(css, /aura-fassi/, 'i fazzi di luce che passano dietro');
-  assert.match(css, /drop-shadow\(0 0 4px/, "il contorno dorato sul personaggio: e' la parte che rende credibile la luce");
+  assert.match(css, /drop-shadow\(0 0 3px/, "il contorno dorato sul personaggio: e' la parte che rende credibile la luce");
+  // Ste (12/10/2026): "adesso non e' forse troppo acceso? dimmi tu". Era troppo
+  // acceso: nove strati di luce con miscela screen, che somma. Perche' non torni
+  // piu' cosi', la forza e' UN NUMERO SOLO, --forza, e tutte le intensita' passano
+  // da li'. Senza, il prossimo ritocco sarebbe stato alzare un colore a mano e
+  // l'avrebbe dimenticato due righe sotto.
+  assert.match(css, /\.personaggio-scena-grafica\.personaggio-aura\s*\{[^}]*--forza:\s*\.58/,
+    'la forza dell\'aura e\' un numero solo');
+  const usiForza = [...css.matchAll(/calc\(\d+% \* var\(--forza\)\)/g)].length;
+  assert.ok(usiForza >= 8, `le intensita' devono passare da --forza, ne' usano ${usiForza}`);
   // L'aura e' una ricompensa: dev'essere d'oro in tutte e tre le classi, altrimenti
   // su due classi sembra parte del personaggio e su una no.
   assert.match(css, /--aura:\s*var\(--giallo/, 'il colore dell\'aura e\' il giallo dell\'app');
