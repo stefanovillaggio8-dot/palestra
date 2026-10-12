@@ -10,7 +10,7 @@ Downloads). L'aura non c'è perché non è un'immagine: è un effetto che l'app 
 sopra la foto del completo.
 
 Falli tutti e cinque di una classe **nella stessa conversazione**, senza aprirne
-una nuova: è così che lo sfondo resta uguale e il personatore non salta da una
+una nuova: è così che lo sfondo resta uguale e il personaggio non salta da una
 immagine all'altra.
 
 ---
