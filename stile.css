@@ -1869,6 +1869,80 @@ body:has(.sfondo-dialogo) .avviso {
  * Si muove poco e piano, e in alto si spegne: una colonna che arriva fino in cima
  * sembrerebbe un proiettore, non una luce.
  */
+/* LE ONDATE DI LUCE: l'evento, non lo stato.
+ *
+ * Ste (12/10/2026): "prova a mettere degli effetti in piu' che valorizzino arrivare
+ * fino a 75 giorni di fila".
+ *
+ * Tutto quello che c'era finora dice "questo personaggio e' luminoso": l'alone,
+ * l'aria, i faszi, le stelle. E' una dichiarazione. Quello che manca e' l'AVVENIMENTO:
+ * qualcosa che parte e dice che hai appena fatto una cosa rara. Per questo l'onda
+ * nasce piccola dalla figura e si allarga finche' sparisce, tre volte di fila con
+ * tre ritardi diversi, ogni 7,8 secondi.
+ *
+ * Si animano `width` e `height` e NON `scale`, perche' il progetto vieta le scale
+ * forti e fa bene: deformerebbero la figura. Ma qui dentro non c'e' niente da
+ * deformare, l'onda e' un anello vuoto, quindi si puo' allargare liberamente senza
+ * toccare il personaggio. */
+.aura-onde {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  overflow: hidden;
+}
+.aura-onde i {
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  width: 12%;
+  height: 16%;
+  margin-left: -6%;
+  margin-top: -8%;
+  border: 2px solid color-mix(in srgb, var(--aura) 70%, transparent);
+  border-radius: 50%;
+  opacity: 0;
+  animation: aura-onda 7.8s ease-out var(--ritardo, 0s) infinite;
+}
+@keyframes aura-onda {
+  0%   { width: 12%; height: 16%; margin-left: -6%; margin-top: -8%;  opacity: 0; }
+  12%  { opacity: .75; }
+  70%  { opacity: 0; }
+  100% { width: 132%; height: 176%; margin-left: -66%; margin-top: -88%; opacity: 0; }
+}
+
+/* LA CORONA: l'anello che sta fermo sopra la testa e si allarga piano.
+ *
+ * Diversa dall'onda perche' l'onda va e torna e questa resta: e' la luce che
+ * appartiene a lui, non un colpo di scena. Due anelli concentrici cosi' si legge
+ * come una corona e non come un bersaglio. */
+.aura-corona {
+  position: absolute;
+  left: 50%;
+  top: 19%;
+  z-index: 2;
+  width: 30%;
+  height: 12%;
+  margin-left: -15%;
+  pointer-events: none;
+  border: 2px solid color-mix(in srgb, var(--aura) 62%, transparent);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--aura) 22%, transparent),
+    inset 0 0 10px color-mix(in srgb, var(--aura) 30%, transparent);
+  animation: aura-corona 5.2s ease-in-out infinite;
+}
+@keyframes aura-corona {
+  0%, 100% { opacity: .5;  width: 30%; height: 12%; margin-left: -15%; }
+  50%      { opacity: .95; width: 36%; height: 14.4%; margin-left: -18%; }
+}
+
+/* Chi sceglie "mai" non vede niente muoversi: le onde e la corona restano ferme. */
+html.animazioni-mai .aura-onde i,
+html.animazioni-mai .aura-corona { animation: none; }
+html.animazioni-mai .aura-onde i { opacity: .3; width: 60%; height: 80%; margin-left: -30%; margin-top: -40%; }
+html.animazioni-mai .aura-corona { opacity: .6; }
+
 .aura-colonna {
   position: absolute;
   inset: 0;

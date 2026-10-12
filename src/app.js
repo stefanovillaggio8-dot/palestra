@@ -4519,6 +4519,17 @@ function bloccoPersonaggio(profilo, st) {
         { x: 8, y: 49, g: 6, r: 1.1, d: 3.7 },
         { x: 44, y: 44, g: 4, r: 2.9, d: 4.6 },
         { x: 73, y: 47, g: 5, r: .4, d: 3.5 },
+        // Ste (12/10/2026): "prova a mettere degli effetti in più che valorizzino
+        // arrivare fino a 75 giorni di fila". Da nove a quattordici: le prime nove
+        // coprono i bordi, queste cinque stanno dentro e in mezzo, che era la zona
+        // rimasta vuota. Nessuna e' sulla faccia della figura, così non copre il
+        // personaggio. I tempi sono tutti diversi dalle altre, altrimenti si muovono
+        // a gruppi e si capisce che sono un effetto unico.
+        { x: 52, y: 26, g: 5, r: .9, d: 3.9 },
+        { x: 31, y: 22, g: 4, r: 2.2, d: 4.4 },
+        { x: 68, y: 30, g: 6, r: 1.7, d: 3.3 },
+        { x: 17, y: 40, g: 4, r: 3.6, d: 4.2 },
+        { x: 56, y: 56, g: 5, r: 1.2, d: 3.6 },
       ];
       for (const s of Stelle) {
         stelle.appendChild(el('i', {
@@ -4527,6 +4538,29 @@ function bloccoPersonaggio(profilo, st) {
         }));
       }
       grafica.appendChild(stelle);
+
+      // LE ONDATE DI LUCE e LA CORONA.
+      //
+      // Ste (12/10/2026): "prova a mettere degli effetti in più che valorizzino
+      // arrivare fino a 75 giorni di fila". Un'aura che sta li' e basta dice
+      // "questo personaggio e' luminoso"; un'aura che ogni tanto SPARA qualcosa dice
+      // "appena hai fatto qualcosa di straordinario". Sono due cose diverse e
+      // servono entrambe.
+      //
+      // L'onda parte dalla figura e si allarga finche' sparisce: e' il segnale che
+      // dice che qualcosa e' appena successo. La corona e' l'anello che sta fermo
+      // sopra la testa e si allarga piano, e quello dice che la luce e' sua.
+      //
+      // Perche' si animano `width`/`height` e NON `scale`: il progetto vieta le scale
+      // forti, giustamente, perché deformano il contenuto. Qui pero' un onda che
+      // non cresce non e' un'onda. Con larghezza e altezza non si deforma niente,
+      // perché l'onda e' un anello vuoto e dentro non c'e' contenuto da stortare.
+      const onde = el('div', { class: 'aura-onde', aria: { hidden: 'true' } });
+      for (const ritardo of [0, 2.6, 5.2]) {
+        onde.appendChild(el('i', { stile: `--ritardo:${ritardo}s` }));
+      }
+      grafica.appendChild(onde);
+      grafica.appendChild(el('div', { class: 'aura-corona', aria: { hidden: 'true' } }));
 
       // IL BAGLIORE: una banda di luce che attraversa la figura ogni 4,5 secondi.
       // È quella che fa capire che l'armatura è "divina" e non solo colorata: la luce

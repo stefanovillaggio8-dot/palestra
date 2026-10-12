@@ -453,6 +453,37 @@ test('R10s. l\'aura ha luce, raggi e scintille, e rispetta chi non vuole le anim
   assert.match(css, /\.aura-scie i\s*\{/, 'i pallini che salgono dal pavimento');
   assert.match(css, /\.aura-stelle i\s*\{/, 'i pallini che scintillano');
 
+  // GLI EFFETTI DEI 75 GIORNI. Ste (12/10/2026): "prova a mettere degli effetti in
+  // piu' che valorizzino arrivare fino a 75 giorni di fila".
+  //
+  // Il punto del messaggio e' "valorizzino", e la distinzione che conta e' fra una
+  // cosa che dice COME SEI e una che dice COME HAI FATTO. Tutto quello che c'era
+  // prima (alone, aria, faszi, stelle) e' la prima: "questo personaggio e'
+  // luminoso". L'onda e' la seconda: "appena hai fatto una cosa rara". Vengono
+  // costruiti entrambi, e vengono controllati entrambi, perche' il secondo e' quello
+  // che rende il premio un avvenimento.
+  assert.match(css, /\.aura-onde i\s*\{/, "l'onda di luce deve esistere: e' l'avvenimento");
+  assert.match(css, /@keyframes aura-onda/, "l'onda deve animarsi");
+  assert.match(css, /\.aura-corona\s*\{/, "la corona sulla testa deve esistere");
+  assert.match(css, /@keyframes aura-corona/, "la corona deve animarsi");
+
+  // L'onda si allarga con `width`/`height`, NON con `scale`: il progetto vieta le
+  // scale forti perche' deformano il contenuto, e qui si vuole proprio evitare di
+  // deformare il personaggio. Se un giorno qualcuno la rifa con `scale`, il test
+  // se ne accorge.
+  const onde = css.match(/@keyframes aura-onda\s*\{([\s\S]*?)\n\}/);
+  assert.ok(onde, 'le onde devono avere i loro fotogrammi');
+  assert.doesNotMatch(onde[1], /scale\(/,
+    "l'onda non puo' usare scale: deformerebbe la figura. Si allarga con width/height");
+  assert.match(onde[1], /width:\s*1[0-9]{2}%/,
+    "l'onda deve arrivare a coprire tutto il riquadro, altrimenti e' un anello piccolo");
+
+  // E chi sceglie "mai" deve vedere l'aura ferma: niente animazioni, ma la luce resta.
+  assert.match(css, /html\.animazioni-mai[\s\S]{0,220}\.aura-onde i[\s\S]{0,160}animation:\s*none/,
+    'chi sceglie "mai" non deve vedere le onde muoversi');
+  assert.match(css, /html\.animazioni-mai[\s\S]{0,220}\.aura-corona[\s\S]{0,160}animation:\s*none/,
+    'chi sceglie "mai" non deve vedere la corona muoversi');
+
   // 2) SENZA AURA IL VUOTO RESTAVA VUOTO. Misurando le immagini: meta' del disegno sta
   //    sotto il 40 di luminosita' e il personaggio galleggia nel nero. La versione con
   //    l'aura sembrava piu' bella non perche' la figura fosse piu' luminosa, ma perche'
