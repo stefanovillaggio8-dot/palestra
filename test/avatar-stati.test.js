@@ -339,6 +339,16 @@ test('R10s. l\'aura ha luce, raggi e scintille, e rispetta chi non vuole le anim
   assert.match(css, /repeating-conic-gradient/, "l'anello che gira piano");
   assert.match(css, /@keyframes aura-stella/, 'le stelle che si accendono e spengono');
   assert.match(css, /@keyframes aura-lustro/, 'il bagliore che attraversa la figura');
+  // Ste (12/10/2026): "la banda di luce falla un po' piu' spesso che spunta, tipo
+  // ogni 4,5 secondi". Prima passavano 6,5 e sembrava non accadesse mai: qui si
+  // controlla il numero, perche' e' una cosa che si dimentica di cambiare.
+  assert.match(css, /aura-lustro 4\.5s/, 'il bagliore deve passare ogni 4,5 secondi');
+  assert.doesNotMatch(css, /aura-lustro 6\.5s/, 'non deve restare il vecchio tempo di 6,5');
+  // E il rosso sulle armi.
+  assert.match(css, /\.aura-sangue\s*\{/, 'deve esserci il rosso sulle armi');
+  assert.match(css, /#ff4a3d|#d81f26/, "il sangue e' rosso caldo, non il giallo dell'aura");
+  const appS = await readFile(join(RADICE, 'src', 'app.js'), 'utf8');
+  assert.match(appS, /class: 'aura-sangue'/, "il rosso sulle armi e' creato dal codice");
   const app0 = await readFile(join(RADICE, 'src', 'app.js'), 'utf8');
   assert.match(app0, /class: 'aura-stelle'/, 'le stelle sono create dal codice');
   assert.match(app0, /class: 'aura-lustro'/, "il bagliore e' creato dal codice");

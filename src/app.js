@@ -4520,9 +4520,13 @@ function bloccoPersonaggio(profilo, st) {
       }
       grafica.appendChild(stelle);
 
-      // IL BAGLIORE: una banda di luce che attraversa la figura ogni sei secondi e
-      // mezzo. È quella che fa capire che l'armatura è "divina" e non solo colorata:
-      // la luce ci passa sopra, davvero, e non è un colore fermo.
+      // IL SANGUE SULL'ARMA. Un rosso caldo sulla zona delle braccia, che è dove
+      // stanno spada, ascia e pugnali: la lama sembra illuminata di rosso.
+      grafica.appendChild(el('div', { class: 'aura-sangue', aria: { hidden: 'true' } }));
+
+      // IL BAGLIORE: una banda di luce che attraversa la figura ogni 4,5 secondi.
+      // È quella che fa capire che l'armatura è "divina" e non solo colorata: la luce
+      // ci passa sopra, davvero, e non è un colore fermo.
       grafica.appendChild(el('div', { class: 'aura-lustro', aria: { hidden: 'true' } }));
     }
     grafica.appendChild(el('img', {

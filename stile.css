@@ -1639,7 +1639,8 @@ body:has(.sfondo-dialogo) .avviso {
      altri (foto all'86-88%) si vedeva solo ai lati. */
   box-shadow:
     inset 0 0 22px -2px color-mix(in srgb, var(--aura) 62%, transparent),
-    inset 0 0 64px -18px color-mix(in srgb, var(--aura) 46%, transparent);
+    inset 0 0 64px -18px color-mix(in srgb, var(--aura) 46%, transparent),
+    inset 0 0 34px -8px color-mix(in srgb, #c3221f 26%, transparent);
 }
 
 @keyframes aura-pulse {
@@ -1709,7 +1710,47 @@ body:has(.sfondo-dialogo) .avviso {
   50%      { opacity: 1;   transform: scale(1.05) rotate(45deg); }
 }
 
-/* IL BAGLIORE che attraversa la figura, ogni tanto. */
+/* IL SANGUE SULLE ARMI.
+ *
+ * Ste (12/10/2026): "metti anche nelle spade tipo sporche di sangue".
+ *
+ * Una cosa da dire subito: io non posso dipingere del sangue vero sulle lame, cioe'
+ * non posso ritocchiare i pixel dentro la foto del personaggio e farlo venire bene.
+ * Quello che faccio e' mettere un rosso CALDO intorno alla zona delle braccia e delle
+ * armi, che e' dove le spade, l'ascia e i pugnali stanno: la lama sembra illuminata
+ * da una luce rossa, ed e' quello che si vede nei giochi fantasy quando un'arma e'
+ * "incantata".
+ *
+ * Il rosso e' volutamente piu' scuro e piu' caldo dell'oro dell'aura, cosi' si sente
+ * che e' una cosa diversa: l'oro e' la ricompensa, il rosso e' l'arma.
+ */
+.aura-sangue {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  background:
+    radial-gradient(26% 15% at 50% 60%,
+      color-mix(in srgb, #ff4a3d 46%, transparent) 0%,
+      transparent 78%),
+    radial-gradient(30% 11% at 50% 72%,
+      color-mix(in srgb, #d81f26 34%, transparent) 0%,
+      transparent 80%),
+    radial-gradient(46% 26% at 50% 66%,
+      color-mix(in srgb, #b3121c 20%, transparent) 0%,
+      transparent 86%);
+  filter: blur(16px);
+  animation: aura-sangue-pulse 4.5s ease-in-out infinite;
+}
+@keyframes aura-sangue-pulse {
+  0%, 100% { opacity: .72; }
+  50%      { opacity: 1; }
+}
+
+/* IL BAGLIORE che attraversa la figura ogni 4,5 secondi.
+ *
+ * Ste (12/10/2026): "la banda di luce falla un po' piu' spesso che spunta, tipo
+ * ogni 4,5 secondi". Prima passavano 6,5 secondi e sembrava non accadesse mai. */
 .aura-lustro {
   position: absolute;
   inset: -25% -55%;
@@ -1721,7 +1762,7 @@ body:has(.sfondo-dialogo) .avviso {
     rgba(255, 250, 230, .42) 51%,
     color-mix(in srgb, var(--aura) 30%, transparent) 54%,
     transparent 62%);
-  animation: aura-lustro 6.5s ease-in-out infinite;
+  animation: aura-lustro 4.5s ease-in-out infinite;
 }
 @keyframes aura-lustro {
   0%   { transform: translateX(-72%); }
@@ -1739,6 +1780,7 @@ html.animazioni-mai .aura-lustro { animation: none; }
 html.animazioni-mai .aura-scie i,
 html.animazioni-mai .aura-stelle i { opacity: .55; }
 html.animazioni-mai .aura-lustro { display: none; }
+html.animazioni-mai .aura-sangue { animation: none; }
 
 /* Lo stato in cui sei ADESSO, marcato nella fila. Così sai subito quale sei. */
 .pezzo.adesso {
