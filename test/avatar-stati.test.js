@@ -391,8 +391,30 @@ test('R10s. l\'aura ha luce, raggi e scintille, e rispetta chi non vuole le anim
   const ariaLarga = css.replace(/\/\*[\s\S]*?\*\//g, '').match(/radial-gradient\(1[0-9]{2}%\s+1[0-9]{2}%[^\n]*\n[^\n]*var\(--aura\)/);
   assert.equal(ariaLarga, null,
     "l'aria dell'aura non puo' essere piu' grande del riquadro: tingerebbe gli angoli");
-  assert.match(css, /radial-gradient\(72% 64% at 50% 46%/,
-    "l'aria dell'aura sta attorno alla figura");
+  assert.match(css, /radial-gradient\(60% 54% at 50% 46%/,
+    "l'aria dell'aura sta attorno alla figura e non sul riquadro intero");
+  // E il posto dove la luce DEVE stare e' il contorno sulla figura: su uno sfondo
+  // nero illuminare il vuoto non si vede, e Ste aveva detto "non e' cambiato molto".
+  const contorno = css.match(/personaggio-aura \.personaggio-ritratto\s*\{[\s\S]*?\n\}/);
+  assert.ok(contorno, 'il contorno del personaggio deve esistere');
+  const alone = [...contorno[0].matchAll(/drop-shadow\(0 0 (\d+)px/g)].map(m => Number(m[1]));
+  assert.ok(alone.length >= 2 && alone[1] >= 16,
+    `l'alone del contorno deve essere largo, non solo la linea: ${alone.join(', ')}`);
+  assert.ok(/95% \* var\(--forza\)/.test(contorno[0]),
+    'la forza dell\'aura va messa sul contorno, che e\' l\'unico strato che tocca la figura');
+
+  // Ste (12/10/2026): "non e' cambiato molto" e, guardando l'anteprima, una X bianca
+  // ferma nell'angolo in alto a sinistra. Quella X era una stella: era un poligono a
+  // quattro punte ritagliato con clip-path che al massimo girava di 45 gradi, quindi a
+  // 7 px diventava una X. Non era una scintilla, sembrava un graffio.
+  const stelle = css.match(/\.aura-stelle i\s*\{[\s\S]*?\n\}/);
+  assert.ok(stelle, 'le stelle devono esistere');
+  assert.doesNotMatch(stelle[0], /clip-path/,
+    'le stelle non possono essere ritagliate: a 7 px la clip-path le faceva sembrare spigoli');
+  assert.doesNotMatch(css, /@keyframes aura-stella\s*\{[^}]*rotate/,
+    'le stelle non devono ruotare: era la rotazione a 45 gradi che faceva la X');
+  assert.match(stelle[0], /drop-shadow/,
+    'le stelle devono avere l\'alone, altrimenti sono macchioline sbiadite');
 
   // 2) SENZA AURA IL VUOTO RESTAVA VUOTO. Misurando le immagini: meta' del disegno sta
   //    sotto il 40 di luminosita' e il personaggio galleggia nel nero. La versione con
@@ -411,6 +433,21 @@ test('R10s. l\'aura ha luce, raggi e scintille, e rispetta chi non vuole le anim
   // accenderle le spalle: serve `relative` + z-index, non `static`.
   assert.match(css, /con-foto \.personaggio-ritratto\s*\{[^}]*position:\s*relative[^}]*z-index:\s*1/,
     'la foto sta davanti alla luce di base');
+
+  // Ste (12/10/2026), dopo il tentativo di alzare la foto: "hai abbassato la qualita'
+  // originale". Era vero, e il motivo e' nel modo, non nella quantita'. Alzando i
+  // mezzitoni si alzano anche i neri e la foto si riempie di grigio: la nebbia. Il
+  // contrasto invece alza i mezzitoni e RIABBASSA i neri, che e' quello che serve a
+  // una figura scura su fondo nero. E resta un filtro del browser: il file non viene
+  // toccato, quindi si puo' disfare.
+  const filtroBase = css.match(/con-foto \.personaggio-ritratto\s*\{[^}]*filter:\s*([^;]+);/);
+  assert.ok(filtroBase, 'la foto deve avere un filtro');
+  const contrasto = Number((filtroBase[1].match(/contrast\(([\d.]+)\)/) || [])[1]);
+  const luminosita = Number((filtroBase[1].match(/brightness\(([\d.]+)\)/) || [])[1]);
+  assert.ok(contrasto >= 1.08,
+    `per vedere di piu' si alza il CONTRASTO, non la luminosita': era ${contrasto}`);
+  assert.ok(luminosita <= 1.05,
+    `la luminosita' va tenuta bassa: alzarla e' quello che ha fatto la nebbia (era ${luminosita})`);
 
   // Il bagliore era l'unico strato sfuggito all'interruttore: restava a piena forza
   // mentre tutto il resto scendeva. Ora passa anche lui da --forza.
@@ -471,7 +508,21 @@ test("R10t. l'aura arriva al bordo e non usa mask-composite", async () => {
       `una maschera sola, non due da comporre: "${valore.trim()}"`);
   }
 
-  // 3) La luce arriva al bordo: il gradiente piu' largo deve superare il 100%.
-  assert.match(css, /radial-gradient\(1[0-9]{2}% 1[0-9]{2}% at 50%/,
-    'deve esserci un alone largo che arriva fino al bordo del riquadro');
+  // 3) La luce NON arriva al bordo.
+  //
+  // Qui il test diceva il contrario ("deve esserci un alone largo che arriva fino al
+  // bordo") e aveva ragione solo finche' non si e' visto il risultato. Ste (12/10):
+  // prima "troppo acceso", poi "non e' cambiato molto".
+  //
+  // Su un'immagine con sfondo nero, la luce sul vuoto non dice niente: il vuoto resta
+  // vuoto, solo un po' piu' color caffe'. E' il motivo per cui l'aura sembrava una
+  // vignetta marrone invece di una figura con della luce intorno. La luce che si vede
+  // e' quella che avvolge la FIGURA, e quella la disegna il contorno dorato, che
+  //appunto e' l'unico strato a piena forza.
+  const soloAura = css.match(/personaggio-aura::before\s*\{[\s\S]*?\n\}/);
+  assert.ok(soloAura, "il primo strato dell'aura deve esistere");
+  assert.doesNotMatch(soloAura[0], /radial-gradient\(1[0-9]{2}%/,
+    'nell\'aura nessun gradiente puo\' essere piu\' largo del riquadro: tingerebbe gli angoli');
+  assert.match(soloAura[0], /radial-gradient\(60% 54% at 50% 46%/,
+    'l\'aria sta attorno alla figura, stretta');
 });

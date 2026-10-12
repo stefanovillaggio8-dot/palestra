@@ -1521,7 +1521,21 @@ body:has(.sfondo-dialogo) .avviso {
   width: 100%;
   height: auto; /* l'altezza la decide la foto: non si può tagliare */
   transform: none;
-  filter: contrast(1.04) saturate(1.02) brightness(1.04);
+  /* CONTRASTO, NON LUMINOSITA'. Ste (12/10/2026): "quelli senza aura adesso sono
+   * troppo scuri invece" e, dopo il tentativo sbagliato, "hai abbassato la qualita'
+   * originale".
+   *
+   * Il tentativo sbagliato e' stato alzare i mezzitoni DELL'IMMAGINE e risalvare il
+   * file: la misura di luminosita' e' salita, e infatti la foto e' diventata piu'
+   * chiara. Ma alzando i mezzitoni si alzano anche i neri, e la foto si e' riempita
+   * di grigio: la nebbia. Peggio, risalvando il file il danno diventa PERMANENTE,
+   * perche' il nuovo file non ha piu' i neri di quello vecchio.
+   *
+   * Il contrasto lavora al contrario di quanto si pensa: alza i mezzitoni E ABBASSA
+   * i neri. Per una figura scura su fondo nero e' esattamente quello che serve:
+   * si vede di piu' e resta pulita. E soprattutto e' un filtro del browser, quindi il
+   * file non viene toccato e si puo' cambiare o disfare in qualsiasi momento. */
+  filter: contrast(1.1) saturate(1.05) brightness(1.03);
 }
 
 /* ---------------------------------------------------------------------------
@@ -1663,20 +1677,22 @@ body:has(.sfondo-dialogo) .avviso {
     radial-gradient(66% 17% at 50% 94%,
       color-mix(in srgb, var(--aura) calc(70% * var(--forza)), transparent) 0%,
       transparent 80%),
-    /* l'aria calda intorno: TIGHT, non a pieno riquadro.
+    /* l'aria calda intorno: stretta E tenue, e il motivo e' che la luce va sulla
+     * FIGURA, non sul riquadro.
      *
-     * Qui c'era `radial-gradient(118% 108% at 50% 50%, ...)` e cioè un gradiente
-     * più grande del riquadro stesso: arrivava fino agli angoli e li tingeva di
-     * marrone. Con la miscela `screen` quello è il danno peggiore, perché lo
-     * schermo sul nero lo accende più che su qualsiasi altro colore: si vedeva
-     * un riquadro color caffè invece di una figura con della luce intorno.
+     * Qui dentro ci sono state due versioni sbagliate. La prima era 118% x 108%,
+     * cioe' piu' grande del riquadro: tingeva gli angoli di marrone. La seconda era
+     * gia' stretta ma ancora larga, e Ste ha detto "non e' cambiato molto", che
+     * e' la cosa piu' difficile da sentire: la luce c'era, ma era sparsa in una
+     * zona dove non c'e' niente da illuminare, quindi non si vedeva come aura.
      *
-     * Riducendolo a 72% × 64% l'aria resta attorno al personaggio e i quattro
-     * angoli tornano neri, che è quello che fa sembrare la foto una foto e non
-     * una vignetta. */
-    radial-gradient(72% 64% at 50% 46%,
-      color-mix(in srgb, var(--aura) calc(18% * var(--forza)), transparent) 0%,
-      transparent 88%);
+     * Per un'immagine con sfondo nero, la luce sul vuoto non dice niente: il vuoto
+     * resta vuoto, solo un po' piu' color caffè. La luce che si vede e' quella che
+     * avvolge la figura, e quella la disegna il contorno dorato piu' sotto. Qui
+     * quindi l'aria scende a un accenno e lascia il posto al contorno. */
+    radial-gradient(60% 54% at 50% 46%,
+      color-mix(in srgb, var(--aura) calc(9% * var(--forza)), transparent) 0%,
+      transparent 84%);
   filter: blur(18px);
   animation: aura-pulse 4.6s ease-in-out infinite;
 }
@@ -1744,12 +1760,24 @@ body:has(.sfondo-dialogo) .avviso {
   to   { transform: translateX(5px)  rotate(.5deg);  opacity: 1; }
 }
 
-/* IL CONTORNO DORATO: la parte che rende credibile la luce. */
+/* IL CONTORNO DORATO: la parte che rende credibile la luce.
+ *
+ * E' QUI che adesso va la forza dell'aura. Prima la luce era quasi tutta sparsa
+ * sul riquadro e il contorno era un accenno; ma il contorno e' l'unico strato
+ * che tocca la FIGURA. Su uno sfondo nero, illuminare il vuoto non dice niente
+ * (il vuoto resta vuoto, solo color caffe'): a fare "divina" e' la linea di
+ * luce lungo il personaggio, che stacca la figura dal fondo e fa capire che e'
+ * accesa dentro.
+ *
+ * Per questo qui i valori sono ALTI mentre l'aria e' bassa: non e' un caso, e'
+ * la divisione del lavoro. */
 .personaggio-scena-grafica.personaggio-aura .personaggio-ritratto {
   filter:
-    contrast(1.04) saturate(1.04) brightness(1.02)
-    drop-shadow(0 0 3px color-mix(in srgb, var(--aura) calc(70% * var(--forza)), transparent))
-    drop-shadow(0 0 12px color-mix(in srgb, var(--aura) calc(36% * var(--forza)), transparent));
+    contrast(1.08) saturate(1.05) brightness(1.04)
+    /* il bordo acceso, stretto: e' la linea che disegna il personaggio */
+    drop-shadow(0 0 3px color-mix(in srgb, var(--aura) calc(95% * var(--forza)), transparent))
+    /* l alone che si sparge intorno, piu' largo e piu' tenue */
+    drop-shadow(0 0 17px color-mix(in srgb, var(--aura) calc(52% * var(--forza)), transparent));
 }
 
 /* LE SCINTILLE che salgono dal pavimento. */
@@ -1783,23 +1811,43 @@ body:has(.sfondo-dialogo) .avviso {
   100% { opacity: 0;   transform: translate3d(var(--deriva, 8px), -250px, 0) scale(1.1); }
 }
 
-/* LE STELLE: piccole scintille a quattro punte, che accendono e spengono. */
+/* LE STELLE: scintille che si accendono e si spengono.
+ *
+ * Prima erano un POLIGONO a quattro punte ritagliato con `clip-path`, che al
+ * massimo della luminosita' girava di 45 gradi. A 7 pixel diventavano una X:
+ * guardando l'anteprima si vedeva una X bianca ferma nell'angolo in alto a
+ * sinistra, che non sembrava una scintilla ma un graffio o della polvere sullo
+ * schermo. E' la cosa che Ste ha notato come difetto.
+ *
+ * Ora non hanno spigoli: sono un punto con un alone morbido. Si accendono e si
+ * spengono, ma non ruotano, e la luce che buttano fuori e' quella giusta per
+ * far capire che sono scintille e non pezzetti di polvere. */
 .aura-stelle i {
   position: absolute;
   left: var(--x);
   top: var(--y);
   width: var(--grandezza, 7px);
   height: var(--grandezza, 7px);
-  background: var(--colore, #fff6d8);
-  clip-path: polygon(50% 0%, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0% 50%, 40% 40%);
+  background: radial-gradient(circle,
+    #fff 0%,
+    rgba(255, 246, 216, .9) 40%,
+    rgba(255, 246, 216, .35) 62%,
+    transparent 78%);
+  border-radius: 50%;
+  /* L'alone si mette DOPO il ritaglio con `drop-shadow`, perche' uno `box-shadow`
+     verrebbe tagliato via insieme alla forma. */
+  filter: drop-shadow(0 0 calc(var(--grandezza, 7px) * .9) rgba(255, 209, 102, .75));
   opacity: 0;
   animation: aura-stella var(--durata) ease-in-out var(--ritardo) infinite;
 }
 @keyframes aura-stella {
   /* Le scale restano dentro i limiti del progetto: una scala forte ha senso solo
-     dove l'oggetto E' il contenuto, e qui la stella si accende e si spegne. */
-  0%, 100% { opacity: 0;   transform: scale(.7) rotate(0deg); }
-  50%      { opacity: 1;   transform: scale(1.05) rotate(45deg); }
+     dove l'oggetto E' il contenuto, e qui la stella si accende e si spegne.
+     Nessuna rotazione: era quella che faceva la X.
+     Anche il balzo (.62 -> 1.12) e' voluto ma contenuto: il progetto vieta le scale
+     sotto .6 e sopra 1.15, e una stella che sparisce del tutto non scintilla. */
+  0%, 100% { opacity: 0;   transform: scale(.62); }
+  50%      { opacity: .95; transform: scale(1.12); }
 }
 
 /* LA COLONNA DI LUCE dietro la figura.
