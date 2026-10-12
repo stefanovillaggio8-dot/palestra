@@ -442,18 +442,18 @@ test('R10s. l\'aura ha luce, raggi e scintille, e rispetta chi non vuole le anim
   assert.match(css, /con-foto \.personaggio-ritratto\s*\{[^}]*position:\s*relative[^}]*z-index:\s*1/,
     'la foto sta davanti alla luce di base');
 
-  // Ste (12/10/2026), la terza volta sul contrasto: prima "quelli senza aura sono
-  // troppo scuri", poi "non ha piu' la qualita' dell'inizio". Sono due richieste in
-  // verso opposto e il modo per stare in mezzo e' il contrasto: alza i mezzitoni E
-  // abbassa i neri. Ma piu' di 1.05 sulla foto la rende dura, e la durezza e'
-  // esattamente la perdita di qualita' che Ste ha visto. Resta un filtro del
-  // browser, quindi il file non viene toccato e si puo' disfare.
+  // Ste (12/10/2026), dopo il tentativo di alzare la foto: "hai abbassato la qualita'
+  // originale". Era vero, e il motivo e' nel modo, non nella quantita'. Alzando i
+  // mezzitoni si alzano anche i neri e la foto si riempie di grigio: la nebbia. Il
+  // contrasto invece alza i mezzitoni e RIABBASSA i neri, che e' quello che serve a
+  // una figura scura su fondo nero. E resta un filtro del browser: il file non viene
+  // toccato, quindi si puo' disfare.
   const filtroBase = css.match(/con-foto \.personaggio-ritratto\s*\{[^}]*filter:\s*([^;]+);/);
   assert.ok(filtroBase, 'la foto deve avere un filtro');
   const contrasto = Number((filtroBase[1].match(/contrast\(([\d.]+)\)/) || [])[1]);
   const luminosita = Number((filtroBase[1].match(/brightness\(([\d.]+)\)/) || [])[1]);
-  assert.ok(contrasto > 1 && contrasto <= 1.05,
-    `il contrasto e' il modo giusto per vedere di piu', ma oltre 1.05 la foto diventa dura: era ${contrasto}`);
+  assert.ok(contrasto >= 1.08,
+    `per vedere di piu' si alza il CONTRASTO, non la luminosita': era ${contrasto}`);
   assert.ok(luminosita <= 1.05,
     `la luminosita' va tenuta bassa: alzarla e' quello che ha fatto la nebbia (era ${luminosita})`);
 
@@ -465,28 +465,7 @@ test('R10s. l\'aura ha luce, raggi e scintille, e rispetta chi non vuole le anim
 
   // L'aura e' una ricompensa: dev'essere d'oro in tutte e tre le classi, altrimenti
   // su due classi sembra parte del personaggio e su una no.
-  // IL COLORE. Ste (12/10/2026): "e ancora piu' nero e giallo", poi "non ha piu'
-  // la qualita' dell'inizio".
-  //
-  // L'aura era il giallo pieno dell'app. Ma `screen` non somma colori, li
-  // schiaccia, e su uno sfondo scuro e FREDDO un giallo pieno schermato esce
-  // VERDE OLIVA: per questo il riquadro sembrava malato invece che luminoso.
-  //
-  // Sulla FIGURA la luce e' bianca calda, e il giallo sta solo nell alone lontano,
-  // dove la luce si e' gia' sciolta. Sono due colori distinti, e il test li separa
-  // perche' tornare a un unico giallo e' esattamente il difetto da cui si esce.
-  const senzaVirgolette = css.replace(/\/\*[\s\S]*?\*\//g, '');
-  assert.doesNotMatch(senzaVirgolette, /--aura:\s*var\(--giallo/,
-    'il giallo pieno schermato esce verde oliva: la luce sulla figura e\' bianca calda');
-  assert.match(senzaVirgolette, /--aura:\s*#fff4de/,
-    'la luce sulla figura e\' un bianco caldo, non un colore');
-  assert.match(senzaVirgolette, /--aura-oro:\s*#ffd35c/,
-    'il giallo dell\'app resta, ma solo per l\'alone lontano');
-  // E il giallo puo' stare SOLO nell alone lontano, non nel filo vicino.
-  const conOro = senzaVirgolette.match(/[^}]*var\(--aura-oro\)[^;]*/g) || [];
-  assert.ok(conOro.length >= 1 && conOro.every((frammento) => /drop-shadow/.test(frammento)),
-    `l'oro puo' stare solo negli alone lontani: ${conOro.length} usi, alcuni fuori da un drop-shadow`);
-
+  assert.match(css, /--aura:\s*var\(--giallo/, 'il colore dell\'aura e\' il giallo dell\'app');
   // E chi ha scelto "mai" non deve vedere niente muoversi.
   assert.match(css, /html\.animazioni-mai[^{]*\{[^}]*animation:\s*none/,
     'chi sceglie "mai" non deve vedere l\'aura muoversi');
@@ -504,25 +483,19 @@ test("R10t. l'aura arriva al bordo e non usa mask-composite", async () => {
   // sembrava due cose diverse.
   const css = await readFile(join(RADICE, 'stile.css'), 'utf8');
 
-  // 1) La luce arriva al bordo, ma NON con una cornice.
-  //
-  // Ste (12/10/2026) aveva chiesto "qui non e' giallo pure ai bordi come gli
-  // altri" e io avevo risolto con una cornice luminosa disegnata lungo il riquadro.
-  // Era la risposta sbagliata: una cornice si vede cornice, e per tre versioni
-  // Ste ha detto "troppo acceso" guardando proprio quella. La richiesta vera era che
-  // la LUCE arrivasse al bordo, e quello si ottiene allargando la maschera, senza
-  // disegnare niente sopra.
+  // 1) La luce del bordo DEVE stare sullo strato che e' SOPRA la foto, non sul
+  //    riquadro. Il riquadro la disegna sotto il contenuto, e il contenuto del
+  //    riquadro e' la foto: con l'Assassino (foto al 100%) l'alone finiva coperto e
+  //    non si vedeva proprio li', mentre con gli altri (foto all'86-88%) si vedeva.
+  // Ci sono DUE regole `::after`: una mette a posto posizione e dimensioni (ha
+  // `inset: 0`) e l'altra disegna i fazzi ed e' quella che porta l'alone del bordo.
+  // Controllare la prima sbaglierebbe: quindi si cercano tutte e si guarda se una
+  // delle due ha davvero la luce interna.
   const regoleAfter = [...css.matchAll(/\.personaggio-scena-grafica\.personaggio-aura::after\s*\{([^}]*)\}/g)]
     .map((m) => m[1]);
   assert.ok(regoleAfter.length >= 1, 'deve esserci la regola dei fazzi');
-  assert.doesNotMatch(
-    css.replace(/\/\*[\s\S]*?\*\//g, '').match(/personaggio-aura::after\s*\{[^}]*\}/)?.[0] || '',
-    /inset\s+0\s+0/,
-    "l'aura non deve disegnare una cornice: arriva al bordo con la maschera, non con un bordo acceso",
-  );
-  assert.match(css, /mask-image:\s*radial-gradient\(100% 100%[^\n]*transparent 100%\)/,
-    'la luce deve arrivare al bordo del riquadro');
-
+  assert.ok(regoleAfter.some((corpo) => /inset 0 0/.test(corpo)),
+    "l'alone del bordo sta sullo strato sopra la foto");
   assert.doesNotMatch(
     css.match(/\.personaggio-scena-grafica\.personaggio-aura\s*\{([^}]*)\}/)?.[1] || '',
     /inset 0 0/,

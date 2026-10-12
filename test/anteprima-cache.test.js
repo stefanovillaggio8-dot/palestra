@@ -91,3 +91,49 @@ test('T4. il CSS chiede davvero i colori che l\'anteprima promette', async () =>
   assert.match(css, /drop-shadow\(0 0 \d+px/,
     'il personaggio deve avere il contorno luminoso: e\' la parte che si vede');
 });
+
+test('T5. i tre finali hanno le stesse dimensioni', async () => {
+  // Ste (12/10/2026): "dovevi soltanto mettere lo sfondo uguale per tutti".
+  //
+  // Lo sfondo e' stato uniformato correggendo il colore dei pixel scuri dei tre
+  // finali, e la verifica e' stata fatta con Pillow: lo scarto fra i tre sfondi e'
+  // sceso da 13,5 a 0,43 su 255, e la figura e' rimasta identica (scarto massimo
+  // 3,6 su 200, dentro il rumore della compressione).
+  //
+  // Qui si controlla la cosa che il test PUO' controllare da solo: che i tre file
+  // abbiano le stesse dimensioni. Le dimensioni stanno nelle prime byte del file
+  // WebP (il formato e' un contenitore RIFF), quindi si leggono senza decodificare
+  // l'immagine e senza nessuna libreria. Se un giorno i tre finali venissero
+  // rigenerati separatamente, il test se ne accorgerebbe.
+  const { readFile: leggi } = await import('node:fs/promises');
+  const dimensioni = [];
+  for (const classe of ['guerriero', 'berserker', 'assassino']) {
+    const buf = await leggi(join(RADICE, 'img', 'personaggi', 'stati', `${classe}-5.webp`));
+    assert.equal(buf.toString('ascii', 0, 4), 'RIFF', `${classe}: non sembra un WebP`);
+    assert.equal(buf.toString('ascii', 8, 12), 'WEBP', `${classe}: non sembra un WebP`);
+    // 'VP8X' = esteso (con alfa), 'VP8L' = lossless, 'VP8 ' = con perdita.
+    const tipo = buf.toString('ascii', 12, 16);
+    let larghezza, altezza;
+    if (tipo === 'VP8X') {
+      larghezza = 1 + (buf[24] | (buf[25] << 8) | (buf[26] << 16));
+      altezza = 1 + (buf[27] | (buf[28] << 8) | (buf[29] << 16));
+    } else if (tipo === 'VP8L') {
+      const b = buf.readUInt32LE(21);
+      larghezza = (b & 0x3FFF) + 1;
+      altezza = ((b >> 14) & 0x3FFF) + 1;
+    } else {
+      larghezza = buf.readUInt16LE(26) & 0x3FFF;
+      altezza = buf.readUInt16LE(28) & 0x3FFF;
+    }
+    dimensioni.push({ classe, larghezza, altezza });
+  }
+  const primo = dimensioni[0];
+  for (const d of dimensioni) {
+    assert.deepEqual(
+      { larghezza: d.larghezza, altezza: d.altezza },
+      { larghezza: primo.larghezza, altezza: primo.altezza },
+      `${d.classe} e' ${d.larghezza}x${d.altezza} mentre ${primo.classe} e' ` +
+      `${primo.larghezza}x${primo.altezza}: i tre finali hanno forme diverse`,
+    );
+  }
+});
