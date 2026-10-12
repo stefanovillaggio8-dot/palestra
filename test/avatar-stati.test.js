@@ -382,34 +382,39 @@ test('R10s. l\'aura ha luce, raggi e scintille, e rispetta chi non vuole le anim
   assert.ok(usiForza >= 8, `le intensita' devono passare da --forza, ne' usano ${usiForza}`);
 
   // Ste (12/10/2026): "vedi cosa c'e' da migliorare, poi forse anche quelli senza
-  // aura adesso sono troppo scuri invece". Due difetti diversi, due correzioni diverse.
+  // aura adesso sono troppo scuri invece".
   //
   // 1) L'AURA tingeva gli ANGOLI. Il gradiente dell'aria era 118% x 108%, piu' grande
   //    del riquadro, e con la miscela `screen` sul nero quegli angoli si accendevano
   //    di marrone: si vedeva un riquadro color caffe' invece di una figura con della
-  //    luce intorno. Ora e' stretto, quindi gli angoli restano neri.
+  //    luce intorno. Quello e' sparito, e la regola resta: l'aria non supera mai il
+  //    riquadro.
+  //
+  //    Il valore, invece, torna a quello della foto che Ste ha scelto (72% x 64% al
+  //    18%). Era stato dimezzato a 60% x 54% al 9% nella v134, con l'idea che la luce
+  //    sul vuoto non si vedesse. Era una teoria: il confronto fra le due build ha
+  //    mostrato che era proprio l'aria a rendere riconoscibile il riquadro dell'aura,
+  //    e a dimezzarla il riquadro restava scuro.
   const ariaLarga = css.replace(/\/\*[\s\S]*?\*\//g, '').match(/radial-gradient\(1[0-9]{2}%\s+1[0-9]{2}%[^\n]*\n[^\n]*var\(--aura\)/);
   assert.equal(ariaLarga, null,
     "l'aria dell'aura non puo' essere piu' grande del riquadro: tingerebbe gli angoli");
-  assert.match(css, /radial-gradient\(60% 54% at 50% 46%/,
-    "l'aria dell'aura sta attorno alla figura e non sul riquadro intero");
-  // E il posto dove la luce DEVE stare e' il contorno sulla figura: su uno sfondo
-  // nero illuminare il vuoto non si vede, e Ste aveva detto "non e' cambiato molto".
+  assert.match(css, /radial-gradient\(72% 64% at 50% 46%/,
+    "l'aria deve essere quella della foto di riferimento: 72% x 64%");
+  // Il posto dove la luce DEVE stare e' il contorno sulla figura, e i suoi valori
+  // sono quelli della foto di riferimento: linea stretta e alone piu' largo. Nella
+  // v134 erano stati cambiati in tre strati con un filo bianco in testa, per l'idea
+  // che "tutto dello stesso colore sembra vernice". Tornano a due strati, come
+  // nella foto che Ste ha scelto: la teoria sull'oliva non reggeva.
   const contorno = css.match(/personaggio-aura \.personaggio-ritratto\s*\{[\s\S]*?\n\}/);
   assert.ok(contorno, 'il contorno del personaggio deve esistere');
   const alone = [...contorno[0].matchAll(/drop-shadow\(0 0 (\d+)px/g)].map(m => Number(m[1]));
-  assert.ok(alone.length === 3, `il contorno deve avere tre strati, ne' ha ${alone.length}: ${alone.join(', ')}`);
-  assert.ok(alone[2] >= 16,
-    `l'alone esterno deve essere largo, non solo la linea: ${alone.join(', ')}`);
-  // Ste (12/10/2026): "e ancora piu' nero e giallo". Il giallo era tutto dello stesso
-  // colore dal filo all'alone, e una cosa tutta uguale non sembra luce: sembra
-  // vernice. La luce vera ha il CENTRO BIANCO e il bordo colorato.
-  assert.match(contorno[0], /drop-shadow\(0 0 2px rgba\(255,\s*252,\s*240/,
-    'il filo piu\' vicino alla figura deve essere bianco caldo: e\' la luce, non la tinta');
-  assert.ok(alone[0] < alone[1] && alone[1] < alone[2],
-    `i tre strati devono crescere verso l'esterno: ${alone.join(', ')}`);
-  assert.ok(/95% \* var\(--forza\)|88% \* var\(--forza\)/.test(contorno[0]),
-    'la forza dell\'aura va messa sul contorno, che e\' l\'unico strato che tocca la figura');
+  assert.deepEqual(alone, [3, 12],
+    `il contorno deve avere linea e alone come nella foto di riferimento: ${alone.join(', ')}`);
+  assert.ok(alone[0] < alone[1],
+    'la linea deve essere stretta e l\'alone largo, non il contrario');
+  assert.ok(/70% \* var\(--forza\)/.test(contorno[0]),
+    'la forza dell\'aura va messa sul contorno, che tocca la figura');
+
 
   // Ste (12/10/2026): "non e' cambiato molto" e, guardando l'anteprima, una X bianca
   // ferma nell'angolo in alto a sinistra. Quella X era una stella: era un poligono a
@@ -442,18 +447,19 @@ test('R10s. l\'aura ha luce, raggi e scintille, e rispetta chi non vuole le anim
   assert.match(css, /con-foto \.personaggio-ritratto\s*\{[^}]*position:\s*relative[^}]*z-index:\s*1/,
     'la foto sta davanti alla luce di base');
 
-  // Ste (12/10/2026), dopo il tentativo di alzare la foto: "hai abbassato la qualita'
-  // originale". Era vero, e il motivo e' nel modo, non nella quantita'. Alzando i
-  // mezzitoni si alzano anche i neri e la foto si riempie di grigio: la nebbia. Il
-  // contrasto invece alza i mezzitoni e RIABBASSA i neri, che e' quello che serve a
-  // una figura scura su fondo nero. E resta un filtro del browser: il file non viene
-  // toccato, quindi si puo' disfare.
+  // Il filtro torna a quello della foto di riferimento: contrast(1.04).
+  //
+  // Era stato alzato a 1.08 e poi 1.10 nella v134, sull'idea che per vedere di piu'
+  // in una foto scura servisse piu' contrasto. Piu' contrasto rende la foto DURA,
+  // e "dura" e' esattamente la perdita di qualita' che Ste aveva descritto prima.
+  // Quindi la regola che resta vera e' l'altra, quella che non dipende dal gusto: la
+  // luminosita' non si alza, perche' e' lei che faceva la nebbia.
   const filtroBase = css.match(/con-foto \.personaggio-ritratto\s*\{[^}]*filter:\s*([^;]+);/);
   assert.ok(filtroBase, 'la foto deve avere un filtro');
   const contrasto = Number((filtroBase[1].match(/contrast\(([\d.]+)\)/) || [])[1]);
   const luminosita = Number((filtroBase[1].match(/brightness\(([\d.]+)\)/) || [])[1]);
-  assert.ok(contrasto >= 1.08,
-    `per vedere di piu' si alza il CONTRASTO, non la luminosita': era ${contrasto}`);
+  assert.ok(contrasto > 1 && contrasto <= 1.05,
+    `il contrasto oltre 1.05 rende la foto dura: era ${contrasto}`);
   assert.ok(luminosita <= 1.05,
     `la luminosita' va tenuta bassa: alzarla e' quello che ha fatto la nebbia (era ${luminosita})`);
 
@@ -518,19 +524,31 @@ test("R10t. l'aura arriva al bordo e non usa mask-composite", async () => {
 
   // 3) La luce NON arriva al bordo.
   //
-  // Qui il test diceva il contrario ("deve esserci un alone largo che arriva fino al
-  // bordo") e aveva ragione solo finche' non si e' visto il risultato. Ste (12/10):
-  // prima "troppo acceso", poi "non e' cambiato molto".
+  // L'ARIA CALDA RESTA AL 18% SU 72x64, E IL TEST LO DICE PER SCRITTO.
   //
-  // Su un'immagine con sfondo nero, la luce sul vuoto non dice niente: il vuoto resta
-  // vuoto, solo un po' piu' color caffe'. E' il motivo per cui l'aura sembrava una
-  // vignetta marrone invece di una figura con della luce intorno. La luce che si vede
-  // e' quella che avvolge la FIGURA, e quella la disegna il contorno dorato, che
-  //appunto e' l'unico strato a piena forza.
+  // Nella v134 questo valore era stato portato a 9% su 60x54, e il motivo scritto
+  // nei commenti era: "su uno sfondo nero la luce sul vuoto non dice niente, quindi
+  // l'aria scende a un accenno e lascia il posto al contorno".
+  //
+  // Era una teoria, non una misura. Ste ha poi detto "devi farlo uguale a qua",
+  // allegando la foto della v132, e il confronto fra le due build ha mostrato che
+  // la differenza visibile era proprio l'aria: dimezzata, il riquadro dell'aura
+  // diventava scuro e lui non lo riconosceva piu'.
+  //
+  // Quindi il numero torna al 18% su 72x64. La regola che resta vera e che questo
+  // test presidia e' un'altra, ed e' quella che serve: l'aria non puo' superare il
+  // riquadro, altrimenti tinge gli angoli di marrone. Il 118% x 108% della v131
+  // era quello, e quello e' sparito.
   const soloAura = css.match(/personaggio-aura::before\s*\{[\s\S]*?\n\}/);
   assert.ok(soloAura, "il primo strato dell'aura deve esistere");
-  assert.doesNotMatch(soloAura[0], /radial-gradient\(1[0-9]{2}%/,
-    'nell\'aura nessun gradiente puo\' essere piu\' largo del riquadro: tingerebbe gli angoli');
-  assert.match(soloAura[0], /radial-gradient\(60% 54% at 50% 46%/,
-    'l\'aria sta attorno alla figura, stretta');
+  // I commenti si tolgono prima di guardare: dentro il blocco c'e' la spiegazione
+  // del vecchio 118% x 108%, scritta per ricordare che errore era. Controllare
+  // anche i commenti accuserebbe un CSS che invece e' giusto.
+  const soloAuraSenzaCommenti = soloAura[0].replace(/\/\*[\s\S]*?\*\//g, '');
+  assert.doesNotMatch(soloAuraSenzaCommenti, /radial-gradient\(1[0-9]{2}%/,
+    'nell\'aura nessun gradiente può essere più largo del riquadro: tingerebbe gli angoli');
+  assert.match(soloAura[0], /radial-gradient\(72% 64% at 50% 46%/,
+    "l'aria deve essere quella della foto che Ste ha scelto: 72% x 64%");
+  assert.match(soloAura[0], /--aura\) calc\(18% \* var\(--forza\)\)/,
+    "l'aria deve stare al 18%: sotto, il riquadro dell'aura resta scuro");
 });
