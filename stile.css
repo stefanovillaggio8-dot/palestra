@@ -1723,6 +1723,47 @@ body:has(.sfondo-dialogo) .avviso {
   50%      { opacity: 1;   transform: scale(1.05) rotate(45deg); }
 }
 
+/* LA COLONNA DI LUCE dietro la figura.
+ *
+ * Ste (12/10/2026): "aggiungi piu' effetti".
+ *
+ * Non e' un raggio: e' una colonna larga e sfocata, che sale dal pavimento e
+ * passa dietro le spalle. Sta dietro perche' il riquadro e' sopra la foto, quindi
+ * perche' sia "dietro" deve essere disegnata PRIMA: per questo usa `z-index: 0`,
+ * mentre la foto ne ha `z-index: 1`. Il resto dell'aura resta davanti.
+ *
+ * Si muove poco e piano, e in alto si spegne: una colonna che arriva fino in cima
+ * sembrerebbe un proiettore, non una luce.
+ */
+.aura-colonna {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  background:
+    linear-gradient(0deg,
+      color-mix(in srgb, var(--aura) 40%, transparent) 0%,
+      color-mix(in srgb, var(--aura) 16%, transparent) 42%,
+      transparent 86%);
+  -webkit-mask-image: radial-gradient(34% 100% at 50% 52%, #000 0%, transparent 84%);
+  mask-image: radial-gradient(34% 100% at 50% 52%, #000 0%, transparent 84%);
+  filter: blur(20px);
+  animation: aura-colonna 7.5s ease-in-out infinite;
+}
+@keyframes aura-colonna {
+  0%, 100% { opacity: .72; transform: scaleX(.92); }
+  50%      { opacity: 1;   transform: scaleX(1.06); }
+}
+
+/* LA FOTO STA SOPRA LA COLONNA, e sotto il resto dell'aura. */
+.personaggio-scena-grafica.personaggio-aura .personaggio-ritratto { position: relative; z-index: 1; }
+.personaggio-scena-grafica.personaggio-aura::before,
+.personaggio-scena-grafica.personaggio-aura::after,
+.aura-scie,
+.aura-stelle,
+.aura-lustro { z-index: 2; }
+
 /* IL BAGLIORE che attraversa la figura ogni 4,5 secondi.
  *
  * Ste (12/10/2026): "la banda di luce falla un po' piu' spesso che spunta, tipo
@@ -1762,6 +1803,7 @@ html.animazioni-mai .aura-lustro { animation: none; }
 html.animazioni-mai .aura-scie i,
 html.animazioni-mai .aura-stelle i { opacity: .55; }
 html.animazioni-mai .aura-lustro { display: none; }
+html.animazioni-mai .aura-colonna { animation: none; }
 
 /* Lo stato in cui sei ADESSO, marcato nella fila. Così sai subito quale sei. */
 .pezzo.adesso {

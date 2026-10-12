@@ -339,6 +339,14 @@ test('R10s. l\'aura ha luce, raggi e scintille, e rispetta chi non vuole le anim
   assert.match(css, /repeating-conic-gradient/, "l'anello che gira piano");
   assert.match(css, /@keyframes aura-stella/, 'le stelle che si accendono e spengono');
   assert.match(css, /@keyframes aura-lustro/, 'il bagliore che attraversa la figura');
+  // Ste (12/10/2026): \"aggiungi piu' effetti\". La colonna di luce sta DAVANTI alla
+  // foto nel DOM ma ha z-index: 0 mentre la foto ha z-index: 1: senza questo
+  // la colonna verrebbe dipinta sopra la figura e la coprirebbe.
+  assert.match(css, /\.aura-colonna\s*\{[^}]*z-index:\s*0/, 'la colonna di luce sta dietro la foto');
+  assert.match(css, /personaggio-aura \.personaggio-ritratto\s*\{[^}]*z-index:\s*1/, 'e la foto sta sopra la colonna');
+  assert.match(css, /@keyframes aura-colonna/, 'la colonna deve respirare piano');
+  const appC = await readFile(join(RADICE, 'src', 'app.js'), 'utf8');
+  assert.match(appC, /class: 'aura-colonna'/, "la colonna e' creata dal codice");
   // Ste (12/10/2026): "la banda di luce falla un po' piu' spesso che spunta, tipo
   // ogni 4,5 secondi". Prima passavano 6,5 e sembrava non accadesse mai: qui si
   // controlla il numero, perche' e' una cosa che si dimentica di cambiare.

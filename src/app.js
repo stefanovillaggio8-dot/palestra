@@ -4479,6 +4479,7 @@ function bloccoPersonaggio(profilo, st) {
       // Sei, non quattro: con quattro si leggevano come un corteo regolare. Ogni
       // `deriva` spinge la scintilla di lato mentre sale, così il gruppo si apre
       // invece di restare una colonna.
+      grafica.appendChild(el('div', { class: 'aura-colonna', aria: { hidden: 'true' } }));
       const scie = el('div', { class: 'aura-scie', aria: { hidden: 'true' } });
       const posizioni = [20, 31, 41, 50, 59, 68, 79];
       const ritardi = [0, .9, 1.7, 2.4, 3.1, 3.9, 4.6];
@@ -4505,12 +4506,19 @@ function bloccoPersonaggio(profilo, st) {
       // bassi, con tempi diversi. Non stanno ferme: una stella fissa sembra una
       // macchiolina, una stella che si accende e spegne sembra viva.
       const stelle = el('div', { class: 'aura-stelle', aria: { hidden: 'true' } });
+      // Nove, non cinque: con cinque la parte alta del riquadro restava vuota, e il
+      // vuoto si nota più delle stelle. alternate sono grandi e piccole, così non
+      // sembrano una griglia.
       const Stelle = [
-        { x: 17, y: 19, g: 8, r: 0, d: 3.2 },
-        { x: 81, y: 26, g: 6, r: 1.1, d: 4.1 },
-        { x: 26, y: 41, g: 5, r: 2.3, d: 3.6 },
-        { x: 87, y: 52, g: 7, r: .7, d: 4.6 },
-        { x: 11, y: 62, g: 5, r: 1.9, d: 3.9 },
+        { x: 15, y: 15, g: 8, r: 0, d: 3.2 },
+        { x: 34, y: 9, g: 5, r: 1.4, d: 4.3 },
+        { x: 62, y: 13, g: 6, r: 2.6, d: 3.8 },
+        { x: 84, y: 19, g: 7, r: .8, d: 4.5 },
+        { x: 24, y: 33, g: 5, r: 2.0, d: 3.4 },
+        { x: 90, y: 38, g: 5, r: 3.1, d: 4.1 },
+        { x: 8, y: 49, g: 6, r: 1.1, d: 3.7 },
+        { x: 44, y: 44, g: 4, r: 2.9, d: 4.6 },
+        { x: 73, y: 47, g: 5, r: .4, d: 3.5 },
       ];
       for (const s of Stelle) {
         stelle.appendChild(el('i', {
