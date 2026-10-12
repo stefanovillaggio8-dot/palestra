@@ -9,7 +9,7 @@
 // e il test I3 che sia quello dell'ultimo commit, altrimenti si alza la cache e si
 // lascia scritto il numero vecchio. E' successo due volte: nella v54 avevo alzato
 // solo questo file, e dopo la v55 avevo smesso di alzarlo del tutto.
-const VERSIONE = 'palestra-v124';
+const VERSIONE = 'palestra-v125';
 
 const FILE = [
   './',
@@ -24,7 +24,7 @@ const FILE = [
   // Il numero deve essere uguale a quello di `stile.css?v=` in index.html e a
   // `window.PALESTRA_VERSIONE`: se i tre non coincidono, l'app carica un foglio di
   // stile e dice un altro numero.
-  './stile.css?v=124',
+  './stile.css?v=125',
 './manifest.webmanifest',
   './manifest-p1.webmanifest',
   './manifest-p2.webmanifest',
@@ -155,7 +155,17 @@ const FOTO = [
 self.addEventListener('install', (evento) => {
   evento.waitUntil(
     caches.open(VERSIONE)
-      .then((cache) => cache.addAll([...FILE, ...FOTO]))
+      // `cache: 'reload'` su ogni file: senza, il service worker chiede i file al
+      // server ma il BROWSER li risponde dalla sua cache HTTP, che vale mesi. Il
+      // risultato era che un'immagine cambiata restava quella vecchia anche dopo
+      // l'aggiornamento, e sembrava che la modifica non fosse stata pubblicata.
+      //
+      // Il nome della cache cambia a ogni versione, quindi la cache del service
+      // worker è nuova e vuota: ma quella sotto, quella del browser, è la stessa
+      // per tutte le versioni, e il nome del file non cambia. Serve dirlo qui.
+      .then((cache) => cache.addAll(
+        [...FILE, ...FOTO].map((percorso) => new Request(percorso, { cache: 'reload' })),
+      ))
       .then(() => self.skipWaiting()),
   );
 });
