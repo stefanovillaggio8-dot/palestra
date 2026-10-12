@@ -257,13 +257,13 @@ test('R10n. la fila ha la casella di partenza e poi tutti i premi', () => {
   // E i nomi dell'Assassino, che sono quelli che hanno fatto notare la cosa.
   assert.deepEqual(lista.slice(1).map((c) => c.nome), [
     'Bracciali di cuoio', 'Vestiti leggeri', 'Cintura da assassino',
-    'Pugnale', 'Armatura leggendaria', 'Arma divina',
+    'Pugnale', 'Armatura leggendaria', 'Aura divina',
   ]);
 });
 
 test('R10o. l\'ultima casella e\' l\'aura e riusa l\'ultima foto', () => {
   // Il sesto premio non ha una foto tutta sua: l'ultima riga e' già "tutto addosso".
-  // Se la casella non lo dice, sembrerebbe che "Arma divina" non esista.
+  // Se la casella non lo dice, sembrerebbe che "Aura divina" non esista.
   const lista = schedaProgressione(conSbloccati(6), 'guerriero', 100);
   const ultima = lista[lista.length - 1];
   const penultima = lista[lista.length - 2];

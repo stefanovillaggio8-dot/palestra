@@ -4513,7 +4513,7 @@ function bloccoPersonaggio(profilo, st) {
     // di `nomePremio`. Davanti c'e' la casella "Senza armatura", che non e' una
     // ricompensa ma il punto da cui si parte.
     //
-    // Le caselle sono SETTE e le immagini sei: l'ultima casella e' "Arma divina", il
+    // Le caselle sono SETTE e le immagini sei: l'ultima casella e' "Aura divina", il
     // sesto premio, che non ha una foto tutta sua perché l'ultima riga e' già
     // "tutto addosso". Quella mostra l'ultima foto con l'AURA accesa sopra, che e'
     // quello che dice `viso.aura`.

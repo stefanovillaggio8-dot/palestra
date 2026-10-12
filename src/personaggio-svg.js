@@ -99,7 +99,7 @@ const PEZZI = {
           <circle cx="60" cy="85" r="6.5" class="pieno"/>`,
     },
     {
-      id: 'divina', premio: 'divina', spiegazione: "l'arma divina",
+      id: 'divina', premio: 'divina', spiegazione: "l'aura divina",
       d: `<path d="M60 62 l5 13 l13 2 l-10 9 l4 13 l-12 -7 l-12 7 l4 -13 l-10 -9 l13 -2 Z"
           fill="none" stroke-width="2.4"/>`,
     },
@@ -150,7 +150,7 @@ const PEZZI = {
           <circle cx="60" cy="86" r="6" class="pieno"/>`,
     },
     {
-      id: 'divina', premio: 'divina', spiegazione: "l'arma divina",
+      id: 'divina', premio: 'divina', spiegazione: "l'aura divina",
       d: `<path d="M60 62 l5 13 l13 2 l-10 9 l4 13 l-12 -7 l-12 7 l4 -13 l-10 -9 l13 -2 Z"
           fill="none" stroke-width="2.4"/>`,
     },
@@ -203,7 +203,7 @@ const PEZZI = {
           <circle cx="60" cy="86" r="6" class="pieno"/>`,
     },
     {
-      id: 'divina', premio: 'divina', spiegazione: "l'arma divina",
+      id: 'divina', premio: 'divina', spiegazione: "l'aura divina",
       d: `<path d="M60 62 l5 13 l13 2 l-10 9 l4 13 l-12 -7 l-12 7 l4 -13 l-10 -9 l13 -2 Z"
           fill="none" stroke-width="2.4"/>`,
     },

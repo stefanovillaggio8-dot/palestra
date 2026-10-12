@@ -73,7 +73,7 @@ export const PREMI = [
   { id: 'runica', giorni: 15, nome: 'Spada runica', icona: '⚔️', richiede: {} },
   { id: 'elmo', giorni: 30, nome: 'Elmo del drago', icona: '🐉', richiede: {} },
   { id: 'leggendaria', giorni: 50, nome: 'Armatura leggendaria', icona: '✨', richiede: {} },
-  { id: 'divina', giorni: 75, nome: 'Arma divina', icona: '🔱', richiede: {} },
+  { id: 'divina', giorni: 75, nome: 'Aura divina', icona: '✨', richiede: {} },
 ];
 
 // IL NOME CHE VEDE VOI DIPENDE DALLA CLASSE.
@@ -231,7 +231,7 @@ export function percorsoStato(classeId, indice) {
  * il nome che dice la classe di chi guarda. C'è in più la casella "senza armatura",
  * che non è una ricompensa ma il punto da cui si parte.
  *
- * Perché le caselle sono SETTE e le immagini sei: la settima casella è "Arma divina",
+ * Percheé le caselle sono SETTE e le immagini sei: la settima casella è "Aura divina",
  * il sesto premio, che non ha una foto tutta sua (l'ultima riga è già "tutto
  * addosso"). Quindi quella casella mostra l'ultima foto CON l'aura accesa sopra,
  * che è quello che `viso.aura` dice.
