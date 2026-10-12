@@ -1599,6 +1599,41 @@ body:has(.sfondo-dialogo) .avviso {
   100% { opacity: 1;   filter: contrast(1.04) saturate(1.02) brightness(1.04); }
 }
 
+/* ---------------------------------------------------------------------------
+ * IL BORDO A ZIGZAG
+ * ---------------------------------------------------------------------------
+ * Ste (12/10/2026): "fai i bordi tipo a zigzag non so come spiegarti".
+ *
+ * "Non so come spiegarti" e' la parte piu' utile della frase: se non riusciva a
+ * dire come lo voleva, il modo per sbagliare e' inventare qualcosa. Quindi si fa
+ * la cosa piu' semplice che assomiglia a quello che ha detto: un bordo a denti di
+ * sega, come una cucitura.
+ *
+ * Come e' fatto: un disegno SVG di 16x12 px con due denti in alto, usato come
+ * `border-image` ritagliato a 10 px e ripetuto. Il vantaggio di cosi' e' che si vede
+ * il BORDO vero, non un'immagine di cornice: resta dentato anche quando la scheda
+ * si allarga, e non si sfuoca perche' viene ridisegnata, non stirata.
+ *
+ * Perche' due colori e non uno solo: il bordo segue la ricompensa. Senza aura e'
+ * viola scuro, e non si nota; con l'Aura divina diventa d'oro, e si vede che il
+ * livello finale ha un bordo diverso. Il colore non puo' passare da una variabile
+ * CSS dentro l'URL dell'SVG (dentro un `data:` non si leggono le variabili), quindi
+ * le due regole stanno scritte per esteso.
+ *
+ * Gli angoli NON sono arrotondati: un bordo a denti con le punte tonde sembrerebbe
+ * un errore. */
+.personaggio-scena-grafica.con-foto {
+  border: 11px solid transparent;
+  border-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='12'%3E%3Cpath d='M0 12V7L4 1L8 7L12 1L16 7V12Z' fill='%23423163'/%3E%3C/svg%3E") 11 repeat;
+  border-radius: 0;
+}
+/* CON L'AURA DIVINA IL BORDO È D'ORO. */
+.personaggio-scena-grafica.con-foto.personaggio-aura {
+  border-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='12'%3E%3Cpath d='M0 12V7L4 1L8 7L12 1L16 7V12Z' fill='%23ffd166'/%3E%3C/svg%3E") 11 repeat;
+}
+/* La foto dentro segue il bordo: niente angoli tondi sopra i denti. */
+.personaggio-scena-grafica.con-foto .personaggio-ritratto { border-radius: 0; }
+
 /* L'AURA DIVINA: il sesto premio, 75 giorni di fila.
  *
  * Ste (12/10/2026): "deve essere il livello finale quindi qualcosa di bello bello".

@@ -429,6 +429,30 @@ test('R10s. l\'aura ha luce, raggi e scintille, e rispetta chi non vuole le anim
   assert.match(stelle[0], /drop-shadow/,
     'le stelle devono avere l\'alone, altrimenti sono macchioline sbiadite');
 
+  // IL BORDO A ZIGZAG. Ste (12/10/2026): "fai i bordi tipo a zigzag non so come
+  // spiegarti". "Non so come spiegarti" vuol dire che la forma esatta la lasciava
+  // a me: quindi si controlla che sia un bordo disegnato (e non una cornice
+  // stirata), che resti dentato anche se la scheda si allarga, e che cambi con
+  // l'Aura divina perche' il livello finale si deve vedere.
+  const zigzag = css.match(/con-foto\s*\{[^}]*border-image:\s*url\("data:image\/svg\+xml[^;]+;/);
+  assert.ok(zigzag, 'il riquadro della foto deve avere un bordo a denti (border-image)');
+  assert.match(css, /border-image:\s*url\("data:image\/svg\+xml[^)]*L4 1L8 7L12 1L16 7V12Z/,
+    'il bordo deve essere disegnato con i denti, non stirato: due punte in ogni 16 px');
+  assert.match(css, /con-foto\.personaggio-aura\s*\{[^}]*border-image:/,
+    'con l\'Aura divina il bordo deve cambiare, cosi\' il livello finale si vede');
+  const coloriBordo = [...css.matchAll(/border-image:[^;]*fill='%23([0-9a-f]{6})'/g)].map((m) => m[1]);
+  assert.equal(coloriBordo.length, 2, 'devono esserci due bordi: uno normale e uno d\'oro');
+  assert.notEqual(coloriBordo[0], coloriBordo[1],
+    'il bordo con l\'aura non puo\' essere uguale a quello senza aura');
+  assert.match(css, /con-foto \.personaggio-ritratto\s*\{[^}]*border-radius:\s*0/,
+    'la foto dentro non deve avere gli angoli tondi: sopra i denti sembrerebbe un errore');
+
+  // E il resto dell'aura che Ste ha chiesto di tenere: il fascio ogni 4,5 secondi
+  // e i pallini. Sono le tre cose che ha elencato quando ha detto di ripartire.
+  assert.match(css, /animation:\s*aura-lustro 4\.5s/, 'il fascio di luce ogni 4,5 secondi');
+  assert.match(css, /\.aura-scie i\s*\{/, 'i pallini che salgono dal pavimento');
+  assert.match(css, /\.aura-stelle i\s*\{/, 'i pallini che scintillano');
+
   // 2) SENZA AURA IL VUOTO RESTAVA VUOTO. Misurando le immagini: meta' del disegno sta
   //    sotto il 40 di luminosita' e il personaggio galleggia nel nero. La versione con
   //    l'aura sembrava piu' bella non perche' la figura fosse piu' luminosa, ma perche'
