@@ -1594,18 +1594,19 @@ body:has(.sfondo-dialogo) .avviso {
 .personaggio-scena-grafica.personaggio-aura::before {
   background:
     /* la luce che sale dal pavimento, stretta e bassa */
-    radial-gradient(56% 13% at 50% 93%,
-      color-mix(in srgb, var(--aura) 60%, transparent) 0%,
-      transparent 74%),
+    radial-gradient(62% 16% at 50% 94%,
+      color-mix(in srgb, var(--aura) 66%, transparent) 0%,
+      transparent 80%),
     /* l'alone dietro il busto */
-    radial-gradient(34% 42% at 50% 46%,
-      color-mix(in srgb, var(--aura) 40%, transparent) 0%,
-      transparent 72%),
-    /* l'aria calda intorno, la piu' larga e la piu' debole */
-    radial-gradient(86% 74% at 50% 58%,
-      color-mix(in srgb, var(--aura) 13%, transparent) 0%,
-      transparent 76%);
-  filter: blur(22px);
+    radial-gradient(42% 50% at 50% 44%,
+      color-mix(in srgb, var(--aura) 44%, transparent) 0%,
+      transparent 78%),
+    /* l'aria calda intorno: arriva fino al bordo, e arriva anche in alto e in
+       basso, cosi' non c'e' una fascia sopra e sotto senza luce */
+    radial-gradient(115% 105% at 50% 50%,
+      color-mix(in srgb, var(--aura) 20%, transparent) 0%,
+      transparent 94%);
+  filter: blur(26px);
   animation: aura-pulse 4.6s ease-in-out infinite;
 }
 
@@ -1615,16 +1616,14 @@ body:has(.sfondo-dialogo) .avviso {
     repeating-linear-gradient(97deg,
       color-mix(in srgb, var(--aura) 13%, transparent) 0deg 5deg,
       transparent 5deg 26deg);
-  -webkit-mask-image:
-    radial-gradient(46% 62% at 50% 34%, #000 0%, transparent 78%),
-    linear-gradient(180deg, #000 0%, transparent 88%);
-  -webkit-mask-composite: source-in;
-  mask-image:
-    radial-gradient(46% 62% at 50% 34%, #000 0%, transparent 78%),
-    linear-gradient(180deg, #000 0%, transparent 88%);
-  mask-composite: intersect;
+  /* UNA sola maschera, e rotonda: cosi' non si appoggia a "mask-composite", che su
+     Safari si comporta diversamente da Chrome e faceva cambiare l'aura da telefono
+     a telefono. La maschera arriva vicino al bordo (94%), quindi l'oro si vede
+     anche li'. */
+  -webkit-mask-image: radial-gradient(88% 92% at 50% 40%, #000 34%, transparent 96%);
+  mask-image: radial-gradient(88% 92% at 50% 40%, #000 34%, transparent 96%);
   mix-blend-mode: screen;
-  opacity: .75;
+  opacity: .8;
   animation: aura-fassi 19s ease-in-out infinite alternate;
 }
 
@@ -1679,6 +1678,24 @@ body:has(.sfondo-dialogo) .avviso {
 /* Chi ha scelto "mai" non vede i fazzi muoversi ne' le scintelle salire: restano
    l'alone e il contorno, che non sono animazioni ma colori. Il nome della classe e'
    quello che mette src/animazioni.js (`html.animazioni-mai`), non uno inventato qui. */
+/* L'ALONE SUL BORDO DEL RIQUADRO.
+ *
+ * Ste (12/10/2026): "qui non e' giallo pure ai bordi come gli altri". La luce
+ * arrivava al centro e si spegneva prima del bordo, quindi su un'immagine con
+ * sfondo chiaro (l'assassino) si vedeva che l'oro non c'era, e su una con sfondo
+ * scuro sembrava che ci fosse.
+ *
+ * Qui il bordo del riquadro si illumina direttamente: non dipende da quello che c'e'
+ * sotto, quindi l'aura ha lo stesso bordo in tutte e tre le classi. `inset` vuol
+ * dire che la luce sta DENTRO, e non esce fuori dal riquadro.
+ */
+.personaggio-scena-grafica.personaggio-aura {
+  box-shadow:
+    inset 0 0 26px -4px color-mix(in srgb, var(--aura) 58%, transparent),
+    inset 0 0 70px -22px color-mix(in srgb, var(--aura) 42%, transparent);
+}
+
+html.animazioni-mai .personaggio-scena-grafica.personaggio-aura::after,
 html.animazioni-mai .personaggio-scena-grafica.personaggio-aura::after,
 html.animazioni-mai .aura-scie i { animation: none; }
 html.animazioni-mai .aura-scie i { opacity: .55; }

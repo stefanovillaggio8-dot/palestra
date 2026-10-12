@@ -347,3 +347,33 @@ test('R10s. l\'aura ha luce, raggi e scintille, e rispetta chi non vuole le anim
   assert.match(app, /const posizioni = \[20, 31, 41, 50, 59, 68, 79\]/, 'sette scintille a sette posizioni');
   assert.match(app, /const derive = \[14, -9, 6, -13, 10, -6, 16\]/, 'ogni scintilla sbandiera di lato: altrimenti salgono in fila');
 });
+test("R10t. l'aura arriva al bordo e non usa mask-composite", async () => {
+  // Ste (12/10/2026): "qui non e' giallo pure ai bordi come gli altri". La luce si
+  // spegneva prima del bordo, quindi su un'immagine con sfondo chiaro si vedeva che
+  // l'oro mancava e su una con sfondo scuro sembrava che ci fosse: la stessa aura
+  // sembrava due cose diverse.
+  const css = await readFile(join(RADICE, 'stile.css'), 'utf8');
+
+  // 1) Il riquadro si illumina DENTRO, lungo il bordo: cosi' non dipende dalla foto
+  //    sotto e tutte e tre le classi hanno lo stesso bordo.
+  assert.match(css, /\.personaggio-scena-grafica\.personaggio-aura\s*\{[^}]*inset 0 0/,
+    "il riquadro con l'aura deve avere una luce interna lungo il bordo");
+
+  // 2) UNA sola maschera. `mask-composite` su Safari si comporta diversamente da
+  //    Chrome, e l'aura cambiava da telefono a telefono.
+  // Si conta quanti gradienti ci sono dentro la dichiarazione, NON le virgole:
+  // dentro `radial-gradient(...)` le virgole sono parte della funzione, quindi
+  // contandole sembrerebbe sempre una lista di maschere e il test accuserebbe una
+  // maschera sola che invece e' giusta.
+  const maschere = [...css.matchAll(/(?<!-)mask-image:\s*([^;]+);/g)];
+  assert.ok(maschere.length > 0, 'i fazzi devono avere una maschera');
+  for (const [, valore] of maschere) {
+    const quanti = (valore.match(/gradient\(/g) || []).length;
+    assert.equal(quanti, 1,
+      `una maschera sola, non due da comporre: "${valore.trim()}"`);
+  }
+
+  // 3) La luce arriva al bordo: il gradiente piu' largo deve superare il 100%.
+  assert.match(css, /radial-gradient\(1[0-9]{2}% 1[0-9]{2}% at 50%/,
+    'deve esserci un alone largo che arriva fino al bordo del riquadro');
+});
