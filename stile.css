@@ -1512,12 +1512,54 @@ body:has(.sfondo-dialogo) .avviso {
   border-color: var(--bordo);
 }
 .personaggio-scena-grafica.con-foto .personaggio-ritratto {
-  position: static;
+  /* `relative` serve per la luce di dietro qui sotto: senza, la foto e' un elemento
+     "statico" e lo pseudo-elemento passerebbe SOPRA, colorando il personaggio invece
+     che gli spalle. Con z-index 1 la foto resta davanti e la luce resta dietro. */
+  position: relative;
+  z-index: 1;
   display: block;
   width: 100%;
   height: auto; /* l'altezza la decide la foto: non si può tagliare */
   transform: none;
   filter: contrast(1.04) saturate(1.02) brightness(1.04);
+}
+
+/* ---------------------------------------------------------------------------
+ * LA LUCE DIETRO LA FIGURA, QUANDO NON C'È L'AURA
+ * ---------------------------------------------------------------------------
+ * Ste (12/10/2026): "quelli senza aura adesso sono troppo scuri invece".
+ *
+ * Misurando le tre immagini non è uscito quello che sembrava a occhio. Il
+ * Berserker è il PIÙ luminoso dei tre (media 69), non il più scuro: quello
+ * scuro è l'Assassino (54). Il problema vero è un altro, ed è nel mezzo:
+ * metà dell'immagine sta sotto il 40 di luminosità e il personaggio galleggia
+ * in un vuoto nero.
+ *
+ * Ed è per questo che la versione CON l'aura sembrava più bella: non perché la
+ * figura fosse più luminosa, ma perché l'oro RIEMPIEVA quel vuoto. Tolto l'oro,
+ * si è visto che il vuoto era lì anche prima.
+ *
+ * Qui si riempie anche senza aura, ma di un colore DELLA SCENA e non della
+ * ricompensa: viola tenue dietro alle spalle e un'eco ai piedi. Oro vuol dire
+ * "divina" e resta roba del livello finale; il viola è la strada, è il colore
+ * dell'app. Così chi è a 70 giorni vede il personaggio illuminato, e chi arriva
+ * a 75 vede cambiare il COLORE della luce, non solo la sua quantità. */
+.personaggio-scena-grafica.con-foto:not(.personaggio-aura)::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    /* dietro le spalle: il vuoto prende forma */
+    radial-gradient(54% 42% at 50% 38%,
+      color-mix(in srgb, var(--tinta) 30%, transparent) 0%,
+      transparent 78%),
+    /* un'eco del pavimento, sotto i piedi */
+    radial-gradient(70% 18% at 50% 95%,
+      color-mix(in srgb, var(--tinta) 24%, transparent) 0%,
+      transparent 84%);
+  filter: blur(26px);
 }
 
 /* ---------------------------------------------------------------------------
@@ -1621,10 +1663,20 @@ body:has(.sfondo-dialogo) .avviso {
     radial-gradient(66% 17% at 50% 94%,
       color-mix(in srgb, var(--aura) calc(70% * var(--forza)), transparent) 0%,
       transparent 80%),
-    /* l'aria calda intorno: arriva fino al bordo, in alto e in basso */
-    radial-gradient(118% 108% at 50% 50%,
-      color-mix(in srgb, var(--aura) calc(21% * var(--forza)), transparent) 0%,
-      transparent 95%);
+    /* l'aria calda intorno: TIGHT, non a pieno riquadro.
+     *
+     * Qui c'era `radial-gradient(118% 108% at 50% 50%, ...)` e cioè un gradiente
+     * più grande del riquadro stesso: arrivava fino agli angoli e li tingeva di
+     * marrone. Con la miscela `screen` quello è il danno peggiore, perché lo
+     * schermo sul nero lo accende più che su qualsiasi altro colore: si vedeva
+     * un riquadro color caffè invece di una figura con della luce intorno.
+     *
+     * Riducendolo a 72% × 64% l'aria resta attorno al personaggio e i quattro
+     * angoli tornano neri, che è quello che fa sembrare la foto una foto e non
+     * una vignetta. */
+    radial-gradient(72% 64% at 50% 46%,
+      color-mix(in srgb, var(--aura) calc(18% * var(--forza)), transparent) 0%,
+      transparent 88%);
   filter: blur(18px);
   animation: aura-pulse 4.6s ease-in-out infinite;
 }
@@ -1659,9 +1711,19 @@ body:has(.sfondo-dialogo) .avviso {
     inset 0 0 48px -26px color-mix(in srgb, var(--aura) calc(46% * var(--forza)), transparent);
 }
 
+/* IL FIATO DELL'AURA.
+ *
+ * Prima andava da .62 a 1: una differenza del 60%, cioè ogni 4,6 secondi l'aura
+ * partiva piu' accesa e poi tornava giu'. Ste se n'e' accorto e ha detto che era
+ * "troppo acceso": non tanto per il livello di base, quanto per quei BALZI. Una
+ * luce che sale e scende tanto sembra una lampadina che si accende, non una
+ * figura con dell'alone.
+ *
+ * Adesso il fiato e' del 22%: si vede che la luce respira, ma il salto non
+ * esiste. Il massimo e' quello che dicono i numeri sopra, non un di piu'. */
 @keyframes aura-pulse {
-  0%, 100% { opacity: .62; transform: scale(.985); }
-  50%      { opacity: 1;   transform: scale(1.02); }
+  0%, 100% { opacity: .78; transform: scale(.99); }
+  50%      { opacity: 1;   transform: scale(1.012); }
 }
 /* I FAZZI SI MUOVONO POCO, E PIU' LENTI.
  *
@@ -1678,8 +1740,8 @@ body:has(.sfondo-dialogo) .avviso {
  * che respira, non che trascini.
  */
 @keyframes aura-fassi {
-  from { transform: translateX(-5px) rotate(-.5deg); opacity: .66; }
-  to   { transform: translateX(5px)  rotate(.5deg);  opacity: .82; }
+  from { transform: translateX(-5px) rotate(-.5deg); opacity: .86; }
+  to   { transform: translateX(5px)  rotate(.5deg);  opacity: 1; }
 }
 
 /* IL CONTORNO DORATO: la parte che rende credibile la luce. */
@@ -1769,8 +1831,8 @@ body:has(.sfondo-dialogo) .avviso {
   animation: aura-colonna 7.5s ease-in-out infinite;
 }
 @keyframes aura-colonna {
-  0%, 100% { opacity: .72; transform: scaleX(.92); }
-  50%      { opacity: 1;   transform: scaleX(1.06); }
+  0%, 100% { opacity: .80; transform: scaleX(.94); }
+  50%      { opacity: 1;   transform: scaleX(1.05); }
 }
 
 /* LA FOTO STA SOPRA LA COLONNA, e sotto il resto dell'aura. */
@@ -1798,9 +1860,9 @@ body:has(.sfondo-dialogo) .avviso {
   mix-blend-mode: screen;
   background: linear-gradient(104deg,
     transparent 45%,
-    color-mix(in srgb, var(--aura) 16%, transparent) 49%,
-    rgba(255, 250, 230, .22) 50.5%,
-    color-mix(in srgb, var(--aura) 13%, transparent) 52%,
+    color-mix(in srgb, var(--aura) calc(28% * var(--forza)), transparent) 49%,
+    rgba(255, 250, 230, calc(.38 * var(--forza))) 50.5%,
+    color-mix(in srgb, var(--aura) calc(22% * var(--forza)), transparent) 52%,
     transparent 56%);
   animation: aura-lustro 4.5s ease-in-out infinite;
 }

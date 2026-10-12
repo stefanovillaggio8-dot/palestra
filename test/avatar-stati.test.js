@@ -380,6 +380,44 @@ test('R10s. l\'aura ha luce, raggi e scintille, e rispetta chi non vuole le anim
     'la forza dell\'aura e\' un numero solo');
   const usiForza = [...css.matchAll(/calc\(\d+% \* var\(--forza\)\)/g)].length;
   assert.ok(usiForza >= 8, `le intensita' devono passare da --forza, ne' usano ${usiForza}`);
+
+  // Ste (12/10/2026): "vedi cosa c'e' da migliorare, poi forse anche quelli senza
+  // aura adesso sono troppo scuri invece". Due difetti diversi, due correzioni diverse.
+  //
+  // 1) L'AURA tingeva gli ANGOLI. Il gradiente dell'aria era 118% x 108%, piu' grande
+  //    del riquadro, e con la miscela `screen` sul nero quegli angoli si accendevano
+  //    di marrone: si vedeva un riquadro color caffe' invece di una figura con della
+  //    luce intorno. Ora e' stretto, quindi gli angoli restano neri.
+  const ariaLarga = css.replace(/\/\*[\s\S]*?\*\//g, '').match(/radial-gradient\(1[0-9]{2}%\s+1[0-9]{2}%[^\n]*\n[^\n]*var\(--aura\)/);
+  assert.equal(ariaLarga, null,
+    "l'aria dell'aura non puo' essere piu' grande del riquadro: tingerebbe gli angoli");
+  assert.match(css, /radial-gradient\(72% 64% at 50% 46%/,
+    "l'aria dell'aura sta attorno alla figura");
+
+  // 2) SENZA AURA IL VUOTO RESTAVA VUOTO. Misurando le immagini: meta' del disegno sta
+  //    sotto il 40 di luminosita' e il personaggio galleggia nel nero. La versione con
+  //    l'aura sembrava piu' bella non perche' la figura fosse piu' luminosa, ma perche'
+  //    l'oro RIEMPIEVA quel vuoto. Ora anche senza aura c'e' una luce, ma VIOLA: l'oro
+  //    resta alla ricompensa, il viola e' la strada. E come si capisce dai colori usati.
+  assert.match(css, /con-foto:not\(\.personaggio-aura\)::before/,
+    "anche senza aura il vuoto dietro la figura va riempito");
+  const luceBase = css.match(/con-foto:not\(\.personaggio-aura\)::before\s*\{[\s\S]*?\n\}/);
+  assert.ok(luceBase, 'la luce di base deve esistere');
+  assert.match(luceBase[0], /var\(--tinta\)/,
+    'la luce senza aura e\' del colore della scena, non oro: l\'oro e\' la ricompensa');
+  assert.doesNotMatch(luceBase[0], /var\(--aura\)/,
+    'senza aura non puo\' esserci oro: altrimenti la ricompensa la vedi prima di averla');
+  // E la foto deve stare DAVANTI alla luce, altrimenti la luce la tinge invece di
+  // accenderle le spalle: serve `relative` + z-index, non `static`.
+  assert.match(css, /con-foto \.personaggio-ritratto\s*\{[^}]*position:\s*relative[^}]*z-index:\s*1/,
+    'la foto sta davanti alla luce di base');
+
+  // Il bagliore era l'unico strato sfuggito all'interruttore: restava a piena forza
+  // mentre tutto il resto scendeva. Ora passa anche lui da --forza.
+  const lustro = css.match(/\.aura-lustro\s*\{[\s\S]*?\n\}/);
+  assert.ok(lustro && !/var\(--aura\)\s+\d+%/.test(lustro[0]),
+    'il bagliore non puo\' avere numeri propri: deve dipendere da --forza come gli altri');
+
   // L'aura e' una ricompensa: dev'essere d'oro in tutte e tre le classi, altrimenti
   // su due classi sembra parte del personaggio e su una no.
   assert.match(css, /--aura:\s*var\(--giallo/, 'il colore dell\'aura e\' il giallo dell\'app');
