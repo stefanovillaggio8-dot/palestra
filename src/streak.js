@@ -142,14 +142,33 @@ export function contaAllenamentiConsecutiviConGiorni(giorni, previsti, oggiISO) 
  * lo buca per un riposo che non si era mai chiesto di fare.
  */
 function streckAncoraViva(set, ultimo, oggiISO, previstiSet) {
-  if (ultimo >= oggiISO) return true; // non È ancora passato nulla
+  if (ultimo >= oggiISO) return true; // non è ancora passato nulla
   let g = giornoSuccessivo(ultimo);
   for (let i = 0; i < 400; i++) {
-    if (!g || g > oggiISO) return true; // siamo arrivati a oggi senza saltare niente
+    // IL GIORNO DI OGGI NON È ANCORA UN GIORNO PERDUTO.
+    //
+    // Ste (13/10/2026): "sono a 3 di streak ma dice 0 anche se ancora devo
+    // allenarmi e spunta che devo andarci e si attiva ad 1". Il calendario
+    // mostrava i tre allenamenti (7, 9 e 10 ottobre) e la card diceva 0.
+    //
+    // Il motivo era qui: il cammino guarda in AVANTI fino a oggi, e quando
+    // arrivava a oggi lo trattava come un giorno saltato. Oggi pero' non e'
+    // finito: sono le 15 di un martedi' e ti manca solo da chiudere la seduta.
+    //
+    // Qui dentro la regola era già scritta, quattro funzioni più su:
+    // "il giorno corrente, se previsto e non ancora fatto, NON azzera: sono le 8
+    // di sera e non ti e' ancora successo niente". Il codice non la seguiva.
+    //
+    // La correzione e' `>=` invece di `>`: si esce quando si ARRIVA a oggi, non
+    // quando lo si supera. Cosi' un giorno previsto che hai saltato ieri o
+    // prima continua a contare, e un giorno previsto che oggi non hai ancora
+    // fatto non conta come saltato. Che e' esattamente quello che diceva la
+    // regola scritta.
+    if (!g || g >= oggiISO) return true; // siamo arrivati a oggi senza saltare niente
     if (previstiSet.has(giornoSettimana(g)) && !set.has(g)) return false;
     g = giornoSuccessivo(g);
   }
-  return true;
+return true;
 }
 
 /** I giorni in cui hai davvero allenato, dal più recente al più vecchio. */

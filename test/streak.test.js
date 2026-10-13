@@ -130,3 +130,81 @@ test('15. contaConsecutivi non si blocca', () => {
   assert.equal(contaConsecutivi([], '2026-10-03'), 0);
   assert.equal(contaConsecutivi(['2026-10-02', '2026-10-01'], '2026-10-03'), 2);
 });
+
+// ---------------------------------------------------------------------------
+// IL CASO DI STE, 13/10/2026: la card diceva 0 con tre allenamenti a portale
+// ---------------------------------------------------------------------------
+//
+// "sono a 3 di streak ma dice 0 anche se ancora devo allenarmi e spunta che devo
+// andarci e si attiva ad 1"
+//
+// Ottobre 2026: il 7 e' un mercoledi', il 9 un venerdi', il 10 un sabato, e i
+// giorni scelti da Ste sono mar/mer/ven/sab. Il calendario mostrava i tre
+// allenamenti, ma la card diceva zero e "sale a 1".
+//
+// Il difetto: il cammino che verifica se la streak e' ancora viva guardava in
+// AVANTI fino a oggi, e trattava OGGI come un giorno saltato quando oggi e' uno
+// dei giorni scelti e non l'hai ancora fatto. Ma oggi non e' finito.
+//
+// Nota che il test 4 qui sopra copriva lo stesso caso, ma SOLO senza giorni
+// scelti: con i giorni scelti il percorso e' un altro, e quello non era provato.
+const GIORNI_STE = [2, 3, 5, 6];   // mar, mer, ven, sab
+
+test('16. con giorni scelti, oggi non ancora allenato NON azzera la streak', () => {
+  const s = calcolaStreak(
+    [seduta('2026-10-07'), seduta('2026-10-09'), seduta('2026-10-10')],
+    '2026-10-13',
+    { giorni_allenamento: GIORNI_STE },
+  );
+  assert.equal(s.giorni, 3, 'tre allenamenti di fila: mercoledi 7, venerdi 9, sabato 10');
+  assert.equal(s.attiva, true, 'la streak e\' accesa: oggi non e\' ancora finito');
+  assert.equal(s.fattoOggi, false, 'oggi non ha ancora allenato');
+  assert.equal(s.interrotta, false, 'non e\' interrotta: nessun giorno suo e\' saltato');
+  assert.match(s.testo, /3 allenamenti di fila/);
+});
+
+test('17. la card deve dire che oggi sale a 4, non "sale a 1"', () => {
+  const s = calcolaStreak(
+    [seduta('2026-10-07'), seduta('2026-10-09'), seduta('2026-10-10')],
+    '2026-10-13',
+    { giorni_allenamento: GIORNI_STE },
+  );
+  // allenandoti oggi la streak sale di uno: il testo non deve promettere "da 1"
+  assert.doesNotMatch(s.testo, /riparti da 1/,
+    'la streak non e\' rotta, quindi non deve parlare di ripartire da 1');
+  assert.equal(s.prossimoObiettivo, 10, 'il prossimo obiettivo parte dal record');
+});
+
+test('18. saltare un giorno scelto PRIMA di oggi rompe davvero', () => {
+  // saltato il mercoledi' 7, che era un suo giorno: la serie 9-10 resta viva e
+  // vale 2. Il punto e\' che non si deve confondere "rotta" con "azzerata".
+  const s = calcolaStreak(
+    [seduta('2026-10-09'), seduta('2026-10-10')],
+    '2026-10-13',
+    { giorni_allenamento: GIORNI_STE },
+  );
+  assert.equal(s.giorni, 2, 'la serie 9-10 e\' ancora viva');
+  assert.equal(s.attiva, true);
+});
+
+test('19. saltare un giorno NON scelto non rompe niente', () => {
+  // saltato solo il lunedi' 12, che non e' un suo giorno
+  const s = calcolaStreak(
+    [seduta('2026-10-07'), seduta('2026-10-09'), seduta('2026-10-10')],
+    '2026-10-13',
+    { giorni_allenamento: GIORNI_STE },
+  );
+  assert.equal(s.giorni, 3, 'il lunedi\' non e\' un giorno suo: il riposo non azzera');
+  assert.equal(s.attiva, true);
+});
+
+test('20. allenando oggi la streak sale davvero di uno', () => {
+  const s = calcolaStreak(
+    [seduta('2026-10-07'), seduta('2026-10-09'), seduta('2026-10-10'), seduta('2026-10-13')],
+    '2026-10-13',
+    { giorni_allenamento: GIORNI_STE },
+  );
+  assert.equal(s.giorni, 4);
+  assert.equal(s.fattoOggi, true);
+  assert.equal(s.record, 4);
+});
