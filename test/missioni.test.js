@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import {
   POOL, DIFFICOLTA, setSettimanale, dailyDi, idSettimana, quadroMissioni,
   ricompensaMissione, missionePerId, contaCompletate, storicoMissioni, hashTesto,
-  generatoreDa, NUMERO_WEEKLY, NUMERO_SECRET, MOLTIPLICATORE_SECRET,
+generatoreDa, NUMERO_WEEKLY, NUMERO_SECRET, MOLTIPLICATORE_SECRET, MECCANICHE,
 } from '../src/missioni.js';
 
 const SETTIMANA = '2026-W40';
@@ -29,7 +29,7 @@ test('2. nessuna missione e\' pericolosa o fuori luogo', () => {
   // Nota: la parola "sconosciuto" NON e\' piu\' vietata. Ste ha chiesto delle
   // sfide che vedono sconosciuti, e sono innocue: sono imbarazzanti per chi le
   // fa, non per gli altri. Restano vietate le cose che fanno davvero danno.
-  const vietate = /filmare|riprendere|video|stranier|insicur|pericolos|rovinare|attrezzatur|sabot|non\s+chiedere\s+il\s+permesso/i;
+  const vietate = /filmare|riprendere|video(?!gioc)|stranier|insicur|pericolos|rovinare|attrezzatur|sabot|non\s+chiedere\s+il\s+permesso/i;
   for (const m of POOL) {
     assert.equal(vietate.test(m.testo), false, 'missione da rivedere: ' + m.id);
   }
@@ -65,7 +65,7 @@ function fraseChiusa(testo) {
 
 test('2c. le sfide con gli sconosciuti esistono e sono scritte semplici', () => {
   const conSconosciuto = POOL.filter((m) => /sconosciut|non\s+conosci/i.test(m.testo));
-  assert.ok(conSconosciuto.length >= 6, 'ci sono le sfide che vedono sconosciuti');
+  assert.ok(conSconosciuto.length >= 3, 'ci sono ancora sfide con gli sconosciuti');
   for (const m of conSconosciuto) {
     // frasi corte e parole comuni: niente linguaggio complicato
     assert.ok(m.testo.length < 190, 'frase non troppo lunga: ' + m.id);
@@ -360,7 +360,7 @@ test('2i. ogni missione con sconosciuti e\' difficile, nessuna facile', () => {
   // Ste: "quelle con gli sconosciuti sono piu\' difficili, perche\' ti mettono
   // piu\' in imbarazzo"
   const conSconosciuto = POOL.filter((m) => /sconosciut/i.test(m.testo));
-  assert.ok(conSconosciuto.length >= 10, 'ci sono abbastanza sfide con gli sconosciuti');
+  assert.ok(conSconosciuto.length >= 3, 'gli sconosciuti sono rimasti pochi, come chiesto da Ste');
   for (const m of conSconosciuto) {
     assert.notEqual(m.difficolta, 'easy', 'non deve essere facile: ' + m.id);
     assert.ok(['unhinged', 'insane', 'legendary'].includes(m.difficolta),
@@ -377,7 +377,7 @@ test('2l. ogni missione spiega con chiarezza cosa fare', () => {
 // almeno un verbo d'azione concreto.
     // niente \b sulle parole accentate: "ì" non e' un carattere di parola in
     // JavaScript, quindi \b non aggancia e il test passerebbe buggerato
-const azione = /(fai|chiedi|guarda|metti|spiega|annuncia|presenta|conta|saluta|racconta|ripeti|mostra|scegli|scrivi|leggi|cambia|annuisci|sorridi|scrolla|porta|prova|continua|parti|chiama|urla|canticchia|trombone|dirigi|incoraggia|festeggia|cita|segna|alza)/i;
+const azione = /(fai|chiedi|guarda|metti|spiega|annuncia|presenta|conta|saluta|racconta|ripeti|mostra|scegli|scrivi|leggi|cambia|annuisci|sorridi|scrolla|porta|prova|continua|parti|chiama|urla|canticchia|trombone|dirigi|incoraggia|improvvisa|improvvisare|festeggia|cita|segna|alza)/i;
     assert.ok(azione.test(m.testo), 'non dice cosa fare: ' + m.id);
   }
 });
@@ -399,11 +399,11 @@ test('21. tutte le sfide di Ste ci sono, una volta sola', () => {
   const richieste = [
     'lo-specchio-maledetto', 'il-coach-improvvisato', 'la-presentazione-epica',
     'applauso-personale', 'il-ringraziamento', 'il-commentatore-sportivo',
-    'la-posa-casuale', 'il-npc-della-palestra', 'il-motivatore',
-    'la-foto-criminale', 'il-selfie-drammatico', 'il-doppio-personal-trainer',
+     'il-npc-della-palestra', 'il-motivatore',
+     'il-selfie-drammatico', 
     'intervista-post-gara', 'il-nome-sbagliato', 'l-applauso-obbligatorio',
     'il-discorso-al-manubrio', 'il-debuttante', 'la-confessione-alla-macchina',
-    'il-traduttore', 'la-telecronaca-personale', 'l-intervista-fallita',
+    'il-traduttore',  'l-intervista-fallita',
     'il-campione-olimpico',
   ];
   for (const id of richieste) {
@@ -423,11 +423,11 @@ test('21. tutte le sfide di Ste ci sono, una volta sola', () => {
 
 test('21b. i punti aura delle sfide vengono dal livello, non sono scritti a mano', () => {
   const sconosciute = ['lo-specchio-maledetto', 'il-coach-improvvisato', 'la-presentazione-epica',
-    'applauso-personale', 'il-ringraziamento', 'il-commentatore-sportivo', 'la-posa-casuale',
-    'il-npc-della-palestra', 'il-motivatore', 'la-foto-criminale', 'il-selfie-drammatico',
-    'il-doppio-personal-trainer', 'il-nome-sbagliato', 'l-applauso-obbligatorio',
+    'applauso-personale', 'il-ringraziamento', 'il-commentatore-sportivo', 
+    'il-npc-della-palestra', 'il-motivatore',  'il-selfie-drammatico',
+     'il-nome-sbagliato', 'l-applauso-obbligatorio',
     'il-discorso-al-manubrio', 'il-debuttante', 'la-confessione-alla-macchina',
-    'il-traduttore', 'la-telecronaca-personale', 'l-intervista-fallita', 'il-campione-olimpico'];
+    'il-traduttore',  'l-intervista-fallita', 'il-campione-olimpico'];
   for (const id of sconosciute) {
     const m = missionePerId(id);
     const atteso = ricompensaMissione(m, { segreta: !!m.segreta });
@@ -439,12 +439,101 @@ test('21b. i punti aura delle sfide vengono dal livello, non sono scritti a mano
         id + ' e\' segreta ma non vale di piu\' della stessa sfida come weekly');
     }
   }
-  // il criterio con cui ho scelto i livelli: piu' la sfida ti mette in imbarazzo,
-  // piu' vale. Controllo solo che i cinque segreti siano fra le piu' care.
-  const segrete = sconosciute.map((id) => missionePerId(id)).filter((m) => m.segreta);
-  assert.equal(segrete.length, 5, 'le segrete sono cinque: quelle che faresti di nascosto');
+  // il criterio con cui ho scelto i livelli: più la sfida ti mette in imbarazzo,
+  // più vale. Controllo TUTTE le segrete del pool, non solo quelle di una lista:
+  // se ne aggiungo una nuova non devo ricordarmi di elencarla qui.
+  const segrete = POOL.filter((m) => m.segreta);
+  assert.equal(segrete.length, 9, 'le segrete sono nove: quelle che faresti di nascosto');
   for (const m of segrete) {
     assert.ok(['insane', 'legendary'].includes(m.difficolta),
-      'una segreta deve essere cara: ' + m.id + ' e\' ' + m.difficolta);
+      'una segreta deve essere cara: ' + m.id + ' vale ' + m.difficolta);
+  }
+});
+
+// ---------------------------------------------------------------------------
+// LA REVISIONE DI STE (13/10/2026)
+// "le missioni dovrebbero avere meccaniche diverse, non solo testi diversi.
+//  Alcune richiedono improvvisazione, altre memoria, recitazione, creativita,
+//  prove con gli amici o piu' fasi consecutive."
+// Non basta che le frasi siano diverse: due missioni identiche nella meccanica
+// sono la stessa sfida due volte.
+// ---------------------------------------------------------------------------
+
+const MECCANICHE_VALIDE = Object.keys(MECCANICHE);
+
+test('23. ogni missione ha una meccanica dichiarata e valida', () => {
+  for (const m of POOL) {
+    assert.ok(MECCANICHE_VALIDE.includes(m.meccanica),
+      'meccanica sconosciuta in ' + m.id + ': ' + m.meccanica);
+  }
+  assert.equal(POOL.length, 109,
+    'il pool deve avere 109 missioni: erano 112, ne ho tolte 13 e aggiunte 10');
+});
+
+test('24. le cinque weekly di una settimana non sono cinque volte la stessa sfida', () => {
+  // e' la regola che ha chiesto Ste: meccaniche diverse, non solo testi diversi
+  for (const settimana of ['2026-W40', '2026-W41', '2026-W42', '2026-W43']) {
+    const scelte = setSettimanale(settimana, [], 'ste').weekly;
+    assert.equal(scelte.length, NUMERO_WEEKLY, 'le weekly sono cinque: ' + settimana);
+    const meccaniche = new Set(scelte.map((m) => m.meccanica));
+    assert.equal(meccaniche.size, NUMERO_WEEKLY,
+      'in ' + settimana + ' cinque missioni ma solo ' + meccaniche.size +
+      ' meccaniche diverse: ' + scelte.map((m) => m.meccanica).join(', '));
+  }
+});
+
+test('25. la scelta resta casuale ma sempre uguale per la stessa settimana', () => {
+  const a = setSettimanale('2026-W40', [], 'ste').weekly.map((m) => m.id);
+  const b = setSettimanale('2026-W40', [], 'ste').weekly.map((m) => m.id);
+  assert.deepEqual(a, b, 'la stessa settimana deve dare le stesse missioni');
+  const c = setSettimanale('2026-W40', [], 'bro').weekly.map((m) => m.id);
+  assert.notDeepEqual(a, c, 'due persone diverse devono vedere missioni diverse');
+  const d = setSettimanale('2026-W41', [], 'ste').weekly.map((m) => m.id);
+  assert.notDeepEqual(a, d, 'la settimana dopo deve cambiare');
+});
+
+test('26. i dieci testi nuovi di Ste ci sono tutti, e hanno laDifficulty giusta', () => {
+  const NUOVE = [
+    ['comunicato-disastroso', 'easy'],
+    ['contratto-col-diavolo', 'easy'],
+    ['processo-al-manubrio', 'unhinged'],
+    ['intervista-al-fallimento', 'unhinged'],
+    ['motivatore-inutile', 'unhinged'],
+    ['profeta-delle-cavolate', 'insane'],
+    ['processo-al-campione', 'insane'],
+    ['documentario-sulla-patata', 'insane'],
+    ['discorso-di-dimissioni', 'legendary'],
+    ['boss-del-ridicolo', 'legendary'],
+  ];
+  for (const [id, livello] of NUOVE) {
+    const m = missionePerId(id);
+    assert.ok(m, 'manca la missione nuova ' + id);
+    assert.equal(m.difficolta, livello, id + ' non è ' + livello);
+  }
+});
+
+test('27. le tredici missioni che voleva levare non ci sono piu', () => {
+  const TOLTE = [
+    'la-posa-casuale', 'la-locandina', 'la-fotografia', 'la-foto-criminale',
+    'la-telecronaca-personale', 'il-telecronista', 'il-giudice-olimpico',
+    'il-portavoce-sconosciuto', 'la-presentazione-sconosciuto',
+    'la-conferenza-pubblica', 'il-consiglio-gratuito',
+    'il-doppio-personal-trainer', 'la-lavagna',
+  ];
+  for (const id of TOLTE) {
+    assert.equal(missionePerId(id), null, id + ' era da levare, non c\'è più');
+  }
+  // e le famiglie rimaste sono una sola voce per ogni idea
+  assert.ok(missionePerId('la-posa-vincitore'), 'la posa è rimasta una sola sfida');
+  assert.ok(missionePerId('il-commentatore-sportivo'), 'la telecronaca è rimasta una sola sfida');
+  assert.ok(missionePerId('il-portavoce'), 'il portavoce è rimasto uno solo');
+});
+
+test('28. le missioni parlate hanno tutte una domanda da fare', () => {
+  // Ste: "se parli con qualcuno, la missione dice a chi e ti fa fare una domanda"
+  const parlaCon = /(sconosciut|un amico|ai tuoi amici|agli amici|amici\b|dagli una|digli|diglielo|chiedigli|chiedi a|guarda negli occhi)/i;
+  for (const m of POOL) {
+    if (!parlaCon.test(m.testo)) continue;
+    assert.ok(m.testo.includes('?'), 'parla con qualcuno ma non c\'è nessuna domanda: ' + m.id);
   }
 });
