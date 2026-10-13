@@ -1580,7 +1580,17 @@ body:has(.sfondo-dialogo) .avviso {
  * La transizione serve perché il cambiamento si vede: quando l'armatura si
  * sblocca, l'animazione rende conto del cambiamento invece di cambiare di colpo. */
 .personaggio-scena-grafica.con-foto .personaggio-ritratto {
-  max-width: 400px;
+  /* Le foto ora sono VERTICALI (900x1350, rapporto 2:3), non piu' quadrate.
+   *
+   * Con il rapporto di prima, 400 px di larghezza erano 360 px di altezza e tutto
+   * andava bene. Con una foto verticale, 400 px diventerebbero 600 px di altezza:
+   * sul telefono il personaggio da solo mangerebbe quasi tutta la pagina e la
+   * striscia dei livelli, che e' la parte che ti dice quanto hai progredito,
+   * finirebbe sotto la piega.
+   *
+   * 300 px di larghezza danno 450 px di altezza: il personaggio si vede tutto,
+   * ben grande, e sotto restano il nome e la striscia senza dover scorrere. */
+  max-width: 300px;
   margin: 0 auto;
   border-radius: 14px;
   /* Niente `mix-blend-mode` qui, e questa e' la cosa che rendeva la foto slavata.
