@@ -5920,15 +5920,16 @@ async function vistaProfilo(zona) {
 
   // statistiche vere
   zona.appendChild(el('section', { class: 'blocco' }, [
-    el('h2', { testo: 'Statistiche' }),
+    el('h2', { testo: 'I tuoi numeri' }),
     el('div', { class: 'griglia-numeri' }, [
-      numeroGrande('Allenamenti', st.statistiche.seduteCompletate),
-      numeroGrande('Giorni allenati', st.statistiche.giorniAllenati),
+      numeroGrande('Allenamenti finiti', st.statistiche.seduteCompletate),
+      numeroGrande('Giorni diversi', st.statistiche.giorniAllenati),
       numeroGrande('Esercizi con record', st.statistiche.eserciziConRecord),
       numeroGrande('Missioni fatte', st.missioniCompletate),
       numeroGrande('Aura', st.aura),
-      numeroGrande('Livello', st.livello.livello),
+      numeroGrande('Livello allenamento', st.livello.livello),
     ]),
+    el('p', { class: 'nota nota-piccola', testo: SPIEGA_NUMERI }),
   ]));
 
   // rank principali
@@ -5996,48 +5997,64 @@ async function vistaProfilo(zona) {
   // guarda i nomi di tutti i tuoi esercizi, trova le parole che nel suo
   // vocabolario non compaiono e te le chiede UNA volta sola. Dopo non te le
   // chiede più, e quei nomi li capisce da soli.
+  const SPIEGA_ETICHETTE = [
+    ['grande', 'GRANDE'], ['composto', 'COMPOSTO'],
+    ['isolamento', 'ISOLAMENTO'], ['assistito', 'RIPETIZIONI'],
+  ];
+  const SPIEGA_LIVELLO = {
+    grande: {
+      voce: 'È un movimento impegnativo: chiede molta forza e molta tecnica insieme. '
+        + 'Se il peso ti scappa di mano non è che non sai usarlo: è che è difficile.',
+      come: 'Lo fai per primo, con i pesi alti, ed è quello che ti fa sudare.',
+    },
+    composto: {
+      voce: 'È un movimento che lavora su più muscoli insieme: panca, squat, stacco, trazioni.',
+      come: 'Vengono per primi, perché scaldano e fanno spendere calorie.',
+    },
+    isolamento: {
+      voce: 'È un movimento che lavora un muscolo solo, lasciando fuori gli altri: curl, french press, leg extension.',
+      come: 'Viene dopo i composti, quando quel muscolo è già scaldato e può spingere di più.',
+    },
+    assistito: {
+      voce: 'È un esercizio che si conta in ripetizioni e non in kg: trazioni, dip, e anche le macchine assistite.',
+      come: 'Non ci sono dischi da mettere: conta quante volte lo fai. Viene per ultimo.',
+    },
+  };
   const daChiedere = await paroleDaChiedere(accountAttivo(), V.esercizi);
   if (daChiedere.length) {
     const boxParole = el('div', { class: 'box-parole' }, [
       el('h3', { testo: 'Parole che non conosco' }),
-      el('p', { class: 'nota nota-piccola', testo: 'Non ti chiedo niente che già so: solo le parole che mi sfuggono. Rispondi una volta sola e non te lo chiedo più.' }),
+      el('p', {
+        class: 'nota nota-piccola',
+        testo: 'Sono parole che usano i nomi dei tuoi esercizi e che non mi sono chiare. '
+          + 'Scegli sotto quella che ti somiglia di più: te lo chiedo una volta sola e poi non più.',
+      }),
     ]);
-    // LE QUATTRO PAROLE, CON LA LORO SPIEGAZIONE.
-  //
-  // Ste (10/10/2026), dalla foto: quattro bottoni senza spiegazione, GRANDE,
-  // COMPOSTO, ISOLAMENTO e RIPETIZIONI. Erano le parole che l'app usa per capire
-  // l'esercizio, e senza dire cosa volessero dire la domanda era equivalente a
-  // "indovina": quattro bottoni, tutti uguali, e nessuna pista su quale premere.
-  //
-  // Ogni voce ha due righe: cosa significa la parola e come si capisce quale
-  // scegliere. La seconda riga è la parte che serve davvero: se dovesse dire solo
-  // "movimento grosso", resterebbe tutto da indovinare.
-  const SPIEGA_LIVELLO = {
-    grande: {
-      voce: 'Un movimento grosso che chiede molta forza e molta tecnica insieme. '
-        + 'Se ti scappa di mano non è un peso che non hai ancora imparato.',
-      come: 'Lo fai per prime, con i pesi alti, e fa sudare.',
-    },
-    composto: {
-      voce: 'Un movimento che lavora più muscoli insieme: panca, squat, stacco, trazioni.',
-      come: 'Ti scaldano e ti fanno spendere calorie. Vengono per primi.',
-    },
-    isolamento: {
-      voce: 'Un movimento che lavora un muscolo solo, senza gli altri: curl, french press, leg extension.',
-      come: 'Viene dopo i composti, per dare una spinta a un muscolo solo.',
-    },
-    assistito: {
-      voce: 'Un esercizio che si conta in ripetizioni, non in kg: trazioni, dip, anche le macchine assistite.',
-      come: 'Non ci sono dischi da mettere: conta quante volte lo fai.',
-    },
-  };
 
-  for (const voce of daChiedere) {
+    // IL RIQUADRO DELLE QUATTRO SPIEGAZIONI, UNA VOLTA SOLA.
+    //
+    // Prima stava dentro il ciclo delle parole da chiedere, quindi se ne avevi
+    // tre ti comparivano tre volte di fila, identiche. La spiegazione e' sempre
+    // la stessa: una volta basta e avanza.
+    const aiuto = el('div', { class: 'aiuto-livelli' }, [
+      el('p', { class: 'aiuto-livelli-titolo', testo: 'Cosa vuol dire ciascuna parola' }),
+    ]);
+    for (const [id, etichetta] of SPIEGA_ETICHETTE) {
+      const s = SPIEGA_LIVELLO[id];
+      aiuto.appendChild(el('p', { class: 'aiuto-livello' }, [
+        el('strong', { testo: etichetta }),
+        el('span', { testo: s.voce }),
+        el('span', { class: 'aiuto-come', testo: 'Come sceglierla: ' + s.come }),
+      ]));
+    }
+    boxParole.appendChild(aiuto);
+
+    for (const voce of daChiedere) {
       const riga = el('div', { class: 'riga-parola-da-chiedere' }, [
         el('span', { class: 'parola', testo: voce.parole.join(', ') }),
         el('span', { class: 'nota', testo: voce.nome }),
       ]);
-      for (const [id, testo] of [['grande', 'GRANDE'], ['composto', 'COMPOSTO'], ['isolamento', 'ISOLAMENTO'], ['assistito', 'RIPETIZIONI']]) {
+      for (const [id, testo] of SPIEGA_ETICHETTE) {
         const spiegazione = SPIEGA_LIVELLO[id];
         // il `title` sul bottone basta sui computer, ma sul telefono non lo vedi:
         // senza un `title` Safari lo legge come stringa vuota. Per quello la
@@ -6052,21 +6069,7 @@ async function vistaProfilo(zona) {
           titolo: `${testo}. ${spiegazione.voce} Come sceglierlo: ${spiegazione.come}`,
         }));
       }
-      // LA SPIEGAZIONE VISTA. Qui sotto i quattro bottoni, perché sul telefono il
-      // `title` del bottone non si vede e la domatica resterebbe quella di prima.
-      const aiuto = el('div', { class: 'aiuto-livelli' }, [
-        el('p', { class: 'aiuto-livelli-titolo', testo: 'Cosa vuol dire ognuna' }),
-      ]);
-      for (const [id, testo] of [['grande', 'GRANDE'], ['composto', 'COMPOSTO'], ['isolamento', 'ISOLAMENTO'], ['assistito', 'RIPETIZIONI']]) {
-        const s = SPIEGA_LIVELLO[id];
-        aiuto.appendChild(el('p', { class: 'aiuto-livello' }, [
-          el('strong', { testo }),
-          el('span', { testo: s.voce }),
-          el('span', { class: 'aiuto-come', testo: 'Come sceglierlo: ' + s.come }),
-        ]));
-      }
-      const contenitore = el('div', { class: 'riga-parola-con-aiuto' }, [riga, aiuto]);
-      boxParole.appendChild(contenitore);
+      boxParole.appendChild(riga);
     }
     zona.appendChild(boxParole);
   }
@@ -6083,6 +6086,14 @@ async function vistaProfilo(zona) {
     ]));
   }
 }
+
+/** Cosa vuol dire ognuno dei sei numeri grandi del Profilo. */
+const SPIEGA_NUMERI = 'Allenamenti finiti: quante sedute hai chiuso. '
+  + 'Giorni diversi: quanti giorni distinti ti sei allenato, quindi se in un giorno fai due volte '
+  + 'conta come uno. Esercizi con record: quanti esercizi hanno un tuo record personale. '
+  + 'Missioni fatte: quante sfide hai completato. Aura: i punti che guadagni allenandoti. '
+  + 'Livello allenamento: la tua crescita nell\'app, che non c\'entra con il Livello personaggio, '
+  + 'quello che sblocca le armature.';
 
 function numeroGrande(nome, valore) {
   return el('div', { class: 'numero-grande' }, [
