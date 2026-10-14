@@ -443,7 +443,7 @@ test('21b. i punti aura delle sfide vengono dal livello, non sono scritti a mano
   // più vale. Controllo TUTTE le segrete del pool, non solo quelle di una lista:
   // se ne aggiungo una nuova non devo ricordarmi di elencarla qui.
   const segrete = POOL.filter((m) => m.segreta);
-  assert.equal(segrete.length, 9, 'le segrete sono nove: quelle che faresti di nascosto');
+  assert.equal(segrete.length, 10, 'le segrete sono dieci: quelle che faresti di nascosto');
   for (const m of segrete) {
     assert.ok(['insane', 'legendary'].includes(m.difficolta),
       'una segreta deve essere cara: ' + m.id + ' vale ' + m.difficolta);
@@ -535,5 +535,59 @@ test('28. le missioni parlate hanno tutte una domanda da fare', () => {
   for (const m of POOL) {
     if (!parlaCon.test(m.testo)) continue;
     assert.ok(m.testo.includes('?'), 'parla con qualcuno ma non c\'è nessuna domanda: ' + m.id);
+  }
+});
+
+// ---------------------------------------------------------------------------
+// LA MALATTIA DELLE 35 MISSIONI CORTE (13/10/2026)
+// Ste ha indicato "la-lotta" e detto che non significa niente: era
+// "guarda un amico, di' una frase, POI VINCI". Non c'era un compito che si
+// potesse fare male, solo una frase a caso con due passi attaccati.
+//
+// Le 35 missioni corte sono state riscritte. Questi test servono perché la
+// stessa cosa non torni: ogni testo deve avere qualcosa di misurabile,
+// l'etichetta della meccanica deve combaciare col testo, e nessuna missione
+// può chiudersi con una promessa vuota.
+// ---------------------------------------------------------------------------
+
+test('29. ogni missione ha qualcosa di misurabile: un numero, un tempo, una quantita\'', () => {
+  // se non puoi contare, non e' una sfida: e' una frase
+  const misura = /\d|second|minut|ripetiz|volte|frasi|serie|passi|mose|grammi|metri|occhi|\b(un|una|uno|due|tre|quattro|cinque|sei|sette|otto|nove|dieci|quindici|trenta|quaranta|cinquant)\b|almeno|fino a|tutto il|tutti i|non puo|non deve/i;
+  for (const m of POOL) {
+    assert.ok(misura.test(m.testo),
+      'non c\'e\' niente da contare in ' + m.id + ': ' + m.testo);
+  }
+});
+
+test('30. nessuna missione si chiude con una promessa vuota', () => {
+  // "poi vinci", "poi basta", "poi torna subito": non e' un compito
+  const riempitivo = /\bpoi\s+(vinci|basta|torni subito|ti alleni|allezzi)\b/i;
+  for (const m of POOL) {
+    assert.equal(riempitivo.test(m.testo), false,
+      'finale vuoto in ' + m.id + ': ' + m.testo);
+  }
+});
+
+test('31. l\'etichetta della meccanica combacia col testo', () => {
+  // prima le ho assegnate a parole chiave e sono uscite bugiate: "fasi" a una
+  // missione senza fasi, "memoria" a una che non chiede di ricordare niente
+  const fasi = /\b(prima|poi|dopo|a fine|alla fine|per due|per tre|due volte|tre volte|conseguitamente|passo \d|l\'uno dopo l\'altro|dal primo|secondo passaggio|terzo passaggio|di fila|di nuovo)\b/i;
+  const memoria = /\b(ricorda|ricordare|memorizza|ripeti i|ripetili|senza guardare|a memoria|ripetere le|ordine esatto|numeri che hai)\b/i;
+  for (const m of POOL) {
+    if (m.meccanica === 'fasi') {
+      assert.ok(fasi.test(m.testo), 'dichiara "fasi" ma i passi non ci sono: ' + m.id);
+    }
+    if (m.meccanica === 'memoria') {
+      assert.ok(memoria.test(m.testo), 'dichiara "memoria" ma non c\'e\' niente da ricordare: ' + m.id);
+    }
+  }
+});
+
+test('32. nessuna missione e\' piu\' corta di 130 caratteri', () => {
+  // sotto quella lunghezza non c\'e\' spazio per un compito e una regola:
+  // era il filo rosso delle 35 missioni bocciate
+  for (const m of POOL) {
+    assert.ok(m.testo.length >= 130,
+      m.id + ' e\' troppo corta (' + m.testo.length + ' caratteri): ' + m.testo);
   }
 });
