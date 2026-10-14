@@ -27,9 +27,12 @@ function corpo(nome, da = srcApp) {
   assert.ok(inizio >= 0, `non trovo ${nome}`);
   let i = da.indexOf('{', inizio);
   let prof = 0;
+  // Contiamo le graffe di `da`, non di srcApp: prima contava le graffe del file
+  // sbagliato, quindi funzionava solo per caso. Il primo file che ho cambiato
+  // (aggiungendo l'omino del muscolo in app.js) ha fatto saltare il conto.
   for (; i < da.length; i++) {
-    if (srcApp[i] === '{') prof++;
-    else if (srcApp[i] === '}') { prof--; if (prof === 0) return da.slice(inizio, i + 1); }
+    if (da[i] === '{') prof++;
+    else if (da[i] === '}') { prof--; if (prof === 0) return da.slice(inizio, i + 1); }
   }
   return da.slice(inizio);
 }

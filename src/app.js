@@ -41,6 +41,10 @@ import { amiciDi, confronta, classifichePerEsercizio, privacyDi, campiVisibili, 
 import { classificaEsercizio as riconosciEsercizio } from './esercizi-classificatore.js';
 import { parteDiMuscolo, AVVERTIMENTO_PARTI, stessoLavoro, livelloConMuscolo, ordinePerMuscolo }
   from './muscoli-parti.js';
+// L'omino che dice DOVE lavori. Ste (13/10/2026): "voglio che spunti questo
+// omino con il muscolo allenato colorato di viola se possibile, non di giallo".
+import { figurino as figurinoMuscolo, L as OMINO_L, A as OMINO_A, idZonaDaParte }
+  from './mappa-muscoli.js';
 import { quantoEPesantePerTe, correggiLivello, dimenticaLivello, livelloImparato, paroleDaChiedere, imparaParola } from './esercizi-personali.js';
 import { controllaAggiornamento, applicaAggiornamento as prendiVersioneNuova, registraAggiornamentoRapido } from './update-via-sw.js';
 import {
@@ -5510,6 +5514,20 @@ async function vistaEsercizio(zona, esercizioId) {
   // sta davvero invece di dirgli una cosa che non È vera.)
   const parte = parteDiMuscolo({ nome: e.nome, descrizione: e.nota_permanente || '' });
   if (parte.trovata) {
+    // L'OMINO. Ste (13/10/2026): "voglio che spunti questo omino con il muscolo
+    // allenato colorato di viola se possibile, non di giallo".
+    //
+    // Sta SOPRA la riga "DOVE LAVORA", non dopo: prima l'immagine, poi le
+    // parole. E si accende solo il pezzo che quell'esercizio lavora, perché
+    // un omino tutto acceso non dice niente.
+    zona.appendChild(el('div', { class: 'riga-omino' }, [
+      el('div', { class: 'omino', html: disegnoOmino(parte.parte) }),
+      el('div', { class: 'omino-didascalia' }, [
+        el('strong', { testo: parte.nome }),
+        el('span', { class: 'nota nota-piccola', testo: parte.nota }),
+      ]),
+    ]));
+
     zona.appendChild(el('div', { class: 'riga-giudizio giud-parte' }, [
       el('strong', { testo: 'DOVE LAVORA' }),
       el('span', { testo: parte.nome }),
@@ -6147,6 +6165,33 @@ async function vistaProfilo(zona) {
       bottone('+ CREA ESERCIZIO', { onClick: () => finestraCreaEsercizio(), classe: 'principale' }),
     ]));
   }
+}
+
+/**
+ * I due figurini, davanti e dietro, con acceso il pezzo di muscolo che questo
+ * esercizio lavora.
+ *
+ * Ste (13/10/2026): "voglio che spunti questo omino con il muscolo allenato
+ * colorato di viola se possibile, non di giallo".
+ *
+ * Se l'id non corrisponde a nessuno dei pezzi disegnati non si accende niente:
+ * e' meglio un omino tutto grigio che uno con il muscolo sbagliato acceso. Il
+ * test Z2 chiama tutte le zone, quindi quel caso non può capitare in silenzio.
+ */
+function disegnoOmino(parteId) {
+  const acceso = idZonaDaParte(parteId);
+  const larghezza = OMINO_L * 2 + 24;
+  return '<svg class="omino-svg" viewBox="0 0 ' + larghezza + ' ' + OMINO_A
+    + '" role="img" aria-label="Le due viste del corpo, con il muscolo allenato colorato di viola">'
+    + '<g>' + figurinoMuscolo('fronte', acceso) + '</g>'
+    + '<g transform="translate(' + (OMINO_L + 24) + ',0)">'
+    + figurinoMuscolo('retro', acceso) + '</g>'
+    + '</svg>';
+}
+
+/** Il pezzo di muscolo da accendere, o null se l'app non lo conosce. */
+function zonaOmino(parteId) {
+  return idZonaDaParte(parteId);
 }
 
 /** Cosa vuol dire ognuno dei sei numeri grandi del Profilo. */

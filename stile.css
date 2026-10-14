@@ -2782,6 +2782,36 @@ html.animazioni-mai .aura-colonna { animation: none; }
 
    E comunque non può colpire i due casi in cui le animazioni sono volute o spente
    per decisione: il selettore esclude `html` con la classe `animazioni-sempre`. */
+/* L'OMINO CHE DICE DOVE LAVORI.
+ *
+ * Ste (13/10/2026): "il muscolo allenato colorato di viola, non di giallo".
+ * Il giallo e' il colore dei numeri e delle spunte in tutta l'app: qui dentro
+ *Divideresti ogni altra cosa, quindi il muscolo acceso usa il viola della
+ * classe Assassino, che non e' usato per nient'altro nella pagina.
+ *
+ * Il guscio del corpo resta grigio chiaro e i muscoli spenti grigi scuri: si
+ * vede subito DOVE, senza dover leggere la riga sotto. */
+.riga-omino {
+  display: flex; align-items: center; gap: 14px;
+  background: linear-gradient(155deg, var(--viola-scuro, #2a1f45), var(--card, #1a1526) 70%);
+  border: 1px solid var(--bordo, #3a2c5e);
+  border-radius: 14px; padding: 10px 12px; margin: 0 0 12px;
+}
+.omino { flex: 0 0 auto; }
+.omino-svg { width: 168px; height: auto; display: block; }
+.omino-svg .corpo-guscio polygon,
+.omino-svg .corpo-guscio circle { fill: #d9dcec; }
+.omino-svg .muscolo polygon,
+.omino-svg .muscolo ellipse { fill: #3a3155; stroke: #4d4370; stroke-width: 1; }
+.omino-svg .muscolo.acceso polygon,
+.omino-svg .muscolo.acceso ellipse { fill: #8b5cf6; stroke: #d8ccff; stroke-width: 1.2; }
+.omino-didascalia { display: flex; flex-direction: column; gap: 3px; font-size: .88rem; }
+.omino-didascalia strong { color: #c9b6ff; }
+@media (max-width: 420px) {
+  .riga-omino { flex-direction: column; align-items: flex-start; }
+  .omino-svg { width: 100%; max-width: 260px; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html:not(.animazioni-sempre) *,
   html:not(.animazioni-sempre) *::before,
