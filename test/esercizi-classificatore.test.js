@@ -35,11 +35,38 @@ test('C3. i carichi alti sono "grandi"', () => {
   assert.equal(liv('Stacco'), 'grande');
 });
 
-test('C4. il corpo libero si misura in ripetizioni', () => {
-  assert.equal(liv('Pull Ups'), 'assistito');
-  assert.equal(liv('Dips'), 'assistito');
-  assert.equal(liv('Trazioni assistite'), 'assistito');
-  assert.equal(liv('Bodyweight Overhead Tricep Extension'), 'assistito');
+test('C4. "assistito" vuol dire che la MACCHINA ti aiuta, non che usi il corpo', () => {
+  // Ste (13/10/2026): "se vado nei rank e vedo dips c'è scritto ASSISTITO ma non
+  // è assistito, stessa cosa nei pull ups".
+  //
+  // Prima questi quattro erano "assistito" perché finivano in un secchio che si
+  // beveva le parole "dip", "dips", "pull up" e "trazioni". Ma "assistito" è
+  // una parola sola per due cose opposte: l'assistenza è la macchina che ti
+  // REGGE e più ne metti e più è facile, i zavorri sono il contrario. Sui Rank
+  // compariva scritto il nome dell'opposto di quello che stavi facendo.
+  //
+  // Quindi il corpo libero VERAMENTE assistito resta "assistito", e quello col
+  // peso del corpo più zavorri è un composto come tutti gli altri.
+  assert.equal(liv('Trazioni assistite'), 'assistito',
+    'questa SÌ è assistenza vera: la macchina ti regge');
+  assert.equal(liv('Bodyweight Overhead Tricep Extension'), 'assistito',
+    'questa pure: al cavo, il numero è il peso che ti viene tolto');
+  assert.equal(liv('Pull Ups'), 'composto',
+    'le trazioni col peso del corpo non sono assistite: più kg è più difficile');
+  assert.equal(liv('Dips'), 'composto',
+    'i dips nemmeno: sono una spinta, e la spinta è un composto');
+  assert.equal(liv('Push Up'), 'composto', 'il push up pure');
+});
+
+test('C4b. le trazioni e i dips non sono la stessa cosa', () => {
+  // Lo stesso difetto faceva cadere i due nella stessa risposta. Una tirata e
+  // una spinta sono due movimenti diversi, su muscoli diversi.
+  const tirata = classificaEsercizio({ nome: 'Pull Ups' });
+  const spinta = classificaEsercizio({ nome: 'Dips' });
+  assert.notEqual(tirata.movimento, spinta.movimento,
+    'trazioni e dips devono essere due movimenti diversi');
+  assert.equal(tirata.gruppo, 'dorso', 'le trazioni tirano: dorso');
+  assert.equal(spinta.gruppo, 'petto', 'i dips spingono: petto');
 });
 
 test('C5. gli isolamenti di braccio e gambe', () => {
@@ -134,15 +161,15 @@ test('C14. riconosce 59 nomi veri di palestra, italiano e inglese', () => {
   ['Panca piana con bilanciere', 'composto'],
   ['Panca inclinata Smith', 'composto'],
   ['Panca declinata bilanciere', 'composto'],
-  ['Push up', 'assistito'],
-  ['Piegarimenti', 'assistito'],
+  ['Push up', 'composto'],
+  ['Piegarimenti', 'composto'],
   ['Shoulder Press in piedi', 'composto'],
   ['Spinte in alto con bilanciere', 'composto'],
   ['Military Press', 'composto'],
   ['Lat Pulldown macchina', 'composto'],
-  ['Trazioni', 'assistito'],
+  ['Trazioni', 'composto'],
   ['Trazioni assistite', 'assistito'],
-  ['Dips', 'assistito'],
+  ['Dips', 'composto'],
   ['Seated Cable Row', 'composto'],
   ['Tirate in basso al cavo', 'composto'],
   ['Rematore con bilanciere', 'composto'],
@@ -182,7 +209,7 @@ test('C14. riconosce 59 nomi veri di palestra, italiano e inglese', () => {
   ['Crunch', 'isolamento'],
   ['Plank', 'isolamento'],
   ['Iso-Lateral Row', 'composto'],
-  ['Pull Ups', 'assistito'],
+  ['Pull Ups', 'composto'],
   // Ste (06/10/2026): "e' una tirata del trapezio con pesi sui due bracci". Prima
   // questo nome era atteso come isolamento sulle spalle, e il test era la prova
   // che il classificatore sbagliava: 45 kg per braccio non sono un isolamento.
@@ -284,8 +311,10 @@ test('C15. i 27 esercizi della scheda di Ste hanno il livello giusto', async () 
     'ex-one-arm-cable-reverse-fly': 'isolamento', 'ex-wrist-curl': 'isolamento',
     'ex-iso-lateral-row': 'composto', 'ex-lat-pulldown-lats': 'composto',
     'ex-db-lateral-raise': 'isolamento', 'ex-lying-cable-curl': 'composto',
-    'ex-bodyweight-overhead-tricep': 'assistito', 'ex-pull-ups': 'assistito',
-    'ex-dips': 'assistito',
+    // Il Bodyweight Overhead Tricep Extension al cavo E' assistenza vera. Trazioni
+    // e dips no: sono composti col peso del corpo, non esercizi assistiti.
+    'ex-bodyweight-overhead-tricep': 'assistito', 'ex-pull-ups': 'composto',
+    'ex-dips': 'composto',
   };
   for (const e of ESERCIZI) {
     const r = classificaEsercizio({ nome: e.nome, convenzione: e.convenzione });

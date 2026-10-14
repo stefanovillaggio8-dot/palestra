@@ -39,14 +39,31 @@ export const PARTI = [
   },
   {
     id: 'petto_basso', muscolo: 'petto', parte: 'parte bassa del petto',
-    parole: ['declinato', 'declinata', 'flat bench', 'panca piana', 'low cable fly', 'fly basso', 'in basso'],
+    // I DIPS SONO QUI, non fra le tirate. Ste (13/10/2026): "nei dips dice che
+    // lavora dorso e lati, ma i dips lavorano petto e tricipiti". Erano stati
+    // messi nella lista del dorso, che è il contrario del vero: sui dips ti
+    // spingi via dalle parallele, quindi è una spinta. E la spinta va in basso:
+    // le braccia sono sotto il corpo e il peso arriva al capo sternale del petto,
+    // quello che parte dallo sterno.
+    parole: ['declinato', 'declinata', 'flat bench', 'panca piana', 'low cable fly', 'fly basso', 'in basso',
+      'dip', 'dips', 'dip alle parallele', 'dips al parallels', 'chest dip'],
     nota: 'Il peso va in basso: panca piana o declinata, fly con i cavi bassi. Lavora di più il capo sternale, quello che parte dallo sterno.',
   },
   {
     id: 'petto_centrale', muscolo: 'petto', parte: 'petto nel mezzo',
-    parole: ['chest press', 'panca', 'pecorino', 'macchina', 'cable fly', 'fly', 'cross over',
-      'crossover', 'crucifix', 'incline single arm pulldown',
-      'bench press', 'bench', 'pressione petto', 'horizontal press'],
+    parole: ['chest press', 'panca', 'pecorino', 'cable fly', 'fly', 'cross over',
+      'crossover', 'crucifix', 'bench press', 'bench', 'pressione petto', 'horizontal press'],
+    // Ste (13/10/2026): "rivedi tutti i dettagli degli esercizi perché molti sono
+    // sbagliati". Qui dentro c'era anche "incline single arm pulldown", e una
+    // PULLOWN è una tirata: tiri il peso verso di te partendo dall'alto, e
+    // quindi lavora il dorso, non il petto. Il nome era finito nella lista del
+    // petto e la scheda gli diceva "il petto lavora in modo abbastanza uniforme",
+    // che è il contrario di quello che fa. Tolto di qui e passato fra le tirate.
+    //
+    // Tolta anche "macchina": diceva il petto a QUALSIASI esercizio che avesse
+    // la parola nel nome, quindi un "Lat Pulldown macchina" e un "Rematore
+    // macchina" finivano fra i muscoli del petto solo per quello. Ora la parola
+    // vale per quello che dice e basta.
     // QUI C'ERA "bench pull" E "dumbbell bench pull", E SONO STATI TOLTI L'8/10/2026.
     // Ste guardando la scheda del Dumbbell Bench Pull: "cÈ scritto 'il lavoro È
     // distribuito, il petto lavora in modo abbastanza uniforme'... ma quello fa
@@ -68,8 +85,14 @@ export const PARTI = [
   },
   {
     id: 'dorso_lati', muscolo: 'dorso', parte: 'dorso ai lati (lati del triangolare)',
-    parole: ['pullover', 'lat pulldown', 'trazioni', 'pull up', 'pull-up', 'pull ups', 'dip', 'dips',
-      'tirate in basso', 'straight arm', 'trazioni assistite', 'auzhang'],
+    // Ste (13/10/2026): "nei dips dice che lavora dorso e lati, ma i dips
+    // lavorano petto e tricipiti". Aveva ragione: qui dentro c'erano "dip" e
+    // "dips", quindi i dips finivano fra le tirate. I dips sono una SPINTA: ti
+    // spingi via dalle parallele. Per questo sono passati al petto, e il
+    // tricipite li ho aggiunti sotto, dove vanno davvero.
+    parole: ['pullover', 'lat pulldown', 'trazioni', 'pull up', 'pull-up', 'pull ups',
+      'single arm pulldown', 'pulldown', 'pulldowns', 'tirata verticale',
+      'tirate in basso', 'straight arm', 'auzhang'],
     nota: 'Tira con le braccia: lavora il dorso largo, quello che si vede di lato sotto le ascelle.',
   },
   {
@@ -119,7 +142,15 @@ export const PARTI = [
   {
     id: 'spalla_gomito', muscolo: 'braccio', parte: 'tricipite: sopra il gomito',
     parole: ['french press', 'skull', 'estensioni sopra la testa', 'overhead extension',
-      'tricep pushdown', 'pushdown', 'tricipite', 'single arm tricep', 'estensioni'],
+      'tricep pushdown', 'pushdown', 'tricipite', 'tricipiti', 'single arm tricep',
+      // Ste (13/10/2026): "Cable Overhead Tricep Extension" e "Bodyweight Overhead
+      // Tricep Extension" non trovavano niente. Nella lista c'era "tricep pushdown"
+      // e "single arm tricep", cioè solo i nomi di DUE esercizi precisi, mai la
+      // parola da sola. Con "tricep" e "tricipiti" dentro, qualunque esercizio
+      // coi tricipiti nel nome viene riconosciuto.
+      'tricep', 'estensioni',
+      // i dips spingono coi gomiti: qui il tricipite lavora forte quanto il petto
+      'dip', 'dips'],
     nota: 'Stendi il gomito contro una resistenza: qui lavora il tricipite, dietro il braccio.',
   },
 

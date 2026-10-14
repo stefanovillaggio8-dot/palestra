@@ -170,14 +170,52 @@ const MOVIMENTI = [
     parole: ['crunch', 'plank', 'addome', 'abs', 'sit up', 'sit-up', 'tCrunch', 'obliquo'],
   },
   // --- corpo libero ---
+  //
+  // Ste (13/10/2026): "se vado nei rank e vedo dips, c'è scritto ASSISTITO ma non
+  // è assistito, stessa cosa nei pull ups. Inoltre rivedi tutti i dettagli degli
+  // esercizi perché molti sono sbagliati: nei dips dice che lavora dorso e lati,
+  // ma i dips lavorano petto e tricipiti".
+  //
+  // Tutte le cause erano una sola: qui sotto c'era un secchio solo, "corpo
+  // libero", che si beveva le parole "trazioni", "pull up", "dip", "dips",
+  // "push up" prima che qualsiasi movimento specifico le vedesse. Ogni esercizio
+  // col peso del corpo finiva lì dentro con due difetti insieme:
+  //  - il livello era "assistito", e sui Rank compariva la scritta ASSISTITO.
+  //    Ma "assistito" vuol dire che la MACCHINA ti aiuta: più ne metti e più è
+  //    facile. I zavorri sono il contrario esatto. Sui Rank era scritto il nome
+  //    dell'opposto di quello che stavi facendo.
+  //  - i muscoli non potevano essere giusti, perché il secchio non dice niente:
+  //    tutto quello col peso del corpo sembrava lavorare gli stessi muscoli, e
+  //    i dips finivano con "dorso e lati" che sono gli stessi delle trazioni.
+  //
+  // Ora ogni movimento ha il suo nome e i suoi muscoli. Quello che resta
+  // veramente generico (handstand, scorpione, planche) sta nell'ultimo secchio.
   {
-    id: 'corpo_libero', livello: 'assistito', gruppo: 'corpo libero',
-    parole: ['trazioni', 'pull up', 'pull-up', 'pullups', 'pull ups', 'dip', 'dips',
-      'push up', 'push-up', 'piegarimenti', 'corpo libero', 'bodyweight', 'auzhang', 'scorpione', 'handstand'],
+    id: 'tirata_verticale_corpo', livello: 'composto', gruppo: 'dorso',
+    parole: ['trazioni', 'traversi', 'pull up', 'pull-up', 'pullups', 'pull ups',
+      'chin up', 'chin-up', 'chinup', 'chin ups', 'zuubar', 'zugbar', 'sbarra stretta'],
   },
   {
-    id: 'spinta_corpo_libero', livello: 'assistito', gruppo: 'corpo libero',
-    parole: ['push up', 'push-up', 'piegamenti', 'chest dip', 'dips al parallels'],
+    id: 'spinta_corpo_libero', livello: 'composto', gruppo: 'petto',
+    parole: ['dip', 'dips', 'dip alle parallele', 'dips al parallels', 'chest dip',
+      'push up', 'push-up', 'pushups', 'push ups', 'piegamenti', 'piegamento',
+      'chest dip', 'flette'],
+  },
+  {
+    id: 'corpo_libero', livello: 'assistito', gruppo: 'corpo libero',
+    parole: ['corpo libero', 'bodyweight', 'auzhang', 'scorpione', 'handstand',
+      'planche', 'handstand push', 'wall sit',
+      // "ASSISTITE" È LA PAROLA CHE FA LA DIFFERENZA.
+      //
+      // Ste (13/10/2026): "se vado nei rank e vedo dips c'è scritto ASSISTITO ma
+      // non è assistito". Il nome dell'esercizio è "trazioni assistite" o "dip
+      // assistito": in quel caso la macchina ti REGGE, quindi è assistenza vera e
+      // più kg significa più facile. Senza questa riga la parola "trazioni"
+      // tirava dentro anche le trazioni assistite e le faceva finire fra le
+      // tirate col peso del corpo, cioè il contrario di quello che sono.
+      // La frase è un pezzo unico e vale doppio, quindi vince sulla parola sola.
+      'trazioni assistite', 'trazione assistita', 'dip assistito', 'dips assistiti',
+      'push up assistito', 'assistito', 'assistiti', 'con aiuto'],
   },
 ];
 
@@ -285,9 +323,21 @@ const SIGLE = [
   { nome: 'shoulder press', movimento: 'spinta_verticale' },
   { nome: 'lat pulldown', movimento: 'tirata_verticale' },
   { nome: 'seated row', movimento: 'tirata_orizzontale' },
-  { nome: 'pull up', movimento: 'corpo_libero' },
-  { nome: 'pull up', movimento: 'corpo_libero' },
-  { nome: 'dips', movimento: 'corpo_libero' },
+  // Ste (13/10/2026): "nei dips dice che lavora dorso e lati, ma i dips lavorano
+  // petto e tricipiti" e nei Rank compariva la scritta ASSISTITO.
+  //
+  // Qui sotto ci sono DUE problemi, e insieme facevano diventare trazioni e dips
+  // la stessa cosa. Il primo: le tre righe seguenti rimandavano entrambe al
+  // secchio "corpo_libero", che non distingue un push da una tirata. Il
+  // secondo: "pull up" c'era due volte identiche, quindi un nome che si diceva a
+  // voce contava due punti e vinceva sempre sul resto.
+  //
+  // Ora le tirate vanno alle tirate e le spinte alle spinte: i dips sono petto e
+  // tricipiti, le trazioni sono dorso e bicipiti.
+  { nome: 'pull up', movimento: 'tirata_verticale_corpo' },
+  // Tolta la sigla 'trazioni': era troppo generosa e si beveva anche
+  // 'trazioni ASSISTITE', che invece sono assistenza vera. La parola da sola
+  // la riconosce già la lista dei movimenti qui sopra.
   { nome: 'push up', movimento: 'spinta_corpo_libero' },
   { nome: 'hip thrust', movimento: 'gambe_pesanti' },
   { nome: 'bench press', movimento: 'spinta_orizzontale' },
