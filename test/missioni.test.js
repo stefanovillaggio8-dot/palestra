@@ -591,3 +591,28 @@ test('32. nessuna missione e\' piu\' corta di 130 caratteri', () => {
       m.id + ' e\' troppo corta (' + m.testo.length + ' caratteri): ' + m.testo);
   }
 });
+
+test('33. due missioni diverse non possono dire la stessa cosa', () => {
+  // Ste ha scoperto che IL PROFETA e IL PROFETA DELLE CAVOLATE erano la stessa
+  // missione con due parole diverse: "previsioni assurde" + "spiegazione tecnica".
+  // Prima le avevo scritte io senza accorgermene, quindi ora lo controllo da solo.
+  const parole = (t) => new Set(
+    t.toLowerCase()
+     .replace(/[^a-z0-9\u00e0-\u00ff ]/g, " ")
+     .split(/\s+/)
+     .filter((w) => w.length > 2 && !['che', 'per', 'una', 'uno', 'del', 'della', 'alla',
+       'gli', 'con', 'come', 'poi', 'non', 'alla', 'delle'].includes(w))
+  );
+  for (let a = 0; a < POOL.length; a++) {
+    for (let b = a + 1; b < POOL.length; b++) {
+      const A = parole(POOL[a].testo);
+      const B = parole(POOL[b].testo);
+      let comuni = 0;
+      for (const w of A) if (B.has(w)) comuni++;
+      const quanto = comuni / Math.min(A.size, B.size);
+      assert.ok(quanto < 0.45,
+        POOL[a].id + ' e ' + POOL[b].id + ' sono la stessa missione (' +
+        Math.round(quanto * 100) + '% di parole in comune)');
+    }
+  }
+});
