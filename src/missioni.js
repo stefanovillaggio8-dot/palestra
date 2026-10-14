@@ -197,7 +197,7 @@ export const POOL = [
   M('il-mare-verso', 'IL MARE VERSO',
       'Dopo ognuna delle prime tre serie porta le mani alla fronte come se guardassi il mare e di\': "Stiamo andando benissimo". Le tre volte devono essere identiche e se aggiungi qualunque parola l\'allenamento è ricominciato.', 'easy', { meccanica: 'fasi' }),
   M('la-lotta', 'LA LOTTA INTERNA',
-      'Prima della serie fai tre domande provocatori a tre persone diverse e tieni gli occhi su ognuna per cinque secondi senza parlare: "Chi ti sta aspettando dall\'altra parte?". Solo alla terza domanda parti con la serie. Se parti prima, la serie non conta e vale doppio.', 'insane', { meccanica: 'regole' }),
+      'Durante la serie più pesante della giornata discuti con te stesso ad alta voce: una frase per ogni ripetizione, alternate fra "ce la faccio" e "non ce la faccio". Non puoi dire due volte di fila la stessa frase, e alla fine chiudi con un verdetto di una parola sola.', 'insane', { meccanica: 'regole' }),
   
     // ---- le sfide di Ste, scritte da lui il 07/10/2026 ----
     // Queste sono sue, parola per parola nel senso. Livello e punti li ho messi io, e
@@ -220,7 +220,7 @@ export const POOL = [
   M('il-coach-improvvisato', 'IL COACH IMPROVVISATO',
       'Spiega a un amico, con serietà da allenatore, come si fa un esercizio normalissimo, e non cambiare mai discorso. Alla fine chiedigli: "Tutto chiaro?"', 'unhinged'),
   M('la-presentazione-epica', 'LA PRESENTAZIONE EPICA',
-      'Prima di una serie presentati come se stessi entrando sul palco del Mr. Olympia: nome, cognome e paese, senza sorridere. Poi la affronti in silenzio.', 'unhinged'),
+      'Prima di una serie presentati come se stessi entrando sul palco del Mr. Olympia: nome, cognome e paese, senza sorridere. Poi fai la serie guardando sempre un punto fisso davanti a te, senza parlare e senza voltarti, e se ti guardi allo specchio la serie vale zero.', 'unhinged', { meccanica: 'regole' }),
   M('applauso-personale', 'APPLAUSO PERSONALE',
       'Dopo ognuna delle prime tre serie fai dieci secondi di applauso a te stesso, guardandoti nello specchio. Le tre volte devono essere identiche e durante gli applausi non puoi parlare. Se ti vedi fare una smorfia, ricominci dal primo esercizio.', 'easy', { meccanica: 'fasi' }),
   M('il-ringraziamento', 'IL RINGRAZIAMENTO',
