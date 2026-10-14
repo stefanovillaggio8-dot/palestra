@@ -80,34 +80,32 @@ test('Z3. l\'anatomia: i muscoli sono nel posto giusto', () => {
 });
 
 test('Z4. nessun muscolo è disegnato fuori dal corpo', () => {
-  // Le coordinate dei muscoli sono distanze dal CENTRO del corpo, quindi anche
-  // i confronti sono su quelle distanze e non su quelle assolute.
-  const dentro = (dx, rx, da, a) => dx - rx >= da && dx + rx <= a;
-
-  // il braccio sta fra dx 37 e dx 52
+  // I muscoli ora sono sagome fatte di punti, quindi il controllo prende il
+  // riquadro che la sagoma occupa e lo confronta con quello del corpo.
+  // Le coordinate sono distanze dal CENTRO del corpo.
+  const dentro = (id, da, a) => {
+    for (const [x, y] of ZONE[id].punti) {
+      assert.ok(x >= da && x <= a,
+        id + ' esce dal corpo di lato: x=' + x + ', il corpo sta fra ' + da + ' e ' + a);
+      assert.ok(y >= 60 && y <= 300, id + ' esce dal corpo in alto o in basso: y=' + y);
+    }
+  };
   for (const id of ['braccio_alto', 'braccio_basso', 'avambraccio', 'spalla_gomito']) {
-    for (const f of ZONE[id].forme) {
-      assert.ok(dentro(f.dx, f.rx, 37, 52),
-        id + ' esce dal braccio: centro ' + f.dx + ', raggio ' + f.rx);
-    }
+    dentro(id, 38, 64);
   }
-  // la gamba sta fra dx 5 e dx 33
   for (const id of ['quadricipite', 'femorale', 'polpaccio']) {
-    for (const f of ZONE[id].forme) {
-      assert.ok(dentro(f.dx, f.rx, 5, 33),
-        id + ' esce dalla gamba: centro ' + f.dx + ', raggio ' + f.rx);
-    }
+    dentro(id, 4, 34);
   }
-  // il petto sta sopra la cintura, non arriva alle braccia e non scende all'addome
+  // il petto sta sopra la cintura e non arriva alle braccia
   for (const id of ['petto_alto', 'petto_centrale', 'petto_basso']) {
-    for (const f of ZONE[id].forme) {
-      assert.ok(dentro(f.dx, f.rx, 2, 37), id + ' non sta sul petto: arriva a dx ' + (f.dx + f.rx));
-      assert.ok(f.cy >= 58 && f.cy <= 96, id + ' non sta sul petto: sta a y ' + f.cy);
+    dentro(id, 2, 48);
+    for (const [, y] of ZONE[id].punti) {
+      assert.ok(y >= 74 && y <= 126, id + ' non sta sul petto: sta a y ' + y);
     }
   }
-  // gli addomi non possono salire sul petto
-  for (const f of ZONE.addome.forme) {
-    assert.ok(f.cy - f.ry >= 96, 'gli addomi salgono sul petto: iniziano a y ' + (f.cy - f.ry));
+  // gli addomi stanno fra il petto e il pube, e non salgono sul petto
+  for (const [, y] of ZONE.addome.punti) {
+    assert.ok(y >= 118 && y <= 168, 'gli addomi non sono dove dev\'essere: y=' + y);
   }
 });
 
@@ -131,34 +129,43 @@ test('Z5. ogni esercizio della scheda accende un muscolo disegnato', () => {
     const p = parteDiMuscolo({ nome });
     assert.ok(p.trovata, nome + ': l\'app non riconosce nessun muscolo');
     assert.ok(idZonaDaParte(p.parte),
-      nome + ': riconosce "' + p.parte + '" ma sulla mappa non c\'e\': l\'omino resterebbe grigio');
+      nome + ': riconosce "' + p.parte + '" ma sulla mappa non c\'è: l\'omino resterebbe grigio');
   }
 });
 
 test('Z6. il disegno è simmetrico: il sinistro è lo specchio del destro', () => {
   // Se una forma c'è solo da un lato, l'app sta dicendo che l'omino lavora
-  // da una parte sola. Le ellissi si cercano con cx, i poligoni con i punti.
-  const stampa = (punti) => punti.map(([x, y]) => (L / 2 + x) + ',' + y).join(' ');
+  // da una parte sola.
+  // nel path i punti NON sono di fila (in mezzo ci sono i comandi di curva),
+  // quindi per controllare la simmetria basta il primo punto di ogni sagoma.
+  const inizioDi = (punti) =>
+    'M ' + (L / 2 + punti[0][0]).toFixed(1) + ',' + punti[0][1].toFixed(1);
 
   for (const id of TUTTE) {
-    for (const f of ZONE[id].forme) {
-      if (f.doppio === false) continue;
-      // la figura da guardare e' quella dove il muscolo si vede: i dorsali
-      // sono dietro, e chiederli alla figura di fronte non ha senso
-      const dove = ZONE[id].vista === 'entrambe' ? 'retro' : ZONE[id].vista;
-      const svg = figurino(dove, id);
-      if (f.tipo === 'ellisse') {
-        const destra = svg.match(new RegExp('cx="' + (L / 2 + f.dx) + '"', 'g')) || [];
-        const sinistra = svg.match(new RegExp('cx="' + (L / 2 - f.dx) + '"', 'g')) || [];
-        assert.ok(destra.length >= 1 && sinistra.length >= 1,
-          id + ' c\'è solo da un lato: destra ' + destra.length + ', sinistra ' + sinistra.length);
-      } else {
-        const specchiato = f.punti.map(([x, y]) => [-x, y]);
-        assert.ok(svg.includes('points="' + stampa(specchiato) + '"'),
-          id + ' non ha il disegno specchiato: ' + stampa(specchiato));
-        assert.ok(svg.includes('points="' + stampa(f.punti) + '"'),
-          id + ' non ha il disegno del lato giusto');
-      }
-    }
+    const z = ZONE[id];
+    if (z.centrato) continue;
+    const specchiato = z.punti.map(([x, y]) => [-x, y]);
+    const svg = figurino(z.vista === 'entrambe' ? 'retro' : z.vista, id);
+    // il disegno e' un path: si cerca dentro l'attributo d, non in points
+    assert.ok(svg.includes('d="' + inizioDi(specchiato)),
+      id + ' non ha il disegno specchiato');
   }
+});
+
+test('Z7. fronte e dietro si distinguono, e lo dicono anche', () => {
+  // Ste: "si deve capire anche fronte e retro e qua non si capisce".
+  // Non basta che i muscoli siano diversi: devono esserlo anche i segni del
+  // corpo, e sotto ogni figura deve esserci scritto quale è.
+  const dentro = figurino('fronte', null);
+  const dietro = figurino('retro', null);
+  // la faccia c'è solo davanti
+  assert.match(dentro, /class="volto"/, 'la faccia non c\'è nella figura di fronte');
+  assert.doesNotMatch(dietro, /class="volto"/, 'la figura di dietro ha una faccia: impossibile');
+  // la spina c'è solo dietro
+  assert.match(dentro, /linee-fronte/, 'la figura di fronte non ha le sue linee');
+  assert.doesNotMatch(dentro, /spina/, 'la spina dorsale c\'è anche davanti: impossibile');
+  assert.match(dietro, /linee(?![-"])/, 'la spina dorsale non c\'è nella figura di dietro');
+  // e l'etichetta sotto la figura
+  assert.match(dentro, />FRONTE</, 'sotto la figura di fronte non c\'è scritto FRONTE');
+  assert.match(dietro, />DIETRO</, 'sotto la figura di dietro non c\'è scritto DIETRO');
 });

@@ -174,7 +174,7 @@ a { color: var(--blu); text-decoration: none; }
 .bot.pericolo { background: linear-gradient(135deg, #d63a4a, #a32430); border-color: transparent; color: #fff; }
 .bot.piccolo-b { padding: 8px 10px; min-height: 38px; font-size: .82rem; }
 /* dentro la riga serie i pulsanti secondari sono stretti: ci devono stare senza
- * far saltare la riga, ma restano 40 px perche' si premano col dito. */
+ * far saltare la riga, ma restano 40 px perché si premano col dito. */
 .riga-serie .bot.piccolo-b { padding: 5px 8px; min-height: 40px; font-size: .68rem; }
 .riga-serie .bot.spotter,
 .riga-serie .bot.dropset-bot { padding: 5px 9px; min-height: 40px; font-size: .64rem; font-weight: 800; }
@@ -404,11 +404,11 @@ body.scorso .banda-cronometro .bot.grande {
  * era che una serie sola occupava TRE righe di schermo (numeri, poi pulsanti, poi
  * il confronto) e con cinque esercizi non ne vedi due.
  *
- * Le regole che ho seguito, e perche':
+ * Le regole che ho seguito, e perché:
  *  - i numeri e la spunta diventano compatti: sono loro che si toccano mille volte;
 *  - il toccabile NON scende sotto i 40 px: in palestra il dito e' sudato e la
  *    riga viene premuta di fretta. Piccolo si', ma non "minuscolo da sbagliarsi";
- *  - i campi sul telefono restano a 16 px, perche' sotto i 16 iOS zooma da solo e
+ *  - i campi sul telefono restano a 16 px, perché sotto i 16 iOS zooma da solo e
  *    un zoom a meta' allenamento fa saltare il tap dopo (vedi il media query);
  *  - i pulsanti secondari (spotter, nota, elimina) diventano stretti, ma NON
  *    spariscono: sono cose che Ste ha chiesto, si accorcia solo lo spazio. */
@@ -467,7 +467,7 @@ body.scorso .banda-cronometro .bot.grande {
 
 /* dentro la riga serie, invece, "prima: 40 kg x 8" non vuole la sua riga con la
  * bordata a punteggi: era il terzo pezzo di riga e non aggiungeva niente. Sta in
- * coda ai numeri e si taglia se non c'entra. La regola vale SOLO qui dentro, perche'
+ * coda ai numeri e si taglia se non c'entra. La regola vale SOLO qui dentro, perché
  * la stessa classe la usa anche la classifica fra amici e li quei pezzi hanno
  * bisogno della loro scatoletta. */
 .riga-serie .riga-confronto {
@@ -1598,7 +1598,7 @@ body:has(.sfondo-dialogo) .avviso {
    * Lo scherzo era pensato per i PEZZI sciolti, che avevano uno sfondo nero da
    * ritagliare: con `screen` il nero sparisce e si vede solo il pezzo. Ma adesso
    * la foto e' una SCENA intera con il suo sfondo scuro e la sua vignettatura:
-   * mescolarla con lo schermo la schiariva tutta (e sembrava sfocata perche' lo
+   * mescolarla con lo schermo la schiariva tutta (e sembrava sfocata perché lo
    * era, ma peggio) e faceva trasparire il viola del riquadro, quindi la foto
    * sembrava tingersi di blu. Senza, ogni pixel e' quello che e'. */
   animation: personaggio-vestizione .55s ease-out;
@@ -1620,9 +1620,9 @@ body:has(.sfondo-dialogo) .avviso {
  * sega, come una cucitura.
  *
  * Come e' fatto: un disegno SVG di 16x12 px con due denti in alto, usato come
- * `border-image` ritagliato a 10 px e ripetuto. Il vantaggio di cosi' e' che si vede
+ * `border-image` ritagliato a 10 px e ripetuto. Il vantaggio di così e' che si vede
  * il BORDO vero, non un'immagine di cornice: resta dentato anche quando la scheda
- * si allarga, e non si sfuoca perche' viene ridisegnata, non stirata.
+ * si allarga, e non si sfuoca perché viene ridisegnata, non stirata.
  *
  * Perche' due colori e non uno solo: il bordo segue la ricompensa. Senza aura e'
  * viola scuro, e non si nota; con l'Aura divina diventa d'oro, e si vede che il
@@ -1744,7 +1744,7 @@ body:has(.sfondo-dialogo) .avviso {
   mask-image: radial-gradient(92% 96% at 50% 38%, #000 32%, transparent 97%);
   opacity: .7;
   animation: aura-fassi 24s ease-in-out infinite alternate;
-  /* L'ALONE LUNGO IL BORDO. Sta su questo strato e non sul riquadro perche' il
+  /* L'ALONE LUNGO IL BORDO. Sta su questo strato e non sul riquadro perché il
      riquadro lo disegna SOTTO il contenuto, e il contenuto del riquadro e' la foto:
      con l'Assassino (foto al 100%) l'alone finiva coperto e non si vedeva, con gli
      altri (foto all'86-88%) si vedeva solo ai lati. */
@@ -1779,7 +1779,7 @@ body:has(.sfondo-dialogo) .avviso {
  * l'unica delle tre che ha la foto al 100% e quindi riempie tutto il riquadro, quei
  * due gradi di rotazione non si vedevano come luce che passa: si vedevano come
  * l'immagine intera che si storta. Sui due che stanno all'86-88% la differenza non
- * si notava, perche' la figura non arriva ai bordi.
+ * si notava, perché la figura non arriva ai bordi.
  *
  * Quindi: mezzo grado, cinque pixel, e il ciclo piu' lungo. La luce deve sembrare
  * che respira, non che trascini.
@@ -1836,13 +1836,13 @@ body:has(.sfondo-dialogo) .avviso {
  * L'unica cosa che NON torna e' la stella. Era un poligono a quattro punte
  * ritagliato con `clip-path` che al massimo girava di 45 gradi: a 7 pixel
  * diventava una X ferma nell'angolo, che non sembrava una scintilla ma un
- * graffio sulla pagina. E' l'unico ritocco che resta, perche' quello non e' un
+ * graffio sulla pagina. E' l'unico ritocco che resta, perché quello non e' un
  * parere sul gusto ma un difetto: una X ferma non e' un effetto che si lascia
- * cosi'.
+ * così.
  *
  * Nota per il futuro: la foto di riferimento di Ste contiene anche l'aria calda
  * al 18% e la luce dietro al 30%, che erano state dimezzate nella v134. Sono
- * tornate quelle, non per un parere ma perche' il confronto fra le due build ha
+ * tornate quelle, non per un parere ma perché il confronto fra le due build ha
  * mostrato che la differenza visibile stava li'. */
 .aura-stelle i {
   position: absolute;
@@ -1872,8 +1872,8 @@ body:has(.sfondo-dialogo) .avviso {
  * Ste (12/10/2026): "aggiungi piu' effetti".
  *
  * Non e' un raggio: e' una colonna larga e sfocata, che sale dal pavimento e
- * passa dietro le spalle. Sta dietro perche' il riquadro e' sopra la foto, quindi
- * perche' sia "dietro" deve essere disegnata PRIMA: per questo usa `z-index: 0`,
+ * passa dietro le spalle. Sta dietro perché il riquadro e' sopra la foto, quindi
+ * perché sia "dietro" deve essere disegnata PRIMA: per questo usa `z-index: 0`,
  * mentre la foto ne ha `z-index: 1`. Il resto dell'aura resta davanti.
  *
  * Si muove poco e piano, e in alto si spegne: una colonna che arriva fino in cima
@@ -1890,7 +1890,7 @@ body:has(.sfondo-dialogo) .avviso {
  * nasce piccola dalla figura e si allarga finche' sparisce, tre volte di fila con
  * tre ritardi diversi, ogni 7,8 secondi.
  *
- * Si animano `width` e `height` e NON `scale`, perche' il progetto vieta le scale
+ * Si animano `width` e `height` e NON `scale`, perché il progetto vieta le scale
  * forti e fa bene: deformerebbero la figura. Ma qui dentro non c'e' niente da
  * deformare, l'onda e' un anello vuoto, quindi si puo' allargare liberamente senza
  * toccare il personaggio. */
@@ -1923,8 +1923,8 @@ body:has(.sfondo-dialogo) .avviso {
 
 /* LA CORONA: l'anello che sta fermo sopra la testa e si allarga piano.
  *
- * Diversa dall'onda perche' l'onda va e torna e questa resta: e' la luce che
- * appartiene a lui, non un colpo di scena. Due anelli concentrici cosi' si legge
+ * Diversa dall'onda perché l'onda va e torna e questa resta: e' la luce che
+ * appartiene a lui, non un colpo di scena. Due anelli concentrici così si legge
  * come una corona e non come un bersaglio. */
 .aura-corona {
   position: absolute;
@@ -2676,7 +2676,7 @@ html.animazioni-mai .aura-colonna { animation: none; }
  * Ste: "metti piu' animazioni". Il numero che appena e' cambiato e' la cosa che
  * hai guardato per farvi caso: se pulsa piano mentre lo guardi, capisci che quello
  * e' il nuovo numero e non quello di prima. Funziona anche a chi non nota i
- * colori, perche' e' una movimento e non una tinta. */
+ * colori, perché e' una movimento e non una tinta. */
 @keyframes numero-pulse {
   0% { transform: scale(1); }
   35% { transform: scale(1.22); }
@@ -2734,7 +2734,7 @@ html.animazioni-mai .aura-colonna { animation: none; }
    acceso, l'app lo ascolta: niente animazioni, niente transizioni lunghe, e i
    dialoghi compaiono subito. Non e' una gentilezza da aggiungere dopo: e' il
    motivo per cui le altre animazioni si possono fare senza pensarci due volte,
-   perche' nessuno soffre. */
+   perché nessuno soffre. */
 /* IL PULSANTE DELLE ANIMAZIONI */
 .riga-animazioni { display: flex; gap: 8px; flex-wrap: wrap; margin: 6px 0 2px; }
 .riga-animazioni .bottone.scelto { border-color: var(--giallo); color: var(--giallo); }
@@ -2784,32 +2784,37 @@ html.animazioni-mai .aura-colonna { animation: none; }
    per decisione: il selettore esclude `html` con la classe `animazioni-sempre`. */
 /* L'OMINO CHE DICE DOVE LAVORI.
  *
- * Ste (13/10/2026): "il muscolo allenato colorato di viola, non di giallo".
- * Il giallo e' il colore dei numeri e delle spunte in tutta l'app: qui dentro
- *Divideresti ogni altra cosa, quindi il muscolo acceso usa il viola della
- * classe Assassino, che non e' usato per nient'altro nella pagina.
+ * Ste (13/10/2026), prima: "i quadratini grigi che rappresenterebbero i muscoli
+ * non mi piacciono". Erano ellissi e poligoni. Ora i muscoli sono sagome vere, e
+ * la differsenza si vede anche dal colore: il corpo e' chiarissimo, come nella
+ * foto di riferimento, i muscoli spenti sono color muscolo e solo quello giusto
+ * è viola.
  *
- * Il guscio del corpo resta grigio chiaro e i muscoli spenti grigi scuri: si
- * vede subito DOVE, senza dover leggere la riga sotto. */
+ * Il giallo non si usa: nell'app è il colore dei numeri e delle spunte, e qui
+ * avrebbe diviso ogni altra cosa. Il viola è quello della classe Assassino. */
 .riga-omino {
-  display: flex; align-items: center; gap: 14px;
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
   background: linear-gradient(155deg, var(--viola-scuro, #2a1f45), var(--card, #1a1526) 70%);
   border: 1px solid var(--bordo, #3a2c5e);
   border-radius: 14px; padding: 10px 12px; margin: 0 0 12px;
 }
 .omino { flex: 0 0 auto; }
-.omino-svg { width: 168px; height: auto; display: block; }
-.omino-svg .corpo-guscio polygon,
-.omino-svg .corpo-guscio circle { fill: #d9dcec; }
-.omino-svg .muscolo polygon,
-.omino-svg .muscolo ellipse { fill: #3a3155; stroke: #4d4370; stroke-width: 1; }
-.omino-svg .muscolo.acceso polygon,
-.omino-svg .muscolo.acceso ellipse { fill: #8b5cf6; stroke: #d8ccff; stroke-width: 1.2; }
-.omino-didascalia { display: flex; flex-direction: column; gap: 3px; font-size: .88rem; }
+.omino-svg { width: 250px; max-width: 100%; height: auto; display: block; }
+.omino-svg .corpo-guscio path { fill: #e9ebf4; }
+.omino-svg .capelli { fill: #b7bed4; }
+.omino-svg .volto path { fill: #6c6a7d; }
+.omino-svg .linee path { fill: #c8ccdd; }
+.omino-svg .muscolo path { fill: #b3a9c4; stroke: #efeaf7; stroke-width: 1.4; }
+.omino-svg .muscolo.acceso path { fill: #8b5cf6; stroke: #e9dfff; stroke-width: 1.8; }
+.omino-svg .vista-label {
+  fill: #cfc8e6; font-size: 15px; font-weight: 700; letter-spacing: .14em;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+.omino-didascalia { display: flex; flex-direction: column; gap: 3px; font-size: .88rem; min-width: 180px; }
 .omino-didascalia strong { color: #c9b6ff; }
-@media (max-width: 420px) {
-  .riga-omino { flex-direction: column; align-items: flex-start; }
-  .omino-svg { width: 100%; max-width: 260px; }
+@media (max-width: 430px) {
+  .riga-omino { flex-direction: column; align-items: center; }
+  .omino-svg { width: 100%; }
 }
 
 @media (prefers-reduced-motion: reduce) {
