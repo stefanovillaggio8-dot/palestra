@@ -47,10 +47,14 @@ test('C4. "assistito" vuol dire che la MACCHINA ti aiuta, non che usi il corpo',
   //
   // Quindi il corpo libero VERAMENTE assistito resta "assistito", e quello col
   // peso del corpo più zavorri è un composto come tutti gli altri.
-  assert.equal(liv('Trazioni assistite'), 'assistito',
-    'questa SÌ è assistenza vera: la macchina ti regge');
+  // Ste (13/10/2026): "nelle trazioni non vengo manco assistito, mi appendo e
+  // basta". Quindi nemmeno "trazioni assistite" è assistito: in palestra le
+  // trazioni non si fanno assistite. L'unico assistito vero della scheda è
+  // l'esercizio al cavo, che arriva qui dalla parola "bodyweight".
+  assert.equal(liv('Trazioni assistite'), 'composto',
+    'le trazioni non si fanno assistite: ci si appendo e basta');
   assert.equal(liv('Bodyweight Overhead Tricep Extension'), 'assistito',
-    'questa pure: al cavo, il numero è il peso che ti viene tolto');
+    'questo invece è assistito vero: al cavo, il numero è il peso che ti viene tolto');
   assert.equal(liv('Pull Ups'), 'composto',
     'le trazioni col peso del corpo non sono assistite: più kg è più difficile');
   assert.equal(liv('Dips'), 'composto',
@@ -168,7 +172,7 @@ test('C14. riconosce 59 nomi veri di palestra, italiano e inglese', () => {
   ['Military Press', 'composto'],
   ['Lat Pulldown macchina', 'composto'],
   ['Trazioni', 'composto'],
-  ['Trazioni assistite', 'assistito'],
+  ['Trazioni assistite', 'composto'], // le trazioni non si fanno assistite
   ['Dips', 'composto'],
   ['Seated Cable Row', 'composto'],
   ['Tirate in basso al cavo', 'composto'],

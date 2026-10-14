@@ -203,19 +203,22 @@ const MOVIMENTI = [
   },
   {
     id: 'corpo_libero', livello: 'assistito', gruppo: 'corpo libero',
+    // QUI NON C'È NIENTE "ASSISTITO", E È VOLUTO.
+    //
+    // Ste (13/10/2026): "nelle trazioni non vengo manco assistito, mi appendo e
+    // basta". Ha ragione: in palestra le trazioni non si fanno assistite, ci si
+    // appendo e basta. Nella v155 avevo messo qui dentro "trazioni assistite",
+    // "dip assistito", "assistito", "con aiuto", perché mi sembrava che il nome
+    // potesse voler dire "la macchina mi regge". Ma da te non arriva mai quel
+    // caso: se un esercizio si chiama "trazioni", per te sono trazioni col peso
+    // del corpo più gli zavorri, e la macchina non c'è.
+    //
+    // Quindi il nome non decide: decide la convenzione. E l'unico esercizio
+    // davvero assistito della scheda è il Bodyweight Overhead Tricep Extension,
+    // che sta al cavo: lì il numero è il peso che ti viene TOLTO, e lo prende
+    // dalla parola "bodyweight" qui sotto.
     parole: ['corpo libero', 'bodyweight', 'auzhang', 'scorpione', 'handstand',
-      'planche', 'handstand push', 'wall sit',
-      // "ASSISTITE" È LA PAROLA CHE FA LA DIFFERENZA.
-      //
-      // Ste (13/10/2026): "se vado nei rank e vedo dips c'è scritto ASSISTITO ma
-      // non è assistito". Il nome dell'esercizio è "trazioni assistite" o "dip
-      // assistito": in quel caso la macchina ti REGGE, quindi è assistenza vera e
-      // più kg significa più facile. Senza questa riga la parola "trazioni"
-      // tirava dentro anche le trazioni assistite e le faceva finire fra le
-      // tirate col peso del corpo, cioè il contrario di quello che sono.
-      // La frase è un pezzo unico e vale doppio, quindi vince sulla parola sola.
-      'trazioni assistite', 'trazione assistita', 'dip assistito', 'dips assistiti',
-      'push up assistito', 'assistito', 'assistiti', 'con aiuto'],
+      'planche', 'handstand push', 'wall sit'],
   },
 ];
 
