@@ -51,10 +51,21 @@ const RIFERIMENTI_VERIFICATI = {
   'ex-sled-press-calf-raise': 132,
   'ex-single-leg-press': 34.62,
   'ex-one-arm-preacher-curl': 17.91,
+  // Trazioni e dips: qui il numero cambia, ed è l'unica eccezione di tutto il
+  // file, quindi la spiego. Fino alla v153 erano 15, cioè la scala delle
+  // ripetizioni, e su una trazione i kg che metti sono i zavorri: 20 kg di
+  // zavorra più il corpo davano un punteggio di 86 kg confrontato con una scala
+  // che finiva a 20, quindi il Rank era sempre OLYMPIAN. Era un bug, non una
+  // taratura. Ora la scala parte da te: il peso di Ste (66) più il 37,5% dei
+  // zavorri = 90.75 kg, e le soglie si muovono col peso come in ogni altro
+  // esercizio pesante.
+  //
+  // Il Bodyweight Overhead Tricep Extension resta a 15: quello al cavo è
+  // assistenza vera, e l'assistenza si conta col numero delle ripetizioni.
   'ex-bodyweight-overhead-tricep': 15,
   'ex-one-arm-cable-reverse-fly': 15.09,
-  'ex-pull-ups': 15,
-  'ex-dips': 15,
+  'ex-pull-ups': 90.75,
+  'ex-dips': 90.75,
   'ex-wrist-curl': 32.06,
   'ex-iso-lateral-row': 47.14,
   'ex-lat-pulldown-lats': 95.23,

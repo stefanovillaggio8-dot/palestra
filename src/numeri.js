@@ -155,7 +155,14 @@ export function formattaRipetizioni(n) { return formattaNumero(n); }
 
 /** Una convenzione di carico permette di parlare di "carico sollevato"? */
 export function convenzioneMisuraCarico(conv) {
-  return conv !== CONVENZIONI.ASSISTENZA && conv !== CONVENZIONI.CORPO_LIBERO;
+  // I ZAVORRI NON MISURANO IL CARICO DELLA MACCHINA, quindi stanno nello stesso
+  // campo dell'assistenza: il numero che scrivi tu. Prima non erano nell'elenco e
+  // il risultato era 'true', quindi l'app leggeva il campo del carico e la zavorra
+  // finiva da una parte sola. Nessun esercizio aveva ancora questa convenzione,
+  // quindi nessun numero e' andato perso, ma la strada era sbagliata.
+  return conv !== CONVENZIONI.ASSISTENZA
+    && conv !== CONVENZIONI.CORPO_LIBERO
+    && conv !== CONVENZIONI.ZAVORRI;
 }
 
 /** Le convenzioni "assistenza" si muovono al contrario: più kg = meno lavoro. */

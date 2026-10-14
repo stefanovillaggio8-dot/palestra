@@ -500,11 +500,18 @@ test('1d. la scheda del giorno mostra i kg in chiaro, con le ripetizioni', async
   await new Promise((r) => setTimeout(r, 150));
 });
 
-test('1e. gli esercizi assistiti mostrano "kg di assistenza"', async () => {
+test('1e. trazioni e dips mostrano i zavorri, non l\'assistenza', async () => {
+  // Ste (13/10/2026): "ancora i dips e le trazioni i kg che metto sono sempre
+  // di zavorra, non di assistite". Erano impostati al contrario: i kg di
+  // assistenza vanno contati al contrario (piu' ne metti e piu' e' facile), i
+  // zavorri vanno sommati al tuo corpo (piu' ne metti e piu' e' difficile).
+  // Sull'app le trazioni dicevano "ASSISTENZA" e i 20 kg di zavorra venivano
+  // contati come se la macchina ti avesse aiutato di 20 kg.
   globalThis.window.location.hash = '#/giorno/giorno-4';
   await new Promise((r) => setTimeout(r, 200));
   const testo = app.textContent;
-  assert.match(testo, /kg di assistenza/, 'Pull Ups e Dips sono assistiti');
+  assert.match(testo, /zavorri/i, 'trazioni e dips devono dire zavorri');
+  assert.doesNotMatch(testo, /ASSISTENZA/, 'niente piu\' assistenza su trazioni e dips');
   assert.match(testo, /Dropset/i, 'il Wrist Curl e\' segnato dropset');
   globalThis.window.location.hash = '#/';
   await new Promise((r) => setTimeout(r, 150));

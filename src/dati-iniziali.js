@@ -231,8 +231,8 @@ export const ESERCIZI = [
   { id: 'ex-bodyweight-overhead-tricep', nome: 'Bodyweight Overhead Tricep Extension', gruppo: 'Overhead Tricep Extension', convenzione: C.ASSISTENZA, foto: 'img/esercizi/bodyweight-overhead-tricep-ext.png', tipo: 'assistente', nota_permanente: 'Al cavo, altezza sopra il culo. Il numero e\' il peso di assistenza che aggiungo.' },
   { id: 'ex-one-arm-cable-reverse-fly', nome: 'One Arm Cable Reverse Fly', gruppo: 'Reverse Fly', convenzione: C.CAVO, carrucola: C.CARRUCOLA_DOPPIA, foto: 'img/esercizi/one-arm-cable-reverse-fly.png', tipo: 'standard', nota_permanente: 'Cavo ad altezza 23 gradi.' },
 
-  { id: 'ex-pull-ups', nome: 'Pull Ups', gruppo: 'Pull Ups', convenzione: C.ASSISTENZA, foto: 'img/esercizi/pull-ups.png', tipo: 'assistente', nota_permanente: 'Zavorra: il numero e\' l\'assistenza che uso.' },
-  { id: 'ex-dips', nome: 'Dips', gruppo: 'Dips', convenzione: C.ASSISTENZA, foto: 'img/esercizi/dips.png', tipo: 'assistente', nota_permanente: 'Zavorra: il numero e\' l\'assistenza che uso.' },
+  { id: 'ex-pull-ups', nome: 'Pull Ups', gruppo: 'Pull Ups', convenzione: C.ZAVORRI, foto: 'img/esercizi/pull-ups.png', tipo: 'zavorre', nota_permanente: 'Zavorra: il numero e\' l\'assistenza che uso.' },
+  { id: 'ex-dips', nome: 'Dips', gruppo: 'Dips', convenzione: C.ZAVORRI, foto: 'img/esercizi/dips.png', tipo: 'zavorre', nota_permanente: 'Zavorra: il numero e\' l\'assistenza che uso.' },
   // Ste (10/10/2026), audit: questo esercizio aveva `carrucola: carrucola_mono` ma
 // convenzione `bilanciere`. La carrucola sta solo sui CAVI: un bilanciere non ha
 // un carrello da cui il peso si dimezzi. Qui non cambiava il Rank (il bilanciere non

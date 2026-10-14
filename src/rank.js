@@ -102,7 +102,12 @@ export function punteggioSerie(serie, profilo) {
   // non quello di adesso: se ti sei pesato dopo, la prestazione di tre mesi fa deve
   // restare com'era. È la stessa regola che usa già il resto del file.
   if (p.convenzione === 'zavorri') {
-    const aggiunti = peso;
+    // I kg della zavorra stanno nel campo dell'assistenza, non in quello del
+    // carico: e' lo stesso campo di 'kg di assistenza' perché anche li' il
+    // numero che scrivi tu. Prima leggeva `peso`, che su una trazione e' sempre
+    // vuoto, quindi il ramo diceva 'mancano i kg di zavorri' anche quando li avevi
+    // scritti. Il fallback su `peso` serve per chi ha i numeri nel campo vecchio.
+    const aggiunti = assistenza !== null ? assistenza : peso;
     // IL PESO È QUELLO DELLA SERIE, non quello del profilo.
     //
     // Il profilo porta il peso di ADESSO (passa da `performanceEsercizio`, che

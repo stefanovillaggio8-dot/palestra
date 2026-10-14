@@ -623,6 +623,19 @@ export const RIFERIMENTO_DEFAULT = {
 export const RIFERIMENTO_ZAVORRI_DEFAULT = 80;
 
 /**
+ * I zavorri: quanto pesa in più il tuo corpo quando ti metti la zavorra.
+ *
+ * 1,375 vuol dire "il tuo peso più il 37,5%": chi pesa 80 kg ha come
+ * riferimento 110 kg totali, chi pesa 65 kg ne ha 89. È la soglia media:
+ * sotto stai al Bronze e sopra all'Olympian come in qualsiasi altro esercizio.
+ *
+ * Sta a metà strada rispetto al tetto di realismo, che è 2,2 volte il peso
+ * (176 kg su un corpo di 80): il riferimento deve restare dentro il tetto,
+ * sennò l'ultimo livello sarebbe irraggiungibile.
+ */
+export const RAPPORTO_ZAVORRI_DEFAULT = 1.375;
+
+/**
  * Quanto vale 1 kg di assistenza, in ripetizioni perse.
  * Serve per gli esercizi assistiti (trazioni, dip, push up con zavorra):
  * se ti fai aiutare con 15 kg, le ripetizioni contano un po' meno.
@@ -735,7 +748,43 @@ export function profiloPerPesoCorporeo(profilo, pesoCorporeo) {
   //    È rapporto x peso della persona e le soglie nascono da quel numero.
   let riferimento;
   let soglie;
-  if (p.riferimentoFisso) {
+  if (p.conZavorri) {
+    // I ZAVORRI: LA SCALA PARTE DA TE, NON DA UN NUMERO SCRITTO A FORTE.
+    //
+    // Ste (13/10/2026): "ancora i dips e le trazioni i kg che metto sono
+    // sempre di zavorra, non di assistite". Prima i due esercizi erano
+    // impostati come assistenza, quindi i 20 kg di zavorra venivano contati al
+    // contrario, come se la macchina ti avesse aiutato.
+    //
+    // E una volta sistemato quello è saltato un buco più grosso: questi
+    // esercizi finivano nel ramo qui sotto, che ricalcola il riferimento da zero
+    // chiedendolo al classificatore. Per "Pull Ups" quello rispondeva "movimento
+    // col peso del corpo" e tirava fuori il riferimento delle ripetizioni, 15.
+    // Le soglie diventavano 8-20 kg e non si muovevano col peso della persona,
+    // quindi 20 kg di zavorri più il corpo superavano sempre l'ultima soglia e il
+    // Rank era sempre OLYMPIAN, a qualunque numero di ripetizioni.
+    //
+    // Non era una taratura sbagliata: era la scala sbagliata.
+    //
+    // Qui la scala nasce dal peso della persona: il riferimento è "tuo corpo
+    // più il 37,5%", e il resto è come in qualsiasi altro esercizio pesante. Il
+    // peso è quello del GIORNO in cui hai fatto la serie, non quello di adesso,
+    // quindi un record di tre mesi fa non cambia da solo quando ti pesi.
+    const rapporto = Number(p.riferimento) > 0 && Number(p.riferimento) !== RIFERIMENTO_ZAVORRI_DEFAULT
+      ? Number(p.riferimento) / Math.max(1, RIFERIMENTO_ZAVORRI_DEFAULT)
+      : RAPPORTO_ZAVORRI_DEFAULT;
+    riferimento = Math.round(peso * rapporto * 100) / 100;
+    soglie = soglieDaRiferimento(riferimento);
+    // tetto di realismo: l'ultima soglia non può valere più di 2,2 volte il peso
+    const tettoZavorri = peso * TETTO_PER_PESO;
+    if (soglie && soglie.length && soglie[soglie.length - 1] > tettoZavorri) {
+      const fattore = tettoZavorri / soglie[soglie.length - 1];
+      for (let i = 0; i < soglie.length; i++) soglie[i] = Math.round(soglie[i] * fattore * 100) / 100;
+      for (let i = 1; i < soglie.length; i++) {
+        if (soglie[i] <= soglie[i - 1]) soglie[i] = Math.round((soglie[i - 1] + 0.5) * 100) / 100;
+      }
+    }
+  } else if (p.riferimentoFisso) {
     riferimento = p.riferimento;
     soglie = p.soglie.map((s) => Math.round(s * (peso / PESO_RIFERIMENTO) * 100) / 100);
   } else {

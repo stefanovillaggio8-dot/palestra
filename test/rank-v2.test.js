@@ -323,11 +323,27 @@ test('V16. l\'app usa il motore NUOVO, e il vecchio non regala pi\' OLYMPIAN', (
   assert.equal(record.rank.nome, nuovo.rank.nome,
     'l\'app e il motore nuovo devono dire lo stesso Rank: due sistemi, una risposta');
   assert.equal(record.lp, nuovo.lp, 'e gli stessi LP');
-  // il motore vecchio resta in piedi per gli esercizi a ripetizioni
+// Le trazioni sono ZAVORRI, non assistenza (Ste, 13/10/2026). Il motore nuovo
+  // non le sa valutare, quindi l'app torna al vecchio: e il vecchio deve
+  // sommare i kg di zavorra al corpo, non contarli al contrario.
   const trazioni = ESERCIZI.find((e) => /pull ups/i.test(e.nome));
-  const senzaKg = recordEsercizio([{ id: 's', esercizio_id: trazioni.id, stato: 'fatta', peso: null, ripetizioni: 7 }], trazioni, null, 66);
-  assert.equal(senzaKg.motore, 'vecchio',
-    'le trazioni non si valutano in kg: il motore nuovo lo dice e l\'app torna al vecchio');
+  assert.equal(trazioni.convenzione, 'zavorri',
+    'le trazioni devono essere zavorri: i kg che metti sono addosso a te, non kg che la macchina ti toglie');
+
+  const senzaZavorra = recordEsercizio(
+    [{ id: 's', esercizio_id: trazioni.id, stato: 'fatta', peso: null, ripetizioni: 7 }],
+    trazioni, null, 66);
+  assert.equal(senzaZavorra.valido, false,
+    'senza i kg di zavorra non c\'e\' niente da valutare: prima tornava un record vuoto');
+
+  const conZavorra = recordEsercizio(
+    [{ id: 's', esercizio_id: trazioni.id, stato: 'fatta', peso: null, peso_assistenza: 20, ripetizioni: 7 }],
+    trazioni, null, 66);
+  assert.equal(conZavorra.motore, 'vecchio',
+    'le trazioni non si valutano in kg col motore nuovo: l\'app torna al vecchio');
+  assert.match(conZavorra.testo, /20 kg di zavorri \+ 66 kg del tuo corpo/,
+    'i kg di zavorra si sommano al corpo: 20 kg di zavorra non sono 20 kg di lavoro');
+  assert.ok(conZavorra.rank, 'con i zavorri scritti la trazione ha un Rank, prima non lo aveva');
 });
 test('V17. il MONOBRACCIO non dimezza: se leggi 21 kg, sono 21', async () => {
   // Ste (08/10/2026): "di tricipiti pushdown monobraccio faccio 21kg, e' isolamento

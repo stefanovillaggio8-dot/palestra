@@ -283,6 +283,11 @@ async function avvia() {
 
     await ricaricaTutto();
 
+    // Una volta sola: gli esercizi con i zavorri salvati come assistenza passano
+    // a zavorri. Solo l'etichetta, nessun numero viene toccato. Vedi la funzione.
+    const sistematiZavorri = await sistemaZavorriComeZavorri();
+    if (sistematiZavorri.length) await ricaricaTutto();
+
     sync.iscriviti(() => { aggiornaStatoSalvataggio(); });
     // il peso corporeo serve al Rank: lo carico in memoria subito all'avvio
     await aggiornaPesoInMemoria();
@@ -470,6 +475,63 @@ async function ricaricaTutto() {
   V.missioni = await db.tutti('missioni');
   V.ricompense = await db.tutti('ricompense');
   V.conflitti = await sync.conflittiDaScegliere();
+}
+
+/**
+ * I ZAVORRI CHE ERANO SCRITTI COME ASSISTENZA.
+ *
+ * Ste (13/10/2026): "ancora i dips e le trazioni i kg che metto sono sempre
+ * di zavorra, non di assistite". Aveva ragione: l'assistenza va contata al
+ * contrario (più ne metti e più è facile) e i zavorri no (più ne metti e più è
+ * difficile), quindi 20 kg di zavorra venivano letti come se la macchina ti
+ * avesse aiutato di 20 kg. Il conto era esattamente il contrario del vero.
+ *
+ * Il file con gli esercizi è giusto, ma gli esercizi stanno in IndexedDB e
+ * sul dispositivo sono già dentro con la convenzione sbagliata: cambiare il
+ * file da solo non li tocca, e nell'app non c'è modo di correggere un esercizio
+ * esistente. Quindi qui una volta sola, al primo avvio dopo l'aggiornamento.
+ *
+ * LA CONDIZIONE È STRETTISSIMA, per non toccare l'esercizio che invece è
+ * assistenza vera:
+ *   - la convenzione deve essere "assistenza";
+ *   - il nome deve essere uno di quelli che si fanno col peso del corpo più
+ *     zavorra;
+ *   - la nota personale deve dire "zavorra".
+ *   Serve tutto e tre. Il "Bodyweight Overhead Tricep Extension", che al cavo
+ *   è assistenza vera, non ha nessuna delle tre condizioni e resta com'è.
+ *
+ * NON si tocca nessun numero: solo l'etichetta di che cosa misuri. Le serie,
+ * i kg e i record restano esattamente dove erano.
+ */
+const MIGRATI_ZAVORRI = 'zavorri-non-assistenza';
+async function sistemaZavorriComeZavorri() {
+  let fatti;
+  try {
+    fatti = localStorage.getItem(MIGRATI_ZAVORRI);
+  } catch {
+    fatti = null;
+  }
+  if (fatti) return [];
+
+  const NOMI_ZAVORRA = /\b(pull.?ups?|trazion|chin.?ups?|dips?|dip\b|zugbar|auzubars|pull.?up)\b/i;
+  const cambiati = [];
+  for (const e of (V.esercizi || [])) {
+    if (!e || e.convenzione !== 'assistenza') continue;
+    const nome = String(e.nome || '');
+    const nota = String(e.nota_permanente || '');
+    if (!NOMI_ZAVORRA.test(nome)) continue;
+    if (!/zavorra/i.test(nota)) continue;
+    // sicuro: il numero NON si tocca
+    await db.salva('esercizi', { ...e, convenzione: 'zavorri', tipo: 'zavorre' });
+    cambiati.push(nome);
+  }
+  try {
+    localStorage.setItem(MIGRATI_ZAVORRI, '1');
+  } catch { /* se localStorage non c'è, si rifà al prossimo avvio: non è grave */ }
+  if (cambiati.length) {
+    avviso(`${cambiati.join(' e ')}: adesso l'app conta i kg come zavorri, non come assistenza. I tuoi numeri non sono cambiati.`, { tipo: 'ok' });
+  }
+  return cambiati;
 }
 
 /**
@@ -6125,7 +6187,10 @@ function finestraCreaEsercizio() {
     el('option', { value: 'dischi', testo: 'kg dischi' }),
     el('option', { value: 'bilanciere', testo: 'kg bilanciere' }),
     el('option', { value: 'corpo_libero', testo: 'corpo libero' }),
-    el('option', { value: 'assistenza', testo: 'kg di assistenza' }),
+    el('option', { value: 'assistenza', testo: 'kg di assistenza (la macchina ti aiuta)' }),
+    // Senza questa voce non potevi scegliere i zavorri quando creavi un esercizio
+    // nuovo: il menu offriva solo "kg di assistenza", che e' il contrario esatto.
+    el('option', { value: 'zavorri', testo: 'kg di zavorri SOPRA il tuo corpo (trazioni, dips)' }),
   ]);
   // Ste (04/10/2026): "metti che si può decidere quando fai un nuovo esercizio se
   // È monocarrucola o doppia carrucola".
