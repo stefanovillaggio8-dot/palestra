@@ -406,9 +406,32 @@ export const MOVIMENTI = [
     parole: ['pulldown', 'pull down', 'pull up', 'pull ups', 'pull-up', 'pull-ups',
       'trazioni', 'trazione', 'tirata in basso', 'pullover', 'auzhang',
       'tirata verticale', 'tirate in basso'],
-    // Tirare in basso piega il gomito: il bicipite aiuta, e le spalle salgono
-    // mentre il peso scende.
-    secondari: { braccio_basso: 0.5, dorso_alto: 0.3 },
+    // I TRAPEZI NON LAVORANO SU UNA TIRATA IN BASSO, e i lombari no nemmeno
+    // (15/10/2026).
+    //
+    // Ste: "il pulley fa dorsali, i lombari stanno in isometria, e i bicipiti pure
+    // lavorano perché è di tirata". È la risposta giusta, e in due pezzi.
+    //
+    // I Bicipiti restano, e la ragione e' quella che ha detto lui: e' una TIRATA,
+    // quindi il gomito si piega e chi lo piega e' il bicipite. Vale per tutte le
+    // tirate, non solo per il pulley.
+    //
+    // I TRAPEZI vanno via. Qui prima c'era `dorso_alto: 0,3`, cioe' la zona fra collo
+    // e spalle, e Ste guardando la figura ha chiesto "i trapezi dove? nel pulley non
+    // lavorano i trapezi". Ha ragione: tirare in basso tira i latini e il centro
+    // della schiena, la fascia alta fra collo e spalle resta ferma. Era un secondario
+    // messo li' per completezza, e la regola del progetto dice che un secondario o ha
+    // una quota sua e si vede, o non si mette: questo non si vedeva, non c'era.
+    //
+    // I LOMBARI invece non sono un errore da correggere: è che la figura non li ha,
+    // e Ste ha spiegato perché è giusto così. Stanno in ISOMETRIA, cioè tengono la
+    // schiena ferma senza accorciarsi: un muscolo in isometria non produce movimento e
+    // non si dipinge. (È il caso classico, e su un pulley col fermo coscia i lombari
+    // sono scaricati due volte: dalla posizione seduta e dal fermo.)
+    //
+    // Quindi qui restano due muscoli: i latini, che sono il pezzo principale e
+    // vengono dalle parole, e il bicipite. Nient'altro da accendere.
+    secondari: { braccio_basso: 0.5 },
   },
   {
     id: 'tirata_orizzontale',

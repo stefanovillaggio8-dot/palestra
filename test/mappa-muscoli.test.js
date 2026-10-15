@@ -838,3 +838,66 @@ test('Z15. ogni foto ha il nome del muscolo accanto, in ogni schermata', async (
     + 'qualcuno scrive il muscolo senza la foto, o il controllo di sopra sta guardando '
     + 'la cosa sbagliata');
 });
+
+// Z16. SU UNA TIRATA IN BASSO NON LAVORANO I TRAPEZI, E I LOMBARI NO (15/10/2026).
+//
+// Ste, guardando la figura del pulley: "i trapezi dove? nel pulley non lavorano i
+// trapezi". Aveva ragione. Qui il movimento `tirata_verticale` accendeva anche
+// `dorso_alto` al 30%, cioe' la fascia fra collo e spalle: un secondario messo li'
+// per completezza, che non si vedeva e non c'era.
+//
+// E i LOMBARI non sono un errore da correggere: Ste ha spiegato perché è giusto che
+// non ci siano. "il pulley fa dorsali, i lombari stanno in isometria, e i bicipiti
+// pure lavorano perche' è di tirata". Un muscolo in ISOMETRIA tiene senza
+// accorciarsi: non produce movimento e non si dipinge. Su un pulley col fermo coscia i
+// lombari sono scaricati due volte, dalla posizione seduta e dal fermo.
+//
+// Quindi su una tirata in basso restano due muscoli: i latini (principale, presi
+// dalle parole) e il bicipite. Questo test lo blocca.
+test('Z16. nessun trapezio e nessun lombare sulle tirate in basso', async () => {
+  const { parteDiMuscolo, gruppoMuscoloDi } = await import('../src/muscoli-parti.js');
+
+  // Tutti gli esercizi che il riconoscitore manda al movimento tirata_verticale.
+  const TIRATE_IN_BASSO = [
+    'Pull Ups', 'Lat Pulldown macchina', 'Lat Pulldown (lats)',
+    'Incline Single Arm Pulldown', 'Neutral Grip Pulldown', 'Pullover',
+  ];
+  for (const nome of TIRATE_IN_BASSO) {
+    const r = parteDiMuscolo({ nome });
+    assert.ok(r.trovata, `${nome}: l'esercizio deve essere riconosciuto`);
+    assert.equal(r.movimento, 'tirata_verticale',
+      `${nome}: deve essere una tirata in basso, non "${r.movimento}"`);
+
+    const accesi = [r.parte, ...(r.ancheDettaglio || []).map((x) => x.id)];
+    const gruppi = accesi.map(gruppoMuscoloDi);
+
+    // I trapezi non ci sono: Ste li ha guardati e non ci sono sul pulley.
+    assert.ok(!gruppi.includes('trapezio'),
+      `${nome}: il trapezio non lavora su una tirata in basso, ma è acceso`);
+    assert.ok(!accesi.includes('dorso_alto'),
+      `${nome}: la fascia alta della schiena non si accende`);
+
+    // E i lombari non ci sono perché stanno in isometria. La figura non ha quella
+    // zona, e questo test verifica che nessun movimento la accenda "per completezza".
+    assert.ok(!accesi.includes('lombari'),
+      `${nome}: i lombari stanno in isometria e non si dipingono`);
+
+    // Resta il bicipite, perché è una tirata: il gomito si piega e lo piega lui.
+    assert.ok(gruppi.includes('bicipite'),
+      `${nome}: su una tirata lavora anche il bicipite`);
+  }
+
+  // E il generale: nessun esercizio del catalogo accende i trapezi "per completezza".
+  // Lo shrug e le spinte in sù sì, e devono: lì il trapezio è il movimento.
+  const { ESERCIZI } = await import('../src/dati-iniziali.js');
+  for (const e of ESERCIZI) {
+    const r = parteDiMuscolo({ nome: e.nome, descrizione: e.nota_permanente || '' });
+    if (!r.trovata) continue;
+    const gruppi = [r.parte, ...(r.ancheDettaglio || []).map((x) => x.id)].map(gruppoMuscoloDi);
+    if (!gruppi.includes('trapezio')) continue;
+    // se c'e' il trapezio deve essere per una tirata ALTA o per uno shrug, non per un
+    // movimento in basso: l'altro caso è quello che Ste ha segnalato
+    assert.notEqual(r.movimento, 'tirata_verticale',
+      `${e.nome}: il trapezio è acceso ma il movimento è una tirata in basso`);
+  }
+});
