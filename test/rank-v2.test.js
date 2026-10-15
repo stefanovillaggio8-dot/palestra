@@ -391,57 +391,90 @@ test('V16. l\'app usa il motore NUOVO, e il vecchio non regala pi\' OLYMPIAN', (
     'i kg di zavorra si sommano al corpo: 20 kg di zavorra non sono 20 kg di lavoro');
   assert.ok(conZavorra.rank, 'con i zavorri scritti la trazione ha un Rank, prima non lo aveva');
 });
-test('V17. il MONOBRACCIO non dimezza: se leggi 21 kg, sono 21', async () => {
-  // Ste (08/10/2026): "di tricipiti pushdown monobraccio faccio 21kg, e' isolamento
-  // e sono solo bronzo?". Non era bronzo: nessun livello. Il motivo stava qui.
+test('V17. la doppia carrucola dimezza SEMPRE, anche con un braccio solo', async () => {
+  // Ste, 15/10/2026: "i 28kg del reverse fly sono doppia carrucola lo sai no?". Ha
+  // ragione, e la domanda era gia' stata posta in altra forma l'08/10/2026: "come
+  // puo' una persona fare tipo 50 kg di hammer curl?" — 50 NON sono 50 per braccio,
+  // sono 25. La risposta era giusta allora ed e' stata applicata a meta'.
   //
-  // La doppia carrucola dimezza, perche' su una doppia carrucola lavori un braccio
-  // alla volta e il numero che leggi e' gia' meta'. Ma questo vale per gli
-  // esercizi A DUE BRACCIA (la corda del fly, il curl, le alzate laterali): leggi
-  // 50 kg, ne fai 25 per braccio.
+  // LA REGOLA VECCHIA, che questo test bloccava, diceva: se nel nome c'era "un
+  // braccio" o "monobraccio", la doppia carrucola NON dimezzava. Il ragionamento
+  // era partito da una frase giusta applicata al caso sbagliato: "con un manubrio solo
+  // il numero che leggi e' gia' meta'". Vero per un MANUBRIO. Ma i due esercizi su
+  // cui la regola scattava sono CAVI, ed e' l'unico caso in cui serve dimezzare.
   //
-  // Il pushdown MONOBRACCIO si fa con un manubrio solo: leggi 21 kg e quei 21 kg
-  // sono gia' del tuo braccio. L'app li dimezzava a 10,5, quindi meta' del lavoro
-  // spariva e il tricipite restava sotto la soglia d'ingresso senza spiegazione.
-  //
-  // La regola nuova: si dimezza SOLO se l'esercizio si fa a due braccia. Il nome
-  // e' l'unica prova, perche' non esiste un campo dedicato.
-  const { caricoReale, lavoroMonobraccio } = await import('../src/rank-v2/curve.js');
+  // LA PROVA CHE ERA SBAGLIATA, e che si vede in due righe: sulla stessa stazione,
+  // stessa carrucola e stessa cavigliera, l'app divideva a meta' le alzate laterali e
+  // NON dimezzava il pushdown. Solo perche' in un nome c'era "One Arm".
+  const { caricoReale } = await import('../src/rank-v2/curve.js');
   const { ESERCIZI } = await import('../src/dati-iniziali.js');
   const perId = (id) => ESERCIZI.find((e) => e.id === id);
 
-  // il caso di Ste
-  const pushdown = perId('ex-single-arm-tricep-pushdown');
-  assert.equal(lavoroMonobraccio(pushdown), true, 'il pushdown e\' monobraccio: lo dice il nome');
-  assert.equal(caricoReale(21, pushdown), 21,
-    '21 kg su un monobraccio sono 21: NON dimezzati a 10,5');
+  // 1) TUTTI gli esercizi a doppia carrucola si dimezzano, senza eccezioni
+  const doppi = ESERCIZI.filter((e) => e.carrucola === 'carrucola_doppia');
+  assert.ok(doppi.length >= 6, `gli esercizi a doppia carrucola sono ${doppi.length}`);
+  for (const e of doppi) {
+    assert.equal(caricoReale(100, e), 50,
+      `${e.nome}: 100 kg su doppia carrucola sono 50 per lato, e il nome non conta`);
+  }
 
-  // e il caso opposto, che non deve cambiare: STESSO attrezzo, due braccia
-  const curl = perId('ex-cable-hammer-curl');
-  assert.equal(lavoroMonobraccio(curl), false, 'il hammer curl si fa a due braccia');
-  assert.equal(caricoReale(50, curl), 25,
-    '50 kg letti sul curl sono 25 per braccio: qui dimezzare e\' giusto');
+  // 2) e i due casi di Ste, che adesso danno lo stesso numero del loro gemello
+  assert.equal(caricoReale(28, perId('ex-one-arm-cable-reverse-fly')), 14,
+    'i 28 kg del reverse fly sono 14 per lato: è doppia carrucola');
+  assert.equal(caricoReale(42, perId('ex-single-arm-tricep-pushdown')), 21,
+    'i 42 kg del pushdown monobraccio sono 21 per lato');
+  assert.equal(caricoReale(50, perId('ex-cable-hammer-curl')), 25,
+    'e il hammer curl a due braccia resta 25: la regola non è cambiata, era sbagliata');
 
-  // e i due casi che stanno in mezzo
-  assert.equal(caricoReale(21, perId('ex-one-arm-cable-reverse-fly')), 21,
-    'il reverse fly monobraccio non dimezza');
-  assert.equal(caricoReale(88, perId('ex-lat-pulldown-macchina')), 88,
-    'il pulldown non ha doppia carrucola: non si tocca');
+  // 3) LA STAZIONE E' LA STESSA. Non e' che i numeri siano diversi perche' gli
+  //    esercizi siano su attrezzi diversi: sono sulla stessa macchina a cavigliera,
+  //    quindi un numero letto vale un numero per lato e basta.
+  const stazione = ['ex-cable-hammer-curl', 'ex-cable-lateral-raise',
+    'ex-single-arm-tricep-pushdown', 'ex-one-arm-cable-reverse-fly']
+    .map(perId)
+    .filter(Boolean);
+  for (const e of stazione) {
+    assert.equal(caricoReale(60, e), 30,
+      `${e.nome}: stessa stazione, stesso conto`);
+  }
 
-  // e la prova finale, quella che conta per l'utente: il Rank c\'e\'.
-  // Il nome esatto NON e\' fissato qui: quando Ste ha chiesto gli ingressi piu\' bassi
-  // (08/10/2026) i tricipiti sono saliti di fascia, e questo test continuava a
-  // chiedere il bronzo che era il numero di ieri. Qui si fissa la cosa che non
-  // deve cambiare MAI: 21 kg su un monobraccio devono contare come 21, e devono
-  // dare un livello (prima non ne davano nessuno: 10,5 kg su un ingresso di 19,8).
+  // 4) E QUELLO CHE NON DEVE ESSERE TOCCATO: senza doppia carrucola il numero
+  //    resta quello che leggi. Il pulldown, il row e il wrist curl hanno il
+  //    monocarrucola e nessun dimezzamento, e i manubri non hanno carrucole.
+  for (const id of ['ex-neutral-grip-lat-pulldown', 'ex-seated-cable-row', 'ex-wrist-curl']) {
+    const e = perId(id);
+    assert.equal(caricoReale(90, e), 90,
+      `${e.nome}: niente doppia carrucola, il numero resta come lo leggi`);
+  }
+
+// 5) IL MONUMENTO ALLA TRAPPOLA, e la ragione per cui questo test è stato
+  //    riscritto invece che corretto. Nell'agosto 2026 il pushdown non dava nessun
+  //    livello e il sintomo sembrava quello giusto. La risposta data fu di non
+  //    dimezzare, e il numero raddoppiò per metà.
+  //
+  //    Il vero difetto era il TETTO, tarato su numeri che non erano dimezzati. Il
+  //    sintomo era vero, la medicina no, e per una settimana l'app ha detto a Ste
+  //    che stava spingendo il doppio di quello che spingeva davvero.
+  //
+  //    Oggi la situazione è questa, ed è quella giusta: i 42 kg che Ste scrive sul
+  //    pushdown sono 21 reali per lato e danno un livello basso; i 21 kg letti di
+  //    quell'agosto sono 10,5 reali e NON danno nessun livello, perché l'ingresso
+  //    del tricipite è a 17,9 kg reali. E va bene così: 10,5 kg su un pushdown sono
+  //    un carico da principiante, e non è un difetto dell'app.
   const { recordEsercizio } = await import('../src/rank.js');
-  const rec = recordEsercizio([{ id: 's', peso: 21, ripetizioni: 8, stato: 'fatta' }],
+  const pushdown = perId('ex-single-arm-tricep-pushdown');
+  const suo = recordEsercizio([{ id: 's', peso: 42, ripetizioni: 8, stato: 'fatta' }],
     pushdown, null, 66);
-  assert.ok(rec.rank,
-    '21 kg di pushdown monobraccio devono dare un livello: prima non ne davano nessuno');
-  assert.ok(rec.progresso > 0, 'e non possono essere "sotto soglia": sono 21 kg veri');
+  assert.ok(suo.rank,
+    'i 42 kg del pushdown di Ste (21 reali per lato) devono dare un livello');
+  assert.equal(suo.serie.peso, 21,
+    'la scheda deve mostrare i kg che hai davvero spostato, non quelli che leggi');
+  const daPrincipiante = recordEsercizio([{ id: 's', peso: 21, ripetizioni: 8, stato: 'fatta' }],
+    pushdown, null, 66);
+  assert.ok(!daPrincipiante.rank,
+    'i 21 kg letti (10,5 reali) non danno nessun livello: è un carico da principiante '
+    + 'e va detto, non nascosto');
 });
-
 test('V18. il BENCH PULL e\ schiena, non petto', async () => {
   // Ste (08/10/2026), guardando la scheda del Dumbbell Bench Pull: "c'e\' scritto
   // \'il lavoro e\' distribuito, il petto lavora in modo abbastanza uniforme\'...

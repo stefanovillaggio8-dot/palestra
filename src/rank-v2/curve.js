@@ -169,37 +169,48 @@ export function fattoreMeccanica(esercizio = {}) {
 }
 
 /**
- * L'esercizio si fa su UN BRACCIO alla volta?
+ * IL CARICO REALE DI UNA SERIE SULLA DOPPIA CARRUCOLA, che è l'unico posto dove
+ * questa domanda si pone. Riscritto il 15/10/2026, e la risposta è il contrario di
+ * quella che c'era.
  *
- * E' la domanda che decide se la doppia carrucola dimezza, e nel 08/10/2026 ha
- * fatto fallire due esercizi di Ste.
+ * LA DOMANDA. Su una stazione a doppia carrucola (2:1) il numero sulla piastra è il
+ * TOTALE dei due cavi, e ogni cavo porta la metà. Questo vale SEMPRE, e non cambia
+ * se tiri con un braccio o con due: stacchi un cavo solo, quel cavo ha la metà
+ * del peso, e il peso che senti al gomito o alla spalla è quello. Dieci chili sulla
+ * piastra sono cinque per braccio, con un braccio come con due.
  *
- * IL CASO: "Single Arm Tricep Pushdown", 21 kg, e Ste: "di tricipiti pushdown
- * monobraccio faccio 21kg e' isolamento e sono solo bronzo?". Non era bronzo:
- * nessun livello. Il motivo era qui sotto. La regola "la doppia carrucola
- * dimezza" e' giusta per gli esercizi che fai A DUE BRACCIA INSIEME (la corda
- * del fly, il curl, le alzate laterali): leggi 50 kg, ne fai 25 per braccio.
+ * LA REGOLA CHE C'ERA, E PERCHÉ ERA SBAGLIATA. C'era una eccezione: se nel nome
+ * c'era "un braccio" o "monobraccio", la doppia carrucola NON dimezzava. Il ragionamento
+ * era partito da una frase giusta applicata al caso sbagliato: "un esercizio con un
+ * manubrio solo ha già nel numero la metà del peso, quindi non si dimezza". Vero per
+ * un MANUBRIO, che non ha carrucole e su cui leggi il peso di una mano sola.
  *
- * Ma il pushdown MONOBRACCIO si fa con un manubrio solo: leggi 21 kg e quei
- * 21 kg sono gia' del tuo braccio. L'app li dimezzava a 10,5, quindi metà del
- * tuo lavoro spariva e tu restavi sotto la soglia d'ingresso senza saperlo.
+ * Ma i due esercizi su cui la regola scattava sono CAVI: "Single Arm Tricep Pushdown"
+ * e "One Arm Cable Reverse Fly", entrambi con `carrucola_doppia` e la cavigliera,
+ * che è la stessa macchina delle alzate laterali. Su un cavo la metà c'è già
+ * nel numero che leggi, e non aggiungerci un altra metà significa contare il peso
+ * solo per metà: mezzo lavoro spariva e mezzo entrava due volte.
  *
- * La regola e' gia' scritta piu' in basso, in questo stesso file, ma senza la
- * condizione: "la doppia carrucola dimezza, perche' su una doppia carrucola
- * lavori un braccio alla volta". Il "lavori un braccio alla volta" e' vero
- * anche quando lavori un braccio SOLO, ed e' proprio li' che il numero e' gia'
- * per braccio.
+ * IL RISULTATO, che è la prova che la regola era sbagliata: sulla stessa stazione,
+ * con la stessa carrucola e la stessa cavigliera, l'app divideva a metà le alzate
+ * laterali e NON dimezzava il pushdown. Solo perché in un nome c'era "One Arm".
  *
- * Quindi: si dimezza solo se l'esercizio si fa a due braccia. Il nome e' la
- * prova, perche' e' l'unica cosa che distingue un monobraccio da un
- * "a due braccia con lo stesso attrezzo": non c'e' un campo dedicato.
+ * Ste, 15/10/2026: "i 28kg del reverse fly sono doppia carrucola lo sai no?". Ha
+ * ragione, e la domanda era già stata posta in altra forma l'08/10/2026
+ * ("come può una persona fare tipo 50 kg di hammer curl?"): 50 NON sono 50 per
+ * braccio, sono 25. La risposta era giusta allora ed è stata applicata a metà.
+ *
+ * QUINDI, DA QUI IN POI: la doppia carrucola dimezza SEMPRE, e l'eccezione del
+ * monobraccio sparisce. Non serve nemmeno cancellarla a mano: per un manubrio la
+ * doppia carrucola non c'è e il numero che leggi è già quello di una mano,
+ * quindi la regola nuova dà lo stesso numero di prima. La regola vecchia, invece,
+ * toglieva il dimezzamento solo ai CAVI, che sono gli unici casi in cui serve.
+ *
+ * Il vero difetto del 08/10/2026 non era la dimezzatura: era il TETTO. Il pushdown a
+ * 21 kg letti (10,5 reali) era sotto la soglia d'ingresso perché il tetto del
+ * tricipite era tarato su numeri che non erano dimezzati. Il sintomo era giusto,
+ * la medicina sbagliata.
  */
-export function lavoroMonobraccio(esercizio = {}) {
-  const e = esercizio || {};
-  const nome = String(e.nome || e.id || '').toLowerCase();
-  return /single arm|one arm|single-arm|one-arm|monobraccio|un braccio|mono.?arm/.test(nome);
-}
-
 /**
  * Il carico REALE di una serie: quello che hai davvero spostato.
  *
@@ -211,17 +222,15 @@ export function lavoroMonobraccio(esercizio = {}) {
  *    braccio alla volta e il numero che leggi e' gia' meta'. E non si raddoppia
  *    dopo, altrimenti le due correzioni si annullerebbero.
  *
- * LA ECCEZIONE (08/10/2026), e sta per questo qui e non in un altro posto:
- * se l'esercizio e' MONOBRACCIO non si dimezza. Vedi `lavoroMonobraccio` per
- * il caso di Ste con i 21 kg del pushdown che diventavano 10,5.
+ * LA DOPPIA CARRUCOLA DIMEZZA SEMPRE (15/10/2026). Fino a ieri c'era un'eccezione per i
+ * esercizi "monobraccio", e perche' si veda il ragionamento e il suo rovescio:
+ * vedi la nota lunga sopra questa funzione.
  */
 export function caricoReale(peso, esercizio = {}) {
   const p = Number(String(peso === null || peso === undefined ? '' : peso).replace(',', '.'));
   if (!Number.isFinite(p) || p <= 0) return null;
   const e = esercizio || {};
-  if (e.carrucola === 'carrucola_doppia' && !lavoroMonobraccio(e)) {
-    return Math.round((p / 2) * 100) / 100;
-  }
+  if (e.carrucola === 'carrucola_doppia') return Math.round((p / 2) * 100) / 100;
   return Math.round(p * 100) / 100;
 }
 

@@ -353,34 +353,33 @@ export const VALORI_MOVIMENTO = {
   // di Ste, con gli stessi kg per lato, non deve trovarsi sotto il primo livello
   // (vedi la nota lunga di `bicipiti_panca`).
   spalle_posteriori: {
-    // IL TETTO QUI E' STATO CORRETTO UN SECONDO TEMPO, E IL PERCHE' E' IL PUNTO
-    // PIU' IMPORTANTE DI TUTTA LA NOTA.
+    // IL TETTO QUI E' STATO ALZATO E RIABBASSATO, E LA STORIA E' LA LEZIONE.
     //
-    // La prima versione diceva 0,37x, e quel numero era uscito dalla meccanica:
-    // il rapporto fra reverse fly e alzata laterale calcolato da `leva.js` (0,83),
-    // applicato al tetto dell'alzata laterale. Sembrava piu' rigoroso di un numero
-    // scelto a occhio, e invece era peggio, perche' la meccanica si basa su UNA
-    // tabella di anatomia (sezione del muscolo, braccio di leva) che non conosce
-    // la differenza fra un cavo e una macchina a dischi, e non sa che sul reverse
-    // fly al cavo tirano insieme romboidi e trapezi.
+    // Il 15/10/2026 mattina questo tetto era 0,37x, ricavato dalla meccanica (il
+    // rapporto fra reverse fly e alzata laterale calcolato da `leva.js`, 0,83,
+    // applicato al tetto dell'alzata laterale). Con i 28 kg letti di Ste la cosa
+    // sembrava assurda: i suoi 28 kg al 113% del tetto, il massimo assoluto su una
+    // prestazione che poteva solo scendere.
     //
-    // Il numero vero e' quello che Ste sposta, e i suoi numeri sono nel seme
-    // dell'app: 28 kg per lato sul reverse fly, contro 12,5 kg per lato sull'alzata
-    // laterale. Quindi il reverse fly regge PIU' del doppio, e un tetto da 0,37x
-    // (25,5 kg) gli metteva i suoi 28 kg al 110%: esattamente il difetto che due
-    // settimane prima era stato corretto sul Wrist Curl, rifatto di nuovo.
+    // Il pomeriggio il tetto è stato alzato a 0,55x, con il ragionamento "i suoi 28
+    // kg sono un numero forte, quindi il tetto deve stare sopra". E IL RAGIONAMENTO
+    // ERA SBAGLIATO PERCHE' I 28 kg NON ERANO 28: erano la metà. Ste lo ha detto
+    // ("i 28kg del reverse fly sono doppia carrucola lo sai no?") e aveva ragione:
+    // l'app non divideva a metà, perché sull'esercizio c'era la parola "One Arm" e
+    // la regola del monobraccio (vedi `curve.js`) toglieva il dimezzamento solo ai
+    // CAVI, che sono gli unici casi in cui serve.
     //
-    // LA REGOLA, scritta perché succeda una volta sola: un numero ricavato da un
-    // modello vale finché non contraddice una prestazione vera. Quando la
-    // contraddice, vince la prestazione e il modello ha la mia parte di ragione
-    // ("qui non c'entra, e il caricamento è un problema a parte").
+    // QUINDI IL TETTO TORNA A 0,37x, che era il numero giusto fin dall'inizio, e i
+    // suoi 28 kg letti valgono 14 kg reali per lato: il 55% della scala, che è un
+    // livello serio con spazio davanti.
     //
-    // Il 0,55x mette i suoi 28 kg al 74%: un livello alto con spazio davanti, che è
-    // la regola degli altri ("il numero che si vede in palestra, e si può
-    // raggiungere"). Non è 0,37 e non è 0,45: è il tetto di chi si allena bene su
-    // una spalla piccola con un movimento che scarica su romboidi e trapezi.
-    multiplo: 0.55, ingressoMultiplo: 0.12, fonte: 'tuo',
-    nota: 'Reverse fly al cavo, PER LATO: tetto 0,55x, ingresso 0,12x. Sul reverse fly Ste sposta 28 kg per lato (dal seme dell\'app), contro 12,5 kg per lato dell\'alzata laterale: regge quindi più del doppio, perché il cavo scarica su romboidi e trapezi mentre l\'alzata laterale è solo deltoide. Nota come è nato il numero, perché è la lezione: prima qui c\'era 0,37x, ricavato dalla meccanica moltiplicando per il rapporto calcolato fra reverse fly e alzata laterale. Il numero era più rigoroso di quanto sembrasse e però mise i suoi 28 kg al 110% del tetto, cioè al massimo assoluto su una prestazione che poteva solo scendere: lo stesso difetto del Wrist Curl, rifatto. La regola è che un numero di modello vale finché non contraddice una prestazione vera, e quando la contraddice vince la prestazione. L\'ingresso è un quinto del tetto come sull\'alzata laterale, quindi chi pesa di più di Ste non si trova sotto il primo livello.',
+    // LA REGOLA, scritta due volte perché è quella che mi ha fatto sbagliare:
+    //  - un numero di modello vale finché non contraddice una prestazione vera;
+    //  - e una prestazione si guarda DOPO che il carico è stato corretto, non prima.
+    //    Guardando 28 kg che in realtà erano 14 si è "corretto" un numero che era
+    //    giusto, portando il tetto fuori posto e poi bisognando riportarlo indietro.
+    multiplo: 0.37, ingressoMultiplo: 0.08, fonte: 'meccanica',
+    nota: 'Reverse fly al cavo, PER LATO: tetto 0,37x, ingresso 0,08x. Il numero viene dalla meccanica: il deltoide posteriore è più piccolo del laterale (12,3 contro 13,7 cm2) e ha il braccio di leva peggiore (19,6 contro 18,1), quindi regge l\'83% di quello dell\'alzata laterale, cioè 0,45 × 0,83 = 0,37x. ATTENZIONE AL CARICO: i 28 kg che Ste scrive sono su DOPPIA CARRUCOLA, quindi sono 28 in totale sui due cavi e 14 per lato. I 14 kg reali stanno al 55% della scala. Il tetto è passato per 0,55x perché sembrava che i suoi 28 kg fossero stati messi al 113% del tetto, ma erano un errore di dimezzatura e non un tetto sbagliato: correggere il tetto invece del carico portava il numero fuori posto. L\'ingresso è un quinto del tetto come sull\'alzata laterale.',
   },
   bicipiti: {
     multiplo: 0.7, ingressoMultiplo: 0.26, fonte: 'tuo',
