@@ -54,7 +54,7 @@ test('Z2. si accende il muscolo giusto, e solo quello', () => {
     assert.equal(poligoni.length, RITAGLI[gruppo].pezzi.length,
       id + ': il ritaglio non contiene i pezzi del gruppo ' + gruppo);
     assert.match(svg, /muscoli\.png/, id + ': manca l\'immagine dei muscoli');
-    assert.match(svg, /id="taglio-muscolo"/, id + ': manca il ritaglio');
+    assert.match(svg, /<clipPath id="taglio-muscolo-[^"]+"/, id + ': manca il ritaglio');
 
     // il poligono deve essere quello del gruppo, non uno qualsiasi
     const primo = RITAGLI[gruppo].pezzi[0];
@@ -193,4 +193,58 @@ test('Z8. i muscoli fatti di più parti sono uniti, come nella foto', () => {
     assert.equal(poligoni.length, RITAGLI[gruppo].pezzi.length,
       'accendendo ' + pezzi[0] + ' non si è acceso tutto il ' + gruppo);
   }
+});
+
+test('Z9. il ritaglio è un SVG valido, o il muscolo non si accende', () => {
+  // Ste (15/10/2026): "ma non si vede il muscolo evidenziato in nessun esercizio".
+  //
+  // Il colpevole era `clipPathUnits`: è un ATTRIBUTO di clipPath, non un
+  // elemento. Scritto come elemento, il browser considera il ritaglio non
+  // valido, il clipPath resta vuoto e la figura esce tutta apagata: senza
+  // dirlo, senza errori in console, e con l'id del ritaglio al suo posto, così
+  // anche i test erano contenti. I 821 test passavano e sull'app non si vedeva
+  // niente: è per questo che qui si controlla la STRUTTURA, non solo gli id.
+  const FORME = ['polygon', 'path', 'rect', 'circle', 'ellipse', 'use', 'text'];
+
+  for (const id of TUTTE) {
+    const svg = figurino(id);
+
+    // 1. nessun elemento dentro clipPath che non sia una forma
+    const dentro = svg.match(/<clipPath\b[^>]*>([\s\S]*?)<\/clipPath>/);
+    assert.ok(dentro, id + ': il ritaglio non si chiude, non si può disegnare');
+    for (const tag of dentro[1].match(/<([a-zA-Z]+)/g) || []) {
+      assert.ok(FORME.includes(tag.slice(1).toLowerCase()),
+        id + ': dentro il ritaglio c\'è <' + tag.slice(1) + '>, che il browser '
+        + 'ignora: il ritaglio diventa vuoto e il muscolo non si accende');
+    }
+
+    // 2. dentro il ritaglio c'è almeno una forma, altrimenti è a vuoto
+    assert.ok(/<(polygon|path|rect|circle|ellipse)\b/.test(dentro[1]),
+      id + ': il ritaglio è vuoto, il muscolo non può accendersi');
+
+    // 3. i tag sono bilanciati: un </clipPath> in più chiude tutto a vuoto
+    const aperti = (svg.match(/<clipPath\b/g) || []).length;
+    const chiusi = (svg.match(/<\/clipPath>/g) || []).length;
+    assert.equal(aperti, chiusi,
+      id + ': ci sono ' + aperti + ' <clipPath> e ' + chiusi + ' </clipPath>');
+
+    // 4. l'id del ritaglio e' quello che l'immagine cerca, e non e' condiviso:
+    //    con lo stesso id su due figure della stessa pagina, url(#...) trova
+    //    sempre la prima e tutte mostrano il muscolo sbagliato.
+    const idTag = svg.match(/<clipPath id="([^"]+)"/);
+    assert.ok(idTag, id + ': il ritaglio non ha un id');
+    const usato = svg.match(/clip-path="url\(#([^)]+)\)"/);
+    assert.ok(usato, id + ': l\'immagine dei muscoli non è ritagliata');
+    assert.equal(usato[1], idTag[1],
+      id + ': il ritaglio si chiama "' + idTag[1] + '" ma l\'immagine cerca "' + usato[1] + '"');
+    assert.equal((svg.match(/id="taglio-muscolo[^"]*"/g) || []).length, 1,
+      id + ': un id di ritaglio ripetuto, due figure sulla stessa pagina si '
+      + 'ruberebbero il muscolo (una mostra quello dell\'altra)');
+  }
+
+  // due figure nella stessa pagina non devono confondersi
+  const id1 = figurino('petto_basso').match(/<clipPath id="([^"]+)"/)[1];
+  const id2 = figurino('addome').match(/<clipPath id="([^"]+)"/)[1];
+  assert.notEqual(id1, id2,
+    'due figure hanno lo stesso id di ritaglio: la seconda mostrerebbe il muscolo della prima');
 });

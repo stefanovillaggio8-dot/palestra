@@ -172,6 +172,13 @@ export function vistaDiGruppo(gruppo) {
 
 const punti = (pezzo) => pezzo.map(([x, y]) => `${x},${y}`).join(' ');
 
+// L'id del ritaglio deve essere UNICO per ogni figura.
+// Nell'app c'e' una figura sola per pagina, quindi sembrava funzionare: ma se
+// sulla stessa pagina ce n'e' due, `url(#taglio-muscolo)` va a cercare l'id nel
+// documento e trova sempre la PRIMA, quindi tutte le figure mostravano il
+// muscolo della prima. Con il numero diventa univoco e ognuna mostra il suoo.
+let numeroFigura = 0;
+
 /**
  * La figura, come stringa SVG pronta da mettere nella pagina.
  *
@@ -185,13 +192,20 @@ export function figurino(acceso = null) {
   dentro.push(`<image href="./img/muscoli/corpo.png" x="0" y="0" width="${FOTO_L}" height="${FOTO_A}"/>`);
 
   if (gruppo && RITAGLI[gruppo]) {
-    dentro.push(`<clipPath id="taglio-muscolo"><clipPathUnits="userSpaceOnUse">`);
+    numeroFigura += 1;
+    const idTaglio = 'taglio-muscolo-' + numeroFigura;
+    // `clipPathUnits` e' un ATTRIBUTO di clipPath, non un elemento. Scritto come
+    // elemento (`<clipPathUnits="userSpaceOnUse">`) il browser considera il
+    // ritaglio non valido, il clipPath resta vuoto e il muscolo non si accende:
+    // la figura sembra scarica, senza dirlo. Il default è già userSpaceOnUse,
+    // ma lo scriviamo uguale per non doverci pensare.
+    dentro.push(`<clipPath id="${idTaglio}" clipPathUnits="userSpaceOnUse">`);
     for (const pezzo of RITAGLI[gruppo].pezzi) {
       dentro.push(`<polygon points="${punti(pezzo)}"/>`);
     }
-    dentro.push('</clipPath></clipPath>');
+    dentro.push('</clipPath>');
     dentro.push(`<image href="./img/muscoli/muscoli.png" x="0" y="0" width="${FOTO_L}"`
-      + ` height="${FOTO_A}" clip-path="url(#taglio-muscolo)"/>`);
+      + ` height="${FOTO_A}" clip-path="url(#${idTaglio})"/>`);
   }
   return dentro.join('');
 }
