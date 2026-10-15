@@ -20,8 +20,9 @@ import {
   ETICHETTE, FOTO_L, FOTO_A, LIVELLI, livelloDiQuota, SOGLIA_SECONDARIO,
   righeDaAccendere,
 } from '../src/mappa-muscoli.js';
-import { PARTI, parteDiMuscolo, MOVIMENTI } from '../src/muscoli-parti.js';
+import { PARTI, parteDiMuscolo, MOVIMENTI, gruppoMuscoloDi } from '../src/muscoli-parti.js';
 import { ESERCIZI as CATALOGO } from '../src/dati-iniziali.js';
+import { readFile } from 'node:fs/promises';
 
 const TUTTE = Object.keys(GRUPPI);
 const DISEGNATI = Object.keys(RITAGLI);
@@ -764,4 +765,76 @@ test('Z14. niente muscoli accenti che non lavorano, e niente secondari fantasma'
       assert.ok(dentro, e.nome + ': sulla figura c\'è ' + g + ' ma nessuna riga dice che cosa sia');
     }
   }
+});
+// Z15. LA FOTO NON PUO' ESSERE LETTA AL CONTRARIO (15/10/2026).
+//
+// Ste, due volte di fila sulla stessa cosa:
+//   "nei dips c'è segnato evidenziato nella foto l'avambraccio, ma è il tricipite
+//    che lavora, anche non l'avambraccio"
+//   "nei pull ups ci sono segnati anche tricipiti"
+//
+// Aveva ragione, e il motivo è scomodo: le foto NON hanno un sistema di
+// evidenziazione del muscolo. Sono illustrazioni di pixel e il pezzo chiaro che si
+// vede è l'illuminazione del disegno, che cade dove capita. Su 27 foto una sola
+// (`incline-single-arm-pulldown`) ha la sagoma chiara disegnata apposta. Quindi la
+// foto non può essere la fonte del nome del muscolo, e non basta neanche aggiungere
+// un'etichetta in un posto: se manca in una schermata, in quella schermata la foto
+// resta ambigua.
+//
+// QUI SI CONTROLANO DUE COSE.
+//  1. che ogni esercizio del catalotto abbia un'etichetta (una riga vuota è un buco:
+//     l'esercizio torna a dipendere dal disegno);
+//  2. che OGNI posto di app.js che disegna la foto ci metta anche il muscolo. Il
+//     controllo è fatto sul sorgente perché il difetto è per l'appunto strutturale:
+//     basta aggiungere una settima vista con la foto e dimenticarsi l'etichetta, e
+//     qui non se ne accorgerebbe nessuno.
+test('Z15. ogni foto ha il nome del muscolo accanto, in ogni schermata', async () => {
+  const { ESERCIZI } = await import('../src/dati-iniziali.js');
+  const { parteDiMuscolo, gruppoMuscoloDi } = await import('../src/muscoli-parti.js');
+
+  const conEtichetta = (e) => {
+    const r = parteDiMuscolo({ nome: e.nome, descrizione: e.nota_permanente || '' });
+    return Boolean(r.trovata) && Boolean(gruppoMuscoloDi(r.parte));
+  };
+
+  // 1. NESSUN ESERCIZIO SENZA ETICHETTA
+  const buchi = ESERCIZI.filter((e) => !conEtichetta(e)).map((e) => e.nome);
+  assert.deepEqual(buchi, [],
+    'ci sono esercizi senza etichetta del muscolo: in quelle schermate la foto resta '
+    + `leggibile al contrario. ${buchi.join(', ')}`);
+
+  // 2. OGNI SITO CHE DISEGNA LA FOTO DISEGNA ANCHE IL MUSCOLO
+  const src = await readFile(new URL('../src/app.js', import.meta.url), 'utf8');
+  const linee = src.split('\n');
+  const foto = linee
+    .map((riga, i) => ({ riga, n: i + 1 }))
+    .filter((x) => /class:\s*'foto-esercizio/.test(x.riga));
+  assert.ok(foto.length >= 6,
+    `i posti che disegnano la foto dovrebbero essere almeno 6, ne trovo ${foto.length}`);
+
+// La finestra da controllare: dalla riga della foto in giù, finché non finisce il
+  // blocco che la contiene. Dodici righe bastano e non si sovrappongono a nessun
+  // altro sito (i sei posti sono a 1000, 1310, 1496, 2379, 2595 e 2686: il buco più
+  // piccolo fra due siti è di 50 righe, quindi una finestra da dodici non può
+  // prendere per suo l'etichetta di un altro posto).
+  const FINESTRA = 12;
+  const senza = [];
+  for (const { riga, n } of foto) {
+    const finestra = linee.slice(n - 1, n - 1 + FINESTRA).join('\n');
+    if (!/nomeConMuscolo\(|muscoliDiEsercizio\(/.test(finestra)) {
+      senza.push(n + ': ' + riga.trim());
+    }
+  }
+  assert.deepEqual(senza, [],
+    'ci sono posti che disegnano la foto senza scrivere il muscolo accanto, e in '
+    + `quelli la foto si legge al contrario:\n  ${senza.join('\n  ')}`);
+
+  // E IL CONTRARIO: non si può stampare il muscolo senza la foto, sennò il controllo
+  // di sopra passerebbe per un motivo sbagliato.
+  const chiamate = linee.filter((r) => /nomeConMuscolo\(|muscoliDiEsercizio\(/.test(r)
+    && !/function nomeConMuscolo|function muscoliDiEsercizio/.test(r)).length;
+  assert.ok(chiamate >= foto.length,
+    `i muscoli vengono scritti in ${chiamate} punti e le foto sono in ${foto.length}: `
+    + 'qualcuno scrive il muscolo senza la foto, o il controllo di sopra sta guardando '
+    + 'la cosa sbagliata');
 });

@@ -262,6 +262,17 @@ a { color: var(--blu); text-decoration: none; }
 }
 .foto-esercizio { width: 30px; height: 30px; border-radius: 50%; flex: 0 0 auto; background: var(--nero-2); }
 .foto-esercizio.grande { width: 46px; height: 46px; }
+/* IL NOME DEL MUSCOLO ACCANTO ALLA FOTO (15/10/2026).
+   Le foto sono illustrazioni di pixel e NON hanno l'evidenziazione del muscolo:
+   il pezzo chiaro che si vede è l'illuminazione del disegno. Ste ci ha costruito
+   sopra un giudizio sbagliato due volte ("nei dips c'è segnato evidenziato
+   l'avambraccio, non il tricipite", "nei pull ups ci sono segnati anche
+   tricipiti"), quindi il nome del muscolo va scritto vicino alla foto in ogni
+   schermata in cui la foto compare. Vedi `muscoliDiEsercizio` in app.js. */
+.muscolo-etichetta {
+  color: #cbb2ff; font-size: .78rem; font-weight: 600; letter-spacing: .01em;
+}
+.riga-muscolo { margin: -2px 0 2px; }
 .logo-seduta { width: 30px; height: 30px; border-radius: 9px; }
 .tag-opzionale {
   background: var(--blu-scuro); color: #a9c3ff;

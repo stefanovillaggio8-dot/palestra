@@ -1,5 +1,12 @@
 // muscoli-parti.js -- QUALE pezzo di muscolo stai lavorando.
 //
+// IL GRUPPO DEL MUSCOLO, CHE È LA COSA CHE MANCAVA.
+// `PARTI[].muscolo` dice 'braccio' sia per il bicipite sia per il tricipite, perché
+// anatomicamente è vero: sono due muscoli diversi dentro lo stesso braccio. Ma per
+// le etichette brevi 'braccio' non serve a niente. Il gruppo vero ('tricipite',
+// 'bicipite', 'petto', ...) sta in `GRUPPI` dentro mappa-muscoli.js, e quel file non
+// importa niente, quindi qui si può importare senza creare un ciclo.
+//
 // Ste (04/10/2026): "deve capire pure che il petto come il bicipite e le altre
 // parti sono formati da diverse fibre muscolari e ci sono esercizi che per
 // esempio servono per la parte alta e altri esercizi che servono per la parte
@@ -30,6 +37,13 @@
  * "alto"/"basso" non significa "solo lì": ogni esercizio lavora un po' tutto.
  * Significa "dove pesa di più".
  */
+import { GRUPPI } from './mappa-muscoli.js';
+
+/** Il gruppo muscolare di un pezzo: 'tricipite', 'petto', 'bicipite'... */
+export function gruppoMuscoloDi(id) {
+  return GRUPPI[id] ? GRUPPI[id].gruppo : null;
+}
+
 export const PARTI = [
   // ---- petto ----
   {
@@ -666,14 +680,29 @@ function riconosciParte({ nome = '', descrizione = '' } = {}) {
     }
   }
 
-  const anche = Object.entries(anatomia)
+  // GLI ID DEI SECONDARI, e non solo i loro nomi.
+  //
+  // `anche` resta come era, una lista di nomi da leggere (ed è quello che il test
+  // Z14 controlla). Ma per le etichette brevi che stanno accanto alla FOTO serve il
+  // pezzo, non la frase: 'tricipite: sopra il gomito' è giusto da leggere e troppo
+  // lungo da mettere in una riga. Quindi qui si tiene anche l'id, e chi deve
+  // accorciare lo fa con la mappa dei gruppi invece di tagliare la stringa a parole.
+  const ancheDettaglio = Object.entries(anatomia)
     .filter(([id]) => (livelli[id] || 0) >= anatomia[id])
     .sort((a, b) => b[1] - a[1])
-    .map(([id]) => PARTI.find((p) => p.id === id).parte);
+    .map(([id, quota]) => ({
+      id,
+      quota,
+      nome: PARTI.find((p) => p.id === id).parte,
+      gruppo: ID_PARTI.has(id) ? gruppoMuscoloDi(id) : null,
+    }));
+
+  const anche = ancheDettaglio.map((x) => x.nome);
 
   return {
     trovata: true,
     muscolo: v.parte.muscolo,
+    gruppoPrincipale: gruppoMuscoloDi(v.parte.id),
     parte: v.parte.id,
     nome: v.parte.parte,
     nota: v.parte.nota,
@@ -682,6 +711,7 @@ function riconosciParte({ nome = '', descrizione = '' } = {}) {
     anatomia,
     movimento: movimento ? movimento.id : null,
     anche,
+    ancheDettaglio,
     frase: `${v.parte.parte}. ${v.parte.nota}`,
     altre: trovati.slice(1, 3).map((x) => x.parte.parte),
   };

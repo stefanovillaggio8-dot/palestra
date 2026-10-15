@@ -995,7 +995,9 @@ function vistaHome(zona) {
       if (!e) continue;
       griglia.appendChild(el('div', { class: 'pillola-esercizio' }, [
         el('img', { src: e.foto, alt: '', class: 'foto-esercizio', loading: 'lazy' }),
-        el('span', { testo: e.nome }),
+        // il muscolo sta nel nome: qui lo spazio è una pillola col cerchietto da 30 px,
+        // e la foto da sola fa leggere il disegno al contrario (vedi `muscoliDiEsercizio`)
+        el('span', { testo: nomeConMuscolo(e, { soloPrincipale: true }) }),
         es.opzionale ? el('span', { class: 'tag-opzionale', testo: 'opzionale' }) : null,
       ]));
     }
@@ -1045,6 +1047,80 @@ async function iniziaAllenamento(giorno) {
   // sarebbero a schermo, e "+ Aggiungi serie" calcolerebbe l'ordine sbagliato.
   await ricaricaTutto();
   vai('/seduta/' + seduta.id);
+}
+
+/* ===================== il nome del muscolo, da mettere OVUNQUE c'è la foto
+   ===================== */
+
+/**
+ * Ste, 15/10/2026: "nei dips c'è segnato evidenziato nella foto l'avambraccio, non
+ * il tricipite" e "nei pull ups ci sono segnati anche tricipiti". Aveva ragione nel
+ * modo peggiore: la foto non può essere sbagliata e basta, perché qualcuno la legge e
+ * ci fa su un giudizio.
+ *
+ * IL FATTO. Le foto sono illustrazioni di pixel e NON hanno un sistema di
+ * evidenziazione del muscolo: il pezzo chiaro che si vede è l'illuminazione del
+ * disegno, e cade dove capita. Su 27 foto una sola (`incline-single-arm-pulldown`) ha
+ * la sagoma chiara disegnata apposta: il set è fatto a pezzi. Quindi la foto non
+ * può essere la fonte, e non si può correggere toccando una riga di codice.
+ *
+ * LA SCELTA. Il nome del muscolo va scritto VICINO alla foto, in ogni schermata in cui
+ * compare, così la foto smette di essere ambigua anche quando è sola in una lista. Il
+ * posto naturale è il nome dell'esercizio, che c'è già in tutte e sei le viste.
+ *
+ * LE ETICHETTE sono i GRUPPI ('tricipite', 'petto'), non le frasi dei pezzi ('tricipite:
+ * sopra il gomito'): quelle si leggono bene nella scheda e non stanno in una riga.
+ * E un secondario il cui nome è già dentro quello del principale viene scartato
+ * ('dorso' dentro 'dorso centrale'), altrimenti si legge "dorso centrale + dorso".
+ */
+
+/** I gruppi come li chiama Ste, non come li chiama il codice. */
+const MUSCOLO_ETICHETTA = {
+  petto: 'petto',
+  dorsale: 'dorso',
+  romboidi: 'dorso centrale',
+  trapezio: 'trapezi',
+  deltoide_fronte: 'deltoide',
+  deltoide_posteriore: 'deltoide dietro',
+  bicipite: 'bicipiti',
+  tricipite: 'tricipiti',
+  avambraccio: 'avambraccio',
+  quadricipite: 'quadricipiti',
+  femorale: 'femorali',
+  polpaccio: 'polpacci',
+  glutei: 'glutei',
+  addome: 'addome',
+};
+
+function etichettaMuscolo(gruppo) {
+  return MUSCOLO_ETICHETTA[gruppo] || null;
+}
+
+/**
+ * Il pezzo di muscolo di un esercizio, come stringa breve.
+ * `soloPrincipale` serve dove lo spazio è poco (la pillola col cerchietto da 30 px).
+ */
+function muscoliDiEsercizio(e, { soloPrincipale = false } = {}) {
+  const parte = parteDiMuscolo({ nome: e.nome, descrizione: e.nota_permanente || '' });
+  if (!parte || !parte.trovata) return '';
+  const principale = etichettaMuscolo(parte.gruppoPrincipale);
+  if (!principale) return '';
+  if (soloPrincipale) return principale;
+  const secondari = [];
+  for (const s of (parte.ancheDettaglio || [])) {
+    const g = etichettaMuscolo(s.gruppo);
+    if (!g) continue;
+    if (g === principale || g.includes(principale) || principale.includes(g)) continue;
+    if (secondari.includes(g)) continue;
+    secondari.push(g);
+  }
+  return secondari.length ? `${principale} + ${secondari.join(', ')}` : principale;
+}
+
+/** Il nome dell'esercizio con il muscolo, da mettere accanto alla foto. */
+function nomeConMuscolo(e, opts) {
+  const muscoli = muscoliDiEsercizio(e, opts);
+  return muscoli ? `${e.nome} · ${muscoli}` : e.nome;
 }
 
 async function creaSerie(sedutaId, esercizioId, ordine, esercizio, prevista = {}) {
@@ -1237,6 +1313,12 @@ function vistaGiorno(zona, giornoId) {
           el('h3', { testo: e.nome }),
           es.opzionale ? el('span', { class: 'tag-opzionale', testo: 'opzionale' }) : null,
         ]),
+        // QUI C'È SPAZIO PER I SECONDARI, e la foto da sola non basta: il nome del
+        // muscolo va detto anche quando la foto è unaillustrazione senza evidenza.
+        (() => {
+          const m = muscoliDiEsercizio(e);
+          return m ? el('div', { class: 'riga-muscolo' }, [el('span', { class: 'muscolo-etichetta', testo: m })]) : null;
+        })(),
         // la convenzione sta su una riga sua: non si attacca al nome
         el('div', { class: 'riga-convenzione' }, [
           el('span', { class: 'badge-conv', testo: ETICHETTE_CONVENZIONE[e.convenzione] || '' }),
@@ -1411,7 +1493,7 @@ async function vistaSeduta(zona, sedutaId) {
     const blocco = el('section', { class: 'blocco-esercizio' });
     blocco.appendChild(el('div', { class: 'titolo-esercizio' }, [
       el('img', { src: e.foto, alt: '', class: 'foto-esercizio grande' }),
-      el('h2', { testo: e.nome }),
+      el('h2', { testo: nomeConMuscolo(e) }),
       // il rank di questo esercizio: record, LP e progressione
       el('a', { href: '#/esercizio/' + e.id, class: 'bottone-guarda piccolo-b', testo: 'Il suo Rank' }),
     ]));
@@ -2294,7 +2376,7 @@ async function vistaSedutaPassata(zona, sedutaId) {
     const blocco = el('section', { class: 'blocco-esercizio' });
     blocco.appendChild(el('div', { class: 'titolo-esercizio' }, [
       el('img', { src: e.foto, alt: '', class: 'foto-esercizio' }),
-      el('h3', { testo: e.nome }),
+      el('h3', { testo: nomeConMuscolo(e) }),
     ]));
     blocco.appendChild(el('div', { class: 'riga-convenzione' }, [
       el('span', { class: 'badge-conv', testo: ETICHETTE_CONVENZIONE[e.convenzione] || '' }),
@@ -2513,6 +2595,10 @@ function vistaScheda(zona) {
         el('img', { src: e.foto, alt: '', class: 'foto-esercizio' }),
         el('div', { class: 'cresci' }, [
           el('strong', { testo: e.nome }),
+          (() => {
+            const m = muscoliDiEsercizio(e, { soloPrincipale: true });
+            return m ? el('span', { class: 'nota nota-piccola', testo: m }) : null;
+          })(),
           el('span', { class: 'nota', testo: ETICHETTE_CONVENZIONE[e.convenzione] || '' }),
         ]),
         el('label', { class: 'campetto' }, [numeroSerie, el('span', { class: 'sotto-campo', testo: 'SERIE' })]),
@@ -2609,7 +2695,7 @@ function scegliEsercizio(bozza, g) {
         disegna();
       },
       classe: 'voce-scelta',
-      figli: [el('img', { src: e.foto, alt: '', class: 'foto-esercizio' }), el('span', { testo: e.nome })],
+      figli: [el('img', { src: e.foto, alt: '', class: 'foto-esercizio' }), el('span', { testo: nomeConMuscolo(e, { soloPrincipale: true }) })],
     }));
   }
   lista.appendChild(bottone('Annulla', { onClick: () => box.remove(), classe: 'fantasma' }));
