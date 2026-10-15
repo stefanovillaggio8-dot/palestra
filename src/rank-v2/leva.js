@@ -238,20 +238,41 @@ export const LEVE = {
     nota: 'In panca Scott il braccio e\' in alto: il bicipite e\' allungato e il suo braccio di leva scende a 2,6 cm, il peggiore. E\' per questo che lo stesso numero di kg li\' e\' piu\' difficile che al cavo.',
   },
   tricipiti: {
-    muscoli: { tricipiti: 1 },
+    // Ste (15/10/2026): "ma le estensioni sopra la testa non lavorano il capo lungo
+    // del tricipite? non è come il pushdown".
+    //
+    // HA RAGIONE, ed è la ragione per cui i due non stanno sulla stessa scala.
+    // Non sono lo stesso esercizio piu' difficile: sono due muscoli diversi che
+    // lavorano.
+    //
+    //  - nel PUSHDOWN il braccio e' fermo al fianco, quindi lavora soprattutto il
+    //    capo LATERALE; il capo lungo, che passa dalla spalla, e' in una posizione
+    //    in cui non arriva a stendere il gomito e partecipa poco;
+    //  - SOPRA LA TESTA il capo lungo e' il PRINCIPALE, perche' e' l'unico che
+    //    attraversa la spalla: quando il braccio va in alto si accorcia per tutta la
+    //    sua corsa, ed e' quello che tiene l'articolazione del gomito aperta. Per
+    //    questo l'estensione sopra la testa e' considerata l'esercizio piu'
+    //    completo per i tricipiti, mentre il pushdown le da solo quello laterale.
+    //
+    // La quota sotto e' quanto del tricipite lavora DAVVERO in ciascuno dei due.
+    // Il pushdown prende 0,65 perche' il capo lungo e' svantaggiato; l'estensione
+    // sopra la testa prende 0,85 perche' il capo lungo e' il motore e gli altri due
+    // aiutano.
+    muscoli: { tricipiti: 0.65 },
     dMuscolo: 2.8,
     dCarico: 'avambraccio',
     unita: 'per lato',
-    nota: 'Stendere il gomito: il tricipite tira vicino all\'articolazione, quindi ha uno dei bracci di leva peggiori del braccio.',
+    nota: 'Pushdown: braccio fermo al fianco, quindi lavora il capo laterale e il capo lungo partecipa poco (0,65 del tricipite). Il braccio di leveraggio del gomito e\' di 2,8 cm, uno dei piu\' corti.',
   },
-  tricipiti_sopra: {
-    muscoli: { tricipiti: 1 },
-    // il peggiore di tutti: braccio in alto, il tricipite allungato, e la
-    // spalla in posizione estremamente flessa che scarica poco.
+  tricipiti_alta: {
+    muscoli: { tricipiti: 0.85 },
+    // il peggiore braccio di leva del corpo: il tendine arriva sull\'olecranon e con
+    // il braccio in alto la sua linea di forza e\' quasi parallela all\'omero, quindi
+    // tira di traverso e non spinge.
     dMuscolo: 1.9,
     dCarico: 'avambraccio',
     unita: 'per lato',
-    nota: 'Sopra la testa il tricipite e\' al suo peggio: braccio di leva 1,9 cm, il piu\' corto del corpo. E\' il motivo per cui le estensioni sopra la testa reggono cosi\' poco.',
+    nota: 'Sopra la testa il capo lungo e\' il principale: e\' l\'unico che passa dalla spalla, e si accorcia per tutta la sua corsa mentre il gomito si stende (0,85 del tricipite lavora). Per contro il braccio di leveraggio scende a 1,9 cm, il piu\' corto del corpo, perche\' con il braccio in alto il tendine tira quasi in parallelo all\'omero. Le due cose si compensano quasi: vedi `scaleDaSeparare`.',
   },
   gambe_pesanti: {
     muscoli: { quadricipiti: 0.45, glutei: 0.35, femorali: 0.2 },

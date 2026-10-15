@@ -110,7 +110,29 @@ const MOVIMENTI = [
     parole: ['curl', 'bicipite', 'bicipiti', 'hammer', 'flexion', 'biceps'],
   },
   {
+    // LE ESTENSIONI SOPRA LA TESTA, movimento suo dal 15/10/2026.
+    //
+    // Ste: "ma le estensioni sopra la testa non lavorano il capo lungo del
+    // tricipite? non e' come il pushdown". Ha ragione, e non e' una sfumatura: sono
+    // due muscoli diversi che lavorano. Nel pushdown il braccio e' fermo al fianco e
+    // lavora il capo laterale, mentre sopra la testa il capo lungo e' il PRINCIPALE
+    // (e' l'unico che passa dalla spalla) e regge tutto il movimento.
+    //
+    // Sta PRIMA di `tricipiti` perché le parole sono le stesse: se restassero sotto,
+    // ogni "overhead extension" finirebbe sulla scala del pushdown, che e' un'altra
+    // cosa. Vale la stessa lezione del reverse fly e del bench pull: due esercizi
+    // diversi non possono stare sulla stessa scala solo perché hanno parole simili.
+    id: 'tricipiti_alta', livello: 'isolamento', gruppo: 'tricipiti',
+    parole: ['overhead extension', 'overhead tricep', 'estensioni sopra la testa',
+      'sopra la testa', 'overhead press tricep', 'tricep sopra la testa',
+      'standing overhead', 'overhead triceps'],
+  },
+  {
     id: 'tricipiti', livello: 'isolamento', gruppo: 'tricipiti',
+    // NOTA: qui NON c'è più "estensioni" da sola, perché quella parola senza
+    // specificare include sia il pushdown sia le estensioni. Un esercizio che si
+    // chiama solo "estensioni" resta sul pushdown, e va bene: se il nome non dice
+    // "sopra la testa", il default è il movimento più comune.
     parole: ['tricep', 'tricipite', 'tricipiti', 'pushdown', 'push down', 'french press',
       'skull', 'estensioni', 'kickback', 'dips al ciavolo'],
   },

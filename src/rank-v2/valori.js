@@ -174,7 +174,28 @@ import { ripetizioniPiene, fattoreMeccanica, caricoReale, RIPETIZIONI_RIFERIMENT
 export const VALORI_MOVIMENTO = {
   gambe_pesanti: {
     multiplo: 2.2, ingressoMultiplo: 0.85, fonte: 'tuo',
-    nota: 'Leg press e sled press: le macchine per gambe sono le piu\' forti della sala, quindi il tetto e\' il piu\' alto in assoluto (2,2x, e coincide col tetto di realta\'). L\'ingresso a 1,0x e\' il punto in cui chi si siede per la prima volta su quella macchina arriva: sotto, non e\' nemmeno un esercizio.',
+    // A UNA GAMBA SOLA IL TETTO E' LA META' (15/10/2026).
+    //
+    // Questo tetto da 2,2x è quello della leg press NORMALE, che spinge con due
+    // gambe. Ma la "Single Leg Press" della scheda di Ste è una macchina obliqua
+    // dove si spinge con una gamba sola (lui: "obliqua, altrimenti lavorano due
+    // gambe"), e i suoi kg sono per gamba: convenzione `per_gamba`.
+    //
+    // Quindi finiva con un difetto della stessa famiglia di quelli già corretti due
+    // volte in questo file (vedi la nota lunga in testa a VALORI_MOVIMENTO): il tetto
+    // era in unaunità e il carico in un'altra. Un tetto da 2,2 volte il corpo
+    // applicato a UNA gamba è irrealistico — nessuno spinge 2,2 volte il proprio peso
+    // con una coscia sola — e il risultato è che l'esercizio non ha nessun tetto
+    // possibile e resta senza livello qualsiasi cosa tu faccia.
+    //
+    // Il tetto per gamba è 1,1x, cioè esattamente la metà: 2,2x su due gambe sono
+    // 1,1x per gamba. L'ingresso tiene la stessa proporzione (0,85 su 2,2 = 39%).
+    scegliConConvenzione: (e) => (e && e.convenzione === 'per_gamba' ? 'per_gamba' : 'due_gambe'),
+    varianti: {
+      due_gambe: { multiplo: 2.2, ingressoMultiplo: 0.85, fonte: 'tuo' },
+      per_gamba: { multiplo: 1.1, ingressoMultiplo: 0.42, fonte: 'stima' },
+    },
+    nota: 'Leg press e simili: le macchine per gambe sono le più forti della sala, quindi il tetto è il più alto in assoluto (2,2x sulle due gambe, che è il tetto di realtà). L\'ingresso a 1,0x è il punto in cui chi si siede per la prima volta su quella macchina arriva: sotto, non è nemmeno un esercizio. ATTENZIONE: il 2,2x è per TUTTA la macchina, cioè per due gambe. Sulla macchina obliqua a una gamba sola i kg sono per gamba e il tetto è la metà, 1,1x: vedere `varianti`.',
   },
   tirata_verticale: {
     multiplo: 1.7, ingressoMultiplo: 0.77, fonte: 'tuo',
@@ -332,8 +353,34 @@ export const VALORI_MOVIMENTO = {
   // di Ste, con gli stessi kg per lato, non deve trovarsi sotto il primo livello
   // (vedi la nota lunga di `bicipiti_panca`).
   spalle_posteriori: {
-    multiplo: 0.37, ingressoMultiplo: 0.08, fonte: 'meccanica',
-    nota: 'Reverse fly al cavo, PER LATO. Tetto 0,37x, non 0,4x come aveva per errore quando finiva sul petto. Il numero viene dalla meccanica, non dagli occhi: il deltoide posteriore e\' piu\' piccolo del laterale (12,3 contro 13,7 cm2) e ha il braccio di leva piu\' corto (19,6 contro 18,1: peggiore), quindi regge l\'83% di quello dell\'alzata laterale, cioe\' 0,37x invece di 0,45x. I gomiti piegati avvicinano il peso alla spalla rispetto all\'alzata laterale, e per questo il tetto non e\' piu\' basso di quanto sembrerebbe dal solo muscolo. L\'ingresso e\' un quarto del tetto come sull\'alzata laterale.',
+    // IL TETTO QUI E' STATO CORRETTO UN SECONDO TEMPO, E IL PERCHE' E' IL PUNTO
+    // PIU' IMPORTANTE DI TUTTA LA NOTA.
+    //
+    // La prima versione diceva 0,37x, e quel numero era uscito dalla meccanica:
+    // il rapporto fra reverse fly e alzata laterale calcolato da `leva.js` (0,83),
+    // applicato al tetto dell'alzata laterale. Sembrava piu' rigoroso di un numero
+    // scelto a occhio, e invece era peggio, perche' la meccanica si basa su UNA
+    // tabella di anatomia (sezione del muscolo, braccio di leva) che non conosce
+    // la differenza fra un cavo e una macchina a dischi, e non sa che sul reverse
+    // fly al cavo tirano insieme romboidi e trapezi.
+    //
+    // Il numero vero e' quello che Ste sposta, e i suoi numeri sono nel seme
+    // dell'app: 28 kg per lato sul reverse fly, contro 12,5 kg per lato sull'alzata
+    // laterale. Quindi il reverse fly regge PIU' del doppio, e un tetto da 0,37x
+    // (25,5 kg) gli metteva i suoi 28 kg al 110%: esattamente il difetto che due
+    // settimane prima era stato corretto sul Wrist Curl, rifatto di nuovo.
+    //
+    // LA REGOLA, scritta perché succeda una volta sola: un numero ricavato da un
+    // modello vale finché non contraddice una prestazione vera. Quando la
+    // contraddice, vince la prestazione e il modello ha la mia parte di ragione
+    // ("qui non c'entra, e il caricamento è un problema a parte").
+    //
+    // Il 0,55x mette i suoi 28 kg al 74%: un livello alto con spazio davanti, che è
+    // la regola degli altri ("il numero che si vede in palestra, e si può
+    // raggiungere"). Non è 0,37 e non è 0,45: è il tetto di chi si allena bene su
+    // una spalla piccola con un movimento che scarica su romboidi e trapezi.
+    multiplo: 0.55, ingressoMultiplo: 0.12, fonte: 'tuo',
+    nota: 'Reverse fly al cavo, PER LATO: tetto 0,55x, ingresso 0,12x. Sul reverse fly Ste sposta 28 kg per lato (dal seme dell\'app), contro 12,5 kg per lato dell\'alzata laterale: regge quindi più del doppio, perché il cavo scarica su romboidi e trapezi mentre l\'alzata laterale è solo deltoide. Nota come è nato il numero, perché è la lezione: prima qui c\'era 0,37x, ricavato dalla meccanica moltiplicando per il rapporto calcolato fra reverse fly e alzata laterale. Il numero era più rigoroso di quanto sembrasse e però mise i suoi 28 kg al 110% del tetto, cioè al massimo assoluto su una prestazione che poteva solo scendere: lo stesso difetto del Wrist Curl, rifatto. La regola è che un numero di modello vale finché non contraddice una prestazione vera, e quando la contraddice vince la prestazione. L\'ingresso è un quinto del tetto come sull\'alzata laterale, quindi chi pesa di più di Ste non si trova sotto il primo livello.',
   },
   bicipiti: {
     multiplo: 0.7, ingressoMultiplo: 0.26, fonte: 'tuo',
@@ -341,7 +388,37 @@ export const VALORI_MOVIMENTO = {
   },
   tricipiti: {
     multiplo: 0.7, ingressoMultiplo: 0.26, fonte: 'stima',
-    nota: 'Pushdown ed estensioni sopra la testa al cavo, PER LATO: tetto 0,7x, ingresso 0,3x. Ste (08/10/2026) "vabbè che è due braccia però": 60 kg letti = 30 per braccio = 0,45x per lato, quindi sopra l\'ingresso e nella parte bassa ma seria della scala. Le estensioni sopra la testa valgono un po\' di piu\' del pushdown perche\' l\'allungamento e\' maggiore, ma stanno sulla stessa scala di movimento.',
+    nota: 'Pushdown, PER LATO: tetto 0,7x, ingresso 0,3x. Ste (08/10/2026) "vabbè che è due braccia però": 60 kg letti = 30 per braccio = 0,45x per lato, quindi sopra l\'ingresso e nella parte bassa ma seria della scala. Nel pushdown lavora il capo LATERALE del tricipite: il braccio è fermo al fianco e il capo lungo, che passa dalla spalla, è in posizione svantaggiata. Le estensioni sopra la testa sono un movimento DIVERSO (vedi `tricipiti_alta`).',
+  },
+  // LE ESTENSIONI SOPRA LA TESTA, movimento proprio dal 15/10/2026.
+  //
+  // Ste: "ma le estensioni sopra la testa non lavorano il capo lungo del tricipite?
+  // non è come il pushdown". Ha ragione, e non è una sfumatura di poco conto: sono
+  // due muscoli diversi che lavorano.
+  //
+  //  - nel PUSHDOWN il braccio è fermo al fianco e lavora il capo laterale; il capo
+  //    lungo è in posizione svantaggiata e partecipa poco (circa 0,65 del tricipite);
+  //  - SOPRA LA TESTA il capo lungo è il PRINCIPALE, perché è l'unico che attraversa
+  //    la spalla, e si accorcia per tutta la sua corsa mentre il gomito si stende
+  //    (circa 0,85 del tricipite lavora).
+  //
+  // LE DUE COSE SI COMPENSANO, ed è la parte interessante. Il braccio di leva sul
+  // gomito scende da 2,8 cm a 1,9 cm — il peggiore del corpo — ma in alto c'è più
+  // muscolo che lavora. Da `leva.js`:
+  //
+  //   pushdown        sezione 11,1 cm2 (0,65) / leva 12,29 = 0,90
+  //   sopra la testa   sezione 14,5 cm2 (0,85) / leva 18,11 = 0,80
+  //   rapporto 0,80 / 0,90 = 0,89
+  //
+  // Quindi il tetto è 0,7x × 0,89 = 0,62x. NON 0,37x come diceva una versione di
+  // questo ragionamento che dava a entrambi la stessa sezione muscolare: è
+  // sbagliata, perché è proprio la differenza di sezione a compensare la leva peggiore.
+  //
+  // L'ingresso tiene la stessa proporzione del tetto che ha il pushdown (0,26 su 0,7,
+  // cioè 37%), quindi 0,23.
+  tricipiti_alta: {
+    multiplo: 0.62, ingressoMultiplo: 0.23, fonte: 'meccanica',
+    nota: 'Estensioni sopra la testa al cavo, PER LATO: tetto 0,62x, ingresso 0,23x. Il numero viene dalla meccanica e dalla differenza anatomica che Ste ha indicato: sopra la testa lavora il capo lungo del tricipite, che nel pushdown è invece svantaggiato, e per questo c\'è più muscolo che tira. Il suo braccio di leva è però il peggiore del corpo (1,9 cm contro 2,8), perché con il braccio in alto il tendine tira quasi in parallelo all\'omero. Le due cose si compensano quasi e il tetto resta vicino a quello del pushdown: 0,89 volte, cioè 0,62x contro 0,7x. Prima stavano sulla stessa scala e la differenza di muscolo non si vedeva da nessuna parte.',
   },
   gambe_isolamento: {
     multiplo: 1.4, ingressoMultiplo: 0.43, fonte: 'tuo',
@@ -609,6 +686,30 @@ export function valoriPerEsercizio(movimento, esercizio = {}) {
   // solo come si conta il carico (per gamba), e due macchine diverse ce l'hanno
   // identica. Quindi prima si prova la variante "macchina", e se il movimento non
   // la usa si scivola nel codice di prima, che non viene toccato.
+  //
+  // LA CONVENZIONE, dal 15/10/2026: e' la chiave giusta quando il tetto cambia
+  // perche' cambia COME SI CONTA IL CARICO. Il caso e' la leg press obliqua a una
+  // gamba sola: gli stessi kg per gamba sono un carico doppio di quella che
+  // finisce su due gambe, quindi il tetto e' la meta'. Prima non c'era nessuna
+  // chiave per questo e il tetto da 2,2x (due gambe) finiva su una gamba sola,
+  // con l'esercizio che non poteva avere nessun livello.
+  if (base.scegliConConvenzione) {
+    const chiave = base.scegliConConvenzione(esercizio || {});
+    const v = chiave ? base.varianti[chiave] : null;
+    if (v) {
+      return {
+        ...base,
+        varianti: undefined,
+        scegliConConvenzione: undefined,
+        scegliConMacchina: undefined,
+        multiplo: v.multiplo,
+        ingressoMultiplo: v.ingressoMultiplo,
+        fonte: v.fonte || base.fonte,
+        nota: `${base.nota} (variante "${chiave}": il carico qui si conta ${chiave === 'per_gamba' ? 'per gamba' : 'sulle due gambe'})`,
+      };
+    }
+  }
+
   if (base.scegliConMacchina) {
     const chiave = base.scegliConMacchina(esercizio || {});
     const v = chiave ? base.varianti[chiave] : null;

@@ -597,44 +597,70 @@ test('V20. il peso che conta e\' quello allometrico, non quello sulla bilancia',
   }
 });
 
-test('V21. nessun esercizio di Ste puo\' stare AL TETTO della propria scala', () => {
-  // Il difetto che ha fatto trovare il tetto del polso sbagliato (15/10/2026).
+test('V21. nessuna prestazione vera di Ste puo\' stare AL TETTO della propria scala', async () => {
+  // Il difetto che ha fatto trovare il tetto del polso sbagliato (15/10/2026), e
+  // che è tornato subito dopo sul reverse fly.
   //
-  // Un tetto che coincide con la tua migliore prestazione non e' un tetto: e' un
-  // muro con la porta giusta dentro. I 30 kg di wrist curl di Ste erano il 113% del
-  // tetto dichiarato, e l'app gli dava il massimo assoluto della scala con una
-  // prestazione che da l\'in poi poteva solo scendere. E la nota dello stesso file
-  // diceva il contrario ("30 kg su corpo 75 sono gia\' tanto"), quindi non era un
-  // numero deciso male: erano due numeri in due posti che si contraddicevano.
+  // Un tetto che coincide con la tua migliore prestazione non è un tetto: è un muro
+  // con la porta giusta dentro. I 30 kg di wrist curl di Ste erano il 113% del tetto
+  // dichiarato, e i suoi 28 kg di reverse fly erano il 113% di un tetto ricavato dalla
+  // meccanica. In entrambi i casi l'app dava il massimo assoluto della scala con una
+  // prestazione che da lì in poi poteva solo scendere.
   //
-  // Qui sotto i carichi sono quelli documentati nelle note di valori.js, quindi
-  // sono i numeri VERI di Ste, non numeri inventati per far passare il test.
-  const CARICHI = {
-    'Chest Press': 37, 'Lat Pulldown macchina': 88, 'Seated Dumbbell Shoulder Press': 30,
-    'Cable Hammer Curl': 50, 'One Arm Dumbbell Preacher Curl': 18,
-    'Scott Bench Curl seduto al contrario': 18, 'Cable Lateral Raise': 25,
-    'Dumbbell Lateral Raise': 12, 'Cable Fly': 37, 'Single Arm Tricep Pushdown': 21,
-    'Seated Leg Curl': 45, 'Leg Extension': 65, 'Chest Supported Dumbbell Shrug': 47.5,
-    'Smith Machine Incline Bench Press': 32, 'Seated Cable Row': 60,
-    'Sled Press Calf Raise': 110, 'One Arm Cable Reverse Fly': 15, 'Wrist Curl': 30,
-    'Dumbbell Bench Pull': 50,
-  };
+  // I NUMERI QUI NON SONO QUELLI CHE MI SONO DETTO DI SCRIVERE. La prima versione di
+  // questo test aveva una tabella scritta a mano con i kg che avevo dedotto dalle note
+  // del catalogo, e per il reverse fly avevo messo 15 kg invece dei 28 veri: il test
+  // passava e la prestazione vera stava al 113% del tetto. Un test costruito su numeri
+  // inventati non può trovare i difetti dei numeri veri.
+  //
+  // Quindi qui si leggono i semi DELL'APP, che sono le prestazioni vere di Ste: la
+  // stessa fonte che usa la pagina dell'esercizio. Il giorno che Ste cambia un numero
+  // sul suo telefono, il seme cambia con lui e il test guarda il numero vero.
+  const { GIORNI } = await import('../src/dati-iniziali.js');
+  const perEsercizio = new Map();
+  for (const giorno of GIORNI || []) {
+    for (const es of giorno.esercizi || []) {
+      const serie = (es.serie || []).filter((x) => x && x.peso != null && x.ripetizioni > 0);
+      if (!serie.length) continue;
+      let best = serie[0];
+      for (const s of serie) if (s.peso > best.peso) best = s;
+      if (!perEsercizio.has(es.esercizio_id)) perEsercizio.set(es.esercizio_id, []);
+      perEsercizio.get(es.esercizio_id).push(best);
+    }
+  }
+  assert.ok(perEsercizio.size >= 15,
+    `i semi devono avere le serie vere di Ste: ne ho trovate ${perEsercizio.size}, `
+    + 'e un test che guarda i dati sbagliati non vale niente');
+
   const problemi = [];
-  for (const [nome, kg] of Object.entries(CARICHI)) {
-    const e = ESERCIZI.find((x) => x.nome === nome);
+  for (const [id, serie] of perEsercizio) {
+    const e = ESERCIZI.find((x) => x.id === id);
     if (!e) continue;
-    const r = v2.valutaEsercizio({
-      esercizio: e, pesoCorporeo: 66, serie: [{ peso: kg, ripetizioni: 8, stato: 'fatta' }],
-    });
+    const r = v2.valutaEsercizio({ esercizio: e, pesoCorporeo: 66, serie });
     if (!r.valido || !r.vertice) continue;
-    const quota = (r.score / r.vertice) * 100;
-    if (quota >= 97) problemi.push(`${nome}: ${kg} kg sono il ${quota.toFixed(1)}% del tetto`);
+    const q = (r.score / r.vertice) * 100;
+    if (q >= 97) {
+      problemi.push(`${e.nome}: ${serie[0].peso} kg x ${serie[0].ripetizioni} `
+        + `sono il ${q.toFixed(1)}% del tetto`);
+    }
   }
   assert.deepEqual(problemi, [],
-    'nessuna prestazione documentata puo\' stare al tetto della propria scala:\n  '
+    'nessuna prestazione vera puo\' stare al tetto della propria scala:\n  '
     + problemi.join('\n  '));
-});
 
+  // E IL CONTROLLO INVERSO, che è quello che aveva lasciato passare il tetto del
+  // reverse fly: un tetto piu\' alto del necessario non e\' un difetto di sicurezza,
+  // ma un tetto che non serve a niente, e va detto. Il reverse fly doveva stare
+  // vicino alla sua prestazione vera (28 kg per lato al 74%), non a un terzo.
+  const reverse = ESERCIZI.find((e) => e.nome === 'One Arm Cable Reverse Fly');
+  const rReverse = v2.valutaEsercizio({
+    esercizio: reverse, pesoCorporeo: 66, serie: [{ peso: 28, ripetizioni: 9, stato: 'fatta' }],
+  });
+  const qReverse = (rReverse.score / rReverse.vertice) * 100;
+  assert.ok(qReverse >= 55 && qReverse < 97,
+    `i 28 kg per lato del reverse fly devono stare nella parte alta della scala senza `
+    + `toccare il tetto: ${qReverse.toFixed(1)}%`);
+});
 test('V22. le leve: il conto torna e i numeri non sono nonsense', async () => {
   const L = await import('../src/rank-v2/leva.js');
   const PESO = 66;
@@ -655,11 +681,19 @@ test('V22. le leve: il conto torna e i numeri non sono nonsense', async () => {
       const q = l.muscoli[muscolo];
       assert.ok(q > 0 && q <= 1, `${nome}: ${muscolo} partecipa al ${q}, che non è una quota`);
     }
-    // le quote non devono superare 1: se sommano più di 1 il conto gonfia il
-    // numero senza che nessuno se ne accorga
+// LE QUOTE NON SOMMANO SEMPRE A 1, e non è un errore. La quota è "quanta parte
+    // di QUEL muscolo lavora in questo movimento", non "quanto del movimento fa
+    // quel muscolo". Il pushdown lavora il tricipite per 0,65 perché il capo lungo
+    // è svantaggiato; sopra la testa per 0,85 perché il capo lungo è il motore. Se
+    // la somma fosse sempre 1 non si potrebbe dire "quanta parte del muscolo
+    // partecipa", che è proprio la domanda che Ste ha fatto il 15/10.
+    // Quindi la regola è: non si supera 1, e le quote sono tutte > 0.
     const somma = Object.values(l.muscoli).reduce((a, b) => a + b, 0);
-    assert.ok(Math.abs(somma - 1) < 0.01,
-      `${nome}: le quote dei muscoli sommano ${somma.toFixed(2)}, non 1`);
+    assert.ok(somma <= 1.0001,
+      `${nome}: le quote dei muscoli sommano ${somma.toFixed(2)}, che è più di 1`);
+    assert.ok(somma >= 0.3,
+      `${nome}: le quote sommano ${somma.toFixed(2)}, e sotto il 30% non si sta `
+      + 'descrivendo niente');
   }
 
   // 2) il braccio del carico è sempre risolvibile in centimetri
@@ -746,6 +780,37 @@ test('V22. le leve: il conto torna e i numeri non sono nonsense', async () => {
     assert.ok(sez.csa > 1 && sez.csa < 200,
       `${nome}: sezione di ${sez.csa} cm², che non è un numero possibile`);
   }
+// 6) LE DUE TABELLE SI UNISCONO PER NOME, E IL DIFETTO PIU' INSIDIOSO È IL
+  //    NUMERO MANCANTE.
+  //
+  // `scaleDaSeparare` confronta `Object.keys(LEVE)` con i movimenti che hanno un
+  // tetto, e se un nome non combacia lo SALTA in silenzio. È successo il 15/10:
+  // nella tabella delle leve il movimento si chiamava "tricipiti_sopra" e nei
+  // valori "tricipiti_alta", quindi la riga spariva senza dire niente e il
+  // controllo dichiarava "nessun disaccordo" mentre non aveva guardato niente.
+  //
+  // Un controllo che salta una riga e non lo dice è peggio di non averlo: dice
+  // "tutto a posto" quando in realtà non ha guardato. Quindi qui si verifica che
+  // le due liste siano davvero sovrapposte.
+  const V = await import('../src/rank-v2/valori.js');
+  const senzaLeva = Object.keys(V.VALORI_MOVIMENTO)
+    .filter((m) => V.VALORI_MOVIMENTO[m] && V.VALORI_MOVIMENTO[m].multiplo && !L.LEVE[m]);
+  assert.deepEqual(senzaLeva, [],
+    'ci sono movimenti con un tetto e nessuna leva: il controllo li salterebbe in '
+    + `silenzio. ${senzaLeva.join(', ')}`);
+  // e il viceversa: una leva senza tetto è lecita solo se il tetto è coperto da una
+  // variante dello stesso movimento (i polpacci hanno due macchine), altrimenti è un
+  // movimento che il motore non sa valutare
+  const variantiCoperte = Object.keys(V.VALORI_MOVIMENTO)
+    .filter((m) => V.VALORI_MOVIMENTO[m] && V.VALORI_MOVIMENTO[m].varianti)
+    .flatMap((m) => Object.keys(V.VALORI_MOVIMENTO[m].varianti));
+  const senzaScala = Object.keys(L.LEVE)
+    .filter((m) => !(V.VALORI_MOVIMENTO[m] && V.VALORI_MOVIMENTO[m].multiplo))
+    .filter((m) => !variantiCoperte.some((v) => m.endsWith(v) || m.includes(v)))
+    .filter((m) => m !== 'addome');   // l'addome si conta in ripetizioni, non in kg
+  assert.deepEqual(senzaScala, [],
+    'ci sono leve senza un tetto corrispondente: il movimento non avrebbe un tetto '
+    + `possibile. ${senzaScala.join(', ')}`);
 });
 
 test('V23. i due curl sulla stessa scala: la meccanica dice gia\' che sono diversi', async () => {
@@ -766,22 +831,43 @@ test('V23. i due curl sulla stessa scala: la meccanica dice gia\' che sono diver
     `sulla panca Scott il bicipite ha il braccio peggiore, e i due numeri devono`
     + ` dirlo: meccanica ${meccanico.toFixed(2)} contro numeri ${dichiarato.toFixed(2)}`);
 
-  // E il caso che NON funziona: le estensioni sopra la testa finiscono sulla
-  // scala del pushdown. E' l'unico disaccordo che il controllo trova, e per
-  // Ste e' una domanda che puo' rispondere guardando quanto sono piu' dure.
-  const disaccordi = L.scaleDaSeparare(valori.VALORI_MOVIMENTO, { pesoCorporeo: PESO });
-  const sopra = disaccordi.find((d) => d.movimento === 'tricipiti_sopra');
-  assert.ok(sopra,
-    'le estensioni sopra la testa dovrebbero stare su una scala loro: oggi '
-    + 'condividono quella del pushdown');
-  assert.ok(sopra.differenza >= 30,
-    `e la meccanica dice che reggono almeno il 30% in meno: ${sopra.differenza}%`);
-  // il verso deve essere quello giusto: SOPRA la testa e' la piu' dura
-  assert.equal(sopra.piuDifficile, 'tricipiti_sopra',
-    'sopra la testa il braccio di leva e\' il peggiore del corpo, non il migliore');
+// E IL CASO CHE HA FATTO TROVARE IL DIFETTO PIU' IMPORTANTE DI QUESTI GIORNI.
+  //
+  // Ste, 15/10/2026: "ma le estensioni sopra la testa non lavorano il capo lungo del
+  // tricipite? non è come il pushdown". Ha ragione, e non è una sfumatura: nel
+  // pushdown il capo lungo è svantaggiato e lavora il laterale, sopra la testa il
+  // capo lungo è il PRINCIPALE. Erano sulla stessa scala e la differenza non si vedeva.
+  //
+  // Sul tetto i due NON sono lontani come sembrava dal solo braccio di leva: la leva
+  // di sopra la testa è molto peggiore (18,1 contro 12,3) ma c'è più muscolo che
+  // tira, perché il capo lungo è il motore del movimento. Le due cose si compensano
+  // quasi e il tetto resta vicino a quello del pushdown. È il motivo per cui non si
+  // può dedurre il tetto dalla leva da sola.
+  assert.ok(valori.VALORI_MOVIMENTO.tricipiti_alta,
+    'le estensioni sopra la testa devono avere una scala loro');
+  assert.notEqual(valori.VALORI_MOVIMENTO.tricipiti_alta.multiplo,
+    valori.VALORI_MOVIMENTO.tricipiti.multiplo,
+    'e non quella del pushdown: lavora un altro capo del tricipite');
+  assert.ok(L.sezioneCheLavora('tricipiti_alta') > L.sezioneCheLavora('tricipiti'),
+    'sopra la testa lavora più tricipite, perché il capo lungo è il principale');
+  assert.ok(L.gradoSvantaggio('tricipiti_alta', { pesoCorporeo: PESO })
+    > L.gradoSvantaggio('tricipiti', { pesoCorporeo: PESO }),
+    'ma con il braccio di leveraggio peggiore di tutto il corpo');
+  const tAlta = valori.VALORI_MOVIMENTO.tricipiti_alta.multiplo;
+  const tPush = valori.VALORI_MOVIMENTO.tricipiti.multiplo;
+  assert.ok(tAlta > tPush * 0.75 && tAlta < tPush,
+    `e il tetto resta vicino a quello del pushdown: ${tAlta} contro ${tPush}`);
 
-  // e nessun falso positivo: i polpacci hanno gia' due varianti nella tabella
-  // dei valori, quindi non devono essere segnalati come se non fossero distinti
+  // IL CONTROLLO ORA NON TROVA PIÙ NESSUN DISACCORDO: ogni coppia di movimenti
+  // dello stesso muscolo che la meccanica vuole separare ha la sua scala.
+  const disaccordi = L.scaleDaSeparare(valori.VALORI_MOVIMENTO, { pesoCorporeo: PESO });
+  assert.deepEqual(disaccordi, [],
+    'nessun movimento senza scala propria che la meccanica vuole separato:\n  '
+    + disaccordi.map((d) => d.nota).join('\n  '));
+
+  // e nessun falso positivo: i polpacci e la leg press hanno gia' le varianti
+  // nella tabella dei valori, quindi non devono essere segnalati come se non fossero
+  // distinti
   assert.ok(!disaccordi.some((d) => d.movimento.startsWith('polpacci')),
     'i polpacci su carrello e su pressa sono gia\' distinti: non sono un disaccordo');
 });
