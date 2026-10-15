@@ -181,115 +181,164 @@ export const GUSCIO = {
 // i bicipiti davanti, gli addomi davanti, i glutei dietro, la schiena dietro.
 // ---------------------------------------------------------------------------
 
-export const ZONE = {
-  // ---- petto: davanti, e si vede che il peso va in alto o in basso ----
-  petto_alto: {
-    vista: 'fronte', nome: 'parte alta del petto',
-    punti: [[5, 78], [22, 76], [38, 81], [43, 91], [30, 93], [15, 91], [5, 87]],
-  },
-  petto_centrale: {
-    vista: 'fronte', nome: 'petto nel mezzo',
-    punti: [[6, 92], [22, 94], [39, 93], [43, 104], [28, 108], [14, 106], [6, 101]],
-  },
-  petto_basso: {
-    vista: 'fronte', nome: 'parte bassa del petto',
-    punti: [[8, 105], [22, 109], [37, 107], [38, 118], [25, 122], [13, 118], [8, 112]],
+// ---------------------------------------------------------------------------
+// I GRUPPI: UN MUSCOLO, UN PEZZO.
+//
+// Ste (13/10/2026): "i muscoli formati da piu parti muscolari falli uniti,
+// come nella foto". Nella foto di riferimento il pettorale e' UN muscolo giallo,
+// non due o tre macchie: dentro ci sono delle linee sottili che lo dividono, ma
+// il contorno e' uno solo. Il bicipite idem: un pezzo, non due.
+//
+// Quindi qui sotto ogni gruppo e' una sagoma sola. Le "linee" dentro non
+// dividono il disegno: sono le stesse linee bianche della foto, e servono a
+// far capire che quel muscolo ha più capi senza fingere che siano muscoli
+// diversi.
+//
+// Ogni gruppo ha: la vista in cui si vede, i punti della sagoma (scritti sul
+// lato destro, il sinistro e' lo specchio) e le linee interne.
+// ---------------------------------------------------------------------------
+
+export const GRUPPI = {
+  // ---- petto: tutto il pettorale, alto centro e basso insieme ----
+  petto: {
+    vista: 'fronte',
+    punti: [[5, 76], [24, 74], [40, 80], [46, 93], [40, 111], [28, 121], [14, 118], [6, 104]],
+    linee: [[[7, 90], [41, 88]], [[7, 105], [39, 103]]],
   },
 
-  // ---- dorso: dietro ----
-  dorso_alto: {
-    vista: 'retro', nome: 'parte alta del dorso (trapezio)',
-    // fa da un pezzo solo, da una spalla all'altra: non si specchia
-    centrato: true,
-    punti: [[-36, 78], [-24, 70], [0, 67], [24, 70], [36, 78], [24, 94], [12, 102],
-      [-12, 102], [-24, 94]],
+  // ---- braccio: il bicipite e' un pezzo solo, alto e basso ----
+  bicipite: {
+    vista: 'fronte',
+    punti: [[41, 104], [54, 106], [58, 129], [55, 151], [46, 152], [42, 130]],
+    linee: [[[43, 128], [57, 126]]],
   },
-  dorso_centrale: {
-    vista: 'retro', nome: 'dorso centrale',
-    // i romboidi: fra le scapole, in mezzo alla schiena
-    centrato: true,
-    punti: [[-12, 102], [12, 102], [13, 126], [12, 150], [-12, 150], [-13, 126]],
-  },
-  dorso_lati: {
-    vista: 'retro', nome: 'dorso ai lati (lati del triangolare)',
-    // i dorsali larghi: sotto le ascelle e ai lati della schiena, NON in mezzo
-    punti: [[13, 100], [32, 97], [47, 107], [44, 132], [31, 154], [17, 149], [14, 124]],
+
+  avambraccio: {
+    vista: 'fronte',
+    punti: [[46, 170], [58, 172], [61, 193], [55, 210], [49, 207], [47, 188]],
+    linee: [],
   },
 
   // ---- spalle ----
-  spalle_frontali: {
-    vista: 'fronte', nome: 'spalle davanti (deltoide anteriore)',
-    punti: [[38, 76], [50, 77], [58, 88], [55, 102], [45, 105], [38, 96], [36, 85]],
+  deltoide_fronte: {
+    vista: 'fronte',
+    punti: [[37, 74], [51, 76], [59, 88], [55, 105], [44, 106], [37, 94]],
+    linee: [],
   },
-  spalle_posteriori: {
-    vista: 'retro', nome: 'spalle posteriori (deltoide posteriore)',
-    punti: [[38, 76], [50, 77], [58, 88], [55, 102], [45, 105], [38, 96], [36, 85]],
+  deltoide_posteriore: {
+    vista: 'retro',
+    punti: [[37, 74], [51, 76], [59, 88], [55, 105], [44, 106], [37, 94]],
+    linee: [],
   },
-  // il deltoide di lato si vede da entrambe le viste: e' la spalla di profilo
-  spalle_laterali: {
-    vista: 'entrambe', nome: 'spalle laterali (deltoide laterale)',
-    punti: [[52, 84], [62, 92], [63, 106], [55, 114], [50, 102], [50, 91]],
+  // il deltoide di lato si vede da tutte e due le viste: e' la spalla di profilo
+  deltoide_laterale: {
+    vista: 'entrambe',
+    punti: [[52, 82], [63, 92], [64, 108], [55, 116], [50, 102], [50, 90]],
+    linee: [],
   },
 
-  // ---- braccio ----
-  braccio_alto: {
-    vista: 'fronte', nome: 'bicipite: braccio in alto',
-    punti: [[42, 105], [53, 107], [57, 124], [53, 140], [44, 139], [40, 122]],
-  },
-  braccio_basso: {
-    vista: 'fronte', nome: 'bicipite: braccio in basso',
-    punti: [[45, 142], [55, 144], [57, 158], [53, 170], [46, 168], [44, 154]],
-  },
-  avambraccio: {
-    vista: 'fronte', nome: 'avambraccio (polso e avanti braccio)',
-    punti: [[47, 172], [57, 174], [60, 192], [55, 208], [49, 205], [48, 188]],
-  },
-  // Il tricipite sta dietro al braccio. Davanti non si vede e non lo disegno:
-  // metterlo davanti direbbe che un dip lavora coi bicipiti, che e' il
-  // contrario del vero. Il test Z3 lo controlla.
-  spalla_gomito: {
-    vista: 'retro', nome: 'tricipite: sopra il gomito',
-    punti: [[42, 106], [54, 108], [58, 126], [54, 144], [44, 142], [40, 124]],
+  // ---- addome: un pezzo solo con le fette dentro, come nella foto ----
+  addome: {
+    vista: 'fronte', centrato: true,
+    punti: [[-13, 120], [13, 120], [14, 167], [-14, 167]],
+    linee: [[[-13, 137], [13, 137]], [[-13, 152], [13, 152]]],
   },
 
   // ---- gambe ----
   quadricipite: {
-    vista: 'fronte', nome: 'quadricipite (davanti)',
-    punti: [[8, 180], [28, 180], [31, 210], [27, 242], [13, 242], [8, 208]],
+    vista: 'fronte',
+    punti: [[8, 180], [29, 180], [32, 212], [28, 245], [13, 245], [8, 208]],
+    linee: [],
   },
   femorale: {
-    vista: 'retro', nome: 'femorale (dietro)',
-    punti: [[8, 186], [28, 186], [31, 216], [27, 244], [13, 244], [8, 212]],
+    vista: 'retro',
+    punti: [[8, 186], [29, 186], [32, 218], [28, 247], [13, 247], [8, 212]],
+    linee: [],
   },
   polpaccio: {
-    vista: 'retro', nome: 'polpaccio (gemelli e soleo)',
-    punti: [[10, 250], [28, 250], [29, 274], [23, 292], [13, 290], [9, 268]],
+    vista: 'retro',
+    punti: [[10, 250], [29, 250], [30, 276], [23, 295], [13, 293], [9, 268]],
+    linee: [],
   },
   glutei: {
-    vista: 'retro', nome: 'glutei',
-    punti: [[6, 158], [28, 158], [31, 176], [19, 186], [7, 178]],
+    vista: 'retro',
+    punti: [[6, 158], [28, 158], [31, 179], [19, 189], [7, 178]],
+    linee: [],
   },
 
-  // ---- core ----
-  addome: {
-    vista: 'fronte', nome: 'addome',
-    // sta al centro e non si specchia
-    centrato: true,
-    punti: [[-11, 122], [11, 122], [12, 143], [11, 164], [-11, 164], [-12, 143]],
+  // ---- schiena ----
+  // il trapezio fa da un pezzo solo, da una spalla all'altra
+  trapezio: {
+    vista: 'retro', centrato: true,
+    punti: [[-39, 77], [-24, 67], [0, 64], [24, 67], [39, 77], [26, 95], [12, 103], [-12, 103], [-26, 95]],
+    linee: [],
+  },
+  dorsale: {
+    vista: 'retro',
+    punti: [[13, 98], [34, 95], [48, 106], [45, 133], [31, 157], [16, 150], [14, 122]],
+    linee: [],
+  },
+  romboidi: {
+    vista: 'retro', centrato: true,
+    punti: [[-14, 100], [14, 100], [15, 127], [14, 151], [-14, 151], [-15, 127]],
+    linee: [],
+  },
+
+  // ---- dietro del braccio: il tricipite ----
+  tricipite: {
+    vista: 'retro',
+    punti: [[41, 105], [55, 107], [59, 129], [55, 151], [45, 149], [40, 126]],
+    linee: [[[43, 128], [57, 126]]],
   },
 };
 
-export function zoneDiVista(vista) {
-  return Object.keys(ZONE).filter((id) => ZONE[id].vista === vista || ZONE[id].vista === 'entrambe');
+// I PEZZI CHE L'APP CONOSCE, e il gruppo in cui sono disegnati.
+//
+// Qui non c'e' più nessuna forma: solo il nome e il gruppo. Se domani aggiungi un
+// pezzo di muscolo e gli dimentichi il gruppo, il test Z1 fallisce.
+export const ZONE = {
+  petto_alto: { nome: 'parte alta del petto', gruppo: 'petto' },
+  petto_centrale: { nome: 'petto nel mezzo', gruppo: 'petto' },
+  petto_basso: { nome: 'parte bassa del petto', gruppo: 'petto' },
+  dorso_alto: { nome: 'parte alta del dorso (trapezio)', gruppo: 'trapezio' },
+  dorso_centrale: { nome: 'dorso centrale', gruppo: 'romboidi' },
+  dorso_lati: { nome: 'dorso ai lati (lati del triangolare)', gruppo: 'dorsale' },
+  spalle_frontali: { nome: 'spalle davanti (deltoide anteriore)', gruppo: 'deltoide_fronte' },
+  spalle_posteriori: { nome: 'spalle posteriori (deltoide posteriore)', gruppo: 'deltoide_posteriore' },
+  spalle_laterali: { nome: 'spalle laterali (deltoide laterale)', gruppo: 'deltoide_laterale' },
+  braccio_alto: { nome: 'bicipite: braccio in alto', gruppo: 'bicipite' },
+  braccio_basso: { nome: 'bicipite: braccio in basso', gruppo: 'bicipite' },
+  avambraccio: { nome: 'avambraccio (polso e avanti braccio)', gruppo: 'avambraccio' },
+  spalla_gomito: { nome: 'tricipite: sopra il gomito', gruppo: 'tricipite' },
+  quadricipite: { nome: 'quadricipite (davanti)', gruppo: 'quadricipite' },
+  femorale: { nome: 'femorale (dietro)', gruppo: 'femorale' },
+  polpaccio: { nome: 'polpaccio (gemelli e soleo)', gruppo: 'polpaccio' },
+  glutei: { nome: 'glutei', gruppo: 'glutei' },
+  addome: { nome: 'addome', gruppo: 'addome' },
+};
+
+/** Tutti i gruppi che si vedono da una certa vista. */
+export function gruppiDiVista(vista) {
+  return Object.keys(GRUPPI).filter((k) => GRUPPI[k].vista === vista || GRUPPI[k].vista === 'entrambe');
 }
 
-/** Il pezzo di muscolo da accendere per un id di `PARTI`. */
+/** Il gruppo che disegna un certo pezzo di muscolo. */
+export function gruppoDiParte(parteId) {
+  return parteId in ZONE ? ZONE[parteId].gruppo : null;
+}
+
+export function zoneDiVista(vista) {
+  return Object.keys(ZONE).filter((id) => {
+    const g = GRUPPI[ZONE[id].gruppo];
+    return g.vista === vista || g.vista === 'entrambe';
+  });
+}
+
 export function idZonaDaParte(parteId) {
   return parteId in ZONE ? parteId : null;
 }
 
 const sposta = (d) => d.replace(/-?\d+(\.\d+)?/g, (s, _f, off) => {
-  // sposta solo le X: il numero e' preceduto da "x," oppure da "M "/"L "/"C "
   return s;
 });
 
@@ -302,24 +351,22 @@ function pathDi(punti) {
 /**
  * Il disegno di un figurino, come stringa SVG.
  *
- * `acceso` è il pezzo di muscolo da colorare di viola: tutti gli altri restano
- * spenti, così si vede subito DOVE lavori.
+ * `acceso` e' il pezzo di muscolo da colorare di viola: si accende tutto il
+ * gruppo che lo contiene, perché il pettorale e' un muscolo solo e accenderne
+ * un terzo sembrerebbe che ne stai lavorando un terzo.
  */
 export function figurino(vista, acceso = null) {
   const g = GUSCIO[vista];
   const fuori = ['<g class="corpo-guscio">'];
 
-  // il corpo, in un pezzo solo così non si vedono i punti di giunzione
   const guscio = [...g.forme].map((p) => pathDi(p));
   fuori.push(`<path d="${guscio[0]}"/>`);
   for (let i = 1; i < guscio.length; i++) fuori.push(`<path d="${guscio[i]}"/>`);
-  // braccia e gambe dalla parte opposta
   for (const p of [BRACCIO, MANO, GAMBA, PIEDE]) {
     fuori.push(`<path d="${pathDi(specchio(p))}"/>`);
   }
   fuori.push('</g>');
 
-  // i capelli
   fuori.push(`<path class="capelli" d="${pathDi(g.capelli)}"/>`);
   if (g.volto.length) {
     fuori.push('<g class="volto">');
@@ -335,18 +382,25 @@ export function figurino(vista, acceso = null) {
     fuori.push('</g>');
   }
 
-  // i muscoli: spenti, e acceso quello giusto
-  for (const id of zoneDiVista(vista)) {
-    const accesoOra = acceso === id;
-    fuori.push(`<g class="muscolo${accesoOra ? ' acceso' : ''}" data-muscolo="${id}">`);
-    const z = ZONE[id];
-    const daDisegnare = z.centrato ? [z.punti] : [z.punti, specchio(z.punti)];
+  // I muscoli: un pezzo per gruppo, e dentro le linee sottili come nella foto.
+  const accesoGruppo = acceso ? ZONE[acceso].gruppo : null;
+  for (const chiave of gruppiDiVista(vista)) {
+    const gruppo = GRUPPI[chiave];
+    const accesoOra = chiave === accesoGruppo;
+    fuori.push(`<g class="muscolo${accesoOra ? ' acceso' : ''}" data-gruppo="${chiave}">`);
+    const daDisegnare = gruppo.centrato ? [gruppo.punti] : [gruppo.punti, specchio(gruppo.punti)];
     for (const pts of daDisegnare) fuori.push(`<path d="${pathDi(pts)}"/>`);
+    if (gruppo.linee && gruppo.linee.length) {
+      fuori.push('<g class="linee-muscolo">');
+      const lati = gruppo.centrato ? [1] : [1, -1];
+      for (const lato of lati) {
+        for (const [a, b] of gruppo.linee) fuori.push(`<path d="${pathDi(linea([a[0] * lato, a[1]], [b[0] * lato, b[1]], 1.6))}"/>`);
+      }
+      fuori.push('</g>');
+    }
     fuori.push('</g>');
   }
-  // L'ETICHETTA. Sta DENTRO il disegno e non nella didascalia perché sul
-  // telefono la didascalia va a capo e l'etichetta sparirebbe: e quella che
-  // dice se stai guardando il davanti o il dietro.
+
   fuori.push(`<text class="vista-label" x="${CENTRO}" y="${A - 6}" text-anchor="middle">`
     + (vista === 'retro' ? 'DIETRO' : 'FRONTE') + '</text>');
 

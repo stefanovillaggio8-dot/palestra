@@ -2806,6 +2806,7 @@ html.animazioni-mai .aura-colonna { animation: none; }
 .omino-svg .linee path { fill: #c8ccdd; }
 .omino-svg .muscolo path { fill: #b3a9c4; stroke: #efeaf7; stroke-width: 1.4; }
 .omino-svg .muscolo.acceso path { fill: #8b5cf6; stroke: #e9dfff; stroke-width: 1.8; }
+.omino-svg .linee-muscolo path { fill: #efeaf7; stroke: none; }
 .omino-svg .vista-label {
   fill: #cfc8e6; font-size: 15px; font-weight: 700; letter-spacing: .14em;
   font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
