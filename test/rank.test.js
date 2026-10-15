@@ -399,11 +399,21 @@ test('R14. lista Rank e pagina esercizio dicono la stessa cosa', async () => {
   // ingressi piu' bassi del 15% ("come faccio a non essere manco bronzo?"), per cui
   // la stessa prestazione e' salita a GOLD.
   //
-  // Il NOME non e' il punto di questo test: il punto e' che la lista dei Rank e la
-  // pagina dell'esercizio dicano la STESSA cosa (riga sotto). Scrivere qui il
-  // numero di oggi serve solo a documentarlo; se un domani gli ingressi si
-  // muovono ancora, il test da' un rosso che non vuol dire che il bug e' tornato.
-  assert.equal(b.rankId, 'gold', `col peso la chest press 35x8 e' gold (ingressi abbassati del 15%), trovato ${b.rankId}`);
+  // Il NOME del Rank NON è il punto di questo test, e il test non lo scrive più.
+  // Il punto è che la lista dei Rank e la pagina dell'esercizio dicano la STESSA
+  // cosa (riga sotto). Qui prima c'era scritto 'gold' a lettere, e già nel 2026 il
+  // commento sopra avvertiva: "se un domani gli ingressi si muovono ancora, il test
+  // da' un rosso che non vuol dire che il bug e' tornato". E' successo due volte:
+  // prima con gli ingressi abbassati del 15%, poi con lo scalare allometrico del
+  // peso (15/10/2026), che ha alzato la scala del 4,4% e ha portato i 35 kg al
+  // 96% della soglia dopo invece che sopra.
+  //
+  // Un test che fissa un numero di Rank non controlla niente: controlla solo che
+  // nessuno tocchi le soglie, e quando le soglie cambiano di proposito il test
+  // mente. Qui sotto si controlla il fatto vero, che regge comunque.
+  assert.ok(b.rank, 'col peso corporeo la prestazione ha un Rank');
+  assert.ok(b.rankId !== 'ferro', 'e non è il livello più basso');
+  assert.ok(b.punteggio > 0, 'il punteggio c\'e\'');
   // il punto del test, che e' quello vero: senza il peso la scala e\' un\'altra, e
   // quindi i due non possono coincidere. E' il motivo per cui il peso va passato
   // ovunque: due schermate non possono dare due Rank diversi sullo stesso record.

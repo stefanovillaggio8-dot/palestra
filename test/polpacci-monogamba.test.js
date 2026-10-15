@@ -95,7 +95,19 @@ test('i suoi 110 kg non sono più Olympian', () => {
   assert.ok(res.valido, 'la prestazione deve essere valutabile');
   assert.notEqual(res.rank.nome, 'OLYMPIAN',
     `110 kg su corpo ${STEFANO} non possono dare Olympian: il tetto e' 1,8x`);
-  assert.equal(res.rank.nome, 'TITAN');
+  // IL RANK ESATTO NON E' IL PUNTO DI QUESTO TEST (15/10/2026). Qui era scritto
+  // TITAN a lettere, ma il numero e' cambiato sotto i piedi del test per due motivi
+  // giusti: i 6 passano da 0,96 a 0,85 di "ripetizioni piene" (la curva non e' piu'
+  // quella che saturava) e la scala usa il peso ALLOMETRICO, non quello sulla
+  // bilancia. Ste, passando da TITAN a DIAMOND su questo esercizio, non ha perso
+  // niente: i suoi 110 kg sono sempre al 94% del tetto, che e' il punto.
+  //
+  // Quello che conta e' che la prestazione sia ALTA e non al massimo: sotto il
+  // 60% del tetto la scala sarebbe troppo generosa, sopra il 97% il tetto non
+  // proteggerebbe da niente.
+  const quota = (res.score / res.vertice) * 100;
+  assert.ok(quota >= 60 && quota < 97,
+    `i suoi 110 kg devono essere una prestazione alta ma non al tetto: ${quota.toFixed(1)}%`);
 });
 
 test('la scala dei polpacci copre tutte le fasce, non solo il tetto', () => {

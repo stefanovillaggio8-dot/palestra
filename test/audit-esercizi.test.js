@@ -25,7 +25,7 @@ import assert from 'node:assert/strict';
 import { ESERCIZI } from '../src/dati-iniziali.js';
 import { CONVENZIONI } from '../src/numeri.js';
 import { classificaEsercizio } from '../src/esercizi-classificatore.js';
-import { valoriPerEsercizio, tettoPerEsercizio } from '../src/rank-v2/valori.js';
+import { valoriPerEsercizio, tettoPerEsercizio, VALORI_MOVIMENTO } from '../src/rank-v2/valori.js';
 
 const perId = (id) => ESERCIZI.find((e) => e.id === id);
 
@@ -120,10 +120,23 @@ test('i due esercizi corretti sono corretti', () => {
 
 test('il Wrist Curl da cavo non cambia di movimento né di tetto', () => {
   // Il controllo che mancava: se passare da bilanciere a cavo avesse spostato il
-  // movimento, il tetto del polso (0,5x) cambierebbe e il Rank pure. Non deve.
+  // movimento, il tetto del polso cambierebbe e il Rank pure. Non deve.
+  //
+  // IL TETTO È 0,6x E NON PIÙ 0,5x (15/10/2026). Qui sotto era scritto 0,5, che
+  // era un numero che non faceva niente: il tetto dichiarato era PIÙ LARGO del
+  // multiplo (0,5 contro 0,4), quindi non tagliava niente. Il numero davvero
+  // sbagliato era il multiplo, che lasciava i 30 kg di Ste al 113% del tetto e il
+  // Rank al massimo assoluto con una prestazione che poteva solo scendere. Ora il
+  // multiplo e il tetto sono entrambi 0,6x, e i suoi 30 kg stanno al 76%: un
+  // livello alto con spazio davanti. Vedi la nota lunga in rank-v2/valori.js.
   const r = classificaEsercizio(perId('ex-wrist-curl'));
   assert.equal(r.movimento, 'polso', 'resta polso');
   assert.equal(r.livello, 'isolamento', 'e resta isolamento');
-  assert.equal(tettoPerEsercizio(r.livello, r.movimento, perId('ex-wrist-curl')), 0.5,
+  assert.equal(tettoPerEsercizio(r.livello, r.movimento, perId('ex-wrist-curl')), 0.6,
     'il tetto del polso non cambia');
+  // e il tetto non può essere più LARGO del multiplo, altrimenti è un numero che
+  // non tronca niente ed è solo una parola
+  assert.ok(VALORI_MOVIMENTO.polso.multiplo
+    <= tettoPerEsercizio(r.livello, r.movimento, perId('ex-wrist-curl')),
+  'un tetto più largo del multiplo non tronca niente: il numero è solo rumore');
 });

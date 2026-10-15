@@ -212,10 +212,32 @@ test('S9. la BARRA si muove col PESO, non col numero di serie', () => {
   assert.equal(tre.progressoConVolume >= una.progressoConVolume, true,
     'il numero col volume e\' ancora calcolato, e non e\' minore');
 
-  // IL CONTROESEMPIO: la barra DEVE salire quando sale il peso. Se non salisse
+// IL CONTROESEMPIO: la barra DEVE salire quando sale il peso. Se non salisse
   // nemmeno li\', la barra non starebbe piu\' dicendo niente.
-  const leggero = conSerie([{ ...s(1), peso: 35 }]);
-  const pesante = conSerie([{ ...s(1), peso: 55 }]);
+  //
+  // I DUE PESI STANNO NELLO STESSO RANK, ed e\' il punto. La barra mostra quanto
+  // hai riempito la fascia in cui sei, quindi cambiando fascia riparte da zero:
+  // 35 kg sono SILVER a 77% e 45 kg sono PLATINUM a 12%. La barra e\' scesa, ma
+  // il Rank e\' salito di due pezzi, e li\' la barra non puo' continuare a salire
+  // perche' ha un tetto (100%) e quella fascia e\' nuova.
+  //
+  // Il test prima confrontava 35 e 55 kg e pretendeva che la barra salisse. Passava
+  // solo perche' allora i due pesi finivano nella stessa fascia; quando sono passati
+  // di fascia e' saltato fuori. Non e\' un difetto della barra: e\' che "la barra
+  // sale col peso" vale DENTRO il Rank che hai, e il confronto onesto e\' quello.
+  const leggero = conSerie([{ ...s(1), peso: 45 }]);
+  const pesante = conSerie([{ ...s(1), peso: 50 }]);
+  assert.equal(leggero.rank.indice, pesante.rank.indice,
+    'i due pesi di confronto devono stare nella stessa fascia, altrimenti il test '
+    + 'confronta due cose diverse');
   assert.ok(pesante.progresso > leggero.progresso,
     `la barra si muove col peso: ${leggero.progresso} -> ${pesante.progresso}`);
+
+  // E PASSANDO DI FASCIA LA BARRA RIPARTE, ma il Rank sale: anche questo e' vero.
+  const sopra = conSerie([{ ...s(1), peso: 55 }]);
+  assert.ok(sopra.rank.indice > leggero.rank.indice,
+    'e con piu\' peso il Rank sale davvero');
+  assert.ok(sopra.progresso < pesante.progresso,
+    'la barra torna indietro cambiando fascia: e\' il riempimento della fascia '
+    + 'nuova, non un premio perso');
 });

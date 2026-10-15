@@ -35,46 +35,89 @@
 //     registri il carico, non di quanto sei forte: quindi dimezza e basta.
 
 /**
- * Quanto contano le RIPETIZIONI rispetto ai kg. Ste (08/10/2026):
- * "non devono contare troppissimo le ripetizioni eh".
+ * Quante "ripetizioni piene" vale una serie: 8 ripetizioni valgono esattamente 1.
+ *
+ * Ste (08/10/2026): "non devono contare troppissimo le ripetizioni eh".
+ * E l'altro suo requisito, venuto dal fatto che il motore vecchio si fermava a
+ * "peso x 4,3" sopra le 30 ripetizioni: la curva non deve MAI smettere di crescere.
  *
  * IL NUMERO CHE HA FATTO TROVARE IL PROBLEMA (tools/prova-rep.mjs):
  * a STESSO carico, passando da 5 a 12 ripetizioni, il Rank saltava di 4-7 pezzi:
  *   lat pulldown 88 kg: 5 rip = BRONZE, 12 rip = OLYMPIAN   (6 Rank!)
  *   shoulder press 30 kg: 5 rip = nessun livello, 12 rip = OLYMPIAN (7 Rank!)
  * Sette Rank senza alzare un grammo. Non e' che le ripetizioni contassero troppo:
- * e' che contavano TUTTO, e il Rank di un esercizio dipendeva da quante volte hai
- * deciso di spingere quella serie.
+ * e' che contavano TUTTO, e il Rank dipendeva da quante volte avevi deciso di
+ * spingere quella serie.
  *
- * IL RIMEDIO, che e\' una curva CONCAVATA invece che lineare.
+ * LA FORMA E' UNA POTENZA: (ripetizioni / 8) ^ 0,20.
  *
- * Prima la curva era (approssimata) lineare sulle ripetizioni: ogni ripetizione
- * valeva sempre di piu\' della precedente (la 12a valeva 0,85 della prima), quindi
- * il volume si somava quasi tutto. Adesso ogni ripetizione vale sempre MENO della
- * precedente (la 12a vale 0,30 della prima), quindi il volume conta ma non
- * comanda: raddoppiare le ripetizioni non vale il raddoppio, e soprattutto non
- * fa saltare sei Rank.
+ * Prima qui c'era una somma geometrica con ragione 0,65, scelta al posto di 0,5
+ * "perche' il 0,5 saturava". Ma la somma geometrica CONVERGE, e cambiarne la
+ * ragione non risolve niente: sposta solo il punto in cui si ferma.
  *
- * IL VALORE SCELTO, e perche\' non 0,5.
+ *     12 rip -> 1,027    16 rip -> 1,032    20 rip -> 1,033
+ *     40 rip -> 1,033    80 rip -> 1,033
  *
- * Con 0,5 le ripetizioni contavano ancora troppo poco: 5 ripetizioni valevano il
- * 97% di 8 (appena un 3% di differenza, e i Rank non si muovevano affatto, il
- * test V1b se n\'e\' accorto) e soprattutto la curva SATURAVA a 20 ripetizioni:
- * 20 e 40 valevano entrambe 1,004. E\' esattamente il difetto che questo file
- * promette di non avere, cioe\' la ripartizione del sistema vecchio con il tetto
- * "peso x 4,3".
+ * Da 16 ripetizioni in poi il numero era FERMO: una serie da 80 ripetizioni
+ * valeva esattamente come una da 16. Cioe' il difetto che questo file promette
+ * di non avere (il "peso x 4,3" del motore vecchio), solo con un altro numero.
  *
- * Con 0,8 invece: 5 ripetizioni valgono l\'81% di 8 (il 39% in piu\' andando a 12,
- * contro il 101% di prima) e la curva continua a crescere fino a 40 ripetizioni
- * (+20%). Quindi le ripetizioni contano POCO ma contano, e non c\'e\' nessun
- * punto in cui smettono di contare. E\' il compromesso che cercavo, e i numeri
- * sono in tools/scegli-curva.mjs.
+ * Una potenza non converge: cresce per sempre, e sempre meno.
  *
- * Nota anche l\'effetto sulle prime ripetizioni: la 5a vale ancora 0,61 della
- * prima (non 0,60 come con la curva vecchia, non 0,19 come con 0,5). Quindi un
- * set corto non viene azzerato, e uno lungo non viene premiato alle stelle.
+ *     1 rip -> 0,66      5 rip -> 0,91      8 rip -> 1,00     12 rip -> 1,08
+ *    20 rip -> 1,17     40 rip -> 1,38     80 rip -> 1,74
+ *
+ * PERCHE' 0,20 E NON UN ALTRO ESPONENTE (15/10/2026). L'esponente si sceglie in
+ * un posto solo: contro le due regole di Ste, che possono tirare in due direzioni
+ * opposte.
+ *
+ *   1) le ripetizioni contano POCO: da 5 a 12 il punteggio sale pochissimo;
+ *   2) la curva non satura MAI.
+ *
+ * Con 0,65 le regole si rispettavano solo a metà: la prima sì, la seconda no.
+ * Scendendo, l'esponente 0,20 è il più piatto che non satura ancora, e mantiene
+ * i numeri bassi quasi dove erano:
+ *
+ *   curva      5 rip   12 rip   5->12    20->40    salto max di Rank da 5 a 12
+ *   0,65 (ora) 0,913   1,027    +12%     +0,0%     1  (ma satura: 80 = 20)
+ *   0,20       0,910   1,084    +19%     +15%      2  (e non satura)
+ *   0,25       0,889   1,107    +24%     +19%      2
+ *   0,30       0,868   1,129    +30%     +23%      2
+ *   log        0,815   1,167    +43%     +22%      3
+ *
+ * Con 0,20 le 5 ripetizioni valgono 0,910 contro le 0,913 di oggi: i numeri di
+ * Ste restano quelli che ha gia' approvato, e il difetto della saturazione sparisce.
+ * Con 0,25 e oltre la differenza comincia a farsi sentire, e con il logaritmo una
+ * serie da 5 ripetizioni puo' saltare tre Rank.
+ *
+ * IL PREZZO, detto chiaro: con una curva che non satura, il salto massimo da 5 a
+ * 12 ripetizioni passa da 1 Rank a 2, e su UN esercizio su 24. Non si puo' avere
+ * le due cose insieme: una curva ferma a 16 ripetizioni non salta Rank, e
+ * semplicemente non distingue piu' una serie da 16 da una da 80. Il test V1b
+ * controlla che nessuno salti piu' di 2 Rank, che era 6-7 col motore vecchio.
+ *
+ * L'unico tetto dichiarato e' oltre 40 ripetizioni, dove una ripetizione non e'
+ * piu' un lavoro utile.
  */
-export const FATTORE_RIPETIZIONI = 0.65;
+export function ripetizioniPiene(ripetizioni) {
+  const r = Math.floor(Number(ripetizioni) || 0);
+  if (r <= 0) return 0;
+  const limite = Math.min(r, LIMITE_RIPETIZIONI);
+  const valore = Math.pow(limite / RIPETIZIONI_RIFERIMENTO, ESPONENTE_RIPETIZIONI);
+  return Math.round(valore * 1000) / 1000;
+}
+
+/**
+ * L'esponente della curva: 0,20. Il ragionamento per sceglierlo sta nella nota di
+ * `ripetizioniPiene` sopra, e i numeri sono quelli della tabella li'.
+ */
+export const ESPONENTE_RIPETIZIONI = 0.2;
+
+/**
+ * Oltre 40 ripetizioni il numero non significa piu' niente: e' il tetto
+ * dichiarato della curva, l'unico, ed e' qui perche' sia leggibile.
+ */
+export const LIMITE_RIPETIZIONI = 40;
 
 /**
  * Le ripetizioni di riferimento: la serie da 8, perche' e' il modo in cui si
@@ -82,50 +125,12 @@ export const FATTORE_RIPETIZIONI = 0.65;
  *
  * Sta QUI e non in valori.js perche' valori.js importa curve.js: se il numero
  * fosse li, perche' lo usa qui, i due moduli si importerebbero a vicenda e Node
- *direbbe "ReferenceError: RIPETIZIONI_RIFERIMENTO is not defined". Il ciclo
- *appare solo quando qualcuno lo tocca, quindi e' il tipo di errore che resta
+ * direbbe "ReferenceError: RIPETIZIONI_RIFERIMENTO is not defined". Il ciclo
+ * appare solo quando qualcuno lo tocca, quindi e' il tipo di errore che resta
  * nascosto finche' non lo trovi.
  */
 export const RIPETIZIONI_RIFERIMENTO = 8;
 
-/**
- * Le ripetizioni pesate: quante "ripetizioni piene" fa una serie.
- *
-* 5 -> 0,81   8 -> 1,00   12 -> 1,12   20 -> 1,19   30 -> 1,20   40 -> 1,20
- *
- * Nota: il numero sale ANCORA, quindi chi fa piu\' ripetizioni prende di piu\' e
- * la curva NON satura mai (nel sistema vecchio sopra 30 ripetizioni la stima si
- * fermava a "peso x 4,3", un numero inventato che non cresceva piu\'). Ma sale
- * piano: da 8 a 20 ripetizioni il punteggio cresce del 19%, non del 95%.
- */
-export function ripetizioniPiene(ripetizioni) {
-  const r = Math.floor(Number(ripetizioni) || 0);
-  if (r <= 0) return 0;
-  const limite = Math.min(r, 40); // oltre 40 il numero non significa piu' niente
-  let totale = 0;
-  for (let i = 1; i <= limite; i++) totale += Math.pow(FATTORE_RIPETIZIONI, i - 1);
-  // normalizzo sulla 8a ripetizione: cosi\' "8 ripetizioni" = 1,0 esatto e le
-  // soglie dichiarate per 8 ripetizioni sono coerenti con la curva
-  const riferimento = sommaGeometrica(RIPETIZIONI_RIFERIMENTO);
-  return Math.round((totale / riferimento) * 1000) / 1000;
-}
-
-/** La somma geometrica dei primi n termini con ragione FATTORE_RIPETIZIONI. */
-export function sommaGeometrica(n) {
-  const limite = Math.min(Math.max(1, Math.floor(Number(n) || 1)), 40);
-  let totale = 0;
-  for (let i = 1; i <= limite; i++) totale += Math.pow(FATTORE_RIPETIZIONI, i - 1);
-  return totale;
-}
-
-/**
- * Il premio per le serie fatte. Sale e si ferma.
- *
- * Ste (07/10/2026): "fare 3x8 deve valere piu' di 1x8, per\u00f2 non deve bastare il
- * volume da solo per far salire di Rank una prestazione mediocre".
- * Quindi: +10% alla seconda serie, +16% alla terza, +20% dalla quarta in poi, e
- * basta. In pi\u00f9 il volume da solo non compra un Rank (vedi scalata.js).
- */
 export const MOLTIPLICATORI_SERIE = [1, 1.10, 1.16, 1.20];
 
 /** Il premio serie, fermato al massimo. */

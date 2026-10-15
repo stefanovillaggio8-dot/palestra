@@ -188,34 +188,51 @@ export function distanzaAllaSoglia(score, soglie, indice, { carico, meccanica = 
 }
 
 /**
- * Dal punteggio al Rank, con gli LP dentro.
+ * Dal punteggio al Rank, con i LP dentro.
  *
  * Regole che ho fissato e che diventano test:
- *  - il volume (le serie) spinge gli LP dentro il Rank che hai;
- *  - per far salire di RANK col solo volume, la tua serie migliore deve essere
- *    gia' vicina alla soglia: sotto il 92% il volume non basta e viene fermato,
- *    e te lo dico, perche' un Rank deve dire quanto sei forte;
- *  - nessun Rank si compra con una serie sola e niente di piu': il volume massimo
- *    e' il 20% e resta dentro quel vincolo.
+ *  - il RANK lo decide SEMPRE la serie migliore da sola, mai le serie;
+ *  - le serie spingono gli LP dentro il Rank che hai, e possono portarti al
+ *    massimo (99 LP, divisione III), ma non al Rank dopo;
+ *  - il volume non spinge nemmeno la barra: la barra è il lavoro vero.
+ *
+ * IL PERCHE' DEL FERMO (Ste, 06/10/2026): "la regola secca. Il bonus non cambia
+ * mai il Rank, sposta solo i LP dentro del Rank... perche' un Rank deve dire
+ * quanto sei forte. Se il numero di serie decide meta' dei Rank, il Rank non sta
+ * misurando quello che dice di misurare".
+ *
+ * QUI C'ERA UNA FINESTA, E IL 15/10/2026 L'HA FATTA VEDERE. C'era
+ * `SOGLIA_PER_CROSSARE = 0,92`: se la serie migliore era gia' al 92% della soglia
+ * dopo, il volume POTeva spingerla al Rank successivo. Sembrava una via di mezzo
+ * ("se sei davvero vicino, ti si lascia passare"), ma è una regola diversa da
+ * quella che Ste ha scritto, e per un anno intero è rimasta nascosta perché i
+ * numeri di allora non ci finivano mai dentro.
+ *
+ * Poi è finito dentro per un motivo vero. Con lo scalare allometrico del peso
+ * (vedi `pesoAllometrico` in valori.js) la scala è salita del 4,4% e la chest
+ * press di Ste si e' trovata al 96% della soglia dopo: con una serie era SILVER,
+ * con due GOLD. Cioe' il Rank dipendeva dal numero di serie, che e' esattamente
+ * quello che Ste aveva detto di non volere, e che il test bonus-serie.test.js
+ * (S5) segnalava gia' da prima e che passava solo per caso.
+ *
+ * Quindi la finestra e' stata tolta, e non sostituita con un'altra: ora la regola
+ * e' quella che Ste ha scritto, e il volume fa esattamente una cosa, spingere gli
+ * LP dentro il Rank che hai. Non c'e' piu' nessun numero che decide se si puo'
+ * passare: meno codice e una regola sola.
  */
-export const SOGLIA_PER_CROSSARE = 0.92;
-
 export function rankDaScore(score, soglie, { serieFatte = 1 } = {}) {
   const sog = Array.isArray(soglie) ? soglie : [];
   if (!sog.length) return { rank: null, indice: -1, lp: 0, motivo: 'nessuna soglia' };
   const valore = Number(score);
   if (!Number.isFinite(valore)) return { rank: null, indice: -1, lp: 0, motivo: 'nessun punteggio' };
 
-  // la serie migliore da sola: e' questa che decide il Rank onesto
+  // la serie migliore da sola: e' questa che decide il Rank, sempre
   const conSerie = valore * moltiplicatoreSerie(serieFatte);
   const onesto = bandaDaValore(conSerie, sog);
   const daSola = bandaDaValore(valore, sog);
   const haVolume = serieFatte > 1 && onesto.indice > daSola.indice;
 
-  if (haVolume && valore < sog[daSola.indice + 1] * SOGLIA_PER_CROSSARE) {
-    // Il volume voleva farti salire ma la tua serie migliore non e' ancora vicina
-    // alla soglia.
-    //
+  if (haVolume) {
     // QUI C'ERA UN BUG MIO, e me lo ha fatto vedere il test V6: restituivo la
     // fascia calcolata sul numero CON il volume, quindi il Rank era gia' salito
     // ("bloccato" ma salito). Il blocco deve valere per il RANK, non per gli LP:
@@ -235,18 +252,17 @@ export function rankDaScore(score, soglie, { serieFatte = 1 } = {}) {
     // "progresso" e' la barra che vede a schermo. Prima qui finiva 1,000: la barra
     // si mostrava PIENA con due serie, ma il Rank non era cambiato e la soglia
     // dopo non era stata toccata. Cioe' l'app diceva "hai finito" mentre non
-    // aveva finito niente, che e\' il modo peggiore di mentire.
+    // aveva finito niente, che e' il modo peggiore di mentire.
     //
     // Ora la barra resta ferma sul posto del LAVORO VERO (la serie migliore da
     // sola), e il merito delle serie si legge negli LP. Il volume spinge gli LP
-    // dentro il Rank che hai, non la barra verso il Rank dopo: e\' esattamente la
+    // dentro il Rank che hai, non la barra verso il Rank dopo: e' esattamente la
     // regola secca di Ste, resa visibile.
     fermato.progresso = daSola.progresso;
     fermato.progressoConVolume = progressoDentro(conSerie, sog, daSola.indice);
     fermato.volumeBloccato = true;
     fermato.lpConVolume = onesto.lp;
     fermato.rankCheAvrestiAvuto = onesto.rank;
-    fermato.massimoRichiesto = Math.round(sog[daSola.indice + 1] * SOGLIA_PER_CROSSARE * 100) / 100;
     return fermato;
   }
   // LA BARRA SEMPRE SUL LAVORO VERO, E ADESSO SEMPRE (08/10/2026).

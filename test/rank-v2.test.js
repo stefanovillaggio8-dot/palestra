@@ -42,22 +42,30 @@ test('V1. ogni ripetizione conta, ma meno della precedente, e non satura MAI', (
   assert.ok(cinque > otto * 0.7 && cinque < otto,
     `5 ripetizioni valgono meno di 8 ma non un buco: ${cinque} contro ${otto}`);
   assert.ok(otto > cinque, 'la progressione 40x6 -> 40x8 -> 40x10 deve sentire qualcosa');
-  // il punto del sistema nuovo rispetto a quello vecchio: qui non c'e' il tetto
+// il punto del sistema nuovo rispetto a quello vecchio: qui non c'e' il tetto
   // "peso x 4,3" oltre le 30 ripetizioni. Quindi 40 rip valgono piu' di 20.
   //
-  // Con il fattore 0,5 la curva SATURAVA a 20 ripetizioni (20 e 40 valevano
-  // entrambe 1,004): le ripetizioni non contavano piu\' niente, che e\' lo stesso
-  // difetto del sistema vecchio, solo con un altro numero. Per questo il fattore
-  // e\' 0,65 e non 0,5.
-  // NOTA: qui si confrontano i valori GREZZI, non quelli arrotondati a 3
-  // decimali. Con il fattore 0,65 la differenza fra 20 e 40 ripetizioni e' di
-  // qualche millesimo, e arrotondando a 1,033 - 1,033 il test direbbe "non
-  // cresce" quando invece cresce. E' il tipo di test che mente per arrotondamento.
-  const grezzoVenti = curve.sommaGeometrica(20);
-  const grezzoQuaranta = curve.sommaGeometrica(40);
-  assert.ok(grezzoQuaranta > grezzoVenti,
-    'la curva cresce ancora oltre 20 ripetizioni (nel vecchio era bloccata)');
-  assert.ok(venti < otto * 1.2, 'ma raddoppiare le ripetizioni non raddoppia il punteggio');
+  // IL VECCHIO 0,65 E IL VECCHIO 0,5 (15/10/2026). La somma geometrica converge:
+  // con ragione 0,5 le 20 e le 40 ripetizioni valevano entrambe 1,004, e con
+  // ragione 0,5 anche 0,65 non era la soluzione, solo un punto di saturazione
+  // spostato: 12 rip -> 1,027 e 80 rip -> 1,033, cioe' da 16 ripetizioni in poi il
+  // numero era FERMO. Sostituire 0,5 con 0,65 non risolveva il difetto che questo
+  // file promette di non avere, e il test passava lo stesso perche' confrontava
+  // le somme GREZZE (che crescevano di qualche millesimo) invece del numero che
+  // l'app mostra. Adesso la curva e' logaritmica: non converge, quindi qui si
+  // confronta il numero vero e arrotondato, ed e' quello che Ste vede.
+  assert.ok(quaranta > venti * 1.05,
+    `40 ripetizioni devono valere piu' di 20, e si devono sentire: `
+    + `${quaranta} contro ${venti}`);
+  assert.ok(curve.ripetizioniPiene(80) === quaranta,
+    'oltre 40 ripetizioni il tetto dichiarato tiene: e\' un limite scritto nel '
+    + 'codice, non una convergenza nascosta');
+  assert.equal(curve.LIMITE_RIPETIZIONI, 40,
+    'il tetto delle ripetizioni deve restare scritto e controllato');
+  assert.ok(venti < otto * 1.25,
+    `ma raddoppiare le ripetizioni non raddoppia il punteggio: ${venti} contro ${otto}`);
+  assert.ok(quaranta < otto * 1.5,
+    `e quintuplicarle non lo moltiplica per cinque: ${quaranta} contro ${otto}`);
 });
 
 test('V1b. le ripetizioni NON possono cambiare il Rank di 6 pezzi', () => {
@@ -69,10 +77,22 @@ test('V1b. le ripetizioni NON possono cambiare il Rank di 6 pezzi', () => {
   // grammo. Non era che le ripetizioni contassero troppo, era che contavano
   // TUTTO, e il Rank dipendeva da quante volte avevi deciso di spingere.
   //
-  // Il limite qui e\' voluto: al massimo 1 Rank di differenza fra 5 e 12
-  // ripetizioni, e comunque gli LP DEVONO salire (se non salissero, le
-  // ripetizioni non conterebbero niente e sarebbe un altro bug).
+  // IL LIMITE E\' 2, E PERCHE\' (15/10/2026). Era 1, ma solo perché la curva
+  // saturava: la somma geometrica con ragione 0,65 era FERMA da 16 ripetizioni in
+  // poi (80 ripetizioni valevano come 16), quindi le ripetizioni non avevano voce
+  // e il salto era tenuto bassino per un motivo sbagliato. Una curva che non
+  // satura fa necessariamente salire un po\' di piu\': fra 5 e 12 ripetizioni si
+  // fa davvero il doppio del lavoro, e merita di sentire un gradino.
+  //
+  // Quindi il test mette due reti, e la seconda e\' quella che conta:
+  //  - nessun esercizio salta PIU\' di 2 Rank (era 1 per il difetto di sopra);
+  //  - nessun esercizio ne salta 3 (il 6-7 del motore vecchio resta lontano).
+  //
+  // E comunque gli LP DEVONO salire: se non salissero, le ripetizioni non
+  // conterebbero niente e sarebbe un altro bug.
+  const LIMITE = 2;
   const salta = [];
+  let peggiore = 0;
   for (const e of ESERCIZI) {
     const cls = classificaEsercizio({
       nome: e.nome, convenzione: e.convenzione, attrezzatura: e.attrezzatura,
@@ -91,14 +111,19 @@ test('V1b. le ripetizioni NON possono cambiare il Rank di 6 pezzi', () => {
     const dodici = banda(12);
     if (!cinque || !dodici) continue;
     const salto = (dodici.indice) - (cinque.indice);
-    if (salto > 1) salta.push(`${e.nome}: 5 rip = ${cinque.indice}, 12 rip = ${dodici.indice}`);
+    if (salto > peggiore) peggiore = salto;
+    if (salto > LIMITE) salta.push(`${e.nome}: 5 rip = ${cinque.indice}, 12 rip = ${dodici.indice}`);
     // e le ripetizioni devono contare qualcosa: gli LP non possono restare fermi
     if (cinque.rank && dodici.rank && cinque.indice === dodici.indice && dodici.lp <= cinque.lp) {
       salta.push(`${e.nome}: con le stesse ripetizioni non muove niente, e gli LP non salgono`);
     }
   }
+  assert.ok(peggiore <= LIMITE,
+    `il salto massimo da 5 a 12 ripetizioni e' di ${peggiore} Rank: con il motore
+  vecchio erano 6-7, e il tetto qui e' ${LIMITE}`);
   assert.deepEqual(salta, [],
-    'le ripetizioni non possono cambiare il Rank di piu\' di 1 pezzo:\n  ' + salta.join('\n  '));
+    `le ripetizioni non possono cambiare il Rank di piu\' di ${LIMITE} pezzi:\n  `
+    + salta.join('\n  '));
 });
 
 test('V2. il volume non cresce oltre il 20%, e una serie sola non da\' niente', () => {
@@ -166,10 +191,10 @@ test('V5. le soglie vanno dall\'ingresso al vertice, e sono SEVERE', () => {
   }
 });
 
-test('V6. il volume fa salire gli LP dentro il Rank, ma non compra il Rank da solo', () => {
+test('V6. il volume fa salire gli LP dentro il Rank, ma non compra MAI il Rank', () => {
   const soglie = scalata.soglieDaValori({ ingresso: 100, vertice: 300 });
   // soglie: 100 / 120 / 148 / 184 / 220 / 256 / 300
-  const mediocre = 130; // dentro il Rank 2, ma sotto il 92% della soglia dopo (136)
+  const mediocre = 130; // dentro il Rank 1
   assert.equal(scalata.rankDaScore(mediocre, soglie).indice, 1, 'la serie migliore da sola: indice 1');
   const colVolume = scalata.rankDaScore(mediocre, soglie, { serieFatte: 4 });
   assert.equal(colVolume.indice, 1, '4 serie NON comprano il Rank: la prestazione e\' mediocre');
@@ -177,12 +202,26 @@ test('V6. il volume fa salire gli LP dentro il Rank, ma non compra il Rank da so
   // ma i LP salgono: il lavoro delle serie non sparisce
   assert.ok(colVolume.lp > scalata.rankDaScore(mediocre, soglie).lp,
     'le serie spengono gli LP anche quando non cambiano il Rank');
-  // e se la serie migliore e\' davvero vicina alla soglia, il volume puo\' far salire
+
+  // IL CASO CHE HA FATTO TROVARE LA CONTRADDIZIONE (15/10/2026).
+  //
+  // Qui prima c'era una finestra: se la serie migliore era al 92% o piu' della
+  // soglia dopo, il volume POTeva spingerla al Rank successivo. Con lo scalare
+  // allometrico la chest press di Ste e' finita al 96% di quella soglia, e il suo
+  // Rank dipendeva dal numero di serie: una serie SILVER, due GOLD. Cioe'
+  // esattamente quello che Ste aveva scritto il 06/10 ("il bonus non cambia mai
+  // il Rank") e che il test S5 di bonus-serie.test.js segnalava gia' da prima,
+  // passando solo per caso.
+  //
+  // Quindi la finestra non esiste piu'. Anche al 99% della soglia il Rank non si
+  // muove: si muovono gli LP, che salgono fino a 99 e con loro la divisione.
   const vicino = Math.round(soglie[2] * 0.99 * 100) / 100;
   const su = scalata.rankDaScore(vicino, soglie, { serieFatte: 4 });
-  assert.equal(su.volumeBloccato, false, 'qui la serie e\' al 99% della soglia: il volume puo\' spingere');
-  assert.ok(su.indice > scalata.rankDaScore(vicino, soglie).indice,
-    'e infatti sale di un gradino');
+  assert.equal(su.indice, scalata.rankDaScore(vicino, soglie).indice,
+    'anche al 99% della soglia dopo il volume NON cambia il Rank');
+  assert.equal(su.volumeBloccato, true, 'e viene fermato e detto');
+  assert.ok(su.lp >= scalata.rankDaScore(vicino, soglie).lp,
+    'ma gli LP spingono comunque: il lavoro delle serie non sparisce');
 });
 
 test('V7. nessun Rank sopra i tetti di realta\'', () => {
@@ -192,18 +231,25 @@ test('V7. nessun Rank sopra i tetti di realta\'', () => {
   // isolamento vero e minuscolo. Con la regola vecchia il leg extension veniva
   // tagliato a 0,85x e i 65 kg di Ste davano OLYMPIAN.
   //
-  // qui si prova con un multiplo assurdo e si vede che il tetto vince
+// qui si prova con un multiplo assurdo e si vede che il tetto vince
+  //
+  // IL CORPO È QUELLO ALLOMETRICO, non quello sulla bilancia (15/10/2026): il
+  // tetto è un multiplo del peso che CONTA, cioè quello ricavato dalla sezione
+  // dei muscoli. Il test prima confrontava con `70 * 0,85` e falliva di mezzo
+  // chilo: non perché il tetto non funzionasse, ma perché stava misurando due
+  // pesi diversi. Qui sotto si chiede al codice stesso qual è il corpo che usa.
+  const corpo = valori.pesoAllometrico(70);
   const assurdo = { multiplo: 500, ingressoMultiplo: 0.3 };
   const tre = valori.sogliePerEsercizio(assurdo, 'isolamento', 70, 'spalle_isolamento');
-  assert.ok(tre.vertice <= 70 * 0.85 + 0.01,
+  assert.ok(tre.vertice <= corpo * 0.85 + 0.01,
     `un isolamento piccolo non puo' avere vertice sopra 0,85 per uno: ${tre.vertice}`);
   assert.equal(tre.tettoRaggiunto, true, 'e deve dire che il tetto ha morso');
   // i pesanti invece arrivano a 2,2 per uno
   const pesante = valori.sogliePerEsercizio({ multiplo: 1000, ingressoMultiplo: 0.3 }, 'grande', 70, 'gambe_pesanti');
-  assert.ok(pesante.vertice <= 70 * 2.2 + 0.01, 'nemmeno un pesante puo\' superare 2,2 per uno');
+  assert.ok(pesante.vertice <= corpo * 2.2 + 0.01, 'nemmeno un pesante puo\' superare 2,2 per uno');
   // e il leg extension ha il suo tetto, non quello da isolamento minuscolo
   const gambe = valori.sogliePerEsercizio({ multiplo: 1000, ingressoMultiplo: 0.3 }, 'isolamento', 70, 'gambe_isolamento');
-  assert.ok(gambe.vertice > 70 * 1.3,
+  assert.ok(gambe.vertice > corpo * 1.3,
     'il leg extension regge piu\' di 1,3 per uno: e\' un isolamento ma di gamba, '
     + 'il carico e\' grosso. Trovato ' + gambe.vertice);
 });
@@ -433,4 +479,158 @@ test('V18. il BENCH PULL e\ schiena, non petto', async () => {
     'il cable fly resta sul petto: e\' un fly, il peso viene davanti');
   assert.equal(classificaEsercizio({ nome: fly.nome }).movimento, 'petto_isolamento',
     'e il suo movimento resta il fly');
+});
+
+test('V19. il tetto di realta\' TRONCA davvero, e nessun tetto e\' un numero morto', () => {
+  // LA PROTEZIONE CHE NON E\' MAI STATA PROVATA (15/10/2026).
+  //
+  // `TETTO_MOVIMENTO` e' nato (08/10/2026) per non regalare Rank: nessun Rank
+  // deve poter chiedere piu' di 2,2 volte il peso della persona, e sugli isolamenti
+  // piccoli il tetto scende a 0,85. Ma fino al 15/10 nessun test controllava che il
+  // meccanismo FUNZIONASSE: si sapeva solo che non dava errori. Infatti non
+  // funzionava: ogni valore della tabella era uguale al multiplo del suo movimento
+  // (o piu\' largo), quindi `min(multiplo, tetto)` dava SEMPRE il multiplo e il tetto
+  // non aveva mai tagliato niente, su nessuno dei 17 movimenti.
+  //
+  // Due controlli, e il secondo e\' quello che chiude la porta.
+  //
+// 1) se il tetto e\' PIU\' BASSO del multiplo, deve troncare e deve dirlo.
+  //    Il limite si confronta con il corpo ALLOMETRICO, che e\' quello che il motore
+  //    usa davvero: con `70 * 0,85` il test misurerebbe due pesi diversi e fallirebbe
+  //    di qualche decimo senza che nessuno abbia sbagliato (vedi anche V7).
+  const assurdo = { multiplo: 9, ingressoMultiplo: 0.3 };
+  const corpo = valori.pesoAllometrico(70);
+  const troncato = valori.sogliePerEsercizio(assurdo, 'isolamento', 70, 'spalle_isolamento');
+  assert.ok(troncato.vertice < corpo * 0.85 + 0.01,
+    `il tetto deve aver morso il multiplo assurdo: ${troncato.vertice}`);
+  assert.equal(troncato.tettoRaggiunto, true,
+    'e il motore deve dire che il tetto ha morso, non tacerlo');
+
+  // 2) NESSUN tetto puo\' essere piu\' largo del suo multiplo. Se lo fosse, non
+  //    troncherebbe mai niente e sarebbe solo una parola: il tetto del polso era
+  //    esattamente questo (0,5 contro un multiplo di 0,4) ed e\' il numero che ha
+  //    lasciato i 30 kg di Ste al 113% del tetto, cioe\' al massimo assoluto.
+  for (const [movimento, tetto] of Object.entries(valori.TETTO_MOVIMENTO)) {
+    const v = valori.VALORI_MOVIMENTO[movimento];
+    assert.ok(v, `il tetto di "${movimento}" non ha nemmeno il movimento`);
+    assert.ok(tetto <= v.multiplo,
+      `${movimento}: tetto ${tetto} contro multiplo ${v.multiplo}: un tetto piu\' `
+      + 'largo non tronca niente, e\' un numero che non fa niente');
+  }
+  // e lo stesso per i tetti per macchina, che sono gli unici che tagliano davvero
+  for (const [movimento, perMacchina] of Object.entries(valori.TETTO_CON_MACCHINA)) {
+    for (const [macchina, tetto] of Object.entries(perMacchina)) {
+      const v = valori.VALORI_MOVIMENTO[movimento].varianti
+        && valori.VALORI_MOVIMENTO[movimento].varianti[macchina];
+      if (!v) continue;
+      assert.ok(tetto <= v.multiplo,
+        `${movimento}/${macchina}: tetto ${tetto} contro multiplo ${v.multiplo}: `
+        + 'anche questo tetto non taglierebbe niente');
+    }
+  }
+});
+
+test('V20. il peso che conta e\' quello allometrico, non quello sulla bilancia', () => {
+  // Ste (15/10/2026): "la forza muscolare non cresce in modo lineare con il peso
+  // della persona, ma con la sezione trasversale del muscolo. Questo impedisce che
+  // un atleta piu\' pesante venga penalizzato ingiustamente sui punteggi relativi".
+  //
+  // Un muscolo spinge con quello che ha in sezione trasversale, e la sezione cresce
+  // col peso a esponente 0,67. Quindi il corpo di cui la scala tiene conto non e\' il
+  // peso sulla bilancia, ma quello ricavato da quella sezione.
+
+  // 1) il riferimento e\' 75 kg, e li\' non cambia niente: chi si pesa 75 kg vede
+  //    esattamente le scale che aveva approvato l'08/10/2026
+  assert.equal(valori.PESO_ALLOMETRICO_RIFERIMENTO, 75);
+  assert.equal(valori.pesoAllometrico(75), 75,
+    'a 75 kg il peso allometrico coincide con quello reale: la scala non si sposta');
+
+  // 2) sotto 75 il peso che conta e' PIU' GRANDE, sopra 75 e' piu' piccolo.
+  //    E\' la firma dell\'esponente minore di 1, e serve a non penalizzare i grandi
+  assert.ok(valori.pesoAllometrico(55) > 55,
+    `su un corpo da 55 il corpo che conta e' piu' grande: ${valori.pesoAllometrico(55)}`);
+  assert.ok(valori.pesoAllometrico(110) < 110,
+    `su un corpo da 110 il corpo che conta e' piu' piccolo: ${valori.pesoAllometrico(110)}`);
+
+  // 3) e sale sempre, senza buchi: un corpo piu\' grande non può trovarsi con una
+  //    scala piu\' bassa di quella di un corpo piu\' piccolo
+  let precedente = 0;
+  for (let p = 40; p <= 140; p += 1) {
+    const v = valori.pesoAllometrico(p);
+    assert.ok(v > precedente, `a ${p} kg il corpo che conta e' salito: ${v} dopo ${precedente}`);
+    precedente = v;
+  }
+
+  // 4) IL MOTIVO PER CUI ESISTE, ed e\' la cosa che Ste ha chiesto: chi pesa di piu\'
+  //    NON deve essere punito per gli stessi kg. Prima, con la scala lineare, su
+  //    un corpo da 100 kg servivano 38,0 kg di chest press per il primo livello e
+  //    chi ne faceva 37 restava sotto: sotto il primo livello con una prestazione
+  //    che a 66 kg era addirittura GOLD.
+  const v = valori.VALORI_MOVIMENTO.spinta_orizzontale;
+  const a66 = valori.sogliePerEsercizio(v, 'composto', 66);
+  const a100 = valori.sogliePerEsercizio(v, 'composto', 100);
+  assert.ok(a100.ingresso < 100 * v.ingressoMultiplo,
+    `su un corpo da 100 l'ingresso e' piu' basso di quanto sarebbe lineare: `
+    + `${a100.ingresso} contro ${(100 * v.ingressoMultiplo).toFixed(2)}`);
+  // e 37 kg, che a 66 kg sono GOLD, su 100 kg non sono piu\' sotto il primo livello
+  const res100 = v2.valutaEsercizio({
+    esercizio: ESERCIZI.find((e) => e.id === 'ex-chest-press'),
+    pesoCorporeo: 100,
+    serie: [{ peso: 37, ripetizioni: 8, stato: 'fatta' }],
+  });
+  assert.ok(res100.valido && res100.rank,
+    'chi pesa 100 kg e fa 37 kg di chest press ha un livello, non resta sotto');
+  assert.ok(res100.lp > 0, 'e non e\' al gradino zero');
+
+  // 5) TETTO E INGRESSO CRESCONO INSIEME. Se solo uno dei due fosse allometrico
+  //    entrerebbe il difetto che il file descrive e ha gia' corretto una volta:
+  //    chi pesa di piu\' si troverebbe sotto la prima soglia con gli stessi kg che gli
+  //    davano un Rank. Qui il rapporto fra tetto e ingresso resta identico a ogni peso
+  const rapporti = [55, 66, 75, 85, 100, 130].map((p) => {
+    const s = valori.sogliePerEsercizio(v, 'composto', p);
+    return s.vertice / s.ingresso;
+  });
+  for (const r of rapporti) {
+    assert.ok(Math.abs(r - rapporti[0]) < 0.001,
+      `il rapporto tetto/ingresso deve essere lo stesso a ogni peso: ${r.toFixed(4)} `
+      + `contro ${rapporti[0].toFixed(4)}`);
+  }
+});
+
+test('V21. nessun esercizio di Ste puo\' stare AL TETTO della propria scala', () => {
+  // Il difetto che ha fatto trovare il tetto del polso sbagliato (15/10/2026).
+  //
+  // Un tetto che coincide con la tua migliore prestazione non e' un tetto: e' un
+  // muro con la porta giusta dentro. I 30 kg di wrist curl di Ste erano il 113% del
+  // tetto dichiarato, e l'app gli dava il massimo assoluto della scala con una
+  // prestazione che da l\'in poi poteva solo scendere. E la nota dello stesso file
+  // diceva il contrario ("30 kg su corpo 75 sono gia\' tanto"), quindi non era un
+  // numero deciso male: erano due numeri in due posti che si contraddicevano.
+  //
+  // Qui sotto i carichi sono quelli documentati nelle note di valori.js, quindi
+  // sono i numeri VERI di Ste, non numeri inventati per far passare il test.
+  const CARICHI = {
+    'Chest Press': 37, 'Lat Pulldown macchina': 88, 'Seated Dumbbell Shoulder Press': 30,
+    'Cable Hammer Curl': 50, 'One Arm Dumbbell Preacher Curl': 18,
+    'Scott Bench Curl seduto al contrario': 18, 'Cable Lateral Raise': 25,
+    'Dumbbell Lateral Raise': 12, 'Cable Fly': 37, 'Single Arm Tricep Pushdown': 21,
+    'Seated Leg Curl': 45, 'Leg Extension': 65, 'Chest Supported Dumbbell Shrug': 47.5,
+    'Smith Machine Incline Bench Press': 32, 'Seated Cable Row': 60,
+    'Sled Press Calf Raise': 110, 'One Arm Cable Reverse Fly': 15, 'Wrist Curl': 30,
+    'Dumbbell Bench Pull': 50,
+  };
+  const problemi = [];
+  for (const [nome, kg] of Object.entries(CARICHI)) {
+    const e = ESERCIZI.find((x) => x.nome === nome);
+    if (!e) continue;
+    const r = v2.valutaEsercizio({
+      esercizio: e, pesoCorporeo: 66, serie: [{ peso: kg, ripetizioni: 8, stato: 'fatta' }],
+    });
+    if (!r.valido || !r.vertice) continue;
+    const quota = (r.score / r.vertice) * 100;
+    if (quota >= 97) problemi.push(`${nome}: ${kg} kg sono il ${quota.toFixed(1)}% del tetto`);
+  }
+  assert.deepEqual(problemi, [],
+    'nessuna prestazione documentata puo\' stare al tetto della propria scala:\n  '
+    + problemi.join('\n  '));
 });

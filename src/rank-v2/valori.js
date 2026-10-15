@@ -325,8 +325,25 @@ export const VALORI_MOVIMENTO = {
     nota: 'Sled press calf raise e single leg press: stessa zona del leg press perche\' il carico e\' grosso e la macchina scarica. Tetto e ingresso come il leg press. Sul single leg press valgono i kg per gamba.',
   },
   polso: {
-    multiplo: 0.4, ingressoMultiplo: 0.13, fonte: 'stima',
-    nota: 'Wrist curl: tetto 0,4x il corpo, ingresso 0,15x. Il polso e\' un insieme di muscoli piccoli dell\'avambraccio e il movimento e\' corto, quindi il carico resta basso anche se ci metti i manubri. 30 kg su corpo 75 sono gia\' tanto per il polso. Nota: il tetto di realta\' taglia questo a 0,5x, quindi il numero effettivo e\' 0,4x.',
+    // IL TETTO ERA SBAGLIATO DI UN TERZO (15/10/2026). Qui c'era 0,4x e la nota
+    // diceva "30 kg su corpo 75 sono gia' tanto per il polso". Ma 30 kg su corpo 66
+    // sono 0,45x, cioe' PIU' del tetto: il motore dava OLYMPIAN a chiunque e
+    // Ste, che e' quello che li faceva, era al massimo assoluto della scala con un
+    // numero che non poteva piu' salire. Il tetto non era troppo alto, era troppo
+    // basso, e la nota si contraddiceva da sola.
+    //
+    // IL NUMERO GIUSTO. Il wrist curl muove i flessori del polso e dell'avambraccio:
+    // muscoli piccoli, ma che su un braccio solo reggono piu' di quanto sembri,
+    // perche' il braccio appoggiato scarica tutto il peso su un avambraccio. I
+    // numeri veri in palestra: 30-40 kg per mano e' gia' forte, 50-60 kg per mano e'
+    // il tetto di chi si e' specializzato. Su corpo 66 sono 0,45x e 0,8x.
+    //
+    // Quindi 0,6x: il tetto di chi si allena bene e un po' oltre, che e' la stessa
+    // regola degli altri ("il numero che si vede in palestra"). Ste a 0,45x sta al
+    // 76% della scala: un livello alto ma con spazio davanti, e i suoi 30 kg
+    // adesso gli dicono quanto gli manca invece di dirgli che ha finito.
+    multiplo: 0.6, ingressoMultiplo: 0.195, fonte: 'stima',
+    nota: 'Wrist curl: tetto 0,6x il corpo, ingresso 0,195x. I flessori del polso sono muscoli piccoli ma l\'avambraccio scarica il peso del braccio intero, quindi reggono piu\' di quanto sembri: 30-40 kg per mano e\' gia\' un livello forte, 50-60 kg il tetto di chi si e\' specializzato. Prima qui c\'era 0,4x e i tuoi 30 kg su corpo 66 erano il 113% del tetto: l\'app ti dava il massimo assoluto e non avevi piu\' niente da guadagnare. Nota bene l\'ingresso: 0,195x e\' volutamente basso, perche\' su un muscolo piccolo un ingresso alto chiuderebbe la scala a chi pesa di piu\' (vedi la nota di `bicipiti_panca`).',
   },
   polpacci: {
     multiplo: 1.0, ingressoMultiplo: 0.34, fonte: 'stima',
@@ -402,21 +419,104 @@ export const TETTO_ISOLAMENTI = 0.85;
 //    composti grossi. E' la stessa realta' del leg press, solo che l'isolamento
 //    e' su un solo arto.
 //
-// Quindi il tetto di realta' non e' "isolamento o no", ma "quanto e' grosso il
-// carico che quell'esercizio mette in gioco". Lo dico con la grandezza del
-// movimento, che e' la cosa giusta da guardare.
+// Quindi il tetto di realta' non e' "isolamento o no", ma "quanto e' grosso il carico
+// che quell'esercizio mette in gioco". Lo dico con la grandezza del movimento,
+// che e' la cosa giusta da guardare.
+//
+// LA TRAPPOLA, E PERCHE' OGGI QUESTA TABELLA NON TRONCA NULLA (15/10/2026).
+//
+// Il nome "tetto" fa pensare a un tetto che taglia, ed e' stato proprio quello il
+// problema: ogni valore qui sotto e' uguale al `multiplo` del suo movimento (o piu'
+// largo), quindi `min(multiplo, tetto)` da' SEMPRE il multiplo e il tetto non ha mai
+// tagliato niente, su nessun movimento. Verificato: 17 movimenti su 17, zero eccezioni.
+//
+// Il caso che ne ha fatto accorgere e' il `polso`, dove la cosa tornava utile per un
+// motivo sbagliato: il tetto dichiarato era piu' LARGO del multiplo (0,5 contro 0,4),
+// quindi non tagliava, e il numero davvero sbagliato era il multiplo stesso. Quello
+// e' stato corretto a mano; la tabella e' rimasta com'.
+//
+// PERCHE' SI TIENE, allora. Due motivi, e il secondo e' quello che conta:
+//
+//  1) e' il posto dove si abbassa un tetto quando un multiplo dichiarato diventa
+//     irrealistico. Se qualcuno dichiara 1,5x per i bicipiti, il numero qui sotto va
+//     ABBASSATO e il tetto tronca da solo, senza andare a inseguire il multiplo in
+//     giro per il catalogo;
+//  2) i movimenti che lo hanno devono poter SUPERARE il tetto generico degli
+//     isolamenti (0,85x): il leg extension e' un isolamento ma mette 1,4x, e senza
+//     questo override gli verrebbe tagliato a 0,85x. Cioe': la tabella non e' solo un
+//     tetto, e' anche un'eccezione al tetto.
+//
+// E il test V19 controlla che il meccanismo tronchi davvero quando il valore e' piu'
+// basso del multiplo. Una protezione che non e' mai stata provata e' una protezione
+// che non funziona, e questa per un anno intero era in quello stato.
 export const TETTO_MOVIMENTO = {
   gambe_isolamento: 1.4,
   gambe_curl: 1.2,
   gambe_pesanti: 2.2,
   gambe_stabilizzatore: 2.2,
-  // il polso e' l'avambraccio: tenni con un bilanciere o coi manubri, ma il carico
-  // resta bassissimo (0,4x il corpo), perche' i muscoli del polso sono piccoli e
-  // il movimento e' corto. Senza questo tetto dedicato il Wrist Curl (che ora ha
-  // il movimento "polso") prendeva il tetto di un isolamento generico.
-  polso: 0.5,
+  // il polso e' l'avambraccio: i muscoli sono piccoli ma l'avambraccio scarica il
+// peso del braccio intero, quindi regge piu' di un generico isolamento. Vedi la nota
+// lunga sopra, dove il tetto era sbagliato di un terzo.
+  polso: 0.6,
 };
 
+/**
+ * IL PESO CHE CONTA DAVVERO, e non quello sulla bilancia.
+ *
+ * Ste (15/10/2026): "la forza muscolare non cresce in modo lineare con il peso
+ * della persona, ma con la sezione trasversale del muscolo. Questo impedisce che
+ * un atleta piu' pesante venga penalizzato ingiustamente sui punteggi relativi".
+ *
+ * IL MOTIVO, che è di fisiologia e non di gusti. Un muscolo spinge con quello che
+ * ha in sezione trasversale: più è spesso, più fibre in parallelo, più forza. E
+ * la sezione trasversale cresce con la massa del corpo a esponente 0,67, non
+ * con esponente 1, perché il corpo cresce in lunghezza E in larghezza, e i muscoli
+ * crescono soprattutto in sezione.
+ *
+ * Il numero è l'esponente classico dell'allometria muscolare, e qui non è un vezzo:
+ *
+ *   corpo  55 kg -> 60,3 kg equivalenti   (a 55 kg quei kg pesano di piu')
+ *   corpo  66 kg -> 68,9 kg equivalenti
+ *   corpo  75 kg -> 75,0 kg equivalenti   (il riferimento: qui non cambia niente)
+ *   corpo  85 kg -> 83,1 kg equivalenti
+ *   corpo 100 kg -> 90,2 kg equivalenti
+ *   corpo 110 kg -> 93,8 kg equivalenti
+ *
+ * COSA CAMBIA IN CONCRETO. Con la scala lineare (quella che c'era prima), chi
+ * pesa 100 kg e fa 37 kg di chest press finiva SOTTO il primo livello, perché
+ * l'ingresso gli chiedeva 38,0 kg. Con questa l'ingresso gli chiede 34,3 kg e ci
+ * arriva: chi pesa di più non viene più punito per gli stessi kg.
+ *
+ * E LA CONTROPARTE, che va detta perché è vera: chi pesa MENO viene un po'
+ * penalizzato rispetto alla scala lineare, perché il suo corpo-equivalente è più
+ * grande del suo peso. Non è un errore: 37 kg di chest press su un corpo da 55 kg
+ * sono davvero più forti che su un corpo da 110. La scala premia la forza
+ * rapportata al corpo che la sposta, e il corpo che conta è quello che i muscoli
+ * hanno davvero.
+ *
+ * IL RIFERIMENTO È 75 KG, e per quello a 75 kg non cambia niente: il peso
+ * allometrico coincide con il peso reale. Chi si pesa 75 kg e aveva guardato le
+ * scale approvate l'08/10/2026 le vede identiche. Tutti gli altri si spostano di
+ * poco, e sempre dalla parte giusta.
+ *
+ * DOVE ENTRA. In un posto solo, `pesoAllometrico()`, e da lì in entrambi i numeri:
+ * il tetto E l'ingresso. Se solo uno dei due fosse allometrico e l'altro no,
+ * entrerebbe il difetto che questo file già descrive e già ha corretto una volta:
+ * chi pesa di più si troverebbe sotto la prima soglia con gli stessi kg che gli
+ * davano un Rank.
+ */
+export const ESPONENTE_ALLOMETRICO = 0.67;
+export const PESO_ALLOMETRICO_RIFERIMENTO = 75;
+
+/** Il peso di cui il corpo conta davvero: vedi la nota lunga sopra. */
+export function pesoAllometrico(peso) {
+  const p = Number(peso);
+  if (!Number.isFinite(p) || p <= 0) return null;
+  return Math.round(
+    PESO_ALLOMETRICO_RIFERIMENTO
+      * Math.pow(p / PESO_ALLOMETRICO_RIFERIMENTO, ESPONENTE_ALLOMETRICO) * 100
+  ) / 100;
+}
 // I TETTI CHE DIPENDONO DALLA MACCHINA.
 //
 // Sono separati da TETTO_MOVIMENTO perche' lì la chiave è il movimento, e il
@@ -510,12 +610,17 @@ export function valoriPerEsercizio(movimento, esercizio = {}) {
 /**
  * Il vertice di un esercizio, riportato sul corpo della persona.
  *
- * Il peso corporeo entra qui e in un solo posto: il tetto e' un multiplo del peso,
- * quindi tutto il resto (ingresso incluso) segue da solo.
+ * Il peso corporeo entra qui e in un solo posto: il tetto è un multiplo del peso
+ * allometrico (vedi `pesoAllometrico`), quindi tutto il resto segue da solo.
+ *
+ * IL PESO È QUELLO ALLOMETRICO, non quello sulla bilancia, e per entrambi i
+ * numeri: il vertice E il tetto che lo tronca. Vedi la nota di `pesoAllometrico`:
+ * la forza va con la sezione del muscolo (peso^0,67), e usare il peso lineare
+ * puniva chi pesa di più con gli stessi kg.
  */
 export function verticePerCorpo(valori, livello, pesoCorporeo, movimento = null, esercizio = null) {
-  const peso = Number(pesoCorporeo);
-  if (!Number.isFinite(peso) || peso <= 0) return null;
+  const peso = pesoAllometrico(pesoCorporeo);
+  if (peso === null) return null;
   const tetto = tettoPerEsercizio(livello, movimento, esercizio);
   const grezzo = peso * valori.multiplo;
   const limite = peso * tetto;
@@ -531,14 +636,14 @@ export function verticePerCorpo(valori, livello, pesoCorporeo, movimento = null,
  * Le soglie complete di un esercizio sul corpo della persona, in kg.
  *
  * L'ingresso NON e' una percentuale del tetto: e' il suo proprio multiplo del
- * corpo (`ingressoMultiplo`). Il motivo e' scritto in testa a VALORI_MOVIMENTO, e
- * in una riga: se l'ingresso fosse una quota del tetto, chi pesa di piu' si
- * troverebbe sotto la prima soglia con lo stesso carico che gli dava un Rank.
+ * corpo (`ingressoMultiplo`). E il corpo, qui, è quello ALLOMETRICO, come nel
+ * vertice: i due numeri devono crescere insieme, altrimenti si rompe la regola
+ * che questo file ha già imparato a caro (vedi la nota lunga sopra).
  */
 export function sogliePerEsercizio(valori, livello, pesoCorporeo, movimento = null, esercizio = null) {
   const v = verticePerCorpo(valori, livello, pesoCorporeo, movimento, esercizio);
   if (!v) return null;
-  const peso = Number(pesoCorporeo);
+  const peso = pesoAllometrico(pesoCorporeo);
   const ingresso = Math.round(peso * valori.ingressoMultiplo * 100) / 100;
   // difesa: se un movimento si dimenticasse l'ingresso, meglio accorgersene qui
   // che scoprirlo con un Rank che non si muove

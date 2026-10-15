@@ -8,11 +8,11 @@
      Per tre versioni di fila Ste ha guardato questa anteprima e ha detto "non e'
      cambiato nulla" mentre io stavo cambiando l'aura. Il motivo era questo: qui il
      CSS era richiesto come `./stile.css`, senza numero, mentre l'app lo chiede come
-     `./stile.css?v=163`. Sono DUE indirizzi diversi per lo stesso file, e il browser
+     `./stile.css?v=164`. Sono DUE indirizzi diversi per lo stesso file, e il browser
      tiene in cache quello senza numero per sempre.
      Ogni volta che si alza la versione, va alzata anche qui, e c'e' un test che lo
      controlla (test/anteprima-cache.test.js). -->
-<link rel="stylesheet" href="./stile.css?v=163">
+<link rel="stylesheet" href="./stile.css?v=164">
 <style>
   /* Questa pagina esiste solo per mostrare l'Aura divina nelle tre classi.
      Usa il CSS vero dell'app (quello che c'è in stile.css), non una copia: se
@@ -85,14 +85,14 @@
       <figure>
         <div class="scena personaggio-scena-grafica personaggio-guerriero con-foto">
           <img class="personaggio-ritratto" style="width:88%"
-            src="./img/personaggi/stati/guerriero-5.webp?v=163" alt="Guerriero completo">
+            src="./img/personaggi/stati/guerriero-5.webp?v=164" alt="Guerriero completo">
         </div>
         <figcaption>senza aura</figcaption>
       </figure>
       <figure>
         <div class="scena personaggio-scena-grafica personaggio-guerriero con-foto personaggio-aura" data-scie>
           <img class="personaggio-ritratto" style="width:88%"
-            src="./img/personaggi/stati/guerriero-5.webp?v=163" alt="Guerriero con l'aura">
+            src="./img/personaggi/stati/guerriero-5.webp?v=164" alt="Guerriero con l'aura">
         </div>
         <figcaption>con l'aura</figcaption>
       </figure>
@@ -105,14 +105,14 @@
       <figure>
         <div class="scena personaggio-scena-grafica personaggio-berserker con-foto">
           <img class="personaggio-ritratto" style="width:86%"
-            src="./img/personaggi/stati/berserker-5.webp?v=163" alt="Berserker completo">
+            src="./img/personaggi/stati/berserker-5.webp?v=164" alt="Berserker completo">
         </div>
         <figcaption>senza aura</figcaption>
       </figure>
       <figure>
         <div class="scena personaggio-scena-grafica personaggio-berserker con-foto personaggio-aura" data-scie>
           <img class="personaggio-ritratto" style="width:86%"
-            src="./img/personaggi/stati/berserker-5.webp?v=163" alt="Berserker con l'aura">
+            src="./img/personaggi/stati/berserker-5.webp?v=164" alt="Berserker con l'aura">
         </div>
         <figcaption>con l'aura</figcaption>
       </figure>
@@ -125,14 +125,14 @@
       <figure>
         <div class="scena personaggio-scena-grafica personaggio-assassino con-foto">
           <img class="personaggio-ritratto"
-            src="./img/personaggi/stati/assassino-5.webp?v=163" alt="Assassino completo">
+            src="./img/personaggi/stati/assassino-5.webp?v=164" alt="Assassino completo">
         </div>
         <figcaption>senza aura</figcaption>
       </figure>
       <figure>
         <div class="scena personaggio-scena-grafica personaggio-assassino con-foto personaggio-aura" data-scie>
           <img class="personaggio-ritratto"
-            src="./img/personaggi/stati/assassino-5.webp?v=163" alt="Assassino con l'aura">
+            src="./img/personaggi/stati/assassino-5.webp?v=164" alt="Assassino con l'aura">
         </div>
         <figcaption>con l'aura</figcaption>
       </figure>

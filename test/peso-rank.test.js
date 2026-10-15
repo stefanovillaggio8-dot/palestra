@@ -10,6 +10,7 @@ import {
   profiloEsercizio, profiloPerPesoCorporeo, RIFERIMENTO_DEFAULT, soglieDaRiferimento,
 } from '../src/rank-config.js';
 import { stimaMassimo, punteggioSerie, performanceEsercizio, recordEsercizio, calcolaRank } from '../src/rank.js';
+import { pesoAllometrico } from '../src/rank-v2/valori.js';
 
 const CP = { id: 'ex-chest-press', nome: 'Chest Press', convenzione: 'macchina' };
 const serie = (o, peso, rip, extra = {}) => ({
@@ -101,18 +102,43 @@ test('6. il record resta legato al peso del giorno in cui l\'hai fatto', () => {
   // scale. Il confronto vecchio sugli oggetti Rank falliva perche' sono due oggetti
   // diversi anche quando dicono la stessa cosa.
   // e qui c'e' la cosa buona che il motore nuovo fa, e che va verificata invece
-  // che evitata: 40 kg su un corpo da 60 e 60 kg su un corpo da 90 sono la STESSA
-  // prestazione relativa (0,67x e 0,67x per braccio), quindi devono stare allo
-  // stesso posto delle rispettive scale. Prima questo test pretendeva che fossero
-  // diversi: era un test che, se l'avesse incontrato, avrebbe giudicato sbagliato
-  // il motore giusto.
-  const quota60 = Math.round((r60.punteggio / r60.vertice) * 100);
-  const quota90 = Math.round((r90.punteggio / r90.vertice) * 100);
-  assert.ok(Math.abs(quota60 - quota90) <= 2,
-    `la stessa prestazione in rapporto al proprio corpo deve stare allo stesso `
-    + `posto della scala: ${quota60}% contro ${quota90}%`);
-  assert.ok(r60.soglie[6] !== r90.soglie[6],
-    `ma le scale sono diverse: tetto ${r60.soglie[6]} contro ${r90.soglie[6]}`);
+  // che evitata: due persone che fanno la STESSA prestazione RELATIVA devono
+  // stare allo stesso posto delle rispettive scale.
+  //
+  // LA PREMESSA È CAMBIATA IL 15/10/2026, e il motivo è la scala allometrica.
+  // Prima si scriveva "40 kg su un corpo da 60 e 60 kg su un corpo da 90 sono la
+  // stessa prestazione (0,67x per braccio)". È vero solo se il corpo conta in
+  // modo lineare. Ma la forza di un muscolo va con la sua SEZIONE, e la sezione
+  // cresce col peso a esponente 0,67: il corpo che conta non è quello sulla
+  // bilancia. Vedi `pesoAllometrico` in rank-v2/valori.js.
+  //
+  // Quindi 0,67x del peso NON è la stessa prestazione per due persone diverse: su
+  // un corpo da 60 quei 40 kg sono il 62% del corpo che conta davvero, su un
+  // corpo da 90 quei 60 kg sono il 75%. Il primo è oggettivamente più forte, e
+  // il motore adesso lo dice. Il test non può più chiedere la stessa posizione a
+  // due pesi scelti sul peso lineare, perché non è più la stessa prestazione.
+  //
+  // QUELLO CHE IL TEST CONTROLLA ADESSO è la regola vera: due persone che fanno
+  // la stessa prestazione RISPETTO AL CORPO CHE CONTA stanno allo stesso posto.
+  // E i due Rank in assoluto restano diversi, perché le scale restano diverse.
+  const corpoCheConta = (p) => pesoAllometrico(p);
+  // il secondo peso NON è scritto a mano: si calcola sul corpo che conta del primo.
+  // Scriverlo a mano faceva fallire il test per un arrotondamento, e un test che
+  // fallisce per un numero sbagliato suo è un test che non dice niente.
+  const quota = 40 / corpoCheConta(60);
+  const secondoPeso = corpoCheConta(90) * quota;
+  assert.ok(Math.abs(quota - (secondoPeso / corpoCheConta(90))) < 1e-9,
+    'i due pesi devono essere la stessa prestazione sul corpo che conta');
+  const ra = recordEsercizio([serie(1, 40, 10, { peso_corpo: 60 })], CP, null, 90);
+  const rb = recordEsercizio([serie(1, secondoPeso, 10, { peso_corpo: 90 })], CP, null, 90);
+  const quotaA = Math.round((ra.punteggio / ra.vertice) * 100);
+  const quotaB = Math.round((rb.punteggio / rb.vertice) * 100);
+  assert.ok(Math.abs(quotaA - quotaB) <= 2,
+    `la stessa prestazione in rapporto al corpo che conta deve stare allo stesso `
+    + `posto della scala: ${quotaA}% contro ${quotaB}%`);
+  // e le scale restano diverse: è quello che il Rank deve dire
+  assert.ok(ra.soglie[6] !== rb.soglie[6],
+    `ma le scale sono diverse: tetto ${ra.soglie[6]} contro ${rb.soglie[6]}`);
   // e soprattutto: il peso corporeo di ADESSO (90) non ha toccato il record vecchio.
   // Se il motore usasse il peso di oggi per ricalcolare tutto, r60 avrebbe la
   // scala di un corpo da 90 e il suo Rank cambierebbe ogni volta che ti pesi.
