@@ -34,7 +34,21 @@ export const PARTI = [
   // ---- petto ----
   {
     id: 'petto_alto', muscolo: 'petto', parte: 'parte alta del petto',
-    parole: ['incline', 'inclinata', 'inclinato', 'spalle in alto', 'incline bench'],
+    // 'incline' e 'inclinata' DA SOLE non ci sono più (15/10/2026). Dicevano
+    // "petto" alla "Incline Single Arm Pulldown", che è una TIRATA: si tira il
+    // peso verso di sé, quindi lavora la schiena, non il petto. Le FRASI vere
+    // restano, quindi "Incline Bench Press" e "Panca Inclinata" continuano a
+    // trovare il petto alto.
+    parole: ['incline bench', 'panca inclinata', 'spalle in alto',
+      // Ste (15/10/2026): "che si aggiorni automaticamente" vuol dire anche
+      // che un esercizio nuovo non può restare spento. "Incline Dumbbell
+      // Press" non aveva nessuna parola riconosciuta e sulla figura non si
+      // accendeva niente. Le FRASI con dentro la posizione sono sicure: se il
+      // nome dice che è inclinata, inclinata è, e la spinta non può essere una
+      // tirata. La parola "press" da sola invece non si mette: "Shoulder Press"
+      // è una spinta alle spalle e la panca no, e senza sapere quale sia
+      // finirebbe nel petto un esercizio che lavora le spalle.
+      'incline press', 'inclined press', 'panca a 45', 'upper chest press'],
     nota: 'Il peso va in alto: panca inclinata, spinte con le spalle alzate. Lavora di più il capo clavicolare, quello che parte dalla clavicola.',
   },
   {
@@ -51,8 +65,20 @@ export const PARTI = [
   },
   {
     id: 'petto_centrale', muscolo: 'petto', parte: 'petto nel mezzo',
-    parole: ['chest press', 'panca', 'pecorino', 'cable fly', 'fly', 'cross over',
-      'crossover', 'crucifix', 'bench press', 'bench', 'pressione petto', 'horizontal press'],
+    // 'bench' e 'fly' DA SOLI non ci sono, e il 15/10/2026 si è visto perché:
+    // dicevano "petto" al Dumbbell Bench Pull, allo Scott Bench Curl e
+    // all'One Arm Cable Reverse Fly. Sono parole generiche: un curl seduto non
+    // è una panca, e un reverse fly dietro la spalla non è un fly per il petto.
+    // Le frasi vere ("bench press", "cable fly") restano, quindi un esercizio
+    // chiamato davvero "Bench Press" o "Cable Fly" continua a trovare il petto.
+    // 'panca' DA SOLA non c'è più (15/10/2026), per lo stesso motivo di 'bench':
+    // vuol dire il MOBILE, non la spinta. "sto sulla panca inclinata col petto
+    // appoggiato e tiro il cavo verso di me" è una trazione, e "Panca Scott
+    // normale" è un curl: in entrambi i casi il petto non lavora. Le frasi vere
+    // restano ("bench press", "cable fly", "panca inclinata", "panca piana"),
+    // quindi un esercizio di petto continua a essere trovato dal suo nome.
+    parole: ['chest press', 'pecorino', 'cable fly', 'cross over',
+      'crossover', 'crucifix', 'bench press', 'pressione petto', 'horizontal press'],
     // Ste (13/10/2026): "rivedi tutti i dettagli degli esercizi perché molti sono
     // sbagliati". Qui dentro c'era anche "incline single arm pulldown", e una
     // PULLOWN è una tirata: tiri il peso verso di te partendo dall'alto, e
@@ -90,9 +116,9 @@ export const PARTI = [
     // "dips", quindi i dips finivano fra le tirate. I dips sono una SPINTA: ti
     // spingi via dalle parallele. Per questo sono passati al petto, e il
     // tricipite li ho aggiunti sotto, dove vanno davvero.
-    parole: ['pullover', 'lat pulldown', 'trazioni', 'pull up', 'pull-up', 'pull ups',
+    parole: ['pullover', 'lat pulldown', 'trazioni', 'trazione', 'pull up', 'pull-up', 'pull ups',
       'single arm pulldown', 'pulldown', 'pulldowns', 'tirata verticale',
-      'tirate in basso', 'straight arm', 'auzhang'],
+      'tirate', 'tirate in basso', 'straight arm', 'auzhang'],
     nota: 'Tira con le braccia: lavora il dorso largo, quello che si vede di lato sotto le ascelle.',
   },
   {
@@ -113,12 +139,18 @@ export const PARTI = [
   },
   {
     id: 'spalle_posteriori', muscolo: 'spalle', parte: 'spalle posteriori (deltoide posteriore)',
-    parole: ['rear delt', 'rear deltoid', 'reverse fly', 'delt posteriori', 'tirate a braccia aperte'],
+    parole: ['rear delt', 'rear deltoid', 'reverse fly', 'delt posteriori', 'tirate a braccia aperte',
+      // la macchina del reverse fly: si chiama "Pec Deck" e lavora il deltoide
+      // dietro, non il petto. Fino al 15/10/2026 la parola stava nella lista
+      // del FLY col petto, che è l'esatto contrario: "pec" vuol dire "petto"
+      // solo se la stai spingendo in avanti, e quella macchina tira indietro.
+      'peck deck', 'pec deck', 'reverse pec'],
     nota: 'Tira le braccia dietro: lavora il deltoide posteriore, quello dietro la spalla.',
   },
   {
     id: 'spalle_frontali', muscolo: 'spalle', parte: 'spalle davanti (deltoide anteriore)',
-    parole: ['front raise', 'shoulder press', 'military', 'overhead press', 'spinte in alto'],
+    parole: ['front raise', 'shoulder press', 'military', 'militare', 'overhead press',
+      'spinte in alto', 'presse in alto', 'press a spalle'],
     nota: 'Spinge in alto davanti: lavora il deltoide anteriore e i trapezi.',
   },
 
@@ -148,9 +180,11 @@ export const PARTI = [
       // e "single arm tricep", cioè solo i nomi di DUE esercizi precisi, mai la
       // parola da sola. Con "tricep" e "tricipiti" dentro, qualunque esercizio
       // coi tricipiti nel nome viene riconosciuto.
-      'tricep', 'estensioni',
-      // i dips spingono coi gomiti: qui il tricipite lavora forte quanto il petto
-      'dip', 'dips'],
+      //
+      // "dip" e "dips" NON ci sono più (15/10/2026, stesso lavoro del movimento
+      // sotto): i dip sono una SPINTA, quindi i tricipiti non li aggiunge una
+      // parola ma il fatto che l'esercizio spinga. Vedi `MOVIMENTI`.
+      'tricep', 'estensioni'],
     nota: 'Stendi il gomito contro una resistenza: qui lavora il tricipite, dietro il braccio.',
   },
 
@@ -205,6 +239,27 @@ function conta(testo, parola) {
   return n;
 }
 
+// LE PAROLE CHE NON SONO MUSCOLI.
+//
+// Un esercizio si chiama quasi sempre "attrezzo + posizione + movimento":
+// "Incline Dumbbell Press", "Cavo Alzate laterali", "Macchina per le trazioni".
+// La posizione e il movimento ci sono tutti e due, ma la FRASE non si trova se
+// le parole non stanno attaccate: "incline press" non c'è dentro "incline
+// dumbbell press". Quindi, se una frase non si trova, si riprova sul testo con
+// le parole dell'attrezzo tolte.
+//
+// È solo una prova IN PIÙ: prima si cerca il testo come è, e se la frase c'è già
+// non si cambia niente. E la lista contiene solo accessori e paroline di
+// raccordo: nessuna parola che dica quale muscolo si muove. "curl", "raise",
+// "row", "fly", "press" ed "extension" restano fuori apposta, altrimenti
+// "cable lateral raise" perderebbe "lateral" e diventerebbe un semplice raise.
+const ACCESSORI = /\b(dumbbell|kettlebell|manubrio|manubri|bilanciere|barbell|barra|cable|cavo|cavi|machine|macchina|smith|iso|seated|seduto|single|arm|braccio|double|doppio|weighted|zavorra|assistito|assisted|in|al|alla|dal|della|delle|di|da|con|per|a)\b/g;
+
+/** Il testo con le parole dell'attrezzo tolte: vedi la nota su ACCESSORI. */
+function senzaAccessori(testo) {
+  return ' ' + String(testo).replace(ACCESSORI, ' ').replace(/\s+/g, ' ').trim() + ' ';
+}
+
 /**
  * Quale pezzo di muscolo lavora quest'esercizio?
  *
@@ -219,9 +274,248 @@ function conta(testo, parola) {
 const CACHE = new Map();
 const CACHE_MAX = 500;
 
-// Vedi `livelli` in riconosciParte(): a parita' di punti il pezzo primo in
+// Vedi `livelli` in riconosciParte(): a parità di punti il pezzo primo in
 // classifica resta pieno e gli altri scendono di questo gradino.
 const SCONTO_POSIZIONE = 0.7;
+
+// Ste (15/10/2026): "più evidenziati devono essere i muscoli allenanti
+// principali di quell'esercizio. fallo in tutto e che si aggiorni
+// automaticamente".
+//
+// I MUSCOLI DI SPINTA SU UNA TIRATA. Il petto si spinge: se stai TIRANDO il
+// peso verso di te il petto non lavora, e accenderlo è proprio l'errore che ha
+// fatto dire a Ste che sulla figura "non è giusto".
+//
+// Le parole che dicono "tiro" sono nel NOME dell'esercizio, non nella
+// descrizione: "Incline Single Arm Pulldown" era finito nel petto per la frase
+// "panca inclinata" dentro la sua descrizione ("sto sulla panca inclinata col
+// petto appoggiato e tiro il cavo"), che è il mobile su cui sei sdraiato.
+//
+// Quindi: se il nome è di una tirata, il petto non viene ne' considerato come
+// principale, ne' come secondario. Non è una lista di muscoli sbagliati: è la
+// regola che un movimento di tirata non può essere una spinta.
+const TIRATA = /\b(pulldown|pull[\s-]?up|pullover|tirat[ae]|trazione|trazioni|curl|row|rematore|rowing|chin|sled pull)\b/i;
+const SPINGONO = ['petto'];
+
+// I MUSCOLI CHE LAVORANO MA NON SONO IL MOTORE DELL'ESERCIZIO.
+//
+// Ste (15/10/2026): "i dips non fanno anche tricipiti? e poi nell' one arm cable
+// reverse fly non lavora anche tricipiti o si? o comunque se lo fa non lo fa
+// principalmente. più evidenziati devono essere i muscoli allenanti principali di
+// quell'esercizio. fallo in tutto e che si aggiorni automaticamente".
+//
+// LA RAGIONE DI QUESTA TABELLA. Fin qui il classificatore contava solo le PAROLE
+// del nome. È il metodo giusto per capire QUALE muscolo è il principale, ma è la
+// parte sbagliata per i muscoli che ci stanno accanto, perché quasi nessun
+// esercizio muove un muscolo solo: una panca è petto più tricipiti più deltoide,
+// una trazione è dorsale più bicipiti più trapezi. Prima si reggeva con una
+// keyword aggiunta a mano ("dip" dentro la lista dei tricipiti), e quella reggeva
+// per un esercizio solo: il giorno che Ste aveva aggiunto "Incline Dumbbell
+// Press", sulla figura veniva il petto pieno e nient'altro.
+//
+// Qui si scrive invece il MOVIMENTO una volta sola, con i muscoli che lo
+// sostengono e quanto. Poi qualsiasi esercizio che fa quel movimento — oggi come
+// fra un anno, con o senza le parole che oggi lo fanno riconoscere — accende
+// anche quelli. È il "che si aggiorni automaticamente" di Ste: non è una lista di
+// esercizi, è anatomia.
+//
+// LE QUOTE. Sono quanto il muscolo lavora rispetto al pezzo principale, e si
+// leggono così:
+//   da 0.45 in su  il muscolo muove davvero insieme al principale: si vede, ma
+//                  più chiaro
+//   sotto 0.2     tiene l'equilibrio e basta: si accende appena accennato
+//   0.2 - 0.44    aiuta e stabilizza: una sfumatura discreta
+//
+// NESSUN secondario MAI arriva a 1. Il pieno è riservato al pezzo che
+// l'esercizio sceglie, ed è la regola che Ste ha scritto: "più evidenziati devono
+// essere i muscoli allenanti principali di quell'esercizio".
+export const MOVIMENTI = [
+  {
+    id: 'dip',
+    parole: ['dip', 'dips', 'dip alle parallele', 'chest dip', 'push up', 'push ups',
+      'pushup', 'pushups'],
+    // Ste ha chiesto proprio dei dip ("i dips non fanno anche tricipiti?"): sì, e
+    // parecchio, perché il peso resta su braccia estese. Il deltoide invece
+    // passa quasi inosservato, e per quello non lo si accende: accendere tutto
+    // quello che c'è vicino è il contrario di quello che hai chiesto.
+    secondari: { spalla_gomito: 0.66 },
+  },
+  {
+    id: 'spinta_petto',
+    // NIENTE "panca" DA SOLA. Il mobile non è il movimento: su una panca si fa
+    // un curl, una panca Scott e un rematore quanto un peso. Qui contano le
+    // frasi che dicono che stai SPINGENDO il petto ("panca piana", "panca
+    // inclinata"), non il posto dove stai sdraiato.
+    parole: ['bench press', 'chest press', 'pecorino', 'pressione petto',
+      'panca piana', 'panca inclinata', 'panca declinata', 'panca con bilanciere',
+      'horizontal press', 'floor press', 'spinta petto',
+      // la posizione dentro la frase, non la parola "press" da sola: un
+      // "shoulder press" o un "military press" spingono in alto e lavorano le
+      // spalle, e quelle parole devono continuare a trovare le spalle.
+      'incline press', 'inclined press', 'decline press', 'declined press',
+      'flat press', 'dumbbell press', 'machine press', 'press inclinato',
+      'pressorino', 'spinta orizzontale'],
+    // Le braccia che spingono il peso non si limitano al petto: il gomito è
+    // steso e lì dentro c'è il tricipite, e la spalla davanti fa da pivot. Il
+    // tricipite viene prima del deltoide perché su una panca il gomito è
+    // letteralmente il motore del movimento.
+    secondari: { spalla_gomito: 0.66, spalle_frontali: 0.35 },
+  },
+  {
+    id: 'fly_petto',
+    parole: ['cable fly', 'cross over', 'crossover', 'crucifix', 'fly basso',
+      'low cable fly', 'fly con i cavi'],
+    // Il fly è l'unico caso in cui il gomito NON si stende: qui i tricipiti non
+    // lavorano quasi per niente, e non c'è motivo di accenderli. Resta solo la
+    // spalla davanti, che segue le braccia.
+    secondari: { spalle_frontali: 0.15 },
+  },
+  {
+    id: 'spinta_verticale',
+    parole: ['shoulder press', 'military', 'militare', 'overhead press',
+      'spinte in alto', 'presse in alto', 'press a spalle', 'press militare',
+      'front raise', 'alzata frontale', 'alzate frontali'],
+    // Spingere in alto stende il gomito (tricipite) e tira le spalle su (trapezi).
+    secondari: { spalla_gomito: 0.66, dorso_alto: 0.4 },
+  },
+  {
+    id: 'tirata_verticale',
+    // "trazione" e "tirata" al singolare sono dritte: al plurale ("tirate")
+    // non si sa, perché "tirate a braccia aperte" e "tirate orizzontali"
+    // sono due movimenti diversi e stanno più in basso nell'elenco.
+    parole: ['pulldown', 'pull down', 'pull up', 'pull ups', 'pull-up', 'pull-ups',
+      'trazioni', 'trazione', 'tirata in basso', 'pullover', 'auzhang',
+      'tirata verticale', 'tirate in basso'],
+    // Tirare in basso piega il gomito: il bicipite aiuta, e le spalle salgono
+    // mentre il peso scende.
+    secondari: { braccio_basso: 0.5, dorso_alto: 0.3 },
+  },
+  {
+    id: 'tirata_orizzontale',
+    parole: ['row', 'rematore', 'tiremento', 'tirate orizzontali', 'tirata orizzontale',
+      'bench pull', 'dumbbell bench pull'],
+    // La tirata a braccia piegati è l'esercizio che lavora più muscoli insieme:
+    // dorsale largo, deltoide dietro (che è quello che si vede quando apri le
+    // braccia) e bicipiti. Il bicipite è l'ultimo dei tre: tiene il gomito piegato
+    // ma non è lui a tirare il peso.
+    secondari: { dorso_lati: 0.6, spalle_posteriori: 0.5, braccio_basso: 0.4 },
+  },
+  {
+    id: 'shrug',
+    parole: ['shrug', 'spalle a y', 'elevazione scapola'],
+    // Alzare le spalle è l'esercizio più solo che ci sia: qui non si accende
+    // nient'altro, e va bene così.
+    secondari: {},
+  },
+  {
+    id: 'curl_avambraccio',
+    parole: ['wrist curl', 'curl del polso', 'curl polso', 'avambraccio'],
+    secondari: {},
+  },
+  {
+    id: 'curl_gambe',
+    parole: ['leg curl', 'curl gambe', 'prone curl', 'stacco'],
+    secondari: {},
+  },
+  {
+    id: 'curl',
+    parole: ['curl', 'bilanciere', 'incline curl', 'curl inclinato', 'scott bench',
+      'preacher'],
+    // Qui NON si accende l'avambraccio, anche se il braccio tira: l'avambraccio
+    // dell'app è il piegatore del polso, che in un curl non lavora. Il
+    // brachioradiale è un muscolo diverso e non è quello disegnato qui: meglio
+    // acceso niente che acceso il muscolo sbagliato.
+    secondari: {},
+  },
+  {
+    id: 'estensione_gomito',
+    parole: ['tricep pushdown', 'pushdown', 'french press', 'skull', 'tricep extension',
+      'tricep ext', 'estensioni sopra la testa', 'overhead extension', 'single arm tricep',
+      'overhead tricep', 'tricipite', 'tricipiti'],
+    // La spalla dietra tiene il braccio fermo mentre il gomito si stende: lavora,
+    // ma è un ruolo di sostegno.
+    secondari: { spalle_posteriori: 0.15 },
+  },
+  {
+    id: 'reverse_fly',
+    parole: ['reverse fly', 'rear delt', 'rear deltoid', 'delt posteriori',
+      'tirate a braccia aperte', 'peck deck', 'pec deck', 'reverse pec'],
+    // Ste (15/10/2026): "nell' one arm cable reverse fly non lavora anche
+    // tricipiti o si?". Risposta onesta: il gomito sta quasi fermo, quindi i
+    // tricipiti tengono solo l'equilibrio e NON sono il motore del movimento —
+    // che è esattamente quello che ha scritto lui, "se lo fa non lo fa
+    // principalmente". Quindi si accendono, ma all'ultima sfumatura: si vedono
+    // appena e non si possono confondere col deltoide, che è quello che lavora.
+    // Dietro, le scapole tirano: dorsale e trapezi sono i veri aiutanti.
+    secondari: { dorso_centrale: 0.5, dorso_alto: 0.15, spalla_gomito: 0.1 },
+  },
+  {
+    id: 'alzata_laterale',
+    parole: ['lateral raise', 'side raise', 'alzata laterale', 'alzate laterali',
+      'deltoide laterale'],
+    // L'esercizio più isolato di tutti sulle spalle: il trapezio solo sfiora.
+    // Resta registrato a 0.15, sotto la soglia, quindi non si accende.
+    secondari: { dorso_alto: 0.15 },
+  },
+  {
+    id: 'stacco_gambe',
+    parole: ['leg press', 'squat', 'hack', 'affondi', 'lunge', 'hip thrust',
+      'glute bridge', 'stacco'],
+    // Scendere e alzare con le gambe è lavoro di tre muscoli: i quadricipiti
+    // spingono, i glutei aprono l'anca e il femorale frena la discesa.
+    // Ste chiede sempre "chi lavora PRINCIPALMENTE": per questo il
+    // quadricipite resta pieno, il gluteo segue forte e il femorale resta
+    // sotto, perché lavora soprattutto quando scendi, non quando spingi.
+    secondari: { glutei: 0.66, femorale: 0.4 },
+  },
+  {
+    id: 'estensione_gambe',
+    parole: ['leg extension', 'estensione gambe', 'estensioni gambe'],
+    secondari: {},
+  },
+  {
+    id: 'polpaccio',
+    parole: ['calf', 'panturrino', 'sled press calf'],
+    secondari: {},
+  },
+  {
+    id: 'addome',
+    parole: ['crunch', 'plank', 'addome', 'sit up', 'tCrunch', 'Crunch'],
+    secondari: {},
+  },
+];
+
+/**
+ * Che movimento è? Serve per sapere che muscoli ci stanno accanto.
+ *
+ * PRIMA IL NOME, POI LA DESCRIZIONE. Un esercizio si chiama come il movimento
+ * che fa, e il nome non mente: "Incline Single Arm Pulldown" resta una tirata
+ * anche se nella descrizione Ste scrive "col petto appoggiato", e anzi è proprio
+ * la descrizione a far sbagliare il classificatore (la frase "panca inclinata"
+ * dentro il testo di un pulldown diceva il petto).
+ *
+ * Solo se il nome non dice niente ("Panca", "Curl") si guarda anche la
+ * descrizione, perché lì spesso c'è scritto come lo esegue.
+ *
+ * Vince il primo movimento che trova nell'elenco, quindi l'elenco va tenuto dal
+ * più specifico al più generico: "wrist curl" prima di "curl", "leg curl" prima
+ * di "curl", "dip" prima di "panca".
+ */
+function movimentoDi(nome = '', descrizione = '') {
+  const soloNome = ' ' + normalizza(nome) + ' ';
+  const ancheDescrizione = soloNome + normalizza(descrizione) + ' ';
+  for (const testo of [soloNome, ancheDescrizione, senzaAccessori(ancheDescrizione)]) {
+    for (const m of MOVIMENTI) {
+      if (m.parole.some((w) => conta(testo, w) > 0)) return m;
+    }
+  }
+  return null;
+}
+
+// Gli id che l'app sa disegnare: serve per non mettere in `livelli` un muscolo
+// che non esiste (una parola scritta male nella tabella deve restare innocua, non
+// rompere la figura).
+const ID_PARTI = new Set(PARTI.map((p) => p.id));
 
 export function parteDiMuscolo({ nome = '', descrizione = '' } = {}) {
   const chiave = nome + ' ' + descrizione;
@@ -235,17 +529,33 @@ export function parteDiMuscolo({ nome = '', descrizione = '' } = {}) {
 
 function riconosciParte({ nome = '', descrizione = '' } = {}) {
   const soloNome = ' ' + normalizza(nome) + ' ';
-  const ancheDescrizione = soloNome + ' ' + normalizza(descrizione) + ' ';
+  // Uno SPAZIO solo tra nome e descrizione, non due. `soloNome` finisce già con
+  // uno spazio: aggiungendone un altro, "Panca" + "inclinata" diventava
+  // "panca  inclinata" e la frase "panca inclinata" non poteva mai trovarsi,
+  // perché il confronto cerca una parola sola. Le frasi attraversavano il
+  // confine e non funzionavano (15/10/2026).
+  const ancheDescrizione = soloNome + normalizza(descrizione) + ' ';
   // Un pezzo è detto da una FRASE ("panca inclinata"), non da una parola
   // sola. Quindi una frase trovata solo nella descrizione conta come nella
   // descrizione: se scrivevo "panca" e la descrizione diceva "inclinata",
   // il pezzo giusto era l'alto, non quello generico.
-  const cerca = (p, w) => conta(soloNome, w) > 0
-    ? { n: conta(soloNome, w), soloNome: true }
-    : { n: conta(ancheDescrizione, w), soloNome: false };
+  //
+  // E se la frase non c'è nemmeno così, si riprova senza le parole
+  // dell'attrezzo: "Incline Dumbbell Press" contiene "incline" e "press", ma la
+  // frase "incline press" è separata dal manubrio. Vedi ACCESSORI.
+  const cerca = (p, w) => {
+    const nelNome = conta(soloNome, w);
+    if (nelNome > 0) return { n: nelNome, soloNome: true };
+    const nelTutto = conta(ancheDescrizione, w);
+    if (nelTutto > 0) return { n: nelTutto, soloNome: false };
+    return { n: conta(senzaAccessori(ancheDescrizione), w), soloNome: false };
+  };
 
   const trovati = [];
+  const soloTirata = TIRATA.test(nome);
   for (const p of PARTI) {
+    // una tirata non può essere una spinta: vedi la nota su TIRATA
+    if (soloTirata && SPINGONO.includes(p.muscolo)) continue;
     let punti = 0;
     const parole = [];
     let soloNelNome = true;
@@ -300,6 +610,39 @@ function riconosciParte({ nome = '', descrizione = '' } = {}) {
     livelli[t.parte.id] = Math.round((t.punti / migliore) * SCONTO_POSIZIONE ** i * 100) / 100;
   });
 
+  // I MUSCOLI CHE CI STANNO ACCANTO. Vedi la nota su MOVIMENTI.
+  //
+  // Qui non si contano parole: si chiede che movimento è e si accendono i muscoli
+  // che lo sostengono. Per questo si aggiornano da soli anche gli esercizi che
+  // ancora non esistono.
+  //
+  // DUE SALVAGUE.
+  // 1. Non si abbassa mai un muscolo che le parole hanno già messo più in alto:
+  //    l'anatomia può confermare una quota, non può smontarla.
+  // 2. A una TIRATA i muscoli di spinta non si accendono mai, come già vale per
+  //    il pezzo principale (vedi TIRATA): tirare non è spingere, e vale anche per
+  //    i muscoli secondari.
+  //
+  // `anatomia` tiene conto di QUALI muscoli sono arrivati da qui e non dalle
+  // parole: sono quelli su cui l'app si può fidare anche sotto la soglia dei
+  // secondari, perché sono scritti una volta sola e non sono un'ipotesi.
+  const anatomia = {};
+  const movimento = movimentoDi(nome, descrizione);
+  if (movimento) {
+    for (const [id, quota] of Object.entries(movimento.secondari || {})) {
+      if (!ID_PARTI.has(id) || id === v.parte.id) continue;
+      const muscolo = PARTI.find((p) => p.id === id).muscolo;
+      if (soloTirata && SPINGONO.includes(muscolo)) continue;
+      if ((livelli[id] || 0) < quota) livelli[id] = quota;
+      anatomia[id] = quota;
+    }
+  }
+
+  const anche = Object.entries(anatomia)
+    .filter(([id]) => (livelli[id] || 0) >= anatomia[id])
+    .sort((a, b) => b[1] - a[1])
+    .map(([id]) => PARTI.find((p) => p.id === id).parte);
+
   return {
     trovata: true,
     muscolo: v.parte.muscolo,
@@ -308,6 +651,9 @@ function riconosciParte({ nome = '', descrizione = '' } = {}) {
     nota: v.parte.nota,
     parole: v.parole,
     livelli,
+    anatomia,
+    movimento: movimento ? movimento.id : null,
+    anche,
     frase: `${v.parte.parte}. ${v.parte.nota}`,
     altre: trovati.slice(1, 3).map((x) => x.parte.parte),
   };

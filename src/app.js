@@ -5521,7 +5521,7 @@ async function vistaEsercizio(zona, esercizioId) {
     // parole. E si accende solo il pezzo che quell'esercizio lavora, perché
     // un omino tutto acceso non dice niente.
     zona.appendChild(el('div', { class: 'riga-omino' }, [
-      el('div', { class: 'omino', html: disegnoOmino(parte.parte, parte.livelli) }),
+      el('div', { class: 'omino', html: disegnoOmino(parte.parte, parte.livelli, parte.anatomia) }),
       el('div', { class: 'omino-didascalia' }, [
         el('strong', { testo: parte.nome }),
         el('span', { class: 'nota nota-piccola', testo: parte.nota }),
@@ -5534,6 +5534,17 @@ async function vistaEsercizio(zona, esercizioId) {
       el('span', { class: 'nota nota-piccola', testo: parte.nota }),
       el('span', { class: 'nota nota-piccola', testo: AVVERTIMENTO_PARTI }),
     ]));
+
+    // I muscoli che stanno accanto. Ste (15/10/2026): "i dips non fanno anche
+    // tricipiti?". Sulla figura sono accesi e più chiari, ma anche scritti:
+    // altrimenti si vede il viola e non si capisce perché.
+    if (parte.anche && parte.anche.length) {
+      zona.appendChild(el('div', { class: 'riga-giudizio giud-parte' }, [
+        el('strong', { testo: 'LAVORA ANCHE' }),
+        el('span', { testo: parte.anche.join(', ') }),
+        el('span', { class: 'nota nota-piccola', testo: 'Accesi sulla figura ma più chiari: il pieno è solo il muscolo di sopra.' }),
+      ]));
+    }
 
     // Ste: "deve capire cosa lavora quell'esercizio e quindi capire se È
     // difficile o facile". Sapere il muscolo serve proprio a questo: un
@@ -6184,14 +6195,14 @@ async function vistaProfilo(zona) {
  * è meglio un omino tutto grigio che uno con il muscolo sbagliato acceso. Il
  * test Z2 chiama tutte le zone, quindi quel caso non può capitare in silenzio.
  */
-function disegnoOmino(parteId, livelli) {
+function disegnoOmino(parteId, livelli, anatomia) {
   const etichette = ETICHETTE_OMINO
     .map((e) => '<text class="vista-label" x="' + e.x + '" y="' + e.y + '" text-anchor="middle">'
       + e.testo + '</text>')
     .join('');
   return '<svg class="omino-svg" viewBox="0 0 ' + FOTO_L + ' ' + FOTO_A
     + '" role="img" aria-label="Il corpo di fronte e di dietro, con il muscolo allenato colorato di viola">'
-    + figurinoMuscolo(parteId, livelli) + etichette + '</svg>';
+    + figurinoMuscolo(parteId, livelli, anatomia) + etichette + '</svg>';
 }
 
 /** Il pezzo di muscolo da accendere, o null se l'app non lo conosce. */

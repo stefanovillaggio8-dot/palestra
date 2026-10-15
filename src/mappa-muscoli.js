@@ -73,17 +73,36 @@ const CENTRI = { fronte: 162, retro: 577 };
 
 // LE QUATTRO INTENSITA'.
 //
-// La più debole (0.2) non e' spenta: e' il viola "appena accennato" che dice
-// "qui si passa, ma il lavoro vero e' un altro". Ste: "la parte che lavora di
+// La più debole (0.2) non è spenta: è il viola "appena accennato" che dice
+// "qui si passa, ma il lavoro vero è un altro". Ste: "la parte che lavora di
 // meno deve essere evidenziata più chiara".
 export const LIVELLI = [0.2, 0.42, 0.66, 1];
+
+// DA QUANTO PARLA UN MUSCOLO SECONARIO.
+//
+// Ste (15/10/2026): "i dips non fanno anche tricipiti?". Sì: i dip schiacciano
+// il peso su braccia estese e i tricipiti stanno lì accanto al petto, lavoro
+// pari. Quindi sulla figura si accendono anche i muscoli secondari.
+//
+// Ma solo se l'esercizio ne parla SERIAMENTE (dal 40% in su). Sotto quella soglia
+// è rumore delle parole: "Dumbbell Bench Pull" e "Scott Bench Curl" avevano una
+// quota di petto solo perché la parola "bench" sta anche nella lista del petto, e
+// un curl seduto non è una panca. Quelle non le accendiamo.
+//
+// LA SOGLIA VALE PER LE PAROLE, NON PER L'ANATOMIA. Un muscolo che sta lì accanto
+// perché l'esercizio è di quel tipo (vedi MOVIMENTI in muscoli-parti.js) non ha
+// bisogno di arrivare al 40% per essere acceso: sono i tricipiti sui dip, o il
+// femorale sulla leg press, e sono scritti una volta sola. Per quelli la soglia
+// non serve e vengono accesi anche sotto, con la sfumatura giusta: il tricipite
+// sul reverse fly si vede appena, il gluteo sulla panca vede forte.
+export const SOGLIA_SECONDARIO = 0.4;
 
 /** La sfumatura giusta per una quota di lavoro (da 0 a 1). */
 export function livelloDiQuota(quota) {
   const q = Math.max(0, Math.min(1, Number(quota) || 0));
   if (q >= 0.75) return LIVELLI[3];
-  if (q >= 0.4) return LIVELLI[2];
-  if (q >= 0.12) return LIVELLI[1];
+  if (q >= 0.45) return LIVELLI[2];
+  if (q >= 0.2) return LIVELLI[1];
   return LIVELLI[0];
 }
 
@@ -374,48 +393,91 @@ const punti = (pezzo) => pezzo.map(([x, y]) => `${x},${y}`).join(' ');
 let numeroFigura = 0;
 
 /**
+ * Tutte le fasce da accendere, dalla più chiara alla più piena.
+ *
+ * Il gruppo principale sempre. E poi i muscoli secondari: quelli di cui
+ * l'esercizio parla abbastanza (vedi SOGLIA_SECONDARIO), perché un dip non
+ * lavora solo il petto, e quelli che l'anatomia mette lì accanto perché
+ * l'esercizio è di quel movimento (vedi `anatomia`).
+ */
+export function righeDaAccendere(acceso = null, livelli = null, anatomia = null) {
+  const gruppo = acceso ? gruppoDiParte(acceso) : null;
+  if (!gruppo || !RITAGLI[gruppo]) return [];
+
+  // Un muscolo che l'anatomia mette accanto al principale è già la risposta a
+  // "i dips non fanno anche i tricipiti?": non ha bisogno di superare la soglia,
+  // che serve solo a tenere fuori il rumore delle parole.
+  const certificato = (zona) => Boolean(anatomia && anatomia[zona] !== undefined);
+
+  const righe = [];
+  const metti = (g, forzato) => {
+    for (const zona of RITAGLI[g].zone) {
+      let quota = 0;
+      if (zona === forzato && g === gruppo) quota = 1;
+      else if (livelli && zona in livelli) quota = livelli[zona];
+      righe.push({
+        gruppo: g,
+        zona,
+        pezzi: RITAGLI[g].bande[zona],
+        opacita: livelloDiQuota(quota),
+      });
+    }
+  };
+  metti(gruppo, acceso);
+
+  // I secondari: raggruppati per muscolo, e per ognuno il pezzo migliore è
+  // quello che l'esercizio nomina di più.
+  const altri = new Set();
+  for (const zona of Object.keys(livelli || {})) {
+    const g = gruppoDiParte(zona);
+    if (!g || g === gruppo) continue;
+    if (livelli[zona] >= SOGLIA_SECONDARIO || certificato(zona)) altri.add(g);
+  }
+  for (const g of altri) {
+    const nominate = RITAGLI[g].zone.filter((z) => livelli[z] > 0)
+      .sort((a, b) => livelli[b] - livelli[a]);
+    metti(g, nominate[0]);
+  }
+
+  // dalla più chiara alla più piena: quella che lavora di più viene per ultima
+  return righe.sort((a, b) => a.opacita - b.opacita);
+}
+
+/**
  * La figura, come stringa SVG pronta da mettere nella pagina.
  *
- * Sono due immagini: il corpo con i muscoli spenti, e sopra i muscoli in viola
- * ritagliati sul pezzo giusto. Se il pezzo non esiste non si mette il ritaglio:
- * è meglio un omino tutto spento che uno con il muscolo sbagliato acceso.
+ * Sono immagini: il corpo con i muscoli spenti, e sopra i muscoli in viola
+ * ritagliati sui pezzi giusti, ciascuno con la sua sfumatura. Se il pezzo non
+ * esiste non si mette il ritaglio: è meglio un omino tutto spento che uno con
+ * il muscolo sbagliato acceso.
  *
  * `livelli` è la classifica di quanto lavora ogni pezzo (vedi muscoli-parti.js):
  * senza, il pezzo acceso va pieno e gli altri restano sul viola più chiaro.
+ *
+ * `anatomia` dice quali pezzi sono lì perché l'esercizio è di quel movimento e
+ * non perché una parola nel nome lo diceva: sono secondari già verificati, quindi
+ * si accendono anche sotto la soglia (vedi SOGLIA_SECONDARIO).
  */
-export function figurino(acceso = null, livelli = null) {
-  const gruppo = acceso ? gruppoDiParte(acceso) : null;
+export function figurino(acceso = null, livelli = null, anatomia = null) {
   const dentro = [];
   dentro.push(`<image href="./img/muscoli/corpo.png" x="0" y="0" width="${FOTO_L}" height="${FOTO_A}"/>`);
 
-  if (gruppo && RITAGLI[gruppo]) {
-    // Le fasce si disegnano dalla più chiara alla più piena: quella che lavora di
-    // più viene per ultima, e resta per ultima anche se due fasce si toccano.
-    const righe = RITAGLI[gruppo].zone.map((zona) => ({
-      zona,
-      pezzi: RITAGLI[gruppo].bande[zona],
-      opacita: livelloDiQuota(zona === acceso
-        ? 1
-        : (livelli && zona in livelli ? livelli[zona] : 0)),
-    })).sort((a, b) => a.opacita - b.opacita);
-
-    for (const riga of righe) {
-      numeroFigura += 1;
-      const idTaglio = 'taglio-muscolo-' + numeroFigura;
-      // `clipPathUnits` è un ATTRIBUTO di clipPath, non un elemento. Scritto come
-      // elemento (`<clipPathUnits="userSpaceOnUse">`) il browser considera il
-      // ritaglio non valido, il clipPath resta vuoto e il muscolo non si accende:
-      // la figura sembra scarica, senza dirlo. Il default è già userSpaceOnUse,
-      // ma lo scriviamo uguale per non doverci pensare.
-      dentro.push(`<clipPath id="${idTaglio}" clipPathUnits="userSpaceOnUse">`);
-      for (const pezzo of riga.pezzi) {
-        dentro.push(`<polygon points="${punti(pezzo)}"/>`);
-      }
-      dentro.push('</clipPath>');
-      dentro.push(`<image href="./img/muscoli/muscoli.png" x="0" y="0" width="${FOTO_L}"`
-        + ` height="${FOTO_A}" clip-path="url(#${idTaglio})"`
-        + ` opacity="${riga.opacita}"/>`);
+  for (const riga of righeDaAccendere(acceso, livelli, anatomia)) {
+    numeroFigura += 1;
+    const idTaglio = 'taglio-muscolo-' + numeroFigura;
+    // `clipPathUnits` è un ATTRIBUTO di clipPath, non un elemento. Scritto come
+    // elemento (`<clipPathUnits="userSpaceOnUse">`) il browser considera il
+    // ritaglio non valido, il clipPath resta vuoto e il muscolo non si accende:
+    // la figura sembra scarica, senza dirlo. Il default è già userSpaceOnUse,
+    // ma lo scriviamo uguale per non doverci pensare.
+    dentro.push(`<clipPath id="${idTaglio}" clipPathUnits="userSpaceOnUse">`);
+    for (const pezzo of riga.pezzi) {
+      dentro.push(`<polygon points="${punti(pezzo)}"/>`);
     }
+    dentro.push('</clipPath>');
+    dentro.push(`<image href="./img/muscoli/muscoli.png" x="0" y="0" width="${FOTO_L}"`
+      + ` height="${FOTO_A}" clip-path="url(#${idTaglio})"`
+      + ` opacity="${riga.opacita}"/>`);
   }
   return dentro.join('');
 }

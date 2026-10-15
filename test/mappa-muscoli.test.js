@@ -17,9 +17,11 @@ import assert from 'node:assert/strict';
 
 import {
   RITAGLI, GRUPPI, figurino, gruppoDiParte, idZonaDaParte, vistaDiGruppo,
-  ETICHETTE, FOTO_L, FOTO_A, LIVELLI, livelloDiQuota,
+  ETICHETTE, FOTO_L, FOTO_A, LIVELLI, livelloDiQuota, SOGLIA_SECONDARIO,
+  righeDaAccendere,
 } from '../src/mappa-muscoli.js';
-import { PARTI, parteDiMuscolo } from '../src/muscoli-parti.js';
+import { PARTI, parteDiMuscolo, MOVIMENTI } from '../src/muscoli-parti.js';
+import { ESERCIZI as CATALOGO } from '../src/dati-iniziali.js';
 
 const TUTTE = Object.keys(GRUPPI);
 const DISEGNATI = Object.keys(RITAGLI);
@@ -46,6 +48,17 @@ const stampa = (p) => p.map(([x, y]) => `${x},${y}`).join(' ');
 const disegnati = (svg) => [...svg.matchAll(/points="([^"]+)"/g)]
   .map((m) => m[1].trim().split(/\s+/)
     .map((xy) => xy.split(',').map(Number)));
+// Quali gruppi di muscoli si vedono accesi in una figura.
+const gruppiAccesi = (svg) => {
+  const accesi = new Set();
+  for (const blocco of svg.match(/<clipPath\b[\s\S]*?<\/clipPath>/g) || []) {
+    for (const [g, r] of Object.entries(RITAGLI)) {
+      if (r.zone.some((z) => disegnato(blocco, r.bande[z][0]))) accesi.add(g);
+    }
+  }
+  return accesi;
+};
+
 const disegnato = (svg, poligono) => disegnati(svg).some((p) => STESSO(p, poligono));
 
 test('Z1. ogni pezzo di muscolo che l\'app riconosce è ritagliato', () => {
@@ -137,19 +150,32 @@ test('Z4. nessun ritaglio esce dalla figura', () => {
   }
 });
 
+// GLI ESERCIZI DA PROVARE.
+//
+// Ste (15/10/2026): "fallo in tutto e che si aggiorni automaticamente". Quindi
+// qui non c'è una lista scritta a mano e basta: si prende il CATALOGO VERO
+// dell'app (src/dati-iniziali.js) e si aggiungono i nomi che compaiono nelle
+// missioni e nelle schede. Il giorno che aggiungi un esercizio nuovo, i test lo
+// controllano senza che nessuno debba ricordarsi di scriverlo qui.
+const NOMI_PROVA = [
+  'Chest Press', 'Cable Hammer Curl', 'Cable Lateral Raise',
+  'Cable Overhead Tricep Extension', 'Leg Extension', 'Lat Pulldown macchina',
+  'Dumbbell Bench Pull', 'Seated Dumbbell Shoulder Press', 'Cable Fly',
+  'Scott Bench Curl seduto al contrario', 'Single Arm Tricep Pushdown',
+  'Seated Leg Curl', 'Smith Machine Incline Bench Press', 'Seated Cable Row',
+  'Chest Supported Dumbbell Shrug', 'Sled Press Calf Raise', 'Single Leg Press',
+  'One Arm Dumbbell Preacher Curl', 'Bodyweight Overhead Tricep Extension',
+  'One Arm Cable Reverse Fly', 'Pull Ups', 'Dips', 'Wrist Curl',
+  'Iso-Lateral Row', 'Lat Pulldown (lats)', 'Dumbbell Lateral Raise',
+  'Incline Single Arm Pulldown',
+];
+
+const ESERCIZI = [...new Set([
+  ...CATALOGO.map((e) => e.nome).filter(Boolean),
+  ...NOMI_PROVA,
+])];
+
 test('Z5. ogni esercizio della scheda accende un muscolo disegnato', () => {
-  const ESERCIZI = [
-    'Chest Press', 'Cable Hammer Curl', 'Cable Lateral Raise',
-    'Cable Overhead Tricep Extension', 'Leg Extension', 'Lat Pulldown macchina',
-    'Dumbbell Bench Pull', 'Seated Dumbbell Shoulder Press', 'Cable Fly',
-    'Scott Bench Curl seduto al contrario', 'Single Arm Tricep Pushdown',
-    'Seated Leg Curl', 'Smith Machine Incline Bench Press', 'Seated Cable Row',
-    'Chest Supported Dumbbell Shrug', 'Sled Press Calf Raise', 'Single Leg Press',
-    'One Arm Dumbbell Preacher Curl', 'Bodyweight Overhead Tricep Extension',
-    'One Arm Cable Reverse Fly', 'Pull Ups', 'Dips', 'Wrist Curl',
-    'Iso-Lateral Row', 'Lat Pulldown (lats)', 'Dumbbell Lateral Raise',
-    'Incline Single Arm Pulldown',
-  ];
   for (const nome of ESERCIZI) {
     const p = parteDiMuscolo({ nome });
     assert.ok(p.trovata, nome + ': l\'app non riconosce nessun muscolo');
@@ -309,7 +335,7 @@ test('Z10. quanto lavora: la parte più allenata è più piena, le altre più ch
   // 4. i DIPS, l'esempio di Ste: petto tutto acceso ma la parte bassa piena
   const dips = parteDiMuscolo({ nome: 'Dips' });
   assert.equal(dips.parte, 'petto_basso', 'i dips allenano la parte bassa del petto');
-  const svgDips = figurino(dips.parte, dips.livelli);
+  const svgDips = figurino(dips.parte, dips.livelli, dips.anatomia);
   assert.equal(opacitaDi(svgDips, 'petto', 'petto_basso'), LIVELLI[LIVELLI.length - 1],
     'sui dips la parte bassa del petto deve essere piena');
   assert.ok(opacitaDi(svgDips, 'petto', 'petto_alto') < LIVELLI[LIVELLI.length - 1],
@@ -318,7 +344,7 @@ test('Z10. quanto lavora: la parte più allenata è più piena, le altre più ch
   // 5. e una panca inclinata: alto pieno, centro un gradino sotto
   const panca = parteDiMuscolo({ nome: 'Smith Machine Incline Bench Press' });
   assert.equal(panca.parte, 'petto_alto', 'la panca inclinata lavora il petto alto');
-  const svgPanca = figurino(panca.parte, panca.livelli);
+  const svgPanca = figurino(panca.parte, panca.livelli, panca.anatomia);
   const alto = opacitaDi(svgPanca, 'petto', 'petto_alto');
   const centro = opacitaDi(svgPanca, 'petto', 'petto_centrale');
   assert.ok(alto > centro,
@@ -334,6 +360,262 @@ test('Z10. quanto lavora: la parte più allenata è più piena, le altre più ch
     const v = livelloDiQuota(q);
     assert.ok(v >= precedente, 'la sfumatura non può tornare più chiara aumentando la quota');
     precedente = v;
+  }
+});
+
+test('Z11. anche i muscoli secondari, ma solo quelli veri', () => {
+  // Ste (15/10/2026): "i dips non fanno anche tricipiti?". Sì: i dip schiacciano
+  // il peso su braccia estese, i tricipiti sono lì accanto. Quindi si accendono.
+  //
+  // Ma NON tutto quello che capita in una quota piccola: sotto la soglia è rumore
+  // delle parole. Per questo qui si controlla che nessun esercizio accenda un
+  // muscolo secondario che non abbia un pezzo almeno della soglia.
+
+  // 1. i dip accendono i tricipiti, e il petto resta il più pieno
+  const dips = parteDiMuscolo({ nome: 'Dips' });
+  const accesiDips = gruppiAccesi(figurino(dips.parte, dips.livelli, dips.anatomia));
+  assert.ok(accesiDips.has('petto'), 'i dip devono accendere il petto');
+  assert.ok(accesiDips.has('tricipite'),
+    'i dip allenano anche i tricipiti: non si vedono sulla figura');
+  assert.equal(accesiDips.size, 2,
+    'sui dip si accendono solo petto e tricipiti, sono arrivati ' + [...accesiDips]);
+
+  // 2. e il pezzo principale resta il più pieno in assoluto
+  const righe = righeDaAccendere(dips.parte, dips.livelli, dips.anatomia);
+  const pieno = righe.filter((r) => r.opacita === LIVELLI[LIVELLI.length - 1]);
+  assert.equal(pieno.length, 1, 'un solo pezzo deve essere tutto pieno');
+  assert.equal(pieno[0].zona, dips.parte, 'il pezzo pieno deve essere quello che l\'esercizio sceglie');
+
+  // 3. NESSUN esercizio accende un muscolo che i dati non sostengono:
+  //    ogni gruppo acceso deve avere almeno un pezzo oltre la soglia, oppure
+  //    essere un muscolo che l'ANATOMIA mette accanto perché l'esercizio è di
+  //    quel movimento (vedi MOVIMENTI in muscoli-parti.js).
+  //    (con la descrizione, come fa l'app: qualche volta la parte è nel testo)
+  for (const esercizio of CATALOGO) {
+    const r = parteDiMuscolo({
+      nome: esercizio.nome,
+      descrizione: esercizio.nota_permanente || '',
+    });
+    assert.ok(r.trovata, esercizio.nome + ': l\'app non riconosce nessun muscolo');
+    const principale = gruppoDiParte(r.parte);
+    for (const g of gruppiAccesi(figurino(r.parte, r.livelli, r.anatomia))) {
+      if (g === principale) continue;
+      const sostegno = RITAGLI[g].zone.some((z) => (r.livelli[z] || 0) >= SOGLIA_SECONDARIO
+        || (r.anatomia || {})[z] !== undefined);
+      assert.ok(sostegno,
+        esercizio.nome + ': ha acceso ' + g + ' (secondario) ma né le parole né '
+        + 'l\'anatomia lo sostengono: ' + JSON.stringify(r.livelli));
+    }
+  }
+
+  // 4. i casi che la parola sbagliata accendeva: qui il petto NON deve accendersi
+  const SPENTI = [
+    ['Dumbbell Bench Pull', 'petto'],
+    ['Scott Bench Curl seduto al contrario', 'petto'],
+    ['One Arm Cable Reverse Fly', 'petto'],
+    ['Incline Single Arm Pulldown', 'petto'],
+  ];
+  for (const [nome, gruppo] of SPENTI) {
+    const r = parteDiMuscolo({ nome: nome });
+    assert.ok(!gruppiAccesi(figurino(r.parte, r.livelli, r.anatomia)).has(gruppo),
+      nome + ': ha acceso ' + gruppo + ', ma non è un esercizio di ' + gruppo);
+  }
+
+  // 5. e i veri esercizi di petto continuano ad accenderlo
+  for (const nome of ['Chest Press', 'Cable Fly', 'Bench Press']) {
+    const r = parteDiMuscolo({ nome: nome });
+    assert.equal(gruppoDiParte(r.parte), 'petto', nome + ': deve restare un esercizio di petto');
+    assert.ok(gruppiAccesi(figurino(r.parte, r.livelli, r.anatomia)).has('petto'),
+      nome + ': il petto non si accende più');
+  }
+});
+
+test('Z12. a una TIRATA il petto non si accende, mai', () => {
+  // Ste (15/10/2026): "piu' evidenziati devono essere i muscoli allenanti
+  // principali di quell'esercizio. fallo in tutto e che si aggiorni
+  // automaticamente".
+  //
+  // Il petto è un muscolo di SPINTA: se tiri il peso verso di te il petto non
+  // c'entra, e accenderlo è sbagliato. È successo con "Incline Single Arm
+  // Pulldown" (la parola "incline" la finiva nel petto) e prima ancora con
+  // "Dumbbell Bench Pull" e "Scott Bench Curl" (la parola "bench").
+  //
+  // Qui la regola è scritta una volta sola e vale per TUTTI gli esercizi del
+  // catalogo, compresi quelli che verranno aggiunti dopo.
+  // I confini di parola (\b) non sono pignoli: senza, "chin" agganciava
+  // "Ma-CHIN-e" e la Smith Machine finiva tra le tirate.
+  const TIRATE = /\b(pulldown|pull[\s-]?up|pullover|tirat[ae]|trazione|trazioni|curl|row|rematore|rowing|chin|sled pull)\b/i;
+
+  const guarda = (esercizio) => {
+    const r = parteDiMuscolo({
+      nome: esercizio.nome,
+      descrizione: esercizio.nota_permanente || '',
+    });
+    return { r, gruppi: gruppiAccesi(figurino(r.parte, r.livelli, r.anatomia)) };
+  };
+
+  let controllate = 0;
+  for (const esercizio of CATALOGO) {
+    if (!TIRATE.test(esercizio.nome)) continue;
+    controllate += 1;
+    const { r, gruppi } = guarda(esercizio);
+    assert.notEqual(gruppoDiParte(r.parte), 'petto',
+      esercizio.nome + ': è una tirata, ma il pezzo principale è il petto');
+    assert.ok(!gruppi.has('petto'),
+      esercizio.nome + ': è una tirata, ma sulla figura si è acceso il petto ('
+      + JSON.stringify(r.livelli) + ')');
+  }
+  assert.ok(controllate >= 8,
+    'il controllo sta guardando troppo pochi esercizi: ' + controllate);
+
+  // e il viceversa: se il petto è il pezzo principale, il nome non è di una
+  // tirata
+  for (const esercizio of CATALOGO) {
+    const { r } = guarda(esercizio);
+    if (gruppoDiParte(r.parte) !== 'petto') continue;
+    assert.ok(!TIRATE.test(esercizio.nome),
+      esercizio.nome + ': dice petto ma il nome è di una tirata: controllare i dati');
+  }
+});
+
+test('Z13. i secondari vengono da quello che l\'esercizio FA, non dalle sue parole', () => {
+  // Ste (15/10/2026): "i dips non fanno anche tricipiti? e poi nell' one arm cable
+  // reverse fly non lavora anche tricipiti o si? o comunque se lo fa non lo fa
+  // principalmente. piu' evidenziati devono essere i muscoli allenanti principali di
+  // quell'esercizio. fallo in tutto e che si aggiorni automaticamente".
+  //
+  // "Che si aggiorni automaticamente" è la parte difficile, ed è quello che questo
+  // test controlla: i secondari NON possono dipendere dal nome dell'esercizio,
+  // perché il nome cambia e le parole si somigliano. Devono uscire dal movimento.
+  // Qui sotto i nomi sono apposta SCELTI MALE: non compaiono da nessuna parte
+  // (nessuna keyword, nessun test precedente) e devono lo stesso accendere i
+  // muscoli giusti. Se domani si rompe, è la tabella dei movimenti che è da
+  // rifare, non questo elenco.
+
+  const APERTI = (nome) => {
+    const r = parteDiMuscolo({ nome });
+    assert.ok(r.trovata, nome + ': non ha riconosciuto nessun muscolo');
+    return righeDaAccendere(r.parte, r.livelli, r.anatomia);
+  };
+  const pieno = (nome) => APERTI(nome)
+    .filter((r) => r.opacita === LIVELLI[LIVELLI.length - 1]);
+  const quota = (nome, zona) => {
+    const r = parteDiMuscolo({ nome });
+    const riga = APERTI(nome).find((x) => x.zona === zona);
+    return riga ? riga.opacita : 0;
+  };
+  const accesi = (nome) => new Set(APERTI(nome).map((r) => r.gruppo));
+
+  // 1. LA REGOLA DI STE: un solo pezzo pieno, e per ogni esercizio del catalogo.
+  //    "piu' evidenziati devono essere i muscoli allenanti principali".
+  for (const esercizio of CATALOGO) {
+    const r = parteDiMuscolo({
+      nome: esercizio.nome,
+      descrizione: esercizio.nota_permanente || '',
+    });
+    const pieni = righeDaAccendere(r.parte, r.livelli, r.anatomia)
+      .filter((x) => x.opacita === LIVELLI[LIVELLI.length - 1]);
+    assert.equal(pieni.length, 1,
+      esercizio.nome + ': ' + pieni.length + ' muscoli tutti pieni, deve essercene uno solo '
+      + '(' + pieni.map((p) => p.zona).join(', ') + ')');
+    assert.equal(pieni[0].zona, r.parte,
+      esercizio.nome + ': il muscolo pieno è "' + pieni[0].zona + '" ma quello che '
+      + 'l\'esercizio sceglie è "' + r.parte + '"');
+  }
+
+  // 2. NESSUN secondario può essere più pieno del principale: questo è il punto,
+  //    e vale per ogni riga accesa di ogni esercizio.
+  for (const nome of ESERCIZI) {
+    const righe = APERTI(nome);
+    const massimo = Math.max(...righe.map((r) => r.opacita));
+    const via = (r) => r.gruppo === gruppoDiParte(parteDiMuscolo({ nome }).parte)
+      ? null : r.zona;
+    const peggiore = righe.filter((r) => r.opacita === massimo);
+    for (const r of peggiore) {
+      assert.ok(via(r) === null,
+        nome + ': "' + r.zona + '" è secondario ma è pieno come il principale');
+    }
+  }
+
+  // 3. LA DOMANDA DI STE SUL REVERSE FLY: "non lavora anche tricipiti o si? o
+  //    comunque se lo fa non lo fa principalmente".
+  //    Risposta: il gomito sta fermo, i tricipiti tengono l'equilibrio. Quindi
+  //    SI accendono — altrimenti la domanda resterebbe senza risposta — ma
+  //    all'ultima sfumatura, e il deltoide dietro resta pieno.
+  const rev = parteDiMuscolo({ nome: 'One Arm Cable Reverse Fly' });
+  assert.equal(rev.parte, 'spalle_posteriori', 'il reverse fly lavora il deltoide dietro');
+  assert.ok(accesi('One Arm Cable Reverse Fly').has('tricipite'),
+    'sul reverse fly i tricipiti si vedono: Ste li aveva chiesti esplicitamente');
+  assert.equal(quota('One Arm Cable Reverse Fly', 'spalla_gomito'), LIVELLI[0],
+    'ma sono l\'ultima sfumatura: il gomito è fermo e non sono il motore del movimento');
+  assert.equal(pieno('One Arm Cable Reverse Fly').length, 1, 'sul reverse fly un solo pieno');
+  assert.equal(pieno('One Arm Cable Reverse Fly')[0].zona, 'spalle_posteriori');
+
+  // 4. LA DOMANDA SUI DIP: petto pieno e tricipiti veri, ma NIENT'ALTRO.
+  //    Il deltoide sui dip passa quasi inosservato, e accenderlo sarebbe dire il
+  //    contrario di quello che Ste ha chiesto.
+  assert.ok(accesi('Dips').has('tricipite'), 'sui dip i tricipiti si accendono');
+  assert.ok(!accesi('Dips').has('deltoide_fronte'),
+    'sui dip il deltoide non si accende: non è un muscolo del movimento');
+  assert.equal(pieno('Dips').length, 1);
+  assert.equal(pieno('Dips')[0].zona, 'petto_basso');
+
+  // 5. I NOMI MALE SCRITTI. Nessuno di questi compare in nessuna lista di
+  //    parole, eppure devono accendere i muscoli giusti: è la prova che i
+  //    secondari non dipendono dal nome.
+  const AUTOMATICO = [
+    // [nome, muscolo principale, secondari che DEVE accendere]
+    ['Incline Dumbbell Press', 'petto_alto', ['tricipite', 'deltoide_fronte']],
+    ['Weighted Dip Bar', 'petto_basso', ['tricipite']],
+    ['Reverse Pec Deck', 'spalle_posteriori', ['tricipite', 'romboidi']],
+    ['45 Gradi Leg Press', 'quadricipite', ['glutei', 'femorale']],
+    ['Bassa Trazione Cavo', 'dorso_lati', ['bicipite']],
+    ['Cavo Alzate laterali', 'spalle_laterali', []],
+    ['Panca militare manubri', 'spalle_frontali', ['tricipite']],
+  ];
+  for (const [nome, principale, secondari] of AUTOMATICO) {
+    const r = parteDiMuscolo({ nome });
+    assert.ok(r.trovata, nome + ': nessun muscolo riconosciuto');
+    assert.equal(gruppoDiParte(r.parte), gruppoDiParte(principale),
+      nome + ': riconosciuto come "' + r.parte + '", non come "' + principale + '"');
+    for (const s of secondari) {
+      assert.ok(accesi(nome).has(s), nome + ': manca il secondario ' + s);
+    }
+    assert.equal(pieno(nome).length, 1, nome + ': un solo muscolo pieno');
+  }
+
+  // 6. LA PAROLA NON DEVE POTER FARE MALE. Il nome della descrizione di Ste su un
+  //    pulldown contiene "panca inclinata": se il movimento si riconoscesse anche
+  //    sul testo, quella frase accenderebbe il petto e i tricipiti di una tirata.
+  const descritto = parteDiMuscolo({
+    nome: 'Trazione verticale al cavo',
+    descrizione: 'sto sulla panca inclinata col petto appoggiato e tiro il cavo verso di me',
+  });
+  assert.ok(!accesi('Trazione verticale al cavo').has('petto'),
+    'una tirata non accende il petto nemmeno se la descrizione dice "panca"');
+  assert.ok(descritto.trovata, 'e l\'esercizio deve comunque essere riconosciuto');
+
+  // 7. IL FLY NON È UNA SPINTA. È l'unico caso in cui il gomito non si stende:
+  //    accendere i tricipiti su un fly sarebbe esattamente l'errore che Ste ha
+  //    segnalato con le altre keyword sbagliate.
+  assert.ok(!accesi('Cable Fly').has('tricipite'),
+    'sul fly i tricipiti non lavorano: il gomito non si stende');
+
+  // 8. LA TABELLA DEI MOVIMENTI È SCRITTA CORRETTA: ogni muscolo che ci mette
+  //    dentro deve esistere davvero sulla mappa, e nessuno può essere il pezzo
+  //    che l'esercizio sceglie (sennò il pieno salterebbe).
+  const conosciuti = new Set(PARTI.map((p) => p.id));
+  for (const m of MOVIMENTI) {
+    for (const [id, q] of Object.entries(m.secondari || {})) {
+      assert.ok(conosciuti.has(id),
+        'il movimento ' + m.id + ' mette "' + id + '" tra i muscoli, ma non è un pezzo del corpo');
+      assert.ok(q > 0 && q < 1,
+        'il movimento ' + m.id + ' dà a "' + id + '" la quota ' + q
+        + ': un secondario non può essere né spento né il principale');
+      const parteDelSecondario = PARTI.find((p) => p.id === id);
+      assert.ok(parteDelSecondario.muscolo !== 'petto' || m.id !== 'tirata_verticale',
+        'una tirata non mette il petto fra i suoi muscoli');
+    }
   }
 });
 
