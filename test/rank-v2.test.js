@@ -456,12 +456,20 @@ test('V17. la doppia carrucola dimezza SEMPRE, anche con un braccio solo', async
   //    sintomo era vero, la medicina no, e per una settimana l'app ha detto a Ste
   //    che stava spingendo il doppio di quello che spingeva davvero.
   //
-  //    Oggi la situazione è questa, ed è quella giusta: i 42 kg che Ste scrive sul
-  //    pushdown sono 21 reali per lato e danno un livello basso; i 21 kg letti di
-  //    quell'agosto sono 10,5 reali e NON danno nessun livello, perché l'ingresso
-  //    del tricipite è a 17,9 kg reali. E va bene così: 10,5 kg su un pushdown sono
-  //    un carico da principiante, e non è un difetto dell'app.
+  //    IL 15/10/2026 LA STORIA SI RIPETE, ED È LA STESSA. Ste guarda il suo
+  //    pushdown e vede BRONZE con 21 kg sentiti per lato, e dice "21kg non sono
+  //    tanti?". La tentazione è la stessa di allora: toccare il carico e far salire
+  //    il numero. NO. Ste ha poi risposto chiaro: "il cavo è doppia carrucola quindi
+  //    21kg è giusto, i 42 sono nel carrello dei pesi dei cavi". Il carico era
+  //    GIUSTO. Il numero da correggere era il tetto, e il tetto è sceso a 0,44x.
+  //
+  //    E L'INGRESSO è sceso insieme, da 0,26x a 0,13x, perché è la stessa
+  //    richiesta che Ste ha fatto tre volte ("come faccio a non essere manco
+  //    bronzo?"): l'ingresso deve stare dove un principiante mette le mani. Prima
+  //    erano 17,9 kg sentiti, e chi comincia con 10,5 kg si vedeva "nessun
+  //    livello": un numero che sembra un bug ed è la difesa dal bug di allora.
   const { recordEsercizio } = await import('../src/rank.js');
+  const valoriTricepiti = await import('../src/rank-v2/valori.js');
   const pushdown = perId('ex-single-arm-tricep-pushdown');
   const suo = recordEsercizio([{ id: 's', peso: 42, ripetizioni: 8, stato: 'fatta' }],
     pushdown, null, 66);
@@ -469,11 +477,33 @@ test('V17. la doppia carrucola dimezza SEMPRE, anche con un braccio solo', async
     'i 42 kg del pushdown di Ste (21 reali per lato) devono dare un livello');
   assert.equal(suo.serie.peso, 21,
     'la scheda deve mostrare i kg che hai davvero spostato, non quelli che leggi');
+
+  // il caso di oggi: 21 kg letti sono 10,5 reali e PRIMA non davano nessun livello.
+  // Ora ne danno uno, e basso, che è la risposta giusta: 10,5 kg su un pushdown
+  // monobraccio sono un carico da principiante, ma un principiante deve poterlo
+  // vedere, non trovarsi "nessun livello" che sembra un errore.
   const daPrincipiante = recordEsercizio([{ id: 's', peso: 21, ripetizioni: 8, stato: 'fatta' }],
     pushdown, null, 66);
-  assert.ok(!daPrincipiante.rank,
-    'i 21 kg letti (10,5 reali) non danno nessun livello: è un carico da principiante '
-    + 'e va detto, non nascosto');
+  assert.ok(daPrincipiante.rank,
+    'i 21 kg letti (10,5 reali) devono dare il livello più basso, non nessuno: '
+    + 'l\'ingresso è a 8,9 kg sentiti e chi comincia deve vedersi');
+
+  // e sotto l'ingresso il numero resta nascosto, che è la difesa che nel mese di
+  // agosto mancava del tutto.
+  const sotto = recordEsercizio([{ id: 's', peso: 15, ripetizioni: 8, stato: 'fatta' }],
+    pushdown, null, 66);
+  assert.ok(!sotto.rank,
+    'sotto l\'ingresso non si dà un livello inventato: è un carico da principiante e va detto, non nascosto');
+
+  // e l'ingresso sta nel posto giusto rispetto al tetto: poco più di un terzo.
+  const vTri = valoriTricepiti.VALORI_MOVIMENTO.tricipiti;
+  const corpo = valoriTricepiti.pesoAllometrico(66);
+  const tetto = corpo * vTri.multiplo;
+  const ingresso = corpo * vTri.ingressoMultiplo;
+  assert.ok(ingresso > 0.12 * tetto && ingresso < 0.42 * tetto,
+    `l'ingresso sta dove mette le mani un principiante: ${ingresso.toFixed(1)} su ${tetto.toFixed(1)}`);
+  assert.ok(ingresso < 10.5,
+    `i 10,5 kg sentiti di chi comincia devono stare SOPRA l'ingresso: ${ingresso.toFixed(1)}`);
 });
 test('V18. il BENCH PULL e\ schiena, non petto', async () => {
   // Ste (08/10/2026), guardando la scheda del Dumbbell Bench Pull: "c'e\' scritto
@@ -874,8 +904,13 @@ test('V23. i due curl sulla stessa scala: la meccanica dice gia\' che sono diver
   // Sul tetto i due NON sono lontani come sembrava dal solo braccio di leva: la leva
   // di sopra la testa è molto peggiore (18,1 contro 12,3) ma c'è più muscolo che
   // tira, perché il capo lungo è il motore del movimento. Le due cose si compensano
-  // quasi e il tetto resta vicino a quello del pushdown. È il motivo per cui non si
-  // può dedurre il tetto dalla leva da sola.
+  // quasi. È il motivo per cui non si può dedurre il tetto dalla leva da sola.
+  //
+  // E ATTENZIONE A NON CONFONDERE " VICINI" CON " QUELLO DI SOPRA STA SOTTO": fino al
+  // 15/10/2026 il test pretendeva proprio quello, e il tetto 0,62 era nato come
+  // 0,7x × 0,887. Il tetto del pushdown è poi sceso a 0,44x (riferimento cable fly) e
+  // da quel momento l'estensione sopra la testa sta SOPRA, non sotto. Il ramo sotto
+  // spiega perché il rapporto meccanico non decide su questa coppia.
   assert.ok(valori.VALORI_MOVIMENTO.tricipiti_alta,
     'le estensioni sopra la testa devono avere una scala loro');
   assert.notEqual(valori.VALORI_MOVIMENTO.tricipiti_alta.multiplo,
@@ -888,8 +923,52 @@ test('V23. i due curl sulla stessa scala: la meccanica dice gia\' che sono diver
     'ma con il braccio di leveraggio peggiore di tutto il corpo');
   const tAlta = valori.VALORI_MOVIMENTO.tricipiti_alta.multiplo;
   const tPush = valori.VALORI_MOVIMENTO.tricipiti.multiplo;
-  assert.ok(tAlta > tPush * 0.75 && tAlta < tPush,
-    `e il tetto resta vicino a quello del pushdown: ${tAlta} contro ${tPush}`);
+
+  // LA MECCANICA LI DICE VICINI, E IL TEST LO CONTINUA A VOLER VERIFICARE.
+  //
+  // Sezione e leva danno 0,894 contro 0,793, quindi un rapporto di 0,887: i due
+  // movimenti sono parenti stretti, e se non lo fossero la separazione delle scale
+  // sarebbe inutile. Questo NON è cambiato e non deve cambiare.
+  const rapportoMeccanico = L.caricoMeccanico('tricipiti_alta', { pesoCorporeo: PESO })
+    / L.caricoMeccanico('tricipiti', { pesoCorporeo: PESO });
+  assert.ok(Math.abs(rapportoMeccanico - 0.887) < 0.02,
+    `i due tricipiti restano parenti stretti secondo la meccanica: ${rapportoMeccanico.toFixed(3)}`);
+
+  // MA IL TETTO NON SEGUONO IL RAPPORTO MECCANICO, E ADESSO È DECISIVO.
+  //
+  // Il 15/10/2026 il tetto del pushdown era 0,7x, ricavato da 0,62 / 0,887: quindi
+  // seguiva la meccanica, e Ste ne ha pagato la conseguenza. Lui scrive 42 kg nel
+  // carrello alla doppia carrucola, quindi 21 kg sentiti per lato, e con 0,7x finiva
+  // al 42% della scala, cioè BRONZE: "21kg non sono tanti?".
+  //
+  // Ste ha poi chiarito due cose che chiudono la domanda:
+  //   - i 42 sono nel carrello e ne sente 21, quindi il carico era GIUSTO e il numero
+  //     da correggere era il tetto, non il carico;
+  //   - "non so quanto faccio di massimale", quindi il tetto non può prendere un suo
+  //     numero e va preso da un riferimento (qui il cable fly, tetto 0,4x, `fonte:
+  //     "tuo"`, l'unico costruito sui suoi carichi veri).
+  //
+  // E se il tetto del pushdown è 0,44x, la meccanica darebbe 0,39x qui, sotto i 30 kg
+  // sentiti per lato che Ste ci mette: il Rank diventerebbe OLYMPIAN a ogni costo,
+  // che è il difetto per cui esiste tettoPerEsercizio(). Quindi su questa coppia la
+  // meccanica NON decide, e il test non deve pretendere il contrario.
+  assert.ok(tAlta > tPush,
+    `sopra la testa regge più del pushdown, non meno: ${tAlta} contro ${tPush}`);
+  assert.ok(Math.abs(tAlta - tPush * rapportoMeccanico) > 0.1,
+    'e il tetto dichiarato NON segue il rapporto meccanico: è una scelta documentata');
+
+  // IL CONTROLLO CHE CONTA, E CHE PRIMA NON ESISTEVA: le due prestazioni vere di Ste
+  // su questi due movimenti devono stare nella stessa fascia. È il controllo più
+  // semplice che ci sia e non passa per caso, perché i due Rank si somigliano a
+  // mano. I numeri: 21 kg sentiti sul pushdown, 30 kg sentiti sopra la testa.
+  const PESO_REALE = 66;
+  const corpo = valori.pesoAllometrico(PESO_REALE);
+  const quota = (kg, tetto) => kg / (corpo * tetto);
+  const qPush = quota(21, tPush);
+  const qAlta = quota(30, tAlta);
+  assert.ok(Math.abs(qPush - qAlta) < 0.12,
+    `le due estensioni di braccio di Ste devono stare nella stessa fascia della `
+    + `scala, non una a 70% e l'altra a 110%: ${qPush.toFixed(2)} contro ${qAlta.toFixed(2)}`);
 
   // IL CONTROLLO ORA NON TROVA PIÙ NESSUN DISACCORDO: ogni coppia di movimenti
   // dello stesso muscolo che la meccanica vuole separare ha la sua scala.

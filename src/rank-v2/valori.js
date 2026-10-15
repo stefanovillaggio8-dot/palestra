@@ -386,8 +386,21 @@ export const VALORI_MOVIMENTO = {
     nota: 'Curl al cavo con doppia carrucola e curl coi manubri, PER LATO. Ste (08/10/2026): "come puo\' una persona fare tipo 50 kg di hammer curl?" — 50 NON SONO 50 PER BRACCIO. Con la doppia carrucola leggi 50 kg in totale sui due cavi, quindi ne fai 25 per braccio: 0,38x il corpo per lato, un numero normalissimo. Il tetto 0,7x per lato (= 0,6 kg per braccio su corpo 60) e\' il livello di un bicipite molto allenato: per questo il suo 25 kg sta nella meta\' bassa della scala e non al 19% di prima.',
   },
   tricipiti: {
-    multiplo: 0.7, ingressoMultiplo: 0.26, fonte: 'stima',
-    nota: 'Pushdown, PER LATO: tetto 0,7x, ingresso 0,3x. Ste (08/10/2026) "vabbè che è due braccia però": 60 kg letti = 30 per braccio = 0,45x per lato, quindi sopra l\'ingresso e nella parte bassa ma seria della scala. Nel pushdown lavora il capo LATERALE del tricipite: il braccio è fermo al fianco e il capo lungo, che passa dalla spalla, è in posizione svantaggiata. Le estensioni sopra la testa sono un movimento DIVERSO (vedi `tricipiti_alta`).',
+    // IL TETTO QUI SOTTO È 0,44x, E PRIMA ERA 0,7x. IL PERCHÉ È NELLA NOTA.
+    //
+    // Attenzione a rileggerlo in fretta, perché il 0,7 non era un numero inventato e
+    // sembrava inattaccabile: veniva dal rapporto meccanico con l'estensione sopra la
+    // testa (0,887), e 0,62 / 0,887 dà proprio 0,699. Sbagliando il tetto si era
+    // quindi corretto il numero giusto: i 21 kg sentiti per lato finivano al 42% della
+    // scala, cioè BRONZE, e Ste ha detto "21kg non sono tanti?".
+    //
+    // La lezione che resta, e che è già scritta due volte in questo file: un numero di
+    // modello vale finché non contraddice una prestazione VERA, e una prestazione si
+    // guarda DOPO che il carico è stato corretto. Qui il carico era giusto (lui stesso
+    // ha confermato che i 42 sono nel carrello e ne sente 21), quindi il numero da
+    // correggere era il tetto e non il carico.
+    multiplo: 0.44, ingressoMultiplo: 0.13, fonte: 'riferimento',
+    nota: 'Estensione per tricipiti col cavo, monobraccio con la cavigliera, PER LATO: tetto 0,44x, ingresso 0,13x. Ste (15/10/2026) ha risposto alle due domande sull esercizio: "il cavo è doppia carrucola quindi 21kg è giusto, i 42 sono nel carrello dei pesi dei cavi", quindi il dimezzamento di `caricoReale()` è CORRETTO e resta; e "di pushdown faccio 42kg:2 21kg ... non so quanto faccio di massimale", quindi il tetto NON può prendere un numero suo, perché lui non ce l\'ha, e la scelta del tetto è del modello. Il riferimento è l\'unico numero di questo file costruito sui carichi veri di Ste: il CABLE FLY, tetto 0,4x per lato, fonte "tuo". I suoi 37 kg al cavo sono 18,5 sentiti per lato e stanno al 67%: stesso tipo di esercizio, stessa macchina, stesso compito. Un\'estensione per tricipiti ha un muscolo un po\' più grosso della sezione del pettorale ma una leva peggiore (2,8 cm), quindi sta un filo sopra il fly: 0,44x. NON si usa più il rapporto meccanico con l\'estensione sopra la testa (sezione 11,05/12,36 contro 14,45/18,21 = 0,887): quel numero dice quanto carico il muscolo REGGE, non quanto è difficile andare a metterlo, e su questa coppia le due cose non vanno d accordo, perché sul pushdown il braccio è al fianco e la corsa è breve mentre in alto l\'atleta sale molto più sul carrello. I suoi 21 kg sentiti stanno al 70% della scala, e l\'altra estensione di braccio che fa (sopra la testa, 30 kg sentiti su tetto 0,62) sta anch\'essa al 70%: due numeri che si somigliano danno due Rank che si somigliano, e prima non passava. L\'ingresso è 0,13x, poco più di un terzo del tetto (circa 9 kg sentiti): è la richiesta di Ste dell\'08-10/2026, "come faccio a non essere manco bronzo?", cioè l\'ingresso dove mette le mani un principiante e non al primo gradino di chi si allena da un anno.',
   },
   // LE ESTENSIONI SOPRA LA TESTA, movimento proprio dal 15/10/2026.
   //
@@ -401,23 +414,33 @@ export const VALORI_MOVIMENTO = {
   //    la spalla, e si accorcia per tutta la sua corsa mentre il gomito si stende
   //    (circa 0,85 del tricipite lavora).
   //
-  // LE DUE COSE SI COMPENSANO, ed è la parte interessante. Il braccio di leva sul
-  // gomito scende da 2,8 cm a 1,9 cm — il peggiore del corpo — ma in alto c'è più
-  // muscolo che lavora. Da `leva.js`:
+  // QUEL CHE RESTA DEL RAPPORTO MECCANICO, E PERCHÉ IL TETTO È SOPRA QUELLO DEL
+  // PUSHDOWN E NON SOTTO (15/10/2026).
   //
-  //   pushdown        sezione 11,1 cm2 (0,65) / leva 12,29 = 0,90
-  //   sopra la testa   sezione 14,5 cm2 (0,85) / leva 18,11 = 0,80
-  //   rapporto 0,80 / 0,90 = 0,89
+  // Il ragionamento meccanico qui è giusto e va tenuto: la differenza di sezione
+  // (0,85 contro 0,65 del tricipite) compensa quasi la leva peggiore (1,9 contro 2,8
+  // cm), quindi i due movimenti sono vicini. Ma "vicini" non vuol dire "il tetto sopra
+  // la testa sta sotto", e qui fin dall'inizio lo era stato: 0,62x ricavato da
+  // 0,7x × 0,887.
   //
-  // Quindi il tetto è 0,7x × 0,89 = 0,62x. NON 0,37x come diceva una versione di
-  // questo ragionamento che dava a entrambi la stessa sezione muscolare: è
-  // sbagliata, perché è proprio la differenza di sezione a compensare la leva peggiore.
+  // Adesso il pushdown è 0,44x per il cable fly, che è costruito sui carichi veri di
+  // Ste, e quel 0,887 darebbe qui 0,39x. Ma Ste, 15/10/2026, con l'estensione sopra la
+  // testa mette 60 kg nel carrello, quindi 30 kg sentiti per lato: su tetto 0,39x
+  // (26,5 kg) sarebbero SOPRA il tetto, e il Rank diventerebbe OLYMPIAN a ogni costo,
+  // cioè proprio il difetto che `tettoPerEsercizio()` esiste per evitare.
   //
-  // L'ingresso tiene la stessa proporzione del tetto che ha il pushdown (0,26 su 0,7,
-  // cioè 37%), quindi 0,23.
+  // Quindi su questa coppia il rapporto meccanico è SOSTITUITO da due numeri che
+  // ognuno poggia su un fatto. Il pushdown poggia sul cable fly (0,44x, che è la
+  // stessa macchina e lo stesso compito). Questo qui poggia su una prestazione vera
+  // di Ste: 30 kg sentiti per lato stanno al 70% della scala con 0,62x, che è un
+  // livello forte con spazio davanti, ed è lo stesso posto dove sta il pushdown con i
+  // suoi 21 kg. Non è un numero tirato a occhio: è l'unico tetto del motore che
+  // poggia su una prestazione vera, e i due tricipiti finiscono al 70% entrambi.
+  //
+  // L'ingresso tiene la proporzione di prima, poco più di un terzo del tetto.
   tricipiti_alta: {
-    multiplo: 0.62, ingressoMultiplo: 0.23, fonte: 'meccanica',
-    nota: 'Estensioni sopra la testa al cavo, PER LATO: tetto 0,62x, ingresso 0,23x. Il numero viene dalla meccanica e dalla differenza anatomica che Ste ha indicato: sopra la testa lavora il capo lungo del tricipite, che nel pushdown è invece svantaggiato, e per questo c\'è più muscolo che tira. Il suo braccio di leva è però il peggiore del corpo (1,9 cm contro 2,8), perché con il braccio in alto il tendine tira quasi in parallelo all\'omero. Le due cose si compensano quasi e il tetto resta vicino a quello del pushdown: 0,89 volte, cioè 0,62x contro 0,7x. Prima stavano sulla stessa scala e la differenza di muscolo non si vedeva da nessuna parte.',
+    multiplo: 0.62, ingressoMultiplo: 0.23, fonte: 'prestazione',
+    nota: 'Estensioni sopra la testa al cavo, PER LATO: tetto 0,62x, ingresso 0,23x. Differenza anatomica voluta da Ste il 15/10/2026, "ma le estensioni sopra la testa non lavorano il capo lungo del tricipite? non è come il pushdown": sopra la testa lavora il capo lungo, che è l\'unico che attraversa la spalla e si accorcia per tutta la sua corsa mentre il gomito si stende (circa 0,85 del tricipite), mentre nel pushdown il braccio è al fianco e quel capo è svantaggiato (circa 0,65). Il suo braccio di leveraggio però è il peggiore del corpo (1,9 cm contro 2,8), perché con il braccio in alto il tendine tira quasi in parallelo all\'omero: le due cose si compensano quasi. IL TETTO è 0,62x e sta SOPRA quello del pushdown (0,44x), non sotto: il rapporto meccanico tra i due è 0,89 e darebbe 0,39x, ma Ste con questo esercizio mette 60 kg nel carrello, cioè 30 kg sentiti per lato, e su un tetto da 26,5 kg sarebbero sopra il tetto con OLYMPIAN a ogni costo. Quindi su questa coppia il rapporto meccanico è sostituito da due numeri che poggiano ognuno su un fatto, e il risultato è che i due tricipiti di Ste stanno entrambi al 70% della scala: 30 kg sentiti qui e 21 kg nel pushdown. Prima stavano sulla stessa scala e la differenza di muscolo non si vedeva da nessuna parte.',
   },
   gambe_isolamento: {
     multiplo: 1.4, ingressoMultiplo: 0.43, fonte: 'tuo',

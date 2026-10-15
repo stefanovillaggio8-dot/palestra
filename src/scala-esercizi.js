@@ -109,6 +109,20 @@ export const SCALA_ESERCIZI = {
   // 30 era un numero da curl bilaterale. Lui lo fa a un braccio solo, 18 kg per
   // mano, col braccio appoggiato che aiuta ma stringe il movimento.
   "ex-one-arm-preacher-curl": 19,
+  // NON È UN NUMERO CHE STE HA VERIFICATO (15/10/2026).
+  //
+  // Ste, chiesto se il suo massimale sul pushdown monobraccio sia 30 kg per lato:
+  // "di pushdown faccio 42kg:2 21kg non ho capito cosa c'entrino sti 30kg, che non
+  // so quanto faccio di massimale". Quindi questo 30 NON è un suo numero, e per
+  // l'intestazione di questo file (che contiene solo numeri verificati) è un difetto.
+  //
+  // Però NON è un numero a caso: 30 kg sentiti per lato è esattamente il tetto che
+  // dà il motore nuovo con il riferimento del cable fly (0,44x × corpo allometrico
+  // = circa 30 kg), quindi i due sistemi CONVERGONO da due strade diverse sullo stesso
+  // numero. Per questo la riga resta invece di essere cancellata: toglierla
+  // cambierebbe il massimale stimato in `stimaMassimo()` e la forza generale, e non
+  // servirebbe a niente. Resta scritto che non è verificato, così nessuno lo prende
+  // per una certezza, e la scala resta quella che il calcolo ricava.
   "ex-single-arm-tricep-pushdown": 30,
   "ex-wrist-curl": 34,
   // QUI C'ERA "ex-single-leg-press: 40", e l'ho tolta (Ste, 06/10/2026).
