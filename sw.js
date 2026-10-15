@@ -9,11 +9,11 @@
 // e il test I3 che sia quello dell'ultimo commit, altrimenti si alza la cache e si
 // lascia scritto il numero vecchio. E' successo due volte: nella v54 avevo alzato
 // solo questo file, e dopo la v55 avevo smesso di alzarlo del tutto.
-const VERSIONE = 'palestra-v159';
+const VERSIONE = 'palestra-v160';
 
 // LE 18 FOTO DEI PERSONAGGI, CON LA VERSIONE DENTRO.
 //
-// Il numero viene preso da `palestra-v159` invece di essere scritto due volte: e'
+// Il numero viene preso da `palestra-v160` invece di essere scritto due volte: e'
 // l'unico posto in cui il numero compare, quindi la lista non può restare
 // indietro. Prima le 18 righe erano scritte a mano ed e' esattamente li' che il
 // numero era rimasto indietro due volte.
@@ -51,7 +51,7 @@ const FILE = [
   // Il numero deve essere uguale a quello di `stile.css?v=` in index.html e a
   // `window.PALESTRA_VERSIONE`: se i tre non coincidono, l'app carica un foglio di
   // stile e dice un altro numero.
-  './stile.css?v=159',
+  './stile.css?v=160',
 './manifest.webmanifest',
   './manifest-p1.webmanifest',
   './manifest-p2.webmanifest',
@@ -69,6 +69,11 @@ const FILE = [
   // Senza questo la pagina dell'esercizio non si apre offline: l'omino
   // del muscolo allenato è in questo file.
   './src/mappa-muscoli.js',
+  // E le due immagini della figura. Il modulo da solo non basta: senza
+  // `corpo.png` la pagina dell'esercizio si apre e l'omino è un rettangolino
+  // vuoto. Servono anche offline, quindi stanno in lista come tutte le altre.
+  './img/muscoli/corpo.png',
+  './img/muscoli/muscoli.png',
   './src/scala-esercizi.js',
   './src/forza-generale.js',
   './src/scala-auto.js',

@@ -43,7 +43,7 @@ import { parteDiMuscolo, AVVERTIMENTO_PARTI, stessoLavoro, livelloConMuscolo, or
   from './muscoli-parti.js';
 // L'omino che dice DOVE lavori. Ste (13/10/2026): "voglio che spunti questo
 // omino con il muscolo allenato colorato di viola se possibile, non di giallo".
-import { figurino as figurinoMuscolo, L as OMINO_L, A as OMINO_A, idZonaDaParte }
+import { figurino as figurinoMuscolo, FOTO_L, FOTO_A, ETICHETTE as ETICHETTE_OMINO }
   from './mappa-muscoli.js';
 import { quantoEPesantePerTe, correggiLivello, dimenticaLivello, livelloImparato, paroleDaChiedere, imparaParola } from './esercizi-personali.js';
 import { controllaAggiornamento, applicaAggiornamento as prendiVersioneNuova, registraAggiornamentoRapido } from './update-via-sw.js';
@@ -6179,14 +6179,13 @@ async function vistaProfilo(zona) {
  * test Z2 chiama tutte le zone, quindi quel caso non può capitare in silenzio.
  */
 function disegnoOmino(parteId) {
-  const acceso = idZonaDaParte(parteId);
-  const larghezza = OMINO_L * 2 + 24;
-  return '<svg class="omino-svg" viewBox="0 0 ' + larghezza + ' ' + OMINO_A
-    + '" role="img" aria-label="Le due viste del corpo, con il muscolo allenato colorato di viola">'
-    + '<g>' + figurinoMuscolo('fronte', acceso) + '</g>'
-    + '<g transform="translate(' + (OMINO_L + 24) + ',0)">'
-    + figurinoMuscolo('retro', acceso) + '</g>'
-    + '</svg>';
+  const etichette = ETICHETTE_OMINO
+    .map((e) => '<text class="vista-label" x="' + e.x + '" y="' + e.y + '" text-anchor="middle">'
+      + e.testo + '</text>')
+    .join('');
+  return '<svg class="omino-svg" viewBox="0 0 ' + FOTO_L + ' ' + FOTO_A
+    + '" role="img" aria-label="Il corpo di fronte e di dietro, con il muscolo allenato colorato di viola">'
+    + figurinoMuscolo(parteId) + etichette + '</svg>';
 }
 
 /** Il pezzo di muscolo da accendere, o null se l'app non lo conosce. */
