@@ -1014,3 +1014,60 @@ test('V24. il controllo delle leve NON sposta mai un Rank', async () => {
   assert.equal(dopo.vertice, prima.vertice, 'né il tetto');
   assert.deepEqual(dopo.soglie, prima.soglie, 'né le soglie');
 });
+// V25. IL TETTO DEVE STARE DENTRO IL SUO STESSO RANGE, E I CAVI DEVONO ESSERE
+//      DELLA STESSA FAMIGLIA.
+test('V25. un tetto non può superare il massimo del range che la sua stessa nota dichiara', async () => {
+  const valori = await import('../src/rank-v2/valori.js');
+  const L = await import('../src/rank-v2/leva.js');
+  const corpo = valori.pesoAllometrico(66);
+
+  // IL DIFETTO CHE QUESTO TEST PRENDE (15/10/2026).
+  //
+  // `spalle_isolamento` aveva tetto 0,45x, cioe' 31 kg per lato, e la sua NOTA
+  // diceva che le alzate laterali al cavo doppio stanno sui 10-25 kg per lato. Il
+  // tetto era quindi SOPRA il limite alto del range che la voce stessa dichiarava:
+  // 31 kg per lato su un esercizio che arriva a 25. Nessuno fa 31 kg per braccio su
+  // un'alzata laterale, e il tetto non puo' stare li' nemmeno per un errore di
+  // arrotondamento: e' il 24% oltre il massimo.
+  //
+  // Il danno non era solo estetico. Il reverse fly eredita il tetto dell'alzata
+  // laterale (0,45 x 0,829 = 0,37), quindi lo stesso errore si propagava, e Ste si
+  // trovava due Rank che nessuno dei due sapeva spiegare.
+  const LATERALE = valori.VALORI_MOVIMENTO.spalle_isolamento;
+  const tettoLaterale = corpo * LATERALE.multiplo;
+  assert.ok(tettoLaterale <= 25,
+    `il tetto dell'alzata laterale non puo' superare i 25 kg per lato dichiarati dalla `
+    + `sua stessa nota: ${tettoLaterale.toFixed(1)}`);
+
+  // IL RAPPORTO MECCANICO DEVE ESSERE ANCORA QUELLO. Non e' un controllo sul numero
+  // scelto: e' un controllo che il reverse fly continua a derivare dall'alzata
+  // laterale invece di essere un numero indipendente. Se il rapporto si rompe, i due
+  // movimenti smettono di essere parenti e uno dei due ha un tetto inventato.
+  const rapporto = L.caricoMeccanico('spalle_posteriori', { pesoCorporeo: 66 })
+    / L.caricoMeccanico('spalle_isolamento', { pesoCorporeo: 66 });
+  const dichiarato = valori.VALORI_MOVIMENTO.spalle_posteriori.multiplo / LATERALE.multiplo;
+  assert.ok(Math.abs(rapporto - dichiarato) / dichiarato < 0.02,
+    `il reverse fly deve stare sull alzata laterale per il rapporto meccanico: `
+    + `${dichiarato.toFixed(3)} contro ${rapporto.toFixed(3)}`);
+
+  // E LA FAMIGLIA DEI CAVI DEVE ESSERE COERENTE: tutti i suoi tetti per lato stanno
+  // nello stesso ordine di grandezza. Sono tutti esercizi sulla stessa stazione, con
+  // lo stesso compito, e se uno ha un tetto a 20 e un altro a 43 la tabella non sta
+  // dicendo niente. Questo era il controllo che mancava e che avrebbe preso il 0,45x.
+  const famiglia = [
+    ['petto_isolamento', 'cable fly'],
+    ['spalle_isolamento', 'alzata laterale'],
+    ['spalle_posteriori', 'reverse fly'],
+    ['tricipiti', 'pushdown'],
+    ['tricipiti_alta', 'estensione sopra la testa'],
+  ];
+  for (const [mov, nome] of famiglia) {
+    const v = valori.VALORI_MOVIMENTO[mov];
+    const tetto = corpo * v.multiplo;
+    assert.ok(tetto >= 18 && tetto <= 45,
+      `il tetto per lato di ${nome} deve stare fra 18 e 45 kg: ${tetto.toFixed(1)}`);
+    assert.ok(v.ingressoMultiplo / v.multiplo > 0.2 && v.ingressoMultiplo / v.multiplo < 0.45,
+      `${nome}: l'ingresso sta dove mette le mani un principiante, non al primo `
+      + `gradino (${(v.ingressoMultiplo / v.multiplo * 100).toFixed(0)}% del tetto)`);
+  }
+});

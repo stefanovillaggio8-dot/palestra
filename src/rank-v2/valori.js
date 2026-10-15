@@ -322,8 +322,25 @@ export const VALORI_MOVIMENTO = {
     nota: 'Bench pull coi manubri, PER MANUBRIO: tirata prona, lavora il dorso centrale. Tetto 1,2x il corpo per mano, ingresso 0,5x. Il carico e\' grosso (manubri) ma il movimento e\' piu\' isolato di un remo con seduta, quindi il tetto sta piu\' basso del remo (1,7x). Prima questo esercizio era classificato come petto, e la scheda gli diceva "il petto lavora in modo abbastanza uniforme".',
   },
   spalle_isolamento: {
-    multiplo: 0.45, ingressoMultiplo: 0.10, fonte: 'tuo',
-    nota: 'Alzate laterali al cavo con doppia carrucola, PER LATO. Tetto 0,45x e ingresso 0,12x, ragionati sui numeri veri di palestra: le alzate laterali sono l\'esercizio col peso pi\' basso in assoluto (5-10 kg per lato coi manubri, 10-25 per lato al cavo doppio). Il vecchio sistema diceva 13 kg TOTALI e regalava l\'OLYMPIAN. Ste fa 25 kg letti = 12,5 per lato = 0,19x: e\' gia\' un livello decente, e sta a cavallo dell\'ingresso come deve stare chi ha un anno di palestra.',
+    // IL TETTO SI CONTRADICEVA CON LA PROPRIA NOTA (15/10/2026).
+    //
+    // La nota qui sotto, che è quella giusta, dice che le alzate laterali al cavo
+    // doppio stanno sui 10-25 kg per lato. Il tetto però era 0,45x, che su corpo
+    // allometrico dà 31 kg per lato: SOPRA il limite alto del range che la voce
+    // stessa dichiara. Un tetto che non arriva neanche al massimo del proprio range
+    // documentato non è un tetto, è un numero che non serve a niente, e non importa
+    // da quale riferimento venga.
+    //
+    // Il tetto torna a stare dentro il range, al suo limite alto, perché "tetto" vuol
+    // dire il massimo: 25 kg per lato = 0,36x. Ste ne fa 12,5, quindi passa dal 39%
+    // al 50% della scala. Non è un trucco per alzargli il Rank: è la stessa scala
+    // degli altri tre isolamenti al cavo, che stanno tutti nello stesso ordine di
+    // grandezza (cable fly 27,5 kg per lato, pushdown 30, reverse fly sotto).
+    //
+    // L'ingresso resta 0,10x, circa un quarto del tetto: 6,9 kg per lato, che è
+    // davvero il peso di chi comincia.
+    multiplo: 0.36, ingressoMultiplo: 0.10, fonte: 'riferimento',
+    nota: 'Alzate laterali al cavo con doppia carrucola, PER LATO: tetto 0,36x, ingresso 0,10x. Sono l\'esercizio col peso più basso in assoluto (5-10 kg per lato coi manubri, 10-25 per lato al cavo doppio) e il tetto sta al limite alto di quel range, perché tetto vuol dire massimo: 25 kg per lato su corpo 66. Prima era 0,45x, cioè 31 kg per lato, che era SOPRA il range che questa stessa nota dichiarava: un tetto che non arriva al massimo del proprio range è un numero che non serve a niente. Ste fa 25 kg letti = 12,5 per lato = 0,18x, e sta al 50% della scala. L\'ingresso è 0,10x, circa 6,9 kg per lato: un quarto del tetto, che è dove mette le mani chi comincia, e resta basso apposta perché chi pesa molto più di Ste, con gli stessi kg per lato, non deve trovarsi sotto il primo livello (vedi la nota lunga di `bicipiti_panca`). Il vecchio sistema diceva 13 kg TOTALI e regalava l\'OLYMPIAN.',
   },
   // IL DELTOIDE POSTERIORE, che fino al 15/10/2026 non aveva una scala sua (15/10/2026).
   //
@@ -352,34 +369,29 @@ export const VALORI_MOVIMENTO = {
   // cioe' un quarto del tetto), quindi 0,08. E resta basso apposta: chi pesa di piu'
   // di Ste, con gli stessi kg per lato, non deve trovarsi sotto il primo livello
   // (vedi la nota lunga di `bicipiti_panca`).
+// IL TETTO E' 0,30x, E IL RAPPORTO MECCANICO CON L'ALZATA LATERALE E' RIMASTO
+  // QUELLO (15/10/2026).
+  //
+  // Il rapporto non è cambiato: 0,829 (sezione 12,3 / leva 19,64 contro 13,7 / 18,08),
+  // e l'unica cosa che è scesa è il tetto da cui si parte, cioè quello dell'alzata
+  // laterale, che si contraddiceva con la propria nota (vedi `spalle_isolamento`).
+  // Quindi 0,36x × 0,829 = 0,30x, e non è un numero scelto: è lo stesso rapporto di
+  // prima applicato a un tetto che reggeva.
+  //
+  // IL RISULTATO IN KG, che è la parte che conta. Su corpo allometrico 68,8:
+  //   alzata laterale  tetto 0,36x = 24,8 kg per lato   (Ste 12,5 -> 50%)
+  //   reverse fly      tetto 0,30x = 20,6 kg per lato   (Ste 14   -> 68%)
+  //   cable fly        tetto 0,40x = 27,5 kg per lato   (Ste 18,5 -> 67%)
+  //   pushdown         tetto 0,44x = 30,3 kg per lato   (Ste 21   -> 68%)
+  //   estensione alta  tetto 0,62x = 42,7 kg per lato   (Ste 30   -> 70%)
+  //
+  // Cinque isolamenti al cavo, tutti fra 20 e 43 kg per lato, tutti nella stessa
+  // banda, e Ste intorno al 50-70% su tutti. PRIMA il reverse fly stava a 25,5 kg di
+  // tetto e lui al 56% con un tetto che l'app non riusciva a spiegare, e l'alzata
+  // laterale stava a 31 kg: il numero che nessuno riesce a fare su un braccio solo.
   spalle_posteriori: {
-    // IL TETTO QUI E' STATO ALZATO E RIABBASSATO, E LA STORIA E' LA LEZIONE.
-    //
-    // Il 15/10/2026 mattina questo tetto era 0,37x, ricavato dalla meccanica (il
-    // rapporto fra reverse fly e alzata laterale calcolato da `leva.js`, 0,83,
-    // applicato al tetto dell'alzata laterale). Con i 28 kg letti di Ste la cosa
-    // sembrava assurda: i suoi 28 kg al 113% del tetto, il massimo assoluto su una
-    // prestazione che poteva solo scendere.
-    //
-    // Il pomeriggio il tetto è stato alzato a 0,55x, con il ragionamento "i suoi 28
-    // kg sono un numero forte, quindi il tetto deve stare sopra". E IL RAGIONAMENTO
-    // ERA SBAGLIATO PERCHE' I 28 kg NON ERANO 28: erano la metà. Ste lo ha detto
-    // ("i 28kg del reverse fly sono doppia carrucola lo sai no?") e aveva ragione:
-    // l'app non divideva a metà, perché sull'esercizio c'era la parola "One Arm" e
-    // la regola del monobraccio (vedi `curve.js`) toglieva il dimezzamento solo ai
-    // CAVI, che sono gli unici casi in cui serve.
-    //
-    // QUINDI IL TETTO TORNA A 0,37x, che era il numero giusto fin dall'inizio, e i
-    // suoi 28 kg letti valgono 14 kg reali per lato: il 55% della scala, che è un
-    // livello serio con spazio davanti.
-    //
-    // LA REGOLA, scritta due volte perché è quella che mi ha fatto sbagliare:
-    //  - un numero di modello vale finché non contraddice una prestazione vera;
-    //  - e una prestazione si guarda DOPO che il carico è stato corretto, non prima.
-    //    Guardando 28 kg che in realtà erano 14 si è "corretto" un numero che era
-    //    giusto, portando il tetto fuori posto e poi bisognando riportarlo indietro.
-    multiplo: 0.37, ingressoMultiplo: 0.08, fonte: 'meccanica',
-    nota: 'Reverse fly al cavo, PER LATO: tetto 0,37x, ingresso 0,08x. Il numero viene dalla meccanica: il deltoide posteriore è più piccolo del laterale (12,3 contro 13,7 cm2) e ha il braccio di leva peggiore (19,6 contro 18,1), quindi regge l\'83% di quello dell\'alzata laterale, cioè 0,45 × 0,83 = 0,37x. ATTENZIONE AL CARICO: i 28 kg che Ste scrive sono su DOPPIA CARRUCOLA, quindi sono 28 in totale sui due cavi e 14 per lato. I 14 kg reali stanno al 55% della scala. Il tetto è passato per 0,55x perché sembrava che i suoi 28 kg fossero stati messi al 113% del tetto, ma erano un errore di dimezzatura e non un tetto sbagliato: correggere il tetto invece del carico portava il numero fuori posto. L\'ingresso è un quinto del tetto come sull\'alzata laterale.',
+    multiplo: 0.3, ingressoMultiplo: 0.08, fonte: 'riferimento',
+    nota: 'Reverse fly al cavo, PER LATO: tetto 0,30x, ingresso 0,08x. Viene dalla meccanica, dal confronto con l\'alzata laterale che è l\'unico confronto lecito (stessa spalla, stessa tensione specifica): sezione 12,3 cm2 su leva 19,6 contro 13,7 su 18,08, rapporto 0,83. Un filo PIU\' BASSO del tetto dell\'alzata laterale perché il deltoide posteriore è più piccolo e ha il braccio di leva peggiore; i gomiti piegati avvicinano il peso alla spalla, ma non abbastanza da compensare. Il tetto è 0,30x perché l\'alzata laterale è stata riportata a 0,36x: prima era 0,45x e dava 31 kg per lato, che è un numero che nessuno fa su un braccio solo, e il reverse fly lo ereditava (0,45 × 0,83 = 0,37). Ora il tetto è 20,6 kg per lato, nella stessa banda degli altri isolamenti al cavo, e i 28 kg letti di Ste (14 sentiti per lato) stanno al 68%. ATTENZIONE AL CARICO: i 28 kg sono su DOPPIA CARRUCOLA, quindi sono 28 in totale sui due cavi e 14 per lato; Ste lo ha confermato. L\'ingresso è 0,08x, circa 5,5 kg per lato, un quarto del tetto: dove mette le mani chi comincia.',
   },
   bicipiti: {
     multiplo: 0.7, ingressoMultiplo: 0.26, fonte: 'tuo',
