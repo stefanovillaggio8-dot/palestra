@@ -634,3 +634,185 @@ test('V21. nessun esercizio di Ste puo\' stare AL TETTO della propria scala', ()
     'nessuna prestazione documentata puo\' stare al tetto della propria scala:\n  '
     + problemi.join('\n  '));
 });
+
+test('V22. le leve: il conto torna e i numeri non sono nonsense', async () => {
+  const L = await import('../src/rank-v2/leva.js');
+  const PESO = 66;
+
+  // 1) OGNI movimento della tabella ha tutto quello che serve. Una riga con un
+  //    braccio di leva a zero fa divisione per zero e restituisce NaN, che poi
+  //    si propaga in un tetto: è il tipo di numero che non si vede e non dice niente.
+  for (const [nome, l] of Object.entries(L.LEVE)) {
+    assert.ok(l.muscoli && Object.keys(l.muscoli).length > 0,
+      `${nome}: non ha nessun muscolo`);
+    assert.ok(l.dMuscolo > 0, `${nome}: il braccio del muscolo deve essere positivo`);
+    assert.ok(l.dMuscolo < 15,
+      `${nome}: braccio del muscolo di ${l.dMuscolo} cm, che non esiste su nessun corpo`);
+    assert.ok(l.nota && l.nota.length > 30, `${nome}: la nota spiega il movimento`);
+    assert.ok(l.unita, `${nome}: non dice a cosa sono riferiti i kg`);
+    for (const muscolo of Object.keys(l.muscoli)) {
+      assert.ok(L.MUSCOLI[muscolo], `${nome}: il muscolo "${muscolo}" non esiste`);
+      const q = l.muscoli[muscolo];
+      assert.ok(q > 0 && q <= 1, `${nome}: ${muscolo} partecipa al ${q}, che non è una quota`);
+    }
+    // le quote non devono superare 1: se sommano più di 1 il conto gonfia il
+    // numero senza che nessuno se ne accorga
+    const somma = Object.values(l.muscoli).reduce((a, b) => a + b, 0);
+    assert.ok(Math.abs(somma - 1) < 0.01,
+      `${nome}: le quote dei muscoli sommano ${somma.toFixed(2)}, non 1`);
+  }
+
+  // 2) il braccio del carico è sempre risolvibile in centimetri
+  for (const nome of Object.keys(L.LEVE)) {
+    const d = L.braccioDelCarico(L.LEVE[nome].dCarico, { pesoCorporeo: PESO });
+    assert.ok(Number.isFinite(d) && d > 0, `${nome}: il braccio del carico non si risolve`);
+    assert.ok(d <= 100, `${nome}: braccio del carico di ${d} cm, troppo lungo per un braccio`);
+  }
+
+  // 3) L'AVAMBRACCIO È METÀ DEL BRACCIO, e questa è la lezione del modello.
+  //    Sull'alzata laterale il peso sta a 70 cm dalla spalla, sul curl sta a 35
+  //    dal gomito: sbagliare questo dimezza il carico massimo e abbassa il tetto
+  //    di un Rank intero su tutti i movimenti del braccio insieme.
+  const braccio = L.lunghezzaBraccioStimata(PESO);
+  assert.equal(L.braccioDelCarico('braccio', { pesoCorporeo: PESO }), braccio);
+  assert.equal(L.braccioDelCarico('avambraccio', { pesoCorporeo: PESO }),
+    Math.round(braccio * 0.5 * 10) / 10);
+  assert.ok(L.LEVE.spalle_isolamento.dCarico === 'braccio',
+    'l\'alzata laterale pesa sulla spalla: il braccio del carico è tutto il braccio');
+  assert.ok(L.LEVE.bicipiti.dCarico === 'avambraccio',
+    'il curl pesa sul gomito: il braccio del carico è solo l\'avambraccio');
+
+// 4) L'ALZATA LATERALE È LA PEGGIORE SPALLA. È la cosa che il codice esterno
+  //    diceva e che da noi era solo una soglia bassa senza spiegazione: il peso a
+  //    70 cm dalla spalla e il deltoide che tira da meno di 4 cm, quindi il muscolo
+  //    deve fare una forza 18 volte il peso.
+  const levaLaterale = L.gradoSvantaggio('spalle_isolamento', { pesoCorporeo: PESO });
+  assert.ok(levaLaterale > 15,
+    `l\'alzata laterale deve avere una leva fortissima, trovata ${levaLaterale}`);
+  const levaPanca = L.gradoSvantaggio('spinta_orizzontale', { pesoCorporeo: PESO });
+  assert.ok(levaLaterale > levaPanca,
+    `e molto peggio della panca: ${levaLaterale} contro ${levaPanca}`);
+
+  // IL CONFRONTO CHE CONTA, e che non è quello del braccio di leva da solo. La leva
+  // dice "quante volte il muscolo deve tirare il peso", ma da sola non dice niente
+  // se non si guarda ANCHE quanto muscolo c'è: un movimento con leva peggiore ma
+  // sezione doppia è più facile di un altro con leva migliore e sezione piccola.
+  //
+  // Su 12 kg di alzata laterale il deltoide deve tirare 12 x 18 = 216 kg-equivalente
+  // su 13,7 cm2 di muscolo: 15,8 kg per cm2. Sulla panca, sugli stessi kg, il petto
+  // e i suoi aiutanti tirano 12 x 11 = 132 kg-equivalente su 28,8 cm2: 4,6 kg per
+  // cm2. Quindi a parità di kg l'alzata laterale chiede TRE VOLTE TANTO sforzo per
+  // ogni centimetro di muscolo, che è il motivo per cui 10 kg li' sono più duri di
+  // 30 kg in panca.
+  const richiesta = (movimento, kg) => {
+    const leva = L.gradoSvantaggio(movimento, { pesoCorporeo: PESO });
+    const sez = L.sezioneCheLavora(movimento);
+    return (kg * leva) / sez;
+  };
+  const laterale = richiesta('spalle_isolamento', 12);
+  const panca = richiesta('spinta_orizzontale', 12);
+  assert.ok(laterale > panca * 2,
+    `a parita' di kg l'alzata laterale deve chiedere molto piu' sforzo per ogni `
+    + `cm2 di muscolo: ${laterale.toFixed(1)} contro ${panca.toFixed(1)}`);
+
+  // E IL POLSO È IL PEGGIORE IN ASSOLUTO: braccio di leva 1,2 cm. Quindi nessun
+  // esercizio del corpo chiede uno sforzo per muscolo paragonabile.
+  const levaPolso = L.gradoSvantaggio('polso', { pesoCorporeo: PESO });
+  assert.ok(levaPolso > levaLaterale,
+    `il flexore del polso ha la leva peggiore di tutto il corpo: ${levaPolso} `
+    + `contro ${levaLaterale} dell'alzata laterale`);
+
+// 5) la sezione che lavora dice la cosa giusta sul muscolo, e SOLO sul muscolo.
+  //
+  // QUI C'È UNA TRAPPOLA, ed è il motivo per cui questo modello non scrive i
+  // tetti. La sezione del quadricipite vale 78 cm² per ENTRAMBE le gambe, ma il
+  // leg extension è su una gamba sola e la leg press su due: quindi "chi ha più
+  // sezione" e "chi sposta più kg" non sono la stessa domanda. Le convenzioni
+  // ("per gamba", "per braccio", "per lato", "totali al cavo") trasformano la
+  // stessa coppia in kg diversi, e metterci dentro un fattore significa inventare.
+  //
+  // Quindi qui si controlla solo l'ordine di grandezza del MUSCOLO, che è la cosa
+  // che non dipende dalla convenzione.
+  const sezioni = Object.keys(L.LEVE).map((m) => L.sezioneCheLavora(m));
+  assert.ok(L.sezioneCheLavora('spalle_isolamento') < L.sezioneCheLavora('spinta_orizzontale'),
+    'l\'alzata laterale ha un muscolo molto più piccolo della panca');
+  assert.ok(L.sezioneCheLavora('polso') < L.sezioneCheLavora('gambe_isolamento'),
+    'i flessori del polso sono il muscolo più piccolo del corpo');
+  assert.ok(Math.max(...sezioni) > L.sezioneCheLavora('polso') * 8,
+    'e la leg press lavora con una sezione che è un ordine di grandezza più grande '
+    + 'del flexore del polso');
+  // la sezione è sempre realistica: nessun numero inventato, tutto fra 1 e 200 cm²
+  for (const [nome, sez] of Object.entries(L.MUSCOLI)) {
+    assert.ok(sez.csa > 1 && sez.csa < 200,
+      `${nome}: sezione di ${sez.csa} cm², che non è un numero possibile`);
+  }
+});
+
+test('V23. i due curl sulla stessa scala: la meccanica dice gia\' che sono diversi', async () => {
+  const L = await import('../src/rank-v2/leva.js');
+  const valori = await import('../src/rank-v2/valori.js');
+  const PESO = 66;
+
+  // Il caso che gia' funziona, e serve a sapere che il modello non sta solo
+  // dicendo "tutto storto". Curl al cavo e curl sulla panca Scott sono lo stesso
+  // muscolo, quindi la tensione specifica e' la stessa e si cancella: qui il
+  // confronto e' lecito.
+  const cavo = L.caricoMeccanico('bicipiti', { pesoCorporeo: PESO });
+  const scott = L.caricoMeccanico('bicipiti_panca', { pesoCorporeo: PESO });
+  const meccanico = cavo / scott;
+  const dichiarato = valori.VALORI_MOVIMENTO.bicipiti.multiplo
+    / valori.VALORI_MOVIMENTO.bicipiti_panca.multiplo;
+  assert.ok(Math.abs(meccanico - dichiarato) / dichiarato < 0.12,
+    `sulla panca Scott il bicipite ha il braccio peggiore, e i due numeri devono`
+    + ` dirlo: meccanica ${meccanico.toFixed(2)} contro numeri ${dichiarato.toFixed(2)}`);
+
+  // E il caso che NON funziona: le estensioni sopra la testa finiscono sulla
+  // scala del pushdown. E' l'unico disaccordo che il controllo trova, e per
+  // Ste e' una domanda che puo' rispondere guardando quanto sono piu' dure.
+  const disaccordi = L.scaleDaSeparare(valori.VALORI_MOVIMENTO, { pesoCorporeo: PESO });
+  const sopra = disaccordi.find((d) => d.movimento === 'tricipiti_sopra');
+  assert.ok(sopra,
+    'le estensioni sopra la testa dovrebbero stare su una scala loro: oggi '
+    + 'condividono quella del pushdown');
+  assert.ok(sopra.differenza >= 30,
+    `e la meccanica dice che reggono almeno il 30% in meno: ${sopra.differenza}%`);
+  // il verso deve essere quello giusto: SOPRA la testa e' la piu' dura
+  assert.equal(sopra.piuDifficile, 'tricipiti_sopra',
+    'sopra la testa il braccio di leva e\' il peggiore del corpo, non il migliore');
+
+  // e nessun falso positivo: i polpacci hanno gia' due varianti nella tabella
+  // dei valori, quindi non devono essere segnalati come se non fossero distinti
+  assert.ok(!disaccordi.some((d) => d.movimento.startsWith('polpacci')),
+    'i polpacci su carrello e su pressa sono gia\' distinti: non sono un disaccordo');
+});
+
+test('V24. il controllo delle leve NON sposta mai un Rank', async () => {
+  // La regola che Ste ha messo il 15/10/2026 e che vale anche per quello che
+  // viene dopo: le leve dicono COME stanno le cose, non decidono. Un modello che
+  // ti scrive il tetto da solo ti restituisce la precisione che non hai (la
+  // tensione specifica varia di un fattore 2 fra il quadricipite e il flessore
+  // del polso) e ti fa perdere i numeri che hai guardato e approvato.
+  const L = await import('../src/rank-v2/leva.js');
+  const valori = await import('../src/rank-v2/valori.js');
+  const v2 = await import('../src/rank-v2/index.js');
+  const { ESERCIZI } = await import('../src/dati-iniziali.js');
+
+  // la funzione non deve scrivere nei valori, e non deve avere un parametro che
+  // lo faccia: il controllo è di sola lettura
+  assert.equal(typeof L.leVerifiche, 'function');
+  assert.equal(typeof L.scaleDaSeparare, 'function');
+  assert.ok(!('applica' in L) && !('aggiorna' in L) && !('scrivi' in L),
+    'il modulo delle leve non deve avere una via per scrivere i valori');
+
+  // e il Rank di ogni esercizio deve restare quello che è, anche chiamando il
+  // controllo prima: nessuno stato nascosto che cambi il risultato
+  const chest = ESERCIZI.find((e) => e.id === 'ex-chest-press');
+  const serie = [{ id: 's', esercizio_id: chest.id, peso: 37, ripetizioni: 8, stato: 'fatta' }];
+  const prima = v2.valutaEsercizio({ esercizio: chest, pesoCorporeo: 66, serie });
+  L.leVerifiche(valori.VALORI_MOVIMENTO, { pesoCorporeo: 66 });
+  L.scaleDaSeparare(valori.VALORI_MOVIMENTO, { pesoCorporeo: 66 });
+  const dopo = v2.valutaEsercizio({ esercizio: chest, pesoCorporeo: 66, serie });
+  assert.equal(dopo.score, prima.score, 'il controllo delle leve non può toccare il punteggio');
+  assert.equal(dopo.vertice, prima.vertice, 'né il tetto');
+  assert.deepEqual(dopo.soglie, prima.soglie, 'né le soglie');
+});

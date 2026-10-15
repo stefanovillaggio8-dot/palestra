@@ -366,9 +366,15 @@ export const MOVIMENTI = [
     parole: ['cable fly', 'cross over', 'crossover', 'crucifix', 'fly basso',
       'low cable fly', 'fly con i cavi'],
     // Il fly è l'unico caso in cui il gomito NON si stende: qui i tricipiti non
-    // lavorano quasi per niente, e non c'è motivo di accenderli. Resta solo la
-    // spalla davanti, che segue le braccia.
-    secondari: { spalle_frontali: 0.15 },
+    // lavorano quasi per niente, e non c'è motivo di accenderli.
+    //
+    // E NON C'È NEMMENO LA SPALLA DAVANTI, che fino al 15/10/2026 c'era a 0,15 e
+    // quindi si accendeva comunque (vedi la nota su `alzata_laterale`: un numero
+    // sotto la soglia si accende lo stesso, perché `anatomia` certifica i
+    // secondari veri). Sul fly la spalla anteriore segue le braccia ma non è un
+    // muscolo che il movimento allena, e accenderlo è esattamente l'errore che
+    // Ste ha segnalato guardando la figura.
+    secondari: {},
   },
   {
     id: 'spinta_verticale',
@@ -432,9 +438,17 @@ export const MOVIMENTI = [
     parole: ['tricep pushdown', 'pushdown', 'french press', 'skull', 'tricep extension',
       'tricep ext', 'estensioni sopra la testa', 'overhead extension', 'single arm tricep',
       'overhead tricep', 'tricipite', 'tricipiti'],
-    // La spalla dietra tiene il braccio fermo mentre il gomito si stende: lavora,
-    // ma è un ruolo di sostegno.
-    secondari: { spalle_posteriori: 0.15 },
+    // IL DELTOIDE POSTERIORE E' STATO TOLTO (15/10/2026). La spalla dietra tiene il
+    // braccio fermo mentre il gomito si stende: lavora un po', ma era messo a 0,15 e
+    // quindi si accendeva comunque (vedi la nota su `alzata_laterale`). Ste ha
+    // scritto che l'app evidenziava muscoli che non c'entrano, e il deltoide
+    // posteriore su un pushdown è esattamente uno di quelli.
+    //
+    // Nota: sul FRENCH PRESS e sullo SKULL CRUSHER il posteriore lavora sul serio,
+    // perché il braccio passa dietro la testa e lì il movimento è diverso dal
+    // pushdown. Se un domani si vuole distinguere, la via giusta è un movimento
+    // `estensione_gomito_alta` con la sua quota, non un numero più basso qui.
+    secondari: {},
   },
   {
     id: 'reverse_fly',
@@ -447,15 +461,29 @@ export const MOVIMENTI = [
     // principalmente". Quindi si accendono, ma all'ultima sfumatura: si vedono
     // appena e non si possono confondere col deltoide, che è quello che lavora.
     // Dietro, le scapole tirano: dorsale e trapezi sono i veri aiutanti.
-    secondari: { dorso_centrale: 0.5, dorso_alto: 0.15, spalla_gomito: 0.1 },
+    // IL TRAPEZIO E' STATO TOLTO (15/10/2026). C'era a 0,15 con la frase "sotto
+    // la soglia, quindi non si accende", e invece si accendeva: `anatomia` certifica
+    // un secondario come vero, e un certificato si accende sotto soglia. Ste ha
+    // scritto che l'app evidenziava muscoli che non c'entrano, e aveva ragione.
+    // Un numero che non si vede non serve a niente: o il muscolo lavora e ha una
+    // quota sua, o non si mette e se ne parla in una riga di commento come questa.
+    secondari: { dorso_centrale: 0.5, spalla_gomito: 0.1 },
   },
-  {
+{
     id: 'alzata_laterale',
     parole: ['lateral raise', 'side raise', 'alzata laterale', 'alzate laterali',
       'deltoide laterale'],
-    // L'esercizio più isolato di tutti sulle spalle: il trapezio solo sfiora.
-    // Resta registrato a 0.15, sotto la soglia, quindi non si accende.
-    secondari: { dorso_alto: 0.15 },
+    // NESSUN SECONDARIO, e fino al 15/10/2026 qui c'era il trapezio a 0,15 con
+    // la frase "sotto la soglia, quindi non si accende". Il codice diceva una cosa
+    // e faceva un'altra: `anatomia` certifica un muscolo come secondario VERO, e un
+    // certificato si accende anche sotto la soglia (vedi SOGLIA_SECONDARIO). Quindi
+    // il trapezio finiva dipinto sul cavo, e Ste guardando la scheda delle alzate
+    // laterali ha scritto che l'app "evidenzia muscoli che non c'entrano".
+    //
+    // Aveva ragione, ed è un numero che non serviva a niente: sotto la soglia non si
+    // vede, e se si vedesse sarebbe rumore. Se un giorno si volesse dire "qui il
+    // trapezio sfiora", quello è un-commento come questo, non una voce nella mappa.
+    secondari: {},
   },
   {
     id: 'stacco_gambe',

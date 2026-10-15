@@ -408,13 +408,33 @@ export function righeDaAccendere(acceso = null, livelli = null, anatomia = null)
   // "i dips non fanno anche i tricipiti?": non ha bisogno di superare la soglia,
   // che serve solo a tenere fuori il rumore delle parole.
   const certificato = (zona) => Boolean(anatomia && anatomia[zona] !== undefined);
+  const haQuota = (zona) => Boolean(livelli && zona in livelli);
 
   const righe = [];
-  const metti = (g, forzato) => {
+  // `soloQuelloCheLavora` serve per i SECONDARI, e la distinzione è importante.
+  //
+  // IL GRUPPO PRINCIPALE si disegna tutto: il pettorale è un pezzo solo e le sue
+  // fasce si accendono tutte, anche quelle che lavorano meno. È la regola che
+  // Ste ha scritto ("il dip qua segna tutto il petto che è giusto ma allena
+  // principalmente la parte bassa") e il test Z8b la controlla.
+  //
+  // I SECONDARI invece si disegnano SOLO dove lavorano davvero, e qui il 15/10/2026
+  // c'era un buco: il gruppo del deltoide ha due fasce (laterale e anteriore), e
+  // quando il secondario era solo la fascia anteriore, quella laterale veniva
+  // comunque disegnata sul viola più chiaro. Sul cable fly si vedeva quindi il
+  // deltoide LATERALE acceso, che quel movimento non tocca: esattamente
+  // l'app che "evidenzia muscoli che non c'entrano".
+  //
+  // E non è una sciocchezza visiva: il deltoide laterale è l'esercizio più
+  // pesante delle spalle, e accenderlo su una panca o su un fly racconta che
+  // l'esercizio è più difficile di quanto sia.
+  const metti = (g, forzato, soloQuelloCheLavora) => {
     for (const zona of RITAGLI[g].zone) {
       let quota = 0;
       if (zona === forzato && g === gruppo) quota = 1;
-      else if (livelli && zona in livelli) quota = livelli[zona];
+      else if (haQuota(zona)) quota = livelli[zona];
+      // una fascia di un secondario che non ha nessuna quota non si accende
+      if (soloQuelloCheLavora && quota === 0) continue;
       righe.push({
         gruppo: g,
         zona,
@@ -423,7 +443,7 @@ export function righeDaAccendere(acceso = null, livelli = null, anatomia = null)
       });
     }
   };
-  metti(gruppo, acceso);
+  metti(gruppo, acceso, false);
 
   // I secondari: raggruppati per muscolo, e per ognuno il pezzo migliore è
   // quello che l'esercizio nomina di più.
@@ -433,10 +453,11 @@ export function righeDaAccendere(acceso = null, livelli = null, anatomia = null)
     if (!g || g === gruppo) continue;
     if (livelli[zona] >= SOGLIA_SECONDARIO || certificato(zona)) altri.add(g);
   }
-  for (const g of altri) {
-    const nominate = RITAGLI[g].zone.filter((z) => livelli[z] > 0)
+for (const g of altri) {
+    const nominate = RITAGLI[g].zone.filter((z) => (livelli || {})[z] > 0)
       .sort((a, b) => livelli[b] - livelli[a]);
-    metti(g, nominate[0]);
+    // i secondari si accendono solo dove lavorano: vedi la nota su `metti`
+    metti(g, nominate[0], true);
   }
 
   // dalla più chiara alla più piena: quella che lavora di più viene per ultima

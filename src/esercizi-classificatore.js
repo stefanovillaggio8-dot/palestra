@@ -137,12 +137,33 @@ const MOVIMENTI = [
     id: 'polso', livello: 'isolamento', gruppo: 'avambraccio',
     parole: ['wrist curl', 'polso', 'wrist', 'avambraccio', 'flexor'],
   },
+{
+    // IL DELTOIDE POSTERIORE, il reverse fly. È un movimento SUO dal 15/10/2026.
+    //
+    // IL BUG CHE HA FATTO ACCORGERSENE. Nella lista sotto ("petto_isolamento") c'è
+    // la parola "fly" da sola, quindi "One Arm Cable Reverse Fly" finiva sul PETTO:
+    // il suo 15 kg venivano giudicati sulla scala del cable fly (tetto 0,4x) invece
+    // che su quella del deltoide posteriore. Intanto l'altra metà dell'app, quella
+    // che disegna il muscolo, diceva giusto: il reverse fly accendeva il deltoide
+    // dietro. Due metà dell'app che dicevano due cose diverse sullo stesso
+    // esercizio, ed è la stessa lezione che si era già imparata sul bench pull
+    // l'08/10/2026 (vedi sotto).
+    //
+    // Sta PRIMA di "petto_isolamento" e anche prima di "spalle_isolamento", perché
+    // "rear delt" e "reverse fly" sono le sue parole: se restassero sotto le
+    // spalle laterali andrebbero a finire sulla scala dell'alzata laterale, che è
+    // un muscolo diverso.
+    id: 'spalle_posteriori', livello: 'isolamento', gruppo: 'spalle',
+    parole: ['reverse fly', 'rear delt', 'rear deltoid', 'reverse pec', 'pec deck',
+      'pecorino a', 'delt posteriori', 'tirate a braccia aperte'],
+  },
   {
     id: 'spalle_isolamento', livello: 'isolamento', gruppo: 'spalle',
-    // NOTA: qui NON cÈ "shrug". Lo scrollamento del trapezio È una tirata con
+    // NOTA: qui NON c'è "shrug". Lo scrollamento del trapezio è una tirata con
     // pesi, non un isolamento: sta fra le tirate (vedi tirata_orizzontale).
+    // E NON c'è "rear delt": dal 15/10/2026 sta sopra, sul suo movimento.
     parole: ['lateral raise', 'alzata laterale', 'alzate laterali', 'raise laterale',
-      'side raise', 'rear delt', 'rear deltoid', 'spalle laterali', 'delt raise',
+      'side raise', 'spalle laterali', 'delt raise',
       'front raise', 'spalle a Y'],
   },
   {

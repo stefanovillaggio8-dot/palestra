@@ -674,3 +674,94 @@ test('Z9. il ritaglio è un SVG valido, o il muscolo non si accende', () => {
   assert.notEqual(id1, id2,
     'due figure hanno lo stesso id di ritaglio: la seconda mostrerebbe il muscolo della prima');
 });
+
+test('Z14. niente muscoli accenti che non lavorano, e niente secondari fantasma', () => {
+  // Ste (15/10/2026), guardando le schede: "il coso che disegna i muscoli evidenzia
+  // anche muscoli che non c'entrano e in alcuni esercizi evidenzia piu' forte parti
+  // che non sono i principali muscoli di quell'esercizio".
+  //
+  // Erano due difetti, e qui sotto sono chiusi uno per uno.
+  //
+  // IL PRIMO: nella mappa dei movimenti c'erano muscoli messi a 0,15 con la frase
+  // "sotto la soglia, quindi non si accende". Il codice diceva una cosa e ne faceva
+  // un'altra: `anatomia` certifica un secondario come VERO, e un certificato si
+  // accende anche sotto soglia (vedi SOGLIA_SECONDARIO). Quindi il trapezio finiva
+  // dipinto sulle alzate laterali e il deltoide posteriore sui pushdown. La frase
+  // nel commento era quella giusta, il numero no: un secondario o ha una quota sua
+  // e si vede, o non si mette.
+
+  const NIENTE = [
+    ['Cable Lateral Raise', 'trapezio'],
+    ['Dumbbell Lateral Raise', 'trapezio'],
+    ['Single Arm Tricep Pushdown', 'deltoide_posteriore'],
+    ['Cable Overhead Tricep Extension', 'deltoide_posteriore'],
+    ['Bodyweight Overhead Tricep Extension', 'deltoide_posteriore'],
+    ['Cable Fly', 'deltoide_fronte'],
+  ];
+  for (const [nome, gruppo] of NIENTE) {
+    const r = parteDiMuscolo({ nome });
+    assert.ok(r.trovata, nome + ': esercizio non riconosciuto');
+    assert.ok(!gruppiAccesi(figurino(r.parte, r.livelli, r.anatomia)).has(gruppo),
+      nome + ': ha acceso ' + gruppo + ', che non è un muscolo di quell\'esercizio');
+  }
+
+  // IL SECONDO: il gruppo del deltoide è fatto di due fasce (laterale e anteriore),
+  // e quando il secondario era solo la fascia anteriore, quella laterale veniva
+  // comunque disegnata sul viola più chiaro. Sul cable fly si vedeva il deltoide
+  // LATERALE acceso, che quel movimento non tocca.
+  //
+  // Non è una sciocchezza visiva: il deltoide laterale è l'esercizio più pesante
+  // delle spalle, e accenderlo su una panca racconta che la panca è più difficile
+  // di quanto sia. Quindi: un secondario si disegna SOLO nelle fasce che lavorano.
+  const petto = parteDiMuscolo({ nome: 'Chest Press' });
+  const svgPanca = figurino(petto.parte, petto.livelli, petto.anatomia);
+  assert.ok(disegnato(svgPanca, RITAGLI.deltoide_fronte.bande.spalle_frontali[0]),
+    'la panca accende il deltoide ANTERIORE, che è quello che spinge in avanti');
+  assert.ok(!disegnato(svgPanca, RITAGLI.deltoide_fronte.bande.spalle_laterali[0]),
+    'ma NON il deltoide laterale: sulla panca non lavora, e accenderlo dice che '
+    + 'l\'esercizio è più difficile di quanto sia');
+
+  // E LA REGOLA OPPOSTA DEVE RESTARE: il gruppo PRINCIPALE si disegna tutto, anche
+  // le fasce che lavorano meno. È quello che Ste aveva chiesto per i dip ("segna
+  // tutto il petto che è giusto ma allena principalmente la parte bassa"), e qui
+  // non deve perdersi mentre si sistema il resto.
+  const laterale = parteDiMuscolo({ nome: 'Dumbbell Lateral Raise' });
+  const svgLaterale = figurino(laterale.parte, laterale.livelli, laterale.anatomia);
+  assert.ok(disegnato(svgLaterale, RITAGLI.deltoide_fronte.bande.spalle_laterali[0]),
+    'l\'alzata laterale accende il deltoide laterale, che è il suo muscolo');
+  assert.ok(disegnato(svgLaterale, RITAGLI.deltoide_fronte.bande.spalle_frontali[0]),
+    'e anche l\'anteriore dello stesso gruppo: sono un muscolo solo nella foto, e '
+    + 'accenderne metà sembrerebbe un buco');
+  const dips = parteDiMuscolo({ nome: 'Dips' });
+  const svgDips = figurino(dips.parte, dips.livelli, dips.anatomia);
+  for (const zona of ['petto_alto', 'petto_centrale', 'petto_basso']) {
+    assert.ok(disegnato(svgDips, RITAGLI.petto.bande[zona][0]),
+      'sui dip si accende tutto il petto (' + zona + '), non solo la parte bassa');
+  }
+
+  // INFINE LA PARTE SCRITTA. La scheda dice "LAVORA ANCHE", e se ci mette un muscolo
+  // che sulla figura non si vede, il testo mente sul disegno.
+  for (const e of CATALOGO) {
+    const r = parteDiMuscolo({ nome: e.nome, descrizione: e.nota_permanente || '' });
+    if (!r.trovata) continue;
+    const accesi = gruppiAccesi(figurino(r.parte, r.livelli, r.anatomia));
+    const accese = righeDaAccendere(r.parte, r.livelli, r.anatomia)
+      .filter((x) => x.opacita > 0);
+    for (const nome of (r.anche || [])) {
+      const pezzo = PARTI.find((p) => p.parte === nome);
+      assert.ok(pezzo, e.nome + ': "anche ' + nome + '" non è un pezzo che l\'app conosce');
+      const gruppo = gruppoDiParte(pezzo.id);
+      if (gruppo === gruppoDiParte(r.parte)) continue;
+      assert.ok(accesi.has(gruppo),
+        e.nome + ': la scheda scrive "lavora anche ' + nome + '" ma sulla figura '
+        + 'quel muscolo non si vede');
+    }
+    // e il viceversa: niente muscoli accesi che la scheda non nomini, cosi' la
+    // riga e il disegno dicono la stessa cosa
+    for (const g of accesi) {
+      if (g === gruppoDiParte(r.parte)) continue;
+      const dentro = accese.some((x) => x.gruppo === g);
+      assert.ok(dentro, e.nome + ': sulla figura c\'è ' + g + ' ma nessuna riga dice che cosa sia');
+    }
+  }
+});

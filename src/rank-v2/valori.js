@@ -304,6 +304,37 @@ export const VALORI_MOVIMENTO = {
     multiplo: 0.45, ingressoMultiplo: 0.10, fonte: 'tuo',
     nota: 'Alzate laterali al cavo con doppia carrucola, PER LATO. Tetto 0,45x e ingresso 0,12x, ragionati sui numeri veri di palestra: le alzate laterali sono l\'esercizio col peso pi\' basso in assoluto (5-10 kg per lato coi manubri, 10-25 per lato al cavo doppio). Il vecchio sistema diceva 13 kg TOTALI e regalava l\'OLYMPIAN. Ste fa 25 kg letti = 12,5 per lato = 0,19x: e\' gia\' un livello decente, e sta a cavallo dell\'ingresso come deve stare chi ha un anno di palestra.',
   },
+  // IL DELTOIDE POSTERIORE, che fino al 15/10/2026 non aveva una scala sua (15/10/2026).
+  //
+  // IL BUG: il reverse fly finiva dentro "petto_isolamento", perche' in quella lista
+  // c'e' la parola "fly" da sola. Quindi i 15 kg di Ste venivano giudicati sulla
+  // scala del CABLE FLY, che e' un esercizio diverso: lo stesso numero letto su una
+  // macchina diversa, e il Rank usciva da un tetto sbagliato. Intanto la mappa dei
+  // muscoli diceva gia' deltoide posteriore, quindi l'app si contraddiceva da sola.
+  //
+  // IL NUMERO QUI NON E' UNA SCELTA A CASO, e la ragione e' scritta. Il reverse fly
+  // e' sulla stessa spalla dell'alzata laterale, quindi e' lo stesso tipo di muscolo
+  // e la tensione specifica e' la stessa: il confronto fra i due e' l'unico che si
+  // puo' fare con la meccanica senza inventare niente. Da `leva.js`:
+  //
+  //   alzata laterale   sezione 13,7 cm2 / leva 18,1 = 0,758
+  //   reverse fly       sezione 12,3 cm2 / leva 19,6 = 0,626
+  //   rapporto 0,626 / 0,758 = 0,83
+  //
+  // Il tetto del reverse fly e' quindi 0,45x dell'alzata laterale per 0,83 = 0,37x.
+  //
+  // E' un filo PIU' BASSO del tetto dell'alzata laterale anche se il muscolo lavora
+  // un po' meglio, perche' e' piu' piccolo e ha il braccio di leva piu' corto: i
+  // gomiti piegati lo avvicinano alla spalla, ma non abbastanza da compensare.
+  //
+  // L'ingresso tiene la stessa proporzione dell'alzata laterale (0,10 su 0,45,
+  // cioe' un quarto del tetto), quindi 0,08. E resta basso apposta: chi pesa di piu'
+  // di Ste, con gli stessi kg per lato, non deve trovarsi sotto il primo livello
+  // (vedi la nota lunga di `bicipiti_panca`).
+  spalle_posteriori: {
+    multiplo: 0.37, ingressoMultiplo: 0.08, fonte: 'meccanica',
+    nota: 'Reverse fly al cavo, PER LATO. Tetto 0,37x, non 0,4x come aveva per errore quando finiva sul petto. Il numero viene dalla meccanica, non dagli occhi: il deltoide posteriore e\' piu\' piccolo del laterale (12,3 contro 13,7 cm2) e ha il braccio di leva piu\' corto (19,6 contro 18,1: peggiore), quindi regge l\'83% di quello dell\'alzata laterale, cioe\' 0,37x invece di 0,45x. I gomiti piegati avvicinano il peso alla spalla rispetto all\'alzata laterale, e per questo il tetto non e\' piu\' basso di quanto sembrerebbe dal solo muscolo. L\'ingresso e\' un quarto del tetto come sull\'alzata laterale.',
+  },
   bicipiti: {
     multiplo: 0.7, ingressoMultiplo: 0.26, fonte: 'tuo',
     nota: 'Curl al cavo con doppia carrucola e curl coi manubri, PER LATO. Ste (08/10/2026): "come puo\' una persona fare tipo 50 kg di hammer curl?" — 50 NON SONO 50 PER BRACCIO. Con la doppia carrucola leggi 50 kg in totale sui due cavi, quindi ne fai 25 per braccio: 0,38x il corpo per lato, un numero normalissimo. Il tetto 0,7x per lato (= 0,6 kg per braccio su corpo 60) e\' il livello di un bicipite molto allenato: per questo il suo 25 kg sta nella meta\' bassa della scala e non al 19% di prima.',
