@@ -1,4 +1,4 @@
-// mappa-muscoli.js -- l'omino che dice DOVE lavori.
+// mappa-muscoli.js -- l'omino che dice DOVE e QUANTO lavori.
 //
 // Ste (13/10/2026), tre volte sulla stessa figura:
 //  1. "voglio che spunti questo omino con il muscolo allenato colorato di viola";
@@ -7,6 +7,10 @@
 //  3. "e' veramente brutto, non puoi copiare la foto da download e incollarla?
 //     pero' deve ovviamente avere colorati solo i muscoli allenanti" e poi
 //     "lo sfondo deve avere lo stesso colore dell'app".
+// E poi (15/10/2026) il quarto punto, quello sulla FORZA del colore:
+//  4. "la parte che lavora di più deve essere più evidenziata, la parte che
+//     lavora di meno deve essere evidenziata più chiara. tipo il dip qua segna
+//     tutto il petto che e' giusto ma allena principalmente la parte bassa".
 //
 // COSA C'E' QUI ADESSO
 //
@@ -20,10 +24,39 @@
 // di quel muscolo: e' un'immagine sola che l'app ritaglia, quindi sul telefono
 // resta leggera.
 //
+// LA GRADAZIONE (punto 4 di Ste)
+// Un pettorale tutto viola di uguale dice "qui si lavora", ma non dice quanto.
+// Sui DIP il peso arriva al capo sternale, quello in basso, e dipingere tutto
+// il petto uguale e' come dire che si lavora più il capo clavicolare: e'
+// falso. Quindi ogni zona ha una sua intensita', e la più debole e' un viola
+// chiarissimo.
+//
+// L'intensita' non e' un numero inventato qui dentro: arriva da
+// muscoli-parti.js, che già conta quante volte un esercizio parla di ogni
+// pezzo. Noi prendiamo quella classifica e la traduciamo in quattro livelli.
+//
+// E LA SFUMATURA SI FA CON L'OPACITA' DELLA STESSA IMMAGINE, non con quattro
+// immagini diverse: sopra il muscolo spento, il viola al 100% e' pieno, al 20%
+// e' appena accennato. Un file in meno da scaricare e la figura resta leggera
+// sul telefono.
+//
 // I RITAGLI sono le sagome qui sotto, in coordinate della foto. Sono volutamente
 // un po' larghi: quello che fa il bordo preciso e' il ritaglio dell'immagine,
 // non il poligono. Se il poligono e' un filo troppo stretto, il muscolo sparisce
 // e sembra un bug.
+//
+// I PEZZI CHE SI ASSOMIGLIANO SONO UNITI, MA NON UGUALI
+// Ste (13/10/2026): "i muscoli formati da più parti muscolari falli uniti,
+// come nella foto". Nella foto il pettorale e' un pezzo solo. Però il pettorale
+// non e' fatto tutto uguale: ha il capo clavicolare in alto e quello sternale in
+// basso, e un dip non li tratta uguale. Quindi la sagoma viene TAGLIATA in fasce
+// che si toccano e si ricompongono: da lontano e' un pettorale solo, come
+// vuole Ste, e da vicino si vede che la parte bassa lavora di più.
+//
+// Le fasce non sono scritte a mano: sono tagliate dal codice lungo la sagoma
+// originale, quindi non possono sporgere, non possono lasciare buchi e non
+// possono sbagliare un pixel. Come il lato destro, che e' calcolato specchiando
+// il sinistro invece di essere scritto due volte.
 //
 // UN TESTO PER L'ANATOMIA, e non uno qualsiasi:
 //  - i tricipiti stanno DIETRO: davanti al braccio non si vedono, e metterli
@@ -36,98 +69,259 @@ export const FOTO_L = 809;
 export const FOTO_A = 825;
 
 // La linea centrale di ogni figura: serve a specchiare il sinistro sul destro.
-const CENTRO_FRONT = 162;
-const CENTRO_RETRO = 577;
-
-// LA REGOLA: ogni gruppo si scrive SOLO a sinistra, e il destro nasce
-// specchiandolo sulla linea centrale della figura.
-//
-// Prima scrivevo i due lati a mano e sono finiti sbagliati: un punto del petto
-// destro era di 6 pixel fuori dal suo compagno, e a occhio non si vedeva
-// niente. Se il destro è calcolato, non può sbagliarsi: il test Z6 lo controlla.
-//
-// Un pezzo solo e centrato (addome, trapezio, romboidi) si scrive una volta
-// sola e non viene specchiato.
-
 const CENTRI = { fronte: 162, retro: 577 };
 
-/** Costruisce un gruppo scritto a sinistra, aggiungendo il destro specchiato. */
-function aSinistra(nome, pezzi, extra) {
-  const specchiati = pezzi.map((pol) => pol.map(([x, y]) => [2 * CENTRI[extra.vista] - x, y]));
-  return { vista: extra.vista, nome: extra.nome, pezzi: [...pezzi, ...specchiati] };
+// LE QUATTRO INTENSITA'.
+//
+// La più debole (0.2) non e' spenta: e' il viola "appena accennato" che dice
+// "qui si passa, ma il lavoro vero e' un altro". Ste: "la parte che lavora di
+// meno deve essere evidenziata più chiara".
+export const LIVELLI = [0.2, 0.42, 0.66, 1];
+
+/** La sfumatura giusta per una quota di lavoro (da 0 a 1). */
+export function livelloDiQuota(quota) {
+  const q = Math.max(0, Math.min(1, Number(quota) || 0));
+  if (q >= 0.75) return LIVELLI[3];
+  if (q >= 0.4) return LIVELLI[2];
+  if (q >= 0.12) return LIVELLI[1];
+  return LIVELLI[0];
 }
 
-/** Un gruppo che sta al centro: si scrive una volta sola. */
-function centrato(nome, pezzo, extra) {
-  return { vista: extra.vista, nome: extra.nome, centro: true, pezzi: [pezzo] };
-}
-
-/** Il ritaglio di ogni gruppo, in coordinate della foto. */
-export const RITAGLI = {
+/**
+ * Le SAGOME: la forma di ogni gruppo, scritta SOLO a sinistra.
+ *
+ * `zone` sono i pezzi di muscolo coperti, nell'ordine in cui si incontrano
+ * andando dal primo taglio all'ultimo. `tagli` dice dove dividere la sagoma:
+ * `asse: 'y'` la divide in fasce in alto e in basso (il petto: parte alta, centro,
+ * basso), `asse: 'x'` la divide in due metà (il deltoide: metà laterale e metà
+ * anteriore).
+ *
+ * I pezzi che sono un muscolo solo (`zone` con un nome) non hanno tagli.
+ */
+const SAGOME = {
   // ---- petto: tutto il pettorale, alto centro e basso insieme ----
-  petto: aSinistra('petto', [
+  petto: {
+    vista: 'fronte',
+    nome: 'petto',
+    zone: ['petto_alto', 'petto_centrale', 'petto_basso'],
+    tagli: { asse: 'y', valori: [302, 332] },
     // il bordo superiore segue la curva della clavicola: se lo ritaglio a
     // dritto il petto sembra una macchia rettangolare invece di un muscolo.
-    [[86, 294], [104, 280], [136, 276], [160, 284], [169, 306],
+    sagoma: [[86, 294], [104, 280], [136, 276], [160, 284], [169, 306],
       [161, 332], [150, 358], [112, 357], [93, 338], [83, 312]],
-  ], { vista: 'fronte', nome: 'petto' }),
+  },
 
-  deltoide_fronte: aSinistra('deltoide_fronte', [
-    [[50, 284], [96, 278], [106, 318], [94, 352], [56, 348], [42, 310]],
-  ], { vista: 'fronte', nome: 'deltoide davanti' }),
+  // ---- spalla davanti: il deltoide laterale e quello anteriore ----
+  deltoide_fronte: {
+    vista: 'fronte',
+    nome: 'deltoide davanti',
+    // Il deltoide laterale sta sul BORDO della spalla, l'anteriore guarda verso
+    // il petto: si taglia in verticale, col laterale fuori e l'anteriore dentro.
+    zone: ['spalle_laterali', 'spalle_frontali'],
+    tagli: { asse: 'x', valori: [74] },
+    sagoma: [[50, 284], [96, 278], [106, 318], [94, 352], [56, 348], [42, 310]],
+  },
 
-  bicipite: aSinistra('bicipite', [
-    [[58, 348], [92, 346], [96, 380], [92, 402], [62, 404], [50, 386]],
-  ], { vista: 'fronte', nome: 'bicipite' }),
+  // ---- braccio davanti ----
+  bicipite: {
+    vista: 'fronte',
+    nome: 'bicipite',
+    zone: ['braccio_alto', 'braccio_basso'],
+    tagli: { asse: 'y', valori: [375] },
+    sagoma: [[58, 348], [92, 346], [96, 380], [92, 402], [62, 404], [50, 386]],
+  },
 
-  avambraccio: aSinistra('avambraccio', [
-    [[54, 404], [90, 402], [88, 438], [74, 452], [48, 452], [44, 424]],
-  ], { vista: 'fronte', nome: 'avambraccio' }),
+  avambraccio: {
+    vista: 'fronte',
+    nome: 'avambraccio',
+    zone: ['avambraccio'],
+    sagoma: [[54, 404], [90, 402], [88, 438], [74, 452], [48, 452], [44, 424]],
+  },
 
   // un pezzo solo, al centro: non si specchia
-  addome: centrato('addome', [[112, 358], [214, 358], [214, 472], [112, 472]],
-    { vista: 'fronte', nome: 'addome' }),
+  addome: {
+    vista: 'fronte',
+    nome: 'addome',
+    zone: ['addome'],
+    centro: true,
+    sagoma: [[112, 358], [214, 358], [214, 472], [112, 472]],
+  },
 
-  quadricipite: aSinistra('quadricipite', [
-    [[104, 472], [158, 472], [160, 560], [148, 622], [116, 620], [100, 540]],
-  ], { vista: 'fronte', nome: 'quadricipite' }),
+  quadricipite: {
+    vista: 'fronte',
+    nome: 'quadricipite',
+    zone: ['quadricipite'],
+    sagoma: [[104, 472], [158, 472], [160, 560], [148, 622], [116, 620], [100, 540]],
+  },
 
   // ---- schiena, tutto dietro ----
-  trapezio: centrato('trapezio', [[486, 244], [668, 244], [664, 306], [490, 306]],
-    { vista: 'retro', nome: 'trapezio' }),
+  trapezio: {
+    vista: 'retro',
+    nome: 'trapezio',
+    zone: ['dorso_alto'],
+    centro: true,
+    sagoma: [[486, 244], [668, 244], [664, 306], [490, 306]],
+  },
 
-  dorsale: aSinistra('dorsale', [
-    [[474, 298], [540, 294], [550, 380], [532, 432], [486, 426], [468, 348]],
-  ], { vista: 'retro', nome: 'dorsali larghi' }),
+  dorsale: {
+    vista: 'retro',
+    nome: 'dorsali larghi',
+    zone: ['dorso_lati'],
+    sagoma: [[474, 298], [540, 294], [550, 380], [532, 432], [486, 426], [468, 348]],
+  },
 
-  romboidi: centrato('romboidi', [[540, 300], [614, 300], [614, 424], [540, 424]],
-    { vista: 'retro', nome: 'dorso centrale' }),
+  romboidi: {
+    vista: 'retro',
+    nome: 'dorso centrale',
+    zone: ['dorso_centrale'],
+    centro: true,
+    sagoma: [[540, 300], [614, 300], [614, 424], [540, 424]],
+  },
 
-  deltoide_posteriore: aSinistra('deltoide_posteriore', [
-    [[455, 274], [520, 272], [529, 310], [514, 342], [500, 370], [466, 368], [449, 318]],
-  ], { vista: 'retro', nome: 'deltoide dietro' }),
+  deltoide_posteriore: {
+    vista: 'retro',
+    nome: 'deltoide dietro',
+    zone: ['spalle_posteriori'],
+    sagoma: [[455, 274], [520, 272], [529, 310], [514, 342], [500, 370], [466, 368], [449, 318]],
+  },
 
-  tricipite: aSinistra('tricipite', [
-    [[452, 376], [498, 374], [507, 410], [499, 450], [459, 457], [443, 420], [440, 390]],
-  ], { vista: 'retro', nome: 'tricipite' }),
+  tricipite: {
+    vista: 'retro',
+    nome: 'tricipite',
+    zone: ['spalla_gomito'],
+    sagoma: [[452, 376], [498, 374], [507, 410], [499, 450], [459, 457], [443, 420], [440, 390]],
+  },
 
   // ---- gambe ----
-  glutei: aSinistra('glutei', [
-    [[508, 436], [576, 436], [578, 500], [508, 500]],
-  ], { vista: 'retro', nome: 'glutei' }),
+  glutei: {
+    vista: 'retro',
+    nome: 'glutei',
+    zone: ['glutei'],
+    sagoma: [[508, 436], [576, 436], [578, 500], [508, 500]],
+  },
 
-  femorale: aSinistra('femorale', [
-    [[504, 502], [568, 502], [570, 600], [558, 642], [520, 640], [502, 558]],
-  ], { vista: 'retro', nome: 'femorale' }),
+  femorale: {
+    vista: 'retro',
+    nome: 'femorale',
+    zone: ['femorale'],
+    sagoma: [[504, 502], [568, 502], [570, 600], [558, 642], [520, 640], [502, 558]],
+  },
 
-  polpaccio: aSinistra('polpaccio', [
-    [[510, 646], [568, 646], [570, 700], [558, 732], [524, 730], [506, 670]],
-  ], { vista: 'retro', nome: 'polpaccio' }),
+  polpaccio: {
+    vista: 'retro',
+    nome: 'polpaccio',
+    zone: ['polpaccio'],
+    sagoma: [[510, 646], [568, 646], [570, 700], [558, 732], [524, 730], [506, 670]],
+  },
 };
+
+/** Il punto di indices (x o y) secondo l'asse del taglio. */
+const coord = (punto, asse) => (asse === 'x' ? punto[0] : punto[1]);
+
+/** Costruisce un punto sul bordo, tra due vertici e la linea di taglio. */
+function sulTaglio(a, b, asse, limite) {
+  const t = (limite - coord(a, asse)) / (coord(b, asse) - coord(a, asse));
+  // Si arrotonda a due decimali. Non è solo per la riga: riflettere due volte
+  // un numero con troppe cifre in virgola mobile non torna esattamente (324 -
+  // (324 - x)) e il pezzo destro smetteva di essere il simmetrico del sinistro,
+  // di un centesimo di pixel. Con due decimali torna, e l'SVG è più leggibile.
+  return [
+    Math.round((a[0] + t * (b[0] - a[0])) * 100) / 100,
+    Math.round((a[1] + t * (b[1] - a[1])) * 100) / 100,
+  ];
+}
+
+/**
+ * Ritaglia un poligono con una linea, e tiene solo il pezzo da una parte
+ * (sopra o sotto la linea, a sinistra o a destra).
+ *
+ * È il taglio di Sutherland-Hodgman: si gira attorno al poligono e si tengono i
+ * vertici della parte voluta, aggiungendo i punti in cui il bordo attraversa la
+ * linea. Serve perché i pezzi ritagliati a mano finiscono sempre per buchi o
+ * sbordelli: qui invece la fascia esce esattamente dalla sagoma.
+ */
+function taglia(poligono, asse, limite, tieniSopra) {
+  const dentro = (p) => (tieniSopra
+    ? coord(p, asse) <= limite
+    : coord(p, asse) >= limite);
+  const fuori = [];
+  for (let i = 0; i < poligono.length; i += 1) {
+    const a = poligono[i];
+    const b = poligono[(i + 1) % poligono.length];
+    const aDentro = dentro(a);
+    const bDentro = dentro(b);
+    if (aDentro) fuori.push(a);
+    if (aDentro !== bDentro) {
+      const p = sulTaglio(a, b, asse, limite);
+      if (asse === 'x') p[0] = limite;
+      else p[1] = limite;
+      fuori.push(p);
+    }
+  }
+  return fuori;
+}
+
+/** Un punto, con due decimali: vedi la nota in `sulTaglio`. */
+const arrotonda = (v) => Math.round(v * 100) / 100;
+
+/** Il compagno simmetrico, calcolato: a mano era già finito di 6 pixel fuori. */
+function specchia(poligono, vista) {
+  const centro = CENTRI[vista];
+  return poligono.map(([x, y]) => [arrotonda(2 * centro - x), y]);
+}
+
+/**
+ * Da SAGOME a RITAGLI: ogni fascia viene tagliata dal codice e specchiata, così
+ * le fasce si toccano esattamente come si toccava la sagoma intera.
+ */
+function costruisci() {
+  const fuori = {};
+  for (const [nome, def] of Object.entries(SAGOME)) {
+    // I confini delle fasce. Il primo e l'ultimo non esistono (la sagoma parte e
+    // finisce): non si taglia da quelle parti, altrimenti la fascia più in alto
+    // verrebbe ritagliata con "-Infinity" e uscirebbe vuota.
+    const confini = def.tagli
+      ? [null, ...def.tagli.valori, null]
+      : [null, null];
+    const bande = {};
+    const pezzi = [];
+    def.zone.forEach((zona, k) => {
+      // I due bordi della fascia si ritagliano SEMPRE sul poligono di partenza,
+      // uno dopo l'altro: se si taglia prima con il bordo alto e poi con quello
+      // basso, la fascia di mezzo esce vuota (non può più contenere niente).
+      let fascia = def.sagoma;
+      if (def.tagli) {
+        if (confini[k] !== null) {
+          fascia = taglia(fascia, def.tagli.asse, confini[k], false);
+        }
+        if (confini[k + 1] !== null) {
+          fascia = taglia(fascia, def.tagli.asse, confini[k + 1], true);
+        }
+      }
+      const lista = [fascia];
+      if (!def.centro) lista.push(specchia(fascia, def.vista));
+      bande[zona] = lista;
+      pezzi.push(...lista);
+    });
+    fuori[nome] = {
+      vista: def.vista,
+      nome: def.nome,
+      zone: def.zone,
+      bande,
+      pezzi,
+      centro: Boolean(def.centro),
+      sagoma: def.sagoma,
+    };
+  }
+  return fuori;
+}
+
+/** Il ritaglio di ogni gruppo, in coordinate della foto, già diviso in fasce. */
+export const RITAGLI = costruisci();
 
 // I PEZZI CHE L'APP CONOSCE, e il gruppo in cui sono disegnati.
 //
-// Qui dentro non c'e' più nessuna forma, solo il nome e il gruppo: i pezzi che
+// Qui dentro non c'è più nessuna forma, solo il nome e il gruppo: i pezzi che
 // sono lo stesso muscolo stanno nello stesso gruppo, come nella foto.
 export const GRUPPI = {
   petto_alto: { nome: 'parte alta del petto', gruppo: 'petto' },
@@ -139,7 +333,7 @@ export const GRUPPI = {
   spalle_frontali: { nome: 'spalle davanti (deltoide anteriore)', gruppo: 'deltoide_fronte' },
   spalle_posteriori: { nome: 'spalle posteriori (deltoide posteriore)', gruppo: 'deltoide_posteriore' },
   // Il deltoide LATERALE non ha un pezzo tutto suo nella foto: sta sul bordo
-  // della spalla. Quindi si accende con il deltoide davanti, che e' quello che
+  // della spalla. Quindi si accende con il deltoide davanti, che è quello che
   // si vede quando fai un alzata laterale. (Prima l'avevo collegato ai dorsali:
   // un'alzata laterale non lavora la schiena.)
   spalle_laterali: { nome: 'spalle laterali (deltoide laterale)', gruppo: 'deltoide_fronte' },
@@ -172,11 +366,11 @@ export function vistaDiGruppo(gruppo) {
 
 const punti = (pezzo) => pezzo.map(([x, y]) => `${x},${y}`).join(' ');
 
-// L'id del ritaglio deve essere UNICO per ogni figura.
-// Nell'app c'e' una figura sola per pagina, quindi sembrava funzionare: ma se
-// sulla stessa pagina ce n'e' due, `url(#taglio-muscolo)` va a cercare l'id nel
+// L'id del ritaglio deve essere UNICO per ogni fascia.
+// Nell'app c'è una figura sola per pagina, quindi sembrava funzionare: ma se
+// sulla stessa pagina ce n'è due, `url(#taglio-muscolo)` va a cercare l'id nel
 // documento e trova sempre la PRIMA, quindi tutte le figure mostravano il
-// muscolo della prima. Con il numero diventa univoco e ognuna mostra il suoo.
+// muscolo della prima. Con il numero diventa univoco e ognuna mostra il suo.
 let numeroFigura = 0;
 
 /**
@@ -184,28 +378,44 @@ let numeroFigura = 0;
  *
  * Sono due immagini: il corpo con i muscoli spenti, e sopra i muscoli in viola
  * ritagliati sul pezzo giusto. Se il pezzo non esiste non si mette il ritaglio:
- * e' meglio un omino tutto spento che uno con il muscolo sbagliato acceso.
+ * è meglio un omino tutto spento che uno con il muscolo sbagliato acceso.
+ *
+ * `livelli` è la classifica di quanto lavora ogni pezzo (vedi muscoli-parti.js):
+ * senza, il pezzo acceso va pieno e gli altri restano sul viola più chiaro.
  */
-export function figurino(acceso = null) {
+export function figurino(acceso = null, livelli = null) {
   const gruppo = acceso ? gruppoDiParte(acceso) : null;
   const dentro = [];
   dentro.push(`<image href="./img/muscoli/corpo.png" x="0" y="0" width="${FOTO_L}" height="${FOTO_A}"/>`);
 
   if (gruppo && RITAGLI[gruppo]) {
-    numeroFigura += 1;
-    const idTaglio = 'taglio-muscolo-' + numeroFigura;
-    // `clipPathUnits` e' un ATTRIBUTO di clipPath, non un elemento. Scritto come
-    // elemento (`<clipPathUnits="userSpaceOnUse">`) il browser considera il
-    // ritaglio non valido, il clipPath resta vuoto e il muscolo non si accende:
-    // la figura sembra scarica, senza dirlo. Il default è già userSpaceOnUse,
-    // ma lo scriviamo uguale per non doverci pensare.
-    dentro.push(`<clipPath id="${idTaglio}" clipPathUnits="userSpaceOnUse">`);
-    for (const pezzo of RITAGLI[gruppo].pezzi) {
-      dentro.push(`<polygon points="${punti(pezzo)}"/>`);
+    // Le fasce si disegnano dalla più chiara alla più piena: quella che lavora di
+    // più viene per ultima, e resta per ultima anche se due fasce si toccano.
+    const righe = RITAGLI[gruppo].zone.map((zona) => ({
+      zona,
+      pezzi: RITAGLI[gruppo].bande[zona],
+      opacita: livelloDiQuota(zona === acceso
+        ? 1
+        : (livelli && zona in livelli ? livelli[zona] : 0)),
+    })).sort((a, b) => a.opacita - b.opacita);
+
+    for (const riga of righe) {
+      numeroFigura += 1;
+      const idTaglio = 'taglio-muscolo-' + numeroFigura;
+      // `clipPathUnits` è un ATTRIBUTO di clipPath, non un elemento. Scritto come
+      // elemento (`<clipPathUnits="userSpaceOnUse">`) il browser considera il
+      // ritaglio non valido, il clipPath resta vuoto e il muscolo non si accende:
+      // la figura sembra scarica, senza dirlo. Il default è già userSpaceOnUse,
+      // ma lo scriviamo uguale per non doverci pensare.
+      dentro.push(`<clipPath id="${idTaglio}" clipPathUnits="userSpaceOnUse">`);
+      for (const pezzo of riga.pezzi) {
+        dentro.push(`<polygon points="${punti(pezzo)}"/>`);
+      }
+      dentro.push('</clipPath>');
+      dentro.push(`<image href="./img/muscoli/muscoli.png" x="0" y="0" width="${FOTO_L}"`
+        + ` height="${FOTO_A}" clip-path="url(#${idTaglio})"`
+        + ` opacity="${riga.opacita}"/>`);
     }
-    dentro.push('</clipPath>');
-    dentro.push(`<image href="./img/muscoli/muscoli.png" x="0" y="0" width="${FOTO_L}"`
-      + ` height="${FOTO_A}" clip-path="url(#${idTaglio})"/>`);
   }
   return dentro.join('');
 }
@@ -218,8 +428,8 @@ export function figurino(acceso = null) {
  * subito e costano niente.
  */
 export const ETICHETTE = [
-  { testo: 'FRONTE', x: CENTRO_FRONT, y: 806 },
-  { testo: 'DIETRO', x: CENTRO_RETRO, y: 806 },
+  { testo: 'FRONTE', x: CENTRI.fronte, y: 806 },
+  { testo: 'DIETRO', x: CENTRI.retro, y: 806 },
 ];
 
 export { CHIAVI as GRUPPI_DISEGNATI };

@@ -5521,7 +5521,7 @@ async function vistaEsercizio(zona, esercizioId) {
     // parole. E si accende solo il pezzo che quell'esercizio lavora, perché
     // un omino tutto acceso non dice niente.
     zona.appendChild(el('div', { class: 'riga-omino' }, [
-      el('div', { class: 'omino', html: disegnoOmino(parte.parte) }),
+      el('div', { class: 'omino', html: disegnoOmino(parte.parte, parte.livelli) }),
       el('div', { class: 'omino-didascalia' }, [
         el('strong', { testo: parte.nome }),
         el('span', { class: 'nota nota-piccola', testo: parte.nota }),
@@ -6174,18 +6174,24 @@ async function vistaProfilo(zona) {
  * Ste (13/10/2026): "voglio che spunti questo omino con il muscolo allenato
  * colorato di viola se possibile, non di giallo".
  *
+ * E (15/10/2026) anche QUANTO: "la parte che lavora di più deve essere più
+ * evidenziata, la parte che lavora di meno deve essere evidenziata più chiara.
+ * tipo il dip qua segna tutto il petto che e' giusto ma allena principalmente la
+ * parte bassa". Per questo `livelli` dice quanto lavora ogni pezzo: il petto dei
+ * dip si accende tutto, ma la parte bassa pieno e quella alta appena accennata.
+ *
  * Se l'id non corrisponde a nessuno dei pezzi disegnati non si accende niente:
- * e' meglio un omino tutto grigio che uno con il muscolo sbagliato acceso. Il
+ * è meglio un omino tutto grigio che uno con il muscolo sbagliato acceso. Il
  * test Z2 chiama tutte le zone, quindi quel caso non può capitare in silenzio.
  */
-function disegnoOmino(parteId) {
+function disegnoOmino(parteId, livelli) {
   const etichette = ETICHETTE_OMINO
     .map((e) => '<text class="vista-label" x="' + e.x + '" y="' + e.y + '" text-anchor="middle">'
       + e.testo + '</text>')
     .join('');
   return '<svg class="omino-svg" viewBox="0 0 ' + FOTO_L + ' ' + FOTO_A
     + '" role="img" aria-label="Il corpo di fronte e di dietro, con il muscolo allenato colorato di viola">'
-    + figurinoMuscolo(parteId) + etichette + '</svg>';
+    + figurinoMuscolo(parteId, livelli) + etichette + '</svg>';
 }
 
 /** Il pezzo di muscolo da accendere, o null se l'app non lo conosce. */

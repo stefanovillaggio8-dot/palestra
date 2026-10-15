@@ -219,6 +219,10 @@ function conta(testo, parola) {
 const CACHE = new Map();
 const CACHE_MAX = 500;
 
+// Vedi `livelli` in riconosciParte(): a parita' di punti il pezzo primo in
+// classifica resta pieno e gli altri scendono di questo gradino.
+const SCONTO_POSIZIONE = 0.7;
+
 export function parteDiMuscolo({ nome = '', descrizione = '' } = {}) {
   const chiave = nome + ' ' + descrizione;
   const gia = CACHE.get(chiave);
@@ -259,6 +263,7 @@ function riconosciParte({ nome = '', descrizione = '' } = {}) {
     return {
       trovata: false,
       muscolo: null, parte: null, nome: null, nota: null,
+      livelli: {},
       frase: 'Non so quale pezzo di muscolo lavori: è un esercizio generico.',
     };
   }
@@ -269,6 +274,32 @@ function riconosciParte({ nome = '', descrizione = '' } = {}) {
     return (a.soloNelNome ? 1 : 0) - (b.soloNelNome ? 1 : 0);
   });
   const v = trovati[0];
+
+  // QUANTO lavora ogni pezzo, da 0 a 1, con il migliore a 1.
+  //
+  // Ste (15/10/2026): "la parte che lavora di più deve essere più evidenziata,
+  // la parte che lavora di meno deve essere evidenziata più chiara. tipo il dip
+  // qua segna tutto il petto che e' giusto ma allena principalmente la parte
+  // bassa".
+  //
+  // Qui i pezzi sono già ordinati per punti, quindi basta dividere per il primo:
+  // il pezzo migliore fa 1, uno che ha la meta' dei punti fa 0,5. I pezzi che
+  // l'esercizio non nomina affatto non ci sono: sulla figura restano al viola
+  // più chiaro, che vuol dire "ci passa, ma il lavoro vero e' un altro".
+  //
+  // LO SCONTO DI POSIZIONE. Su "Smith Machine Incline Bench Press" il capo
+  // clavicolare e quello centrale danno gli stessi punti (la parola "bench" e' in
+  // entrambe le liste), e senza scontarli la figura accenderebbe i due pezzi
+  // uguali: proprio la cosa che Ste ha detto di non volere. Quindi a parita' di
+  // punti il pezzo più in alto nella classifica resta pieno e gli altri scendono
+  // un gradino. Non e' una misura: e' il modo di dire "quando i dati non
+  // distinguono, mostrami comunque quale lavora di più".
+  const migliore = trovati[0].punti;
+  const livelli = {};
+  trovati.forEach((t, i) => {
+    livelli[t.parte.id] = Math.round((t.punti / migliore) * SCONTO_POSIZIONE ** i * 100) / 100;
+  });
+
   return {
     trovata: true,
     muscolo: v.parte.muscolo,
@@ -276,6 +307,7 @@ function riconosciParte({ nome = '', descrizione = '' } = {}) {
     nome: v.parte.parte,
     nota: v.parte.nota,
     parole: v.parole,
+    livelli,
     frase: `${v.parte.parte}. ${v.parte.nota}`,
     altre: trovati.slice(1, 3).map((x) => x.parte.parte),
   };

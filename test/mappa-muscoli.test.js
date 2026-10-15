@@ -17,7 +17,7 @@ import assert from 'node:assert/strict';
 
 import {
   RITAGLI, GRUPPI, figurino, gruppoDiParte, idZonaDaParte, vistaDiGruppo,
-  ETICHETTE, FOTO_L, FOTO_A,
+  ETICHETTE, FOTO_L, FOTO_A, LIVELLI, livelloDiQuota,
 } from '../src/mappa-muscoli.js';
 import { PARTI, parteDiMuscolo } from '../src/muscoli-parti.js';
 
@@ -26,6 +26,27 @@ const DISEGNATI = Object.keys(RITAGLI);
 
 // la linea centrale di ogni figura, per controllare la simmetria
 const CENTRI = { fronte: 162, retro: 577 };
+
+// Due pezzi sono lo stesso se hanno lo stesso numero di vertici e ogni vertice
+// cade entro mezzo centesimo di pixel. Il confronto esatto non va bene: riflettere
+// un numero in virgola mobile due volte non torna al centesimo (324 - 239.33 fa
+// 84.67000000000002), e un test che pretende l'uguaglianza al centesimo fallisce
+// per la virgola mobile e non per un errore vero. Mezzo centesimo di pixel su una
+// figura larga 809 è invisibile: i 6 pixel di sbaglio di prima, quelli li beve.
+const STESSO = (a, b) => a.length === b.length
+  && a.every(([x, y], k) => Math.abs(x - b[k][0]) < 0.05 && Math.abs(y - b[k][1]) < 0.05);
+
+const esistePezzo = (poligono) => Object.values(RITAGLI)
+  .some((gruppo) => gruppo.pezzi.some((p) => STESSO(p, poligono)));
+
+// Stessa cosa, ma su quello che c'è scritto nell'SVG: i punti arrivano dal
+// disegno come "12,34 56,78", quindi vanno riletti e confrontati con la stessa
+// tolleranza di sopra.
+const stampa = (p) => p.map(([x, y]) => `${x},${y}`).join(' ');
+const disegnati = (svg) => [...svg.matchAll(/points="([^"]+)"/g)]
+  .map((m) => m[1].trim().split(/\s+/)
+    .map((xy) => xy.split(',').map(Number)));
+const disegnato = (svg, poligono) => disegnati(svg).some((p) => STESSO(p, poligono));
 
 test('Z1. ogni pezzo di muscolo che l\'app riconosce è ritagliato', () => {
   for (const p of PARTI) {
@@ -110,10 +131,7 @@ test('Z4. nessun ritaglio esce dalla figura', () => {
       const cx = pezzo.reduce((s, p) => s + p[0], 0) / pezzo.length;
       const lato = cx < centro ? 'sinistro' : 'destro';
       const simmetrico = pezzo.map(([x, y]) => [2 * centro - x, y]);
-      const esiste = Object.values(RITAGLI).some((altro) =>
-        altro.punti_esatto === undefined
-        && altro.pezzi.some((p) => JSON.stringify(p) === JSON.stringify(simmetrico)));
-      assert.ok(esiste,
+      assert.ok(esistePezzo(simmetrico),
         g + ': il pezzo ' + lato + ' non ha il suo compagno specchiato');
     }
   }
@@ -144,11 +162,12 @@ test('Z6. il ritaglio è simmetrico: il sinistro è lo specchio del destro', () 
   for (const [g, r] of Object.entries(RITAGLI)) {
     if (r.centro) continue;   // un pezzo al centro sta intero, non è doppio
     const centro = CENTRI[r.vista];
+    const svg = figurino(Object.keys(GRUPPI).find((id) => GRUPPI[id].gruppo === g));
     for (const pezzo of r.pezzi) {
       const simmetrico = pezzo.map(([x, y]) => [2 * centro - x, y]);
-      const stampa = (p) => p.map(([x, y]) => `${x},${y}`).join(' ');
-      const svg = figurino(Object.keys(GRUPPI).find((id) => GRUPPI[id].gruppo === g));
-      assert.ok(svg.includes('points="' + stampa(simmetrico) + '"'),
+      // il pezzo disegnato e il suo simmetrico devono esserci ENTRAMBI nella
+      // pagina: se il destro manca, la figura resta mezza storta
+      assert.ok(disegnato(svg, pezzo) && disegnato(svg, simmetrico),
         g + ': il ritaglio ha il pezzo ma non il suo specchio');
     }
   }
@@ -195,6 +214,129 @@ test('Z8. i muscoli fatti di più parti sono uniti, come nella foto', () => {
   }
 });
 
+test('Z8b. uniti non vuol dire tutti uguali: le fasce si toccano e non si sommano', () => {
+  // Ste ha chiesto due cose, e vanno messe d'accordo: (13/10/2026) "i muscoli
+  // formati da piu' parti muscolari falli uniti, come nella foto", e (15/10/2026)
+  // "la parte che lavora di piu' deve essere piu' evidenziata".
+  //
+  // Si tengono insieme cosi': le fasce sono tagliate DAL CODICE dentro la sagoma
+  // originale, quindi ricompongono il muscolo esattamente. Se la somma delle
+  // fasce non torna, sulla figura si vedrebbe una riga vuota in mezzo al
+  // pettorale, o un orecchio che sporge fuori: il muscolo sembrerebbe rotto.
+  const area = (poligono) => {
+    let a = 0;
+    for (let i = 0; i < poligono.length; i += 1) {
+      const [x1, y1] = poligono[i];
+      const [x2, y2] = poligono[(i + 1) % poligono.length];
+      a += x1 * y2 - x2 * y1;
+    }
+    return Math.abs(a / 2);
+  };
+
+  for (const [gruppo, r] of Object.entries(RITAGLI)) {
+    const sinistra = (zona) => (r.centro ? r.bande[zona] : [r.bande[zona][0]]);
+    let somma = 0;
+    for (const zona of r.zone) {
+      const pezzi = sinistra(zona);
+      assert.ok(pezzi.length > 0 && area(pezzi[0]) > 1,
+        gruppo + '/' + zona + ': la fascia è vuota, sul muscolo ci sarebbe un buco');
+      somma += sinistra(zona).reduce((s, p) => s + area(p), 0);
+    }
+    const intera = area(r.sagoma);
+    const scarto = Math.abs(somma - intera) / intera;
+    assert.ok(scarto < 0.02,
+      gruppo + ': le fasce sommano ' + Math.round(somma) + ' ma la sagoma è '
+      + Math.round(intera) + ' (scarto ' + Math.round(scarto * 100) + '%): '
+      + 'il muscolo si vedrebbe con un buco o con un orecchio');
+  }
+});
+
+test('Z10. quanto lavora: la parte più allenata è più piena, le altre più chiare', () => {
+  // Ste (15/10/2026): "la parte che lavora di piu' deve essere piu' evidenziata,
+  // la parte che lavora di meno deve essere evidenziata piu' chiara. tipo il dip
+  // qua segna tutto il petto che e' giusto ma allena principalmente la parte
+  // bassa".
+  //
+  // Quindi: il pezzo acceso è SEMPRE pieno, gli altri pezzi dello stesso muscolo
+  // restano accesi ma chiari. Un pezzo spento sarebbe peggio (il lettore
+  // penserebbe che il muscolo non c'entra), un pezzo acceso uguale sarebbe la
+  // cosa che Ste ha chiesto di togliere.
+
+  const opacitaDi = (svg, gruppo, zona) => {
+    // cerca l'immagine il cui ritaglio contiene la fascia di quella zona
+    let trovata = null;
+    for (const blocco of svg.match(/<clipPath\b[\s\S]*?<\/clipPath>/g) || []) {
+      const id = blocco.match(/id="([^"]+)"/)[1];
+      const poligoni = [...blocco.matchAll(/points="([^"]+)"/g)]
+        .map((m) => m[1].trim().split(/\s+/).map((xy) => xy.split(',').map(Number)));
+      if (!poligoni.some((p) => STESSO(p, RITAGLI[gruppo].bande[zona][0]))) continue;
+      const img = svg.match(new RegExp('<image[^>]*clip-path="url\\(#' + id + '\\)"[^>]*/>'));
+      trovata = Number(img[0].match(/opacity="([\d.]+)"/)[1]);
+    }
+    return trovata;
+  };
+
+  for (const [gruppo, r] of Object.entries(RITAGLI)) {
+    const primario = r.zone[0];
+    const svg = figurino(primario);
+
+    // 1. il pezzo acceso è pieno
+    assert.equal(opacitaDi(svg, gruppo, primario), LIVELLI[LIVELLI.length - 1],
+      gruppo + '/' + primario + ': il pezzo acceso deve essere tutto pieno');
+
+    // 2. tutti gli altri pezzi dello stesso muscolo restano accesi, ma chiari
+    for (const zona of r.zone.slice(1)) {
+      const op = opacitaDi(svg, gruppo, zona);
+      assert.ok(op !== null, gruppo + '/' + zona + ': sparisce del tutto dal muscolo');
+      assert.ok(op < LIVELLI[LIVELLI.length - 1],
+        gruppo + '/' + zona + ': è acceso uguale a ' + primario
+        + ', e il pezzo che lavora di meno deve essere più chiaro');
+      assert.ok(op >= LIVELLI[0], gruppo + '/' + zona + ': troppo chiaro, non si vede');
+    }
+
+    // 3. nessun pezzo di un ALTRO muscolo si accende per sbaglio
+    for (const [altro, r2] of Object.entries(RITAGLI)) {
+      if (altro === gruppo) continue;
+      for (const zona of r2.zone) {
+        const stampa = RITAGLI[altro].bande[zona][0]
+          .map(([x, y]) => `${x},${y}`).join(' ');
+        assert.ok(!svg.includes(stampa),
+          gruppo + ': si è acceso anche ' + altro + '/' + zona + ', che non c\'entra');
+      }
+    }
+  }
+
+  // 4. i DIPS, l'esempio di Ste: petto tutto acceso ma la parte bassa piena
+  const dips = parteDiMuscolo({ nome: 'Dips' });
+  assert.equal(dips.parte, 'petto_basso', 'i dips allenano la parte bassa del petto');
+  const svgDips = figurino(dips.parte, dips.livelli);
+  assert.equal(opacitaDi(svgDips, 'petto', 'petto_basso'), LIVELLI[LIVELLI.length - 1],
+    'sui dips la parte bassa del petto deve essere piena');
+  assert.ok(opacitaDi(svgDips, 'petto', 'petto_alto') < LIVELLI[LIVELLI.length - 1],
+    'sui dips la parte alta del petto lavora meno: deve essere più chiara');
+
+  // 5. e una panca inclinata: alto pieno, centro un gradino sotto
+  const panca = parteDiMuscolo({ nome: 'Smith Machine Incline Bench Press' });
+  assert.equal(panca.parte, 'petto_alto', 'la panca inclinata lavora il petto alto');
+  const svgPanca = figurino(panca.parte, panca.livelli);
+  const alto = opacitaDi(svgPanca, 'petto', 'petto_alto');
+  const centro = opacitaDi(svgPanca, 'petto', 'petto_centrale');
+  assert.ok(alto > centro,
+    'la panca inclinata: il petto alto (' + alto + ') deve essere più pieno del centro (' + centro + ')');
+
+  // 6. la scala non esce mai dai quattro valori scelti, e resta ordinata
+  for (const q of [0, 0.05, 0.11, 0.12, 0.3, 0.39, 0.4, 0.6, 0.74, 0.75, 1, 2, -1]) {
+    assert.ok(LIVELLI.includes(livelloDiQuota(q)),
+      'quota ' + q + ' -> ' + livelloDiQuota(q) + ': non è nessuno dei quattro livelli');
+  }
+  let precedente = -1;
+  for (let q = 0; q <= 1.0001; q += 0.01) {
+    const v = livelloDiQuota(q);
+    assert.ok(v >= precedente, 'la sfumatura non può tornare più chiara aumentando la quota');
+    precedente = v;
+  }
+});
+
 test('Z9. il ritaglio è un SVG valido, o il muscolo non si accende', () => {
   // Ste (15/10/2026): "ma non si vede il muscolo evidenziato in nessun esercizio".
   //
@@ -228,18 +370,20 @@ test('Z9. il ritaglio è un SVG valido, o il muscolo non si accende', () => {
     assert.equal(aperti, chiusi,
       id + ': ci sono ' + aperti + ' <clipPath> e ' + chiusi + ' </clipPath>');
 
-    // 4. l'id del ritaglio e' quello che l'immagine cerca, e non e' condiviso:
-    //    con lo stesso id su due figure della stessa pagina, url(#...) trova
-    //    sempre la prima e tutte mostrano il muscolo sbagliato.
-    const idTag = svg.match(/<clipPath id="([^"]+)"/);
-    assert.ok(idTag, id + ': il ritaglio non ha un id');
-    const usato = svg.match(/clip-path="url\(#([^)]+)\)"/);
-    assert.ok(usato, id + ': l\'immagine dei muscoli non è ritagliata');
-    assert.equal(usato[1], idTag[1],
-      id + ': il ritaglio si chiama "' + idTag[1] + '" ma l\'immagine cerca "' + usato[1] + '"');
-    assert.equal((svg.match(/id="taglio-muscolo[^"]*"/g) || []).length, 1,
-      id + ': un id di ritaglio ripetuto, due figure sulla stessa pagina si '
-      + 'ruberebbero il muscolo (una mostra quello dell\'altra)');
+    // 4. l'id di ogni ritaglio e' unico, e ognuno e' quello che la sua immagine
+    //    cerca: con lo stesso id, due figure della stessa pagina si ruberebbero
+    //    il muscolo (una mostrerebbe quello dell'altra).
+    const idTagli = [...svg.matchAll(/<clipPath id="([^"]+)"/g)].map((m) => m[1]);
+    const idUsati = [...svg.matchAll(/clip-path="url\(#([^)]+)\)"/g)].map((m) => m[1]);
+    assert.equal(new Set(idTagli).size, idTagli.length,
+      id + ': un id di ritaglio ripetuto nella stessa figura');
+    assert.equal(idTagli.length, idUsati.length,
+      id + ': ci sono ' + idTagli.length + ' ritagli e ' + idUsati.length + ' immagini');
+    for (const cercato of idUsati) {
+      assert.ok(idTagli.includes(cercato),
+        id + ': un\'immagine cerca il ritaglio "' + cercato + '" che non c\'è');
+    }
+    assert.ok(idUsati.length >= 1, id + ': nessuna immagine ritagliata');
   }
 
   // due figure nella stessa pagina non devono confondersi
