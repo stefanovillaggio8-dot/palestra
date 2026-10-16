@@ -1069,13 +1069,15 @@ test('Z18: il tricipite non scende sotto il gomito, e il gomito non si indovina'
 // Qui si controllano tre cose, e tutte e tre erano sbagliate prima:
 //  1. il rematore ha i DORSALI pieni, e non il centro schiena;
 //  2. il centro schiena NON compare affatto sul rematore, nemmeno in secondo fascia;
-//  3. sulla tirata in basso (pulley) il centro schiena c'e', ma non pieno.
+//  3. e sulla tirata in basso NON c'e': sul pull up e sul lat pulldown fanno i
+  //     dorsali, non il centro schiena.
 //
-// La terza cosa serve perche' "non e' il centro schiena" sul rematore e "il centro
-// schiena e' del pulley" sono due affermazioni diverse: senza la terza, togliere
-// il centro schiena al rematore e basta lascerebbero il centro schena acceso da
-// nessuna parte, e lui non si accorgerebbe che manca proprio sul pulley.
-test('Z20: rematore sui dorsali, centro schiena sul pulley', () => {
+// La terza cosa e' l'opposto di quello che avevo scritto prima: Ste, 16/10/2026,
+// "il pull up e lat pulldown fanno dorsali", cioe' senza centro schiena. Avevo
+// capito al contrario che il centro schiena dovesse passare sul pulley, e l'avevo
+// aggiunto. Il centro schiena resta al bench pull prono e al reverse fly, che
+// li lavorano davvero.
+test('Z20: rematore e tirata in basso sui dorsali, niente centro schiena', () => {
   const righeDi = (nome) => {
     const r = parteDiMuscolo({ nome });
     assert.ok(r.trovata, nome + ': non ha riconosciuto nessun muscolo');
@@ -1084,27 +1086,23 @@ test('Z20: rematore sui dorsali, centro schiena sul pulley', () => {
   const gruppi = (righe) => new Set(righe.map((r) => r.gruppo));
   const pieno = (righe) => righe.find((r) => r.opacita === 1);
 
-  // 1. il rematore: dorsali pieni
-  for (const nome of ['Seated Cable Row', 'Seated Dumbbell Row']) {
+  // le due tirate: dorsali pieni, niente centro schiena
+  for (const nome of ['Seated Cable Row', 'Seated Dumbbell Row',
+    'Lat Pulldown', 'Pull Ups', 'Neutral Grip Lat Pulldown',
+    'Incline Single Arm Pulldown']) {
     const righe = righeDi(nome);
     assert.equal(pieno(righe)?.gruppo, 'dorsale',
       `${nome}: il muscolo pieno è "${pieno(righe)?.gruppo}", e deve essere il dorso largo`);
+    assert.ok(!gruppi(righe).has('romboidi'),
+      `${nome}: il centro schiena non deve accendersi. `
+      + 'Ste: "il seated cable row non fa proprio il centro schiena" e '
+      + '"il pull up e lat pulldown fanno dorsali"');
   }
 
-  // 2. il centro schiena non deve comparire sul rematore, in nessuna fascia
-  for (const nome of ['Seated Cable Row', 'Seated Dumbbell Row']) {
-    assert.ok(!gruppi(righeDi(nome)).has('romboidi'),
-      `${nome}: il centro schiena non deve accendersi, sul rematore non lavora. `
-      + 'Ste: "non fa proprio il centro schiena"');
-  }
-
-  // 3. sulla tirata in basso il centro schiena c'e', ma non e' il pieno
-  for (const nome of ['Lat Pulldown', 'Pull Ups']) {
-    const righe = righeDi(nome);
-    assert.equal(pieno(righe)?.gruppo, 'dorsale',
-      `${nome}: il pieno deve restare il dorso largo`);
-    assert.ok(gruppi(righe).has('romboidi'),
-      `${nome}: sul pulley il centro schiena deve accendersi, e' lui che lo vuole lì`);
+  // il bicipite resta su tutte le tirate: e' una tirata, il gomito si piega
+  for (const nome of ['Lat Pulldown', 'Seated Cable Row']) {
+    assert.ok(gruppi(righeDi(nome)).has('bicipite'),
+      `${nome}: il bicipite resta, è una tirata e chi piega il gomito è lui`);
   }
 
   // E la tirata prona coi manubri tiene la sua scelta dell'08/10: centro schiena pieno

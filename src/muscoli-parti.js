@@ -503,15 +503,14 @@ export const MOVIMENTI = [
     // non si dipinge. (È il caso classico, e su un pulley col fermo coscia i lombari
     // sono scaricati due volte: dalla posizione seduta e dal fermo.)
     //
-    // Quindi qui restano tre muscoli: i latini, che sono il pezzo principale e
-    // vengono dalle parole, il bicipite, e il CENTRO SCHIENA.
+    // Quindi qui restano due muscoli: i latini, che sono il pezzo principale e
+    // vengono dalle parole, e il bicipite. Nient'altro da accendere.
     //
-    // Il centro schiena è qui per una richiesta di Ste (16/10/2026): "il seated
-    // cable row non fa centro schiena principalmente, fa i dorsali e non fa proprio
-    // il centro schiena, sarebbe il pulley". Tolto dal rematore, il centro schiena
-    // torna sulla tirata in basso, che tira la parte centrale della schiena. Quota
-    // bassa (0,42): è un secondo muscolo, il pieno resta ai dorsali.
-    secondari: { braccio_basso: 0.5, dorso_centrale: 0.42 },
+    // Il CENTRO SCHIENA NON C'È, e me l'ha detto Ste due volte (16/10/2026).
+    // Prima avevo capito che il centro schiena dovesse passare qui, e l'avevo messo
+    // con quota 0,42: era sbagliato. Sul pulley, sul pull up e sulle trazioni fanno
+    // i dorsali e il bicipite, il centro schiena no.
+    secondari: { braccio_basso: 0.5 },
   },
   {
     id: 'tirata_orizzontale',
