@@ -232,16 +232,25 @@ const SAGOME = {
     // come se fossero uno.
     //
     // Sulla figura il capo lungo e' la fascia ALTA, quella che arriva dalla spalla,
-    // e il capo laterale e' la pancia, in basso verso il gomito. Il taglio e' a
-    // y=412, cioe' dove la pancia comincia.
+    // e il capo laterale e' la pancia, in basso verso il gomito.
     //
     // Il capo lungo e' mediale (vicino al corpo) e arriva fino in basso, e il
     // laterale e' la parte esterna: su una figura piccola non si distinguono, quindi
     // la divisione è per altezza. È una semplificazione, detta qui perché il
     // codice non nasconda cosa sta facendo.
+    //
+    // LA SAGOMA STA PIU' IN ALTO, PERCHE' IL FIGLIO DICEVA AVAMBRACCIO (16/10/2026).
+    // Ste: "i dips sono evidenziati gli avambracci". I dati erano giusti (sui dip
+    // accendevo il capo laterale e basta), ma la fascia finiva a y=457 e sulla
+    // figura la mano comincia a y=456: il pezzo acceso finiva LETTERALMENTE sul
+    // gomito, quindi sembrava l'avambraccio. Sul retro, infatti, l'avambraccio
+    // non si vede quasi: e' tutto braccio fino alla mano.
+    //
+    // Quindi il tricipite sta fra y=366 e y=440, cioe' interamente nella pancia del
+    // braccio, con il taglio dei due capi a y=404.
     zone: ['spalla_gomito_alto', 'spalla_gomito_basso'],
-    tagli: { asse: 'y', valori: [412] },
-    sagoma: [[452, 376], [498, 374], [507, 410], [499, 450], [459, 457], [443, 420], [440, 390]],
+    tagli: { asse: 'y', valori: [404] },
+    sagoma: [[451, 368], [497, 366], [504, 398], [497, 432], [458, 440], [443, 408], [440, 382]],
   },
 
   // ---- gambe ----

@@ -902,3 +902,56 @@ test('Z16. nessun trapezio e nessun lombare sulle tirate in basso', async () => 
       `${e.nome}: il trapezio è acceso ma il movimento è una tirata in basso`);
   }
 });
+
+// Z18. IL TRICIPITE NON PUO' FINIRE SULL'AVAMBRACCIO (16/10/2026).
+//
+// Ste: "i dips sono evidenziati gli avambracci". Due volte, e aveva ragione.
+//
+// I NUMERI ERAANO GIUSTI: sui dip si accende il capo laterale e basta, e il
+// tricipite non si accende MAI sulle tirate (Z16). Il problema era un altro, e
+// stava solo nella sagoma: sulla figura di retro la mano comincia a y=456 e il
+// poligono del tricipite scendeva fino a y=457. Un pezzo che finisce sul gomito,
+// su una figura dove l'avambraccio non si vede quasi, si legge come avambraccio.
+// E' successo due volte: la sagoma era quella di v177 (y fino a 457) e anche
+// prima, quando il tricipite era un pezzo solo con la stessa coda.
+//
+// Qui si blocca la cosa, perche' il difetto e' invisibile guardando i numeri:
+// il test legge il poligono vero e lo confronta con la mano.
+test('Z18: il tricipite sta tutto nella pancia del braccio, lontano dalla mano', () => {
+  // Dove comincia la mano sulla figura di retro (misurato su corpo.png)
+  const MANO_Y = 456;
+
+  const tricipite = RITAGLI.tricipite;
+  assert.equal(tricipite.vista, 'retro', 'il tricipite si vede solo da dietro');
+
+  // Ogni pezzo che il codice DISEGNA davvero (fasce tagliate + speculare), non la
+  // sagoma grezza: se la coda cascasse dopo il taglio, qui la si vedrebbe.
+  for (const poligono of tricipite.pezzi) {
+    const piuBasso = Math.max(...poligono.map(([, y]) => y));
+    assert.ok(piuBasso <= MANO_Y - 12,
+      `il pezzo del tricipite scende a y=${piuBasso} e arriva sulla mano (y=${MANO_Y}): `
+      + 'sembra un avambraccio');
+  }
+
+  // E ogni fascia deve stare sotto la mano anche per il gruppo intero, cosi' il
+  // difetto non puo' rientrare da un pezzo nuovo
+  for (const zona of tricipite.zone) {
+    assert.ok(RITAGLI.tricipite.bande[zona].length > 0, `la fascia ${zona} non esiste`);
+  }
+
+  // CONTROLLO DAVVERO UTILE: quello che l'app disegna davvero sui dip, passando
+  // dal percorso vero (esercizio -> muscolo -> righe), non con una finta mappa.
+  const dips = parteDiMuscolo({ nome: 'Dips' });
+  assert.ok(dips.trovata, 'i dip sono nel catalogo');
+  const righe = righeDaAccendere(dips.parte, dips.livelli, dips.anatomia);
+  assert.ok(righe.length > 0, 'sui dip il tricipite si accende');
+  assert.ok(righe.some((r) => r.gruppo === 'tricipite'),
+    `sui dip nessuna riga del tricipite (gruppi: ${righe.map((r) => r.gruppo).join(', ')})`);
+  for (const r of righe) {
+    for (const poligono of r.pezzi) {
+      const piuBasso = Math.max(...poligono.map(([, y]) => y));
+      assert.ok(piuBasso <= MANO_Y - 12,
+        `il pezzo disegnato sui dip scende a y=${piuBasso}, sulla mano (y=${MANO_Y})`);
+    }
+  }
+});
