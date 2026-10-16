@@ -583,7 +583,17 @@ export const MOVIMENTI = [
     // scritto che l'app evidenziava muscoli che non c'entrano, e aveva ragione.
     // Un numero che non si vede non serve a niente: o il muscolo lavora e ha una
     // quota sua, o non si mette e se ne parla in una riga di commento come questa.
-    secondari: { dorso_centrale: 0.5, spalla_gomito_alto: 0.1 },
+    // IL CENTRO SCHIENA ESCE (16/10/2026). Ste: "one arm cable reverse fly fa
+    // deltoide anteriore non il centro schiena".
+    //
+    // Sul centro schiena ha ragione, e infatti l'ha detto anche per il rematore e
+    // per il pulley: era un secondoario messo lì "per completezza", e la regola del
+    // progetto dice che un secondario o ha una quota sua e si vede, o non si mette.
+    // Qui si vedeva e non c'entrava: il reverse fly muove le braccia, non tira la
+    // parte centrale della schiena. Quindi via.
+    //
+    // Resta solo il tricipite all'ultima sfumatura, per la richiesta del 15/10.
+    secondari: { spalla_gomito_alto: 0.1 },
   },
 {
     id: 'alzata_laterale',

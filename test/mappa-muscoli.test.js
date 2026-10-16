@@ -569,7 +569,11 @@ test('Z13. i secondari vengono da quello che l\'esercizio FA, non dalle sue paro
     // [nome, muscolo principale, secondari che DEVE accendere]
     ['Incline Dumbbell Press', 'petto_alto', ['tricipite', 'deltoide_fronte']],
     ['Weighted Dip Bar', 'petto_basso', ['tricipite']],
-    ['Reverse Pec Deck', 'spalle_posteriori', ['tricipite', 'romboidi']],
+    // Ste (16/10/2026): "one arm cable reverse fly fa deltoide anteriore non il
+    // centro schiena". Sul centro schiena ha ragione: il reverse fly muove le braccia
+    // e non tira la parte centrale della schiena, ed era un secondario messo lì "per
+    // completezza". Quindi qui i secondari sono solo i tricipiti, all'ultima sfumatura.
+    ['Reverse Pec Deck', 'spalle_posteriori', ['tricipite']],
     ['45 Gradi Leg Press', 'quadricipite', ['glutei', 'femorale']],
     ['Bassa Trazione Cavo', 'dorso_lati', ['bicipite']],
     ['Cavo Alzate laterali', 'spalle_laterali', []],
