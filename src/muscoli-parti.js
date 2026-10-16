@@ -132,12 +132,29 @@ export const PARTI = [
     // tricipite li ho aggiunti sotto, dove vanno davvero.
     parole: ['pullover', 'lat pulldown', 'trazioni', 'trazione', 'pull up', 'pull-up', 'pull ups',
       'single arm pulldown', 'pulldown', 'pulldowns', 'tirata verticale',
-      'tirate', 'tirate in basso', 'straight arm', 'auzhang'],
+      'tirate', 'tirate in basso', 'straight arm', 'auzhang',
+      // IL REMATORE E' UN DORSALE, NON CENTRO SCHIENA (16/10/2026).
+      // Ste: "il seated cable row non fa centro schiena principalmente, fa i
+      // dorsali e non fa proprio il centro schiena, sarebbe il pulley".
+      //
+      // Aveva ragione, e il motivo era una parola messa nel posto sbagliato: "row",
+      // "rematore" e "tiremento" erano dentro `dorso_centrale`, quindi OGNI rematore
+      // prendeva il centro schiena come muscolo pieno, e i dorsali restavano a 0,66.
+      // Sulla scheda del rematore si leggeva "dorso centrale" pieno e dorsali in
+      // secondo fascia, cioe' il contrario di quello che l'esercizio fa.
+      //
+      // Qui il rematore e i dorsali. Il centro schiena, come muscolo pieno, resta al
+      // bench pull prono con i manubri, che e' la decisione dell'08/10 e non si tocca.
+      'row', 'rematore', 'tiremento', 'tirate orizzontali', 'tirata orizzontale'],
     nota: 'Tira con le braccia: lavora il dorso largo, quello che si vede di lato sotto le ascelle.',
   },
   {
     id: 'dorso_centrale', muscolo: 'dorso', parte: 'dorso centrale',
-    parole: ['rematore', 'row', 'tiremento', 'tirate orizzontali', 'prone',
+    // IL REMATORE NON E' QUI (16/10/2026). Le parole "rematore", "row",
+    // "tiremento" e le tirate orizzontali stanno adesso dentro `dorso_lati`, perché
+    // Ste ha detto che il rematore lavora i dorsali e non il centro schiena. Qui
+    // resta solo la tirata PRONA con i manubri, che e' la decisione dell'08/10.
+    parole: ['prone',
       // Ste (08/10/2026): il Dumbbell Bench Pull È una tirata prona coi
       // manubri, quindi dorso centrale. Stava fra le parole del PETTO e la
       // scheda gli diceva "il petto lavora in modo abbastanza uniforme".
@@ -486,9 +503,15 @@ export const MOVIMENTI = [
     // non si dipinge. (È il caso classico, e su un pulley col fermo coscia i lombari
     // sono scaricati due volte: dalla posizione seduta e dal fermo.)
     //
-    // Quindi qui restano due muscoli: i latini, che sono il pezzo principale e
-    // vengono dalle parole, e il bicipite. Nient'altro da accendere.
-    secondari: { braccio_basso: 0.5 },
+    // Quindi qui restano tre muscoli: i latini, che sono il pezzo principale e
+    // vengono dalle parole, il bicipite, e il CENTRO SCHIENA.
+    //
+    // Il centro schiena è qui per una richiesta di Ste (16/10/2026): "il seated
+    // cable row non fa centro schiena principalmente, fa i dorsali e non fa proprio
+    // il centro schiena, sarebbe il pulley". Tolto dal rematore, il centro schiena
+    // torna sulla tirata in basso, che tira la parte centrale della schiena. Quota
+    // bassa (0,42): è un secondo muscolo, il pieno resta ai dorsali.
+    secondari: { braccio_basso: 0.5, dorso_centrale: 0.42 },
   },
   {
     id: 'tirata_orizzontale',
