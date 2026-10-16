@@ -181,7 +181,7 @@ const SAGOME = {
     vista: 'fronte',
     nome: 'avambraccio',
     zone: ['avambraccio'],
-    sagoma: [[46, 392], [78, 390], [78, 420], [70, 444], [40, 444], [36, 416]],
+    sagoma: [[46, 404], [78, 402], [78, 424], [70, 444], [40, 444], [36, 420]],
   },
 
   // un pezzo solo, al centro: non si specchia
@@ -206,7 +206,7 @@ const SAGOME = {
     nome: 'trapezio',
     zone: ['dorso_alto'],
     centro: true,
-    sagoma: [[526, 244], [628, 244], [626, 302], [528, 302]],
+    sagoma: [[561, 250], [592, 248], [624, 300], [529, 302]],
   },
 
   dorsale: {
@@ -245,7 +245,7 @@ const SAGOME = {
   // Sul disegno originale il deltoide e il tricipite sono un pezzo unico (vedi la
   // nota del tricipite): il confine è la tacca a y~335. Prima finiva a y=370 e si
   // mangiava il tricipite, così una spinta in alto accendeva anche il braccio.
-  sagoma: [[455, 274], [518, 272], [524, 300], [516, 330], [508, 338], [468, 338], [449, 318]],
+  sagoma: [[458, 278], [518, 276], [524, 300], [516, 330], [508, 338], [468, 338], [449, 318]],
   },
 
   tricipite: {
@@ -303,7 +303,7 @@ const SAGOME = {
     vista: 'retro',
     nome: 'femorale',
     zone: ['femorale'],
-    sagoma: [[504, 502], [568, 502], [568, 594], [558, 626], [520, 624], [502, 558]],
+    sagoma: [[504, 502], [568, 502], [568, 576], [560, 592], [520, 590], [502, 558]],
   },
 
   polpaccio: {

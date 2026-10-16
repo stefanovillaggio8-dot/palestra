@@ -136,21 +136,21 @@ function copertura(sagoma, alpha, larghezza, altezza, passo = 2) {
 // IL PAVIMENTO DI OGNI MUSCOLO, misurato quando questo test e' stato scritto.
 // Se sposti una sagoma, rimisura (il comando e' nella nota sotto) e sposta qui.
 const PAVIMENTO = {
-  petto: 88,
-  deltoide_fronte: 66,
-  bicipite: 84,
-  brachiale: 65,
-  avambraccio: 68,
-  addome: 78,
-  quadricipite: 85,
-  trapezio: 65,
-  dorsale: 84,
-  romboidi: 79,
-  deltoide_posteriore: 49,
-  tricipite: 85,
-  glutei: 64,
-  femorale: 70,
-  polpaccio: 94,
+  petto: 90,
+  deltoide_fronte: 67,
+  bicipite: 87,
+  brachiale: 71,
+  avambraccio: 80,
+  addome: 80,
+  quadricipite: 87,
+  trapezio: 87,
+  dorsale: 85,
+  romboidi: 80,
+  deltoide_posteriore: 54,
+  tricipite: 86,
+  glutei: 66,
+  femorale: 80,
+  polpaccio: 96,
 };
 
 test('Z19: ogni sagoma resta sopra il muscolo disegnato', async () => {
