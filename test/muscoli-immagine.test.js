@@ -134,12 +134,15 @@ function copertura(sagoma, alpha, larghezza, altezza, passo = 2) {
 }
 
 // IL PAVIMENTO DI OGNI MUSCOLO, misurato quando questo test e' stato scritto.
-// Se sposti una sagoma, rimisura (il comando e' nella nota sotto) e sposta qui.
+//
+// ATTENZIONE: qui dentro c'e' il PEGGIO dei due lati, non la copertura della
+// sagoma "cosi' com'e'". Vedi la nota sulla specchiatura sotto.
+// Se sposti una sagoma, rimisura e sposta qui.
 const PAVIMENTO = {
   petto: 90,
-  deltoide_fronte: 67,
+  deltoide_fronte: 60,
   bicipite: 87,
-  brachiale: 71,
+  brachiale: 70,
   avambraccio: 80,
   addome: 80,
   quadricipite: 87,
@@ -150,10 +153,13 @@ const PAVIMENTO = {
   tricipite: 86,
   glutei: 66,
   femorale: 80,
-  polpaccio: 96,
+  polpaccio: 92,
 };
 
-test('Z19: ogni sagoma resta sopra il muscolo disegnato', async () => {
+// La linea centrale di ogni figura, come in `mappa-muscoli.js`.
+const CENTRI = { fronte: 162, retro: 577 };
+
+test('Z19: ogni sagoma resta sopra il muscolo disegnato, anche specchiata', async () => {
   const { alpha, larghezza, altezza } = await alphaDelPng(
     join(RADICE, 'img', 'muscoli', 'muscoli.png'),
   );
@@ -161,13 +167,36 @@ test('Z19: ogni sagoma resta sopra il muscolo disegnato', async () => {
   for (const [chiave, minimo] of Object.entries(PAVIMENTO)) {
     const gruppo = RITAGLI[chiave];
     assert.ok(gruppo, `il pavimento parla di "${chiave}" ma nei ritagli non c'e'`);
-    const { tot, sulMuscolo } = copertura(gruppo.sagoma, alpha, larghezza, altezza);
-    assert.ok(tot > 20, `la sagoma di "${chiave}" e' troppo piccola per essere misurata`);
-    const percentuale = (100 * sulMuscolo) / tot;
+
+    const percentuale = (sagoma) => {
+      const { tot, sulMuscolo } = copertura(sagoma, alpha, larghezza, altezza);
+      assert.ok(tot > 20, `la sagoma di "${chiave}" e' troppo piccola per essere misurata`);
+      return (100 * sulMuscolo) / tot;
+    };
+
+    const originale = percentuale(gruppo.sagoma);
+
+    // IL PUNTO SULLO SPECCHIO. L'app disegna ogni sagoma una volta e la riflette, e
+    // il FIGLIO NON E' SIMMETRICO: i muscoli sono disegnati a mano e i due lati non
+    // coincidono. Le sagome hanno quindi due coperture diverse, e quella peggiore
+    // e' quella che si vede male.
+    //
+    // Prima questo test guardava solo il lato sinistro, quindi una modifica poteva
+    // sistemare il sinistro e rovinare il destro senza che nessuno se ne accorgesse.
+    // Lo scarto fra i due lati arriva a 8,9 punti (tricipite 88% e 97%), quindi non
+    // e' una differenza da arrotondare: e' la sagoma specchiata che cade peggio.
+    const centro = CENTRI[gruppo.vista];
+    const specchiata = gruppo.centro
+      ? null
+      : gruppo.sagoma.map(([x, y]) => [Math.round((2 * centro - x) * 100) / 100, y]);
+    const altra = specchiata ? percentuale(specchiata) : originale;
+    const peggiore = Math.min(originale, altra);
+
     assert.ok(
-      percentuale >= minimo,
-      `"${chiave}" copre solo il ${percentuale.toFixed(1)}% del muscolo disegnato `
-      + `(pavimento ${minimo}%): la sagoma sta nel buio, e li' l'app non accende niente`,
+      peggiore >= minimo,
+      `"${chiave}" copre solo il ${peggiore.toFixed(1)}% del muscolo disegnato `
+      + `(pavimento ${minimo}%; sinistro ${originale.toFixed(1)}%, `
+      + `destro ${altra.toFixed(1)}%): la sagoma sta nel buio, e li' l'app non accende niente`,
     );
   }
 });
