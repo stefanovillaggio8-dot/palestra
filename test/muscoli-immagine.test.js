@@ -1,4 +1,4 @@
-// Z19. OGNI SAGOMA DEVE STARE SOPRA IL MUSCOLO DISEGNATO (16/10/2026).
+﻿// Z19. OGNI SAGOMA DEVE STARE SOPRA IL MUSCOLO DISEGNATO (16/10/2026).
 //
 // Questo test nasce da un buco che Z18 non chiudeva. Z18 dice che due muscoli
 // diversi non possono stare nello stesso posto, e aveva ragione: era quello il
@@ -142,15 +142,15 @@ const PAVIMENTO = {
   brachiale: 65,
   avambraccio: 68,
   addome: 78,
-  quadricipite: 70,
+  quadricipite: 85,
   trapezio: 65,
   dorsale: 84,
   romboidi: 79,
   deltoide_posteriore: 49,
   tricipite: 85,
   glutei: 64,
-  femorale: 69,
-  polpaccio: 41,
+  femorale: 70,
+  polpaccio: 94,
 };
 
 test('Z19: ogni sagoma resta sopra il muscolo disegnato', async () => {
