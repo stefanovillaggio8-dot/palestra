@@ -97,6 +97,11 @@ export const LIVELLI = [0.2, 0.42, 0.66, 1];
 // sul reverse fly si vede appena, il gluteo sulla panca vede forte.
 export const SOGLIA_SECONDARIO = 0.4;
 
+// Quanto i muscoli accesi vengono STACCATI fra loro. Deve stare PRIMA di costruisci():
+// costruisci() gira subito all'avvio del modulo, e una const dichiarata dopo
+// sarebbe ancora nel 'temporal dead zone' quando serve come parametro di default.
+const STACCO = 1.5;
+
 /** La sfumatura giusta per una quota di lavoro (da 0 a 1). */
 export function livelloDiQuota(quota) {
   const q = Math.max(0, Math.min(1, Number(quota) || 0));
@@ -418,8 +423,13 @@ function costruisci() {
           fascia = taglia(fascia, def.tagli.asse, confini[k + 1], true);
         }
       }
-      const lista = [fascia];
-      if (!def.centro) lista.push(specchia(fascia, def.vista));
+// Lo STACCO si applica DOPO i tagli: prima si taglia la fascia, poi si stringe
+    // il pezzo risultante. Stringere prima e poi tagliare darebbe un bordo
+    // obliquo al posto del taglio, e la fessura fra due fasce non sarebbe più
+    // dritta.
+    fascia = stringi(fascia);
+    const lista = [fascia];
+    if (!def.centro) lista.push(specchia(fascia, def.vista));
       bande[zona] = lista;
       pezzi.push(...lista);
     });
@@ -491,6 +501,71 @@ export function vistaDiGruppo(gruppo) {
 }
 
 const punti = (pezzo) => pezzo.map(([x, y]) => `${x},${y}`).join(' ');
+
+// I MUSCOLI ACCESI VENGONO STACCATI (16/10/2026).
+//
+// Ste: "non puoi fare che sono staccati?". Aveva ragione: nella nostra figura i
+// muscoli non sono staccati (vedi la nota sui 13 pezzi), quindi due muscoli accesi
+// vicini sembrano un blocco unico e non si capisce dove finisce l'uno.
+//
+// Il primo tentativo è stato un filo grigio lungo il bordo di ogni muscolo, ma
+// le sagome sono VOLUTAMENTE larghe e una parte esce dal corpo: il filo tracciava
+// anche quella parte e si vedevano contorni che galleggiavano sullo sfondo. Brutto.
+//
+// Quindi si fa il contrario: si stringe ogni sagoma verso l'interno di un pixel e
+// mezzo, e fra due muscoli accesi resta una fessura di grigio del corpo, larga
+// tre pixel. Non si disegna niente, ed è la linea del corpo che si vede in mezzo:
+// sembra che i muscoli siano davvero separati.
+//
+// Ogni lato si sposta verso l'interno e poi si fa l'intersezione fra lati
+// consecutivi: se due lati sono paralleli, il risultato è semplicemente il punto
+// spostato. Le sagome hanno pochi vertici e sono semplici (quasi tutte convesse),
+// quindi l'intersezione è stabile.
+
+/** Sposta ogni lato di `passo` verso l'interno e ricostruisce i vertici. */
+export function stringi(poligono, passo = STACCO) {
+  const n = poligono.length;
+  if (n < 3) return poligono;
+
+  // orientamento: il segno dell'area dice da che parte e' l'interno
+  let area = 0;
+  for (let i = 0; i < n; i++) {
+    const [ax, ay] = poligono[i];
+    const [bx, by] = poligono[(i + 1) % n];
+    area += ax * by - bx * ay;
+  }
+  const verso = area > 0 ? 1 : -1;
+
+  // il lato i (dal vertice i al vertice i+1) spostato di `passo` verso l'interno
+  const lati = [];
+  for (let i = 0; i < n; i++) {
+    const [ax, ay] = poligono[i];
+    const [bx, by] = poligono[(i + 1) % n];
+    const dx = bx - ax;
+    const dy = by - ay;
+    const len = Math.hypot(dx, dy) || 1;
+    const nx = -(dy / len) * verso;
+    const ny = (dx / len) * verso;
+    lati.push({ px: ax + nx * passo, py: ay + ny * passo, dx, dy });
+  }
+
+  // incrocio fra il lato precedente e questo: lì sta il vertice spostato
+  const fuori = [];
+  for (let i = 0; i < n; i++) {
+    const a = lati[(i - 1 + n) % n];
+    const b = lati[i];
+    const det = a.dx * -b.dy - a.dy * -b.dx;
+    let x = b.px;
+    let y = b.py;
+    if (Math.abs(det) > 1e-9) {
+      const t = ((b.px - a.px) * -b.dy - (b.py - a.py) * -b.dx) / det;
+      x = a.px + t * a.dx;
+      y = a.py + t * a.dy;
+    }
+    fuori.push([Math.round(x * 100) / 100, Math.round(y * 100) / 100]);
+  }
+  return fuori;
+}
 
 // L'id del ritaglio deve essere UNICO per ogni fascia.
 // Nell'app c'è una figura sola per pagina, quindi sembrava funzionare: ma se
