@@ -170,13 +170,36 @@ export const PARTI = [
 
   // ---- braccio ----
   {
+    // IL BRACHIALE, CHE IL HAMMER CURL NON E' UN BICIPITE (15/10/2026).
+    //
+    // Ste: "Cable Hammer Curl fa il brachiale". Ha ragione, ed è l'unico dei sei
+    // muscoli che mi ha elencato dove l'app sbagliava davvero.
+    //
+    // Con la presa NEUTRA a martello il bicipite non è il motore della flessione:
+    // è un pronatore, e in pronazione perde quasi tutta la forza di flessione. Il
+    // motore diventa il BRACHIALE, il muscolo che sta sotto al bicipite e copre
+    // l'osso. Per questo il curl con manubri normali è bicipite e quello a martello
+    // è un muscolo diverso.
+    //
+    // "hammer curl" era anche nella lista del bicipite (v175 e prima), quindi i due
+    // si pareggiavano a punti e vinceva il bicipite per ordine. Tolto di qui e messo
+    // qui sotto, non è un pareggio: è la anatomia.
+    //
+    // NON si mette "neutral grip" o "neutro" qui dentro: il Neutral Grip Pulldown è
+    // una tirata di schiena e abbasserebbe il brachiale dove non c'entra.
+    id: 'brachiale', muscolo: 'braccio', parte: 'brachiale (sotto il bicipite)',
+    parole: ['hammer curl', 'curl a martello', 'martello', 'impugnatura a martello'],
+    nota: 'Presa neutra a martello: il motore della flessione è il brachiale, il muscolo che sta sotto al bicipite e copre l\'osso. Il bicipite in questa presa è un pronatore, e in pronazione perde forza.',
+  },
+  {
     id: 'braccio_alto', muscolo: 'braccio', parte: 'bicipite: braccio in alto',
     parole: ['incline curl', 'curl inclinato', 'scott bench', 'preacher'],
     nota: 'Braccio in alto: il bicipite si vede e lavora nella posizione più corta, quindi è più difficile.',
   },
   {
     id: 'braccio_basso', muscolo: 'braccio', parte: 'bicipite: braccio in basso',
-    parole: ['curl bilanciere', 'hammer curl', 'curl al cavo', 'bicipiti', 'curl con bilanciere',
+    // "hammer curl" NON e' qui: e' il brachiale, vedi la nota sopra.
+    parole: ['curl bilanciere', 'curl al cavo', 'bicipiti', 'curl con bilanciere',
       'in piedi', 'standing curl', 'curl a terra', 'curl basso'],
     nota: 'Braccio giù lungo il fianco: è la posizione facile, quella con la serie più lunga.',
   },
@@ -781,6 +804,15 @@ export const INTRINSECO = {
   "spalle_frontali": 1,
   braccio_alto: 5, // il bicipite in alto lavora in posizione corta: è il caso difficile
   braccio_basso: 0, // in basso è in posizione lunga: il modo più facile di arrivare a fare i bicipiti
+  // Il brachiale NON e' un caso come l'alzata laterale (che ha 6 perché la leva è
+  // la peggiore del corpo). Qui la leva e' buona e il movimento e' a corsa
+  // completa: il brachiale sta solo sotto al bicipite e non si vede, ma non e' un
+  // muscolo piccolo e instabile. Quindi numero neutro, 2, e nessuna spinta ne in
+  // su ne giu': il giudizio lo danno il movimento e l'attrezzo, che e' come deve
+  // essere. (Prima avevo messo 6 e la soglia SCENDEVA del 24%, cioe' l'app lo
+  // trattava come il muscolo più facile del braccio: il contrario di come si vede
+  // lifting in presa neutra.)
+  brachiale: 2,
   "spalla_gomito": 1,
   "avambraccio": 2,
   "quadricipite": 0,

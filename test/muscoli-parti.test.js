@@ -1,4 +1,4 @@
-// muscoli-parti.test.js -- quale pezzo di muscolo lavora l'esercizio, e quanto e' duro.
+﻿// muscoli-parti.test.js -- quale pezzo di muscolo lavora l'esercizio, e quanto e' duro.
 //
 // Ste (04/10/2026): 'il petto come il bicipite e le altre parti sono formati da
 // diverse fibre muscolari e ci sono esercizi che servono per la parte alta e
@@ -40,14 +40,30 @@ test('M2. la descrizione conta, non solo il nome', () => {
   assert.equal(r.nome, 'parte alta del petto', 'la descrizione decide');
 });
 
-test('M3. bicipite: braccio in alto e braccio in basso', () => {
+test('M3. bicipite: braccio in alto, e il brachiale che NON è un bicipite', () => {
   const alto = parte('Scott Bench Curl');
-  const basso = parte('Cable Hammer Curl');
+  const basso = parte('Bicipiti con bilanciere');
   assert.equal(alto.muscolo, 'braccio');
   assert.equal(basso.muscolo, 'braccio');
   assert.notEqual(alto.parte, basso.parte);
-  assert.match(alto.nome, /alto/, 'il scott lavora il braccio in alto');
-  assert.match(basso.nome, /basso/, 'l\'hammer lavora il braccio in basso');
+  assert.match(alto.nome, /alto/, 'lo scott lavora il braccio in alto');
+  assert.match(basso.nome, /basso/, 'il curl al cavo lavora il braccio in basso');
+
+  // IL HAMMER CURL NON E' UN BICIPITE (15/10/2026).
+  //
+  // Ste: "Cable Hammer Curl fa il brachiale". Prima questo test diceva il
+  // contrario ("l'hammer lavora il braccio in basso") e aveva torto a scriverlo:
+  // con la presa neutra il bicipite è un pronatore e perde forza di flessione, e
+  // il motore diventa il brachiale.
+  //
+  // Nota che anche il "Neutral Grip Pulldown" contiene la parola "neutral", ma è
+  // una tirata di schiena: nessuna parola deve abbassare il brachiale li.
+  const hammer = parte('Cable Hammer Curl');
+  assert.equal(hammer.parte, 'brachiale',
+    'il hammer curl lavora il brachiale, non il bicipite');
+  assert.match(hammer.nome, /brachiale/, 'e la scheda lo deve dire');
+  assert.equal(parte('Neutral Grip Pulldown macchina').parte, 'dorso_lati',
+    'il neutral grip al pulldown resta una tirata di schiena');
 });
 
 test('M4. le spalle hanno tre parti diverse', () => {
@@ -201,7 +217,7 @@ test('M16. il peso del corpo resta assistito', () => {
 test('M17. la posizione conta piu\' del peso nei bicipiti', () => {
   // stessa muscolo, stessa difficoltà dichiarata: cambia solo la posizione
   const alto = livelloConMuscolo({ nome: 'Scott Bench Curl', livelloDalMovimento: 'isolamento' });
-  const basso = livelloConMuscolo({ nome: 'Cable Hammer Curl', livelloDalMovimento: 'isolamento' });
+  const basso = livelloConMuscolo({ nome: 'Bicipiti con bilanciere', livelloDalMovimento: 'isolamento' });
   assert.ok(alto.intrinseco > basso.intrinseco,
     'braccio in alto e\' posizione corta, in basso e\' posizione lunga');
   assert.match(alto.frase, /muscolo piccolo e instabile/);

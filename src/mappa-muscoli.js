@@ -150,6 +150,24 @@ const SAGOME = {
     sagoma: [[58, 348], [92, 346], [96, 380], [92, 402], [62, 404], [50, 386]],
   },
 
+  // IL BRACHIALE, IL MOTORE DEL HAMMER CURL (15/10/2026).
+  //
+  // Ste: "Cable Hammer Curl fa il brachiale". Con la presa neutra il bicipite
+  // diventa un pronatore e perde forza di flessione, e il motore diventa questo
+  // muscolo, che sta sotto al bicipite e copre l'osso.
+  //
+  // Sta sulla faccia DAVANTI e LATERALE dell'arto superiore, appena sopra il
+  // gomito. Quindi prende la fascia bassa del bicipite (y 375-404) e la fascia alta
+  // dell'avambraccio, che comincia a 402. Non e' un pezzo a parte sul disegno:
+  // e' dentro gli altri due, e per questo la sua sagoma e' una fascia stretta e
+  // bassa, non una forma nuova.
+  brachiale: {
+    vista: 'fronte',
+    nome: 'brachiale',
+    zone: ['brachiale'],
+    sagoma: [[52, 378], [88, 376], [96, 394], [92, 408], [58, 408], [46, 394]],
+  },
+
   avambraccio: {
     vista: 'fronte',
     nome: 'avambraccio',
@@ -358,6 +376,9 @@ export const GRUPPI = {
   spalle_laterali: { nome: 'spalle laterali (deltoide laterale)', gruppo: 'deltoide_fronte' },
   braccio_alto: { nome: 'bicipite: braccio in alto', gruppo: 'bicipite' },
   braccio_basso: { nome: 'bicipite: braccio in basso', gruppo: 'bicipite' },
+  // Il brachiale sta sulla faccia davanti e laterale dell'arto superiore, appena
+  // sopra il gomito. Sulla figura di fronte si vede, quindi ha una fascia sua.
+  brachiale: { nome: 'brachiale (sotto il bicipite)', gruppo: 'brachiale' },
   avambraccio: { nome: 'avambraccio (polso e avanti braccio)', gruppo: 'avambraccio' },
   spalla_gomito: { nome: 'tricipite: sopra il gomito', gruppo: 'tricipite' },
   quadricipite: { nome: 'quadricipite (davanti)', gruppo: 'quadricipite' },
