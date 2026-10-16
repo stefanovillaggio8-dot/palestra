@@ -286,8 +286,29 @@ const SAGOME = {
     //
     // I numeri sbagliati, in fila: y=457 (v177), poi y=440 (v178), poi y=401
     // (v181, "adesso e' sul gomito"). Ora e' y 335-376: dentro il pezzo giusto.
-    zone: ['spalla_gomito_alto', 'spalla_gomito_basso'],
-    tagli: { asse: 'y', valori: [358] },
+    // I DUE CAPI SONO AFFIANCATI, NON UNO SOPRA L'ALTRO (16/10/2026).
+    //
+    // Ste: "nel tricep pushdown lavora il capo laterale, quindi evidenzia la parte
+    // laterale del tricipite, invece nel cable overhead lavora il capo lungo".
+    //
+    // I numeri erano già giusti: sul pushdown c'era solo `spalla_gomito_basso`, che è
+    // il capo laterale, e sul cable overhead solo `spalla_gomito_alto`, che e' il capo
+    // lungo. Ma il TAGLIO era in orizzontale, cioe' "la fascia di sopra" e "quella di
+    // sotto": l'etichetta prometteva un capo e il disegno mostrava una metà del braccio.
+    //
+    // Anatomicamente sono due pezzi AFFIANCATI guardando il braccio da dietro:
+    //   - il capo LUNGO e' quello verso la spina (verso x=577), e scende per tutta la
+    //     lunghezza del braccio
+    //   - il capo LATERALE e' la gobba verso l'ESTERNO (verso x minore)
+    //
+    // Quindi il taglio deve essere in VERTICALE, non in orizzontale.
+    //
+    // Attenzione all'ordine delle zone: `costruisci()` dà alla prima zona la parte
+    // MINORE del limite e alla seconda la parte MAGGIORE. Quindi per avere
+    // laterale = esterno (x piccolo) e lungo = interno (x grande), le zone vanno
+    // nell'ordine giusto.
+    zone: ['spalla_gomito_basso', 'spalla_gomito_alto'],
+    tagli: { asse: 'x', valori: [484] },
     sagoma: [[470, 339], [509, 338], [506, 358], [504, 376], [468, 376], [466, 358]],
   },
 
