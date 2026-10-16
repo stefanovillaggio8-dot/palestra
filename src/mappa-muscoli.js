@@ -225,7 +225,22 @@ const SAGOME = {
   tricipite: {
     vista: 'retro',
     nome: 'tricipite',
-    zone: ['spalla_gomito'],
+    // IL TRICIPITE E' DUE CAPI (15/10/2026).
+    //
+    // Ste: "Overhead Tricep Ext. capo lungo del tricipite", "Single Arm Pushdown il
+    // tricipite la parte laterale". Sono due muscoli diversi e l'app li accendeva
+    // come se fossero uno.
+    //
+    // Sulla figura il capo lungo e' la fascia ALTA, quella che arriva dalla spalla,
+    // e il capo laterale e' la pancia, in basso verso il gomito. Il taglio e' a
+    // y=412, cioe' dove la pancia comincia.
+    //
+    // Il capo lungo e' mediale (vicino al corpo) e arriva fino in basso, e il
+    // laterale e' la parte esterna: su una figura piccola non si distinguono, quindi
+    // la divisione è per altezza. È una semplificazione, detta qui perché il
+    // codice non nasconda cosa sta facendo.
+    zone: ['spalla_gomito_alto', 'spalla_gomito_basso'],
+    tagli: { asse: 'y', valori: [412] },
     sagoma: [[452, 376], [498, 374], [507, 410], [499, 450], [459, 457], [443, 420], [440, 390]],
   },
 
@@ -380,7 +395,10 @@ export const GRUPPI = {
   // sopra il gomito. Sulla figura di fronte si vede, quindi ha una fascia sua.
   brachiale: { nome: 'brachiale (sotto il bicipite)', gruppo: 'brachiale' },
   avambraccio: { nome: 'avambraccio (polso e avanti braccio)', gruppo: 'avambraccio' },
-  spalla_gomito: { nome: 'tricipite: sopra il gomito', gruppo: 'tricipite' },
+  // Il tricipite e' due pezzi: il capo lungo arriva dalla spalla e sta in alto, il
+// capo laterale e' la pancia verso il gomito. Vedi la nota sulla sagoma.
+spalla_gomito_alto: { nome: 'tricipite: capo lungo', gruppo: 'tricipite' },
+  spalla_gomito_basso: { nome: 'tricipite: capo laterale', gruppo: 'tricipite' },
   quadricipite: { nome: 'quadricipite (davanti)', gruppo: 'quadricipite' },
   femorale: { nome: 'femorale (dietro)', gruppo: 'femorale' },
   polpaccio: { nome: 'polpaccio (gemelli e soleo)', gruppo: 'polpaccio' },

@@ -1,4 +1,4 @@
-// muscoli-parti.js -- QUALE pezzo di muscolo stai lavorando.
+﻿// muscoli-parti.js -- QUALE pezzo di muscolo stai lavorando.
 //
 // IL GRUPPO DEL MUSCOLO, CHE È LA COSA CHE MANCAVA.
 // `PARTI[].muscolo` dice 'braccio' sia per il bicipite sia per il tricipite, perché
@@ -208,21 +208,40 @@ export const PARTI = [
     parole: ['wrist curl', 'polso', 'curl del polso', 'avambraccio'],
     nota: 'Muovi solo il polso: lavora l’avambraccio, che sta sotto il gomito.',
   },
+  // IL TRICIPITE SONO DUE CAPI, E L'APP LI CONFONDEVA (15/10/2026).
+  //
+  // Ste: "Overhead Tricep Ext. capo lungo del tricipite", "Single Arm Pushdown il
+  // tricipite la parte laterale". Sono due muscoli diversi dentro lo stesso braccio,
+  // e l'app li mostrava come uno solo.
+  //
+  // IL CAPO LUNGO parte dalla scapola e passa dietro la spalla. Per questo lavora
+  // quando il braccio è IN ALTO (sopra la testa), ed è svantaggiato quando il
+  // braccio è lungo il fianco o sotto, perché a braccio basso si accorcia e perde
+  // la sua corsa utile.
+  //
+  // IL CAPO LATERALE è la pancia, quella che si vede e si sente: è il principale
+  // con il braccio lungo il fianco, quindi nel pushdown, e quello che stende il
+  // gomito spingendo dal basso (dips, panca).
+  //
+  // LE PAROLE. Il capo lungo ha frasi lunghe e precise ("overhead tricep", che è
+  // una frase e quindi vale doppio), il capo laterale ha il generico "tricipite".
+  // Se mettevo "estensioni" anche nel laterale, "Cable Overhead Tricep Extension"
+//  faceva 2 a 2 e vinceva per ordine: lo stesso difetto del braccio, un'altra
+  // volta. Quindi il laterale ha le parole generiche e il lungo le sue frasi.
   {
-    id: 'spalla_gomito', muscolo: 'braccio', parte: 'tricipite: sopra il gomito',
-    parole: ['french press', 'skull', 'estensioni sopra la testa', 'overhead extension',
-      'tricep pushdown', 'pushdown', 'tricipite', 'tricipiti', 'single arm tricep',
-      // Ste (13/10/2026): "Cable Overhead Tricep Extension" e "Bodyweight Overhead
-      // Tricep Extension" non trovavano niente. Nella lista c'era "tricep pushdown"
-      // e "single arm tricep", cioè solo i nomi di DUE esercizi precisi, mai la
-      // parola da sola. Con "tricep" e "tricipiti" dentro, qualunque esercizio
-      // coi tricipiti nel nome viene riconosciuto.
-      //
-      // "dip" e "dips" NON ci sono più (15/10/2026, stesso lavoro del movimento
-      // sotto): i dip sono una SPINTA, quindi i tricipiti non li aggiunge una
-      // parola ma il fatto che l'esercizio spinga. Vedi `MOVIMENTI`.
+    id: 'spalla_gomito_alto', muscolo: 'braccio', parte: 'tricipite: capo lungo',
+    parole: ['overhead tricep extension', 'overhead tricep', 'estensioni sopra la testa',
+      'sopra la testa', 'french press', 'skull', 'tricep pushdown in alto'],
+    nota: 'Capo lungo: parte dalla scapola e passa dietro la spalla. Lavora con il braccio in alto (sopra la testa) e a braccio basso è svantaggiato, perché si accorcia.',
+  },
+  {
+    id: 'spalla_gomito_basso', muscolo: 'braccio', parte: 'tricipite: capo laterale',
+    parole: ['tricep pushdown', 'pushdown', 'single arm tricep', 'tricipite', 'tricipiti',
+      // "dip" e "dips" NON ci sono (15/10/2026, stesso lavoro del movimento sotto):
+      // i dip sono una SPINTA, quindi i tricipiti non li aggiunge una parola ma il
+      // fatto che l'esercizio spinga. Vedi `MOVIMENTI`.
       'tricep', 'estensioni'],
-    nota: 'Stendi il gomito contro una resistenza: qui lavora il tricipite, dietro il braccio.',
+    nota: 'Capo laterale: è la pancia del tricipite, quella che si vede e si sente. È il principale con il braccio lungo il fianco, quindi nel pushdown, e quello che stende il gomito spingendo dal basso.',
   },
 
   // ---- gambe ----
@@ -375,7 +394,7 @@ export const MOVIMENTI = [
     // parecchio, perché il peso resta su braccia estese. Il deltoide invece
     // passa quasi inosservato, e per quello non lo si accende: accendere tutto
     // quello che c'è vicino è il contrario di quello che hai chiesto.
-    secondari: { spalla_gomito: 0.66 },
+    secondari: { spalla_gomito_basso: 0.66 },
   },
   {
     id: 'spinta_petto',
@@ -396,7 +415,7 @@ export const MOVIMENTI = [
     // steso e lì dentro c'è il tricipite, e la spalla davanti fa da pivot. Il
     // tricipite viene prima del deltoide perché su una panca il gomito è
     // letteralmente il motore del movimento.
-    secondari: { spalla_gomito: 0.66, spalle_frontali: 0.35 },
+    secondari: { spalla_gomito_basso: 0.66, spalle_frontali: 0.35 },
   },
   {
     id: 'fly_petto',
@@ -419,7 +438,7 @@ export const MOVIMENTI = [
       'spinte in alto', 'presse in alto', 'press a spalle', 'press militare',
       'front raise', 'alzata frontale', 'alzate frontali'],
     // Spingere in alto stende il gomito (tricipite) e tira le spalle su (trapezi).
-    secondari: { spalla_gomito: 0.66, dorso_alto: 0.4 },
+    secondari: { spalla_gomito_alto: 0.66, dorso_alto: 0.4 },
   },
   {
     id: 'tirata_verticale',
@@ -527,7 +546,7 @@ export const MOVIMENTI = [
     // scritto che l'app evidenziava muscoli che non c'entrano, e aveva ragione.
     // Un numero che non si vede non serve a niente: o il muscolo lavora e ha una
     // quota sua, o non si mette e se ne parla in una riga di commento come questa.
-    secondari: { dorso_centrale: 0.5, spalla_gomito: 0.1 },
+    secondari: { dorso_centrale: 0.5, spalla_gomito_alto: 0.1 },
   },
 {
     id: 'alzata_laterale',
@@ -813,7 +832,8 @@ export const INTRINSECO = {
   // trattava come il muscolo più facile del braccio: il contrario di come si vede
   // lifting in presa neutra.)
   brachiale: 2,
-  "spalla_gomito": 1,
+  "spalla_gomito_alto": 1,
+  "spalla_gomito_basso": 1,
   "avambraccio": 2,
   "quadricipite": 0,
   "femorale": 1,

@@ -1,4 +1,4 @@
-// mappa-muscoli.test.js -- l'omino non deve sbagliare niente.
+﻿// mappa-muscoli.test.js -- l'omino non deve sbagliare niente.
 //
 // Ste (13/10/2026), quattro volte sulla stessa figura:
 //  1. "voglio che spunti questo omino con il muscolo allenato colorato di viola";
@@ -107,7 +107,8 @@ test('Z3. l\'anatomia: ogni muscolo è nella vista giusta', () => {
   const vista = (id) => vistaDiGruppo(gruppoDiParte(id));
   // Il TRICIPITE STA DIETRO. Davanti al braccio non si vede, e metterlo davanti
   // direbbe che un dip lavora coi bicipiti: il contrario del vero.
-  assert.equal(vista('spalla_gomito'), 'retro', 'il tricipite si vede solo di dietro');
+  assert.equal(vista('spalla_gomito_alto'), 'retro', 'il capo lungo si vede solo di dietro');
+  assert.equal(vista('spalla_gomito_basso'), 'retro', 'e il capo laterale pure');
   assert.equal(vista('braccio_alto'), 'fronte', 'il bicipite si vede davanti');
   assert.equal(vista('braccio_basso'), 'fronte', 'il bicipite si vede davanti');
   assert.equal(vista('addome'), 'fronte', 'gli addomi sono davanti');
@@ -547,7 +548,7 @@ test('Z13. i secondari vengono da quello che l\'esercizio FA, non dalle sue paro
   assert.equal(rev.parte, 'spalle_posteriori', 'il reverse fly lavora il deltoide dietro');
   assert.ok(accesi('One Arm Cable Reverse Fly').has('tricipite'),
     'sul reverse fly i tricipiti si vedono: Ste li aveva chiesti esplicitamente');
-  assert.equal(quota('One Arm Cable Reverse Fly', 'spalla_gomito'), LIVELLI[0],
+  assert.equal(quota('One Arm Cable Reverse Fly', 'spalla_gomito_alto'), LIVELLI[0],
     'ma sono l\'ultima sfumatura: il gomito è fermo e non sono il motore del movimento');
   assert.equal(pieno('One Arm Cable Reverse Fly').length, 1, 'sul reverse fly un solo pieno');
   assert.equal(pieno('One Arm Cable Reverse Fly')[0].zona, 'spalle_posteriori');
