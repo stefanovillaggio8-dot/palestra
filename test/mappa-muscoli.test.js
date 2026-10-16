@@ -975,13 +975,82 @@ test('Z18: il tricipite non scende sotto il gomito, e il gomito non si indovina'
   assert.ok(dips.livelli.spalla_gomito_alto > 0, 'sui dip si accende anche il capo lungo');
   assert.ok(dips.livelli.spalla_gomito_basso > 0, 'sui dip si accende il capo laterale');
 
-  // la luce parte sotto il deltoide e arriva al gomito: copre tutto il braccio
+  // La luce parte sotto il deltoide e finisce prima del gomito: copre il braccio.
   const ysAccesi = righe
     .filter((r) => r.gruppo === 'tricipite')
     .flatMap((r) => r.pezzi.flat())
     .map(([, y]) => y);
-  assert.ok(Math.min(...ysAccesi) <= 372,
-    `sui dip il tricipite parte da y=${Math.min(...ysAccesi)}: sotto il deltoide dev'essere 372 o meno`);
-  assert.ok(Math.max(...ysAccesi) >= gomito - 6,
-    `sui dip il tricipite arriva solo a y=${Math.max(...ysAccesi)}: deve arrivare al gomito (y=${gomito})`);
+  assert.ok(Math.min(...ysAccesi) <= 340,
+    `sui dip il tricipite parte da y=${Math.min(...ysAccesi)}: deve partire sotto il deltoide (340 o meno)`);
+
+  // E LA REGOLA CHE MANCAVA, QUELLA VERA: due muscoli diversi non si sovrappongono
+  // MAI sulla stessa figura.
+  //
+  // Il difetto del tricipite era una versione di questo: la sua sagoma entrava
+  // nell'avambraccio, cioe' accendeva un muscolo dove ce n'e' un altro. Lo stesso
+  // vale per il petto che entra nel deltoide e per i dorsali che entrano nel
+  // deltoide posteriore: quando l'esercizio accende il petto, si accende anche un
+  // pezzo di spalla, ed e' esattamente il "vedo tante altre cose" di Ste.
+  //
+  // Il confronto NON puo' essere fatto sui vertici: due sagome che si sovrappongono
+  // possono non avere nessun vertice vicino (e infatti la prima versione di questo
+  // controllo passava col difetto dentro). Si rasterizza: si prende un reticolo
+  // dentro una sagoma e si conta quanti punti cadono anche nell'altra.
+  const dentro = (pol, x, y) => {
+    let dentro_ = false;
+    for (let i = 0, j = pol.length - 1; i < pol.length; j = i++) {
+      const [xi, yi] = pol[i];
+      const [xj, yj] = pol[j];
+      if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) dentro_ = ! dentro_;
+    }
+    return dentro_;
+  };
+  // La griglia parte da SEMPRE 0, non dal minimo della sagoma: altrimenti due
+  // sagome hanno griglie sfasate (una parte da y=272, l'altra da y=335) e nessun
+  // punto coincide mai. Successe: il controllo passava col difetto dentro.
+  const campione = (pol, passo = 2) => {
+    const ys = pol.map((p) => p[1]);
+    const xs = pol.map((p) => p[0]);
+    const punti = new Set();
+    for (let y = 0; y <= Math.max(...ys); y += passo) {
+      if (y < Math.min(...ys)) continue;
+      for (let x = 0; x <= Math.max(...xs); x += passo) {
+        if (x < Math.min(...xs)) continue;
+        if (dentro(pol, x + 0.5, y + 0.5)) punti.add(x + ',' + y);
+      }
+    }
+    return punti;
+  };
+
+  const uniche = [];
+  for (const gruppo of Object.values(RITAGLI)) {
+    if (!uniche.some((u) => u.nome === gruppo.nome)) uniche.push(gruppo);
+  }
+
+  const sovrapposizioni = [];
+  for (let i = 0; i < uniche.length; i++) {
+    for (let j = i + 1; j < uniche.length; j++) {
+      const a = uniche[i];
+      const b = uniche[j];
+      if (a.vista !== b.vista) continue;
+      // bicipite e brachiale sono lo stesso posto per costruzione: il brachiale sta
+      // SOTTO il bicipite, ed è dichiarato così nel codice. È l'unica eccezione.
+      const nome = [a.nome, b.nome].sort().join('+');
+      if (nome === 'bicipite+brachiale') continue;
+      for (const pa of a.sagoma === undefined ? [] : [a.sagoma]) {
+        const setA = campione(pa);
+        const setB = campione(b.sagoma);
+        if (!setA.size || !setB.size) continue;
+        let comuni = 0;
+        for (const punto of setA) if (setB.has(punto)) comuni++;
+        const percentuale = (100 * comuni) / Math.min(setA.size, setB.size);
+        if (percentuale > 8) {
+          sovrapposizioni.push(`${a.nome} e ${b.nome}: ${percentuale.toFixed(0)}%`);
+        }
+      }
+    }
+  }
+  assert.deepEqual(sovrapposizioni, [],
+    `due muscoli diversi si sovrappongono (${sovrapposizioni.join('; ')}): `
+    + 'ogni esercizio accenderebbe un muscolo dove ce n\'è un altro');
 });

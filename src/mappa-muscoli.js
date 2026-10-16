@@ -126,8 +126,8 @@ const SAGOME = {
     tagli: { asse: 'y', valori: [302, 332] },
     // il bordo superiore segue la curva della clavicola: se lo ritaglio a
     // dritto il petto sembra una macchia rettangolare invece di un muscolo.
-    sagoma: [[86, 294], [104, 280], [136, 276], [160, 284], [169, 306],
-      [161, 332], [150, 358], [112, 357], [93, 338], [83, 312]],
+    sagoma: [[108, 288], [124, 278], [140, 276], [160, 284], [169, 306],
+      [161, 332], [150, 358], [112, 357], [103, 340], [104, 312]],
   },
 
   // ---- spalla davanti: il deltoide laterale e quello anteriore ----
@@ -138,7 +138,9 @@ const SAGOME = {
     // il petto: si taglia in verticale, col laterale fuori e l'anteriore dentro.
     zone: ['spalle_laterali', 'spalle_frontali'],
     tagli: { asse: 'x', valori: [74] },
-    sagoma: [[50, 284], [96, 278], [106, 318], [94, 352], [56, 348], [42, 310]],
+    // Il DELTOIDE FRONTE finisce a y~338, come dietro (16/10/2026): stava fino a
+  // y=352 e si mangiava il bicipite. Vedi la nota sul deltoide posteriore.
+  sagoma: [[50, 284], [94, 278], [100, 300], [98, 320], [92, 338], [58, 338], [42, 310]],
   },
 
   // ---- braccio davanti ----
@@ -146,8 +148,13 @@ const SAGOME = {
     vista: 'fronte',
     nome: 'bicipite',
     zone: ['braccio_alto', 'braccio_basso'],
-    tagli: { asse: 'y', valori: [375] },
-    sagoma: [[58, 348], [92, 346], [96, 380], [92, 402], [62, 404], [50, 386]],
+    // IL BICIPITE FINISCE AL GOMITO (16/10/2026). Su `muscoli.png`, il braccio di
+  // fronte è un blocco unito da y=282 a y=388 e l'avambraccio è un pezzo staccato
+  // da y=393 a 450. Quindi il gomito è a y~390. Prima finiva a y=404 e accendeva
+  // 14 pixel di avambraccio insieme al bicipite: la stessa cosa che faceva il
+  // tricipite dietro.
+  tagli: { asse: 'y', valori: [360] },
+    sagoma: [[58, 334], [92, 332], [96, 362], [92, 384], [62, 388], [50, 366]],
   },
 
   // IL BRACHIALE, IL MOTORE DEL HAMMER CURL (15/10/2026).
@@ -157,22 +164,24 @@ const SAGOME = {
   // muscolo, che sta sotto al bicipite e copre l'osso.
   //
   // Sta sulla faccia DAVANTI e LATERALE dell'arto superiore, appena sopra il
-  // gomito. Quindi prende la fascia bassa del bicipite (y 375-404) e la fascia alta
-  // dell'avambraccio, che comincia a 402. Non e' un pezzo a parte sul disegno:
+  // gomito. Quindi prende la fascia bassa del bicipite (y 360-388) e la fascia alta
+  // dell'avambraccio, che comincia a 390. Non e' un pezzo a parte sul disegno:
   // e' dentro gli altri due, e per questo la sua sagoma e' una fascia stretta e
   // bassa, non una forma nuova.
   brachiale: {
     vista: 'fronte',
     nome: 'brachiale',
     zone: ['brachiale'],
-    sagoma: [[52, 378], [88, 376], [96, 394], [92, 408], [58, 408], [46, 394]],
+    sagoma: [[52, 364], [88, 362], [96, 378], [92, 392], [58, 392], [46, 378]],
   },
 
+  // L'AVAMBRACCIO: il pezzo staccato sotto il gomito (y 390-450 su muscoli.png).
+  // Prima cominciava a y=402, e quindi saltava la parte alta dell'avambraccio.
   avambraccio: {
     vista: 'fronte',
     nome: 'avambraccio',
     zone: ['avambraccio'],
-    sagoma: [[54, 404], [90, 402], [88, 438], [74, 452], [48, 452], [44, 424]],
+    sagoma: [[54, 392], [90, 390], [88, 428], [74, 448], [48, 448], [44, 416]],
   },
 
   // un pezzo solo, al centro: non si specchia
@@ -197,14 +206,26 @@ const SAGOME = {
     nome: 'trapezio',
     zone: ['dorso_alto'],
     centro: true,
-    sagoma: [[486, 244], [668, 244], [664, 306], [490, 306]],
+    sagoma: [[526, 244], [628, 244], [626, 302], [528, 302]],
   },
 
   dorsale: {
     vista: 'retro',
     nome: 'dorsali larghi',
     zone: ['dorso_lati'],
-    sagoma: [[474, 298], [540, 294], [550, 380], [532, 432], [486, 426], [468, 348]],
+    // I DORSALI NON PASSANO SOPRA IL BRACCIO (16/10/2026).
+  //
+  // Ste, 15/10: "nei pull ups ci sono segnati anche tricipiti". Tornato il 16/10,
+  // e aveva ragione: la sagoma dei dorsali partiva da x=468, cioè 40 pixel dentro
+  // il braccio, e ci finiva dentro anche tutto il tricipite (93% del tricipite era
+  // dentro i dorsali). Perciò una trazione accendeva il braccio insieme alla
+  // schiena, e sembrava che lavorassero anche i tricipiti.
+  //
+  // IL CONFINE E' NEL DISEGNO, e si vede: su `muscoli.png`, tra il braccio e la
+  // schiena c'e' una V scura, con la punta a y~335 e che si allarga scendendo
+  // (y=350 la V e' fra x=505 e x=525, y=400 fra x=495 e x=515). Il bordo esterno
+  // dei dorsali segue quella V, non la linea del braccio.
+  sagoma: [[526, 296], [550, 294], [550, 380], [546, 434], [500, 434], [498, 400], [512, 358], [516, 334]],
   },
 
   romboidi: {
@@ -212,14 +233,19 @@ const SAGOME = {
     nome: 'dorso centrale',
     zone: ['dorso_centrale'],
     centro: true,
-    sagoma: [[540, 300], [614, 300], [614, 424], [540, 424]],
+    sagoma: [[552, 300], [602, 300], [602, 424], [552, 424]],
   },
 
   deltoide_posteriore: {
     vista: 'retro',
     nome: 'deltoide dietro',
     zone: ['spalle_posteriori'],
-    sagoma: [[455, 274], [520, 272], [529, 310], [514, 342], [500, 370], [466, 368], [449, 318]],
+    // IL DELTOIDE FINISCE A y~338 (16/10/2026).
+  //
+  // Sul disegno originale il deltoide e il tricipite sono un pezzo unico (vedi la
+  // nota del tricipite): il confine è la tacca a y~335. Prima finiva a y=370 e si
+  // mangiava il tricipite, così una spinta in alto accendeva anche il braccio.
+  sagoma: [[455, 274], [518, 272], [524, 300], [516, 330], [508, 338], [468, 338], [449, 318]],
   },
 
   tricipite: {
@@ -239,26 +265,30 @@ const SAGOME = {
     // la divisione è per altezza. È una semplificazione, detta qui perché il
     // codice non nasconda cosa sta facendo.
     //
-    // IL GOMITO E' A y=403, E IL TRICIPITE FINISCE Lì (16/10/2026).
+// IL GOMITO E' A y=378, E IL TRICIPITE STA SOPRA (16/10/2026).
     //
-    // Ste: "ma non vedi che segna anche l'avambraccio?". Aveva ragione, e la
-    // risposta è tutta qui sotto.
+    // Ste, tre volte sulla stessa cosa, e alla terza mi ha mandato la foto
+    // anatomica: "ma non vedi che segna anche l'avambraccio? deve segnare il
+    // tricipite". Aveva ragione sempre, e per due volte avevo risposto spostando
+    // la sagoma un po' più in su. Non era la strada giusta.
     //
-    // La figura ha il braccio diviso in tre pezzi: spalla (fino a y~368),
-    // BRACCIO (368-403), AVAMBRACCIO (403-452), mano (dopo). E non l'ho dedotto
-    // guardando: lo dice la figura di FRONTE, dove l'app ha già disegnata la
-    // fascia dell'avambraccio che parte a y=402. Il gomito e' li'.
+    // LA MISURA VIENE DA `muscoli.png`, IL DISEGNO ORIGINALE (e non da me, e non
+    // da quello che avevo scritto prima). Sul braccio di dietro ci sono due pezzi
+    // separati da un vuoto:
     //
-    // Io avevo messo il tricipite fino a y=440: cioe' 37 pixel SOPRA l'avambraccio,
-    // accesi. Per questo sembrava un avambraccio. E non e' una questione di
-    // quanto si sposta: la regola vera e' che il tricipite non può scendere sotto
-    // il gomito, e il gomito è già scritto nella figura di fronte.
+    //   deltoide + tricipite   y 280-375   (un pezzo solo nel disegno)
+    //   VUOTO = IL GOMITO      y 378-384
+    //   avambraccio            y 385-450
     //
-    // Quindi qui sotto: y da 367 a 401, con il taglio dei due capi a y=384.
-    // Il capo lungo viene dalla spalla (fascia alta), il laterale e' la pancia.
+    // E dentro il pezzo grande c'è la tacca a y~335, che e' il confine fra
+    // deltoide e tricipite. Quindi: deltoide sopra la tacca, tricipite sotto la
+    // tacca e sopra il gomito.
+    //
+    // I numeri sbagliati, in fila: y=457 (v177), poi y=440 (v178), poi y=401
+    // (v181, "adesso e' sul gomito"). Ora e' y 335-376: dentro il pezzo giusto.
     zone: ['spalla_gomito_alto', 'spalla_gomito_basso'],
-    tagli: { asse: 'y', valori: [384] },
-    sagoma: [[468, 368], [508, 367], [498, 384], [492, 401], [460, 401], [465, 384]],
+    tagli: { asse: 'y', valori: [358] },
+    sagoma: [[470, 339], [509, 338], [506, 358], [504, 376], [468, 376], [466, 358]],
   },
 
   // ---- gambe ----
