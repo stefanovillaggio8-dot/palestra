@@ -1,4 +1,4 @@
-// mappa-muscoli.js -- l'omino che dice DOVE e QUANTO lavori.
+﻿// mappa-muscoli.js -- l'omino che dice DOVE e QUANTO lavori.
 //
 // Ste (13/10/2026), tre volte sulla stessa figura:
 //  1. "voglio che spunti questo omino con il muscolo allenato colorato di viola";
@@ -239,18 +239,26 @@ const SAGOME = {
     // la divisione è per altezza. È una semplificazione, detta qui perché il
     // codice non nasconda cosa sta facendo.
     //
-    // LA SAGOMA STA PIU' IN ALTO, PERCHE' IL FIGLIO DICEVA AVAMBRACCIO (16/10/2026).
-    // Ste: "i dips sono evidenziati gli avambracci". I dati erano giusti (sui dip
-    // accendevo il capo laterale e basta), ma la fascia finiva a y=457 e sulla
-    // figura la mano comincia a y=456: il pezzo acceso finiva LETTERALMENTE sul
-    // gomito, quindi sembrava l'avambraccio. Sul retro, infatti, l'avambraccio
-    // non si vede quasi: e' tutto braccio fino alla mano.
+    // IL GOMITO E' A y=403, E IL TRICIPITE FINISCE Lì (16/10/2026).
     //
-    // Quindi il tricipite sta fra y=366 e y=440, cioe' interamente nella pancia del
-    // braccio, con il taglio dei due capi a y=404.
+    // Ste: "ma non vedi che segna anche l'avambraccio?". Aveva ragione, e la
+    // risposta è tutta qui sotto.
+    //
+    // La figura ha il braccio diviso in tre pezzi: spalla (fino a y~368),
+    // BRACCIO (368-403), AVAMBRACCIO (403-452), mano (dopo). E non l'ho dedotto
+    // guardando: lo dice la figura di FRONTE, dove l'app ha già disegnata la
+    // fascia dell'avambraccio che parte a y=402. Il gomito e' li'.
+    //
+    // Io avevo messo il tricipite fino a y=440: cioe' 37 pixel SOPRA l'avambraccio,
+    // accesi. Per questo sembrava un avambraccio. E non e' una questione di
+    // quanto si sposta: la regola vera e' che il tricipite non può scendere sotto
+    // il gomito, e il gomito è già scritto nella figura di fronte.
+    //
+    // Quindi qui sotto: y da 367 a 401, con il taglio dei due capi a y=384.
+    // Il capo lungo viene dalla spalla (fascia alta), il laterale e' la pancia.
     zone: ['spalla_gomito_alto', 'spalla_gomito_basso'],
-    tagli: { asse: 'y', valori: [404] },
-    sagoma: [[451, 368], [497, 366], [504, 398], [497, 432], [458, 440], [443, 408], [440, 382]],
+    tagli: { asse: 'y', valori: [384] },
+    sagoma: [[468, 368], [508, 367], [498, 384], [492, 401], [460, 401], [465, 384]],
   },
 
   // ---- gambe ----

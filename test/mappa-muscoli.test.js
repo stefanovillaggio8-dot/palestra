@@ -903,41 +903,54 @@ test('Z16. nessun trapezio e nessun lombare sulle tirate in basso', async () => 
   }
 });
 
-// Z18. IL TRICIPITE NON PUO' FINIRE SULL'AVAMBRACCIO (16/10/2026).
+// Z18. IL TRICIPITE NON PUO' SCENDERE SOTTO IL GOMITO (16/10/2026).
 //
-// Ste: "i dips sono evidenziati gli avambracci". Due volte, e aveva ragione.
+// Ste, due volte sulla stessa cosa, e la seconda con la foto anatomica accanto:
+//   "i dips sono evidenziati gli avambracci"
+//   "ma non vedi che segna anche l'avambraccio? deve segnare il tricipite"
 //
-// I NUMERI ERAANO GIUSTI: sui dip si accende il capo laterale e basta, e il
-// tricipite non si accende MAI sulle tirate (Z16). Il problema era un altro, e
-// stava solo nella sagoma: sulla figura di retro la mano comincia a y=456 e il
-// poligono del tricipite scendeva fino a y=457. Un pezzo che finisce sul gomito,
-// su una figura dove l'avambraccio non si vede quasi, si legge come avambraccio.
-// E' successo due volte: la sagoma era quella di v177 (y fino a 457) e anche
-// prima, quando il tricipite era un pezzo solo con la stessa coda.
+// Aveva ragione, e per due volte io avevo risposto spostando la sagoma un po' piu'
+// in su. Non era la strada giusta, perche' il problema non e' DOVE finisce il
+// pezzo ma COSA c'e' sotto: la figura ha il braccio diviso in tre pezzi —
 //
-// Qui si blocca la cosa, perche' il difetto e' invisibile guardando i numeri:
-// il test legge il poligono vero e lo confronta con la mano.
-test('Z18: il tricipite sta tutto nella pancia del braccio, lontano dalla mano', () => {
-  // Dove comincia la mano sulla figura di retro (misurato su corpo.png)
-  const MANO_Y = 456;
-
+//   spalla     fino a y~368
+//   BRACCIO    368-403
+//   AVAMBRACCIO 403-452
+//   mano       dopo
+//
+// e io avevo messo il tricipite fino a y=440, cioe' 37 pixel di avambraccio
+// accesi insieme al muscolo. Spostarlo non bastava: finche' il pezzo scende
+// sotto il gomito, metà di quello che si vede acceso è un avambraccio.
+//
+// PERCHE' Y=403 E NON UN NUMERO MIO. Perche' la figura di FRONTE ha gia' la
+// fascia dell'avambraccio, e parte a y=402: il gomito e' li'. E' l'unico
+// riferimento che non devo indovinare, perche' l'ha disegnato lo stesso artista
+// sullo stesso corpo.
+//
+// QUI SI CONTROLLA QUELLO, e non un numero scritto a mano: il tricipite deve
+// finire PRIMA (o coincide) dove comincia l'avambraccio.
+test('Z18: il tricipite non scende sotto il gomito, e il gomito non si indovina', () => {
   const tricipite = RITAGLI.tricipite;
-  assert.equal(tricipite.vista, 'retro', 'il tricipite si vede solo da dietro');
+  const avambraccio = RITAGLI.avambraccio;
 
-  // Ogni pezzo che il codice DISEGNA davvero (fasce tagliate + speculare), non la
-  // sagoma grezza: se la coda cascasse dopo il taglio, qui la si vedrebbe.
+  assert.equal(tricipite.vista, 'retro', 'il tricipite si vede solo da dietro');
+  assert.equal(avambraccio.vista, 'fronte', 'l\'avambraccio si vede solo davanti');
+
+  // LA REGOLA: dove comincia l'avambraccio, lì è il gomito
+  const gomito = Math.min(...avambraccio.sagoma.map(([, y]) => y));
+
+  // ogni pezzo che il codice DISEGNA davvero (fasce tagliate + speculare)
   for (const poligono of tricipite.pezzi) {
     const piuBasso = Math.max(...poligono.map(([, y]) => y));
-    assert.ok(piuBasso <= MANO_Y - 12,
-      `il pezzo del tricipite scende a y=${piuBasso} e arriva sulla mano (y=${MANO_Y}): `
-      + 'sembra un avambraccio');
+    assert.ok(piuBasso <= gomito,
+      `il pezzo del tricipite scende a y=${piuBasso} ma il gomito è a y=${gomito}: `
+      + `${piuBasso - gomito} pixel di avambraccio vengono accesi insieme al muscolo`);
   }
 
-  // E ogni fascia deve stare sotto la mano anche per il gruppo intero, cosi' il
-  // difetto non puo' rientrare da un pezzo nuovo
-  for (const zona of tricipite.zone) {
-    assert.ok(RITAGLI.tricipite.bande[zona].length > 0, `la fascia ${zona} non esiste`);
-  }
+  // e il tricipite deve esistere sul braccio: non puo' sparire del tutto
+  const ys = tricipite.sagoma.map(([, y]) => y);
+  assert.ok(Math.max(...ys) >= Math.min(...ys) + 20,
+    'il tricipite deve avere una fascia, non un filo');
 
   // CONTROLLO DAVVERO UTILE: quello che l'app disegna davvero sui dip, passando
   // dal percorso vero (esercizio -> muscolo -> righe), non con una finta mappa.
@@ -950,27 +963,25 @@ test('Z18: il tricipite sta tutto nella pancia del braccio, lontano dalla mano',
   for (const r of righe) {
     for (const poligono of r.pezzi) {
       const piuBasso = Math.max(...poligono.map(([, y]) => y));
-      assert.ok(piuBasso <= MANO_Y - 12,
-        `il pezzo disegnato sui dip scende a y=${piuBasso}, sulla mano (y=${MANO_Y})`);
+      assert.ok(piuBasso <= gomito,
+        `il pezzo disegnato sui dip scende a y=${piuBasso}, cioè sull'avambraccio (gomito a y=${gomito})`);
     }
   }
 
   // E si accende il tricipite PER INTERO, non un capo solo. Con un capo solo il
   // disegno faceva una macchia in basso sul braccio e Ste, guardandola, leggeva
-  // "avambraccio" (16/10/2026). Spostare la macchia in su non basta: sul disegno
-  // di dietro l'avambraccio non c'è, quindi l'unica cosa che si distingue è "tutto
-  // il braccio acceso" e non "un pezzo di braccio acceso".
+  // "avambraccio". Spostare la macchia non basta: l'unica cosa che si distingue
+  // è "tutto il braccio acceso" e non "un pezzo di braccio acceso".
   assert.ok(dips.livelli.spalla_gomito_alto > 0, 'sui dip si accende anche il capo lungo');
   assert.ok(dips.livelli.spalla_gomito_basso > 0, 'sui dip si accende il capo laterale');
 
-  // la luce parte sotto il deltoide (y=370) e arriva vicino al gomito: cioe'
-  // copre la pancia del braccio, non un frammento
+  // la luce parte sotto il deltoide e arriva al gomito: copre tutto il braccio
   const ysAccesi = righe
     .filter((r) => r.gruppo === 'tricipite')
     .flatMap((r) => r.pezzi.flat())
     .map(([, y]) => y);
   assert.ok(Math.min(...ysAccesi) <= 372,
     `sui dip il tricipite parte da y=${Math.min(...ysAccesi)}: sotto il deltoide dev'essere 372 o meno`);
-  assert.ok(Math.max(...ysAccesi) >= 430,
-    `sui dip il tricipite arriva solo a y=${Math.max(...ysAccesi)}: deve arrivare almeno a 430`);
+  assert.ok(Math.max(...ysAccesi) >= gomito - 6,
+    `sui dip il tricipite arriva solo a y=${Math.max(...ysAccesi)}: deve arrivare al gomito (y=${gomito})`);
 });
