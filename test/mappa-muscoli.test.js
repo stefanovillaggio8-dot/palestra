@@ -137,33 +137,17 @@ test('Z4. nessun ritaglio esce dalla figura', () => {
       }
     }
   }
-// OGNI MUSCOLO DEVE COMPARIRE DA ENTRAMBE LE PARTI DEL CORPO.
-  //
-  // Prima qui si controllava che ogni sagoma avesse la sua copia speculare
-  // ESATTA, e aveva senso: le sagome erano disegnate a mano, metà per lato, e il
-  // codice le rispecchiava da solo. Dal 15/10/2026 le sagome non sono più
-  // disegnate a mano ma ricavate dalla tavola anatomica, quindi ogni lato è già
-  // al suo posto e le due metà non sono identiche al millimetro.
-  //
-  // Il controllo giusto, che è quello che serve davvero, è più semplice: il
-  // muscolo deve esserci DA ENTRAMBE LE PARTI. Se manca un lato, sulla pagina si
-  // vede metà figura storta, ed è quello il difetto da impedire.
+  // ogni pezzo deve stare dalla parte giusta della figura
   for (const [g, r] of Object.entries(RITAGLI)) {
     const centro = CENTRI[r.vista];
     if (r.centro) continue;   // un pezzo al centro sta intero, non è doppio
-    let aSinistra = 0;
-    let aDestra = 0;
     for (const pezzo of r.pezzi) {
-      // NON conta il centroide: un muscolo che sta ATTRAVERSANDO la linea di
-      // mezzo conta da entrambe le parti. Succede ai glutei, che nel disegno sono
-      // due ma si toccano, quindi vengono ritagliati come un pezzo solo.
-      const xs = pezzo.map((p) => p[0]);
-      if (Math.min(...xs) < centro) aSinistra += 1;
-      if (Math.max(...xs) > centro) aDestra += 1;
+      const cx = pezzo.reduce((s, p) => s + p[0], 0) / pezzo.length;
+      const lato = cx < centro ? 'sinistro' : 'destro';
+      const simmetrico = pezzo.map(([x, y]) => [2 * centro - x, y]);
+      assert.ok(esistePezzo(simmetrico),
+        g + ': il pezzo ' + lato + ' non ha il suo compagno specchiato');
     }
-    assert.ok(aSinistra > 0 && aDestra > 0,
-      g + ': il muscolo c\'è solo da un lato (' + aSinistra + ' a sinistra, '
-      + aDestra + ' a destra), e la figura resta mezza storta');
   }
 });
 
@@ -201,23 +185,17 @@ test('Z5. ogni esercizio della scheda accende un muscolo disegnato', () => {
   }
 });
 
-test('Z6. quello che viene disegnato è quello che c\'è nella tabella', () => {
-  // Il nome del test era "il ritaglio è simmetrico" e controllava che ogni pezzo
-  // avesse il suo specchio ESATTO. Non ha più senso dal 15/10/2026: le sagome non
-  // sono più disegnate a mano e rispecchiate, sono ricavate dalla tavola
-  // anatomica, e quindi i due lati ci sono ma non sono identici al millimetro.
-  //
-  // Quello che resta vero, e che è il difetto vero da impedire, è che sulla pagina
-  // ci sia TUTTO quello che la tabella dice: se una fascia sparisce, sulla figura si
-  // vede un buco nel muscolo.
+test('Z6. il ritaglio è simmetrico: il sinistro è lo specchio del destro', () => {
   for (const [g, r] of Object.entries(RITAGLI)) {
+    if (r.centro) continue;   // un pezzo al centro sta intero, non è doppio
+    const centro = CENTRI[r.vista];
     const svg = figurino(Object.keys(GRUPPI).find((id) => GRUPPI[id].gruppo === g));
-    for (const zona of r.zone) {
-      for (const pezzo of r.bande[zona]) {
-        assert.ok(disegnato(svg, pezzo),
-          g + '/' + zona + ': la fascia è nella tabella ma non viene disegnata, '
-          + 'e sul muscolo si vede un buco');
-      }
+    for (const pezzo of r.pezzi) {
+      const simmetrico = pezzo.map(([x, y]) => [2 * centro - x, y]);
+      // il pezzo disegnato e il suo simmetrico devono esserci ENTRAMBI nella
+      // pagina: se il destro manca, la figura resta mezza storta
+      assert.ok(disegnato(svg, pezzo) && disegnato(svg, simmetrico),
+        g + ': il ritaglio ha il pezzo ma non il suo specchio');
     }
   }
 });
@@ -268,23 +246,10 @@ test('Z8b. uniti non vuol dire tutti uguali: le fasce si toccano e non si somman
   // formati da piu' parti muscolari falli uniti, come nella foto", e (15/10/2026)
   // "la parte che lavora di piu' deve essere piu' evidenziata".
   //
-// IL CONTROLLO DI PRIMA, E PERCHÉ NON VALE PIÙ.
-  //
-  // Le fasce sono tagliate DAL CODICE dentro la sagoma originale, quindi la loro
-  // somma ricompone il muscolo esattamente: era quello che si controllava, e
-  // aveva senso quando le sagome erano disegnate a mano (sei-otto punti l'una).
-  //
-  // Dal 15/10/2026 le sagome vengono da una tavola anatomica vera, ritagliando ogni
-  // muscolo nel suo contorno vero. Le zone di un gruppo non sono più "fette della
-  // stessa sagoma": sono pezzi anatomici distinti, e la somma loro non ha nessun
-  // senso da confrontare con una sagoma unica che non esiste più. Per esempio il
-  // petto ha tre zone vere (parte alta, centro, basso) e tutte e tre insieme non
-  // fanno "una sagoma": fanno il petto.
-  //
-  // Il difetto da impedire è un altro, ed è più semplice: che una zona sia VUOTA
-  // (sul muscolo si vedrebbe un buco), e che due zone dello stesso gruppo si
-  // SOVRAPPONGANO (si accenderebbero insieme due muscoli che lavorano separati, ed
-  // è proprio l'errore che Ste ha segnalato a proposito del deltoide).
+  // Si tengono insieme cosi': le fasce sono tagliate DAL CODICE dentro la sagoma
+  // originale, quindi ricompongono il muscolo esattamente. Se la somma delle
+  // fasce non torna, sulla figura si vedrebbe una riga vuota in mezzo al
+  // pettorale, o un orecchio che sporge fuori: il muscolo sembrerebbe rotto.
   const area = (poligono) => {
     let a = 0;
     for (let i = 0; i < poligono.length; i += 1) {
@@ -295,55 +260,21 @@ test('Z8b. uniti non vuol dire tutti uguali: le fasce si toccano e non si somman
     return Math.abs(a / 2);
   };
 
-  /** Quanta parte di un poligono sta dentro l'altro: 0 = per niente, 1 = tutto. */
-  const puntiDentro = (a, b) => {
-    const dentro = (pt) => {
-      let dentroFalso = false;
-      for (let i = 0, j = b.length - 1; i < b.length; j = i, i += 1) {
-        const [xi, yi] = b[i];
-        const [xj, yj] = b[j];
-        const dentroStriscia = (yi > pt[1]) !== (yj > pt[1]);
-        if (!dentroStriscia) continue;
-        const taglio = ((xj - xi) * (pt[1] - yi)) / (yj - yi) + xi;
-        if (pt[0] < taglio) dentroFalso = !dentroFalso;
-      }
-      return dentroFalso;
-    };
-    const quanti = a.filter(dentro).length;
-    return quanti / a.length;
-  };
-
   for (const [gruppo, r] of Object.entries(RITAGLI)) {
+    const sinistra = (zona) => (r.centro ? r.bande[zona] : [r.bande[zona][0]]);
+    let somma = 0;
     for (const zona of r.zone) {
-      const pezzi = r.bande[zona] || [];
-      assert.ok(pezzi.length > 0, gruppo + '/' + zona + ': la fascia manca del tutto');
-      for (const p of pezzi) {
-        assert.ok(p.length >= 3 && area(p) > 1,
-          gruppo + '/' + zona + ': la fascia è vuota o non è un poligono, '
-          + 'e sul muscolo ci sarebbe un buco');
-      }
+      const pezzi = sinistra(zona);
+      assert.ok(pezzi.length > 0 && area(pezzi[0]) > 1,
+        gruppo + '/' + zona + ': la fascia è vuota, sul muscolo ci sarebbe un buco');
+      somma += sinistra(zona).reduce((s, p) => s + area(p), 0);
     }
-    // e le zone dello stesso gruppo non si sovrappongono: ogni zona è un pezzo
-    // anatomico separato, quindi due zone accese insieme mostrerebbero due muscoli
-    // diversi come se fossero uno
-    for (let i = 0; i < r.zone.length; i += 1) {
-      for (let j = i + 1; j < r.zone.length; j += 1) {
-        for (const a of r.bande[r.zone[i]] || []) {
-          for (const b of r.bande[r.zone[j]] || []) {
-            const sovrappone = puntiDentro(a, b);
-            // Due zone adiacenti che si TOCCANO al bordo non è un difetto: è
-            // come il confine fra il capo clavicolare e quello sternale del
-            // petto. Il difetto è quando una zona sta DENTRO l'altra, cioè sono
-            // lo stesso pezzo: è il caso del deltoide laterale che si
-            // accendeva insieme a quello anteriore (vedi la nota su `metti`).
-            assert.ok(sovrappone < 0.45,
-              gruppo + '/' + r.zone[i] + ' e ' + r.zone[j] + ': le due zone si '
-              + 'sovrappongono per il ' + Math.round(sovrappone * 100)
-              + '%, e sono lo stesso pezzo: accenderne una accenderebbe anche l\'altra');
-          }
-        }
-      }
-    }
+    const intera = area(r.sagoma);
+    const scarto = Math.abs(somma - intera) / intera;
+    assert.ok(scarto < 0.02,
+      gruppo + ': le fasce sommano ' + Math.round(somma) + ' ma la sagoma è '
+      + Math.round(intera) + ' (scarto ' + Math.round(scarto * 100) + '%): '
+      + 'il muscolo si vedrebbe con un buco o con un orecchio');
   }
 });
 
@@ -968,70 +899,5 @@ test('Z16. nessun trapezio e nessun lombare sulle tirate in basso', async () => 
     // movimento in basso: l'altro caso è quello che Ste ha segnalato
     assert.notEqual(r.movimento, 'tirata_verticale',
       `${e.nome}: il trapezio è acceso ma il movimento è una tirata in basso`);
-  }
-});
-
-// Z17. LE SAGOME VENGONO DALL'ANATOMIA, E SONO TUTTE E 18 (15/10/2026).
-//
-// Fino al 15/10/2026 le sagome erano disegnate a mano, sei-otto punti per muscolo,
-// e bastavano perche' il corpo era una figura piatta e semplice. Adesso il corpo
-// e' una tavola anatomica vera, con i muscoli separati uno per uno: una sagoma a
-// otto punti accenderebbe mezzo bicipite o un pezzo di polpaccio.
-//
-// Queste coordinate NON sono prese a occhio: vengono dalla tavola generata apposta
-// (ogni muscolo di un colore diverso) ritagliando ogni colore nel suo contorno
-// vero. La copertura misurata, cioe' quanta parte della sagoma cade davvero sopra
-// il muscolo, e' dell'89% (con le sagome a mano era del 50%).
-//
-// Il test verifica le tre cose che, se vanno perse, il difetto torna senza che
-// nessuno se ne accorga: che le zone ci siano TUTTE e 18, che nessuna sia vuota o
-// troppo piccola per essere un muscolo, e che ogni gruppo sia disegnato da almeno
-// una parte.
-test('Z17. le sagome ci sono tutte, e sono quelle dell\'anatomia', async () => {
-  const { BANDE_RILAVATE } = await import('../src/mappa-muscoli.js');
-  const { GRUPPI } = await import('../src/mappa-muscoli.js');
-
-  const TUTTE = Object.keys(GRUPPI).sort();
-  assert.equal(TUTTE.length, 18,
-    `le zone dell'app sono ${TUTTE.length}, e devono essere 18: ogni pezzo di `
-    + `muscolo con la sua sagoma. Mancano: ${TUTTE.join(', ')}`);
-
-  const area = (poligono) => {
-    let a = 0;
-    for (let i = 0; i < poligono.length; i += 1) {
-      const [x1, y1] = poligono[i];
-      const [x2, y2] = poligono[(i + 1) % poligono.length];
-      a += x1 * y2 - x2 * y1;
-    }
-    return Math.abs(a / 2);
-  };
-
-  for (const zona of TUTTE) {
-    const pezzi = BANDE_RILAVATE[zona];
-    assert.ok(Array.isArray(pezzi) && pezzi.length > 0,
-      zona + ': non ha sagome. Se manca, il muscolo non si accende e l\'app dice '
-      + 'che l\'esercizio non lavora da nessuna parte');
-    for (const p of pezzi) {
-      assert.ok(p.length >= 8,
-        zona + `: una sagoma di ${p.length} punti sembra quella disegnata a mano, `
-        + 'non quella dell\'anatomia');
-      assert.ok(area(p) > 20,
-        zona + ': la sagoma è troppo piccola per essere un muscolo, e sul muscolo '
-        + 'si vedrebbe un buco');
-      for (const [x, y] of p) {
-        assert.ok(Number.isFinite(x) && Number.isFinite(y)
-          && x >= 0 && x <= FOTO_L && y >= 0 && y <= FOTO_A,
-          zona + ': un punto della sagoma e\' fuori dalla figura (' + x + ',' + y + ')');
-      }
-    }
-  }
-
-  // e ogni gruppo della mappa deve trovare almeno una zona nuova: se un gruppo
-  // resta solo con le sagome vecchie, il corpo nuovo e quella zona non tornano
-  for (const [g, r] of Object.entries(RITAGLI)) {
-    const nuove = r.zone.filter((z) => Array.isArray(BANDE_RILAVATE[z]));
-    assert.ok(nuove.length > 0,
-      g + ': nessuna delle sue zone ha le sagome nuove, quindi su questo muscolo '
-      + 'il corpo nuovo non si accende');
   }
 });
