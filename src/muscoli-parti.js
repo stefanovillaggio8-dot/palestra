@@ -394,7 +394,22 @@ export const MOVIMENTI = [
     // parecchio, perché il peso resta su braccia estese. Il deltoide invece
     // passa quasi inosservato, e per quello non lo si accende: accendere tutto
     // quello che c'è vicino è il contrario di quello che hai chiesto.
-    secondari: { spalla_gomito_basso: 0.66 },
+    //
+    // ANCHE IL CAPO LUNGO, PERCHÉ SI VEDAVA L'AVAMBRACCIO (16/10/2026).
+    // Ste: "i dips sono evidenziati gli avambracci", con l'omino davanti agli occhi.
+    // Qui dentro c'era un solo capo acceso (il laterale, 0,66) e il disegno ne
+    // faceva una macchia sola, in basso sul braccio di dietro.
+    //
+    // E il motivo per cui sembrava l'avambraccio è geometrico, non anatomico: sul
+    // disegno di DIETRO l'avambraccio non è disegnato, il braccio va dritto alla
+    // mano. Quindi qualsiasi luce, per quanto spostata in su, finisce per sembrare
+    // "la parte bassa del braccio". Spostarla non bastava (l'avevo già fatto
+    // nella v179): a mettere la parola fine è accendere il tricipite per intero,
+    // così la cosa accesa è il BRACCIO e non una chiazza vicino al gomito.
+    //
+    // Il capo lungo tiene 0,42 e il laterale 0,66: due sfumature diverse sullo
+    // stesso muscolo, e i due capi restano distinguibili come nel pushdown.
+    secondari: { spalla_gomito_alto: 0.42, spalla_gomito_basso: 0.66 },
   },
   {
     id: 'spinta_petto',

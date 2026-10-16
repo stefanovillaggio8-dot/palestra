@@ -954,4 +954,23 @@ test('Z18: il tricipite sta tutto nella pancia del braccio, lontano dalla mano',
         `il pezzo disegnato sui dip scende a y=${piuBasso}, sulla mano (y=${MANO_Y})`);
     }
   }
+
+  // E si accende il tricipite PER INTERO, non un capo solo. Con un capo solo il
+  // disegno faceva una macchia in basso sul braccio e Ste, guardandola, leggeva
+  // "avambraccio" (16/10/2026). Spostare la macchia in su non basta: sul disegno
+  // di dietro l'avambraccio non c'è, quindi l'unica cosa che si distingue è "tutto
+  // il braccio acceso" e non "un pezzo di braccio acceso".
+  assert.ok(dips.livelli.spalla_gomito_alto > 0, 'sui dip si accende anche il capo lungo');
+  assert.ok(dips.livelli.spalla_gomito_basso > 0, 'sui dip si accende il capo laterale');
+
+  // la luce parte sotto il deltoide (y=370) e arriva vicino al gomito: cioe'
+  // copre la pancia del braccio, non un frammento
+  const ysAccesi = righe
+    .filter((r) => r.gruppo === 'tricipite')
+    .flatMap((r) => r.pezzi.flat())
+    .map(([, y]) => y);
+  assert.ok(Math.min(...ysAccesi) <= 372,
+    `sui dip il tricipite parte da y=${Math.min(...ysAccesi)}: sotto il deltoide dev'essere 372 o meno`);
+  assert.ok(Math.max(...ysAccesi) >= 430,
+    `sui dip il tricipite arriva solo a y=${Math.max(...ysAccesi)}: deve arrivare almeno a 430`);
 });

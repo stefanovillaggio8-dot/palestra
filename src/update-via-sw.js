@@ -49,10 +49,27 @@ export async function controllaAggiornamento({ forzato = false } = {}) {
 }
 
 /** Registra il file che permette l'aggiornamento immediato (se supportato). */
+// NON REGISTRA NESSUN SERVICE WORKER. Prima qui c'era
+// `navigator.serviceWorker.register('./update-via-sw.js')`, e quello era un BUG
+// grosso, non una sciocchezza (16/10/2026).
+//
+// Un service worker senza `scope` prende come scope la cartella in cui si trova,
+// cioè la radice del sito: `./`. Ma anche `sw.js` è registrato sulla radice. Due
+// service worker sullo stesso scope NON possono stare insieme: il secondo
+// SOSTITUISCE il primo. Quindi `update-via-sw.js` prendeva il posto di `sw.js`,
+// che smetteva di controllare la pagina (e con lui la cache per offline), e
+// `applicaAggiornamento` spediva il messaggio "aggiorna-subito" a un file che
+// quel messaggio non lo ascolta: la ricarica non arrivava mai.
+//
+// Il risultato per Ste era questo: l'app restava ferma sulla stessa versione per
+// giorni, e io continuavo a pubblicare correzioni che lui non vedeva. Quando me
+// l'ha detto, la foto che aveva davanti era tre versioni vecchia.
+//
+// Il file resta in `src/` e resta nella lista di `sw.js`, ma non viene MAI
+// registrato come worker: l'unico service worker del sito è `sw.js`.
 export function registraAggiornamentoRapido() {
-  if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return;
-  navigator.serviceWorker.register('./update-via-sw.js', { type: 'module' })
-    .catch(() => { /* il browser non lo supporta: si usa il metodo sotto */ });
+  // niente, e apposta: vedi la nota sopra. La funzione resta perché `app.js`
+  // continua a chiamarla e così il chiamante non deve cambiare.
 }
 
 /**
@@ -67,11 +84,20 @@ export async function applicaAggiornamento() {
   }
   try {
     const reg = await navigator.serviceWorker.getRegistration();
-    const worker = reg && (reg.waiting || reg.active);
-    if (worker) {
-      worker.postMessage({ tipo: 'aggiorna-subito' });
-      return;
+    if (reg) {
+      // prima gli dico di prendere subito la versione nuova
+      const worker = reg.waiting || reg.installing || reg.active;
+      if (worker) worker.postMessage({ tipo: 'aggiorna-subito' });
+      // e poi gli dico di andare a r leggere sw.js, che potrebbe essere cambiato
+      if (reg.update) await reg.update().catch(() => { /* pazienza */ });
     }
   } catch { /* pazienza */ }
-  window.location.reload();
+  // E ricarico COMUNQUE, senza aspettare nessuna risposta.
+  //
+  // Prima qui finiva dopo `postMessage`: se il messaggio non veniva ascoltato non
+  // succedeva niente e la pagina restava quella vecchia per sempre. Invece il
+  // `fetch` di `sw.js` è "prima la rete", quindi un ricaricamento prende i file
+  // freschi anche senza un worker nuovo. Meglio una pagina che si ricarica una
+  // volta in più che una pagina ferma su una versione che non esiste più.
+  setTimeout(() => window.location.reload(), 900);
 }

@@ -222,3 +222,81 @@ test('T5. i tre finali hanno le stesse dimensioni', async () => {
     );
   }
 });
+
+// T6. UN SOLO SERVICE WORKER, E SOLO SW.JS (16/10/2026).
+//
+// Il bug più costoso mai stato in questo progetto, e non l'aveva scritto nessun
+// test perché è una cosa che su carta sembra giusta.
+//
+// `app.js` registrava `./sw.js` e poi `registraAggiornamentoRapido()` registrava
+// `./update-via-sw.js`. Nessuno dei due specificava `scope`, quindi entrambi
+// prendevano la RADICE del sito come scope. Due service worker sullo stesso scope
+// non convivono: il secondo sostituisce il primo. Quindi:
+//
+//  1. `sw.js` smetteva di controllare la pagina (via la cache per offline);
+//  2. il messaggio "aggiorna-subito" finiva a `update-via-sw.js`, che non ha
+//     nessun `message` listener: la ricarica non arrivava MAI.
+//
+// Per Ste la conseguenza era che l'app restava ferma sulla stessa versione per
+// giorni. Io intanto pubblicavo correzioni (la v176, la v177, la v178, la v179) e
+// lui le vedeva solo nella mia chat: la foto che gli ho chiesto aveva tre
+// versioni di ritardo. È il caso peggiore in assoluto, perché il difetto è
+// invisibile da chi lo introduce e sembra che sia l'altro a non aggiornare.
+test('T6. nessun service worker oltre a sw.js', async () => {
+  const sw = await LEGGI('sw.js');
+  const app = await LEGGI('src/app.js');
+  const viaSw = await LEGGI('src/update-via-sw.js');
+
+  // ogni chiamata a register() in tutto il progetto, con il file che la contiene.
+  // I COMMENTI si tolgono prima: il bug da cui viene questo test sta scritto per
+  // intero nella nota di `update-via-sw.js`, e senza toglierli il test leggeva
+  // quello e diceva che il bug c'è ancora.
+  const senzaCommenti = (testo) => testo
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .split('\n')
+    .filter((riga) => !riga.trim().startsWith('//'))
+    .join('\n');
+
+  const fileDaLeggere = { 'sw.js': sw, 'src/app.js': app, 'src/update-via-sw.js': viaSw };
+  const chiamate = [];
+  for (const [file, testo] of Object.entries(fileDaLeggere)) {
+    for (const m of senzaCommenti(testo).matchAll(/serviceWorker\s*\.\s*register\s*\(\s*['"]([^'"]+)['"]/g)) {
+      chiamate.push({ file, script: m[1] });
+    }
+  }
+
+  assert.ok(chiamate.length > 0, 'il progetto deve registrare almeno un service worker');
+  for (const c of chiamate) {
+    assert.equal(c.script, './sw.js',
+      `${c.file} registra "${c.script}": sullo stesso scope un secondo worker SOSTITUISCE `
+      + 'il primo, e sw.js smette di controllare la pagina');
+  }
+
+  // e il numero di registrazioni non cresce: `sw.js` è registrato una volta sola
+  const registrazioniSw = chiamate.filter((c) => c.script === './sw.js');
+  assert.equal(registrazioniSw.length, chiamate.length,
+    'sw.js deve essere l\'unico script registrato, e una volta sola');
+
+  // la funzione che c'era prima non deve più registrare niente
+  const corpo = viaSw.slice(viaSw.indexOf('export function registraAggiornamentoRapido'));
+  const prossima = corpo.indexOf('\n}');
+  const funzione = prossima > 0 ? corpo.slice(0, prossima) : corpo;
+  assert.doesNotMatch(funzione, /register\s*\(/,
+    'registraAggiornamentoRapido non deve registrare un service worker');
+
+  // e `applicaAggiornamento` deve ricaricare SENZA aspettare una risposta: era
+  // quello il motivo per cui la pagina restava ferma sulla versione vecchia.
+  const corpoApplicazione = viaSw.slice(viaSw.indexOf('export async function applicaAggiornamento'));
+  assert.match(corpoApplicazione, /setTimeout\(/,
+    'applicaAggiornamento deve ricaricare la pagina con un setTimeout: '
+    + 'è l\'unico modo di uscire da un worker che non ascolta i messaggi');
+  assert.match(corpoApplicazione, /location\.reload\(\)/,
+    'applicaAggiornamento deve chiamare location.reload()');
+
+  // il messaggio "aggiorna-subito" non deve più essere l'unica strada: se è
+  // l'unica, e nessuno lo ascolta, la pagina non si muove
+  const soloPostMessage = /postMessage\(\{ tipo: 'aggiorna-subito' \}\);\s*return;/;
+  assert.doesNotMatch(senzaCommenti(corpoApplicazione), soloPostMessage,
+    'applicaAggiornamento non puo\' finire subito dopo il postMessage: '
+    + 'se il worker non ascolta, la pagina resta ferma per sempre');
+});
