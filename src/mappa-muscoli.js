@@ -181,7 +181,7 @@ const SAGOME = {
     vista: 'fronte',
     nome: 'avambraccio',
     zone: ['avambraccio'],
-    sagoma: [[54, 392], [90, 390], [88, 428], [74, 448], [48, 448], [44, 416]],
+    sagoma: [[46, 392], [78, 390], [78, 420], [70, 444], [40, 444], [36, 416]],
   },
 
   // un pezzo solo, al centro: non si specchia
@@ -225,7 +225,7 @@ const SAGOME = {
   // schiena c'e' una V scura, con la punta a y~335 e che si allarga scendendo
   // (y=350 la V e' fra x=505 e x=525, y=400 fra x=495 e x=515). Il bordo esterno
   // dei dorsali segue quella V, non la linea del braccio.
-  sagoma: [[526, 296], [550, 294], [550, 380], [546, 434], [500, 434], [498, 400], [512, 358], [516, 334]],
+  sagoma: [[550, 306], [550, 432], [534, 436], [528, 400], [522, 350], [542, 318]],
   },
 
   romboidi: {
