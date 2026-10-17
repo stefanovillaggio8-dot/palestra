@@ -178,8 +178,19 @@ const SAGOME = {
   //
   // Quindi: deltoide 278-338, bicipite 342-368, brachiale 370-392. Tre fasce senza
   // sovrapporsi, e tutte e tre dentro il braccio disegnato.
+  // IL BICIPITE E' UNA FASCIA PIENA, NON UN ESAGONO (16/10/2026).
+  //
+  // Prima la sagoma finiva con un vertice in basso (62,368) e due lati che tornavano
+  // su: alla riga y=366 copriva solo x 64-75, mentre il braccio disegnato arriva a
+  // x 49-88. Quindi un quarto del bicipite restava spento e non lo accendeva
+  // NESSUN muscolo: Ste, "evidenziare tutta la fascia muscolare allenata".
+  //
+  // Ora segue il bordo del braccio per tutta la larghezza, da y=338 a y=368. È
+  // volutamente un filo più larga del necessario: il braccio disegnato a destra
+  // sta 4-5 pixel più in fuori che a sinistra (x 60-98 contro x 55-93 alla riga
+  // y=342), e una sagoma stretta coprirebbe bene un lato e taglierebbe l'altro.
   tagli: { asse: 'y', valori: [352] },
-    sagoma: [[58, 344], [92, 342], [96, 352], [92, 364], [62, 368], [50, 352]],
+    sagoma: [[56, 340], [98, 338], [97, 354], [94, 368], [52, 369], [49, 354]],
   },
 
   // IL BRACHIALE, IL MOTORE DEL HAMMER CURL (15/10/2026).
@@ -230,11 +241,16 @@ const SAGOME = {
 
   // L'AVAMBRACCIO è il pezzo sotto: i flessori del polso. Comincia a y=420 perché
   // sopra c'è il brachioradiale, e due muscoli diversi non si sovrappongono.
+  //
+  // LA FORMA È A "L" (16/10/2026). Prima copriva solo la parte bassa e stretta
+  // (x 38-70, y 420-446) e lasciava fuori tutta la STRISCIA INTERNA dell'avambraccio
+  // (x 58-75, y 390-418), che nella figura è disegnata e che nessun muscolo
+  // accendeva mai: Ste, "evidenziare tutta la fascia muscolare allenata".
   avambraccio: {
     vista: 'fronte',
     nome: 'avambraccio',
     zone: ['avambraccio'],
-    sagoma: [[40, 422], [70, 420], [68, 436], [60, 446], [46, 448], [38, 434]],
+    sagoma: [[67, 390], [75, 396], [78, 412], [78, 424], [70, 444], [46, 448], [38, 434], [38, 421], [58, 418], [59, 408], [64, 398]],
   },
 
   // un pezzo solo, al centro: non si specchia
@@ -667,6 +683,18 @@ export function righeDaAccendere(acceso = null, livelli = null, anatomia = null)
       let quota = 0;
       if (zona === forzato && g === gruppo) quota = 1;
       else if (haQuota(zona)) quota = livelli[zona];
+      // IL GRUPPO PRINCIPALE SI ACCENDE TUTTO, E SI VEDE (16/10/2026).
+      //
+      // Ste: "evidenziare tutta la fascia muscolare allenata". Prima, una fascia del
+      // PRINCIPALE che non aveva una quota esatta finiva a `livelloDiQuota(0)`,
+      // cioe' 0.2: accesa in teoria e invisibile in pratica.
+      //
+      // Il caso peggiore era il bicipite, che e' diviso in due zone (`braccio_alto`
+      // e `braccio_basso`, per la posizione del curl e non per lo spazio): il curl
+      // accendeva `braccio_alto` a pieno e `braccio_basso` a 0.2, quindi si vedeva
+      // meta' bicipite. Il passo e` solo per i secondari, che continuano a valere
+      // `soloQuelloCheLavora`.
+      else if (!soloQuelloCheLavora) quota = 0.66;
       // una fascia di un secondario che non ha nessuna quota non si accende
       if (soloQuelloCheLavora && quota === 0) continue;
       righe.push({

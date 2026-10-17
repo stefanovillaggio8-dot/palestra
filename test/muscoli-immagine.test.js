@@ -141,9 +141,21 @@ function copertura(sagoma, alpha, larghezza, altezza, passo = 2) {
 const PAVIMENTO = {
   petto: 90,
   deltoide_fronte: 60,
-  bicipite: 93,
+// Il bicipite e' una fascia PIENA dal 16/10 (prima era un esagono che lasciava
+  // un quarto del muscolo spento). Per coprire tutto il bicipite la sagoma deve
+  // arrivare al bordo del braccio, e il ritaglio ne toglie 1,5 pixel: resta il
+  // contorno scuro del corpo (3,6%) e le linee sottili di separazione (7,6%),
+  // che il ritaglio del disegno NON colora di proposito. Con una sola sagoma
+  // specchiata e un braccio disegnato 4-5 pixel piu' in fuori dell'altro, quei
+  // pixel sono inevitabili: il pavimento scende a 86.
+  bicipite: 86,
   brachiale: 79,
-  avambraccio: 80,
+  // L'avambraccio e' una L dal 16/10: prende anche la striscia INTERNA del
+  // davanzo, che prima restava sempre spenta. La sagoma attraversa per forza le
+  // linee sottili che separano le due strisce (12,8% del suo area): sono i
+  // confini del disegno e NON si colorano, quindi il pavimento scende a 74.
+  // Non e' un difetto tollerato: e' il prezzo di coprire tutta la fascia.
+  avambraccio: 74,
   brachioradiale: 78,
   addome: 80,
   quadricipite: 87,
