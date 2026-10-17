@@ -1194,3 +1194,47 @@ test('Z20: rematore e tirata in basso sui dorsali, niente centro schiena', () =>
     'il Dumbbell Bench Pull resta centro schiena pieno: e\' la decisione dell\'08/10 '
     + 'e non si tocca insieme al rematore');
 });
+
+test('Z22: il brachioradiale sul martello, e l\'avambraccio solo sul polso', () => {
+  // Ste, 16/10/2026: "l'hammer curl non fa anche il brachioradiale?". Ha ragione:
+  // in presa neutra il gomito si piega per il brachiale e il brachioradiale, e il
+  // bicipite resta un terzo motore solo perche' diventa pronatore.
+  //
+  // Prima il codice diceva il contrario ("il brachioradiale non e' quello disegnato
+  // qui: meglio acceso niente che acceso il muscolo sbagliato") e lasciava spento
+  // anche l'avambraccio perche', diceva, piega il polso e in un curl non lavora.
+  const righeDi = (nome) => {
+    const e = CATALOGO.find((x) => x.nome === nome);
+    const r = parteDiMuscolo({ nome: e.nome, descrizione: e.nota_permanente || '' });
+    assert.ok(r.trovata, nome + ': non ha riconosciuto nessun muscolo');
+    return righeDaAccendere(r.parte, r.livelli, r.anatomia);
+  };
+  const gruppi = (righe) => new Set(righe.map((r) => r.gruppo));
+  const pieno = (righe) => righe.find((r) => r.opacita === 1);
+
+  // il martello: brachiale pieno E brachioradiale acceso
+  const martello = righeDi('Cable Hammer Curl');
+  assert.equal(pieno(martello)?.gruppo, 'brachiale',
+    'Cable Hammer Curl: il pieno deve essere il brachiale');
+  assert.ok(gruppi(martello).has('brachioradiale'),
+    'Cable Hammer Curl: deve accendersi anche il brachioradiale, che e\' il secondo '
+    + 'motore della flessione del gomito in presa neutra');
+
+  // l'avambraccio piega il POLSO: in un curl non lavora e resta spento
+  for (const nome of ['Cable Hammer Curl', 'One Arm Dumbbell Preacher Curl']) {
+    assert.ok(!gruppi(righeDi(nome)).has('avambraccio'),
+      nome + ': l\'avambraccio piega il polso e su un curl non deve accendersi');
+  }
+
+  // il wrist curl e' l'avambraccio puro: il brachioradiale NON e' il suo muscolo
+  const polso = righeDi('Wrist Curl');
+  assert.equal(pieno(polso)?.gruppo, 'avambraccio',
+    'Wrist Curl: il pieno deve essere l\'avambraccio');
+  assert.ok(!gruppi(polso).has('brachioradiale'),
+    'Wrist Curl: il brachioradiale sta spento, il lavoro e\' del piegatore del polso');
+
+  // i due muscoli sono pezzi DIVERSI: non possono accendersi insieme sulla stessa
+  // scheda, altrimenti la figura mostrerebbe due muscoli sovrapposti
+  assert.ok(!gruppi(martello).has('avambraccio') && !gruppi(polso).has('brachioradiale'),
+    'avambraccio e brachioradiale non devono mai accendersi insieme');
+});

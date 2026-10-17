@@ -221,9 +221,28 @@ export const PARTI = [
     nota: 'Braccio giù lungo il fianco: è la posizione facile, quella con la serie più lunga.',
   },
   {
-    id: 'avambraccio', muscolo: 'avambraccio', parte: 'avambraccio (polso e avanti braccio)',
+id: 'avambraccio', muscolo: 'avambraccio', parte: 'avambraccio (polso e avanti braccio)',
     parole: ['wrist curl', 'polso', 'curl del polso', 'avambraccio'],
-    nota: 'Muovi solo il polso: lavora l’avambraccio, che sta sotto il gomito.',
+    nota: 'Muovi solo il polso: lavora l\'avambraccio, che sta sotto il gomito.',
+  },
+  // IL BRACHIORADIALE, IL SECONDO MOTORE DEL MARTELLO (16/10/2026).
+  //
+  // Ste: "l'hammer curl non fa anche il brachioradiale?". Sì: in presa neutra il
+  // gomito si piega per opera del brachiale e del brachioradiale, e il bicipite è un
+  // terzo motore solo perché diventa pronatore e perde forza.
+  //
+  // Non ha parole sue: nessun esercizio si chiama "brachioradiale", e metterlo qui
+  // farebbe scattare la parola su qualunque descrizione. Viene acceso dal
+  // MOVIMENTO `curl`, che è il posto giusto: è un muscolo che aiuta TUTTI i curl, e
+  // non uno che identifica un esercizio in particolare.
+  {
+    id: 'brachioradiale', muscolo: 'avambraccio', parte: 'brachioradiale (sotto il gomito)',
+    // La parola è il nome del muscolo: nessun esercizio del catalogo la contiene,
+    // quindi non può scattare per sbaglio. Serve solo perché il pezzo sia
+    // riconoscibile (vedi M7).
+    parole: ['brachioradiale'],
+    nota: 'Sta sul davanti dell\'avambraccio, sotto il gomito e verso l\'esterno. '
+      + 'Piega il gomito insieme al brachiale, quindi lavora su ogni curl.',
   },
   // IL TRICIPITE SONO DUE CAPI, E L'APP LI CONFONDEVA (15/10/2026).
   //
@@ -543,11 +562,20 @@ export const MOVIMENTI = [
     id: 'curl',
     parole: ['curl', 'bilanciere', 'incline curl', 'curl inclinato', 'scott bench',
       'preacher'],
-    // Qui NON si accende l'avambraccio, anche se il braccio tira: l'avambraccio
-    // dell'app è il piegatore del polso, che in un curl non lavora. Il
-    // brachioradiale è un muscolo diverso e non è quello disegnato qui: meglio
-    // acceso niente che acceso il muscolo sbagliato.
-    secondari: {},
+    // IL BRACHIORADIALE SI ACCENDE, E IL COMMENTO PRIMA DICEVA IL CONTRARIO (16/10/2026).
+    //
+    // Qui c'era scritto: "l'avambraccio dell'app è il piegatore del polso, che in un
+    // curl non lavora. Il brachioradiale è un muscolo diverso e non è quello
+    // disegnato qui: meglio acceso niente che acceso il muscolo sbagliato".
+    //
+    // Ste: "l'hammer curl non fa anche il brachioradiale?". Aveva ragione, e il
+    // commento aveva due errori: il brachioradiale è proprio uno dei due motori
+    // della flessione del gomito in presa neutra, e il pezzo c'era disegnato (sotto
+    // il gomito, sul lato esterno). Vedi la sagoma in mappa-muscoli.js.
+    //
+    // Quindi ora il curl accende anche il brachioradiale. L'AVAMBRACCIO PIEGA IL
+    // POLSO e su un curl continua a non lavorare, quindi resta spento.
+    secondari: { brachioradiale: 0.5 },
   },
   {
     id: 'estensione_gomito',

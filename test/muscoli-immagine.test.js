@@ -144,6 +144,7 @@ const PAVIMENTO = {
   bicipite: 93,
   brachiale: 79,
   avambraccio: 80,
+  brachioradiale: 78,
   addome: 80,
   quadricipite: 87,
   trapezio: 87,

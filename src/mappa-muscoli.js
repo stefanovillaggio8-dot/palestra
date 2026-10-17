@@ -204,11 +204,37 @@ const SAGOME = {
 
   // L'AVAMBRACCIO: il pezzo staccato sotto il gomito (y 390-450 su muscoli.png).
   // Prima cominciava a y=402, e quindi saltava la parte alta dell'avambraccio.
+  // IL BRACHIORADIALE, IL MUSCOLO DEL MARTELLO (16/10/2026).
+  //
+  // Ste: "l'hammer curl non fa anche il brachioradiale?". Sì: in presa neutra il
+  // brachiale e il brachioradiale sono i due motori della flessione del gomito, e il
+  // bicipite è solo un terzo, perché diventa pronatore e perde forza.
+  //
+  // Prima qui c'era una nota che diceva il contrario ("il brachioradiale è un muscolo
+  // diverso e non è quello disegnato qui"), e non era vero. Il pezzo c'era: sul
+  // davanti dell'avambraccio, sotto il gomito e verso l'ESTERNO, c'è una striscia
+  // staccata da una linea scura (x 38-57, y 392-418). È lì che sta il brachioradiale.
+  //
+  // Il disegno non scrive i nomi, quindi il riconoscimento è fatto dalla POSIZIZIONE:
+  // subito sotto il gomito e sul lato esterno, che è dove sta in un braccio visto di
+  // fronte. Se quel pezzo fosse un altro muscolo, la sagoma va spostata.
+  //
+  // NOTA: l'avambraccio comincia sotto, a y=420, così i due non si toccano. Vedi la
+  // sagoma sotto.
+  brachioradiale: {
+    vista: 'fronte',
+    nome: 'brachioradiale',
+    zone: ['brachioradiale'],
+    sagoma: [[46, 395], [58, 392], [61, 405], [59, 416], [43, 418], [40, 406]],
+  },
+
+  // L'AVAMBRACCIO è il pezzo sotto: i flessori del polso. Comincia a y=420 perché
+  // sopra c'è il brachioradiale, e due muscoli diversi non si sovrappongono.
   avambraccio: {
     vista: 'fronte',
     nome: 'avambraccio',
     zone: ['avambraccio'],
-    sagoma: [[46, 404], [78, 402], [78, 424], [70, 444], [40, 444], [36, 420]],
+    sagoma: [[40, 422], [70, 420], [68, 436], [60, 446], [46, 448], [38, 434]],
   },
 
   // un pezzo solo, al centro: non si specchia
@@ -495,6 +521,10 @@ export const GRUPPI = {
   // sopra il gomito. Sulla figura di fronte si vede, quindi ha una fascia sua.
   brachiale: { nome: 'brachiale (sotto il bicipite)', gruppo: 'brachiale' },
   avambraccio: { nome: 'avambraccio (polso e avanti braccio)', gruppo: 'avambraccio' },
+  // Il brachioradiale sta sul davanti dell'avambraccio, subito sotto il gomito e
+  // verso l'esterno. È il secondo motore della flessione del gomito insieme al
+  // brachiale, ed è per questo che conta sul curl a martello (vedi la sagoma).
+  brachioradiale: { nome: 'brachioradiale (sotto il gomito)', gruppo: 'brachioradiale' },
   // Il tricipite e' due pezzi: il capo lungo arriva dalla spalla e sta in alto, il
 // capo laterale e' la pancia verso il gomito. Vedi la nota sulla sagoma.
 spalla_gomito_alto: { nome: 'tricipite: capo lungo', gruppo: 'tricipite' },
