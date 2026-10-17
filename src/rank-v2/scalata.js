@@ -98,9 +98,33 @@ export function pienePerRipetizioni(n) {
 }
 
 /**
+ * Un kg che si può davvero mettere sul bilanciere.
+ *
+ * IL NUMERO "TI MANCA 0,01 KG" NON SI PUÒ FARE (16/10/2026). Ste, sul preacher
+ * curl: "sono bronzo 3 con 99 lp e devo fare 18,08 kg per il silver, ma come dovrei
+ * fare 0,8 grammi in più?". Aveva ragione: il conto veniva arrotondato a due
+ * decimali, quindi uscivano numeri come 16,01 kg o 18,08 kg. Un manubrio non si
+ * compra a 18,08 kg: i dischi vanno a kg interi, e i manubri per lato pure.
+ *
+ * Quindi il numero sale sempre al kg INTERO successivo, e mai meno di 1 kg sopra il
+ * carico che hai già fatto: se il conto dice 16,01 e tu fai 16, la risposta utile è
+ * "17 kg", non "16,01 kg".
+ *
+ * Non è una scelta sul merito del tetto: è solo rendere realizzabile il numero che il
+ * motore aveva già calcolato. Il tetto e le soglie non si toccano qui.
+ */
+function kgRealizzabile(g, caricoAttuale) {
+  const n = Number(g);
+  if (!Number.isFinite(n)) return null;
+  const attuale = Number(caricoAttuale);
+  const minimo = Number.isFinite(attuale) && attuale > 0 ? Math.floor(attuale) + 1 : 0;
+  return Math.max(Math.ceil(n), minimo);
+}
+
+/**
  * Quanto ti manca per la soglia dopo, in due modi leggibili.
  *
- * - in RIPETIZIONI: quante ne faresti in piu' a questo carico (quando si puo')
+ * - in RIPETIZI: quante ne faresti in piu' a questo carico (quando si puo')
  * - in KG: quanto carico in piu' con le ripetizioni che hai gia' fatto
  *
  * Serve perche' un numero solo non basta mai ("ti manca 0,4" non dice niente):
@@ -118,9 +142,11 @@ export function distanzaAllaSoglia(score, soglie, indice, { carico, meccanica = 
     if (!Number.isFinite(manca) || manca <= 0) return null;
     const ripTotali = ripetizioniPerSoglia(score, prima, { carico, meccanica });
     const pieneFatte = pienePerRipetizioni(ripetizioniFatte);
-    const kgNecessari = Number.isFinite(carico) && carico > 0
-      ? Math.round((prima / (pieneFatte * (Number(meccanica) || 1))) * 100) / 100
+    const kgGrezzo = Number.isFinite(carico) && carico > 0
+      ? prima / (pieneFatte * (Number(meccanica) || 1))
       : null;
+    // kg intero successivo: vedi `kgRealizzabile`, non si compra un manubrio a 18,08 kg
+    const kgNecessari = kgRealizzabile(kgGrezzo, carico);
     const LIMITE = 12;
     const ripInPiu = ripTotali ? Math.max(0, ripTotali - Math.floor(ripetizioniFatte)) : null;
     const ripUtili = ripInPiu !== null && ripInPiu <= LIMITE ? ripInPiu : null;
@@ -150,9 +176,11 @@ export function distanzaAllaSoglia(score, soglie, indice, { carico, meccanica = 
   if (!Number.isFinite(manca) || manca <= 0) return null;
   const ripTotali = ripetizioniPerSoglia(score, prossima, { carico, meccanica });
   const pieneFatte = pienePerRipetizioni(ripetizioniFatte);
-  const kgNecessari = Number.isFinite(carico) && carico > 0
-    ? Math.round((prossima / (pieneFatte * (Number(meccanica) || 1))) * 100) / 100
+  const kgGrezzo = Number.isFinite(carico) && carico > 0
+    ? prossima / (pieneFatte * (Number(meccanica) || 1))
     : null;
+  // kg intero successivo: vedi `kgRealizzabile`
+  const kgNecessari = kgRealizzabile(kgGrezzo, carico);
   // qui stava un difetto mio: la frase diceva "N ripetizioni in piu'" usando il
   // TOTALE necessario, quindi se ne servivano 8 a te che ne facevi 7 leggevi
   // "8 ripetizioni in piu'" invece di "1". Un numero che sbaglia di sette

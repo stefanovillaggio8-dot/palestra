@@ -1071,3 +1071,27 @@ test('V25. un tetto non può superare il massimo del range che la sua stessa not
       + `gradino (${(v.ingressoMultiplo / v.multiplo * 100).toFixed(0)}% del tetto)`);
   }
 });
+
+test('V25. il kg che manca si può mettere sul bilanciere (mai 0,01 kg)', async () => {
+  // Ste, 16/10/2026, sul preacher curl: "sono bronzo 3 con 99 lp e devo fare 18,08
+  // kg per il silver, ma come dovrei fare 0,8 grammi in più?".
+  //
+  // Il conto era arrotondato a DUE DECIMALI, quindi uscivano numeri come 16,01 kg o
+  // 18,08 kg: un manubrio non si compra cosi'. La risposta utile è il kg INTERO
+  // successivo, e mai meno di 1 kg sopra il carico già fatto.
+  const soglie = scalata.soglieDaValori({ ingresso: 16, vertice: 40 });
+
+  for (const carico of [16, 17, 18, 20, 24, 30]) {
+    const d = scalata.distanzaAllaSoglia(carico * 2, soglie, 0,
+      { carico, meccanica: 1, ripetizioniFatte: 11 });
+    if (!d || d.kgNecessari === null) continue;
+    assert.ok(Number.isInteger(d.kgNecessari),
+      `con ${carico} kg l'app chiede ${d.kgNecessari} kg: un numero con i decimali non `
+      + 'si può mettere sul bilanciere');
+    assert.ok(d.kgNecessari > carico,
+      `con ${carico} kg l'app chiede ${d.kgNecessari} kg: serve più di quello che `
+      + 'hai già fatto, altrimenti il numero non dice nulla');
+    assert.ok(d.frase.includes(`${d.kgNecessari} kg`),
+      `la frase non contiene il kg arrotondato: "${d.frase}"`);
+  }
+});

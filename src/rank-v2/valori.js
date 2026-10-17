@@ -298,8 +298,15 @@ export const VALORI_MOVIMENTO = {
   // sollevi 18 kg per braccio su un curl, il tuo bicipite e' davvero forte per
   // il tuo corpo, e meriti di partire sotto il primo livello. Il numero non premia
   // i kg assoluti, premia i kg rapportati al corpo che li sposta.
-  bicipiti_panca: {
-    multiplo: 0.5, ingressoMultiplo: 0.22, fonte: 'stima',
+// IL RAGIONAMENTO QUI SOPRA E' VECCHIO, I NUMERI DEL CODICE SONO QUELLI GIUSTI
+   // (16/10/2026). Il testo sopra parla di "tetto 0,4x il corpo, ingresso 0,26x" e
+   // di "tetto 26,4 kg per braccio, ingresso 17,2": ma nel codice sotto c'e'
+   // `multiplo: 0.5` e `ingressoMultiplo: 0.22`, che sul corpo di 66 kg danno tetto
+   // 33 kg e ingresso 14,5 kg. Il progetto dice che "il numero che c'e' adesso e' la
+   // verita'", quindi i numeri del codice vincono e il ragionamento sopra e' rimasto
+   // indietro. Da chiedere a Ste quale dei due voleva, il 16/10/2026.
+   bicipiti_panca: {
+   multiplo: 0.5, ingressoMultiplo: 0.22, fonte: 'stima',
     nota: 'Curl col manubrio sulla panca Scott (preacher curl e Scott bench curl sono lo stesso esercizio), PER BRACCIO: tetto 0,4x il corpo, ingresso 0,26x. Sul corpo di Ste da 66: tetto 26,4 kg per braccio, ingresso 17,2; i suoi 18 kg stanno appena sopra il bronzo, e con piu\' ripetizioni salgono gli LP. Prima prendeva la scala del curl al cavo (tetto 46,2 kg per braccio) e chi ci arrivava prendeva TITAN: quel numero col bilanciere in panca non e\' realistico. Perche\' non puo\' essere la stessa scala del cavo: sul cavo la doppia carrucola dimezza e 46 kg per braccio sono 92 kg sul carrello, cosa che si vede; col manubrio non si dimezza e il tetto e\' limitato dall\'attrezzo. Nota bene l\'ingresso uguale a quello dei bicipiti al cavo: e\' piu\' alto di quanto sembri giusto guardando il numero, ma se fosse piu\' basso chi pesasse di piu\' di Ste, con gli stessi kg per braccio, si troverebbe con un Rank PEGGIORE del suo, e la scala smetterebbe di essere "in rapporto al tuo corpo".',
   },
   petto_isolamento: {
