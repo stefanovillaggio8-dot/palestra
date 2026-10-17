@@ -113,19 +113,40 @@ export const PESI_GOLERIA = [
 ];
 
 /**
+ * Tutti i pesi che si possono davvero caricare, in ordine.
+ *
+ * La lista dei manubri copre fino a 60 kg, ma da 50 a 60 il salto e' di 10: sui CAVI
+ * e sulle macchine, che vanno di 2,5 kg, 52,5 e 55 kg esistono. Quindi alla lista si
+ * aggiungono i multipli di 2,5 da 52,5 in su, fino a 250 kg (basta: nessun esercizio
+ * di una palestra arriva oltre).
+ *
+ * Serve a `soglieLegibili`: invece di calcolare il peso corrispondente a una soglia
+ * (e sbagliare, perché sui cavi la soglia è per lato e il peso registrato è del
+ * carrello) si cerca semplicemente il primo peso che la raggiunge davvero.
+ */
+export function pesiCaricabili() {
+  const aggiunti = [];
+  for (let kg = 52.5; kg <= 250; kg += 2.5) aggiunti.push(kg);
+  return [...new Set([...PESI_GOLERIA, ...aggiunti])].sort((a, b) => a - b);
+}
+
+/**
  * Il peso che c'è davvero, più vicino a quello chiesto.
  *
- * Se il numero cade esattamente a metà fra due pesi si sceglie quello PIÙ ALTO. Il
- * motivo è che una soglia si scrive "da X kg" e deve essere vera: se X non basta,
- * scrivere X è peggio che scrivere il peso che c'è davvero. Con 18,42 si sceglie 20 e
- * non 18, perché 18 non arriverebbe.
+ * FINO A 50 KG si usa la lista dei manubri, che è quello che Ste ha elencato e il
+ * passo NON è uniforme: sotto i 12 kg di 1-2 kg, poi 12,5, poi di 2 kg fino a 30, poi
+ * di 2,5 fino a 50.
+ *
+ * OLTRE I 50 KG vale il passo dei dischi da 2,5 kg (cavi e macchine).
+ *
+ * Sale sempre, mai scende: una soglia si scrive "da X kg" e deve bastare.
  */
 export function pesoPiuVicino(kg) {
   const n = Number(kg);
-  if (!Number.isFinite(n) || !PESI_GOLERIA.length) return n;
-  const vicino = PESI_GOLERIA.find((p) => p >= n);
-  if (vicino !== undefined) return vicino;
-  return PESI_GOLERIA[PESI_GOLERIA.length - 1];
+  if (!Number.isFinite(n)) return n;
+  const pesi = pesiCaricabili();
+  const vicino = pesi.find((p) => p >= n);
+  return vicino !== undefined ? vicino : pesi[pesi.length - 1];
 }
 
 export const ETICHETTE_MISURA = {

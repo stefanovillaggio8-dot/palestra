@@ -1,4 +1,4 @@
-// rank-v2.test.js -- il motore nuovo, provato PRIMA che diventi il Rank vero.
+﻿// rank-v2.test.js -- il motore nuovo, provato PRIMA che diventi il Rank vero.
 //
 // Ste (07/10/2026): "procedi prima creando la struttura e mostrando i nuovi
 // valori/soglie per gli esercizi, senza modificare ancora il codice del Rank".
@@ -1125,4 +1125,54 @@ test('V26. le soglie che si leggono sono pesi che la palestra ha', async () => {
   assert.equal(soglie.length, 7, 'sette soglie, una per Rank');
   assert.ok(soglie.every((s, i) => i === 0 || s > soglie[i - 1]),
     'le soglie del motore devono salire: due Rank con la stessa soglia sono irraggiungibili');
+});
+
+test('V27. il peso scritto e il Rank che dà coincidono', async () => {
+  // Le soglie sono in PUNTEGGIO, e il punteggio a 8 ripetizioni non e' kg: c'e' la
+  // meccanica del movimento, e sui CAVI c'e' anche la doppia carrucola (la soglia e'
+  // per lato, il peso registrato e' del carrello). Per questo NON si calcola il peso
+  // corrispondente a una soglia: si chiede al motore che punteggio da' ogni peso
+  // caricabile e si prende il primo che raggiunge la soglia.
+  //
+  // Senza questo la scheda scriveva numeri che non si comprano, e sul Cable Lateral
+  // Raise diceva "BRONZE da 7 kg" mentre 7 kg sul carrello non prendevano nessun Rank
+  // (servivano 14, perche' sono 7 per lato).
+  const { recordEsercizio } = await import('../src/rank.js');
+  const { scoreSerie } = await import('../src/rank-v2/curve.js');
+  const { pesiCaricabili } = await import('../src/rank-config.js');
+  const { ESERCIZI } = await import('../src/dati-iniziali.js');
+  const ORD = ['BRONZE', 'SILVER', 'GOLD', 'PLATINUM', 'DIAMOND', 'TITAN', 'OLYMPIAN'];
+  const caricabili = pesiCaricabili();
+
+  // un esercizio per tipo di attrezzo: manubrio, cavo, macchina
+  for (const nome of ['One Arm Dumbbell Preacher Curl', 'Lat Pulldown macchina',
+    'Cable Lateral Raise', 'Chest Press', 'Single Arm Tricep Pushdown']) {
+    const e = ESERCIZI.find((x) => x.nome === nome);
+    assert.ok(e, nome + ': esercizio non trovato');
+    const rec = recordEsercizio([{ peso: 20, ripetizioni: 8, stato: 'fatta', ordine: 1 }], e, null, 66);
+    if (!Array.isArray(rec.soglie) || rec.soglie.length !== ORD.length) continue;
+
+    const punteggioDi = (kg) => {
+      const s = scoreSerie({ peso: kg, ripetizioni: 8, esercizio: e });
+      return Number(s && s.score !== undefined ? s.score : s) || 0;
+    };
+    const letti = scalata.soglieLegibili(rec.soglie, punteggioDi);
+
+    for (let i = 0; i < letti.length; i += 1) {
+      const kg = letti[i];
+      assert.ok(caricabili.includes(kg),
+        `${nome}: "${ORD[i]} da ${kg} kg" non è un peso caricabile`);
+      if (i > 0) {
+        assert.ok(kg > letti[i - 1],
+          `${nome}: "${ORD[i]}" e "${ORD[i - 1]}" chiedono entrambi ${letti[i - 1]} kg: `
+          + 'uno dei due Rank è irraggiungibile');
+      }
+      const preso = recordEsercizio([{ peso: kg, ripetizioni: 8, stato: 'fatta', ordine: 1 }], e, null, 66);
+      const indice = preso.rank ? ORD.indexOf(preso.rank.nome) : -1;
+      assert.ok(indice >= i,
+        `${nome}: la scheda scrive "${ORD[i]} da ${kg} kg" ma mettendo ${kg} kg a 8 `
+        + `ripetizioni si prende ${preso.rank ? preso.rank.nome : 'niente'}: la riga e il `
+        + 'Rank non possono contraddirsi');
+    }
+  }
 });

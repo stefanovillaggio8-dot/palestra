@@ -15,7 +15,7 @@
 // radi, cosi' che DIAMOND, TITAN e OLYMPIAN costino il giusto. Chi e' principiante
 // non ci arriva con il volume, e ci arriva con il lavoro vero.
 
-import { RANK, divisioneDaLp, divisioneSuccessiva, pesoPiuVicino } from '../rank-config.js';
+import { RANK, divisioneDaLp, divisioneSuccessiva, pesoPiuVicino, pesiCaricabili } from '../rank-config.js';
 import { moltiplicatoreSerie, ripetizioniPiene } from './curve.js';
 
 /**
@@ -63,18 +63,44 @@ export function soglieDaValori({ ingresso, vertice }) {
 }
 
 /**
- * Una soglia come la vede l'utente: il peso REALE che c'e' in palestra e che basta.
+ * Le soglie come le vede l'utente: il peso REALE che c'è e che BASTA davvero.
  *
- * Sale sempre al peso successivo, mai scende. Il motivo e' che la scritta e' "da X kg":
- * se si sceglie il peso piu' vicino in assoluto, 18,42 diventerebbe 18, e chi mette 18
- * kg leggerebbe "ORO da 18" mentre il motore gli chiede 18,42: una promessa non
- * mantenuta. Salendo invece la soglia e' sempre vera, e il prezzo e' che il numero
- * e' un filo oltre il necessario (18,42 diventa 20, perche' 18 non basta).
+ * IL PUNTO CHE MANCAVA (16/10/2026). Le soglie sono in PUNTEGGIO, non in kg, e il
+ * punteggio dipende dal movimento: a 8 ripetizioni e` kg x meccanica, e la meccanica
+ * cambia da esercizio a esercizio. Sui CAVI c'e' di piu': la soglia e` per lato ma il
+ * peso che si registra e` quello del carrello, quindi con la doppia carrucola il
+ * numero che si mette e` il doppio. Dividere per la meccanica, come faceva la v203,
+ * dava sul Cable Lateral Raise "BRONZE da 7 kg" mentre 7 kg sul carrello non
+ * prendevano nessun Rank (servivano 14, perche' sono 7 per lato).
  *
- * Sale anche quando il peso giusto esiste: 16,8 kg non c'e', quindi si scrive 18.
+ * QUINDI SI SMETTE DI CALCOLARE E SI CERCA. `scoreDi(kg)` dice che punteggio dà un
+ * peso a 8 ripetizioni, e la soglia viene tradotta nel PRIMO peso caricabile che la
+ * raggiunge. Non c'e' piu' nessuna formula da indovinare: il numero e' verificato, e
+ * per costruzione quello che leggi e' quello che il motore fa.
+ *
+ * Il riferimento e' 8 ripetizioni perche' e` cosi' che le soglie sono definite
+ * (`CURVA_SOGLIE`, e la scelta di Ste dell'08/10: le soglie sono per 8 ripetizioni e
+ * il Rank premia le ripetizioni vere).
  */
-export function kgPerLaLettura(soglia) {
-  return pesoPiuVicino(soglia);
+export function soglieLegibili(soglie, scoreDi) {
+  if (typeof scoreDi !== 'function') return soglie;
+  const pesi = pesiCaricabili();
+  return soglie.map((s) => {
+    const trovato = pesi.find((kg) => scoreDi(kg) >= s);
+    if (trovato !== undefined) return trovato;
+    // nessun peso della lista arriva: si sale a 2,5 oltre l'ultimo, che non si puo'
+    // sapere quando arriva, quindi si lascia il numero piu' vicino
+    return pesoPiuVicino(s);
+  });
+}
+
+/**
+ * Una soglia sola, come la vede l'utente. Serve a `kgPerLaLettura`, che e' il nome
+ * che si usa in `app.js`.
+ */
+export function kgPerLaLettura(soglia, scoreDi) {
+  if (typeof scoreDi !== 'function') return pesoPiuVicino(soglia);
+  return soglieLegibili([soglia], scoreDi)[0];
 }
 
 /**

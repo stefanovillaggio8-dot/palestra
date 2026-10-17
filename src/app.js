@@ -32,7 +32,7 @@ import { bloccoGlossario } from './glossario-app.js';
 import {
   SCELTE_ANIMAZIONI, sceltaAnimazioni, impostaSceltaAnimazioni, pocoMovimento, avviaAnimazioni,
 } from './animazioni.js';
-import { recordEsercizio, recordAccount, classificaEsercizio, storicoMiglioramenti, giudizioPerformance, distanzaAllaSoglia, kgPerLaLettura } from './rank.js';
+import { recordEsercizio, recordAccount, classificaEsercizio, storicoMiglioramenti, giudizioPerformance, distanzaAllaSoglia, soglieLegibili, scoreSerie } from './rank.js';
 import { confrontoGiorno, confrontiMensili, GIORNI_UN_MESE } from './confronto-mensile.js';
 import { profiloEsercizio, profiloPerPesoCorporeo, RANK, ETICHETTE_MISURA, descriviPunteggio, descrizioneLivello, livelloEsercizio, impostaLivelliImparati, livelliImparati, rapportoDifficolta, MOLTIPLICATORI_SOGLIA } from './rank-config.js';
 import { formattaAura } from './aura.js';
@@ -5655,25 +5655,31 @@ async function vistaEsercizio(zona, esercizioId) {
   } else if (profilo.misura === 'kg_reps' || profilo.misura === 'kg_tempo') {
     rigaSoglie.push('metti il tuo peso nel profilo e le soglie si adattano');
   }
-  // LE SOGLIE CHE LEGGI SONO QUELLE CHE TI DANNO IL RANK (16/10/2026).
+// LA RIGA MOSTRA LE SOGLIE CHE TI DANNO IL RANK, TRADOTTE IN PESI CHE SI CARICANO
+  // (16/10/2026).
   //
   // Qui c'era un disaccordo grosso, e lo ha trovato Ste guardando il preacher curl
   // ("i pesi di 23,2 kg non esistono"). La riga usava `profilo.soglie`, che viene da
   // `profiloEsercizio` (la configurazione, la scala vecchia): sul suo corpo finiva
-  // con OLYMPIAN a 24,2 kg. Il RANK invece lo dava `record.soglie`, che viene dal
-  // motore `rank-v2` e finisce con OLYMPIAN a 33,3 kg.
+  // con OLYMPIAN a 24,2 kg. Il Rank invece lo dava `record.soglie`, che viene dal motore
+  // `rank-v2` e finisce con OLYMPIAN a 33,3 kg. Leggere "PLATINUM da 17,9" e poi prendere
+  // ORO non si spiega in nessun modo.
   //
-  // Due tavole diverse per lo stesso esercizio: leggere "PLATINUM da 17,9" e poi
-  // prendere ORO e' una contraddizione che non si spiega. Qui si mostra il numero
-  // vero, quello che decide il Rank, e si arrotonda verso l'alto a kg intero perché
-  // 18,42 kg non si mettono su un bilanciere ("ORO da 19", che è vero: 19 basta).
-  //
-  // Se il motore non ha ancora prodotto delle soglie (esercizio senza record valido)
-  // si cade indietro sulla configurazione, come prima.
+  // E poi le soglie sono in PUNTEGGIO, non in kg. Il punteggio a 8 ripetizioni e'
+  // `kg x meccanica`, e la meccanica cambia da esercizio a esercizio; sui CAVI c'e' di
+  // più, perché la soglia è per lato mentre il peso registrato è quello del
+  // carrello. Per questo NON si calcola il peso corrispondente: si chiede al motore che
+  // punteggio dà ogni peso caricabile e si prende il primo che raggiunge la soglia. Il
+  // numero e' verificato, e quello che leggi e' quello che il motore fa.
   const soglieDelMotore = Array.isArray(record.soglie) && record.soglie.length === RANK.length
     ? record.soglie
     : profilo.soglie;
-  zona.appendChild(el('p', { class: 'nota', testo: `${rigaSoglie.join(' · ')}. Soglie: ${soglieDelMotore.map((s, i) => `${RANK[i].nome} da ${formattaNumero(kgPerLaLettura(s))}`).join(' · ')}` }));
+  const punteggioDi = (kg) => {
+    const s = scoreSerie({ peso: kg, ripetizioni: 8, esercizio: e });
+    return Number(s && s.score !== undefined ? s.score : s) || 0;
+  };
+  const soglieDaLeggere = soglieLegibili(soglieDelMotore, punteggioDi);
+  zona.appendChild(el('p', { class: 'nota', testo: `${rigaSoglie.join(' · ')}. Soglie: ${soglieDaLeggere.map((s, i) => `${RANK[i].nome} da ${formattaNumero(s)}`).join(' · ')}` }));
 
   // L'AVVISO DEL PESO. Ste (07/10/2026): "il peso corporeo È l'ultima cosa
   // fragile: È l'unico numero digitato a mano che muove tutti i Rank".

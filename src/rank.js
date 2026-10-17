@@ -1,4 +1,4 @@
-// rank.js -- il motore del Rank. Nessun DOM, nessuna rete: solo calcoli,
+﻿// rank.js -- il motore del Rank. Nessun DOM, nessuna rete: solo calcoli,
 // così si puÃ² provare tutto con node --test.
 //
 // Regola più importante: il Rank dipende dalla MIGLIORE performance mai fatta
@@ -968,6 +968,7 @@ export function distanzaAllaSoglia(punteggio, prossimo) {
 // Vive nel motore, accanto alle soglie, ma si ri-esporta da qui perché `app.js`
 // passa da questo file e `rank-config.js` non può importarlo (scalata.js importa
 // rank-config.js: importarlo da lì chiuderebbe un cerchio).
-export { kgPerLaLettura } from './rank-v2/scalata.js';
+export { kgPerLaLettura, soglieLegibili } from './rank-v2/scalata.js';
+export { scoreSerie } from './rank-v2/curve.js';
 
 export { MISURE as MISURE_RANK, profiloEsercizio, descriviPunteggio };
