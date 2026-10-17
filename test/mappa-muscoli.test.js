@@ -1263,3 +1263,43 @@ test('Z22: il brachioradiale sul martello, e l\'avambraccio solo sul polso', () 
   assert.ok(!gruppi(martello).has('avambraccio') && !gruppi(polso).has('brachioradiale'),
     'avambraccio e brachioradiale non devono mai accendersi insieme');
 });
+
+test('Z23: la linea di contorno non può uscire dal corpo', () => {
+  // Ste, due volte: "in alcune parti ci sono delle linee bianche che sono fuori dal
+  // corpo, non so cosa siano" e, dopo il primo tentativo, "ancora si vedono quelle
+  // linee di fuori".
+  //
+  // IL PRIMO TENTATIVO ERA SBAGLIATO. Avevo ritagliato la linea con il clipPath
+  // della fascia, ma il clipPath E' la sagoma: quindi passava proprio la parte di
+  // sagoma che esce dal corpo. Le sagome sono larghe di proposito (devono coprire il
+  // lato sinistro e quello destro, che nel disegno differiscono di 5 pixel), e il
+  // loro contorno finiva a mezz'aria.
+  //
+  // Adesso la linea porta due ritagli: il clipPath della sua fascia e una MASCHERA
+  // della sagoma del corpo (l'immagine bianca dei muscoli).
+  const svg = figurino('dorso_lati', { dorso_lati: 1, spalle_posteriori: 0.5 }, null);
+
+  assert.ok(svg.includes('muscoli-bianca.png'),
+    'la linea non è ritagliata sulla sagoma del corpo: manca la maschera');
+  assert.ok(/<mask id="silhouette-muscoli-\d+"[^>]*>/.test(svg),
+    'manca il elemento <mask> che taglia la linea sul corpo');
+
+  // ogni contorno deve avere il ritaglio e la maschera, nessuno escluso
+  const contorni = svg.match(/<path d="[^"]+"/g) || [];
+  assert.ok(contorni.length > 0, 'il disegno non ha contorni: il test non controllerebbe niente');
+  const mascherati = svg.match(/<path d="[^"]+" clip-path="url\(#[^)]+\)"/g) || [];
+  assert.equal(mascherati.length, contorni.length,
+    'ci sono contorni senza maschera: si vedranno fuori dal corpo');
+
+// e l'id della maschera deve essere unico, se no su una pagina con due figure
+  // la seconda riusa la maschera della prima e il ritaglio è sbagliato.
+  // L'id compare DUE volte ed è giusto: una nella definizione `<mask id=...>` e una
+  // nel riferimento `mask="url(#...)"`. Quindi si controlla che la DEFINIZIONE ci sia
+  // una volta sola, e che il riferimento punti a un id che esiste davvero.
+  const id = svg.match(/<mask id="(silhouette-muscoli-\d+)"/)[1];
+  assert.equal((svg.match(new RegExp(`<mask id="${id}"`, 'g')) || []).length, 1,
+    "l'id della maschera è definito più di una volta: su una pagina con due figure "
+    + 'la seconda riusa la maschera della prima');
+  assert.ok(svg.includes(`mask="url(#${id})"`),
+    'il gruppo dei contorni non usa la maschera: le linee uscirebbero dal corpo');
+});

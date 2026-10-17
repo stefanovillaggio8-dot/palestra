@@ -9,7 +9,7 @@
 // e il test I3 che sia quello dell'ultimo commit, altrimenti si alza la cache e si
 // lascia scritto il numero vecchio. E' successo due volte: nella v54 avevo alzato
 // solo questo file, e dopo la v55 avevo smesso di alzarlo del tutto.
-const VERSIONE = 'palestra-v197';
+const VERSIONE = 'palestra-v198';
 
 // LE 18 FOTO DEI PERSONAGGI, CON LA VERSIONE DENTRO.
 //
@@ -51,7 +51,7 @@ const FILE = [
   // Il numero deve essere uguale a quello di `stile.css?v=` in index.html e a
   // `window.PALESTRA_VERSIONE`: se i tre non coincidono, l'app carica un foglio di
   // stile e dice un altro numero.
-  './stile.css?v=197',
+  './stile.css?v=198',
 './manifest.webmanifest',
   './manifest-p1.webmanifest',
   './manifest-p2.webmanifest',
@@ -74,6 +74,7 @@ const FILE = [
   // vuoto. Servono anche offline, quindi stanno in lista come tutte le altre.
   './img/muscoli/corpo.png',
   './img/muscoli/muscoli.png',
+  './img/muscoli/muscoli-bianca.png',
   './src/scala-esercizi.js',
   './src/forza-generale.js',
   './src/scala-auto.js',

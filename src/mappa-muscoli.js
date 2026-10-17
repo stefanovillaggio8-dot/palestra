@@ -922,7 +922,21 @@ export function figurino(acceso = null, livelli = null, anatomia = null) {
       + ` opacity="${riga.opacita}"/>`);
   }
 
-  // LA LINEA CHE SEPARA LE FASCE (16/10/2026).
+  // LA MASCHERA CHE TAGLIA LA LINEA SUL CORPO (16/10/2026).
+  //
+  // `muscoli-bianca.png` e' la sagoma dei muscoli in bianco pieno: serve come maschera
+  // di luminanza, e il bianco maschera al 100%. Serve perché il ritaglio del
+  // CONTORNO non basta: ritagliare con il clipPath della sagoma lascia passare
+  // esattamente la parte della sagoma che sta FUORI dal corpo (le sagome sono
+  // volutamente più larghe del muscolo, per coprire il lato sinistro e quello
+  // destro che non coincidono). Serve una maschera della SILUETTE.
+  //
+  // Con `muscoli.png` non funzionerebbe benissimo: e' viola, e in una maschera di
+  // luminanza il viola vale circa 0,44, quindi la linea uscirebbe sbiadita. Il
+  // bianco maschera al 100% e la linea resta nitida.
+  const maschera = 'silhouette-muscoli-' + numeroFigura;
+  //
+// LA LINEA CHE SEPARA LE FASCE (16/10/2026).
   //
   // Ste: "il brachioradiale è attaccato al bicipite no? devi farli bene le fasce
   // muscolari". Le fasce ora si toccano (STACCO = 0), ma senza niente che le
@@ -933,15 +947,25 @@ export function figurino(acceso = null, livelli = null, anatomia = null) {
   // attaccate e distinguibili, come nelle tavole anatomiche. È anche più sottile di
   // prima: la fessura grigia era 3 pixel, questa linea è 1.
   //
-  // LA LINEA VA RITAGLIATA COME IL COLORE (16/10/2026, stesso giorno). Ste:
-  // "in alcune parti ci sono delle linee bianche che sono fuori dal corpo, non so
-  // cosa siano". Erano proprio queste: le sagome sono volutamente più larghe del
-  // muscolo (per coprire entrambi i lati, che nel disegno non coincidono), quindi il
-  // loro contorno esce dal corpo e la linea restava disegnata nel vuoto, a mezz'aria.
-  // Basta ritagliare anche la linea con lo STESSO ritaglio del colore: la linea si
-  // vede solo dove c'è il muscolo acceso.
+  // LA LINEA DEVE ESSERE RITAGLIATA SUL CORPO (16/10/2026, Ste: "ancora si vedono
+  // quelle linee di fuori"). La prima volta avevo ritagliato la linea con il
+  // clipPath della sagola, ed era sbagliato: il clipPath E' la sagoma, quindi
+  // passava proprio la parte di sagoma che esce dal corpo. Le sagome sono larghe di
+  // proposito (devono coprire il lato sinistro e quello destro, che nel disegno
+  // differiscono di 5 pixel), e il loro contorno finiva a mezz'aria.
+  //
+  // Adesso la linea porta DUE ritagli: il clipPath della sua fascia (per stare
+  // dentro il proprio muscolo) e la maschera della silhouette (per non uscire dal
+  // corpo).
+  numeroFigura += 1;
+  dentro.push(`<mask id="${maschera}" maskUnits="userSpaceOnUse"`
+    + ` x="0" y="0" width="${FOTO_L}" height="${FOTO_A}">`);
+  dentro.push(`<image href="./img/muscoli/muscoli-bianca.png" x="0" y="0"`
+    + ` width="${FOTO_L}" height="${FOTO_A}"/>`);
+  dentro.push('</mask>');
   dentro.push(`<g fill="none" stroke="${COLORE_LINEA}" stroke-width="1"`
-    + ' stroke-linejoin="round" stroke-linecap="round">');
+    + ' stroke-linejoin="round" stroke-linecap="round"'
+    + ` mask="url(#${maschera})">`);
   righe.forEach((riga, k) => {
     for (const pezzo of riga.pezzi) {
       // `<path>` e NON `<polygon>`: i `<polygon>` sono quelli dentro i clipPath, e i
@@ -950,7 +974,7 @@ export function figurino(acceso = null, livelli = null, anatomia = null) {
       dentro.push(`<path d="${tracciato(pezzo)}" clip-path="url(#${tagli[k]})"/>`);
     }
   });
-  dentro.push('</g>');
+dentro.push('</g>');
   return dentro.join('');
 }
 
