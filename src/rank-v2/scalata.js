@@ -1,4 +1,4 @@
-// rank-v2/scalata.js -- le soglie di un esercizio e il Rank che nasce da quelle.
+﻿// rank-v2/scalata.js -- le soglie di un esercizio e il Rank che nasce da quelle.
 //
 // Ste (07/10/2026): "le soglie devono essere costruite sulla difficolta' reale della
 // prestazione e non su numeri arbitrari. Non voglio Rank regalati. Se una persona
@@ -15,7 +15,7 @@
 // radi, cosi' che DIAMOND, TITAN e OLYMPIAN costino il giusto. Chi e' principiante
 // non ci arriva con il volume, e ci arriva con il lavoro vero.
 
-import { RANK, divisioneDaLp, divisioneSuccessiva } from '../rank-config.js';
+import { RANK, divisioneDaLp, divisioneSuccessiva, pesoPiuVicino } from '../rank-config.js';
 import { moltiplicatoreSerie, ripetizioniPiene } from './curve.js';
 
 /**
@@ -39,38 +39,42 @@ export function soglieDaValori({ ingresso, vertice }) {
   const ing = Number(ingresso);
   const ver = Number(vertice);
   if (!Number.isFinite(ing) || !Number.isFinite(ver) || ing <= 0 || ver <= ing) return null;
-  // LE SOGLIE RESTANO COME SONO, CON I DECIMALI (16/10/2026).
+  // LE SOGLIE DEL MOTORE RESTANO CON I DECIMALI, E NON SI ARROTONDANO MAI (16/10/2026).
   //
-  // Ste, sul preacher curl: "i pesi di 23,2 kg non esistono, anche 30,4, 26,4,
-  // 16,8, 14,3". Aveva ragione sulla SCRITTA: la scheda esercizio mostrava
-  // "Soglie: BRONZE da 12,5 · ARGENTO da 14,3 · ORO da 16,8 ..." e quei numeri non si
-  // mettono su un bilanciere.
+  // Ste ha dato la lista dei pesi della palestra ("2 4 6 7 8 10 12 12,5 14 15 16 18
+  // 20 22 24 26 28 30 32,5 35 37,5 40 42,5 45 47,5 50 60 kg") perche' sulla scheda
+  // leggeva soglie tipo 18,42 kg, che non si comprano.
   //
-  // Il primo tentativo e' stato arrotondare le soglie VERE verso l'alto, a kg intero.
-  // E' stato un errore, ed e' stato subito visto: sul corpo di 66 kg le soglie
-  // diventavano 13/15/17/21/24/27/31 e i suoi 18 kg x 8 ripetizioni tornavano ad
-  // ARGENTO 96 (erano ORO 13), e sul corpo da 100 kg i suoi stessi 18 kg non
-  // prendevano piu' nessun Rank. Vale a proposito la regola del progetto: il numero
-  // che c'e' adesso e' la verita' e non si riscrive perche' viene male a schermo.
+  // SONO STATI PROVATI DUE MODI DI USARE LA LISTA, E SONO ENTRAMBI SBAGLIATI. Il
+  // primo, arrotondare a kg intero: sul corpo di 66 kg le soglie diventavano
+  // 13/15/17/21/24/27/31, i suoi 18 kg x 8 ripetizioni tornavano ARGENTO 96 (erano ORO
+  // 13) e sul corpo da 100 kg i suoi stessi 18 kg non prendevano piu' nessun Rank.
   //
-  // Quindi i decimali restano nel motore e si arrotonda solo la LETTURA, sempre verso
-  // l'alto: "ORO da 16,8" si legge "ORO da 17", che e' vero, mentre "ORO da 16"
-  // sarebbe una promessa non mantenuta (16 non basta, serve 16,8). Vedi
-  // `kgPerLaLettura`.
+  // Il secondo, arrotondare sul peso reale piu' vicino (quello che ho provato adesso,
+  // ed e' quello che fa sbagliare i test): il difetto e' che il passo NON e' di 1 kg, e
+  // su una forcella stretta di peso corporeo due soglie diverse finiscono sullo stesso
+  // manubrio. Il tetto smette di salire ("pesando di piu' il tetto deve salire:
+  // 60 -> 60") e la scala si accavalla: un Rank diventa irraggiungibile e il successivo
+  // salta. Non e' un problema estetico, e' la scala che smette di funzionare.
+  //
+  // QUINDI: il motore tiene i suoi numeri esatti, e la lista dei pesi serve SOLO per
+  // quello che si legge. Vedi `kgPerLaLettura`.
   return CURVA_SOGLIE.map((f) => Math.round((ing + (ver - ing) * f) * 100) / 100);
 }
 
 /**
- * Una soglia come la vede l'utente: kg intero, sempre arrotondato VERSO L'ALTO.
+ * Una soglia come la vede l'utente: il peso REALE che c'e' in palestra e che basta.
  *
- * Non e' una questione di bellezza. La soglia vera e' 16,8: scrivere 16 prometterebbe
- * che 16 kg bastano per l'Oro, e non bastano. Scrivere 17 e' la stessa soglia, letta
- * come la metti sul bilanciere. Vale per 14,3 (che diventa 15), 23,2 (che diventa 24),
- * 26,4 (che diventa 27) e 30,4 (che diventa 31).
+ * Sale sempre al peso successivo, mai scende. Il motivo e' che la scritta e' "da X kg":
+ * se si sceglie il peso piu' vicino in assoluto, 18,42 diventerebbe 18, e chi mette 18
+ * kg leggerebbe "ORO da 18" mentre il motore gli chiede 18,42: una promessa non
+ * mantenuta. Salendo invece la soglia e' sempre vera, e il prezzo e' che il numero
+ * e' un filo oltre il necessario (18,42 diventa 20, perche' 18 non basta).
+ *
+ * Sale anche quando il peso giusto esiste: 16,8 kg non c'e', quindi si scrive 18.
  */
 export function kgPerLaLettura(soglia) {
-  const n = Number(soglia);
-  return Number.isFinite(n) ? Math.ceil(n) : n;
+  return pesoPiuVicino(soglia);
 }
 
 /**

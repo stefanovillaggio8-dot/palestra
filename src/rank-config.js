@@ -1,4 +1,4 @@
-// rank-config.js -- la configurazione del gioco: rank, soglie, misure.
+﻿// rank-config.js -- la configurazione del gioco: rank, soglie, misure.
 //
 // Tutto quello che si può cambiare senza toccare la logica sta QUI dentro.
 // Se domani vuoi un rank nuovo, una soglia diversa o un esercizio con un
@@ -87,6 +87,46 @@ export const MISURE = {
   DISTANZA: 'distanza',     // metri
   KG_TEMPO: 'kg_tempo',    // kg tenuti per dei secondi
 };
+
+/**
+ * I PESI CHE ESISTONO DAVVERO ALLA PALESTRA (16/10/2026).
+ *
+ * Ste, sul preacher curl: "i pesi della palestra sono 2 4 6 7 8 10 12 12,5 14 15
+ * 16 18 20 22 24 26 28 30 32,5 35 37,5 40 42,5 45 47,5 50 60 kg". Sono i manubri,
+ * e la scala non poteva continuare a produrre soglie come 18,42 kg: un numero che non
+ * si compra e non si mette su nessun bilanciere.
+ *
+ * IL PASSO NON E' UNIFORME, ed e' per questo che una regola aritmetica non basta:
+ * sotto i 12 kg il passo è di 1-2 kg, poi ci sono 12,5, e da 14 a 30 va di 2 kg,
+ * poi di 2,5 fino a 50, e da 50 a 60 il salto è di 10. Un "arrotonda a 0,5" o un
+ * "arrotonda a kg intero" darebbero soglie che il manubrio non ce l'ha (13 kg non
+ * esistono, e così 19, 21, 27, 33, 34).
+ *
+ * Vale anche per i CAVI, che non è un caso: tutti questi numeri si mettono con i
+ * dischi da 2,5 kg, quindi la stessa scala resta vera lì. Sulle macchine, che
+ * spesso vanno di 2,5 o di 5 kg, qualche soglia può non essere caricabile: lì il
+ * numero resta leggibile e non blocca nessuno.
+ */
+export const PESI_GOLERIA = [
+  2, 4, 6, 7, 8, 10, 12, 12.5, 14, 15, 16, 18, 20, 22, 24, 26, 28, 30, 32.5,
+  35, 37.5, 40, 42.5, 45, 47.5, 50, 60,
+];
+
+/**
+ * Il peso che c'è davvero, più vicino a quello chiesto.
+ *
+ * Se il numero cade esattamente a metà fra due pesi si sceglie quello PIÙ ALTO. Il
+ * motivo è che una soglia si scrive "da X kg" e deve essere vera: se X non basta,
+ * scrivere X è peggio che scrivere il peso che c'è davvero. Con 18,42 si sceglie 20 e
+ * non 18, perché 18 non arriverebbe.
+ */
+export function pesoPiuVicino(kg) {
+  const n = Number(kg);
+  if (!Number.isFinite(n) || !PESI_GOLERIA.length) return n;
+  const vicino = PESI_GOLERIA.find((p) => p >= n);
+  if (vicino !== undefined) return vicino;
+  return PESI_GOLERIA[PESI_GOLERIA.length - 1];
+}
 
 export const ETICHETTE_MISURA = {
   [MISURE.KG_REPS]: 'KG + REPS',

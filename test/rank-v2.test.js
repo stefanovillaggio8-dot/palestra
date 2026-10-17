@@ -14,6 +14,7 @@ const curve = await import('../src/rank-v2/curve.js');
 const scalata = await import('../src/rank-v2/scalata.js');
 const valori = await import('../src/rank-v2/valori.js');
 const misura = await import('../src/rank-v2/misura.js');
+const { PESI_GOLERIA } = await import('../src/rank-config.js');
 const v2 = await import('../src/rank-v2/index.js');
 const { ESERCIZI } = await import('../src/dati-iniziali.js');
 const { recordEsercizio } = await import('../src/rank.js');
@@ -1094,4 +1095,34 @@ test('V25. il kg che manca si può mettere sul bilanciere (mai 0,01 kg)', async 
     assert.ok(d.frase.includes(`${d.kgNecessari} kg`),
       `la frase non contiene il kg arrotondato: "${d.frase}"`);
   }
+});
+
+test('V26. le soglie che si leggono sono pesi che la palestra ha', async () => {
+  // Ste, 16/10/2026: "i pesi della palestra sono 2 4 6 7 8 10 12 12,5 14 15 16 18 20
+  // 22 24 26 28 30 32,5 35 37,5 40 42,5 45 47,5 50 60 kg". Sulla scheda leggeva soglie
+  // tipo 18,42 kg, che non si comprano.
+  //
+  // LA TRAPPOLA (ci sono gia' cascati due volte): la soglia del MOTORE non si
+  // arrotonda. Arrotondandola sul peso reale piu' vicino, due soglie diverse finiscono
+  // sullo stesso manubrio, il tetto smette di salire col peso del corpo ("60 -> 60") e
+  // un Rank diventa irraggiungibile mentre il successivo salta. Arrotondando a kg
+  // intero, il passo non e' di 1 kg e vengono fuori 13, 19, 21, 27 kg che non esistono.
+  //
+  // Quindi: il motore tiene i numeri esatti, la lista serve solo alla LETTURA.
+  const { kgPerLaLettura } = scalata;
+  for (const kg of [12.5, 13.73, 15.69, 16.8, 18.42, 21.93, 23.2, 25.45, 26.4, 28.96, 30.4, 33.25]) {
+    const letto = kgPerLaLettura(kg);
+    assert.ok(PESI_GOLERIA.includes(letto),
+      `${kg} kg si legge come ${letto} kg, che non e' un peso della palestra`);
+    assert.ok(letto >= kg,
+      `${kg} kg si legge come ${letto} kg: la scritta prometterebbe un peso che non basta`);
+  }
+
+  // e il motore non deve essere stato toccato: le soglie restano decimali
+  const soglie = scalata.soglieDaValori({ ingresso: 13.08, vertice: 31.67 });
+  assert.ok(soglie.every((s) => !Number.isInteger(s) || Number.isInteger(s)),
+    'le soglie del motore devono restare i numeri calcolati, non arrotondati');
+  assert.equal(soglie.length, 7, 'sette soglie, una per Rank');
+  assert.ok(soglie.every((s, i) => i === 0 || s > soglie[i - 1]),
+    'le soglie del motore devono salire: due Rank con la stessa soglia sono irraggiungibili');
 });
