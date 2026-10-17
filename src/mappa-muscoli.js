@@ -158,8 +158,28 @@ const SAGOME = {
   // da y=393 a 450. Quindi il gomito è a y~390. Prima finiva a y=404 e accendeva
   // 14 pixel di avambraccio insieme al bicipite: la stessa cosa che faceva il
   // tricipite dietro.
-  tagli: { asse: 'y', valori: [360] },
-    sagoma: [[58, 334], [92, 332], [96, 362], [92, 384], [62, 388], [50, 366]],
+  // IL BICIPITE FINISCE PRIMA, E IL BRACHIALE STA SOTTO (16/10/2026).
+  //
+  // Ste: "il bicipite/brachiale e altre cose non sono divise". Aveva ragione, e qui
+  // c'era l'eccezione che avevo lasciato apposta: il bicipite e il brachiale si
+  // sovrapponevano all'81%, e sull'unico esercizio che li accende insieme (il
+  // Cable Hammer Curl) si vedeva un blocco solo. E il brachiale è proprio il
+  // motivo per cui quell'esercizio sta nell'app: Ste, 15/10, "Cable Hammer Curl fa
+  // il brachiale". Se non si vede, l'informazione che vale di più non c'è.
+  //
+  // Anatomicamente il brachiale è il muscolo PROFONDO del bicipite: sta sotto, e
+  // affiora nella parte BASSA del braccio, verso il gomito. Quindi il bicipite
+  // finisce prima e il brachiale prende la fascia sotto.
+  //
+  // Sul disegno il braccio davanti va da y=282 a y=388 e l'avambraccio comincia a
+  // y=393. Ma il deltoide davanti scende fino a y=338, quindi il bicipite non può
+  // partire prima: altrimenti i due muscoli si sovrappongono e si vede la spalla
+  // accendersi su un curl.
+  //
+  // Quindi: deltoide 278-338, bicipite 342-368, brachiale 370-392. Tre fasce senza
+  // sovrapporsi, e tutte e tre dentro il braccio disegnato.
+  tagli: { asse: 'y', valori: [352] },
+    sagoma: [[58, 344], [92, 342], [96, 352], [92, 364], [62, 368], [50, 352]],
   },
 
   // IL BRACHIALE, IL MOTORE DEL HAMMER CURL (15/10/2026).
@@ -168,16 +188,18 @@ const SAGOME = {
   // diventa un pronatore e perde forza di flessione, e il motore diventa questo
   // muscolo, che sta sotto al bicipite e copre l'osso.
   //
-  // Sta sulla faccia DAVANTI e LATERALE dell'arto superiore, appena sopra il
-  // gomito. Quindi prende la fascia bassa del bicipite (y 360-388) e la fascia alta
-  // dell'avambraccio, che comincia a 390. Non e' un pezzo a parte sul disegno:
-  // e' dentro gli altri due, e per questo la sua sagoma e' una fascia stretta e
-  // bassa, non una forma nuova.
+  // Sta sulla faccia DAVANTI e LATERALE dell'arto superiore, sotto al bicipite e
+  // appena sopra il gomito. Non è un pezzo a parte sul disegno: è dentro gli altri
+  // due, e per questo la sua sagoma è una fascia stretta e bassa, non una forma
+  // nuova.
+  //
+  // Dal 16/10 sta PIÙ IN BASSO del bicipite, e non più dentro: vedi la nota sul
+  // bicipite. Prima si sovrapponevano all'81% e i due non si vedevano.
   brachiale: {
     vista: 'fronte',
     nome: 'brachiale',
     zone: ['brachiale'],
-    sagoma: [[52, 364], [88, 362], [96, 378], [92, 392], [58, 392], [46, 378]],
+    sagoma: [[54, 372], [88, 370], [86, 384], [80, 392], [56, 392], [48, 380]],
   },
 
   // L'AVAMBRACCIO: il pezzo staccato sotto il gomito (y 390-450 su muscoli.png).

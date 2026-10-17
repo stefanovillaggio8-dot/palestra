@@ -615,7 +615,7 @@ test('Z13. i secondari vengono da quello che l\'esercizio FA, non dalle sue paro
     'una tirata non accende il petto nemmeno se la descrizione dice "panca"');
   assert.ok(descritto.trovata, 'e l\'esercizio deve comunque essere riconosciuto');
 
-  // 7. IL FLY NON È UNA SPINTA. È l'unico caso in cui il gomito non si stende:
+// 7. IL FLY NON È UNA SPINTA. È l'unico caso in cui il gomito non si stende:
   //    accendere i tricipiti su un fly sarebbe esattamente l'errore che Ste ha
   //    segnalato con le altre keyword sbagliate.
   assert.ok(!accesi('Cable Fly').has('tricipite'),
@@ -1055,10 +1055,19 @@ test('Z18: il tricipite non scende sotto il gomito, e il gomito non si indovina'
       const a = uniche[i];
       const b = uniche[j];
       if (a.vista !== b.vista) continue;
-      // bicipite e brachiale sono lo stesso posto per costruzione: il brachiale sta
-      // SOTTO il bicipite, ed è dichiarato così nel codice. È l'unica eccezione.
-      const nome = [a.nome, b.nome].sort().join('+');
-      if (nome === 'bicipite+brachiale') continue;
+// NESSUNA ECCEZIONE, e non c'è più nemmeno quella (16/10/2026).
+  //
+  // Prima bicipite e brachiale si sovrapponevano all'81% ed erano l'unica coppia
+  // con il permesso di farlo, perché il brachiale sta sotto il bicipite. Ste:
+  // "il bicipite/brachiale e altre cose non sono divise", e aveva ragione: sul
+  // Cable Hammer Curl, l'unico esercizio che li accende insieme, si vedeva un
+  // blocco solo — e il brachiale è proprio il motivo per cui quell'esercizio sta
+  // nell'app.
+  //
+  // Ora il bicipite sta sopra (y 342-368) e il brachiale sotto (y 370-392), senza
+  // toccarsi. Quindi qui non è ammessa nessuna coppia: nessuna eccezione da
+  // ricordare e nessun "per ora va bene cosi".
+  const nome = [a.nome, b.nome].sort().join('+');
       for (const pa of a.sagoma === undefined ? [] : [a.sagoma]) {
         const setA = campione(pa);
         const setB = campione(b.sagoma);
@@ -1075,6 +1084,58 @@ test('Z18: il tricipite non scende sotto il gomito, e il gomito non si indovina'
   assert.deepEqual(sovrapposizioni, [],
     `due muscoli diversi si sovrappongono (${sovrapposizioni.join('; ')}): `
     + 'ogni esercizio accenderebbe un muscolo dove ce n\'è un altro');
+});
+
+// Z21. NOME E DESCRIZIONE NON SI INCOLLANO MAI (16/10/2026).
+//
+// Ste: "il bicipite/brachiale e altre cose non sono divise". Il sintomo era che sul
+// Cable Hammer Curl si accendevano bicipite e brachiale insieme. La figura era
+// innocente: era il CLASSIFICATORE.
+//
+// Il classificatore, quando una frase non la trova, toglie le parole dell'attrezzo e
+// riprova (serve per "Incline Dumbbell Press" -> "incline press"). Ma lo faceva sul
+// testo UNITO di nome e descrizione:
+//
+//   "Cable Hammer Curl" + "Cavo basso, alla cavigliera"
+//   tolte le parole dell'attrezzo -> "hammer curl basso"
+//   e "hammer curl basso" CONTIENE "curl basso"
+//
+// quindi il martello veniva riconosciuto come braccio BASSO invece che come
+// brachiale, e sull'app si accendevano due muscoli che insieme non hanno senso.
+//
+// Qui si controlla che una frase non possa mai nascere dal confine fra nome e
+// descrizione: si mettono due mezzi che, uniti e ripuliti, farebbero una frase
+// esistente, e si pretende che il classificatore NON la trovi.
+test('Z21: il classificatore non inventa frasi attaccando nome e descrizione', () => {
+  // il caso vero, con la descrizione esatta del catalogo
+  const martello = parteDiMuscolo({
+    nome: 'Cable Hammer Curl',
+    descrizione: 'Cavo basso, alla cavigliera.',
+  });
+  assert.equal(martello.parte, 'brachiale',
+    'il Cable Hammer Curl lavora il brachiale, non il braccio basso: '
+    + '"cavo basso" non è un "curl basso"');
+  assert.ok(!Object.keys(martello.livelli).includes('braccio_basso'),
+    'il martello non deve accendere il bicipite basso');
+
+  // e la forma generale del guaio: due mezzi che uniti fanno una frase vera
+  const inventato = parteDiMuscolo({
+    nome: 'Cable Hammer Curl',
+    descrizione: 'Cavo basso',
+  });
+  assert.equal(inventato.parte, 'brachiale',
+    '"Cable Hammer Curl" + "Cavo basso" non può diventare "curl basso"');
+
+  // e il rovescio: una frase che sta DAVVERO nel nome deve continuare a funzionare,
+  // perché il riprovo senza accessori è quello che rende "Incline Dumbbell Press"
+  // riconoscibile come panca inclinata
+  const incline = parteDiMuscolo({
+    nome: 'Incline Dumbbell Press',
+    descrizione: '',
+  });
+  assert.equal(incline.parte, 'petto_alto',
+    'il riprovo senza parole dell\'attrezzo deve continuare a funzionare: '
+    + '"Incline Dumbbell Press" è "incline press"');
 });
 
 // Z20. IL REMATORE E' DORSALE, IL CENTRO SCHIENA E' DELLA TIRATA IN BASSO (16/10/2026).

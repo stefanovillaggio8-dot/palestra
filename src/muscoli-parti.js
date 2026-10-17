@@ -658,7 +658,15 @@ export const MOVIMENTI = [
 function movimentoDi(nome = '', descrizione = '') {
   const soloNome = ' ' + normalizza(nome) + ' ';
   const ancheDescrizione = soloNome + normalizza(descrizione) + ' ';
-  for (const testo of [soloNome, ancheDescrizione, senzaAccessori(ancheDescrizione)]) {
+  // Come in `riconosciParte`: il riprovo senza accessori è su nome e descrizione
+  // SEPARATI, perché uniti inventano frasi che non esistono (vedi la nota lì).
+  const testi = [
+    soloNome,
+    ancheDescrizione,
+    senzaAccessori(soloNome),
+    senzaAccessori(' ' + normalizza(descrizione) + ' '),
+  ];
+  for (const testo of testi) {
     for (const m of MOVIMENTI) {
       if (m.parole.some((w) => conta(testo, w) > 0)) return m;
     }
@@ -698,11 +706,25 @@ function riconosciParte({ nome = '', descrizione = '' } = {}) {
   // dell'attrezzo: "Incline Dumbbell Press" contiene "incline" e "press", ma la
   // frase "incline press" è separata dal manubrio. Vedi ACCESSORI.
   const cerca = (p, w) => {
-    const nelNome = conta(soloNome, w);
-    if (nelNome > 0) return { n: nelNome, soloNome: true };
+    const soloN = conta(soloNome, w);
+    if (soloN > 0) return { n: soloN, soloNome: true };
     const nelTutto = conta(ancheDescrizione, w);
     if (nelTutto > 0) return { n: nelTutto, soloNome: false };
-    return { n: conta(senzaAccessori(ancheDescrizione), w), soloNome: false };
+    // IL RIPROVO SENZA ACCESSORI E' SU NAME E DESCRIZIONE SEPARATI (16/10/2026).
+    //
+    // Prima si toglievano gli accessori dal testo UNITO di nome e descrizione, e li si
+    // incollava: "Cable Hammer Curl" + "Cavo basso, alla cavigliera" diventava, tolte
+    // le parole dell'attrezzo, "hammer curl basso", che contiene la frase "curl basso".
+    // Quindi il Cable Hammer Curl veniva riconosciuto come BRACCIO BASSO invece che
+    // come brachiale, e sull'app si accendevano bicipite e brachiale insieme. Ste:
+    // "il bicipite/brachiale non sono divise", e il motivo non era la figura: era il
+    // testo che faceva il classificatore.
+    //
+    // Le frasi attraversavano il confine fra nome e descrizione e non esistevano. Il
+    // riprova quindi su ciascuno dei due, altrimenti si ricrea lo stesso guaio.
+    const nelNome = conta(senzaAccessori(soloNome), w);
+    if (nelNome > 0) return { n: nelNome, soloNome: true };
+    return { n: conta(senzaAccessori(' ' + normalizza(descrizione) + ' '), w), soloNome: false };
   };
 
   const trovati = [];

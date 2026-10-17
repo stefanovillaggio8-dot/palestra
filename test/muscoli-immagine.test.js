@@ -141,8 +141,8 @@ function copertura(sagoma, alpha, larghezza, altezza, passo = 2) {
 const PAVIMENTO = {
   petto: 90,
   deltoide_fronte: 60,
-  bicipite: 87,
-  brachiale: 70,
+  bicipite: 93,
+  brachiale: 79,
   avambraccio: 80,
   addome: 80,
   quadricipite: 87,
