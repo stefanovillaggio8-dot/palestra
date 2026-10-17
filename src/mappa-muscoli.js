@@ -287,13 +287,22 @@ const SAGOME = {
     // Prima partiva da y=395 e restavano scoperti 7 pixel di braccio a y=392 e un
     // cuneo grigio fra brachiale e brachioradiale. Ora parte da y=392, dove finisce
     // il brachiale, e le due fasce si toccano: sono attaccate.
-    // Sul disegno le due braccia NON coincidono: la striscia laterale è x 39-56 a
-    // sinistra e x 46-61 a destra (5 pixel di differenza). Una sola sagoma specchiata
-    // deve quindi arrivare a x=61 per coprire la destra, e su quella sinistra copre
-    // 5 pixel di vuoto. Il pavimento Z19 non può stare sopra ~77%: non è un difetto
-    // della sagoma, è il prezzo del disegno che non è simmetrico.
-    sagoma: [[48, 392], [58, 392], [61, 400], [61, 412], [60, 417],
-      [40, 418], [38, 410], [41, 400]],
+    // IL BRACHIORADIALE È LUNGO, NON UNA MACCHIA (16/10/2026).
+    //
+    // Ste ha mandato la foto anatomica del braccio con brachiale e brachioradiale, e
+    // il conto non tornava: il brachioradiale era una macchia di 26 pixel (y 392-418)
+    // mentre l'avambraccio è lungo 58 (y 392-450). Nella foto il brachioradiale
+    // SCENDE LUNGO L'AVAMBRACCIO fino al polso, e anzi è il muscolo che copre il
+    // radio nella parte laterale.
+    //
+    // Quindi ora è una striscia laterale che parte dal basso del brachiale (y=392,
+    // perché il brachiale finisce lì) e arriva a y=432, assottigliandosi: verso il
+    // polso il muscolo diventa tendine, quindi la striscia si stringe.
+    //
+    // Continua anche perché il brachioradiale nasce dall'OMERO, sopra il gomito, e non
+    // è un muscolo separato: è attaccato al braccio.
+    sagoma: [[48, 392], [58, 392], [61, 400], [61, 412], [58, 420],
+      [51, 430], [42, 434], [38, 428], [38, 412], [41, 400]],
   },
 
   // L'AVAMBRACCIO è il pezzo sotto: i flessori del polso. Comincia a y=420 perché
@@ -307,7 +316,8 @@ const SAGOME = {
     vista: 'fronte',
     nome: 'avambraccio',
     zone: ['avambraccio'],
-    sagoma: [[67, 390], [75, 396], [78, 412], [78, 424], [70, 444], [46, 448], [38, 434], [38, 421], [58, 418], [60, 408], [62, 398]],
+    sagoma: [[67, 390], [75, 394], [76, 404], [76, 424], [70, 442], [58, 448], [46, 450],
+      [43, 438], [51, 432], [58, 422], [61, 414], [61, 408], [63, 404], [66, 400], [69, 396]],
   },
 
   // un pezzo solo, al centro: non si specchia
@@ -891,9 +901,12 @@ export function figurino(acceso = null, livelli = null, anatomia = null) {
   dentro.push(`<image href="./img/muscoli/corpo.png" x="0" y="0" width="${FOTO_L}" height="${FOTO_A}"/>`);
 
   const righe = righeDaAccendere(acceso, livelli, anatomia);
+  // id del ritaglio di ogni fascia: serve anche per la linea del contorno
+  const tagli = [];
   for (const riga of righe) {
     numeroFigura += 1;
     const idTaglio = 'taglio-muscolo-' + numeroFigura;
+    tagli.push(idTaglio);
     // `clipPathUnits` è un ATTRIBUTO di clipPath, non un elemento. Scritto come
     // elemento (`<clipPathUnits="userSpaceOnUse">`) il browser considera il
     // ritaglio non valido, il clipPath resta vuoto e il muscolo non si accende:
@@ -920,17 +933,23 @@ export function figurino(acceso = null, livelli = null, anatomia = null) {
   // attaccate e distinguibili, come nelle tavole anatomiche. È anche più sottile di
   // prima: la fessura grigia era 3 pixel, questa linea è 1.
   //
-  // Il colore è quello del corpo spento, così la linea sembra quella del disegno.
+  // LA LINEA VA RITAGLIATA COME IL COLORE (16/10/2026, stesso giorno). Ste:
+  // "in alcune parti ci sono delle linee bianche che sono fuori dal corpo, non so
+  // cosa siano". Erano proprio queste: le sagome sono volutamente più larghe del
+  // muscolo (per coprire entrambi i lati, che nel disegno non coincidono), quindi il
+  // loro contorno esce dal corpo e la linea restava disegnata nel vuoto, a mezz'aria.
+  // Basta ritagliare anche la linea con lo STESSO ritaglio del colore: la linea si
+  // vede solo dove c'è il muscolo acceso.
   dentro.push(`<g fill="none" stroke="${COLORE_LINEA}" stroke-width="1"`
     + ' stroke-linejoin="round" stroke-linecap="round">');
-  for (const riga of righe) {
+  righe.forEach((riga, k) => {
     for (const pezzo of riga.pezzi) {
       // `<path>` e NON `<polygon>`: i `<polygon>` sono quelli dentro i clipPath, e i
       // test contano quanti pezzi ha un ritaglio. Un secondo set di `<polygon>`
       // raddoppierebbe ogni conteggio.
-      dentro.push(`<path d="${tracciato(pezzo)}"/>`);
+      dentro.push(`<path d="${tracciato(pezzo)}" clip-path="url(#${tagli[k]})"/>`);
     }
-  }
+  });
   dentro.push('</g>');
   return dentro.join('');
 }
