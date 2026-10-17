@@ -18,7 +18,7 @@ import assert from 'node:assert/strict';
 import {
   RITAGLI, GRUPPI, figurino, gruppoDiParte, idZonaDaParte, vistaDiGruppo,
   ETICHETTE, FOTO_L, FOTO_A, LIVELLI, livelloDiQuota, SOGLIA_SECONDARIO,
-  righeDaAccendere,
+righeDaAccendere,
 } from '../src/mappa-muscoli.js';
 import { PARTI, parteDiMuscolo, MOVIMENTI, gruppoMuscoloDi } from '../src/muscoli-parti.js';
 import { ESERCIZI as CATALOGO } from '../src/dati-iniziali.js';
@@ -80,7 +80,15 @@ test('Z1. ogni pezzo di muscolo che l\'app riconosce è ritagliato', () => {
 
 test('Z2. si accende il muscolo giusto, e solo quello', () => {
   for (const id of TUTTE) {
-    assert.equal(idZonaDaParte(id), id, 'il pezzo ' + id + ' non si accende');
+    // NON ogni nome torna a se stesso: `braccio_basso` e `braccio_alto` sono le
+    // due POSIZIONI del curl, non due pezzi di bicipite, e sulla figura il bicipite
+    // è una fascia sola (16/10/2026, Ste: "dovrebbe prendere tutto il bicipite no?
+    // che non un coso dritto corto"). Quindi i due nomi portano alla stessa zona,
+    // e la mappa li unisce in `ALIAS`.
+    const zona = idZonaDaParte(id);
+    assert.ok(zona, 'il pezzo ' + id + ' non si accende');
+    assert.equal(RITAGLI[gruppoDiParte(id)].zone.includes(zona), true,
+      id + ' porta a una zona che il gruppo non disegna: ' + zona);
     const gruppo = gruppoDiParte(id);
     const svg = figurino(id);
 
@@ -414,9 +422,20 @@ test('Z11. anche i muscoli secondari, ma solo quelli veri', () => {
     });
     assert.ok(r.trovata, esercizio.nome + ': l\'app non riconosce nessun muscolo');
     const principale = gruppoDiParte(r.parte);
+    // LE QUOTE VANNO LETTE CON LA STESSA NORMALIZZAZIONE DELL'APP (16/10/2026).
+    // `braccio_alto` e `braccio_basso` sono le due posizioni del curl, non due
+    // pezzi di bicipite: sulla figura il bicipite è una fascia sola, e l'app porta
+    // entrambi i nomi sulla stessa zona (`idZonaDaParte`). Senza questa mappa il
+    // test chiedeva una quota a `braccio_alto` e trovava `braccio_basso`, e
+    // accusava l'app di accendere un muscolo che nessuno sostiene.
+    const quote = {};
+    for (const [zona, q] of Object.entries(r.livelli || {})) {
+      const nome = idZonaDaParte(zona) || zona;
+      quote[nome] = Math.max(quote[nome] || 0, q);
+    }
     for (const g of gruppiAccesi(figurino(r.parte, r.livelli, r.anatomia))) {
       if (g === principale) continue;
-      const sostegno = RITAGLI[g].zone.some((z) => (r.livelli[z] || 0) >= SOGLIA_SECONDARIO
+      const sostegno = RITAGLI[g].zone.some((z) => (quote[z] || 0) >= SOGLIA_SECONDARIO
         || (r.anatomia || {})[z] !== undefined);
       assert.ok(sostegno,
         esercizio.nome + ': ha acceso ' + g + ' (secondario) ma né le parole né '

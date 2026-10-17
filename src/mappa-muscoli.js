@@ -152,7 +152,7 @@ const SAGOME = {
   bicipite: {
     vista: 'fronte',
     nome: 'bicipite',
-    zone: ['braccio_alto', 'braccio_basso'],
+    zone: ['braccio_alto'],
     // IL BICIPITE FINISCE AL GOMITO (16/10/2026). Su `muscoli.png`, il braccio di
   // fronte è un blocco unito da y=282 a y=388 e l'avambraccio è un pezzo staccato
   // da y=393 a 450. Quindi il gomito è a y~390. Prima finiva a y=404 e accendeva
@@ -189,8 +189,27 @@ const SAGOME = {
   // volutamente un filo più larga del necessario: il braccio disegnato a destra
   // sta 4-5 pixel più in fuori che a sinistra (x 60-98 contro x 55-93 alla riga
   // y=342), e una sagoma stretta coprirebbe bene un lato e taglierebbe l'altro.
-  tagli: { asse: 'y', valori: [352] },
-    sagoma: [[56, 340], [98, 338], [97, 354], [94, 368], [52, 369], [49, 354]],
+  // IL BICIPITE E' UNA FASCIA UNICA, NON DUE (16/10/2026).
+  //
+  // Ste,guardando la scheda del Pull Ups: "qua per esempio dovrebbe prendere tutto
+  // il bicipite no? che non un coso dritto corto". Aveva ragione: il bicipite era
+  // tagliato a y=352 in due zone, `braccio_alto` e `braccio_basso`, e sulle
+  // trazioni il secondario era solo `braccio_basso`. Sull'app si vedeva quindi una
+  // BARRETTA CORTA (la metà bassa) e metà bicipite restava grigia.
+  //
+  // IL MOTIVO DEL TAGLIO ERA SBAGLIATO. `braccio_alto` e `braccio_basso` non sono
+  // due pezzi anatomici: sono le due POSIZIONI del curl (braccio corto e braccio
+  // lungo, che il Rank valuta con leve diverse). Il bicipite, come forma, e' uno
+  // solo: non si vede a pezzi sul disegno, quindi non si deve disegnare a pezzi.
+  //
+  // Quindi: via il taglio, il bicipite torna una zona sola, e i due nomi che il
+  // Rank continua a usare accendono entrambi quella zona (vedi `ALIAS`).
+  // E' A MANDORLA, NON UN RETTANGOLO (16/10/2026). Ste: "anche in altri esercizi
+  // e' un rettangolo". Il bicipite nella realta' parte stretto sotto il deltoide,
+  // si allarga a meta' braccio e si assottiglia verso il gomito, dove finisce in
+  // tendine. Con la fascia dritta sembrava un rettangolo appoggiato sul braccio.
+  sagoma: [[66, 337], [86, 336], [94, 344], [96, 355], [90, 364],
+    [78, 369], [62, 369], [52, 363], [48, 352], [55, 342]],
   },
 
   // IL BRACHIALE, IL MOTORE DEL HAMMER CURL (15/10/2026).
@@ -589,7 +608,38 @@ export function gruppoDiParte(parteId) {
 }
 
 export function idZonaDaParte(parteId) {
-  return parteId in GRUPPI ? parteId : null;
+  const nome = parteId in ALIAS ? ALIAS[parteId] : parteId;
+  return nome in GRUPPI ? nome : null;
+}
+
+/**
+ * I DUE NOMI CHE SONO UN SOLO MUSCOLO SULLA FIGURA (16/10/2026).
+ *
+ * `braccio_alto` e `braccio_basso` sono le due posizioni del curl, non due pezzi
+ * di bicipite: il Rank le tratta diverse (le leve), ma sulla figura il bicipite è
+ * una fascia sola. Senza questo, sulle trazioni il secondario `braccio_basso`
+ * accendeva mezza fascia e si vedeva una barretta dritta e corta.
+ *
+ * Nota: NON vale per i due capi del tricipite (`spalla_gomito_alto` e
+ * `spalla_gomito_basso`), che sono due muscoli davvero diversi, né per le due
+ * fasce del deltoide.
+ */
+const ALIAS = { braccio_basso: 'braccio_alto' };
+
+/**
+ * Porta le chiavi di `livelli` sulle zone che esistono davvero, e tiene la quota
+ * più alta quando due nomi finiscono sulla stessa zona.
+ *
+ * Restituisce SEMPRE un oggetto, anche quando non c'è niente da normalizzare:
+ * `righeDaAccendere` lo interroga con `Object.keys`, e `Object.keys(null`-explode.
+ */
+function normalizzaZone(livelli) {
+  const fuori = {};
+  for (const [zona, q] of Object.entries(livelli || {})) {
+    const nome = zona in ALIAS ? ALIAS[zona] : zona;
+    if (nome in GRUPPI) fuori[nome] = Math.max(fuori[nome] || 0, q);
+  }
+  return fuori;
 }
 
 /** In che vista si vede un gruppo. */
@@ -704,11 +754,15 @@ export function righeDaAccendere(acceso = null, livelli = null, anatomia = null)
   const gruppo = acceso ? gruppoDiParte(acceso) : null;
   if (!gruppo || !RITAGLI[gruppo]) return [];
 
+  // le due posizioni del curl diventano la fascia unica del bicipite: vedi `ALIAS`
+  const quote = normalizzaZone(livelli);
+  const anche = anatomia ? normalizzaZone(anatomia) : anatomia;
+
   // Un muscolo che l'anatomia mette accanto al principale è già la risposta a
   // "i dips non fanno anche i tricipiti?": non ha bisogno di superare la soglia,
   // che serve solo a tenere fuori il rumore delle parole.
-  const certificato = (zona) => Boolean(anatomia && anatomia[zona] !== undefined);
-  const haQuota = (zona) => Boolean(livelli && zona in livelli);
+  const certificato = (zona) => Boolean(anche && anche[zona] !== undefined);
+  const haQuota = (zona) => Boolean(quote && zona in quote);
 
   const righe = [];
   // `soloQuelloCheLavora` serve per i SECONDARI, e la distinzione è importante.
@@ -732,7 +786,7 @@ export function righeDaAccendere(acceso = null, livelli = null, anatomia = null)
     for (const zona of RITAGLI[g].zone) {
       let quota = 0;
       if (zona === forzato && g === gruppo) quota = 1;
-      else if (haQuota(zona)) quota = livelli[zona];
+      else if (haQuota(zona)) quota = quote[zona];
       // IL GRUPPO PRINCIPALE SI ACCENDE TUTTO, E SI VEDE (16/10/2026).
       //
       // Ste: "evidenziare tutta la fascia muscolare allenata". Prima, una fascia del
@@ -760,14 +814,14 @@ export function righeDaAccendere(acceso = null, livelli = null, anatomia = null)
   // I secondari: raggruppati per muscolo, e per ognuno il pezzo migliore è
   // quello che l'esercizio nomina di più.
   const altri = new Set();
-  for (const zona of Object.keys(livelli || {})) {
+  for (const zona of Object.keys(quote)) {
     const g = gruppoDiParte(zona);
     if (!g || g === gruppo) continue;
-    if (livelli[zona] >= SOGLIA_SECONDARIO || certificato(zona)) altri.add(g);
+    if (quote[zona] >= SOGLIA_SECONDARIO || certificato(zona)) altri.add(g);
   }
-for (const g of altri) {
-    const nominate = RITAGLI[g].zone.filter((z) => (livelli || {})[z] > 0)
-      .sort((a, b) => livelli[b] - livelli[a]);
+  for (const g of altri) {
+    const nominate = RITAGLI[g].zone.filter((z) => quote[z] > 0)
+      .sort((a, b) => quote[b] - quote[a]);
     // i secondari si accendono solo dove lavorano: vedi la nota su `metti`
     metti(g, nominate[0], true);
   }
