@@ -39,7 +39,38 @@ export function soglieDaValori({ ingresso, vertice }) {
   const ing = Number(ingresso);
   const ver = Number(vertice);
   if (!Number.isFinite(ing) || !Number.isFinite(ver) || ing <= 0 || ver <= ing) return null;
+  // LE SOGLIE RESTANO COME SONO, CON I DECIMALI (16/10/2026).
+  //
+  // Ste, sul preacher curl: "i pesi di 23,2 kg non esistono, anche 30,4, 26,4,
+  // 16,8, 14,3". Aveva ragione sulla SCRITTA: la scheda esercizio mostrava
+  // "Soglie: BRONZE da 12,5 · ARGENTO da 14,3 · ORO da 16,8 ..." e quei numeri non si
+  // mettono su un bilanciere.
+  //
+  // Il primo tentativo e' stato arrotondare le soglie VERE verso l'alto, a kg intero.
+  // E' stato un errore, ed e' stato subito visto: sul corpo di 66 kg le soglie
+  // diventavano 13/15/17/21/24/27/31 e i suoi 18 kg x 8 ripetizioni tornavano ad
+  // ARGENTO 96 (erano ORO 13), e sul corpo da 100 kg i suoi stessi 18 kg non
+  // prendevano piu' nessun Rank. Vale a proposito la regola del progetto: il numero
+  // che c'e' adesso e' la verita' e non si riscrive perche' viene male a schermo.
+  //
+  // Quindi i decimali restano nel motore e si arrotonda solo la LETTURA, sempre verso
+  // l'alto: "ORO da 16,8" si legge "ORO da 17", che e' vero, mentre "ORO da 16"
+  // sarebbe una promessa non mantenuta (16 non basta, serve 16,8). Vedi
+  // `kgPerLaLettura`.
   return CURVA_SOGLIE.map((f) => Math.round((ing + (ver - ing) * f) * 100) / 100);
+}
+
+/**
+ * Una soglia come la vede l'utente: kg intero, sempre arrotondato VERSO L'ALTO.
+ *
+ * Non e' una questione di bellezza. La soglia vera e' 16,8: scrivere 16 prometterebbe
+ * che 16 kg bastano per l'Oro, e non bastano. Scrivere 17 e' la stessa soglia, letta
+ * come la metti sul bilanciere. Vale per 14,3 (che diventa 15), 23,2 (che diventa 24),
+ * 26,4 (che diventa 27) e 30,4 (che diventa 31).
+ */
+export function kgPerLaLettura(soglia) {
+  const n = Number(soglia);
+  return Number.isFinite(n) ? Math.ceil(n) : n;
 }
 
 /**

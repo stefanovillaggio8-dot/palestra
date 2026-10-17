@@ -964,4 +964,10 @@ export function distanzaAllaSoglia(punteggio, prossimo) {
   return { percentuale, inGioco: grezza > 0, piccolo: grezza > 0 && percentuale === 0 };
 }
 
+// Una soglia come la vede l'utente: kg intero, arrotondato verso l'alto (16/10/2026).
+// Vive nel motore, accanto alle soglie, ma si ri-esporta da qui perché `app.js`
+// passa da questo file e `rank-config.js` non può importarlo (scalata.js importa
+// rank-config.js: importarlo da lì chiuderebbe un cerchio).
+export { kgPerLaLettura } from './rank-v2/scalata.js';
+
 export { MISURE as MISURE_RANK, profiloEsercizio, descriviPunteggio };
