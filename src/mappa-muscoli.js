@@ -290,11 +290,22 @@ const SAGOME = {
   // dentro i dorsali). Perciò una trazione accendeva il braccio insieme alla
   // schiena, e sembrava che lavorassero anche i tricipiti.
   //
-  // IL CONFINE E' NEL DISEGNO, e si vede: su `muscoli.png`, tra il braccio e la
-  // schiena c'e' una V scura, con la punta a y~335 e che si allarga scendendo
+// IL CONFINE E' NEL DISEGNO, e si vede: su `muscoli.png`, tra il braccio e la
+  // schiena c'è una V scura, con la punta a y~335 e che si allarga scendendo
   // (y=350 la V e' fra x=505 e x=525, y=400 fra x=495 e x=515). Il bordo esterno
   // dei dorsali segue quella V, non la linea del braccio.
-  sagoma: [[550, 306], [550, 432], [534, 436], [528, 400], [522, 350], [542, 318]],
+  //
+  // IL DORSALE E' IL MUSCOLO LARGO (16/10/2026). Ste: "la zona evidenziata deve
+  // prendere tutta la fascia muscolare che allena, non sono una parte tipo un
+  // quadrato/rettangolo". Prima il dorsale arrivava a x=550 e il romboide partiva
+  // da x=552: cioè il dorsale aveva 13 pixel e il romboide 23, INVERTITO rispetto
+  // all'anatomia (il romboide sta vicino alla spina ed è sottile, il dorsale è
+  // largo). Alla riga y=400 la fascia disegnata va da x=535 a 575 e il dorsale ne
+  // accendeva il 34%.
+  //
+  // Ora il dorsale arriva a x=555, che è il 70% della larghezza della schiena, e
+  // il suo bordo interno segue la curva del corpo invece di essere una retta.
+  sagoma: [[544, 320], [555, 330], [555, 418], [534, 438], [528, 400], [522, 350]],
   },
 
   romboidi: {
@@ -302,7 +313,16 @@ const SAGOME = {
     nome: 'dorso centrale',
     zone: ['dorso_centrale'],
     centro: true,
-    sagoma: [[552, 300], [602, 300], [602, 424], [552, 424]],
+    // IL ROMBOIDE NON E' UN RETTANGOLO (16/10/2026). Ste: "non sono una parte tipo
+    // un quadrato/rettangolo". Era [[552,300],[602,300],[602,424],[552,424]]: un
+    // rettangolo largo 50 pixel che si mangiava i due terzi della schiena e lasciava
+    // al dorsale (che e' il muscolo largo) una striscia di 13 pixel.
+    //
+    // Ora e' una fascia sottile lungo la spina, che segue la spina: stretta in
+    // alto e in basso, più larga a meta' schiena. Dodici pixel per lato invece di
+    // venticinque, così il dorsale torna a essere il muscolo largo che e' nella
+    // realtà.
+    sagoma: [[556, 303], [598, 303], [586, 326], [582, 340], [577, 350], [572, 340], [568, 326], [560, 310]],
   },
 
   deltoide_posteriore: {
@@ -488,10 +508,19 @@ function costruisci() {
         }
       }
 // Lo STACCO si applica DOPO i tagli: prima si taglia la fascia, poi si stringe
-    // il pezzo risultante. Stringere prima e poi tagliare darebbe un bordo
-    // obliquo al posto del taglio, e la fessura fra due fasce non sarebbe più
-    // dritta.
-    fascia = stringi(fascia);
+      // il pezzo risultante. Stringere prima e poi tagliare darebbe un bordo
+      // obliquo al posto del taglio, e la fessura fra due fasce non sarebbe più
+      // dritta.
+      //
+      // I lati che stanno SU un taglio interno non si stringono (vedi `stringi`):
+      // altrimenti le fasce dello stesso muscolo restano separate e il petto, che
+      // è in tre fasce, si vede come tre rettangoli impilati invece che come un
+      // pettorale unico. La fessura resta fra muscoli DIVERSI, che è il suo lavoro.
+      const interni = [];
+      if (def.tagli) {
+        for (const valore of def.tagli.valori) interni.push({ asse: def.tagli.asse, valore });
+      }
+      fascia = stringi(fascia, STACCO, interni);
     const lista = [fascia];
     if (!def.centro) lista.push(specchia(fascia, def.vista));
       bande[zona] = lista;
@@ -590,31 +619,52 @@ const punti = (pezzo) => pezzo.map(([x, y]) => `${x},${y}`).join(' ');
 // spostato. Le sagome hanno pochi vertici e sono semplici (quasi tutte convesse),
 // quindi l'intersezione è stabile.
 
-/** Sposta ogni lato di `passo` verso l'interno e ricostruisce i vertici. */
-export function stringi(poligono, passo = STACCO) {
+/**
+ * Sposta ogni lato di `passo` verso l'interno e ricostruisce i vertici.
+ *
+ * `tagli` (facoltativo) sono le linee di taglio INTERNE del muscolo: i lati che
+ * stanno su quelle linee NON si stringono.
+ *
+ * IL PERCHE' (16/10/2026). Ste: "la zona evidenziata deve prendere tutta la fascia
+ * muscolare che allena, non sono una parte tipo un quadrato/rettangolo". Stringendo
+ * anche i lati di taglio, due fasce dello STESSO muscolo restavano separate da una
+ * fessura di 3 pixel (1,5 per lato) e il petto, che è diviso in tre fasce
+ * (alta, centrale, bassa), si vedeva come tre rettangoli impilati invece che come
+ * un pettorale.
+ *
+ * La fessura serve a separare muscoli DIVERSI, e per quello resta: qui si continua
+ * a stringere tutto il resto del contorno, cioè il bordo vero del muscolo.
+ */
+export function stringi(poligono, passo = STACCO, tagli = null) {
   const n = poligono.length;
   if (n < 3) return poligono;
 
   // orientamento: il segno dell'area dice da che parte e' l'interno
   let area = 0;
-  for (let i = 0; i < n; i++) {
+  for (let i = 0; i < n; i += 1) {
     const [ax, ay] = poligono[i];
     const [bx, by] = poligono[(i + 1) % n];
     area += ax * by - bx * ay;
   }
   const verso = area > 0 ? 1 : -1;
 
+  // un lato è "su un taglio" se tutti e due i suoi vertici stanno sulla linea
+  const suTaglio = (ax, ay, bx, by) => Boolean(tagli && tagli.some((t) => (
+    t.asse === 'y' ? Math.abs(ay - t.valore) < 0.51 && Math.abs(by - t.valore) < 0.51
+      : Math.abs(ax - t.valore) < 0.51 && Math.abs(bx - t.valore) < 0.51)));
+
   // il lato i (dal vertice i al vertice i+1) spostato di `passo` verso l'interno
   const lati = [];
-  for (let i = 0; i < n; i++) {
+  for (let i = 0; i < n; i += 1) {
     const [ax, ay] = poligono[i];
     const [bx, by] = poligono[(i + 1) % n];
     const dx = bx - ax;
     const dy = by - ay;
     const len = Math.hypot(dx, dy) || 1;
+    const sposta = suTaglio(ax, ay, bx, by) ? 0 : passo;
     const nx = -(dy / len) * verso;
     const ny = (dx / len) * verso;
-    lati.push({ px: ax + nx * passo, py: ay + ny * passo, dx, dy });
+    lati.push({ px: ax + nx * sposta, py: ay + ny * sposta, dx, dy });
   }
 
   // incrocio fra il lato precedente e questo: lì sta il vertice spostato
