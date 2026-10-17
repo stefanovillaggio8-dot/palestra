@@ -97,10 +97,27 @@ export const LIVELLI = [0.2, 0.42, 0.66, 1];
 // sul reverse fly si vede appena, il gluteo sulla panca vede forte.
 export const SOGLIA_SECONDARIO = 0.4;
 
-// Quanto i muscoli accesi vengono STACCATI fra loro. Deve stare PRIMA di costruisci():
-// costruisci() gira subito all'avvio del modulo, e una const dichiarata dopo
-// sarebbe ancora nel 'temporal dead zone' quando serve come parametro di default.
-const STACCO = 1.5;
+// Quanto i muscoli accesi vengono staccati fra loro.
+//
+// IL BUCO E' DIVENTATO ZERO (16/10/2026). Era 1,5 pixel per lato, quindi 3 pixel di
+// vuoto grigio fra due muscoli attaccati. Ste: "il brachioradiale è attaccato al
+// bicipite no? devi farli bene le fasce muscolari". Aveva ragione: il brachioradiale
+// non parte dal gomito, parte dall'omero SOPRA il gomito, quindi è continuo con il
+// braccio. Con la fessura grigia l'app mostrava una macchiolina isolata sotto il
+// bicipite, e due fasce attaccate sembravano due pezzi sconnessi.
+//
+// Le fasce ora si toccano. La separazione non la fa il vuoto ma la LINEA che
+// `figurino()` disegna sul contorno di ogni fascia accesa: attaccate e distinte,
+// che è come sono fatte le tavole anatomiche.
+//
+// Deve stare PRIMA di costruisci(): costruisci() gira subito all'avvio del modulo,
+// e una const dichiarata dopo sarebbe ancora nel 'temporal dead zone' quando serve
+// come parametro di default.
+const STACCO = 0;
+
+// Il colore della linea che divide le fasce accese: quello del corpo spento, così
+// la linea sembra quella del disegno e non un contorno aggiunto. Vedi `figurino`.
+export const COLORE_LINEA = '#c4c6db';
 
 /** La sfumatura giusta per una quota di lavoro (da 0 a 1). */
 export function livelloDiQuota(quota) {
@@ -208,8 +225,12 @@ const SAGOME = {
   // e' un rettangolo". Il bicipite nella realta' parte stretto sotto il deltoide,
   // si allarga a meta' braccio e si assottiglia verso il gomito, dove finisce in
   // tendine. Con la fascia dritta sembrava un rettangolo appoggiato sul braccio.
-  sagoma: [[66, 337], [86, 336], [94, 344], [96, 355], [90, 364],
-    [78, 369], [62, 369], [52, 363], [48, 352], [55, 342]],
+  //
+  // La base resta LARGA fino a y=369 (16/10/2026): prima si assottigliava subito e
+  // sotto al bicipite restava una fetta di braccio scoperta (19 pixel a y=368),
+  // proprio dove il brachioradiale dovrebbe essere attaccato al bicipite.
+  sagoma: [[65, 337], [87, 336], [94, 343], [96, 353], [93, 361],
+    [88, 366], [84, 369], [54, 369], [50, 364], [48, 352], [56, 341]],
   },
 
   // IL BRACHIALE, IL MOTORE DEL HAMMER CURL (15/10/2026).
@@ -255,7 +276,24 @@ const SAGOME = {
     vista: 'fronte',
     nome: 'brachioradiale',
     zone: ['brachioradiale'],
-    sagoma: [[46, 395], [58, 392], [61, 405], [59, 416], [43, 418], [40, 406]],
+    // IL BRACHIORADIALE PARTE DALL'OMERO, NON DAL GOMITO (16/10/2026).
+    //
+    // Ste: "il brachioradiale è attaccato al bicipite no? devi farli bene le fasce
+    // muscolari". Anatomia: il brachioradiale nasce dalla cresta sopracondilare
+    // LATERALE dell'omero, quindi un centimetro SOPRA il gomito, e scende lungo
+    // l'avambraccio fino al polso. Non è una macchiolina isolata sotto al gomito: è
+    // una striscia continua che parte dal basso del brachiale.
+    //
+    // Prima partiva da y=395 e restavano scoperti 7 pixel di braccio a y=392 e un
+    // cuneo grigio fra brachiale e brachioradiale. Ora parte da y=392, dove finisce
+    // il brachiale, e le due fasce si toccano: sono attaccate.
+    // Sul disegno le due braccia NON coincidono: la striscia laterale è x 39-56 a
+    // sinistra e x 46-61 a destra (5 pixel di differenza). Una sola sagoma specchiata
+    // deve quindi arrivare a x=61 per coprire la destra, e su quella sinistra copre
+    // 5 pixel di vuoto. Il pavimento Z19 non può stare sopra ~77%: non è un difetto
+    // della sagoma, è il prezzo del disegno che non è simmetrico.
+    sagoma: [[48, 392], [58, 392], [61, 400], [61, 412], [60, 417],
+      [40, 418], [38, 410], [41, 400]],
   },
 
   // L'AVAMBRACCIO è il pezzo sotto: i flessori del polso. Comincia a y=420 perché
@@ -269,7 +307,7 @@ const SAGOME = {
     vista: 'fronte',
     nome: 'avambraccio',
     zone: ['avambraccio'],
-    sagoma: [[67, 390], [75, 396], [78, 412], [78, 424], [70, 444], [46, 448], [38, 434], [38, 421], [58, 418], [59, 408], [64, 398]],
+    sagoma: [[67, 390], [75, 396], [78, 412], [78, 424], [70, 444], [46, 448], [38, 434], [38, 421], [58, 418], [60, 408], [62, 398]],
   },
 
   // un pezzo solo, al centro: non si specchia
@@ -649,6 +687,9 @@ export function vistaDiGruppo(gruppo) {
 
 const punti = (pezzo) => pezzo.map(([x, y]) => `${x},${y}`).join(' ');
 
+/** Lo stesso poligono, come `d` di un `<path>`. Serve per il contorno. */
+const tracciato = (pezzo) => 'M' + punti(pezzo).split(' ').join(' L') + ' Z';
+
 // I MUSCOLI ACCESI VENGONO STACCATI (16/10/2026).
 //
 // Ste: "non puoi fare che sono staccati?". Aveva ragione: nella nostra figura i
@@ -849,7 +890,8 @@ export function figurino(acceso = null, livelli = null, anatomia = null) {
   const dentro = [];
   dentro.push(`<image href="./img/muscoli/corpo.png" x="0" y="0" width="${FOTO_L}" height="${FOTO_A}"/>`);
 
-  for (const riga of righeDaAccendere(acceso, livelli, anatomia)) {
+  const righe = righeDaAccendere(acceso, livelli, anatomia);
+  for (const riga of righe) {
     numeroFigura += 1;
     const idTaglio = 'taglio-muscolo-' + numeroFigura;
     // `clipPathUnits` è un ATTRIBUTO di clipPath, non un elemento. Scritto come
@@ -866,6 +908,30 @@ export function figurino(acceso = null, livelli = null, anatomia = null) {
       + ` height="${FOTO_A}" clip-path="url(#${idTaglio})"`
       + ` opacity="${riga.opacita}"/>`);
   }
+
+  // LA LINEA CHE SEPARA LE FASCE (16/10/2026).
+  //
+  // Ste: "il brachioradiale è attaccato al bicipite no? devi farli bene le fasce
+  // muscolari". Le fasce ora si toccano (STACCO = 0), ma senza niente che le
+  // separi due muscoli accesi insieme diventerebbero un blocco solo: non si capirebbe
+  // dove finisce l'uno e dove comincia l'altro.
+  //
+  // Quindi la separazione la fa una LINEA sul contorno, non un vuoto: fasce
+  // attaccate e distinguibili, come nelle tavole anatomiche. È anche più sottile di
+  // prima: la fessura grigia era 3 pixel, questa linea è 1.
+  //
+  // Il colore è quello del corpo spento, così la linea sembra quella del disegno.
+  dentro.push(`<g fill="none" stroke="${COLORE_LINEA}" stroke-width="1"`
+    + ' stroke-linejoin="round" stroke-linecap="round">');
+  for (const riga of righe) {
+    for (const pezzo of riga.pezzi) {
+      // `<path>` e NON `<polygon>`: i `<polygon>` sono quelli dentro i clipPath, e i
+      // test contano quanti pezzi ha un ritaglio. Un secondo set di `<polygon>`
+      // raddoppierebbe ogni conteggio.
+      dentro.push(`<path d="${tracciato(pezzo)}"/>`);
+    }
+  }
+  dentro.push('</g>');
   return dentro.join('');
 }
 

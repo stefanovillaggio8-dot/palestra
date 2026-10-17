@@ -156,7 +156,15 @@ const PAVIMENTO = {
   // confini del disegno e NON si colorano, quindi il pavimento scende a 74.
   // Non e' un difetto tollerato: e' il prezzo di coprire tutta la fascia.
   avambraccio: 74,
-  brachioradiale: 78,
+  // Il brachioradiale e' una striscia CONTINUA che parte dall'omero sopra il gomito
+  // (16/10/2026, Ste: "il brachioradiale e' attaccato al bicipite no? devi farli
+  // bene le fasce muscolari"). Non e' un difetto che il pavimento scenda: e' che le
+  // due braccia del disegno NON sono uguali. La striscia laterale sta a x 39-56 a
+  // sinistra e x 46-61 a destra, 5 pixel di differenza, e l'app disegna UNA sola
+  // sagola specchiata. Per coprire la destra deve arrivare a x=61, e su quella
+  // sinistra copre 5 pixel di vuoto. Il massimo possibile e' ~77%: misurato
+  // 81,6% a sinistra e 77,4% a destra, pavimento 75.
+  brachioradiale: 75,
   addome: 80,
   quadricipite: 87,
   trapezio: 87,

@@ -269,18 +269,23 @@ test('Z8b. uniti non vuol dire tutti uguali: le fasce si toccano e non si somman
     return Math.abs(a / 2);
   };
 
-  // Le fasce devono riempire la sagoma (niente buchi) e non sbordare (niente
-  // orecchi). Lo scarto tollerato dipende pero' dallo STACCO del 16/10: ogni fascia
-  // viene stringuta di 1,5 pixel verso l'interno, quindi si perde VOLUTAMENTE un
-  // anello di contorno, piu' un anello per ogni taglio interno. Percio' le fasce
-  // sommano meno della sagoma, e il numero esatto dipende da quante fasce ha il
-  // muscolo e da quanto sono lunghi i tagli: non si può prevedere con una formula
-  // semplice.
-//
-// Qui si controllano i due difetti veri: le fasce non possono superare la sagoma
-  // (orecchio) e non possono scendere sotto il 70% (buco vero). Sotto il 70% non si
-  // arriva per via dello stacco, che al massimo vale qualche percento.
-for (const [gruppo, r] of Object.entries(RITAGLI)) {
+// Le fasce devono riempire la sagoma (niente buchi) e non sbordare (niente
+  // orecchi).
+  //
+  // DAL 16/10 LO STACCO E' ZERO. Prima ogni fascia veniva stringuta di 1,5 pixel e le
+  // fasce di uno stesso muscolo si toccavano ma non si somnavano del tutto. Ste: "il
+  // brachioradiale è attaccato al bicipite no? devi farli bene le fasce muscolari":
+  // la fessura grigia di 3 pixel fra due muscoli attaccati li faceva sembrare sconnessi.
+  // Ora le fasce si toccano esattamente e la separazione la fa una linea (vedi
+  // `figurino`), quindi le fasce sommano ESATTAMENTE la sagoma.
+  //
+  // Per questo il confronto ha una tolleranza minima (1 px quadrato): i vertici sono
+  // arrotondati a due decimali e il totale può valere qualche decimo più della
+  // sagoma senza che ci sia un orecchio. Un orecchio vero fa centinaia di px.
+  //
+  // Qui si controllano i due difetti veri: le fasce non possono superare la sagoma
+  // (orecchio) e non possono scendere sotto il 70% (buco vero).
+  for (const [gruppo, r] of Object.entries(RITAGLI)) {
     const sinistra = (zona) => (r.centro ? r.bande[zona] : [r.bande[zona][0]]);
     let somma = 0;
     for (const zona of r.zone) {
@@ -291,7 +296,8 @@ for (const [gruppo, r] of Object.entries(RITAGLI)) {
     }
     const intera = area(r.sagoma);
     const tenuto = somma / intera;
-    assert.ok(somma <= intera,
+    // la tolleranza di 1 px² è per l'arrotondamento dei vertici: vedi la nota sopra
+    assert.ok(somma <= intera + 1,
       gruppo + ': le fasce sommano ' + Math.round(somma) + ' ma la sagoma è solo '
       + Math.round(intera) + ': le fasce sbordano, si vedrebbe un orecchio');
     assert.ok(tenuto >= 0.7,
