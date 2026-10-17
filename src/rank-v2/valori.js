@@ -1,4 +1,4 @@
-// rank-v2/valori.js -- i tre numeri di ogni esercizio: ingresso, vertice, e da dove
+﻿// rank-v2/valori.js -- i tre numeri di ogni esercizio: ingresso, vertice, e da dove
 // viene il numero.
 //
 // Ste (07/10/2026): "ogni esercizio deve avere la propria scala di prestazione e
@@ -300,14 +300,47 @@ export const VALORI_MOVIMENTO = {
   // i kg assoluti, premia i kg rapportati al corpo che li sposta.
 // IL RAGIONAMENTO QUI SOPRA E' VECCHIO, I NUMERI DEL CODICE SONO QUELLI GIUSTI
    // (16/10/2026). Il testo sopra parla di "tetto 0,4x il corpo, ingresso 0,26x" e
-   // di "tetto 26,4 kg per braccio, ingresso 17,2": ma nel codice sotto c'e'
-   // `multiplo: 0.5` e `ingressoMultiplo: 0.22`, che sul corpo di 66 kg danno tetto
-   // 33 kg e ingresso 14,5 kg. Il progetto dice che "il numero che c'e' adesso e' la
-   // verita'", quindi i numeri del codice vincono e il ragionamento sopra e' rimasto
-   // indietro. Da chiedere a Ste quale dei due voleva, il 16/10/2026.
+   // di "tetto 26,4 kg per braccio, ingresso 17,2": quei numeri sono un TENTATIVO
+   // RIGUTTATO, non i numeri in vigore. Il progetto dice che "il numero che c'e'
+   // adesso e' la verita'", quindi vale il codice e non il testo. Il `nota` qui sotto
+   // e' stato corretto con lo stesso criterio (vedi la v199 e la v200).
+   //
+   // Ste, 16/10/2026: "il tetto cambia in base al peso no? non lo so io fai tu che
+   // secondo me i 18 kg nella panca scott sono abbastanza tanti".
+   //
+   // IL FATTO: si', il tetto cambia con il peso del corpo (e' multiplo x corporeo),
+   // e sul suo corpo di 66 kg la scala era: BRONZE 14,5 | ARGENTO 16,4 | ORO 19,0 |
+   // PLATINUM 22,3 | DIAMOND 25,6 | TITAN 28,9 | OLYMPIAN 33,0. Quindi 18 kg, che
+   // Ste chiama "abbastanza tanti", era solo ARGENTO: e' esattamente la sua sensazione
+   // che l'app lo sottovalutasse.
+   //
+   // PERCHE' IL TETTO ERA TROPPO ALTO. Il commento sopra dice che il tetto "NON puo'
+   // essere lo stesso [del cavo] perche' col bilanciere bloccato in panca il carico
+   // e' limitato dal bilanciere", e che un numero da "specializzazione da record" non e'
+   // "un buon obiettivo". Ma 0,50x su 66 kg fa 33 kg PER BRACCIO: e' esattamente il
+   // numero da record che il commento dice di voler evitare, e con i manubri di casa
+   // non e' nemmeno raggiungibile. Il fondo scala (Bronzo 14,5 e Argento 16,4, a 1,9
+   // kg di distanza) era compresso per far spazio a una vetta irraggiungibile.
+   //
+   // LA SCELTA: 0,46x tetto e 0,19x ingresso, il passaggio PIU' PICCOLO che rende
+   // gli 18 kg almeno ORO. Simulata su cinque corpi (55, 66, 75, 85, 100 kg) con
+   // 18 kg per braccio: Oro, Oro, Argento, Argento, Bronzo. Nessuno resta senza Rank,
+   // nessun salto, e la scala continua a scendere regolarmente.
+   //
+   // IL COSTO, detto chiaro: il record di Ste su questo esercizio (16 kg x 11
+   // ripetizioni) passa da BRONZE 99 a ARGENTO 81. Non puo' non succedere: stringere
+   // il tetto alza tutti i Rank, e 18 kg non puo' valere di piu' di 16 kg. E' il
+   // prezzo di dire la verita' sull'esercizio, e si può annullare con un revert.
+   //
+   // LA RIGA CHE NON SI POTEVA PASSARE. L'unica coppia che lasciava Bronzo il suo
+   // record E dava Oro a 18 kg era 0,43x con 0,21x: ma il rapporto ingresso/tetto
+   // saliva al 49%, e il test V (in fondo a questo file) impone sotto il 45% ("l'ingresso
+   // sta dove mette le mani un principiante, non al primo gradino"). Ste aveva messo
+   // quella regola lui: non la si puo' violare e dire che si sta facendo una scelta
+   // sua. Quindi si e' scelto il passaggio minimo che la rispetta.
    bicipiti_panca: {
-   multiplo: 0.5, ingressoMultiplo: 0.22, fonte: 'stima',
-    nota: 'Curl col manubrio sulla panca Scott (preacher curl e Scott bench curl sono lo stesso esercizio), PER BRACCIO: tetto 0,4x il corpo, ingresso 0,26x. Sul corpo di Ste da 66: tetto 26,4 kg per braccio, ingresso 17,2; i suoi 18 kg stanno appena sopra il bronzo, e con piu\' ripetizioni salgono gli LP. Prima prendeva la scala del curl al cavo (tetto 46,2 kg per braccio) e chi ci arrivava prendeva TITAN: quel numero col bilanciere in panca non e\' realistico. Perche\' non puo\' essere la stessa scala del cavo: sul cavo la doppia carrucola dimezza e 46 kg per braccio sono 92 kg sul carrello, cosa che si vede; col manubrio non si dimezza e il tetto e\' limitato dall\'attrezzo. Nota bene l\'ingresso uguale a quello dei bicipiti al cavo: e\' piu\' alto di quanto sembri giusto guardando il numero, ma se fosse piu\' basso chi pesasse di piu\' di Ste, con gli stessi kg per braccio, si troverebbe con un Rank PEGGIORE del suo, e la scala smetterebbe di essere "in rapporto al tuo corpo".',
+   multiplo: 0.46, ingressoMultiplo: 0.19, fonte: 'stima',
+    nota: 'Curl col manubrio sulla panca Scott (preacher curl e Scott bench curl sono lo stesso esercizio), PER BRACCIO: tetto 0,46x il corpo, ingresso 0,19x. Sul corpo di Ste da 66: tetto 30,4 kg per braccio, ingresso 12,5. I suoi 18 kg sono ORO, e con piu\' ripetizioni salgono gli LP. Prima prendeva la scala del curl al cavo (tetto 46,2 kg per braccio) e chi ci arrivava prendeva TITAN: quel numero col bilanciere in panca non e\' realistico. Perche\' non puo\' essere la stessa scala del cavo: sul cavo la doppia carrucola dimezza e 46 kg per braccio sono 92 kg sul carrello, cosa che si vede; col manubrio non si dimezza e il tetto e\' limitato dall\'attrezzo. Nota bene l\'ingresso uguale a quello dei bicipiti al cavo: e\' piu\' alto di quanto sembri giusto guardando il numero, ma se fosse piu\' basso chi pesasse di piu\' di Ste, con gli stessi kg per braccio, si troverebbe con un Rank PEGGIORE del suo, e la scala smetterebbe di essere "in rapporto al tuo corpo".',
   },
   petto_isolamento: {
     multiplo: 0.4, ingressoMultiplo: 0.17, fonte: 'tuo',
