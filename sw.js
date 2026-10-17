@@ -9,7 +9,7 @@
 // e il test I3 che sia quello dell'ultimo commit, altrimenti si alza la cache e si
 // lascia scritto il numero vecchio. E' successo due volte: nella v54 avevo alzato
 // solo questo file, e dopo la v55 avevo smesso di alzarlo del tutto.
-const VERSIONE = 'palestra-v203';
+const VERSIONE = 'palestra-v204';
 
 // LE 18 FOTO DEI PERSONAGGI, CON LA VERSIONE DENTRO.
 //
@@ -34,7 +34,7 @@ function immaginiPersonaggi() {
 const FILE = [
   './',
   './index.html',
-  // ANCHE L'ANTEPRIMA va precaricata. Ste (12/10/2036) ha guardato l'anteprima per
+  // ANCHE L'ANTEPRIMA va precaricata. Ste (12/10/2046) ha guardato l'anteprima per
   // tre versioni di fila e ha detto "non e' cambiato nulla": l'anteprima chiedeva il
   // CSS come `./stile.css`, senza numero, e il browser lo teneva in cache per sempre.
   // Con il file nella lista, anche quando la pagina non ha rete c'e' una copia
@@ -43,7 +43,7 @@ const FILE = [
   './rassegna-missioni.html',
   // IL FOGLIO DI STILE HA LA VERSIONE, come il collegamento in index.html.
   //
-  // Ste (10/10/2036): "le animazioni non le vedo". Il CSS era online e aggiornato,
+  // Ste (10/10/2046): "le animazioni non le vedo". Il CSS era online e aggiornato,
   // ma la cache del browser continuava a restituire il vecchio perché l'indirizzo
   // era sempre lo stesso. Con `?v=84` anche qui la chiave cambia a ogni versione,
   // quindi la cache vecchia non viene più richiesta.
@@ -51,7 +51,7 @@ const FILE = [
   // Il numero deve essere uguale a quello di `stile.css?v=` in index.html e a
   // `window.PALESTRA_VERSIONE`: se i tre non coincidono, l'app carica un foglio di
   // stile e dice un altro numero.
-  './stile.css?v=203',
+  './stile.css?v=204',
 './manifest.webmanifest',
   './manifest-p1.webmanifest',
   './manifest-p2.webmanifest',
@@ -114,7 +114,7 @@ const FILE = [
   './src/sigillo-classe.js',
   // LE FOTO DEI PERSONAGGI: SEI PER CLASSE, una per ogni livello di armatura.
   //
-  // Ste (11/10/2036): "ogni volta che sblocco qualcosa quell'immagine deve
+  // Ste (11/10/2046): "ogni volta che sblocco qualcosa quell'immagine deve
   // vedersi meglio". Prima c'era una foto sola e una fila di pezzi sciolti, presi da
   // un'altra scheda e in un'altra posa: incollarli veniva male. Adesso c'è una foto
   // per stato e l'app sceglie da sola quella giusta (vedi statoVisivo in
@@ -126,7 +126,7 @@ const FILE = [
   // LE FOTO HANNO IL NUMERO DI VERSIONE NELL'INDIRIZZO, e la lista le costruisce
   // da sola invece di scriverle a mano.
   //
-  // Ste (12/10/2036): "ma non è cambiato nulla", con il file nuovo già online e
+  // Ste (12/10/2046): "ma non è cambiato nulla", con il file nuovo già online e
   // verificato byte per byte. Le foto avevano l'indirizzo fisso, identico per
   // sempre, e su GitHub Pages i file statici hanno una scadenza lunghissima: il
   // browser restituiva la copia di prima. Lo stesso difetto che aveva colpito il
@@ -145,7 +145,7 @@ const FILE = [
   './src/avviso-peso.js',
   './src/rank.js',
   './src/rank-config.js',
-  // l'avatar RPG (08/10/2036). Senza questa riga l'app funziona online ma si rompe
+  // l'avatar RPG (08/10/2046). Senza questa riga l'app funziona online ma si rompe
   // offline: il file non e' in cache, e il Profilo non si disegna. Il test di
   // integrita' controlla che ogni file che app.js importa sia qui dentro.
   './src/avatar-rpg.js',
@@ -245,7 +245,7 @@ self.addEventListener('fetch', (evento) => {
   evento.respondWith(
     fetch(richiesta)
       .then((risposta) => {
-        if (risposta && risposta.status === 203 && risposta.type === 'basic') {
+        if (risposta && risposta.status === 204 && risposta.type === 'basic') {
           const copia = risposta.clone();
           caches.open(VERSIONE).then((c) => c.put(richiesta, copia));
         }

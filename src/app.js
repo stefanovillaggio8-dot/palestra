@@ -5459,13 +5459,44 @@ function vistaRank(zona) {
 
   function sezioneMieiRank(stato) {
     contenitore.appendChild(el('p', { class: 'nota', testo: 'Il rank di ogni esercizio e\' tuo e basta: le soglie sono diverse per ogni esercizio, quindi 50 kg di una cosa non valgono 50 kg di un\'altra.' }));
-    if (!stato.record.length) {
+    // LE SERIE DI UNA SEDUTA APERTA NON CONTANO NEI RANK, E ADESSO LO DICE (16/10/2026).
+  //
+  // Ste, sui dip: "di dip ho fatto 40 kg, ho aggiornato oggi, ma non spuntano
+  // aggiornati nei rank, anche gli altri esercizi". Il calcolo era giusto: 40 kg di
+  // zavorri più il suo corpo a 8 ripetizioni davano OLYMPIAN 10 LP. Il problema è
+  // che la pagina glielo nascondeva.
+  //
+  // IL DIFETTO: la spiegazione ("Hai un allenamento APERTO, le serie contano solo
+  // quando finisci la seduta") stava dentro `if (!stato.record.length)`, cioè compariva
+  // SOLO se non avevi nessun Rank. Chi ha già dei Rank da altri esercizi non vedeva
+  // nulla: la lista restava quella vecchia e sembrava che l'app ignorasse il peso.
+  //
+  // La regola è giusta e si tiene: le serie contano solo da seduta `completata`
+  // (`gruppiDaSerie` filtra, e filmano anche i Rank personali che la classifica degli
+  // amici: è la stessa cosa, quindi non è un bug di calcolo). Quello che mancava
+  // era l'avviso.
+  //
+  // Nota: qui si vede anche perché il difetto era invisibile. I dip hanno `movimento`
+  // undefined e passano dal motore vecchio, quindi hanno nomi di campo diversi
+  // (`soglie`, `score`, `caricoReale` non ci sono): ma il Rank lo calcola lo stesso e
+  // qui sotto si vede solo il risultato.
+  const aperta = seduteMie().find((s) => s && !s.eliminata && s.stato !== 'completata');
+  if (aperta) {
+    const serieAperte = (V.serie || []).filter((x) => x && !x.eliminata && x.seduta_id === aperta.id);
+    const box = el('div', { class: 'tape tape-viola' });
+    box.appendChild(el('span', { testo: serieAperte.length
+      ? `Hai un allenamento APERTO (${aperta.nome_giorno || 'in corso'}) con ${serieAperte.length} serie scritte: non contano ancora nei Rank.`
+      : `Hai un allenamento APERTO (${aperta.nome_giorno || 'in corso'}). I Rank si aggiornano quando lo finisci.` }));
+    box.appendChild(bottone('Vai e chiudilo', { onClick: () => vai('/seduta/' + aperta.id), classe: 'principale' }));
+    contenitore.appendChild(box);
+  }
+
+  if (!stato.record.length) {
       // Ste: "non ho capito perchÈ non spunta niente se ho già messo il mio
       // peso". Il peso NON c'entra: un rank compare solo quando la seduta È
       // stata CHIUSA. Prima era scritto solo "chiudi un allenamento", che non
       // diceva che il peso È già salvato e che quindi il problema È un
       // altro. Ora lo spiego per bene e dico subito cosa fare.
-      const aperta = seduteMie().find((s) => s && !s.eliminata && s.stato !== 'completata');
       const finite = seduteMie().filter((s) => s && !s.eliminata && s.stato === 'completata').length;
       const peso = pesoCorporeoOra();
 

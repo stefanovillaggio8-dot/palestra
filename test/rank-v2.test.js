@@ -11,6 +11,9 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
 const curve = await import('../src/rank-v2/curve.js');
+import { readFile } from 'node:fs/promises';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 const scalata = await import('../src/rank-v2/scalata.js');
 const valori = await import('../src/rank-v2/valori.js');
 const misura = await import('../src/rank-v2/misura.js');
@@ -1175,4 +1178,40 @@ test('V27. il peso scritto e il Rank che dà coincidono', async () => {
         + 'Rank non possono contraddirsi');
     }
   }
+});
+
+test('R20. le serie contano solo da seduta completata, e la pagina lo dice', async () => {
+  // Ste, sui dip, 16/10/2026: "di dip ho fatto 40 kg, ho aggiornato oggi, ma non
+  // spuntano aggiornati nei rank, anche gli altri esercizi".
+  //
+  // Il calcolo era giusto (40 kg di zavorri + il suo corpo a 8 ripetizioni davano
+  // OLYMPIAN 10 LP): il problema era che la pagina Rank NON LO DICEVA. La spiegazione
+  // "le serie contano solo quando finisci la seduta" stava dentro
+  // `if (!stato.record.length)`, quindi compariva solo se non avevi nessun Rank. Chi ha
+  // gia' dei Rank da altri esercizi vedeva la lista vecchia e pensava che il peso
+  // fosse ignorato.
+  const { gruppiDaSerie } = await import('../src/gioco.js');
+  const { ESERCIZI } = await import('../src/dati-iniziali.js');
+  const e = ESERCIZI.find((x) => x.nome === 'Dips');
+  assert.ok(e, 'i dip devono esistere nel catalogo');
+
+  const serie = [{ id: 's1', esercizio_id: e.id, seduta_id: 'sed1', peso: 40, ripetizioni: 8, stato: 'fatta' }];
+
+  const aperta = gruppiDaSerie([{ id: 'sed1', stato: 'in_corso' }], serie, [e]);
+  const chiusa = gruppiDaSerie([{ id: 'sed1', stato: 'completata' }], serie, [e]);
+
+  const conta = (gruppi) => (gruppi.find((g) => g.esercizio_id === e.id) || { serie: [] }).serie.length;
+  assert.equal(conta(aperta), 0,
+    'una seduta APERTA non deve contare: se contasse, gli aggiornamenti comparirebbero '
+    + 'prima di finire e non si potrebbe piu\' tornare indietro');
+  assert.equal(conta(chiusa), 1, 'una seduta COMPLETATA deve contare');
+
+  // e il testo dell'avviso non puo' stare dentro il ramo "nessun rank"
+  const app = await readFile(join(dirname(fileURLToPath(import.meta.url)), '..', 'src', 'app.js'), 'utf8');
+  const iAperta = app.indexOf('Hai un allenamento APERTO');
+  const iRecord = app.indexOf('if (!stato.record.length)');
+  assert.ok(iAperta >= 0 && iRecord >= 0, 'devono esserci sia l\'avviso sia il ramo dei rank vuoti');
+  assert.ok(iAperta < iRecord,
+    'l\'avviso sulla seduta aperta deve stare PRIMA del ramo "nessun rank": se sta '
+    + 'dentro, compare solo quando non hai nessun Rank ed e\' il difetto di Ste');
 });
