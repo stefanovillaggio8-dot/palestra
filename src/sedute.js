@@ -344,7 +344,49 @@ export function prossimoOrdine(serie, sedutaId, esercizioId) {
   return mie.length ? Math.max(...mie.map((x) => x.ordine || 0)) + 1 : 1;
 }
 
-/** Aggiorna un giro del dropset senza toccare gli altri. */
+/**
+ * Mette sopra i giri appena scritti quelli che sono ancora in viaggio verso il
+ * database (16/10/2026).
+ *
+ * IL DIFETTO CHE HA MESSO QUI. I giri del dropset si salvano UNO PER VOLTA. Prima
+ * ogni campo del blocco chiudeva sulla copia degli giri letta al momento del disegno,
+ * e ricostruiva l'array da quella copia: ogni scrittura conteneva un campo modificato e
+ * tutti gli altri vuoti, e l'ultima scrittura vinceva. Ste: "io spungo l'esercizio e i
+ * kg e le rip delle serie dropset (2,3,4) spariscono".
+ *
+ * Anche leggere ogni volta dalla serie viva non basta: `conRitardo` aspetta prima di
+ * scrivere, e la serie viene rimessa in memoria solo DOPO che il salvataggio è finito.
+ * Due campi corretti di fila arriverebbero al secondo senza il primo.
+ *
+ * Per questo i valori appena scritti si mettono da parte subito, in modo sincrono, e
+ * `sovrapponiGiri` li rimette sopra quello che si trova sul disco.
+ *
+ * Qui la copia è LETTERALE, anche per un campo che vale `null`, e va spiegato il
+ * perché non è pericoloso: quello che è in attesa arriva sempre da `cambiaGiro`, che
+ * parte dall'array completo e cambia UN campo. Quindi un `null` in attesa vuol dire
+ * "l'ho svuotato io", non "non l'ho toccato". Anzi deve vincere: se un campo svuotato
+ * tenesse il valore vecchio, non si potrebbe più cancellare un numero da un giro.
+ *
+ * @param base     i giri come si trovano adesso (dal database o dalla vista)
+ * @param inAttesa i giri appena scritti e non ancora salvati, se ci sono
+ */
+export function sovrapponiGiri(base, inAttesa) {
+  const giri = [];
+  for (let i = 0; i < GIRI_DROPSET; i++) {
+    const g = Array.isArray(base) ? base[i] : null;
+    giri.push({ ...(g && typeof g === 'object' ? g : { peso: null, ripetizioni: null }) });
+  }
+  if (Array.isArray(inAttesa)) {
+    for (let i = 0; i < giri.length; i++) {
+      const p = inAttesa[i];
+      if (!p || typeof p !== 'object') continue;
+      for (const campo of ['peso', 'ripetizioni']) {
+        if (p[campo] !== undefined) giri[i][campo] = p[campo];
+      }
+    }
+  }
+  return giri;
+}
 export function cambiaGiro(giri, indice, campo, valore) {
   const copia = (Array.isArray(giri) ? giri : []).map((g) => ({ ...g }));
   while (copia.length < GIRI_DROPSET) copia.push({ peso: null, ripetizioni: null });

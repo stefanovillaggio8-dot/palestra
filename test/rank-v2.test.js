@@ -312,7 +312,7 @@ test('V12. il numero non puo\' scivolare via dal dichiarato (mai piu\' del 25%)'
     'e non puo\' salire oltre il 25% di scarto');
 });
 
-test('V13. il tetto di realta\' vince sulle risposte', () => {
+test('V13. il tetto di realtà viene dal movimento, non dal generico', () => {
   // risposte che direbbero un vertice assurdo su un isolamento
   const risposte = Array.from({ length: 10 }, () => ({ caricoReale: 200, risposta: 'massimo' }));
   const r = misura.affinaVertice({
@@ -320,10 +320,21 @@ test('V13. il tetto di realta\' vince sulle risposte', () => {
     pesoCorporeo: 70,
   });
   assert.equal(r.tettoMesso, true, 'la misura supera il tetto: deve restare scritto');
-  assert.ok(r.vertice <= 70 * 0.85 + 0.01, 'e il numero non supera il tetto');
-  // e il tetto usato e' quello del movimento, quindi la misura e la scala non
-  // possono litigare sullo stesso numero
-  assert.equal(r.limite, 70 * 0.85, 'il tetto viene da valori.js, non ricalcolato qui');
+  assert.ok(r.vertice <= r.limite + 0.01, 'e il numero non supera il tetto');
+
+  // IL TETTO E' QUELLO DEL MOVIMENTO (16/10/2026). Prima questo test fissava 0,85x70 =
+  // 59,5 kg, cioe' il tetto GENERICO degli isolamenti, perche'
+  // `tettoPerEsercizio` non trovava il movimento nella sua tabella e cadeva sul
+  // fallback. Ma 59,5 kg per braccio in un'alzata laterale non li fa nessuno: il tetto
+  // vero di `spalle_isolamento` e' 0,36x, che sul corpo di 70 fa 25,2 kg.
+  //
+  // Quindi la regola giusta e': il tetto viene dal tetto del movimento, e il generico
+  // vale solo per i movimenti che non ne hanno uno.
+  const { multiplo } = valori.VALORI_MOVIMENTO.spalle_isolamento;
+  assert.equal(r.limite, 70 * multiplo,
+    'il tetto deve essere quello del movimento (0,36x), non il tetto generico degli '
+    + 'isolamenti: 59,5 kg per un\'alzata laterale non li fa nessuno');
+  assert.ok(r.limite < 70 * 0.85, 'e deve essere piu\' basso del generico, altrimenti il tetto non serve a nulla');
 });
 
 // ---------------------------------------------------------------------------
@@ -341,11 +352,37 @@ test('V14. la valutazione completa restituisce Rank, soglie e da dove vengono', 
   assert.ok(r.affinamento, 'e c\'e\' anche il verdetto sull\'affinamento');
 });
 
-test('V15. l\'esercizio a ripetizioni non viene valutato in kg (e lo dice)', () => {
-  const trazioni = ESERCIZI.find((e) => /pull ups/i.test(e.nome));
-  const r = v2.valutaEsercizio({ esercizio: trazioni, serie: [], pesoCorporeo: 66 });
+test('V15. i kg ci sono, ma solo dove ci sono davvero (16/10/2026)', () => {
+  // PRIMA DI QUESTO TEST (16/10/2026) qui si diceva che le trazioni "non possono
+  // essere valutate in kg" e si contano a ripetizioni. Era VERO nel senso che mancava,
+  // ma la mancanza era un difetto, non una scelta: il classificatore assegna alle
+  // trazioni `tirata_verticale_corpo` e ai dip `spinta_corpo_libero`, e questi due ID
+  // non erano in `VALORI_MOVIMENTO`. Senza tetto la scala non si costruiva, l'esercizio
+  // finiva sul motore vecchio e la riga diceva "BRONZE da 47,5 kg", cioe' 47 kg di
+  // zavorri per il bronzo.
+  //
+  // Ora i due movimenti hanno tetto, leva e scala loro. La frase sulle ripetizioni
+  // resta per l'esercizio che NON ha kg (il Bodyweight Overhead Tricep Extension,
+  // movimento `corpo_libero` con multiplo 0): li kg li toglie la macchina, non sono
+  // un peso che l'atleta spinge.
+  for (const nome of ['Pull Ups', 'Dips']) {
+    const e = ESERCIZI.find((x) => x.nome === nome);
+    const r = v2.valutaEsercizio({
+      esercizio: e,
+      serie: [{ peso: 40, ripetizioni: 8, stato: 'fatta', ordine: 1 }],
+      pesoCorporeo: 66,
+    });
+    assert.equal(r.valido, true, `${nome}: deve valutarsi in kg, i 40 kg di zavorri sono un carico reale`);
+    assert.ok(Number.isFinite(r.soglie[0]) && r.soglie[0] > 0,
+      `${nome}: la scala deve esistere e partire da un numero, non da zero`);
+    assert.equal(r.soglie.length, 7, `${nome}: sette soglie, una per Rank`);
+  }
+
+  // il movimento senza kg deve ANCORA dire il perché, in chiaro
+  const senzaKg = ESERCIZI.find((e) => /bodyweight overhead tricep extension/i.test(e.nome));
+  const r = v2.valutaEsercizio({ esercizio: senzaKg, serie: [], pesoCorporeo: 66 });
   assert.equal(r.valido, false);
-  assert.match(r.motivo, /ripetizioni/, 'deve dire PERCHE\' non puo\' valutarlo in kg');
+  assert.match(r.motivo, /ripetizioni/, 'deve dire PERCHÉ non può valutarlo in kg');
 });
 
 test('V16. l\'app usa il motore NUOVO, e il vecchio non regala pi\' OLYMPIAN', () => {

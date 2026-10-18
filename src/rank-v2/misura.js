@@ -119,8 +119,20 @@ export function affinaVertice({ verticeDichiarato, risposte = [], livello = 'com
   const massimo = dichiarato * (1 + SCARTO_MAX);
   const obiettivo = Math.max(minimo, Math.min(massimo, misuraLimitata));
 
-  // e il passo: ci si muove di un pezzo alla volta, non si arriva subito
-  const nuovo = dichiarato + (obiettivo - dichiarato) * PASSO;
+// e il passo: ci si muove di un pezzo alla volta, non si arriva subito
+   //
+   // IL TETTO SI APPLICA ANCHE QUI (16/10/2026). Prima il tetto entrava solo
+   // nell'obiettivo, e il passo graduale poteva restare sopra: con un numero dichiarato
+   // di 30 kg e un tetto di 25,2 la funzione restituiva 29,28 e diceva `tettoMesso:
+   // true`. Il tetto allora non limitava niente, e non si sapeva piu' quale fosse il
+   // numero vero.
+   //
+   // Prima non si vedeva, perche' il tetto arrivava da `TETTO_MOVIMENTO`, che ha cinque
+   // voci su venti movimenti: per gli altri quindici il tetto era il generico, alto, e
+   // il passo non lo superava mai. Ora che il tetto viene dal movimento (vedi
+   // `tettoPerEsercizio`) il caso e' reale, e va chiuso.
+   const passo = dichiarato + (obiettivo - dichiarato) * PASSO;
+   const nuovo = Math.min(passo, limite);
 
   return {
     vertice: Math.round(nuovo * 100) / 100,

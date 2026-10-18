@@ -12,7 +12,7 @@ import {
   ETICHETTE_CONVENZIONE, CONVENZIONI, convenzioneMisuraCarico, convenzioneConCorpo, etichettaUnita, campoCarico,
 } from './numeri.js';
 import { confrontaEsercizio, riassuntoEsercizio, NON_DISPONIBILE } from './confronto.js';
-import { prossimoOrdine, apriSeduta, nuovaSerie, seduteFinite, eFatta, commutaFatta, pulsa, segnaAspettoFatto, registra, REGISTRO, cambiaSerie, etichettaSpotterSerie, aspettaSalvataggi } from './sedute.js';
+import { prossimoOrdine, apriSeduta, nuovaSerie, seduteFinite, eFatta, commutaFatta, pulsa, segnaAspettoFatto, registra, REGISTRO, cambiaSerie, etichettaSpotterSerie, aspettaSalvataggi, cambiaGiro, sovrapponiGiri } from './sedute.js';
 import {
   MODALITA, raccogliPerEsercizio, proposta as propostaAggiornamento, notaSulNumeroSerie,
   riassuntoSpotter,
@@ -1889,12 +1889,6 @@ const rip = campoNumero(serie.ripetizioni, {
   return riga;
 }
 
-function aggiornaGiro(giri, idx, campo, valore) {
-  const copia = giri.map((g) => ({ ...g }));
-  copia[idx] = { ...copia[idx], [campo]: valore === '' || valore === null ? null : Number(String(valore).replace(',', '.')) };
-  return copia.slice(0, GIRI_DROPSET);
-}
-
 /**
  * Il pulsante DROPSET, che mancava.
  *
@@ -1915,6 +1909,10 @@ function pulsanteDropset(serie, { perView = null } = {}) {
     onClick: async () => {
       const nuovo = !serie.dropset;
       if (perView) perView.dropset = nuovo;
+      // spento il dropset, i giri in attesa non hanno più senso: se restassero,
+      // riaccendendo il pulsante comparirebbero numeri di una serie che nel frattempo
+      // e' cambiata
+      if (!nuovo) ULTIMI_GIRI.delete(serie.id);
       await aggiornaSerie(serie, { dropset: nuovo });
       if (nuovo) pulsa();
       disegna();
@@ -1927,26 +1925,72 @@ function pulsanteDropset(serie, { perView = null } = {}) {
 }
 
 /**
+ * I tre giri appena scritti e non ancora arrivati al database.
+ *
+ * Sta FUORI dalla funzione perché dentro ricreerebbe la mappa a ogni disegno e la
+ * cache non servirebbe a niente. Vive solo per la durata dei salvataggi in ritardo:
+ * quando il giro viene spento l'entrata sparisce, e la mappa non cresce mai oltre un
+ * numero ragionevole di serie.
+ */
+const ULTIMI_GIRI = new Map();
+const MAX_GIRI_IN_ATTESA = 40;
+
+function ricordaGiri(idSerie, giri) {
+  if (ULTIMI_GIRI.size >= MAX_GIRI_IN_ATTESA) {
+    const primo = ULTIMI_GIRI.keys().next().value;
+    ULTIMI_GIRI.delete(primo);
+  }
+  ULTIMI_GIRI.set(idSerie, giri);
+}
+
+/**
  * I tre giri a calo, quando il dropset È acceso.
  *
  * Stessa cosa che c'era già nella riga della scheda, ma tirata fuori in una
- * funzione: adesso cÈ anche nello storico, e due copie identiche prima o poi
+ * funzione: adesso c'è anche nello storico, e due copie identiche prima o poi
  * finiscono diverse.
  */
 function bloccoDropset(serie) {
   const extra = el('div', { class: 'dropset' });
   extra.appendChild(el('div', { class: 'etichetta-dropset', testo: 'Dropset: aggiungi i giri successivi' }));
-  const giri = Array.isArray(serie.giri_extra) ? serie.giri_extra.slice() : [];
-  while (giri.length < GIRI_DROPSET) giri.push({ peso: null, ripetizioni: null });
-  giri.slice(0, GIRI_DROPSET).forEach((g, idx) => {
-    const gp = campoNumero(g.peso, {
-      etichetta: 'giro peso',
-      onCambio: conRitardo((v) => aggiornaSerie(serie, { giri_extra: aggiornaGiro(giri, idx, 'peso', v) })),
-    });
-    const gr = campoNumero(g.ripetizioni, {
-      etichetta: 'giro ripetizioni',
-      onCambio: conRitardo((v) => aggiornaSerie(serie, { giri_extra: aggiornaGiro(giri, idx, 'ripetizioni', v) })),
-    });
+  // I giri dropset si salvano UNO PER VOLTA, e ognuno deve partire dall'ultimo
+  // salvato (16/10/2026).
+  //
+  // Ste: "io spungo l'esercizio e i kg e le rep delle serie dropset (2,3,4)
+  // spariscono".
+  //
+  // IL DIFETTO: `giri` veniva letto UNA volta sola quando si disegna la riga, e ogni
+  // campo (peso del giro 2, rip del giro 2, peso del giro 3...) ricostruiva l'array da
+  // QUELLA copia vecchia. Ogni scrittura salvata conteneva quindi un solo campo
+  // modificato e tutti gli altri vuoti, e l'ultima scrittura vinceva: spariscono i
+  // valori degli altri giri. Poi, spungendo l'esercizio, la riga si ridisegna e si
+  // vede il danno.
+  //
+  // Il peso e le ripetizioni della serie normale non hanno questo problema, perché
+  // ogni campo salva il SUO campo e non un array intero.
+function giriVivi(idSerie) {
+  const viva = (V.serie || []).find((x) => x && x.id === idSerie);
+  const dalDisco = viva && Array.isArray(viva.giri_extra) ? viva.giri_extra : [];
+  return sovrapponiGiri(dalDisco, ULTIMI_GIRI.get(idSerie));
+}
+const giri = giriVivi(serie.id);
+giri.slice(0, GIRI_DROPSET).forEach((g, idx) => {
+  const gp = campoNumero(g.peso, {
+    etichetta: 'giro peso',
+    onCambio: conRitardo((v) => {
+      const prossimi = cambiaGiro(giriVivi(serie.id), idx, 'peso', v);
+      ricordaGiri(serie.id, prossimi);
+      return aggiornaSerie(serie, { giri_extra: prossimi });
+    }),
+  });
+  const gr = campoNumero(g.ripetizioni, {
+    etichetta: 'giro ripetizioni',
+    onCambio: conRitardo((v) => {
+      const prossimi = cambiaGiro(giriVivi(serie.id), idx, 'ripetizioni', v);
+      ricordaGiri(serie.id, prossimi);
+      return aggiornaSerie(serie, { giri_extra: prossimi });
+    }),
+  });
     extra.appendChild(el('div', { class: 'riga-dropset' }, [
       el('span', { class: 'etichetta-giro', testo: `giro ${idx + 2}` }),
       el('label', { class: 'campetto' }, [gp, el('span', { class: 'sotto-campo', testo: 'KG' })]),

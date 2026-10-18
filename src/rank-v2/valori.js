@@ -569,6 +569,26 @@ export const VALORI_MOVIMENTO = {
   // NOTA: spalle_trapezio sta fra le tirate perche\' lo scrollamento del trapezio e\' una
   // tirata con i pesi (vedi il commento nel classificatore). Lo shrug e\' pesante e
   //compound, quindi niente tetto da isolamento.
+  // I DUE MOVIMENTI CHE MANCAVANO (16/10/2026).
+  //
+  // Il classificatore (`esercizi-classificatore.js`) assegna ai dip `spinta_corpo_libero`
+  // e alle trazioni `tirata_verticale_corpo`, ma questi due ID NON ESISTEVANO in questa
+  // tabella: `valoriPerEsercizio` non trovava nulla, la scala non si costruiva e quegli
+  // esercizi finivano sul motore vecchio, con la scala generica dei composti da bilanciere.
+  // Il risultato era la riga che Ste ha visto: sui dip si partiva da BRONZE 47,5 kg, cioe'
+  // "per il bronzo aggiungi 47 kg di zavorri". Sui cavi era gia' successo (v168).
+  //
+  // I DIP NON SONO UN COMPOSTO DA BILANCIERE. La convenzione e' `zavorri`, quindi il
+  // punteggio del motore somma gia' il peso del corpo: l'ingresso e' il corpo e basta
+  // (0 kg aggiunti, 1,0x) e il tetto e' dove arrivano le trazioni coi zavorri vere.
+  spinta_corpo_libero: {
+    multiplo: 1.85, ingressoMultiplo: 1.0, fonte: 'stima',
+    nota: 'Dip coi zavorri: il punteggio e\' il peso aggiunto PIU\' il corpo, quindi l\'ingresso e\' 1,0x (solo corpo, zero zavorri). Il tetto 1,85x viene dai 40 kg di zavorri che Ste fa sui dip (40 + 66 = 106 kg = 1,61x), che devono stare intorno all\'ORO, non al massimo: il bronzo non puo\' richiedere 47 kg di zavorri come chiedeva la scala sbagliata.',
+  },
+  tirata_verticale_corpo: {
+    multiplo: 1.85, ingressoMultiplo: 1.0, fonte: 'stima',
+    nota: 'Trazioni coi zavorri: stessa base dei dip (ingresso 1,0x = solo corpo). Ste: "nelle trazioni non vengo manco assistito, mi appendo e basta", quindi l\'ingresso e\' il peso del corpo e il tetto e\' quello delle trazioni coi zavorri, non un bilanciere con 100 kg.',
+  },
   corpo_libero: {
     multiplo: 0, fonte: 'nessuno',
     nota: 'Trazioni e dip: qui i kg non esistono, si contano le ripetizioni.',
@@ -726,16 +746,31 @@ export function tettoPerEsercizio(livello, movimento = null, esercizio = null) {
   //
   // Il parametro è in fondo e facoltativo, così le chiamate vecchie continuano a
   // funzionare e non si rompe nessun altro movimento.
-  if (movimento && TETTO_CON_MACCHINA[movimento] && esercizio) {
-    const base = VALORI_MOVIMENTO[movimento];
-    const scegli = base && base.scegliConMacchina;
-    const chiave = scegli ? scegli(esercizio) : null;
-    const tetto = chiave ? TETTO_CON_MACCHINA[movimento][chiave] : null;
-    if (Number.isFinite(tetto)) return tetto;
-  }
-  if (movimento && TETTO_MOVIMENTO[movimento]) return TETTO_MOVIMENTO[movimento];
-  return livello === 'isolamento' ? TETTO_ISOLAMENTI : TETTO_PER_PESO;
-}
+if (movimento && TETTO_CON_MACCHINA[movimento] && esercizio) {
+   const base = VALORI_MOVIMENTO[movimento];
+   const scegli = base && base.scegliConMacchina;
+   const chiave = scegli ? scegli(esercizio) : null;
+   const tetto = chiave ? TETTO_CON_MACCHINA[movimento][chiave] : null;
+   if (Number.isFinite(tetto)) return tetto;
+   }
+   // IL TETTO DEL MOVIMENTO, E NON QUELLO GENERICO (16/10/2026).
+   //
+   // Qui c'era un buco grosso: `TETTO_MOVIMENTO` ha cinque voci e i movimenti sono
+   // venti, quindi quindici finivano sul fallback di 2,2x. Per il bicipiti era
+   // 0,46x (la panca Scott) o 0,7x (il cavo) e diventava 2,2: cinque volte tanto.
+   // Non rompeva niente, perche' il vertice lo dava `multiplo` e il tetto e' solo un
+   // tetto (vedi `verticePerCorpo`, che prende il minimo): ma era un'arma scarica,
+   // e se un giorno si comincia a usare il tetto per fermare la stima, non ferma
+   // niente su quindici movimenti su venti.
+   if (movimento && Number.isFinite(TETTO_MOVIMENTO[movimento])) return TETTO_MOVIMENTO[movimento];
+   // il tetto del movimento, se c'e': e' il numero che il progetto considera la
+   // verita' per quell'esercizio, quindi viene PRIMA del generico
+   const valore = VALORI_MOVIMENTO[movimento];
+   if (movimento && valore && Number.isFinite(Number(valore.multiplo)) && Number(valore.multiplo) > 0) {
+     return Number(valore.multiplo);
+   }
+   return livello === 'isolamento' ? TETTO_ISOLAMENTI : TETTO_PER_PESO;
+   }
 
 /**
  * Quale riga dei valori vale per QUESTO esercizio.

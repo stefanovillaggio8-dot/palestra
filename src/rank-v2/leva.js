@@ -199,6 +199,32 @@ export const LEVE = {
     unita: 'per manubrio',
     nota: 'Scrollare le spalle: le braccia sono corte e il trapezio tira su per meta\' della spalla, quindi ha un braccolo buono. E\' il movimento piu\' generoso della spalla.',
   },
+  // DIP E TRAZIONI COI ZAVORRI (16/10/2026). Queste due leve mancavano, e V22 lo
+  // segnalava: un movimento con un tetto e senza leva non viene controllato da nessuna
+  // parte, quindi il suo tetto non si può più discutere in modo meccanico.
+  //
+  // La differenza fra le due è tutta nel braccio del carico, ed è la ragione per cui
+  // i due movimenti non possono condividere una scala sola:
+  //  - nella TRAZIONE il corpo pende TUTTO sotto la sbarra, lungo un braccio intero:
+  //    il carico e' il piu' lontano possibile dal dorso, ed e' per questo che le
+  //    trazioni sono l'esercizio piu' difficile della schena
+  //  - nei DIP il corpo sta IN MEZO alle braccia, subito sotto le spalle: il carico ha
+  //    un braccio cortissimo, e il petto regge molto piu' di quanto suggerisca il nome
+  //    "corpo libero"
+  tirata_verticale_corpo: {
+    muscoli: { dorsali: 0.6, bicipiti: 0.25, romboidi: 0.15 },
+    dMuscolo: 5.0,
+    dCarico: 'braccio',
+    unita: 'sul carico',
+    nota: 'Trazione (pull up): il corpo intero pende sotto la sbarra, quindi il braccio del carico e\' un braccio intero, il piu\' lungo di tutti i movimenti della schena. Il dorso ha pero\' lo stesso braccio del muscolo della tirata al cavo, perche\' l\'omero e\' il pivot anche qui: e\' il peso che e\' lontano, non il muscolo.',
+  },
+  spinta_corpo_libero: {
+    muscoli: { petto: 0.7, tricipiti: 0.3 },
+    dMuscolo: 4.5,
+    dCarico: 25,
+    unita: 'sul carico',
+    nota: 'Dip alle parallele: il corpo sta fra le braccia, quasi sotto le spalle, quindi il braccio del carico e\' cortissimo (25 cm, contro i 65 della spinta al cavo). E\' il motivo per cui i dip con zavorri reggono un carico totale tanto piu\' alto di una panca pur essendo un esercizio "col corpo": il braccio, non la massa, e\' il problema. Le quote seguono la mappa dei muscoli (petto basso pieno, tricipiti secondari, deltoide non acceso).',
+  },
   tirata_verticale: {
     muscoli: { dorsali: 0.6, bicipiti: 0.25, romboidi: 0.15 },
     dMuscolo: 5.0,

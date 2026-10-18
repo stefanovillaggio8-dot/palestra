@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { cambiaGiro, sovrapponiGiri } from '../src/sedute.js';
 
 // Qui si prova il ciclo completo di una seduta sul motore di salvataggio vero.
 // Node non ha IndexedDB, quindi parte il motore "memoria del browser": e' lo
@@ -134,6 +135,71 @@ test('il dropset ha 3 posti in piu\' oltre a peso e ripetizioni', async () => {
   assert.equal(riletta.dropset, true);
   assert.equal(riletta.giri_extra.length, 3);
   assert.equal(riletta.giri_extra[1].peso, 17.5, 'i decimali nel dropset sopravvivono');
+});
+
+test('i dropset non perdono i campi degli altri giri quando si scrive un campo solo', async () => {
+  // IL BUG CHE STE HA VISTO (16/10/2026): "io spungo l'esercizio e i kg e le rep delle
+  // serie dropset (2,3,4) spariscono".
+  //
+  // I tre giri si salvano UNO PER VOLTA, e ogni salvataggio rende al database
+  // l'INTERO array dei giri. Quindi chi salva deve partire dagli ultimi valori VERI e non
+  // da una copia vecchia: se parte da una copia, ogni scrittura contiene un campo
+  // modificato e tutti gli altri vuoti, l'ultima scrittura vince, e il giro appena scritto
+  // sparisce insieme a tutti gli altri.
+  //
+  // Qui si fa la cosa che fa l'app: si tiene da parte quello che è stato scritto ma non
+  // è ancora arrivato sul disco, e lo si rimette sopra il valore del disco a ogni
+  // scrittura.
+  let sulDisco = [];
+  const inAttesa = new Map();
+  const scrivi = (indice, campo, valore) => {
+    const letti = sovrapponiGiri(sulDisco, inAttesa.get('serie-1'));
+    const prossimi = cambiaGiro(letti, indice, campo, valore);
+    inAttesa.set('serie-1', prossimi);
+    sulDisco = prossimi; // arriva al database
+  };
+
+  // giro 2 (indice 0): peso e ripetizioni
+  scrivi(0, 'peso', 20);
+  scrivi(0, 'ripetizioni', 8);
+  // giro 3 (indice 1)
+  scrivi(1, 'peso', 17.5);
+  scrivi(1, 'ripetizioni', 6);
+  // giro 4 (indice 2)
+  scrivi(2, 'peso', 15);
+  scrivi(2, 'ripetizioni', 9);
+
+  assert.equal(sulDisco.length, 3, 'devono restare tre giri');
+  assert.deepEqual(
+    sulDisco.map((g) => [g.peso, g.ripetizioni]),
+    [[20, 8], [17.5, 6], [15, 9]],
+    'NESSUN campo deve sparire: i sei valori scritti devono essere tutti ancora lì'
+  );
+
+  // e il caso peggiore, quello che il salvataggio in ritardo rende possibile: due campi
+  // corretti di fila, senza che il primo sia ancora arrivato sul disco
+  let lento = [];
+  const coda = [];
+  const scriviLento = (indice, campo, valore) => {
+    const letti = sovrapponiGiri(lento, coda.length ? coda[coda.length - 1] : null);
+    coda.push(cambiaGiro(letti, indice, campo, valore));
+  };
+  scriviLento(0, 'peso', 22);
+  scriviLento(0, 'ripetizioni', 9); // il primo salvataggio non e' ancora arrivato
+  lento = coda[coda.length - 1];
+  assert.deepEqual(
+    lento.map((g) => [g.peso, g.ripetizioni]),
+    [[22, 9], [null, null], [null, null]],
+    'il peso scritto un istante prima non puo\' sparire solo perche\' il salvataggio e\' in ritardo'
+  );
+
+  // un campo svuotato deve tornare pulito: la sovrapposizione copre solo i campi RIEMPITI
+  const pulito = sovrapponiGiri(
+    [{ peso: 20, ripetizioni: 8 }],
+    [{ peso: null, ripetizioni: 8 }],
+  );
+  assert.equal(pulito[0].peso, null, 'se ho svuotato il peso, il peso deve restare vuoto');
+  assert.equal(pulito[0].ripetizioni, 8, 'e le ripetizioni devono restare');
 });
 
 test('7. le note si salvano e si rileggono', async () => {
