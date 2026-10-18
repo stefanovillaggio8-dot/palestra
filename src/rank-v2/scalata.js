@@ -82,15 +82,14 @@ export function soglieDaValori({ ingresso, vertice }) {
  * (`CURVA_SOGLIE`, e la scelta di Ste dell'08/10: le soglie sono per 8 ripetizioni e
  * il Rank premia le ripetizioni vere).
  */
-export function soglieLegibili(soglie, scoreDi) {
+export function soglieLegibili(soglie, scoreDi, passo = 1) {
   if (typeof scoreDi !== 'function') return soglie;
-  const pesi = pesiCaricabili();
+  const pesi = pesiCaricabili(passo);
   return soglie.map((s) => {
-    const trovato = pesi.find((kg) => scoreDi(kg) >= s);
-    if (trovato !== undefined) return trovato;
-    // nessun peso della lista arriva: si sale a 2,5 oltre l'ultimo, che non si puo'
-    // sapere quando arriva, quindi si lascia il numero piu' vicino
-    return pesoPiuVicino(s);
+  const trovato = pesi.find((kg) => scoreDi(kg) >= s);
+  if (trovato !== undefined) return trovato;
+  // nessun peso della lista arriva: si lascia il numero più vicino, con lo stesso passo
+  return pesoPiuVicino(s, { passo });
   });
 }
 
@@ -98,9 +97,9 @@ export function soglieLegibili(soglie, scoreDi) {
  * Una soglia sola, come la vede l'utente. Serve a `kgPerLaLettura`, che e' il nome
  * che si usa in `app.js`.
  */
-export function kgPerLaLettura(soglia, scoreDi) {
-  if (typeof scoreDi !== 'function') return pesoPiuVicino(soglia);
-  return soglieLegibili([soglia], scoreDi)[0];
+export function kgPerLaLettura(soglia, scoreDi, passo = 1) {
+  if (typeof scoreDi !== 'function') return pesoPiuVicino(soglia, { passo });
+  return soglieLegibili([soglia], scoreDi, passo)[0];
 }
 
 /**

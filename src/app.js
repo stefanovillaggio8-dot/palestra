@@ -34,7 +34,7 @@ import {
 } from './animazioni.js';
 import { recordEsercizio, recordAccount, classificaEsercizio, storicoMiglioramenti, giudizioPerformance, distanzaAllaSoglia, soglieLegibili, scoreSerie } from './rank.js';
 import { confrontoGiorno, confrontiMensili, GIORNI_UN_MESE } from './confronto-mensile.js';
-import { profiloEsercizio, profiloPerPesoCorporeo, RANK, ETICHETTE_MISURA, descriviPunteggio, descrizioneLivello, livelloEsercizio, impostaLivelliImparati, livelliImparati, rapportoDifficolta, MOLTIPLICATORI_SOGLIA } from './rank-config.js';
+import { profiloEsercizio, profiloPerPesoCorporeo, RANK, ETICHETTE_MISURA, descriviPunteggio, descrizioneLivello, livelloEsercizio, impostaLivelliImparati, livelliImparati, rapportoDifficolta, MOLTIPLICATORI_SOGLIA, passoCaricabile } from './rank-config.js';
 import { formattaAura } from './aura.js';
 import { elencoAvatar, avatarPerId, gradienteAvatar, iniziali } from './avatar.js';
 import { amiciDi, confronta, classifichePerEsercizio, privacyDi, campiVisibili, PRIVACY_PREDEFINITE } from './sociale.js';
@@ -5753,7 +5753,15 @@ async function vistaEsercizio(zona, esercizioId) {
     const s = scoreSerie({ peso: kg, ripetizioni: 8, esercizio: e });
     return Number(s && s.score !== undefined ? s.score : s) || 0;
   };
-  const soglieDaLeggere = soglieLegibili(soglieDelMotore, punteggioDi);
+  // LE SOGLIE SI SCRIVONO COI PESI CHE QUELLA MACCHINA HA (Ste, 18/10/2026).
+  //
+  // "vanno di 5kg in su, 5 10 15 20 25 ecc", sui cavi e sulle macchine. Con il passo di
+  // 2,5 che valeva per tutto, le soglie cadevano su numeri che la pila non ha: 57,5,
+  // 62,5, 67,5, 72,5 sullo slanciamento, 77,5 e 112,5 sul calf raise. Erano numeri
+  // inventati da una divisione, non pesi caricabili.
+  //
+  // Sui pesi liberi il passo resta 2,5, e sotto i 12 kg vale la lista dei manubri.
+  const soglieDaLeggere = soglieLegibili(soglieDelMotore, punteggioDi, passoCaricabile(e));
   zona.appendChild(el('p', { class: 'nota', testo: `${rigaSoglie.join(' · ')}. Soglie: ${soglieDaLeggere.map((s, i) => `${RANK[i].nome} da ${formattaNumero(s)}`).join(' · ')}` }));
 
   // L'AVVISO DEL PESO. Ste (07/10/2026): "il peso corporeo È l'ultima cosa

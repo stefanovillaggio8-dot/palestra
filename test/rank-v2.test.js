@@ -1317,3 +1317,44 @@ test('V28. la scheda dice QUANDO hai fatto le serie, non solo quante', async () 
   assert.match(r2.testo, /del 17\/10/, `una sola serie: deve dire il giorno, ma dice: ${r2.testo}`);
   assert.doesNotMatch(r2.testo, /volume/, `e senza volume da parlare, ma dice: ${r2.testo}`);
 });
+
+test('V29. ogni soglia è un peso che QUELLA attrezzatura ha (Ste, 18/10/2026)', async () => {
+  // Ste: "vanno di 5kg in su, 5 10 15 20 25 ecc" e poi "nei cavi o macchinari", e
+  // "2,5 per pesi liberi non esiste. il minimo di pesi che ho sono 1".
+  //
+  // Quindi il passo dipende dall'ATTREZZATURA e non dal peso: la pila di cavi e macchine
+  // va di 5 kg, i dischi vanno di 1 kg. Prima il passo era 2,5 per tutto e le soglie
+  // cadevano su numeri che la macchina non ha: 57,5, 62,5, 72,5, 77,5, 112,5.
+  const { passoCaricabile, pesiCaricabili } = await import('../src/rank-config.js');
+  const { ESERCIZI } = await import('../src/dati-iniziali.js');
+
+  for (const e of ESERCIZI) {
+    const passo = passoCaricabile(e);
+    assert.ok(passo === 5 || passo === 1,
+      `${e.nome}: il passo deve essere 5 (cavi e macchine) o 1 (pesi liberi), non ${passo}`);
+
+    const pesi = pesiCaricabili(passo);
+    if (passo === 5) {
+      // sui CAVI e MACCHINE: niente pesi che la pila non ha, a NESSUN livello
+      for (const kg of pesi) {
+        assert.equal(Math.round((kg % 5) * 100) / 100, 0,
+          `${e.nome}: ${kg} kg non esistono su una pila che va di 5`);
+      }
+    } else {
+      // sui PESI LIBERI sotto i 50 vale la lista dei manubri, e 17 kg non ci sono
+      assert.ok(!pesi.includes(17),
+        `${e.nome}: sotto i 50 kg vale la lista dei manubri, e 17 non c'e'`);
+      assert.ok(pesi.includes(12.5), `${e.nome}: i manubri hanno il 12,5`);
+    }
+  }
+
+  // e le macchine sono macchine: i cavi e i carrelli prendono 5, i manubri 1
+  const cavo = ESERCIZI.find((e) => /Cable Fly/i.test(e.nome));
+  const macchina = ESERCIZI.find((e) => /^Lat Pulldown macchina/i.test(e.nome));
+  const manubrio = ESERCIZI.find((e) => /Preacher/i.test(e.nome));
+  const zavorra = ESERCIZI.find((e) => /^Dips$/i.test(e.nome));
+  assert.equal(passoCaricabile(cavo), 5, 'i cavi vanno di 5 kg');
+  assert.equal(passoCaricabile(macchina), 5, 'i carrelli vanno di 5 kg');
+  assert.equal(passoCaricabile(manubrio), 1, 'i manubri vanno di 1 kg');
+  assert.equal(passoCaricabile(zavorra), 1, 'i dischi sulla cintura vanno di 1 kg');
+});

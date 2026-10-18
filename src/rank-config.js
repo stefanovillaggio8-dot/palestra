@@ -124,10 +124,44 @@ export const PESI_GOLERIA = [
  * (e sbagliare, perché sui cavi la soglia è per lato e il peso registrato è del
  * carrello) si cerca semplicemente il primo peso che la raggiunge davvero.
  */
-export function pesiCaricabili() {
+export function pesiCaricabili(passo = 1) {
+  const p = Number(passo) > 0 ? Number(passo) : 1;
   const aggiunti = [];
-  for (let kg = 52.5; kg <= 250; kg += 2.5) aggiunti.push(kg);
-  return [...new Set([...PESI_GOLERIA, ...aggiunti])].sort((a, b) => a - b);
+  // Sui pesi liberi, sotto i 50 kg vale la lista dei manubri, che NON e' uniforme (ci
+  // sono 2, 4, 6, 7, 8, 10, 12, 12,5...): Ste li ha elencati uno per uno, e 17 kg non
+  // ci sono. Sopra i 50 kg si aggiunge il passo, che e' di 1 kg: "il minimo di pesi che
+  // ho sono 1" (Ste, 18/10/2026).
+  //
+  // Sulle macchine invece la pila va di 5 kg FINO IN FONDO, anche sotto i 50: 57,5 o
+  // 32,5 non sono numeri che ci metti.
+  const da = p <= 1 ? 51 : p;
+  for (let kg = da; kg <= 250; kg += p) aggiunti.push(Math.round(kg * 100) / 100);
+  const base = p <= 1 ? PESI_GOLERIA : [];
+  return [...new Set([...base, ...aggiunti])].sort((a, b) => a - b);
+}
+
+/**
+ * Il passo dei pesi di quell'esercizio: 5 kg sui CAVI e sulle MACCHINE, 2,5 sui pesi
+ * liberi.
+ *
+ * Ste (18/10/2026): "vanno di 5kg in su, 5 10 15 20 25 ecc" e poi precisato "nei cavi o
+ * macchinari". Sulle macchine la pila va di 5, quindi una soglia su 57,5 o 62,5 non è
+ * un numero che ci metti: è un numero che è saltato fuori da una divisione.
+ *
+ * I dischi piccoli restano il modo di fare le microprogressioni (2-3 kg alla volta fra
+ * una soglia e l'altra), ma quello non c'entra con la soglia: la soglia deve essere un
+ * numero che la macchina ha.
+ *
+ * Sui pesi liberi il passo resta quello dei dischi da 2,5, e sotto i 12 kg vale la lista
+ * dei manubri, che non è uniforme.
+ */
+export function passoCaricabile(esercizio = null) {
+  const e = esercizio || {};
+  if (e.carrucola) return 5;
+  if (String(e.attrezzatura || '').toLowerCase().startsWith('macchina')) return 5;
+  const conv = String(e.convenzione || '').toLowerCase();
+  if (conv === 'macchina' || conv === 'cavo_totali') return 5;
+  return 1;
 }
 
 /**
@@ -141,10 +175,10 @@ export function pesiCaricabili() {
  *
  * Sale sempre, mai scende: una soglia si scrive "da X kg" e deve bastare.
  */
-export function pesoPiuVicino(kg) {
+export function pesoPiuVicino(kg, { passo = 1 } = {}) {
   const n = Number(kg);
   if (!Number.isFinite(n)) return n;
-  const pesi = pesiCaricabili();
+  const pesi = pesiCaricabili(passo);
   const vicino = pesi.find((p) => p >= n);
   return vicino !== undefined ? vicino : pesi[pesi.length - 1];
 }
