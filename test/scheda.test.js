@@ -23,7 +23,7 @@ test('23 esercizi della scheda + 4 aggiunti dopo, non ancora in nessuna scheda',
   // I primi 23 sono quelli trascritti dalle foto. I 4 successivi sono stati
   // aggiunti dopo: sono disponibili nella lista ma NON devono essere finiti in
   // nessuna scheda, altrimenti gli allenamenti di Ste cambierebbero da soli.
-  assert.equal(ESERCIZI.length, 28);
+  assert.equal(ESERCIZI.length, 27);
   const aggiunti = ESERCIZI.filter((e) => ['ex-iso-lateral-row', 'ex-lat-pulldown-lats',
     'ex-db-lateral-raise', 'ex-lying-cable-curl', 'ex-wide-grip-lat-pulldown'].includes(e.id));
   assert.equal(aggiunti.length, 5, 'i 5 esercizi aggiunti ci sono');
@@ -118,7 +118,7 @@ test('i dropset sono gia\' previsti solo dove serve (wrist curl)', () => {
 
 test('gli esercizi assistiti sono riconosciuti come assistiti', () => {
   const assistiti = ESERCIZI.filter((e) => !convenzioneMisuraCarico(e.convenzione)).map((e) => e.id);
-  assert.deepEqual(assistiti.sort(), ['ex-bodyweight-overhead-tricep', 'ex-dips', 'ex-pull-ups']);
+  assert.deepEqual(assistiti.sort(), ['ex-dips', 'ex-pull-ups']);
 });
 
 test('lo snapshot della scheda e\' completo e ordinato', () => {

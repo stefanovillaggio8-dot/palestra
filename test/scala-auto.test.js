@@ -60,9 +60,10 @@ const RIFERIMENTI_VERIFICATI = {
   // zavorri = 90.75 kg, e le soglie si muovono col peso come in ogni altro
   // esercizio pesante.
   //
-  // Il Bodyweight Overhead Tricep Extension resta a 15: quello al cavo è
-  // assistenza vera, e l'assistenza si conta col numero delle ripetizioni.
-  'ex-bodyweight-overhead-tricep': 15,
+  // Il Bodyweight Overhead Tricep Extension è stato tolto dalla scheda il 18/10/2026:
+// "non so manco perché c'è". Sul catalogo non c'è più, quindi non c'è più neanche il suo
+  // numero verificato qui. Quello che resta della sua logica è il movimento `corpo_libero`
+  // del classificatore, che serve ancora a distinguere il peso del corpo dall'assistenza.
   'ex-one-arm-cable-reverse-fly': 15.09,
   'ex-pull-ups': 90.75,
   'ex-dips': 90.75,

@@ -241,7 +241,6 @@ export const ESERCIZI = [
 { id: 'ex-sled-press-calf-raise', nome: 'Sled Press Calf Raise', gruppo: 'Calf Raise', attrezzatura: C.MACCHINA_STACK, convenzione: C.PER_GAMBA, foto: 'img/esercizi/sled-press-calf-raise.png', tipo: 'standard', nota_permanente: 'Monogamba, pressa orizzontale.' },
   { id: 'ex-single-leg-press', nome: 'Single Leg Press', gruppo: 'Leg Press', convenzione: C.PER_GAMBA, attrezzatura: C.MACCHINA_STACK, foto: 'img/esercizi/single-leg-press.png', tipo: 'standard', nota_permanente: 'Obliqua, altrimenti lavorano due gambe. 17 kg per gamba (prima facevo la leg press normale con 100 kg per lato).' },
   { id: 'ex-one-arm-preacher-curl', nome: 'One Arm Dumbbell Preacher Curl', gruppo: 'Curl bilanciere', convenzione: C.PER_MANUBRIO, foto: 'img/esercizi/one-arm-dumbbell-preacher-curl.png', tipo: 'standard', nota_permanente: '' },
-  { id: 'ex-bodyweight-overhead-tricep', nome: 'Bodyweight Overhead Tricep Extension', gruppo: 'Overhead Tricep Extension', convenzione: C.ASSISTENZA, foto: 'img/esercizi/bodyweight-overhead-tricep-ext.png', tipo: 'assistente', nota_permanente: 'Al cavo, altezza sopra il culo. Il numero e\' il peso di assistenza che aggiungo.' },
   { id: 'ex-one-arm-cable-reverse-fly', nome: 'One Arm Cable Reverse Fly', gruppo: 'Reverse Fly', convenzione: C.CAVO, carrucola: C.CARRUCOLA_DOPPIA, foto: 'img/esercizi/one-arm-cable-reverse-fly.png', tipo: 'standard', nota_permanente: 'Cavo ad altezza 23 gradi.' },
 
   { id: 'ex-pull-ups', nome: 'Pull Ups', gruppo: 'Pull Ups', convenzione: C.ZAVORRI, foto: 'img/esercizi/pull-ups.png', tipo: 'zavorre', nota_permanente: 'Zavorra: il numero e\' l\'assistenza che uso.' },
@@ -324,13 +323,23 @@ export const GIORNI = [
       { id: 'es-3-4', esercizio_id: 'ex-sled-press-calf-raise', serie: [s(110, 6), s(110, 5)], opzionale: false, nota: '' },
       { id: 'es-3-5', esercizio_id: 'ex-single-leg-press', serie: [s(17, 8), s(17, 8)], opzionale: false, nota: '' },
       { id: 'es-3-6', esercizio_id: 'ex-one-arm-preacher-curl', serie: [s(18, 6), s(18, 5), s(18, 5)], opzionale: false, nota: '' },
-// Ste (18/10/2026): "non esiste il bodyweight... non lo faccio in nessuna scheda e non so
-  // manco perché esiste sinceramente. io faccio il Overhead Tricep Extension".
-  //
-  // Era es-3-7, il Bodyweight Overhead Tricep Extension, nel programma del giorno 3: e non
-  // e' un errore suo che non lo facesse, era l'app che glielo proponeva ogni volta e lui lo
-  // ignorava. Tolto dal PROGRAMMA: nel catalogo l'esercizio resta, perché è il caso che i
-  // test usano per la logica delle serie assistite, ma nessuna scheda lo propone più.
+// IL BODYWEIGHT OVERHEAD TRICIP NON ESISTE PIÙ, E IL MOTIVO È DETTO DUE VOLTE
+      // (Ste, 18/10/2026).
+      //
+      // La prima volta: "non esiste il bodyweight... non lo faccio in nessuna scheda e non so
+      // manco perché esiste sinceramente", e l'ho tolto solo dal programma. Poi, quando ha detto
+      // che gli altri esercizi devono funzionare uguale perché non sarà solo lui a usare l'app,
+      // l'ho rimesso. Lui ha riletto e ha detto: "toglilo, non so manco perché c'è".
+      //
+      // Stavolta l'ho tolto davvero, dal programma E dal catalogo, perché il motivo è un altro e
+      // regge per tutti: è un esercizio che non descrive niente di reale. Sulla scheda c'è già
+      // il Cable Overhead Tricep Extension, che è lo stesso gesto fatto col cavo. Un secondo
+      // esercizio con lo stesso nome e un'altra immagine non aggiunge una scelta: aggiunge una
+      // domanda a chi apre la lista.
+      //
+      // Quello che resta è il movimento `corpo_libero` nel classificatore, che si tiene: le sue
+      // parole servono ancora, perché è lui che distingue un esercizio col peso del corpo da
+      // uno assistito dalla macchina.
       // Ste (10/10/2026): "One Arm Cable Fly è veramente così tanto 28kg alla doppia
 // carrucola".
 //
