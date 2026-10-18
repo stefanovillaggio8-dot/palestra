@@ -89,8 +89,30 @@ export function valutaEsercizio({ esercizio, serie = [], pesoCorporeo = null, ri
   if (!valutabili.length) {
     return { valido: false, motivo: 'nessuna serie registrata', movimento, livello };
   }
-  valutabili.sort((a, b) => b.score - a.score);
-  const migliore = valutabili[0];
+  // LA MIGLIORE SERIE: IL PESO PIU' ALTO, SE HA FATTO ALMENO 5 RIPETIZIONI
+// (Ste, 18/10/2026)
+  //
+  // "conta come migliore serie con un peso piu' alto solo se la serie col peso piu' alto
+  // ha fatto 5 o piu' ripetizioni. quindi se per esempio ho fatto 85kg x8 di pulley, se
+  // la volta dopo faccio 90x5, e' meglio".
+  //
+  // Prima vinceva il punteggio, e li' finiva il contrario: 85 kg x 8 faceva 85 punti,
+  // 90 kg x 5 ne faceva 81, e il record restava sul peso piu' basso. Non e' che 85 kg x 8
+  // sia una serie migliore di 90 kg x 5: sono cinque buone ripetizioni con piu' ferro.
+  //
+  // Quindi: fra le serie con almeno 5 ripetizioni vince il peso piu' alto, e a parita' di
+  // peso vince la serie con piu' ripetizioni. Una serie con MENO di 5 ripetizioni non
+  // puo' diventare il record solo perche' pesa di piu': se non c'e' niente con 5 o piu',
+  // si sceglie comunque la piu' buona fra quelle che ci sono, altrimenti non ci sarebbe
+  // nessun record.
+  const RIP_MINIME_PER_PESO = 5;
+  const serieConRip = valutabili.filter((v) => v.ripetizioni >= RIP_MINIME_PER_PESO);
+  const pool = serieConRip.length ? serieConRip : valutabili;
+  const migliore = pool.reduce((a, b) => {
+    if (b.carico > a.carico) return b;
+    if (b.carico < a.carico) return a;
+    return b.ripetizioni > a.ripetizioni ? b : a;
+  });
 
   // le soglie: tre valori dell'esercizio, riportati sul tuo corpo e convertiti
   // nell'unita' dello score (kg-equivalenti per 8 rip)

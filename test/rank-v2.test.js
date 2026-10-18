@@ -1357,3 +1357,54 @@ test('V29. ogni soglia è un peso che QUELLA attrezzatura ha (Ste, 18/10/2026)',
   assert.equal(passoCaricabile(manubrio), 1, 'i manubri vanno di 1 kg');
   assert.equal(passoCaricabile(zavorra), 1, 'i dischi sulla cintura vanno di 1 kg');
 });
+
+test('V30. il record e\' il peso piu\' alto, ma solo con 5 ripetizioni o piu\' (Ste, 18/10/2026)', async () => {
+  // Ste: "conta come migliore serie con un peso piu' alto solo se la serie col peso piu'
+  // alto ha fatto 5 o piu' ripetizioni. quindi se per esempio ho fatto 85kg x8 di pulley,
+  // se la volta dopo faccio 90x5, e' meglio".
+  //
+  // Prima vinceva il PUNTEGGIO, e finiva al contrario: 85 x 8 faceva 85 punti, 90 x 5 ne
+  // faceva 81, e il record restava sul peso piu' basso. Non e' che 85 x 8 sia una serie
+  // migliore di 90 x 5: sono cinque buone ripetizioni con piu' ferro.
+  const { valutaEsercizio } = await import('../src/rank-v2/index.js');
+  const { ESERCIZI } = await import('../src/dati-iniziali.js');
+  const cavo = ESERCIZI.find((e) => /^Seated Cable Row/i.test(e.nome));
+  const serie = (peso, ripetizioni, ordine) => ({
+    id: 's' + ordine, esercizio_id: cavo.id, stato: 'fatta', ordine,
+    peso, ripetizioni, spotter: false, carrucola: null,
+  });
+
+  // l'esempio esatto di Ste: 90 x 5 deve battere 85 x 8
+  const r = valutaEsercizio({
+    esercizio: cavo,
+    serie: [serie(85, 8, 1), serie(90, 5, 2)],
+    pesoCorporeo: 66,
+  });
+  assert.equal(r.caricoReale, 90, 'la serie migliore e\' quella da 90 kg, non quella da 85');
+  assert.equal(r.ripetizioni, 5);
+
+  // e con piu' peso ma MENO di 5 ripetizioni il record NON si sposta
+  const r2 = valutaEsercizio({
+    esercizio: cavo,
+    serie: [serie(85, 8, 1), serie(95, 2, 2)],
+    pesoCorporeo: 66,
+  });
+  assert.equal(r2.caricoReale, 85,
+    '95 kg per 2 ripetizioni non puo\' diventare il record: sotto le 5 non conta');
+
+  // a parita\' di peso vince la serie con piu\' ripetizioni
+  const r3 = valutaEsercizio({
+    esercizio: cavo,
+    serie: [serie(85, 5, 1), serie(85, 9, 2)],
+    pesoCorporeo: 66,
+  });
+  assert.equal(r3.ripetizioni, 9, 'stesso peso, vince la serie piu\' lunga');
+
+  // e se non esiste nessuna serie da 5 in su, il record non sparisce
+  const r4 = valutaEsercizio({
+    esercizio: cavo,
+    serie: [serie(80, 3, 1), serie(78, 4, 2)],
+    pesoCorporeo: 66,
+  });
+  assert.equal(r4.valido, true, 'con tutte le serie sotto le 5 ce n\'e\' comunque una record');
+});
