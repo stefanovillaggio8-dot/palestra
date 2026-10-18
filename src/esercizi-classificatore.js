@@ -1,4 +1,4 @@
-// esercizi-classificatore.js -- capire che esercizio È e quanto È difficile.
+﻿// esercizi-classificatore.js -- capire che esercizio È e quanto È difficile.
 //
 // Ste (04/10/2026): "io voglio che capisca il livello di difficolta', deve essere
 // molto forte questo classificatore, È la cosa più importante quindi falla
@@ -53,10 +53,24 @@ const MOVIMENTI = [
       'vertical press', 'spalle in alto', 'pressa spalle'],
   },
   // --- tirate ---
+  // LA PRESA LARGA PRIMA DI QUELLA STRETTA (Ste, 18/10/2026)
+  //
+  // "le trazioni in teoria sono un po' piú difficili perché le faccio a presa larga mentre
+  // la lat machine la faccio a presa stretta perchè mi e' uscita la spalla una volta".
+  //
+  // "difficili perché le faccio a presa larga mentre la lat machine la faccio a presa
+  // parola che trova: se arrivasse dopo, "lat pulldown presa larga" prenderebbe le stesse
+  // parole della stretta e i due esercizi avrebbero lo stesso tetto, che e' esattamente
+  // quello che non voleva.
+  {
+    id: 'tirata_verticale_larga', livello: 'composto', gruppo: 'dorso',
+    parole: ['presa larga', 'wide grip', 'lat pulldown presa larga', 'tirata larga',
+      'pullover presa larga', 'lat machine larga'],
+  },
   {
     id: 'tirata_verticale', livello: 'composto', gruppo: 'dorso',
     parole: ['pulldown', 'pull down', 'pullover', 'lat machine', 'vertical row',
-      'tirata verticale', 'lat pulldown', 'tirata alta'],
+      'tirata verticale', 'lat pulldown', 'tirata alta', 'presa stretta', 'narrow grip'],
   },
   {
     // LO SHRUG. Scala propria, collegata qui l'8/10/2026.

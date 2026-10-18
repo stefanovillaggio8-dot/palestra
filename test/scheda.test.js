@@ -23,10 +23,10 @@ test('23 esercizi della scheda + 4 aggiunti dopo, non ancora in nessuna scheda',
   // I primi 23 sono quelli trascritti dalle foto. I 4 successivi sono stati
   // aggiunti dopo: sono disponibili nella lista ma NON devono essere finiti in
   // nessuna scheda, altrimenti gli allenamenti di Ste cambierebbero da soli.
-  assert.equal(ESERCIZI.length, 27);
+  assert.equal(ESERCIZI.length, 28);
   const aggiunti = ESERCIZI.filter((e) => ['ex-iso-lateral-row', 'ex-lat-pulldown-lats',
-    'ex-db-lateral-raise', 'ex-lying-cable-curl'].includes(e.id));
-  assert.equal(aggiunti.length, 4, 'i 4 esercizi aggiunti ci sono');
+    'ex-db-lateral-raise', 'ex-lying-cable-curl', 'ex-wide-grip-lat-pulldown'].includes(e.id));
+  assert.equal(aggiunti.length, 5, 'i 5 esercizi aggiunti ci sono');
   // il "liac" e' per il dorso: braccio singolo col cavo alto, NON un curl
   const liac = ESERCIZI.find((e) => e.id === 'ex-lying-cable-curl');
   assert.equal(liac.gruppo, 'Lat Pulldown', 'il liac sta nel gruppo del dorso');

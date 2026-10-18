@@ -169,7 +169,7 @@ test('Z4. nessun ritaglio esce dalla figura', () => {
 // controllano senza che nessuno debba ricordarsi di scriverlo qui.
 const NOMI_PROVA = [
   'Chest Press', 'Cable Hammer Curl', 'Cable Lateral Raise',
-  'Cable Overhead Tricep Extension', 'Leg Extension', 'Lat Pulldown macchina',
+  'Cable Overhead Tricep Extension', 'Leg Extension', 'Lat Pulldown presa stretta',
   'Dumbbell Bench Pull', 'Seated Dumbbell Shoulder Press', 'Cable Fly',
   'Scott Bench Curl seduto al contrario', 'Single Arm Tricep Pushdown',
   'Seated Leg Curl', 'Smith Machine Incline Bench Press', 'Seated Cable Row',
@@ -907,7 +907,7 @@ test('Z16. nessun trapezio e nessun lombare sulle tirate in basso', async () => 
 
   // Tutti gli esercizi che il riconoscitore manda al movimento tirata_verticale.
   const TIRATE_IN_BASSO = [
-    'Pull Ups', 'Lat Pulldown macchina', 'Lat Pulldown (lats)',
+    'Pull Ups', 'Lat Pulldown presa stretta', 'Lat Pulldown (lats)',
     'Incline Single Arm Pulldown', 'Neutral Grip Pulldown', 'Pullover',
   ];
   for (const nome of TIRATE_IN_BASSO) {

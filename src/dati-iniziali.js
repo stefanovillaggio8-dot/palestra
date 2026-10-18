@@ -190,7 +190,20 @@ export const ESERCIZI = [
   { id: 'ex-cable-lateral-raise', nome: 'Cable Lateral Raise', gruppo: 'Cable Lateral Raise', convenzione: C.CAVO, carrucola: C.CARRUCOLA_DOPPIA, foto: 'img/esercizi/cable-lateral-raise.png', tipo: 'standard', nota_permanente: 'Fatte bene, alla cavigliera.' },
   { id: 'ex-cable-overhead-tricep', nome: 'Cable Overhead Tricep Extension', gruppo: 'Cable Overhead Tricep Extension', convenzione: C.CAVO, carrucola: C.CARRUCOLA_DOPPIA, foto: 'img/esercizi/cable-overhead-tricep-extension.png', tipo: 'standard', nota_permanente: 'Devo raggiungerlo di nuovo: altezza 4 del cavo.' },
   { id: 'ex-leg-extension', nome: 'Leg Extension', gruppo: 'Leg Extension', attrezzatura: C.MACCHINA_STACK, convenzione: C.MACCHINA, foto: 'img/esercizi/leg-extension.png', tipo: 'opzionale', nota_permanente: 'Monogamba (esercizio opzionale).' },
-  { id: 'ex-neutral-grip-lat-pulldown', nome: 'Lat Pulldown macchina', gruppo: 'Lat Pulldown', attrezzatura: C.MACCHINA_STACK, convenzione: C.MACCHINA, foto: 'img/esercizi/neutral-grip-lat-pulldown.png', tipo: 'standard', nota_permanente: 'Impugnatura a triangolo, uso gli straps.' },
+// IL FRATELLO A PRESA LARGA (Ste, 18/10/2026)
+  //
+  // "crea un altro esercizio con la stessa immagine della lat machine dove pero' in uno
+  // scrivi presa stretta (quello mio) e in quello nuovo scrivi presa larga".
+  //
+  // Non e' un esercizio qualsiasi: e' lo stesso attrezzo con le braccia aperte invece che
+  // Non e' un esercizio qualsiasi: e' lo stesso attrezzo con le braccia aperte invece che
+  // difficili perché le faccio a presa larga mentre la lat machine la faccio a presa
+  // stretta"). Se avessero lo stesso tetto, chi fa il largo verrebbe giudicato come chi fa
+  // lo stretto, e avrebbe il range sbagliato.
+  //
+  // Stessa foto apposta: e' lo stesso attrezzo, cambia solo dove tieni le mani.
+  { id: 'ex-wide-grip-lat-pulldown', nome: 'Lat Pulldown presa larga', gruppo: 'Lat Pulldown', attrezzatura: C.MACCHINA_STACK, convenzione: C.MACCHINA, foto: 'img/esercizi/neutral-grip-lat-pulldown.png', tipo: 'standard', nota_permanente: 'Stessa macchina del presa stretta, ma con le braccia aperte. La spalla è in una posizione peggiore, quindi il tetto è un filo più basso.' },
+  { id: 'ex-neutral-grip-lat-pulldown', nome: 'Lat Pulldown presa stretta', gruppo: 'Lat Pulldown', attrezzatura: C.MACCHINA_STACK, convenzione: C.MACCHINA, foto: 'img/esercizi/neutral-grip-lat-pulldown.png', tipo: 'standard', nota_permanente: 'Impugnatura a triangolo, uso gli straps.' },
 
   { id: 'ex-dumbbell-bench-pull', nome: 'Dumbbell Bench Pull', gruppo: 'Bench Press', convenzione: C.PER_MANUBRIO, foto: 'img/esercizi/dumbbell-bench-pull.png', tipo: 'standard', nota_permanente: '26 gradi.' },
   { id: 'ex-seated-db-shoulder-press', nome: 'Seated Dumbbell Shoulder Press', gruppo: 'Shoulder Press', convenzione: C.PER_MANUBRIO, foto: 'img/esercizi/seated-dumbbell-shoulder-press.png', tipo: 'standard', nota_permanente: '3 gancio.' },

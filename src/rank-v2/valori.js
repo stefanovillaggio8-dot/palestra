@@ -221,6 +221,23 @@ export const VALORI_MOVIMENTO = {
   //
   // Con 1,6 i suoi 90 kg restano PLATINUM come i 95 del remo: due scale diverse, nessun
   // Rank spostato, e da domani se sale su uno solo l'altro se ne accorge.
+  // LO SLANCIAMENTO A PRESA LARGA HA UN TETTO PIU' BASSO (Ste, 18/10/2026)
+  //
+  // "le trazioni in teoria sono un po' piu' difficili perche' le faccio a presa larga mentre
+  // la lat machine la faccio a presa stretta perchè mi e' uscita la spalla una volta".
+  //
+  // E' la stessa cosa detta sulla macchina: a presa larga le braccia sono piu' aperte e
+  // per la spalla e' una posizione peggiore, quindi il carico non e' lo stesso anche se i
+  // kg sono gli stessi. Serve un movimento separato, altrimenti chi fa il largo e chi fa
+  // lo stretto vengono giudicati con la stessa scala.
+  //
+  // La differenza e' di 0,1x, la stessa del pulldown rispetto al remo al cavo: piccola,
+  // perche' l'esercizio e' lo stesso. Se un giorno il largo sembra troppo penalizzato, il
+  // numero da spostare e' questo e nient'altro.
+  tirata_verticale_larga: {
+    multiplo: 1.5, ingressoMultiplo: 0.68, fonte: 'stima',
+    nota: 'Lat pulldown a PRESA LARGA: stesso esercizio della presa stretta ma con le braccia aperte, che per la spalla e\' una posizione peggiore. Ste (18/10/2026) lo dice dei suoi: le trazioni le fa a presa larga e sono piu\' difficili della lat machine a presa stretta. Tetto 0,1x sotto quello della presa stretta.',
+  },
   tirata_verticale: {
   multiplo: 1.6, ingressoMultiplo: 0.72, fonte: 'tuo',
   nota: 'Lat pulldown: tetto 1,6x il corpo, ingresso 0,72x. Ste (08/10/2026) "la lat machine fare 180kg e\' da folli, soprattutto con il mio peso" - avevo dichiarato 2,0x (=132 kg) e nella nota avevo scritto che chi e\' forte fa 150-180 kg: NON E\' VERO al mio peso, me lo ha fatto notare lui. I numeri onesti del pulldown in rapporto al corpo: 0,8x chi non l\'ha mai fatto, 1,0-1,2x dopo un anno, 1,4-1,6x chi si allena bene, 1,8-2,0x chi si dedica alla forza da anni. Ste fa 90 kg = 1,36x, che e\' gia\' il livello di chi si allena bene. Il tetto NON e\' "il massimo esistente", e\' quello che nella vita reale si vede in palestra. Il 18/10 e\' sceso da 1,7 a 1,6 perche\' il remo al cavo tiene 1,7: sono due esercizi simili ma non identici, e i due Rank non possono muoversi insieme per sempre.',

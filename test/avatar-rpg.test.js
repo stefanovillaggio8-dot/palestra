@@ -1,4 +1,4 @@
-// avatar-rpg.test.js -- l'avatar RPG: classi, statistiche e armature.
+﻿// avatar-rpg.test.js -- l'avatar RPG: classi, statistiche e armature.
 //
 // Ste (08/10/2026) ha scritto questo sistema e me l'ha dato da mettere nell'app.
 // Qui si verifica la sua logica e le TRE correzioni fatte (sono scritte una per una in
@@ -20,7 +20,7 @@ const LUN = 1, MAR = 2, MER = 3, GIO = 4, VEN = 5, SAB = 6;
 /** Gli esercizi minimi, con il movimento che il classificatore deve riconoscere. */
 const ESERCIZI = {
   chest: { id: 'e-chest', nome: 'Chest Press', convenzione: 'per_braccio', attrezzatura: 'macchina_dischi' },
-  lat: { id: 'e-lat', nome: 'Lat Pulldown macchina', convenzione: 'cavo_totali', carrucola: 'carrucola_doppia' },
+  lat: { id: 'e-lat', nome: 'Lat Pulldown presa stretta', convenzione: 'cavo_totali', carrucola: 'carrucola_doppia' },
   curl: { id: 'e-curl', nome: 'Cable Hammer Curl', convenzione: 'cavo_totali', carrucola: 'carrucola_doppia' },
   corsa: { id: 'e-corsa', nome: 'Tapis roulant', convenzione: 'tempo' },
 };

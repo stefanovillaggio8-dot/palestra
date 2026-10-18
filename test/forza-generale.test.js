@@ -1,4 +1,4 @@
-import test from 'node:test';
+﻿import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import {
@@ -23,7 +23,7 @@ const fatta = (peso, rip = 6) => ({ peso, ripetizioni: rip, stato: 'fatta' });
 // lezione del test che leggeva ESERCIZI invece di oggetti inventati.
 const ID_VERI = {
   'Lat Pulldown (lats)': 'ex-lat-pulldown-lats',
-  'Lat Pulldown macchina': 'ex-neutral-grip-lat-pulldown',
+  'Lat Pulldown presa stretta': 'ex-neutral-grip-lat-pulldown',
   'Leg Press': 'ex-single-leg-press',
   'Leg Curl': 'ex-seated-leg-curl',
   'Chest Press': 'ex-chest-press',

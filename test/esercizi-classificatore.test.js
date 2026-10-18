@@ -1,4 +1,4 @@
-// esercizi-classificatore.test.js -- l'app riconosce l'esercizio dal nome.
+﻿// esercizi-classificatore.test.js -- l'app riconosce l'esercizio dal nome.
 //
 // Ste (04/10/2026): "deve riconoscere si, per questo ti ho detto se puoi
 // metterci un ia, e' possibile?"
@@ -23,7 +23,7 @@ test('C1. le alzate laterali sono un isolamento (carico basso ma tanto)', () => 
 test('C2. i movimenti di forza veri sono composti', () => {
   assert.equal(liv('Chest Press'), 'composto');
   assert.equal(liv('Panca inclinata Smith'), 'composto');
-  assert.equal(liv('Lat Pulldown macchina'), 'composto');
+  assert.equal(liv('Lat Pulldown presa stretta'), 'composto');
   assert.equal(liv('Seated Cable Row'), 'composto');
   assert.equal(liv('Shoulder Press'), 'composto');
 });
@@ -84,7 +84,7 @@ test('C5. gli isolamenti di braccio e gambe', () => {
 test('C6. capisce anche il gruppo muscolare', () => {
   const casi = [
     ['Chest Press', 'petto'],
-    ['Lat Pulldown macchina', 'dorso'],
+    ['Lat Pulldown presa stretta', 'dorso'],
     ['Dumbbell Lateral Raise', 'spalle'],
     ['Scott Bench Curl', 'bicipiti'],
     ['Single Arm Tricep Pushdown', 'tricipiti'],
@@ -114,10 +114,10 @@ test('C8. spiega SEMPRE perche\' ha deciso cosi\'', () => {
 });
 
 test('C9. la macchina non cambia che movimento è', () => {
-  // Bug mio: "Lat Pulldown macchina" prendeva -2 due volte (parola + convenzione)
+  // Bug mio: "Lat Pulldown presa stretta" prendeva -2 due volte (parola + convenzione)
   // e finiva per scendere a isolamento. Adesso non si scende MAI di livello:
   // la macchina rende l'esercizio più facile, non è un altro movimento.
-  assert.equal(liv('Lat Pulldown macchina', { convenzione: 'macchina' }), 'composto');
+  assert.equal(liv('Lat Pulldown presa stretta', { convenzione: 'macchina' }), 'composto');
   assert.equal(liv('Chest Press', { convenzione: 'macchina' }), 'composto');
   assert.equal(liv('Seated Cable Row'), 'composto');
   assert.equal(liv('Leg Press', { convenzione: 'macchina' }), 'grande', 'e i pesanti restano pesanti');
@@ -170,7 +170,7 @@ test('C14. riconosce 59 nomi veri di palestra, italiano e inglese', () => {
   ['Shoulder Press in piedi', 'composto'],
   ['Spinte in alto con bilanciere', 'composto'],
   ['Military Press', 'composto'],
-  ['Lat Pulldown macchina', 'composto'],
+  ['Lat Pulldown presa stretta', 'composto'],
   ['Trazioni', 'composto'],
   ['Trazioni assistite', 'composto'], // le trazioni non si fanno assistite
   ['Dips', 'composto'],
@@ -317,8 +317,12 @@ test('C15. i 27 esercizi della scheda di Ste hanno il livello giusto', async () 
     'ex-db-lateral-raise': 'isolamento', 'ex-lying-cable-curl': 'composto',
     // Il Bodyweight Overhead Tricep Extension al cavo E' assistenza vera. Trazioni
     // e dips no: sono composti col peso del corpo, non esercizi assistiti.
-    'ex-bodyweight-overhead-tricep': 'assistito', 'ex-pull-ups': 'composto',
-    'ex-dips': 'composto',
+'ex-bodyweight-overhead-tricep': 'assistito', 'ex-pull-ups': 'composto',
+  'ex-dips': 'composto',
+  // Il fratello a presa larga (Ste, 18/10/2026): stesso attrezzo della stretta, ma il
+  // classificatore deve dargli il movimento con il tetto piu' basso, altrimenti chi fa il
+  // largo viene giudicato come chi fa lo stretto.
+  'ex-wide-grip-lat-pulldown': 'composto',
   };
   for (const e of ESERCIZI) {
     const r = classificaEsercizio({ nome: e.nome, convenzione: e.convenzione });

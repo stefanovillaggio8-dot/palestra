@@ -116,7 +116,7 @@ test('M8. riconosce i pezzi dei 27 esercizi della scheda', () => {
     ['Cable Fly', 'petto'],
     ['Cable Lateral Raise', 'spalle'],
     ['Seated Cable Row', 'dorso'],
-    ['Lat Pulldown macchina', 'dorso'],
+    ['Lat Pulldown presa stretta', 'dorso'],
     ['Pull Ups', 'dorso'],
     ['Cable Hammer Curl', 'braccio'],
     ['Scott Bench Curl', 'braccio'],
@@ -147,7 +147,7 @@ test('M9. due esercizi possono fare lo stesso lavoro', () => {
   assert.equal(stessoLavoro(a, c), false, 'inclusa e piana no: parti diverse');
 
   const x = parte('Pull Ups');
-  const y = parte('Lat Pulldown macchina');
+  const y = parte('Lat Pulldown presa stretta');
   assert.equal(stessoLavoro(x, y), true, 'trazioni e pulldown sono lo stesso lavoro');
 
   // se non sa, non deve inventare che sono uguali

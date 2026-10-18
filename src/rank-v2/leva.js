@@ -225,6 +225,17 @@ export const LEVE = {
     unita: 'sul carico',
     nota: 'Dip alle parallele: il corpo sta fra le braccia, quasi sotto le spalle, quindi il braccio del carico e\' cortissimo (25 cm, contro i 65 della spinta al cavo). E\' il motivo per cui i dip con zavorri reggono un carico totale tanto piu\' alto di una panca pur essendo un esercizio "col corpo": il braccio, non la massa, e\' il problema. Le quote seguono la mappa dei muscoli (petto basso pieno, tricipiti secondari, deltoide non acceso).',
   },
+  // IL PRESA LARGA (Ste, 18/10/2026). Stesse leve della presa stretta, e infatti sono
+  // copiate: cambia il tetto in `valori.js` (1,5 invece di 1,6), non la meccanica del
+  // movimento. V22 pretende che ogni movimento con un tetto abbia la sua leva, quindi questa
+  // riga serve a non lasciare il nuovo movimento senza controllo.
+  tirata_verticale_larga: {
+    muscoli: { dorsali: 0.6, bicipiti: 0.25, romboidi: 0.15 },
+    dMuscolo: 5.0,
+    dCarico: 65,
+    unita: 'sul carico',
+    nota: 'Lat pulldown a presa larga: la meccanica e\' identica alla presa stretta (stesso carico, stesso braccio del dorsale), cambia solo la posizione delle braccia, che per la spalla e\' peggio. Per questo il tetto e\' un filo piu\' basso in `valori.js` e non c\'e\' differenza sulle leve.',
+  },
   tirata_verticale: {
     muscoli: { dorsali: 0.6, bicipiti: 0.25, romboidi: 0.15 },
     dMuscolo: 5.0,

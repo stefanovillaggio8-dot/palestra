@@ -1198,7 +1198,7 @@ test('V27. il peso scritto e il Rank che dà coincidono', async () => {
   const caricabili = pesiCaricabili();
 
   // un esercizio per tipo di attrezzo: manubrio, cavo, macchina
-  for (const nome of ['One Arm Dumbbell Preacher Curl', 'Lat Pulldown macchina',
+  for (const nome of ['One Arm Dumbbell Preacher Curl', 'Lat Pulldown presa stretta',
     'Cable Lateral Raise', 'Chest Press', 'Single Arm Tricep Pushdown']) {
     const e = ESERCIZI.find((x) => x.nome === nome);
     assert.ok(e, nome + ': esercizio non trovato');
@@ -1349,7 +1349,7 @@ test('V29. ogni soglia è un peso che QUELLA attrezzatura ha (Ste, 18/10/2026)',
   }
 
   const cavo = ESERCIZI.find((e) => /Cable Fly/i.test(e.nome));
-  const macchina = ESERCIZI.find((e) => /^Lat Pulldown macchina/i.test(e.nome));
+  const macchina = ESERCIZI.find((e) => /^Lat Pulldown presa stretta/i.test(e.nome));
   const manubrio = ESERCIZI.find((e) => /Preacher/i.test(e.nome));
   const zavorra = ESERCIZI.find((e) => /^Dips$/i.test(e.nome));
   assert.equal(passoCaricabile(cavo), 1, 'i cavi vanno di 1 kg, con i piattini sopra');
@@ -1447,12 +1447,12 @@ test('V31. due esercizi diversi non possono avere la scala identica (Ste, 18/10/
     });
     return N[r.rank.indice];
   };
-  assert.equal(reso('Lat Pulldown macchina', 90), reso('Seated Cable Row', 95),
+  assert.equal(reso('Lat Pulldown presa stretta', 90), reso('Seated Cable Row', 95),
     'i suoi numeri restano nello stesso livello: la differenza non deve spostare nessuno');
 
   // ma se uno sale, l'altro se ne accorge: il remo con 110 kg non puo' restare sotto
   // il pulldown con 90, perche' non hanno la scala giusta uguale
-  assert.notEqual(reso('Seated Cable Row', 130), reso('Lat Pulldown macchina', 90),
+  assert.notEqual(reso('Seated Cable Row', 130), reso('Lat Pulldown presa stretta', 90),
     'caricando il remo verso il tetto, il suo Rank deve staccare');
 });
 
@@ -1513,7 +1513,7 @@ test('V33. lo stesso sforzo prende lo stesso Rank, anche con dueScale diverse (S
   const { valutaEsercizio } = await import('../src/rank-v2/index.js');
   const { ESERCIZI } = await import('../src/dati-iniziali.js');
   const N = ['BRONZE', 'SILVER', 'GOLD', 'PLATINUM', 'DIAMOND', 'TITAN', 'OLYMPIAN'];
-  const cavo = ESERCIZI.find((e) => /^Lat Pulldown macchina/i.test(e.nome));
+  const cavo = ESERCIZI.find((e) => /^Lat Pulldown presa stretta/i.test(e.nome));
   const trazioni = ESERCIZI.find((e) => /^Pull Ups$/i.test(e.nome));
 
   const sulCavo = valutaEsercizio({
@@ -1538,4 +1538,43 @@ test('V33. lo stesso sforzo prende lo stesso Rank, anche con dueScale diverse (S
     'le trazioni a presa larga hanno il tetto sotto il pulldown a presa stretta');
   assert.ok(VALORI_MOVIMENTO.tirata_verticale.multiplo < VALORI_MOVIMENTO.tirata_orizzontale.multiplo,
     'e il pulldown sotto il remo al cavo');
+});
+
+test('V34. presa larga e presa stretta non possono avere lo stesso tetto (Ste, 18/10/2026)', async () => {
+  // "crea un altro esercizio con la stessa immagine della lat machine dove pero' in uno
+  // scrivi presa stretta (quello mio) e in quello nuovo scrivi presa larga".
+  //
+  // Il punto non e' l'icona: e' che a presa larga le braccia sono piu' aperte e la spalla
+  // e' in una posizione peggiore, quindi lo stesso carico e' una prestazione diversa. Se i
+  // due avessero lo stesso tetto, chi fa il largo verrebbe giudicato come chi fa lo stretto.
+  const { ESERCIZI } = await import('../src/dati-iniziali.js');
+  const { movimentoDi } = await import('../src/rank-v2/index.js');
+  const { VALORI_MOVIMENTO } = await import('../src/rank-v2/valori.js');
+
+  const stretta = ESERCIZI.find((e) => /Lat Pulldown presa stretta/i.test(e.nome));
+  const larga = ESERCIZI.find((e) => /Lat Pulldown presa larga/i.test(e.nome));
+  assert.ok(stretta && larga, 'i due esercizi ci sono entrambi');
+  assert.equal(larga.foto, stretta.foto, 'e hanno la STESSA immagine: e\' lo stesso attrezzo');
+  assert.notEqual(larga.id, stretta.id, 'ma sono due esercizi diversi');
+
+  const mStretta = VALORI_MOVIMENTO[movimentoDi(stretta).movimento];
+  const mLarga = VALORI_MOVIMENTO[movimentoDi(larga).movimento];
+  assert.notEqual(movimentoDi(larga).movimento, movimentoDi(stretta).movimento,
+    'devono avere due movimenti diversi: e\' la presa a cambiare il tetto');
+  assert.ok(mLarga.multiplo < mStretta.multiplo,
+    `il largo deve avere il tetto piu' basso: ${mLarga.multiplo} contro ${mStretta.multiplo}`);
+  // e la differenza resta piccola, perche' l'esercizio e' lo stesso
+  const quanto = (mStretta.multiplo - mLarga.multiplo) / mStretta.multiplo;
+  assert.ok(quanto <= 0.12, `la differenza deve essere piccola, qui e\' del ${Math.round(quanto * 100)}%`);
+
+  // il classificatore deve riconoscere le parole, non solo i nomi
+  const { classificaEsercizio } = await import('../src/esercizi-classificatore.js');
+  for (const nome of ['Lat Pulldown presa larga', 'Tirata larga', 'Pulldown wide grip']) {
+    assert.equal(classificaEsercizio({ nome }).movimento, 'tirata_verticale_larga',
+      `"${nome}" deve essere presa larga`);
+  }
+  for (const nome of ['Lat Pulldown presa stretta', 'Lat machine', 'Pulldown']) {
+    assert.equal(classificaEsercizio({ nome }).movimento, 'tirata_verticale',
+      `"${nome}" deve restare presa stretta`);
+  }
 });
