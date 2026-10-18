@@ -1328,33 +1328,32 @@ test('V29. ogni soglia è un peso che QUELLA attrezzatura ha (Ste, 18/10/2026)',
   const { passoCaricabile, pesiCaricabili } = await import('../src/rank-config.js');
   const { ESERCIZI } = await import('../src/dati-iniziali.js');
 
+  // Ste ha chiarito tre volte, e la terza cambia la risposta: "anche nei macchinari posso
+  // metterci sopra i pesi piccoli tipo 2kg 1kg 3kg o anche 4kg". Se metto un piatto da 1
+  // sopra uno da 5, quel numero esiste: quindi un kg alla volta si arriva su TUTTO, e la
+  // funzione non ha piu' niente da distinguere. Il passo di 5 che c'era prima faceva
+  // saltare un numero alla volta (55, 60, 65) e toglieva le microprogressioni.
   for (const e of ESERCIZI) {
-    const passo = passoCaricabile(e);
-    assert.ok(passo === 5 || passo === 1,
-      `${e.nome}: il passo deve essere 5 (cavi e macchine) o 1 (pesi liberi), non ${passo}`);
+    assert.equal(passoCaricabile(e), 1,
+      `${e.nome}: con i dischi piccoli anche sulle macchine il passo e' 1 kg ovunque`);
 
-    const pesi = pesiCaricabili(passo);
-    if (passo === 5) {
-      // sui CAVI e MACCHINE: niente pesi che la pila non ha, a NESSUN livello
-      for (const kg of pesi) {
-        assert.equal(Math.round((kg % 5) * 100) / 100, 0,
-          `${e.nome}: ${kg} kg non esistono su una pila che va di 5`);
-      }
-    } else {
-      // sui PESI LIBERI sotto i 50 vale la lista dei manubri, e 17 kg non ci sono
-      assert.ok(!pesi.includes(17),
-        `${e.nome}: sotto i 50 kg vale la lista dei manubri, e 17 non c'e'`);
-      assert.ok(pesi.includes(12.5), `${e.nome}: i manubri hanno il 12,5`);
+    const pesi = pesiCaricabili(passoCaricabile(e));
+    // sotto i 50 kg vale la lista dei manubri, quindi 17 kg non ci sono
+    assert.ok(!pesi.includes(17),
+      `${e.nome}: sotto i 50 kg vale la lista dei manubri, e 17 non c'e'`);
+    assert.ok(pesi.includes(12.5), `${e.nome}: i manubri hanno il 12,5`);
+    // sopra i 50 kg c'e' ogni kg intero, macchina o manubrio che sia
+    for (const kg of [51, 57, 63, 78, 93, 112]) {
+      assert.ok(pesi.includes(kg), `${e.nome}: ${kg} kg si possono mettere (piatto da 5 + piattini)`);
     }
   }
 
-  // e le macchine sono macchine: i cavi e i carrelli prendono 5, i manubri 1
   const cavo = ESERCIZI.find((e) => /Cable Fly/i.test(e.nome));
   const macchina = ESERCIZI.find((e) => /^Lat Pulldown macchina/i.test(e.nome));
   const manubrio = ESERCIZI.find((e) => /Preacher/i.test(e.nome));
   const zavorra = ESERCIZI.find((e) => /^Dips$/i.test(e.nome));
-  assert.equal(passoCaricabile(cavo), 5, 'i cavi vanno di 5 kg');
-  assert.equal(passoCaricabile(macchina), 5, 'i carrelli vanno di 5 kg');
+  assert.equal(passoCaricabile(cavo), 1, 'i cavi vanno di 1 kg, con i piattini sopra');
+  assert.equal(passoCaricabile(macchina), 1, 'i carrelli vanno di 1 kg, con i piattini sopra');
   assert.equal(passoCaricabile(manubrio), 1, 'i manubri vanno di 1 kg');
   assert.equal(passoCaricabile(zavorra), 1, 'i dischi sulla cintura vanno di 1 kg');
 });

@@ -127,13 +127,9 @@ export const PESI_GOLERIA = [
 export function pesiCaricabili(passo = 1) {
   const p = Number(passo) > 0 ? Number(passo) : 1;
   const aggiunti = [];
-  // Sui pesi liberi, sotto i 50 kg vale la lista dei manubri, che NON e' uniforme (ci
-  // sono 2, 4, 6, 7, 8, 10, 12, 12,5...): Ste li ha elencati uno per uno, e 17 kg non
-  // ci sono. Sopra i 50 kg si aggiunge il passo, che e' di 1 kg: "il minimo di pesi che
-  // ho sono 1" (Ste, 18/10/2026).
-  //
-  // Sulle macchine invece la pila va di 5 kg FINO IN FONDO, anche sotto i 50: 57,5 o
-  // 32,5 non sono numeri che ci metti.
+  // SOTTO I 50 KG vale la lista dei manubri, che NON e' uniforme (ci sono 2, 4, 6, 7,
+  // 8, 10, 12, 12,5...): Ste li ha elencati uno per uno, e 17 kg non ci sono. Sopra i 50
+  // kg si aggiunge il passo, che e' di 1 kg.
   const da = p <= 1 ? 51 : p;
   for (let kg = da; kg <= 250; kg += p) aggiunti.push(Math.round(kg * 100) / 100);
   const base = p <= 1 ? PESI_GOLERIA : [];
@@ -141,26 +137,30 @@ export function pesiCaricabili(passo = 1) {
 }
 
 /**
- * Il passo dei pesi di quell'esercizio: 5 kg sui CAVI e sulle MACCHINE, 2,5 sui pesi
- * liberi.
+ * Il passo dei pesi: 1 kg ovunque.
  *
- * Ste (18/10/2026): "vanno di 5kg in su, 5 10 15 20 25 ecc" e poi precisato "nei cavi o
- * macchinari". Sulle macchine la pila va di 5, quindi una soglia su 57,5 o 62,5 non è
- * un numero che ci metti: è un numero che è saltato fuori da una divisione.
+ * Sono passate tre versioni di questa funzione in un giorno, e il motivo vale più del
+ * numero. Ste, il 18/10/2026:
  *
- * I dischi piccoli restano il modo di fare le microprogressioni (2-3 kg alla volta fra
- * una soglia e l'altra), ma quello non c'entra con la soglia: la soglia deve essere un
- * numero che la macchina ha.
+ *  - "vanno di 5kg in su, 5 10 15 20 25 ecc"  -> la pila dei cavi e delle macchine ha i
+ *    dischi da 5 kg
+ *  - "2,5 per pesi liberi non esiste. il minimo di pesi che ho sono 1"  -> i dischi da 1
+ *  - "anche nei macchinari posso metterci sopra i pesi piccoli tipo 2kg 1kg 3kg o anche
+ *    4kg"  -> i dischi piccoli vanno anche in cima alla pila
  *
- * Sui pesi liberi il passo resta quello dei dischi da 2,5, e sotto i 12 kg vale la lista
- * dei manubri, che non è uniforme.
+ * Ecco il punto: se metto un piatto da 1 kg sopra un piatto da 5, quel numero esiste.
+ * Quindi UN chilo alla volta si arriva su tutto, macchine comprese, e la funzione non ha
+ * più niente da distinguere. Il passo di 5 che c'era prima produceva soglie che si
+ * saltavano un numero per volta (55, 60, 65), togliendoti le microprogressioni che hai
+ * detto di fare.
+ *
+ * Sotto i 50 kg resta la lista dei manubri, perché quella l'ha enumerata lui e non è
+ * tutti i kg interi.
+ *
+ * @param esercizio non serve più niente, ma resta accettato per non rompere le chiamate
  */
 export function passoCaricabile(esercizio = null) {
-  const e = esercizio || {};
-  if (e.carrucola) return 5;
-  if (String(e.attrezzatura || '').toLowerCase().startsWith('macchina')) return 5;
-  const conv = String(e.convenzione || '').toLowerCase();
-  if (conv === 'macchina' || conv === 'cavo_totali') return 5;
+  void esercizio;
   return 1;
 }
 

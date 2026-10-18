@@ -5753,14 +5753,15 @@ async function vistaEsercizio(zona, esercizioId) {
     const s = scoreSerie({ peso: kg, ripetizioni: 8, esercizio: e });
     return Number(s && s.score !== undefined ? s.score : s) || 0;
   };
-  // LE SOGLIE SI SCRIVONO COI PESI CHE QUELLA MACCHINA HA (Ste, 18/10/2026).
+  // LE SOGLIE SI SCRIVONO COI PESI CHE HAI DAVVERO (Ste, 18/10/2026).
   //
-  // "vanno di 5kg in su, 5 10 15 20 25 ecc", sui cavi e sulle macchine. Con il passo di
-  // 2,5 che valeva per tutto, le soglie cadevano su numeri che la pila non ha: 57,5,
-  // 62,5, 67,5, 72,5 sullo slanciamento, 77,5 e 112,5 sul calf raise. Erano numeri
-  // inventati da una divisione, non pesi caricabili.
+  // Tre risposte in un giorno, e la terza è quella giusta: "vanno di 5kg in su, 5 10 15
+  // 20 25 ecc" (la pila ha i dischi da 5), "il minimo di pesi che ho sono 1" (i dischi
+  // da 1), "anche nei macchinari posso metterci sopra i pesi piccoli tipo 2kg 1kg 3kg o
+  // anche 4kg".
   //
-  // Sui pesi liberi il passo resta 2,5, e sotto i 12 kg vale la lista dei manubri.
+  // Un piatto da 1 sopra uno da 5 fa esistere quel numero: quindi 1 kg alla volta si
+  // arriva su tutto, macchine comprese. Sotto i 50 kg vale la lista dei manubri.
   const soglieDaLeggere = soglieLegibili(soglieDelMotore, punteggioDi, passoCaricabile(e));
   zona.appendChild(el('p', { class: 'nota', testo: `${rigaSoglie.join(' · ')}. Soglie: ${soglieDaLeggere.map((s, i) => `${RANK[i].nome} da ${formattaNumero(s)}`).join(' · ')}` }));
 
