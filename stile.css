@@ -1021,7 +1021,32 @@ body:has(.sfondo-dialogo) .avviso {
    =================================================================== */
 
 /* --- la barra in alto: fuoco, aura, livello --- */
-.barra-gioco { display: flex; gap: 6px; flex-wrap: wrap; margin-left: 4px; }
+/* LA BARRA IN ALTO (Ste, 18/10/2026: "in alto è un po' buggata la UI, sistema e fallo
+   più carino, con tipo il cerchio con l'immagine del mio avatar dove premo e mi porta al
+   profilo").
+
+   DUE COSE CHE ERANO SBAGLIATE. La riga andava a capo sul telefono: i tre numeri (streak,
+   aura, livello) finivano sotto la scritta del dispositivo e la barra raddoppiava di
+   altezza. E il vuoto sotto i numeri era padding sparso, non uno spazio misurato. */
+.barra-gioco {
+  display: flex; gap: 6px; flex-wrap: nowrap; align-items: center;
+  margin-left: 4px; min-width: 0;
+}
+.barra-gioco .chip-gioco { white-space: nowrap; }
+
+/* IL CERCHIO CON LA TUA FOTO. Va a sinistra dei numeri e porta al Profilo. */
+.cerchio-profilo {
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 50%; flex: 0 0 auto; margin-right: 2px;
+  text-decoration: none; line-height: 0;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, .12);
+}
+.cerchio-profilo:active { transform: scale(.94); }
+.cerchio-profilo:focus-visible { outline: 2px solid var(--accento, #8b5cf6); outline-offset: 2px; }
+
+/* La barra alta non deve essere un blocco vuoto: se il messaggio è corto, la barra
+   scende e il contenuto sale di pari. */
+#stato-salvataggio { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .chip-gioco {
   background: var(--card-2); border: 1px solid var(--bordo);
   border-radius: 99px; padding: 2px 9px;

@@ -718,12 +718,28 @@ function esercizioPerId(id) { return V.esercizi.find((e) => e.id === id) || null
 
 function vai(percorso) { window.location.hash = percorso; }
 
+// La rotta disegnata l'ultima volta: serve per capire se `disegna` aggiorna la stessa
+// pagina o ne apre una nuova (e quindi se lo scroll si ripristina o torna a zero).
+let rottaDisegnata = null;
+
 function disegna() {
   const zona = document.getElementById('app');
   if (!zona) return;
-  // Ste sta in palestra con il dito sullo schermo: se dopo ogni salvataggio la
-  // pagina torna in cima, sembra che il pulsante non abbia fatto niente.
-  const scrollPrima = typeof window.scrollY === 'number' ? window.scrollY : 0;
+  // IL PUNTO IN CUI SEI, PER SAPERE SE RIAGGIORNARE O RICOMINCIARE (Ste, 18/10/2026)
+  //
+  // Prima la posizione di scroll veniva rimessa SEMPRE, anche cambiando pagina. Il risultato
+  // era quello che ha descritto Ste: "quando io premo rank e premo dettagli esercizio, apre
+  // la schermata come se fossi andato in basso, tipo che nell'immagine fossi sceso giu col
+  // dito". Aveva ragione: lui era a meta' della pagina Rank, e la pagina nuova apriva a
+  // meta' schermo, sul contenuto sbagliato.
+  //
+  // Il ripristino serve invece quando la STESSA pagina si ridisegna (salvi un numero, il
+  // contatore si aggiorna): lì tornare su non deve saltare il campo che stai scrivendo.
+  // Quindi: stessa rotta si ripristina, rotta diversa si parte dall'alto.
+  const rottaOra = (window.location.hash || '#/').replace(/^#/, '');
+  const stessaRotta = rottaOra === rottaDisegnata;
+  const scrollPrima = stessaRotta && typeof window.scrollY === 'number' ? window.scrollY : 0;
+  rottaDisegnata = rottaOra;
   svuota(zona);
   // IL `try/catch` QUI NON COPRIVA LE VISTE ASYNC. Era un buco vero, e grosso.
   //
@@ -762,8 +778,11 @@ function disegna() {
     alErrore(errore);
     return;
   }
+// la pagina parte dall'alzo quando cambi rotta, e torna dov'era quando si ridisegna
   if (scrollPrima > 0 && typeof window.scrollTo === 'function') {
-    try { window.scrollTo(0, scrollPrima); } catch { /* in qualche browser non si può */ }
+  try { window.scrollTo(0, scrollPrima); } catch { /* in qualche browser non si può */ }
+  } else if (typeof window.scrollTo === 'function') {
+  try { window.scrollTo(0, 0); } catch { /* in qualche browser non si può */ }
   }
 }
 
@@ -6798,12 +6817,25 @@ const carrucola = el('select', { class: 'selettore' }, [
 
 function disegnaBarraGioco(contenitore) {
   try {
-    const st = statoMio();
-    const riga = el('div', { class: 'barra-gioco' }, [
-      el('span', { class: 'chip-gioco', title: 'Streak: giorni di fila', testo: `streak ${st.fuoco.acceso ? st.fuoco.giorni : '0'}` }),
-      el('span', { class: 'chip-gioco', testo: `aura ${formattaAura(st.aura)}` }),
-      el('span', { class: 'chip-gioco', testo: `livello ${st.livello.livello}` }),
-    ]);
+  const st = statoMio();
+  const profilo = profiloAttivo();
+  const riga = el('div', { class: 'barra-gioco' }, [
+  // IL TUO CERCHIO, IN ALTO A SINISTRA (Ste, 18/10/2026)
+  //
+  // "in alto è un po' buggata la UI, sistema e fallo più carino, con tipo il cerchio con
+  // l'immagine del mio avatar dove premo e mi porta al profilo".
+  //
+  // Era nell'elenco delle cose da fare da sempre: la foto tua c'era, ma si vedeva solo
+  // dentro il Profilo, e in cima c'era solo una riga di numeri. Ora il cerchio sta a
+  // sinistra della riga e porta al Profilo: si vede subito con chi sei e si arriva con
+  // un tocco.
+  el('a', {
+  href: '#/profilo', class: 'cerchio-profilo', title: 'Il tuo profilo',
+  }, [avatarNodo(profilo, { dimensione: 30 })]),
+  el('span', { class: 'chip-gioco', title: 'Streak: giorni di fila', testo: `streak ${st.fuoco.acceso ? st.fuoco.giorni : '0'}` }),
+  el('span', { class: 'chip-gioco', testo: `aura ${formattaAura(st.aura)}` }),
+  el('span', { class: 'chip-gioco', testo: `livello ${st.livello.livello}` }),
+  ]);
     riga.children[0].setAttribute('style', `--fuoco:${st.fuoco.colore}`);
     contenitore.appendChild(riga);
   } catch (e) {

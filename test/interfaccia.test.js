@@ -1145,3 +1145,41 @@ test('Y. un errore dopo un await dentro una vista viene mostrato, non mangiato',
 test('Z. nessun errore JavaScript durante tutta la navigazione', () => {
   assert.deepEqual(errori, [], 'errori:\n' + errori.join('\n'));
 });
+test('la barra in alto ha il cerchio col profilo, e cambia pagina NON ripristina lo scroll', async () => {
+  // Ste (18/10/2026), due cose insieme:
+  //
+  // 1. "quando io premo rank e premo dettagli esercizio, apre la schermata come se fossi
+  //    andato in basso, tipo che nell'immagine fossi sceso giu col dito". La posizione di
+  //    scroll veniva rimessa SEMPRE, anche cambiando pagina: lui era a meta' della pagina
+  //    Rank e la pagina nuova apriva a meta' schermo, sul contenuto sbagliato. Il
+  //    ripristino serve solo quando la STESSA pagina si ridisegna.
+  //
+  // 2. "in alto è un po' buggata la UI, sistema e fallo piu' carino, con tipo il cerchio con
+  //    l'immagine del mio avatar dove premo e mi porta al profilo".
+  const { readFile } = await import('node:fs/promises');
+  const app = await readFile(new URL('../src/app.js', import.meta.url), 'utf8');
+
+  // il ripristino dello scroll deve dipendere dal fatto che la rotta sia la stessa
+  assert.match(app, /const stessaRotta = rottaOra === rottaDisegnata;/,
+    'il codice deve sapere se sta ridisegnando la stessa pagina o ne apre una nuova');
+  assert.match(app, /window\.scrollTo\(0, 0\)/,
+    'e cambiando pagina deve tornare in alto, non restare a meta\' schermo');
+  assert.doesNotMatch(
+    app.slice(app.indexOf('function disegna() {'), app.indexOf('function disegnaDentro')),
+    /const scrollPrima = typeof window\.scrollY/,
+    'la riga che prende lo scroll non puo\' piu\' essere senza il controllo della rotta: '
+    + 'era quella che teneva la pagina nuova a meta\' schermo'
+  );
+
+  // il cerchio col profilo nella barra in alto
+  assert.match(app, /href: '#\/profilo', class: 'cerchio-profilo'/,
+    'il cerchio deve portare al profilo');
+  assert.match(app, /cerchio-profilo[\s\S]{0,220}avatarNodo\(profilo, \{ dimensione: 30 \}\)/,
+    'e deve mostrare l\'avatar della persona che sta usando l\'app');
+
+  // e la riga non deve piu\' andare a capo: era quello che raddoppiava l\'altezza della barra
+  const css = await readFile(new URL('../stile.css', import.meta.url), 'utf8');
+  assert.match(css, /\.barra-gioco \{[^}]*flex-wrap: nowrap/,
+    'streak, aura e livello devono stare sulla stessa riga: altrimenti la barra in alto '
+    + 'raddoppia e sotto i numeri resta un vuoto');
+});
