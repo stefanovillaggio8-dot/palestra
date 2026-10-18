@@ -1,4 +1,4 @@
-// rank-v2/index.js -- il motore nuovo, in un pezzo solo.
+﻿// rank-v2/index.js -- il motore nuovo, in un pezzo solo.
 //
 // Ste (07/10/2026): "il Rank deve rispondere a: quanto e' forte questa prestazione per
 // una persona di questo peso corporeo che esegue QUESTO specifico esercizio? E NON
@@ -23,6 +23,18 @@ import { scoreSerie, moltiplicatoreSerie } from './curve.js';
 import { soglieDaValori, rankDaScore, distanzaAllaSoglia } from './scalata.js';
 import { valoriPerEsercizio, sogliePerEsercizio, fattoreSogliaDaKg, RIPETIZIONI_RIFERIMENTO } from './valori.js';
 import { affinaVertice } from './misura.js';
+
+/**
+ * Quanto vale una serie fatta con lo spotter: 90%.
+ *
+ * Ste (18/10/2026): "lo spotter fai che conta lo stesso se Ã¨ solo una serie che Ã¨ con lo
+ * spotter, perÃ² nei rank vale di meno ma non di troppo".
+ *
+ * Dieci per cento Ã¨ "non di troppo": le mani del companion stanno lÃ¬, ma il lavoro Ã¨
+ * ancora tuo, e una serie col solo spotter batte la stessa serie senza. Il peso e le
+ * ripetizioni che si leggono sono quelli veri: la penalitÃ  Ã¨ sul punteggio.
+ */
+export const PENALITA_SPOTTER = 0.9;
 
 /** Il movimento di un esercizio, con la sua unita' di carico. */
 export function movimentoDi(esercizio) {
@@ -64,18 +76,16 @@ export function valutaEsercizio({ esercizio, serie = [], pesoCorporeo = null, ri
   for (const s of serie) {
     if (!s || s.eliminata) continue;
     if (s.esercizio_id && esercizio.id && s.esercizio_id !== esercizio.id) continue;
-    if (s.stato && s.stato !== 'fatta') continue;
-    if (s.spotter === true) continue;
-    // I KG DI ZAVORRI (16/10/2026). Il campo del peso è VUOTO su un dip o su una
-    // trazione: quello che scrivi è il carico della zavorra, e sta nel campo
+    // I KG DI ZAVORRI (16/10/2026). Il campo del peso Ã¨ VUOTO su un dip o su una
+    // trazione: quello che scrivi Ã¨ il carico della zavorra, e sta nel campo
     // dell'assistenza (vedi la stessa regola in `rank.js`). Qui si leggeva solo `s.peso`,
     // quindi nessuna serie risultava valutabile, `valutaEsercizio` rispondeva "nessuna
     // serie registrata" e il Rank ripiegava sul motore VECCHIO: quello che ha dato a
     // Ste l'OLYMPIAN sui dip.
     //
-    // E si ragiona sui KG AGGIUNTI, non sul totale col corpo. È la scelta di Ste
-    // (16/10/2026): "il massimale mettilo per i pesi in più rispetto al mio corpo non in
-    // generale". Il corpo ce l'ha già tutto: quello che si misura è quello che hai
+    // E si ragiona sui KG AGGIUNTI, non sul totale col corpo. Ãˆ la scelta di Ste
+    // (16/10/2026): "il massimale mettilo per i pesi in piÃ¹ rispetto al mio corpo non in
+    // generale". Il corpo ce l'ha giÃ  tutto: quello che si misura Ã¨ quello che hai
     // appeso alla cintura, e sono gli stessi numeri che le macchine della palestra hanno
     // nei piatti.
     const carico = zavorri
@@ -84,7 +94,26 @@ export function valutaEsercizio({ esercizio, serie = [], pesoCorporeo = null, ri
         : s.peso)
       : s.peso;
     const sc = scoreSerie({ peso: carico, ripetizioni: s.ripetizioni, esercizio });
-    if (sc) valutabili.push({ serie: s, ...sc });
+    if (sc) {
+      // IL SPOTTER NON ESCLUDE LA SERIE, LA PENALIZZA (Ste, 18/10/2026)
+      //
+      // "lo spotter fai che conta lo stesso se Ã¨ solo una serie che Ã¨ con lo spotter,
+      // perÃ² nei rank vale di meno ma non di troppo".
+      //
+      // Prima la serie con lo spotter veniva BUTTATA via, e su un esercizio come la Smith
+      // incline succedeva questo: le quattro serie da 32 kg erano tutte col spotter,
+      // restava solo una da 30 kg, e il Rank diceva BRONZE su una panca che Ste fa senza
+      // problemi. Non era un record sbagliato: era un record che non esisteva, perche' gli
+      // si erano cancellate dal basso le serie migliori.
+      //
+      // Dieci per cento e' "non di troppo": le mani del companion stanno li', ma il lavoro
+      // e' ancora tuo. Il peso e le ripetizioni mostrati sono quelli veri: la penalita' e'
+      // sul punteggio, non sulla lettura.
+      const score = s.spotter === true
+        ? Math.round(sc.score * PENALITA_SPOTTER * 100) / 100
+        : sc.score;
+      valutabili.push({ serie: s, ...sc, score, spotter: s.spotter === true });
+    }
   }
   if (!valutabili.length) {
     return { valido: false, motivo: 'nessuna serie registrata', movimento, livello };
@@ -180,6 +209,7 @@ export function valutaEsercizio({ esercizio, serie = [], pesoCorporeo = null, ri
     serieFatte: n,
     serieTotali: nTotali,
     caricoReale: migliore.carico,
+    spotter: !!migliore.spotter,
     ripetizioni: migliore.ripetizioni,
     ripetizioniPiene: migliore.ripetizioniPiene,
     meccanica: migliore.meccanica,

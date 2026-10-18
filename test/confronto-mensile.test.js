@@ -111,7 +111,11 @@ test('M5. se un mese fa non avevi quell\'esercizio, non inventa il confronto', (
     'niente dati inventati per un esercizio che non avevi fatto');
 });
 
-test('M6. le serie col solo spotter non contano nel confronto', () => {
+test('M6. col solo spotter il confronto si fa lo stesso, vale un po\' meno', () => {
+  // Ste (18/10/2026): "lo spotter fai che conta lo stesso se è solo una serie che è con lo
+  // spotter, però nei rank vale di meno ma non di troppo". Prima questo test chiedeva che il
+  // confronto fosse null: la serie col solo spotter non entrava nel record di un mese fa, e
+  // senza record non c'era niente da confrontare.
   const serieSpotter = { ...serie('v1', 's1', chest.id, 100, 20), spotter: true };
   const risultato = confrontoGiorno({
     seduta: seduta('s2', '2026-10-04', 'giorno-1'),
@@ -121,8 +125,8 @@ test('M6. le serie col solo spotter non contano nel confronto', () => {
     peso: 66,
     oggi: '2026-10-04',
   });
-  // un mese fa c'era solo una serie col solo spotter: non e' un record pulito
-  assert.equal(risultato, null, 'senza un record pulito di un mese fa non si confronta');
+  assert.notEqual(risultato, null,
+    'un mese fa c\'era una serie col solo spotter: è un record suo, quindi il confronto si fa');
 });
 
 test('M7. un mese fa quanto? trenta giorni', () => {

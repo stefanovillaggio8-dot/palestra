@@ -68,15 +68,24 @@ test('S3. la riga dice quante serie hai fatto, altrimenti il numero sale e non s
   assert.equal(una.serieFatte, 1);
 });
 
-test('S4. le serie non contate non contano', () => {
-  // Una serie non fatta, o col solo spotter, non e' lavoro: il conto delle serie
-  // si fa su quelle che valgono davvero, non su quante ne hai scritte.
+test('S4. le serie non fatte non contano; col solo spotter contano ma valgono meno', () => {
+  // Ste (18/10/2026): "no ma lo spotter fai che conta lo stesso se è solo una serie che
+  // è con lo spotter, però nei rank vale di meno ma non di troppo".
+  //
+  // Prima questo test diceva che una serie col solo spotter NON contava, e la serie veniva
+  // scartata due volte: in `performanceEsercizio` (non entrava in `res.tutte`, quindi non
+  // arrivava al motore nuovo) e nel motore nuovo. Sulla Smith incline di Ste le quattro
+  // serie da 32 kg erano tutte col companion, restava solo la 30 kg da solo, e il Rank
+  // diceva BRONZE: non un record sbagliato, un record che non esisteva.
+  //
+  // Adesso: una serie non fatta non conta, una col spotter conta e vale il 90%.
   const treSerie = [s(1), s(2), s(3)];
   const conRifiutata = [s(1), s(2), s(3), { id: 's4', peso: 35, ripetizioni: 8, stato: 'fallita' }];
   const conSpotter = [s(1), s(2), s(3), { id: 's5', peso: 35, ripetizioni: 8, stato: 'fatta', spotter: true }];
   assert.equal(conSerie(conRifiutata).serieFatte, 3, 'una serie non fatta non conta');
-  assert.equal(conSerie(conSpotter).serieFatte, 3, 'una serie col solo spotter non conta');
   assert.equal(conSerie(treSerie).serieFatte, 3);
+  assert.equal(conSerie(conSpotter).serieFatte, 4,
+    'una serie col solo spotter conta: le mani del companion ci sono, ma il lavoro è tuo');
 });
 
 test('S5. le serie NON spostano mai il rank: il bonus sta DENTRO il rank', () => {

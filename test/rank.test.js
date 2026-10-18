@@ -65,12 +65,32 @@ test('5. la stessa serie non viene contata due volte e le serie non fatte sono e
   assert.equal(res.tutte.length, 2);
 });
 
-test('6. le serie con lo spotter non sono record', () => {
-  const res = performanceEsercizio([serie(120, 5, { spotter: true })], chest);
-  assert.equal(res.migliore, null);
-  const motivo = punteggioSerie(serie(120, 5, { spotter: true }), profiloEsercizio(chest));
-  assert.equal(motivo.valido, false);
-  assert.match(motivo.motivo, /spotter/);
+test('6. le serie con lo spotter sono record, ma valgono il 90%', () => {
+  // Ste (18/10/2026): "lo spotter fai che conta lo stesso se è solo una serie che è con lo
+  // spotter, però nei rank vale di meno ma non di troppo".
+  //
+  // Prima questo test chiedeva che la serie col spotter NON fosse un record, e lo era:
+  // veniva scartata due volte (in `performanceEsercizio` e nel motore nuovo). Sulla Smith
+  // incline di Ste le quattro serie da 32 kg erano tutte col companion, restava la 30 kg
+  // da solo, e il Rank diceva BRONZE: un record che non esisteva, non un record sbagliato.
+  const solo = performanceEsercizio([serie(120, 5)], chest);
+  const colSpotter = performanceEsercizio([serie(120, 5, { spotter: true })], chest);
+  assert.ok(solo.migliore, 'la serie da sola è il record');
+  assert.ok(colSpotter.migliore, 'anche col solo spotter la serie è un record: il lavoro è suo');
+
+  // e vale meno, ma "non di troppo": il 90%. La penalità sta in `performanceEsercizio`, che
+  // è il punto in cui tutte le schermate passano, non dentro `punteggioSerie` (che lavora
+  // su una serie sola e non sa niente delle altre).
+  const a = performanceEsercizio([serie(120, 5)], chest).migliore.punteggio;
+  const b = performanceEsercizio([serie(120, 5, { spotter: true })], chest).migliore.punteggio;
+  assert.ok(Math.abs(a - b * 1.1) <= 1.5,
+    `col solo spotter vale il 90%: senza ${a}, con ${b}`);
+  // e il motore nuovo dice la stessa cosa, altrimenti la riga "volume" e il Rank
+  // racconterebbero due storie sullo stesso numero
+  const x = recordEsercizio([serie(120, 5)], chest);
+  const y = recordEsercizio([serie(120, 5, { spotter: true })], chest);
+  assert.ok(Math.abs(x.punteggio - y.punteggio * 1.1) <= 1.5,
+    `il motore nuovo deve applicare la stessa penalità: senza ${x.punteggio}, con ${y.punteggio}`);
 });
 
 test('7. OGNI ESERCIZIO HA SOGLIE PROPRIE: 50 kg non danno lo stesso rank', () => {

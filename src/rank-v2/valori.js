@@ -231,7 +231,35 @@ export const VALORI_MOVIMENTO = {
   },
   spinta_orizzontale: {
     multiplo: 1.0, ingressoMultiplo: 0.38, fonte: 'tuo',
-    nota: 'Chest press a dischi, PER BRACCIO. Tetto 1,0x il corpo per braccio = 2,0x in totale, che e\' il livello di chi si allena bene. Ingresso 0,45x per braccio = 0,9x in totale: sotto, non stai nemmeno spingendo il peso di due braccia. Ste fa 0,56x per braccio, quindi e\' oltre l\'ingresso ma lontano dal tetto.',
+    // LA SPINTA GUIDATA HA UN TETTO PIU' BASSO (Ste, 18/10/2026)
+    //
+    // "la smith inclined bench sarebbe la panca al multipower a 30 gradi e 33kg per lato,
+    // non sono da bronzo secondo me eh".
+    //
+    // Aveva ragione, e per un motivo che non è il suo fiuto ma la meccanica: la Smith (o
+    // un multipower) ha i BINARI. Il peso non va su e giù libero, va su e giù su un
+    // binario che ne prende metà, e a fine corsa il fermo meccanico ti aspetta. Quindi
+    // regge meno carico di una panca a dischi, e se ha lo stesso tetto la scala gli fa
+    // un regalo: gli stessi kg valgono di più su una macchina che ti aiuta.
+    //
+    // Tetto 0,8x per braccio invece di 1,0x, ingresso 0,30x invece di 0,38x: con 66 kg di
+    // corpo il tetto passa da 66 a 53 kg per lato. I suoi 33 kg per lato non sono più
+    // appena sopra il bronzo, e i suoi Rank su questa panca smettono di essere un gradino
+    // sotto tutto il resto.
+    scegliConMacchina: (e) => {
+      const id = String((e && e.id) || '').toLowerCase();
+      const nome = String((e && e.nome) || '').toLowerCase();
+      if (id.includes('smith') || nome.includes('smith')) return 'guidata';
+      if (nome.includes('multipower') || nome.includes('multigym')) return 'guidata';
+      return null;
+    },
+    varianti: {
+      guidata: {
+        multiplo: 0.8, ingressoMultiplo: 0.3, fonte: 'stima',
+        nota: 'Panca su macchina guidata (Smith o multipower) a 30 gradi: i binari prendono una parte del peso e il fermo meccanico c\'e\' alla fine della corsa, quindi il tetto e\' 0,8x per braccio e non 1,0x come sulla panca a dischi. Ste: "la smith inclined bench sarebbe la panca al multipower a 30 gradi e 33kg per lato, non sono da bronzo secondo me eh".',
+      },
+    },
+    nota: 'Chest press a dischi, PER BRACCIO. Tetto 1,0x il corpo per braccio = 2,0x in totale, che e\' il livello di chi si allena bene. Ingresso 0,45x per braccio = 0,9x in totale: sotto, non stai nemmeno spingendo il peso di due braccia. Ste fa 0,56x per braccio, quindi e\' oltre l\'ingresso ma lontano dal tetto. Sulla macchina GUIDATA (Smith, multipower) il tetto e\' 0,8x: i binari reggono meno, vedi `varianti`.',
   },
   spinta_verticale: {
     multiplo: 0.6, ingressoMultiplo: 0.30, fonte: 'stima',

@@ -73,9 +73,11 @@ test('P2. ordina gli esercizi dal più pesante al più leggero', () => {
 test('P3. senza dati non inventa niente', () => {
   assert.equal(quantoEPesantePerTe({ serie: [], esercizi: [chest], peso: 66 }), null);
   assert.equal(quantoEPesantePerTe({ serie: [], esercizi: [], peso: 66 }), null);
-  // le serie col solo spotter non contano: non sono un numero suo
+  // le serie col solo spotter contano, ma valgono il 90%: non sono più scartate
+  // (Ste, 18/10/2026). Prima qui si chiedeva che il numero restasse null.
   const soloSpotter = [{ ...serie('a', chest.id, 100, 5), spotter: true }];
-  assert.equal(quantoEPesantePerTe({ serie: soloSpotter, esercizi: [chest], peso: 66 }), null);
+  assert.notEqual(quantoEPesantePerTe({ serie: soloSpotter, esercizi: [chest], peso: 66 }), null,
+    'una serie col solo spotter è un numero suo, vale solo un po\' meno');
 });
 
 // ---------------------------------------------------------------------------

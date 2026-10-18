@@ -22,7 +22,7 @@ import {
 } from './rank-config.js';
 // il motore del Rank NUOVO. Vedi recordEsercizio: il collegamento È fatto li', e
 // questo import È l'unico pezzo di rank-v2 che entra nel motore vecchio.
-import { valutaEsercizio as valutaEsercizioNuovo } from './rank-v2/index.js';
+import { valutaEsercizio as valutaEsercizioNuovo, PENALITA_SPOTTER } from './rank-v2/index.js';
 
 const R = RANK;
 const PER_ID = RANK_PER_ID;
@@ -81,9 +81,20 @@ export function punteggioSerie(serie, profilo) {
     // una serie non spuntata non È una prestazione: non la si premia
     return { ...vuoto, motivo: 'serie non fatta' };
   }
-  if (serie.spotter === true) {
-    return { ...vuoto, motivo: 'serie con lo spotter: non e\' un record pulito' };
-  }
+// LE SERIE CON LO SPOTTER NON SI SCARTANO PIU' (Ste, 18/10/2026)
+  //
+  // "no ma lo spotter fai che conta lo stesso se è solo una serie che è con lo spotter,
+  // però nei rank vale di meno ma non di troppo".
+  //
+  // Qui prima c'era `if (serie.spotter === true) return {...vuoto, motivo: 'serie con lo
+  // spotter: non è un record pulito'}`, e la serie non entrava neanche in `res.tutte`,
+  // cioè non arrivava al motore nuovo. Sulla Smith incline di Ste le quattro serie da
+  // 32 kg erano tutte col companion: restava solo la 30 kg da solo, e il Rank diceva
+  // BRONZE. Non era un record sbagliato, era un record che non esisteva.
+  //
+  // Adesso la serie passa e il motore nuovo le toglie il 10% sul PUNTEGGIO
+  // (`PENALITA_SPOTTER` in rank-v2/index.js). Il peso e le ripetizioni che si leggono
+  // restano quelli veri: la penalità è sul punteggio, non sulla lettura.
 
   const peso = numero(serie.peso);
   const rip = numero(serie.ripetizioni);
@@ -256,12 +267,20 @@ export function performanceEsercizio(serie, esercizio, profilo = null, pesoAttua
     const p = profiloPerPesoCorporeo(base, peso);
     const res = punteggioSerie(s, p);
     if (!res.valido) continue;
-    tutte.push({
-      serie: s, punteggio: res.punteggio, testo: res.testo,
-      ordine: Number(s.ordine || 0),
-      pesoCorporeo: peso,
-      soglie: p.soglie,
-    });
+// LA PENALITA' DELLO SPOTTER, ANCHE QUI (Ste, 18/10/2026): la serie conta, ma vale il
+   // 90%. Il motore nuovo applica la stessa regola sul suo punteggio (`PENALITA_SPOTTER` in
+   // rank-v2/index.js): se i due posti dicessero cose diverse, la riga "volume" e il Rank
+   // racconterebbero due storie sullo stesso numero.
+   tutte.push({
+   serie: s,
+   punteggio: s.spotter === true
+     ? arrotonda(res.punteggio * PENALITA_SPOTTER)
+     : res.punteggio,
+   testo: res.testo,
+   ordine: Number(s.ordine || 0),
+   pesoCorporeo: peso,
+   soglie: p.soglie,
+   });
   }
   tutte.sort((a, b) => {
     if (b.punteggio !== a.punteggio) return b.punteggio - a.punteggio;
@@ -513,7 +532,11 @@ function giorniDelRecord(serie, record) {
   const conta = (s) => {
     if (!s || s.eliminata) return;
     if (s.stato && s.stato !== 'fatta') return;
-    if (s.spotter === true) return;
+    // LE SERIE CON LO SPOTTER CONTANO, ANCHE QUI (Ste, 18/10/2026): "conta lo stesso se è
+    // solo una serie che è con lo spotter, però nei rank vale di meno ma non di troppo".
+    // Prima venivano scartate anche dal conteggio delle giornate, e la scheda diceva
+    // "volume: 2 serie" senza dire che una era col companion. La penalità la mette
+    // `valutaEsercizio` sul PUNTEGGIO: qui il conteggio è solo quante serie hai fatto.
     const g = String(s._giorno || '');
     if (!g) return;
     giorni.set(g, (giorni.get(g) || 0) + 1);
@@ -545,8 +568,13 @@ function testoSerieChiaro(record) {
   const pezzi = [];
   if (record.giornoRecord) pezzi.push(`del ${dataBreve(record.giornoRecord)}`);
   if (n > 1) pezzi.push(`volume: ${n} serie${volume > 0 ? ` (+${volume}%)` : ''}`);
+// CON LO SPOTTER SI DICE (Ste, 18/10/2026). La serie vale il 90% e va detto perchè:
+  // se la scheda mostrasse "32 kg x 7" come se fosse una serie fatta da solo, il numero
+  // sarebbe più generoso di quello che è. Il peso e le ripetizioni restano quelli veri.
+  const conSpotter = record.spotter;
+  if (record.spotter) pezzi.push('con spotter: vale il 90%');
   return pezzi.length ? ` (${pezzi.join(' · ')})` : '';
-}
+  }
 
 function recordDaMotoreNuovo(r, esercizio, res, giorni = null) {
 const testoSerie = testoSerieChiaro({ ...r, giornoRecord: giorni && giorni.giornoRecord });

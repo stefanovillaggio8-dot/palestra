@@ -1455,3 +1455,45 @@ test('V31. due esercizi diversi non possono avere la scala identica (Ste, 18/10/
   assert.notEqual(reso('Seated Cable Row', 130), reso('Lat Pulldown macchina', 90),
     'caricando il remo verso il tetto, il suo Rank deve staccare');
 });
+
+test('V32. col solo spotter la serie conta e vale il 90% (Ste, 18/10/2026)', async () => {
+  // "no ma lo spotter fai che conta lo stesso se e' solo una serie che e' con lo spotter,
+  // pero' nei rank vale di meno ma non di troppo".
+  //
+  // Prima la serie col solo spotter veniva BUTTATA, e due volte: in `performanceEsercizio`
+  // (non entrava in `res.tutte`, quindi non arrivava al motore) e nel motore nuovo. Sulla
+  // Smith incline di Ste le quattro serie da 32 kg erano tutte col companion, restava solo
+  // la 30 kg da solo, e il Rank diceva BRONZE: un record che non esisteva.
+  const { valutaEsercizio, PENALITA_SPOTTER } = await import('../src/rank-v2/index.js');
+  const { ESERCIZI } = await import('../src/dati-iniziali.js');
+  const cavo = ESERCIZI.find((e) => /^Seated Cable Row/i.test(e.nome));
+  assert.equal(PENALITA_SPOTTER, 0.9, 'la penalita\' e\' del 10%: "non di troppo"');
+
+  const senza = valutaEsercizio({
+    esercizio: cavo,
+    serie: [{ esercizio_id: cavo.id, stato: 'fatta', ordine: 1, peso: 90, ripetizioni: 7, spotter: false }],
+    pesoCorporeo: 66,
+  });
+  const con = valutaEsercizio({
+    esercizio: cavo,
+    serie: [{ esercizio_id: cavo.id, stato: 'fatta', ordine: 1, peso: 90, ripetizioni: 7, spotter: true }],
+    pesoCorporeo: 66,
+  });
+  assert.equal(con.valido, true, 'col solo spotter la serie e\' un record: il lavoro e\' suo');
+  assert.equal(con.caricoReale, 90, 'e il peso letto resta quello vero, non uno scontato');
+  assert.equal(con.ripetizioni, 7, 'e anche le ripetizioni');
+  assert.ok(Math.abs(con.score - senza.score * 0.9) <= 0.5,
+    `ma il punteggio vale il 90%: senza ${senza.score}, con ${con.score}`);
+
+  // e una serie col spotter batte comunque una serie piu' leggera fatta da solo
+  const mix = valutaEsercizio({
+    esercizio: cavo,
+    serie: [
+      { esercizio_id: cavo.id, stato: 'fatta', ordine: 1, peso: 90, ripetizioni: 7, spotter: true },
+      { esercizio_id: cavo.id, stato: 'fatta', ordine: 2, peso: 85, ripetizioni: 8, spotter: false },
+    ],
+    pesoCorporeo: 66,
+  });
+  assert.equal(mix.caricoReale, 90, '90 kg col companion battono 85 kg da solo');
+  assert.ok(mix.score > senza.score * 0.9 - 0.5, 'e la penalita\' non deve azzerare la differenza');
+});

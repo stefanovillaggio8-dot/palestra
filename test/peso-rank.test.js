@@ -183,9 +183,12 @@ test('10. il tempo e la distanza NON dipendono dal peso', () => {
   assert.equal(q.pesoConsiderato, true, 'per i kg invece conta');
 });
 
-test('11. la serie con spotter resta fuori dal record', () => {
+test('11. la serie con spotter resta un record, ma vale meno', () => {
+  // Ste (18/10/2026): "lo spotter fai che conta lo stesso se è solo una serie che è con lo
+  // spotter, però nei rank vale di meno ma non di troppo". Prima qui la serie col spotter
+  // non entrava nel record e il Rank perdeva le serie migliori (vedi il caso della Smith).
   const res = performanceEsercizio([serie(1, 60, 5, { spotter: true })], CP, null, 70);
-  assert.equal(res.migliore, null, 'una serie col spotter non e\' un record pulito');
+  assert.ok(res.migliore, 'una serie col solo spotter è comunque un record: il lavoro è suo');
 });
 
 test('12. la punteggio di una serie non cambia con il peso', () => {
