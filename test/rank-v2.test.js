@@ -1497,3 +1497,45 @@ test('V32. col solo spotter la serie conta e vale il 90% (Ste, 18/10/2026)', asy
   assert.equal(mix.caricoReale, 90, '90 kg col companion battono 85 kg da solo');
   assert.ok(mix.score > senza.score * 0.9 - 0.5, 'e la penalita\' non deve azzerare la differenza');
 });
+
+test('V33. lo stesso sforzo prende lo stesso Rank, anche con dueScale diverse (Ste, 18/10/2026)', async () => {
+  // Ste: "le trazioni fanno lo stesso carico dello slanciamento (90 kg in entrambi i casi) ma
+  // l'app ti dice Argento contro Platino. E' una contraddizione vera" e poi "le trazioni in
+  // teoria sono un po' piu' difficili perche' le faccio a presa larga mentre la lat machine la
+  // faccio a presa stretta... quindi vedi tu".
+  //
+  // Il punto non e' la presa larga: e' che le due schede erano votate in due librerie
+  // diverse. Lui al cavo tira 90 kg (Platino), in traversa appende 20 kg a un corpo di 66,
+  // cioe' 86 kg di carico totale, e si beccava Argento. Stesso muscolo, stesso sforzo.
+  //
+  // Quindi il Platino delle trazioni deve stare dove gli sta arrivando lui con 20 kg, e il
+  // tetto sta sotto quello del pulldown per la presa larga, come ha detto lui.
+  const { valutaEsercizio } = await import('../src/rank-v2/index.js');
+  const { ESERCIZI } = await import('../src/dati-iniziali.js');
+  const N = ['BRONZE', 'SILVER', 'GOLD', 'PLATINUM', 'DIAMOND', 'TITAN', 'OLYMPIAN'];
+  const cavo = ESERCIZI.find((e) => /^Lat Pulldown macchina/i.test(e.nome));
+  const trazioni = ESERCIZI.find((e) => /^Pull Ups$/i.test(e.nome));
+
+  const sulCavo = valutaEsercizio({
+    esercizio: cavo,
+    serie: [{ esercizio_id: cavo.id, stato: 'fatta', ordine: 1, peso: 90, ripetizioni: 6, spotter: false }],
+    pesoCorporeo: 66,
+  });
+  const inTraversa = valutaEsercizio({
+    esercizio: trazioni,
+    serie: [{ esercizio_id: trazioni.id, stato: 'fatta', ordine: 1, peso: null, peso_assistenza: 20, ripetizioni: 6, spotter: false }],
+    pesoCorporeo: 66,
+  });
+
+  assert.equal(N[sulCavo.rank.indice], 'PLATINUM', 'il suo caso reale sul pulldown: 90 kg = PLATINUM');
+  assert.equal(N[inTraversa.rank.indice], 'PLATINUM',
+    `e le trazioni con 20 kg aggiunti devono dargli lo stesso Rank, non ARGENTO: `
+    + `dano ${N[inTraversa.rank.indice]}`);
+
+  // e la presa larga tiene il tetto sotto quello della macchina
+  const { VALORI_MOVIMENTO } = await import('../src/rank-v2/valori.js');
+  assert.ok(VALORI_MOVIMENTO.tirata_verticale_corpo.multiplo < VALORI_MOVIMENTO.tirata_verticale.multiplo,
+    'le trazioni a presa larga hanno il tetto sotto il pulldown a presa stretta');
+  assert.ok(VALORI_MOVIMENTO.tirata_verticale.multiplo < VALORI_MOVIMENTO.tirata_orizzontale.multiplo,
+    'e il pulldown sotto il remo al cavo');
+});

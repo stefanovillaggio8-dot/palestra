@@ -1,4 +1,4 @@
-// dati-iniziali.js -- le schede e la lista degli esercizi.
+﻿// dati-iniziali.js -- le schede e la lista degli esercizi.
 // Non viene mai riscritta a runtime: se modifichi una scheda, nasce una nuova
 // versione e lo storico resta quello che era.
 //
@@ -311,7 +311,13 @@ export const GIORNI = [
       { id: 'es-3-4', esercizio_id: 'ex-sled-press-calf-raise', serie: [s(110, 6), s(110, 5)], opzionale: false, nota: '' },
       { id: 'es-3-5', esercizio_id: 'ex-single-leg-press', serie: [s(17, 8), s(17, 8)], opzionale: false, nota: '' },
       { id: 'es-3-6', esercizio_id: 'ex-one-arm-preacher-curl', serie: [s(18, 6), s(18, 5), s(18, 5)], opzionale: false, nota: '' },
-      { id: 'es-3-7', esercizio_id: 'ex-bodyweight-overhead-tricep', serie: [conAss(28, 6), conAss(28, 6)], opzionale: false, nota: '' },
+// Ste (18/10/2026): "non esiste il bodyweight... non lo faccio in nessuna scheda e non so
+  // manco perché esiste sinceramente. io faccio il Overhead Tricep Extension".
+  //
+  // Era es-3-7, il Bodyweight Overhead Tricep Extension, nel programma del giorno 3: e non
+  // e' un errore suo che non lo facesse, era l'app che glielo proponeva ogni volta e lui lo
+  // ignorava. Tolto dal PROGRAMMA: nel catalogo l'esercizio resta, perché è il caso che i
+  // test usano per la logica delle serie assistite, ma nessuna scheda lo propone più.
       // Ste (10/10/2026): "One Arm Cable Fly è veramente così tanto 28kg alla doppia
 // carrucola".
 //

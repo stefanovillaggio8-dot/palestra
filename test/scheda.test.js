@@ -1,4 +1,4 @@
-import { test } from 'node:test';
+﻿import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { ESERCIZI, GIORNI, SCHEDA_ID, costruisciSnapshot } from '../src/dati-iniziali.js';
 import { CONVENZIONI, convenzioneMisuraCarico } from '../src/numeri.js';
@@ -58,11 +58,11 @@ test('i conteggi di serie coincidono con gli screenshot', () => {
   assert.deepEqual(perGiorno, [
     { nome: 'giorno 1', serie: 17, esercizi: 6 },
     { nome: 'giorno 2', serie: 17, esercizi: 6 },
-    { nome: 'giorno 3', serie: 20, esercizi: 8 },
+    { nome: 'giorno 3', serie: 18, esercizi: 7 },
     { nome: 'giorno 4', serie: 8, esercizi: 3 },
   ]);
   const totale = perGiorno.reduce((a, g) => a + g.serie, 0);
-  assert.equal(totale, 62, 'il totale della scheda e\' 62 serie');
+  assert.equal(totale, 60, 'il totale della scheda e\'');
 });
 
 test('i 4 giorni sono numerati e in ordine', () => {

@@ -1,4 +1,4 @@
-import { test } from 'node:test';
+﻿import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { cambiaGiro, sovrapponiGiri } from '../src/sedute.js';
 
@@ -289,7 +289,7 @@ test('12. nel cestino la riga sparisce dalle liste ma resta recuperabile', async
 
 test('gli esercizi assistiti non mettono peso ma assistenza', async () => {
   const snap = costruisciSnapshot();
-  const g3 = snap.giorni[2].esercizi.find((e) => e.esercizio_id === 'ex-pull-ups' || e.esercizio_id === 'ex-bodyweight-overhead-tricep');
+  const g3 = snap.giorni[3].esercizi.find((e) => e.esercizio_id === 'ex-pull-ups');
   for (const s of g3.serie) {
     assert.equal(s.peso, null);
     assert.ok(Number.isFinite(s.peso_assistenza));

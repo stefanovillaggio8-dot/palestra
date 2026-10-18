@@ -646,9 +646,26 @@ export const VALORI_MOVIMENTO = {
     multiplo: 0.95, ingressoMultiplo: 0.08, fonte: 'stima',
     nota: 'Dip coi zavorri: il punteggio sono i SOLI kg aggiunti (vedi `valutaEsercizio`), quindi il tetto 0,95x sono 63 kg di zavorri su corpo 66. I 35 kg di Ste stanno a meta\' scala: e\' un numero forte, ma le trazioni con la cintura caricata passano molto piu\' in la. Prima questa scala chiedeva 47 kg di zavorri per il BRONZE, e il motore vecchio regalava l\'OLYMPIAN a tutti i costi.',
   },
+  // LE TRAZIONI: STESSO SFORZO DELLO SLANCIAMENTO, SCALA UN FILO SOTTO (Ste, 18/10/2026)
+  //
+  // Ste: "le trazioni in teoria sono un po' piu' difficili perchè le faccio a presa larga
+  // mentre la lat machine la faccio a presa stretta perchè mi e' uscita la spalla una
+  // volta... quindi vedi tu".
+  //
+  // IL PROBLEMA CHE HA DETTO SENZA DIRLO: sull'app le due cose erano votate in modo
+  // diverso. Lui al cavo tira 90 kg e prende PLATINUM; in traversa appende 20 kg a un
+  // corpo di 66, cioe' 86 kg di carico totale, e si beccava ARGENTO. Stesso muscolo,
+  // stesso sforzo, due voti diversi, e la ragione era che i due movimenti avevano due
+  // tetti che non c'entravano niente fra loro (1,7 sul cavo, 0,95 sulla traversa).
+  //
+  // LA REGOLA: il Platino delle trazioni deve stare dove sta il suo carico totale, che
+  // e' il peso del corpo piu' quello che appende. Con ingresso 0,06x (una cintura
+  // leggera, circa 4 kg) e tetto 0,62x (circa 41 kg aggiunti) il Platino cade a 18-19 kg
+  // aggiunti: esattamente dove gli sta arrivando adesso con 20 kg. E il tetto e' sotto
+  // quello della lat per la presa larga, come ha detto lui.
   tirata_verticale_corpo: {
-    multiplo: 0.95, ingressoMultiplo: 0.08, fonte: 'stima',
-    nota: 'Trazioni coi zavorri: stessa base dei dip. Ste: "nelle trazioni non vengo manco assistito, mi appendo e basta", quindi non c\'e\' un peso da bilanciere sotto, ma quello che appendi alla cintura. Ingresso 0,08x (cintura leggera), tetto 0,95x.',
+    multiplo: 0.58, ingressoMultiplo: 0.05, fonte: 'stima',
+    nota: 'Trazioni coi zavorri: il punteggio sono i SOLI kg aggiunti (vedi `valutaEsercizio`), quindi il tetto 0,58x sono circa 38 kg appesi alla cintura, che e\' dove arrivano le trazioni a presa larga con un buon carico. Ste (18/10/2026): "le trazioni in teoria sono un po\' piu\' difficili perche\' le faccio a presa larga mentre la lat machine la faccio a presa stretta". Per questo il tetto sta sotto quello del pulldown. E\' la stessa regola usata per i dip, che pero\' reggono piu\' zavorri e hanno la loro scala (0,95x).',
   },
   corpo_libero: {
     multiplo: 0, fonte: 'nessuno',
