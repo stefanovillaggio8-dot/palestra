@@ -1265,3 +1265,44 @@ test('R20. le serie contano solo da seduta completata, e la pagina lo dice', asy
     'l\'avviso sulla seduta aperta deve stare PRIMA del ramo "nessun rank": se sta '
     + 'dentro, compare solo quando non hai nessun Rank ed e\' il difetto di Ste');
 });
+
+// ---------------------------------------------------------------------------
+// 6. La frase "(6 serie)", che Ste non capiva (18/10/2026)
+// ---------------------------------------------------------------------------
+
+test('V28. la scheda dice QUANDO hai fatto le serie, non solo quante', async () => {
+  // Ste: "non ho capito la roba di 6 serie (spuntano serie diverse anche negli altri
+  // esercizi)". Il numero 6 era GIUSTO: 3 serie del 10/10 piu' 3 del 17/10. Ma scritto
+  // cosi' sembrava che in un giorno ne avesse fatte 6, e lo ripeteva su ogni scheda,
+  // perche' alle due volte a settimana con tre serie per volta quel numero esce sempre.
+  const { recordEsercizio } = await import('../src/rank.js');
+  const { gruppiDaSerie } = await import('../src/gioco.js');
+  const { ESERCIZI } = await import('../src/dati-iniziali.js');
+  const esercizio = ESERCIZI.find((e) => /pull ups/i.test(e.nome));
+  const sedute = [
+    { id: 's-vecchia', stato: 'completata', data: '2026-10-10T00:00:00.000Z' },
+    { id: 's-nuova', stato: 'completata', data: '2026-10-17T00:00:00.000Z' },
+    { id: 's-aperta', stato: 'in_corso', data: '2026-10-18T00:00:00.000Z' },
+  ];
+  const serie = [
+    ...[1, 2, 3].map((i) => ({ esercizio_id: esercizio.id, seduta_id: 's-vecchia', stato: 'fatta', ordine: i, peso_assistenza: 20, ripetizioni: 6, spotter: false })),
+    ...[1, 2, 3].map((i) => ({ esercizio_id: esercizio.id, seduta_id: 's-nuova', stato: 'fatta', ordine: i, peso_assistenza: 20, ripetizioni: 6, spotter: false })),
+    // una serie della seduta APERTA: non deve comparire, e non deve nemmeno nel conto
+    { esercizio_id: esercizio.id, seduta_id: 's-aperta', stato: 'fatta', ordine: 1, peso_assistenza: 99, ripetizioni: 12, spotter: false },
+  ];
+
+  const gruppi = gruppiDaSerie(sedute, serie, ESERCIZI);
+  const gruppo = gruppi.find((x) => x.esercizio_id === esercizio.id);
+  assert.equal(gruppo.serie.length, 6, 'la seduta aperta non entra nel Rank');
+
+  const r = recordEsercizio(gruppo.serie, esercizio, null, 66);
+  assert.match(r.testo, /6 serie in tutto: 3 del 17\/10 e 3 del 10\/10/,
+    `la scheda deve dire da dove vengono le 6 serie, ma dice: ${r.testo}`);
+  assert.doesNotMatch(r.testo, /\(6 serie\)/,
+    'e NON la vecchia "(6 serie)", che e\' quella che Ste non capiva');
+
+  // con una sola giornata la frase deve nominare il giorno, senza ripetere "in tutto"
+  const soloVecchia = gruppiDaSerie([sedute[0]], serie.filter((s) => s.seduta_id === 's-vecchia'), ESERCIZI);
+  const r2 = recordEsercizio(soloVecchia.find((x) => x.esercizio_id === esercizio.id).serie, esercizio, null, 66);
+  assert.match(r2.testo, /3 serie del 10\/10/, `una sola giornata: deve dire il giorno, ma dice: ${r2.testo}`);
+});

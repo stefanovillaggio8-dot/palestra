@@ -19,14 +19,24 @@ export function gruppiDaSerie(sedute, serie, esercizi) {
     if (!e || !e.id) continue;
     perEsercizio.set(e.id, []);
   }
-  const seduteBuone = (sedute || []).filter((s) => s && !s.eliminata && s.stato === 'completata');
-  const idSeduta = new Set(seduteBuone.map((s) => s.id));
-  for (const x of (serie || [])) {
-    if (!x || x.eliminata) continue;
-    if (!idSeduta.has(x.seduta_id)) continue;
-    if (!perEsercizio.has(x.esercizio_id)) perEsercizio.set(x.esercizio_id, []);
-    perEsercizio.get(x.esercizio_id).push(x);
-  }
+const seduteBuone = (sedute || []).filter((s) => s && !s.eliminata && s.stato === 'completata');
+const idSeduta = new Set(seduteBuone.map((s) => s.id));
+// IL GIORNO DI OGNI SERIE (Ste, 18/10/2026). Serve solo per scrivere le date sulla
+// scheda del Rank, e non viene salvato: nasce qui e muore qui.
+//
+// Ste: "non ho capito la roba di 6 serie". Aveva ragione: l'app scriveva "(6 serie)"
+// e lui ne aveva fatte 3. Il numero era giusto (6 = 3 + 3 di due allenamenti diversi),
+// ma la frase sembrava dire che in un giorno ne avesse fatte 6, e su tutti gli esercizi.
+// Allenare due volte a settimana, tre serie per volta, produce sempre quel numero.
+const giornoDi = new Map(seduteBuone.map((s) => [s.id, String(s.data || '').slice(0, 10)]));
+for (const x of (serie || [])) {
+if (!x || x.eliminata) continue;
+if (!idSeduta.has(x.seduta_id)) continue;
+if (!perEsercizio.has(x.esercizio_id)) perEsercizio.set(x.esercizio_id, []);
+const copia = { ...x };
+copia._giorno = giornoDi.get(x.seduta_id) || null;
+perEsercizio.get(x.esercizio_id).push(copia);
+}
   return [...perEsercizio.entries()].map(([esercizio_id, serieDiEsercizio]) => ({
     esercizio_id,
     serie: serieDiEsercizio,

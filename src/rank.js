@@ -411,8 +411,8 @@ export function recordEsercizio(serie, esercizio, profilo = null, pesoAttuale = 
     esercizio,
     pesoCorporeo: pesoDelGiorno,
   });
-  if (nuovo && nuovo.valido) {
-    return recordDaMotoreNuovo(nuovo, esercizio, res);
+if (nuovo && nuovo.valido) {
+    return recordDaMotoreNuovo(nuovo, esercizio, res, ripartizioneGiorni(serie));
   }
   // il motore nuovo non sa valutarlo (esercizio a ripetizioni, nessuna serie in kg):
   // si torna al vecchio, che in quel caso sa ancora dire qualcosa
@@ -497,8 +497,45 @@ function valutaConMotoreNuovo({ serie, esercizio, pesoCorporeo }) {
  * esserci TUTTI e con lo stesso significato, altrimenti una schermata mostra
  * "undefined" e non si capisce se È un bug o un campo nuovo.
  */
-function recordDaMotoreNuovo(r, esercizio, res) {
-  const testoSerie = r.serieFatte > 1 ? ` (${r.serieFatte} serie)` : '';
+// "(6 serie)" NON BASTAVA (Ste, 18/10/2026): "non ho capito la roba di 6 serie".
+//
+// Il numero era giusto: 6 = 3 serie del 10/10 più 3 del 17/10. Ma scritto così sembrava
+// che in un giorno ne avesse fatte 6, e lo diceva su ogni scheda, perché alle due volte a
+// settimana con tre serie per volta quel numero esce sempre. Adesso si scrive da dove
+// vengono: le tre serie del 17/10 e le tre del 10/10, dalla più recente.
+//
+// Il giorno arriva con `_giorno`, che `gruppiDaSerie` mette sulla serie senza salvarlo.
+// Qui non si può fare il conto perché `valutaEsercizio` non restituisce le sue serie.
+function ripartizioneGiorni(serie) {
+  const giorni = new Map();
+  for (const s of (serie || [])) {
+    // le stesse regole con cui il motore nuovo sceglie le serie: se una serie non
+    // conta per il Rank, non deve contare nemmeno nella frase che spiega il Rank
+    if (!s || s.eliminata) continue;
+    if (s.stato && s.stato !== 'fatta') continue;
+    if (s.spotter === true) continue;
+    const g = String(s._giorno || '');
+    if (!g) continue;
+    giorni.set(g, (giorni.get(g) || 0) + 1);
+  }
+  return giorni;
+}
+
+function testoSerieChiaro(serieFatte, giorni) {
+  if (!(serieFatte > 1)) return '';
+  const righe = [...(giorni || new Map()).entries()].sort((a, b) => b[0].localeCompare(a[0]));
+  if (righe.length === 1) {
+    return ` (${serieFatte} serie del ${righe[0][0].slice(8, 10)}/${righe[0][0].slice(5, 7)})`;
+  }
+  if (righe.length > 1) {
+    const pezzi = righe.map(([g, n]) => `${n} del ${g.slice(8, 10)}/${g.slice(5, 7)}`);
+    return ` (${serieFatte} serie in tutto: ${pezzi.join(' e ')})`;
+  }
+  return ` (${serieFatte} serie)`;
+}
+
+function recordDaMotoreNuovo(r, esercizio, res, giorni = null) {
+const testoSerie = testoSerieChiaro(r.serieFatte, giorni);
   const prossimoObiettivo = r.distanza
     ? {
       etichetta: r.rank ? (R[r.indice + 1] || {}).nome || 'il prossimo' : 'BRONZE',
