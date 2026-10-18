@@ -19,7 +19,7 @@ import {
 } from './aggiornamento.js';
 import { testoProgresso, serieARipetizioniCostanti, riepilogoGenerale } from './progressi.js';
 import { prestazione, mediaPrestazioni, classificaGenerale } from './forza-generale.js';
-import { creaPacchetto, validaPacchetto, unisci, csvSerie, csvSedute, csvEsercizi } from './backup.js';
+import { creaPacchetto, validaPacchetto, unisci, csvSerie, csvSedute, csvEsercizi, soloMiaScheda } from './backup.js';
 import { ESERCIZI, SCHEDA_ID, SCHEDA_NOME, PERSONE, CONTATTI, accountId, chiSei, personaDaMemoria, costruisciSnapshot, eserciziMancanti } from './dati-iniziali.js';
 import { nuovoId, adesso, TABELLE, riallineaEsercizi } from './sincronizzazione.js';
 // --- il gioco: rank, LP, streak, Aura, missioni, amici ---
@@ -3551,8 +3551,14 @@ function vistaImpostazioni(zona) {
   const backupBox = el('section', { class: 'blocco' });
   backupBox.appendChild(el('h2', { testo: 'Backup' }));
   backupBox.appendChild(el('p', { class: 'nota', testo: 'Il backup e\' un file tuo, salvato dove vuoi tu. E\' separato dalla sincronizzazione: cancellare una cosa dall\'account non cancella il backup.' }));
+  backupBox.appendChild(el('p', { class: 'nota nota-chiaro', testo: 'Il backup completo serve per ripristinare e contiene TUTTO, anche i dati dell\'altra persona che usa l\'app su questo telefono. Se invece vuoi mostrare i tuoi dati a qualcuno, scarica il ridotto: tiene solo la tua scheda e lascia fuori tutto il resto.' }));
   backupBox.appendChild(el('div', { class: 'riga-pulsanti' }, [
     bottone('Scarica il backup JSON', { onClick: () => esportaJson(), classe: 'principale' }),
+    bottone('Backup solo dei miei dati', {
+      onClick: () => esportaJson({ soloMia: true }),
+      classe: 'fantasma',
+      titolo: 'Per mostrarlo a qualcuno: dentro ci sono solo i tuoi allenamenti, non quelli dell\'altra persona',
+    }),
     bottone('Scarica CSV esercizi', { onClick: () => scarica('esercizi.csv', csvEsercizi(V.esercizi)), classe: 'fantasma' }),
     bottone('Scarica CSV sedute', { onClick: () => scarica('sedute.csv', csvSedute(seduteDellaPersona())), classe: 'fantasma' }),
     bottone('Scarica CSV serie', { onClick: () => scarica('serie.csv', csvSerie(serieDellaPersona(), V.esercizi, seduteDellaPersona())), classe: 'fantasma' }),
@@ -3670,8 +3676,21 @@ function scarica(nomeFile, contenuto) {
   avviso('File scaricato: ' + nomeFile, { tipo: 'ok' });
 }
 
-async function esportaJson() {
-  const dati = await db.esportaTutto();
+// IL BACKUP COMPLETO serve per RIPRISTINARE, e deve contenere tutto.
+// QUELLO RIDOTTO serve per MOSTRARE i tuoi dati a qualcuno (Ste, 18/10/2026:
+// "comunque io non voglio nel mio account anche quello di Andrea"): nel caso normale
+// finirebbe nel file anche tutto il resto del database, cioe' le sedute, le serie e i
+// pesi corporei dell'altra persona che usa l'app sullo stesso telefono.
+//
+// Vedi `soloMiaScheda` in backup.js: tiene la catena scheda -> versioni -> sedute ->
+// serie, e lascia fuori tutto il resto. Il pulsante completo non si tocca: se il
+// telefono si rompe e tu importi il backup ridotto, dell'altra persona non torna
+// niente, e un backup che non riporta tutto non è un backup.
+async function esportaJson({ soloMia = false } = {}) {
+  let dati = await db.esportaTutto();
+  let schedaId = null;
+  try { schedaId = schedaAttivaId(); } catch { /* niente scheda: resta tutto */ }
+  if (soloMia && schedaId) dati = soloMiaScheda(dati, schedaId);
   // IL BACKUP DEVE CONTENERE TUTTO, o non serve a niente (08/10/2026).
   //
   // Qui passavano solo sette tabelle. Manavano tre cose che sono l'APP, non i dati:

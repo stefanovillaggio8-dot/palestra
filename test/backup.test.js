@@ -121,3 +121,57 @@ test('riepilogo conta anche le sedute completate', () => {
   assert.equal(r.sedute, 2);
   assert.equal(r.seduteCompletate, 2);
 });
+
+test('il backup ridotto tiene SOLO i dati della mia scheda (Ste, 18/10/2026)', async () => {
+  // Ste: "comunque io non voglio nel mio account anche quello di Andrea".
+  //
+  // Nell'app i dati sono gia' separati (47 sedute sue e 1 di Andrea nel suo backup del
+  // 18/10/2026), ma il BACKUP COMPLETO esporta tutto il database. E un backup ridotto
+  // serve a un altro scopo: se il file e' per MOSTRARE i tuoi dati a qualcuno, dentro
+  // non ci deve finire l'allenamento dell'altro.
+  const { soloMiaScheda } = await import('../src/backup.js');
+
+  const database = {
+    esercizi: [{ id: 'ex-1', nome: 'Chest Press' }, { id: 'ex-2', nome: 'Dips' }],
+    schede: [
+      { id: 'sc-mia', account_id: 'account-1' },
+      { id: 'sc-sua', account_id: 'account-2' },
+    ],
+    versioni: [
+      { id: 'v-mia-1', scheda_id: 'sc-mia' },
+      { id: 'v-mia-2', scheda_id: 'sc-mia' },
+      { id: 'v-sua-1', scheda_id: 'sc-sua' },
+    ],
+    sedute: [
+      { id: 'se-1', versione_id: 'v-mia-1' },
+      { id: 'se-2', versione_id: 'v-mia-2' },
+      { id: 'se-3', versione_id: 'v-sua-1' },
+    ],
+    serie: [
+      { id: 'a1', seduta_id: 'se-1', esercizio_id: 'ex-1', peso: 40 },
+      { id: 'a2', seduta_id: 'se-2', esercizio_id: 'ex-2', peso: 35 },
+      { id: 'b1', seduta_id: 'se-3', esercizio_id: 'ex-1', peso: 20 },
+    ],
+    profili: [{ id: 'account-1', username: 'Stefano' }, { id: 'account-2', username: 'Andrea' }],
+    pesi: [
+      { account_id: 'account-1', kg: 66 },
+      { account_id: 'account-2', kg: 70 },
+    ],
+    missioni: [], ricompense: [], note: [], conflitti: [], appreso: [],
+  };
+
+  const mio = soloMiaScheda(database, 'sc-mia');
+  assert.deepEqual(mio.schede.map((s) => s.id), ['sc-mia'], 'la sola scheda di Ste');
+  assert.deepEqual(mio.versioni.map((v) => v.id), ['v-mia-1', 'v-mia-2'], 'e le sue versioni');
+  assert.deepEqual(mio.sedute.map((s) => s.id), ['se-1', 'se-2'], 'e le sue sedute, non quella di Andrea');
+  assert.deepEqual(mio.serie.map((s) => s.id), ['a1', 'a2'], 'e le sue serie: dentro NON c\'e\' b1');
+  assert.equal(mio.serie.some((s) => s.id === 'b1'), false,
+    'la serie dell\'altra persona non deve essere nel file');
+  assert.deepEqual(mio.profili.map((p) => p.username), ['Stefano']);
+  assert.deepEqual(mio.pesi.map((p) => p.kg), [66], 'e il peso corporeo solo il suo');
+  // gli esercizi del catalogo sono di tutti e non sono dati di nessuno: restano
+  assert.equal(mio.esercizi.length, 2, 'il catalogo degli esercizi resta: e\' la scheda, non i dati');
+
+  // e senza scheda non si taglia niente: meglio un backup troppo grande che uno rotto
+  assert.equal(soloMiaScheda(database, null), database);
+});

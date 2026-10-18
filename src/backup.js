@@ -1,4 +1,4 @@
-// backup.js -- esportazione e importazione. Tutto gratis, tutto in locale.
+﻿// backup.js -- esportazione e importazione. Tutto gratis, tutto in locale.
 // Nessuna dipendenza dal DOM così i formati si possono testare con node --test.
 
 import { formattaNumero } from './numeri.js';
@@ -223,6 +223,49 @@ function righeCsv(intestazioni, righe) {
  * CSV delle serie: una riga per ogni serie, con tutte le informazioni
  * (spotter, assistite, note, convenzione). Pensato per Excel / Google Fogli.
  */
+/**
+ * Tiene solo i dati di UNA scheda, e lascia fuori tutto il resto.
+ *
+ * Ste (18/10/2026): "comunque io non voglio nel mio account anche quello di Andrea".
+ *
+ * Il BACKUP COMPLETO deve contenere tutto, altrimenti non e' un backup: se lo metti
+ * dentro solo la tua scheda e poi ti si rompe il telefono, non ti torna indietro
+ * Ma se il file serve a MOSTRARE i tuoi dati a qualcuno, è' un'altra domanda: in quel
+ *
+ * Ma se il file serve a MOSTRARE i tuoi dati a qualcuno, e' un'altra domanda: in quel
+ * file finisce anche tutto il resto del database, cioe' le sedute, le serie e i pesi
+ * corporei dell'altra persona che usa l'app sullo stesso telefono. Nel backup di Ste
+ * (18/10/2026) c'erano 815 serie, di cui una di Andrea, e due pesi corporei.
+ *
+ * Qui si tiene la catena giusta: scheda -> versioni -> sedute -> serie. Le versioni di
+ * un'altra scheda non ci sono, quindi le sue sedute non possono essere raggiunte, quindi
+ * le sue serie non possono essere raggiunte. Non si toglie nulla a caso: si taglia dal
+ * ramo giusto.
+ *
+ * @param dati    il database intero, come lo dà `db.esportaTutto()`
+ * @param schedaId la scheda da tenere (quella della persona attiva)
+ */
+export function soloMiaScheda(dati, schedaId) {
+  if (!schedaId) return dati;
+  const t = { ...dati };
+  const schede = (dati.schede || []).filter((s) => s.id === schedaId);
+  const versioni = (dati.versioni || dati.versi || []).filter((v) => v.scheda_id === schedaId);
+  const idVersioni = new Set(versioni.map((v) => v.id));
+  const sedute = (dati.sedute || []).filter((s) => idVersioni.has(s.versione_id));
+  const idSedute = new Set(sedute.map((s) => s.id));
+  const serie = (dati.serie || []).filter((s) => idSedute.has(s.seduta_id));
+  return {
+    ...t,
+    schede,
+    versioni,
+    sedute,
+    serie,
+    // i profili e i pesi corporei sono per ACCOUNT, quindi servono gli id delle schede
+    profili: (dati.profili || []).filter((p) => schede.some((s) => (s.account_id || s.id) === p.id)),
+    pesi: (dati.pesi || []).filter((p) => schede.some((s) => (s.account_id || s.id) === p.account_id)),
+  };
+}
+
 export function csvSerie(serie, esercizi = [], sedute = []) {
   const perId = new Map();
   for (const e of esercizi) perId.set(e.id, e);
