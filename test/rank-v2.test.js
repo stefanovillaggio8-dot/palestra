@@ -1296,13 +1296,19 @@ test('V28. la scheda dice QUANDO hai fatto le serie, non solo quante', async () 
   assert.equal(gruppo.serie.length, 6, 'la seduta aperta non entra nel Rank');
 
   const r = recordEsercizio(gruppo.serie, esercizio, null, 66);
-  assert.match(r.testo, /6 serie in tutto: 3 del 17\/10 e 3 del 10\/10/,
-    `la scheda deve dire da dove vengono le 6 serie, ma dice: ${r.testo}`);
-  assert.doesNotMatch(r.testo, /\(6 serie\)/,
-    'e NON la vecchia "(6 serie)", che e\' quella che Ste non capiva');
+  // LA FRASE HA DUE NUMERI CON DUE RUOLI DIVERSI (Ste, 18/10/2026: "che senso ha dire 6
+  // serie in tutto?"). Il record nasce da UNA serie: il primo numero dice QUANDO l'hai
+  // fatta, il secondo dice QUANTE serie hai fatto in assoluto, e quel secondo numero non
+  // e' decorazione: e' il volume, che vale un bonus sul punteggio.
+  assert.match(r.testo, /del 17\/10/, `deve dire quando hai fatto la serie del record, ma dice: ${r.testo}`);
+  assert.match(r.testo, /volume: 6 serie/, `deve dire il volume, ma dice: ${r.testo}`);
+  assert.match(r.testo, /\(\+20%\)/, `e quanto il volume vale, ma dice: ${r.testo}`);
+  assert.doesNotMatch(r.testo, /serie in tutto/,
+    'e NON "6 serie in tutto": sembrava che il record nascesse da sei serie');
 
-  // con una sola giornata la frase deve nominare il giorno, senza ripetere "in tutto"
-  const soloVecchia = gruppiDaSerie([sedute[0]], serie.filter((s) => s.seduta_id === 's-vecchia'), ESERCIZI);
-  const r2 = recordEsercizio(soloVecchia.find((x) => x.esercizio_id === esercizio.id).serie, esercizio, null, 66);
-  assert.match(r2.testo, /3 serie del 10\/10/, `una sola giornata: deve dire il giorno, ma dice: ${r2.testo}`);
+  // una sola serie: c\'e\' il giorno ma non il volume, che non avrebbe senso
+  const soloUna = gruppiDaSerie([sedute[1]], [serie[3]], ESERCIZI);
+  const r2 = recordEsercizio(soloUna.find((x) => x.esercizio_id === esercizio.id).serie, esercizio, null, 66);
+  assert.match(r2.testo, /del 17\/10/, `una sola serie: deve dire il giorno, ma dice: ${r2.testo}`);
+  assert.doesNotMatch(r2.testo, /volume/, `e senza volume da parlare, ma dice: ${r2.testo}`);
 });

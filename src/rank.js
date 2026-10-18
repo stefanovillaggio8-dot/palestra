@@ -412,7 +412,7 @@ export function recordEsercizio(serie, esercizio, profilo = null, pesoAttuale = 
     pesoCorporeo: pesoDelGiorno,
   });
 if (nuovo && nuovo.valido) {
-    return recordDaMotoreNuovo(nuovo, esercizio, res, ripartizioneGiorni(serie));
+    return recordDaMotoreNuovo(nuovo, esercizio, res, giorniDelRecord(serie, nuovo));
   }
   // il motore nuovo non sa valutarlo (esercizio a ripetizioni, nessuna serie in kg):
   // si torna al vecchio, che in quel caso sa ancora dire qualcosa
@@ -497,45 +497,59 @@ function valutaConMotoreNuovo({ serie, esercizio, pesoCorporeo }) {
  * esserci TUTTI e con lo stesso significato, altrimenti una schermata mostra
  * "undefined" e non si capisce se È un bug o un campo nuovo.
  */
-// "(6 serie)" NON BASTAVA (Ste, 18/10/2026): "non ho capito la roba di 6 serie".
+// LA FRASE DELLA SCHEDA (Ste, 18/10/2026): prima "(6 serie)", poi "6 serie in tutto: 3 del
+// 17/10 e 3 del 10/10". Ste: "che senso ha dire 6 serie in tutto?". Aveva ragione due
+// volte: il record nasce da UNA serie, quindi un numero che ne conta sei accanto sembra
+// dire il contrario, e "in tutto" non spiega niente.
 //
-// Il numero era giusto: 6 = 3 serie del 10/10 più 3 del 17/10. Ma scritto così sembrava
-// che in un giorno ne avesse fatte 6, e lo diceva su ogni scheda, perché alle due volte a
-// settimana con tre serie per volta quel numero esce sempre. Adesso si scrive da dove
-// vengono: le tre serie del 17/10 e le tre del 10/10, dalla più recente.
+// Il SEI però non è decorazione: è il volume. Dai dati di Ste, 36,4 la serie migliore
+// da sola, 43,68 con le sei serie: +20%. E allora ogni numero ha un lavoro e la frase si
+// costruisce su due fatti: QUANDO hai fatto la serie che è il record, e QUANTE serie hai
+// fatto in assoluto per il bonus di volume.
 //
-// Il giorno arriva con `_giorno`, che `gruppiDaSerie` mette sulla serie senza salvarlo.
-// Qui non si può fare il conto perché `valutaEsercizio` non restituisce le sue serie.
-function ripartizioneGiorni(serie) {
+//  40 kg x 5 del 17/10 · volume 6 serie (+20%)
+function giorniDelRecord(serie, record) {
   const giorni = new Map();
-  for (const s of (serie || [])) {
-    // le stesse regole con cui il motore nuovo sceglie le serie: se una serie non
-    // conta per il Rank, non deve contare nemmeno nella frase che spiega il Rank
-    if (!s || s.eliminata) continue;
-    if (s.stato && s.stato !== 'fatta') continue;
-    if (s.spotter === true) continue;
+  const conta = (s) => {
+    if (!s || s.eliminata) return;
+    if (s.stato && s.stato !== 'fatta') return;
+    if (s.spotter === true) return;
     const g = String(s._giorno || '');
-    if (!g) continue;
+    if (!g) return;
     giorni.set(g, (giorni.get(g) || 0) + 1);
-  }
-  return giorni;
+  };
+  for (const s of (serie || [])) conta(s);
+// il giorno del record: la serie che fa il punteggio migliore. Non serve rifare il
+    // calcolo del motore: si cerca la serie con lo stesso carico e le stesse ripetizioni
+    // della migliore, e se ne prende il giorno più recente.
+  const stesse = (serie || []).filter((s) => s
+    && Number(s.peso_assistenza !== undefined && s.peso_assistenza !== null ? s.peso_assistenza : s.peso) === Number(record.caricoReale)
+    && Number(s.ripetizioni) === Number(record.ripetizioni)
+    && String(s._giorno || '') !== '');
+  const giornoRecord = stesse.length
+    ? stesse.map((s) => String(s._giorno)).sort((a, b) => b.localeCompare(a))[0]
+    : null;
+  return { giorni, giornoRecord };
 }
 
-function testoSerieChiaro(serieFatte, giorni) {
-  if (!(serieFatte > 1)) return '';
-  const righe = [...(giorni || new Map()).entries()].sort((a, b) => b[0].localeCompare(a[0]));
-  if (righe.length === 1) {
-    return ` (${serieFatte} serie del ${righe[0][0].slice(8, 10)}/${righe[0][0].slice(5, 7)})`;
-  }
-  if (righe.length > 1) {
-    const pezzi = righe.map(([g, n]) => `${n} del ${g.slice(8, 10)}/${g.slice(5, 7)}`);
-    return ` (${serieFatte} serie in tutto: ${pezzi.join(' e ')})`;
-  }
-  return ` (${serieFatte} serie)`;
+function dataBreve(iso) {
+  return `${String(iso).slice(8, 10)}/${String(iso).slice(5, 7)}`;
+}
+
+function testoSerieChiaro(record) {
+  const n = record.serieFatte;
+  const volume = record.scoreConSerie > record.score && record.score > 0
+    ? Math.round(((record.scoreConSerie / record.score) - 1) * 100)
+    : 0;
+  if (!(n > 1) && !record.giornoRecord) return '';
+  const pezzi = [];
+  if (record.giornoRecord) pezzi.push(`del ${dataBreve(record.giornoRecord)}`);
+  if (n > 1) pezzi.push(`volume: ${n} serie${volume > 0 ? ` (+${volume}%)` : ''}`);
+  return pezzi.length ? ` (${pezzi.join(' · ')})` : '';
 }
 
 function recordDaMotoreNuovo(r, esercizio, res, giorni = null) {
-const testoSerie = testoSerieChiaro(r.serieFatte, giorni);
+const testoSerie = testoSerieChiaro({ ...r, giornoRecord: giorni && giorni.giornoRecord });
   const prossimoObiettivo = r.distanza
     ? {
       etichetta: r.rank ? (R[r.indice + 1] || {}).nome || 'il prossimo' : 'BRONZE',
