@@ -1301,8 +1301,13 @@ test('V28. la scheda dice QUANDO hai fatto le serie, non solo quante', async () 
   // fatta, il secondo dice QUANTE serie hai fatto in assoluto, e quel secondo numero non
   // e' decorazione: e' il volume, che vale un bonus sul punteggio.
   assert.match(r.testo, /del 17\/10/, `deve dire quando hai fatto la serie del record, ma dice: ${r.testo}`);
-  assert.match(r.testo, /volume: 6 serie/, `deve dire il volume, ma dice: ${r.testo}`);
-  assert.match(r.testo, /\(\+20%\)/, `e quanto il volume vale, ma dice: ${r.testo}`);
+  // IL VOLUME E\' DELLA SEDUTA (Ste, 18/10/2026): "ma non sono 6 serie". Contare anche le
+  // tre serie del 10/10 insieme a quelle del 17/10 non e\' un volume: sono due
+  // allenamenti a una settimana di distanza. Il volume sono le serie di QUELLA seduta,
+  // cioe\' 3, non 6.
+  assert.match(r.testo, /volume: 3 serie/, `deve dire le serie di quella seduta, ma dice: ${r.testo}`);
+  assert.doesNotMatch(r.testo, /volume: 6 serie/,
+    'e NON le sei serie di sempre: due allenamenti diversi non sono un volume');
   assert.doesNotMatch(r.testo, /serie in tutto/,
     'e NON "6 serie in tutto": sembrava che il record nascesse da sei serie');
 

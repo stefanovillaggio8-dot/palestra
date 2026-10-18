@@ -104,7 +104,25 @@ export function valutaEsercizio({ esercizio, serie = [], pesoCorporeo = null, ri
     return { valido: false, motivo: 'soglie incoerenti', movimento, livello };
   }
 
-  const n = valutabili.length;
+  // IL VOLUME E' DELLA SEDUTA, NON DI SEMPRE (Ste, 18/10/2026): "ma non sono 6 serie".
+  //
+  // Il bonus contava TUTTE le serie di sempre: tre del 10/10 piu' tre del 17/10 facevano
+  // sei, e la scheda scriveva "volume: 6 serie (+20%)". Ma due allenamenti a una
+  // settimana di distanza non sono un volume: il volume e' quello che hai fatto IN QUELLA
+  // SEDUTA, cioe' quante serie hai spinto insieme alla serie che ti ha fatto il record.
+  //
+  // Quindi si conta la seduta della serie migliore. Se le serie non hanno un `seduta_id`
+  // (i test, e gli esercizi vecchi) si torna a contarle tutte: peglio il numero che
+  // avevamo prima che nessun numero.
+  const sedutaRecord = migliore.serie && migliore.serie.seduta_id;
+  const tutteInUnaSeduta = valutabili.length > 0
+    && valutabili.every((v) => v.serie && v.serie.seduta_id === sedutaRecord);
+  const n = sedutaRecord && tutteInUnaSeduta
+    ? valutabili.length
+    : (sedutaRecord
+      ? valutabili.filter((v) => v.serie && v.serie.seduta_id === sedutaRecord).length
+      : valutabili.length);
+  const nTotali = valutabili.length;
   const conVolume = migliore.score * moltiplicatoreSerie(n);
   const rank = rankDaScore(migliore.score, soglie, { serieFatte: n });
 
@@ -138,6 +156,7 @@ export function valutaEsercizio({ esercizio, serie = [], pesoCorporeo = null, ri
     score: migliore.score,
     scoreConSerie: Math.round(conVolume * 100) / 100,
     serieFatte: n,
+    serieTotali: nTotali,
     caricoReale: migliore.carico,
     ripetizioni: migliore.ripetizioni,
     ripetizioniPiene: migliore.ripetizioniPiene,
