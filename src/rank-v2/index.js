@@ -59,13 +59,31 @@ export function valutaEsercizio({ esercizio, serie = [], pesoCorporeo = null, ri
     };
   }
 
+  const zavorri = esercizio.convenzione === 'zavorri';
   const valutabili = [];
   for (const s of serie) {
     if (!s || s.eliminata) continue;
     if (s.esercizio_id && esercizio.id && s.esercizio_id !== esercizio.id) continue;
     if (s.stato && s.stato !== 'fatta') continue;
     if (s.spotter === true) continue;
-    const sc = scoreSerie({ peso: s.peso, ripetizioni: s.ripetizioni, esercizio });
+    // I KG DI ZAVORRI (16/10/2026). Il campo del peso è VUOTO su un dip o su una
+    // trazione: quello che scrivi è il carico della zavorra, e sta nel campo
+    // dell'assistenza (vedi la stessa regola in `rank.js`). Qui si leggeva solo `s.peso`,
+    // quindi nessuna serie risultava valutabile, `valutaEsercizio` rispondeva "nessuna
+    // serie registrata" e il Rank ripiegava sul motore VECCHIO: quello che ha dato a
+    // Ste l'OLYMPIAN sui dip.
+    //
+    // E si ragiona sui KG AGGIUNTI, non sul totale col corpo. È la scelta di Ste
+    // (16/10/2026): "il massimale mettilo per i pesi in più rispetto al mio corpo non in
+    // generale". Il corpo ce l'ha già tutto: quello che si misura è quello che hai
+    // appeso alla cintura, e sono gli stessi numeri che le macchine della palestra hanno
+    // nei piatti.
+    const carico = zavorri
+      ? (s.peso_assistenza !== null && s.peso_assistenza !== undefined && s.peso_assistenza > 0
+        ? s.peso_assistenza
+        : s.peso)
+      : s.peso;
+    const sc = scoreSerie({ peso: carico, ripetizioni: s.ripetizioni, esercizio });
     if (sc) valutabili.push({ serie: s, ...sc });
   }
   if (!valutabili.length) {

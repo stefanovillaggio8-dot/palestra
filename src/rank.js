@@ -507,7 +507,29 @@ function recordDaMotoreNuovo(r, esercizio, res) {
       distanza: r.distanza,
     }
     : null;
-  return {
+// IL MASSIMALE DEGLI ESERCIZI A ZAVORRI (Ste, 16/10/2026): "il massimale mettilo per
+  // i pesi in più rispetto al mio corpo non in generale".
+  //
+  // Prima la frase diceva "35 kg di zavorri + 66 kg del tuo corpo x 8 = 101 kg
+  // (massimale 127,93 kg)": il massimale del peso TOTALE, cioè di una stima che metteva
+  // dentro anche il tuo corpo, che non è mai stato sollevato da niente.
+  //
+  // Adesso si ragiona sui kg AGGIUNTI, che sono gli unici numeri che in palestra
+  // esistono davvero: sono quelli che metti sui piatti, e sono gli stessi con cui sono
+  // tarate le soglie. Il massimale si stima quindi sui kg aggiunti (Epley) e non si
+  // somma il corpo.
+  const testoZavorri = esercizio.convenzione === 'zavorri'
+    ? (() => {
+      const stima = stimaMassimo(r.caricoReale, r.ripetizioni);
+      const numero = Number.isFinite(stima) ? Math.round(stima * 10) / 10 : null;
+      const scritto = numero === null ? '' : String(numero).replace('.', ',');
+      return numero === null
+        ? `${r.caricoReale} kg di zavorri x ${r.ripetizioni}${testoSerie}`
+        : `${r.caricoReale} kg di zavorri x ${r.ripetizioni}${testoSerie} = massimale `
+          + `${scritto} kg (solo i kg aggiunti, non il tuo corpo)`;
+    })()
+    : `${r.caricoReale} kg x ${r.ripetizioni}${testoSerie}`;
+return {
     esercizio,
     profilo: res.profilo,
     valido: true,
@@ -525,7 +547,7 @@ function recordDaMotoreNuovo(r, esercizio, res) {
     // "undefined" perchÈ si aspettavano quei nomi.
     score: r.score,
     scoreConSerie: r.scoreConSerie,
-    testo: `${r.caricoReale} kg x ${r.ripetizioni}${testoSerie}`,
+    testo: testoZavorri,
     serieFatte: r.serieFatte,
     bonusSerie: 0,
     bonusBloccato: !!r.volumeBloccato,

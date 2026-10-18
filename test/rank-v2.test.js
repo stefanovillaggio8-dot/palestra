@@ -410,9 +410,7 @@ test('V16. l\'app usa il motore NUOVO, e il vecchio non regala pi\' OLYMPIAN', (
   assert.equal(record.rank.nome, nuovo.rank.nome,
     'l\'app e il motore nuovo devono dire lo stesso Rank: due sistemi, una risposta');
   assert.equal(record.lp, nuovo.lp, 'e gli stessi LP');
-// Le trazioni sono ZAVORRI, non assistenza (Ste, 13/10/2026). Il motore nuovo
-  // non le sa valutare, quindi l'app torna al vecchio: e il vecchio deve
-  // sommare i kg di zavorra al corpo, non contarli al contrario.
+// Le trazioni sono ZAVORRI, non assistenza (Ste, 13/10/2026).
   const trazioni = ESERCIZI.find((e) => /pull ups/i.test(e.nome));
   assert.equal(trazioni.convenzione, 'zavorri',
     'le trazioni devono essere zavorri: i kg che metti sono addosso a te, non kg che la macchina ti toglie');
@@ -421,16 +419,31 @@ test('V16. l\'app usa il motore NUOVO, e il vecchio non regala pi\' OLYMPIAN', (
     [{ id: 's', esercizio_id: trazioni.id, stato: 'fatta', peso: null, ripetizioni: 7 }],
     trazioni, null, 66);
   assert.equal(senzaZavorra.valido, false,
-    'senza i kg di zavorra non c\'e\' niente da valutare: prima tornava un record vuoto');
+    'senza i kg di zavorra non c\'è niente da valutare: prima tornava un record vuoto');
 
   const conZavorra = recordEsercizio(
     [{ id: 's', esercizio_id: trazioni.id, stato: 'fatta', peso: null, peso_assistenza: 20, ripetizioni: 7 }],
     trazioni, null, 66);
-  assert.equal(conZavorra.motore, 'vecchio',
-    'le trazioni non si valutano in kg col motore nuovo: l\'app torna al vecchio');
-  assert.match(conZavorra.testo, /20 kg di zavorri \+ 66 kg del tuo corpo/,
-    'i kg di zavorra si sommano al corpo: 20 kg di zavorra non sono 20 kg di lavoro');
-  assert.ok(conZavorra.rank, 'con i zavorri scritti la trazione ha un Rank, prima non lo aveva');
+  // IL VECCHIO TEST QUI DICEVA "motore: vecchio" (16/10/2026). Ste ha mandato la foto
+  // del Rank dei dip: OLYMPIAN, "massimale 127,93", "+8% per 6 serie", costruite dal
+  // motore vecchio. La causa era qui: il motore nuovo leggeva solo il campo `peso`, che
+  // su un esercizio a zavorri è VUOTO (i kg stanno in `peso_assistenza`), quindi nessuna
+  // serie risultava valutabile e si ripiegava sul vecchio.
+  assert.equal(conZavorra.motore, 'nuovo',
+    'le trazioni con i zavorri scritti si valutano col motore NUOVO: il vecchio regalava '
+    + 'l\'OLYMPIAN e un massimale calcolato sul totale col corpo');
+  assert.ok(conZavorra.rank, 'con i zavorri scritti la trazione ha un Rank');
+  // e il Rank ragiona sui SOLI kg aggiunti (Ste: "il massimale mettilo per i pesi in più
+  // rispetto al mio corpo non in generale"), quindi 20 kg di zavorra non si sommano al
+  // corpo. Il punteggio non è 20 esatto perché 7 ripetizioni non sono 8: il motore le
+  // porta a "ripetizioni piene", e il conto si chiude su 19,48.
+  assert.ok(conZavorra.punteggio > 15 && conZavorra.punteggio < 25,
+    `il punteggio deve venire dai 20 kg AGGIUNTI (qui ${conZavorra.punteggio}), non dal `
+    + 'totale col corpo: con 20 + 66 kg sarebbe stato intorno a 80');
+  assert.ok(conZavorra.punteggio < (20 + 66) * 0.35,
+    'e non può essere il totale col corpo moltiplicato per le ripetizioni');
+  assert.notEqual(conZavorra.rank.nome, 'OLYMPIAN',
+    `20 kg di zavorra non possono dare l'OLYMPIAN, ma dice ${conZavorra.rank.nome}`);
 });
 test('V17. la doppia carrucola dimezza SEMPRE, anche con un braccio solo', async () => {
   // Ste, 15/10/2026: "i 28kg del reverse fly sono doppia carrucola lo sai no?". Ha

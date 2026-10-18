@@ -581,13 +581,22 @@ export const VALORI_MOVIMENTO = {
   // I DIP NON SONO UN COMPOSTO DA BILANCIERE. La convenzione e' `zavorri`, quindi il
   // punteggio del motore somma gia' il peso del corpo: l'ingresso e' il corpo e basta
   // (0 kg aggiunti, 1,0x) e il tetto e' dove arrivano le trazioni coi zavorri vere.
+  // IL RANK DEI DIP E DELLE TRAZIONI E' IN KG AGGIUNTI (16/10/2026).
+  //
+  // Ste: "il massimale mettilo per i pesi in più rispetto al mio corpo non in generale".
+  // Il corpo te lo porti appreso: quello che conta, e che si mette sui piatti, e' quello
+  // che hai appeso alla cintura. Quindi qui `multiplo` e `ingressoMultiplo` sono
+  // moltiplicatori del peso del corpo ma SI RIFERISCONO AI SOLI KG AGGIUNTI:
+  // l'ingresso e' 0,08x (una cintura leggera, circa 5 kg su corpo 66) e il tetto e'
+  // 0,95x (circa 63 kg aggiunti, che e' il territory delle trazioni e dei dip con
+  // zavorri forti, non un bilanciere da 100 kg).
   spinta_corpo_libero: {
-    multiplo: 1.85, ingressoMultiplo: 1.0, fonte: 'stima',
-    nota: 'Dip coi zavorri: il punteggio e\' il peso aggiunto PIU\' il corpo, quindi l\'ingresso e\' 1,0x (solo corpo, zero zavorri). Il tetto 1,85x viene dai 40 kg di zavorri che Ste fa sui dip (40 + 66 = 106 kg = 1,61x), che devono stare intorno all\'ORO, non al massimo: il bronzo non puo\' richiedere 47 kg di zavorri come chiedeva la scala sbagliata.',
+    multiplo: 0.95, ingressoMultiplo: 0.08, fonte: 'stima',
+    nota: 'Dip coi zavorri: il punteggio sono i SOLI kg aggiunti (vedi `valutaEsercizio`), quindi il tetto 0,95x sono 63 kg di zavorri su corpo 66. I 35 kg di Ste stanno a meta\' scala: e\' un numero forte, ma le trazioni con la cintura caricata passano molto piu\' in la. Prima questa scala chiedeva 47 kg di zavorri per il BRONZE, e il motore vecchio regalava l\'OLYMPIAN a tutti i costi.',
   },
   tirata_verticale_corpo: {
-    multiplo: 1.85, ingressoMultiplo: 1.0, fonte: 'stima',
-    nota: 'Trazioni coi zavorri: stessa base dei dip (ingresso 1,0x = solo corpo). Ste: "nelle trazioni non vengo manco assistito, mi appendo e basta", quindi l\'ingresso e\' il peso del corpo e il tetto e\' quello delle trazioni coi zavorri, non un bilanciere con 100 kg.',
+    multiplo: 0.95, ingressoMultiplo: 0.08, fonte: 'stima',
+    nota: 'Trazioni coi zavorri: stessa base dei dip. Ste: "nelle trazioni non vengo manco assistito, mi appendo e basta", quindi non c\'e\' un peso da bilanciere sotto, ma quello che appendi alla cintura. Ingresso 0,08x (cintura leggera), tetto 0,95x.',
   },
   corpo_libero: {
     multiplo: 0, fonte: 'nessuno',
