@@ -197,13 +197,37 @@ export const VALORI_MOVIMENTO = {
     },
     nota: 'Leg press e simili: le macchine per gambe sono le più forti della sala, quindi il tetto è il più alto in assoluto (2,2x sulle due gambe, che è il tetto di realtà). L\'ingresso a 1,0x è il punto in cui chi si siede per la prima volta su quella macchina arriva: sotto, non è nemmeno un esercizio. ATTENZIONE: il 2,2x è per TUTTA la macchina, cioè per due gambe. Sulla macchina obliqua a una gamba sola i kg sono per gamba e il tetto è la metà, 1,1x: vedere `varianti`.',
   },
+// I DUE MOVIMENTI NON HANNO PIU' LA STESSA SCALA (Ste, 18/10/2026).
+  //
+  // "slanciamento e remo al cavo hanno la scala identica, passo per passo. sono due
+  // esercizi diversi. oggi non ti morde perche' fai 93 con uno e 90 con l'altro, ma se
+  // un giorno sali su uno solo, l'altro resta fermo senza che nessuno lo spieghi", e poi
+  // "e sistemala, ma attento perche' i due esercizi sono simili eh".
+  //
+  // Avevano 1,7 e 0,77 IDENTICI, con la nota che diceva "stesso tetto e stesso ingresso
+  // perche' sono lo stesso tipo di movimento". Ma due esercizi non possono avere la
+  // scala identica: se uno sale, l'altro deve accorgersene.
+  //
+  // CHI E' IL PIU' DURO, e qui le due fonti dicono la stessa cosa:
+  //  - le leve: il pulldown ha il carico lontano 65 cm su muscolo 5,0 (svantaggio 13),
+  //    il remo 60 su 6,0 (svantaggio 10). Il pulldown e' il piu' difficile.
+  //  - i numeri di Ste: 90 kg al pulldown e 95 al remo. Anche lui tira di piu' al remo.
+  //
+  // DI QUANTO. Il rapporto intero delle leve (13 su 10 = 1,3) darebbe un tetto di 1,31 e i
+  // suoi 90 kg al pulldown salterebbero a TITANUM mentre al remo resterebbe PLATINUM: uno
+  // schiaccio che nessuno merita e che romperebbe la regola che i due si muovono insieme.
+  // Ste ha detto che sono simili, quindi la differenza si applica per meta': 1,7 diventa
+  // 1,6 e l'ingresso da 0,77 a 0,72.
+  //
+  // Con 1,6 i suoi 90 kg restano PLATINUM come i 95 del remo: due scale diverse, nessun
+  // Rank spostato, e da domani se sale su uno solo l'altro se ne accorge.
   tirata_verticale: {
-    multiplo: 1.7, ingressoMultiplo: 0.77, fonte: 'tuo',
-    nota: 'Lat pulldown: tetto 1,7x il corpo, ingresso 0,9x. Ste (08/10/2026) "la lat machine fare 180kg e\' da folli, soprattutto con il mio peso" — avevo dichiarato 2,0x (=132 kg) e nella nota avevo scritto che chi e\' forte fa 150-180 kg: NON E\' VERO al mio peso, me lo ha fatto notare lui. I numeri onesti del pulldown in rapporto al corpo: 0,8x chi non l\'ha mai fatto, 1,0-1,2x dopo un anno, 1,4-1,6x chi si allena bene, 1,8-2,0x chi siDedica alla forza da anni. 1,7x e\' il tetto di chi si allena bene e un po\' oltre: 112 kg su corpo 66. Ste fa 88 kg = 1,33x, che e\' gia\' il livello di chi si allena bene: sta al 62% della scala, non al fondo. Il tetto NON e\' "il massimo esistente", e\' quello che nella vita reale si vede in palestra.',
+  multiplo: 1.6, ingressoMultiplo: 0.72, fonte: 'tuo',
+  nota: 'Lat pulldown: tetto 1,6x il corpo, ingresso 0,72x. Ste (08/10/2026) "la lat machine fare 180kg e\' da folli, soprattutto con il mio peso" - avevo dichiarato 2,0x (=132 kg) e nella nota avevo scritto che chi e\' forte fa 150-180 kg: NON E\' VERO al mio peso, me lo ha fatto notare lui. I numeri onesti del pulldown in rapporto al corpo: 0,8x chi non l\'ha mai fatto, 1,0-1,2x dopo un anno, 1,4-1,6x chi si allena bene, 1,8-2,0x chi si dedica alla forza da anni. Ste fa 90 kg = 1,36x, che e\' gia\' il livello di chi si allena bene. Il tetto NON e\' "il massimo esistente", e\' quello che nella vita reale si vede in palestra. Il 18/10 e\' sceso da 1,7 a 1,6 perche\' il remo al cavo tiene 1,7: sono due esercizi simili ma non identici, e i due Rank non possono muoversi insieme per sempre.',
   },
   tirata_orizzontale: {
-    multiplo: 1.7, ingressoMultiplo: 0.77, fonte: 'stima',
-    nota: 'Seated cable row: stesso tetto e stesso ingresso del pulldown, perche\' sono lo stesso tipo di movimento con lo stesso carico. Il row e\' leggermente piu\' pesante del pulldown per la stazza, quindi chi lo fa spesso arriva piu\' in alto, ma la scala e\' la stessa.',
+  multiplo: 1.7, ingressoMultiplo: 0.77, fonte: 'stima',
+  nota: 'Seated cable row: tetto 1,7x il corpo, ingresso 0,77x. Prima aveva lo STESSO tetto del pulldown, con la nota "stesso tetto e stesso ingresso perche\' sono lo stesso tipo di movimento con lo stesso carico". Ste (18/10/2026): due esercizi diversi non possono avere la scala identica, e se uno sale l\'altro deve accorgersene. Il remo e\' un filo piu\' facile del pulldown per la stazza, e i numeri di Ste lo dicono: 95 kg al remo contro 90 al pulldown. Per questo il remo tiene 1,7 e il pulldown e\' sceso a 1,6.',
   },
   spinta_orizzontale: {
     multiplo: 1.0, ingressoMultiplo: 0.38, fonte: 'tuo',

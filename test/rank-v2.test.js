@@ -1408,3 +1408,50 @@ test('V30. il record e\' il peso piu\' alto, ma solo con 5 ripetizioni o piu\' (
   });
   assert.equal(r4.valido, true, 'con tutte le serie sotto le 5 ce n\'e\' comunque una record');
 });
+
+test('V31. due esercizi diversi non possono avere la scala identica (Ste, 18/10/2026)', async () => {
+  // "slanciamento e remo al cavo hanno la scala identica, passo per passo. sono due
+  // esercizi diversi. oggi non ti morde perche' fai 93 con uno e 90 con l'altro, ma se un
+  // giorno sali su uno solo, l'altro resta fermo senza che nessuno lo spieghi", e poi
+  // "e sistemala, ma attento perche' i due esercizi sono simili eh".
+  //
+  // Avevano 1,7 e 0,77 IDENTICI, con la nota che diceva "stesso tetto e stesso ingresso
+  // perche' sono lo stesso tipo di movimento". E non e' un dettaglio: se due esercizi
+  // hanno la scala uguale, la salita di uno non muove mai l'altro, che e\' esattamente
+  // quello che Ste ha descritto.
+  const { VALORI_MOVIMENTO } = await import('../src/rank-v2/valori.js');
+  const { valutaEsercizio } = await import('../src/rank-v2/index.js');
+  const { ESERCIZI } = await import('../src/dati-iniziali.js');
+
+  const verticale = VALORI_MOVIMENTO.tirata_verticale;
+  const orizzontale = VALORI_MOVIMENTO.tirata_orizzontale;
+  assert.notEqual(orizzontale.multiplo, verticale.multiplo,
+    'pulldown e remo non possono avere lo stesso tetto');
+  assert.notEqual(orizzontale.ingressoMultiplo, verticale.ingressoMultiplo,
+    'ne\' lo stesso ingresso');
+  // e la differenza deve essere PICCOLA, perche\' i due esercizi sono simili: non un
+  // abisso, che farebbe saltare un Rank da Platino a Titanum senza merito
+  const quanto = Math.abs(orizzontale.multiplo - verticale.multiplo) / verticale.multiplo;
+  assert.ok(quanto <= 0.12,
+    `la differenza deve essere piccola (i due esercizi sono simili), ma qui e\' del `
+    + `${Math.round(quanto * 100)}%: troppo, sposta i Rank di colpo`);
+
+  // e i Rank di Ste non si spostano: 90 kg al pulldown e 95 al remo restano uguali
+  const N = ['BRONZE', 'SILVER', 'GOLD', 'PLATINUM', 'DIAMOND', 'TITAN', 'OLYMPIAN'];
+  const reso = (nome, kg) => {
+    const e = ESERCIZI.find((x) => x.nome === nome);
+    const r = valutaEsercizio({
+      esercizio: e,
+      serie: [{ esercizio_id: e.id, stato: 'fatta', ordine: 1, peso: kg, ripetizioni: 6, spotter: false, carrucola: null }],
+      pesoCorporeo: 66,
+    });
+    return N[r.rank.indice];
+  };
+  assert.equal(reso('Lat Pulldown macchina', 90), reso('Seated Cable Row', 95),
+    'i suoi numeri restano nello stesso livello: la differenza non deve spostare nessuno');
+
+  // ma se uno sale, l'altro se ne accorge: il remo con 110 kg non puo' restare sotto
+  // il pulldown con 90, perche' non hanno la scala giusta uguale
+  assert.notEqual(reso('Seated Cable Row', 130), reso('Lat Pulldown macchina', 90),
+    'caricando il remo verso il tetto, il suo Rank deve staccare');
+});
