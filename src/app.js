@@ -5163,7 +5163,13 @@ function bloccoAvatarRpg(profilo, st) {
 
   // ---- la classe
   const sceltaClasse = rpg.classe || classeConsigliata(rpg.base);
-  box.appendChild(el('h2', { testo: 'Il tuo avatar' }));
+  // IL TITOLO DI QUESTA SEZIONE (Ste, 19/10/2026): "RPG: pulsanti delle classi
+  // allineati e titolo cambiato in 'Classe e statistiche RPG'".
+  //
+  // Prima diceva solo "Il tuo avatar", che e' la foto: non diceva che qui sotto ci sono
+  // le statistiche del personaggio e la classe che puoi cambiare. Con il nuovo titolo la
+  // sezione si presenta da sola, e i pulsanti delle classi si capiscono senza doverli provare.
+  box.appendChild(el('h2', { testo: 'Classe e statistiche RPG' }));
   if (!rpg.classe) {
     // "Con i numeri di adesso ti viene il Guerriero" non diceva niente: non WHICH
     // numeri, non PERCHÉ quel Guerriero, non cosa cambia scegliendolo.
