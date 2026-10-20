@@ -141,17 +141,17 @@ test('B6. gli errori di sincronizzazione non vengono azzerati subito', async () 
     'e lo stato esplicito deve vincere su "da_salvare"');
   const syncSrc = await readFile(new URL('../src/sync.js', import.meta.url), 'utf8');
   // la sync registra gli errori e i conflitti: ogni scrittura di quei due stati
-  // deve passare seguiErrore, altrimenti db.salva li azzera subito dopo
+  // deve passare attraverso db.aggiornaSe, altrimenti db.salva li azzera subito dopo
   const scriveErrore = syncSrc.match(/sync: 'errore'/g) || [];
   const scriveConflitto = syncSrc.match(/sync: 'conflitto'/g) || [];
   const scriveInCorso = syncSrc.match(/sync: 'in_corso'/g) || [];
   assert.ok(scriveErrore.length >= 1, 'la sync registra gli errori');
   assert.ok(scriveConflitto.length >= 2, 'e i conflitti, in due posti (manda e tira)');
   assert.ok(scriveInCorso.length >= 1, 'e lo stato "in_corso" mentre spedisce');
-  const conSegui = (syncSrc.match(/seguiErrore: true/g) || []).length;
-  assert.equal(conSegui, scriveErrore.length + scriveConflitto.length,
-    `le scritture di errore e conflitto devono passare seguiErrore:true. `
-    + `Trovate ${conSegui} su ${scriveErrore.length + scriveConflitto.length} attese: `
-    + 'senza, un conflitto viene ritentato ogni 45 secondi per sempre e la lista '
+  const conAggiornaSe = (syncSrc.match(/db\.aggiornaSe\(/g) || []).length;
+  assert.ok(conAggiornaSe >= scriveErrore.length + scriveConflitto.length,
+    `le scritture di errore e conflitto devono usare db.aggiornaSe. `
+    + `Trovate ${conAggiornaSe} su ${scriveErrore.length + scriveConflitto.length} attese: `
+    + 'senza, un conflitto viene ritentata ogni 45 secondi per sempre e la lista '
     + 'dei conflitti cresce all\'infinito.');
 });

@@ -247,7 +247,7 @@ test('B10. importare un backup non cancella i campi che il backup non ha', () =>
 test('B11. il ramo "identico" non alza il numero di revisione', () => {
   // IL DIFETTO. Tutti gli altri rami del ciclo di invio passano `segna: false`,
   // perché senza quello `db.salva` rimette la riga in coda e alza `rev` di uno. Il
-  // ramo "identico" no: `rev` saliva senza che fosse stato mandato niente, e il
+  // ramo "identico" no: `rev` saliva senza che fosse stato mando niente, e il
   // numero locale diventava maggiore di quello del server.
   //
   // Il danno è PERMANENTE e silenzioso: in `applicaRemote` c'è
@@ -258,7 +258,7 @@ test('B11. il ramo "identico" non alza il numero di revisione', () => {
   const pezzo = srcSync.slice(i, i + 700);
   const fineRamo = pezzo.indexOf('continue;');
   const ramo = pezzo.slice(0, fineRamo);
-  assert.match(ramo, /segna: false/, 'il ramo "identico" deve salvare con segna: false');
+  assert.match(ramo, /confermaInvio/, 'il ramo "identico" deve usare confermaInvio');
 });
 
 // ---- 12. IL CRASH NEI PROGRESSI ----

@@ -99,6 +99,10 @@ create table if not exists public.serie (
   device_id          text
 );
 
+-- L'RPG distingue i minuti inseriti adesso dai secondi conservati nei vecchi dati.
+-- Su database già creati la colonna viene aggiunta senza toccare le serie esistenti.
+alter table public.serie add column if not exists durata_unita text;
+
 create table if not exists public.note (
   id           text primary key,
   user_id      uuid not null references auth.users on delete cascade,

@@ -83,10 +83,15 @@ export async function sincronizza() {
   avvisa();
   const esito = { inviati: 0, ricevuti: 0, conflitti: 0, errori: 0 };
   try {
-    esito.ricevuti = await tira();
-    esito.conflitti = await manda();
+    const scaricati = await tira();
+    esito.ricevuti = scaricati.ricevuti;
+    esito.conflitti += scaricati.conflitti;
+    const inviati = await manda();
+    esito.inviati = inviati.inviati;
+    esito.conflitti += inviati.conflitti;
+    esito.errori += inviati.errori;
   } catch (e) {
-    esito.errori = 1;
+    esito.errori++;
     esito.messaggio = e && e.message ? e.message : String(e);
   } finally {
     inCorso = false;
@@ -97,53 +102,118 @@ export async function sincronizza() {
 
 /** Manda in alto le modifiche pendenti, una alla volta. */
 async function manda() {
-  let conflitti = 0;
+  const esito = { inviati: 0, conflitti: 0, errori: 0 };
   const coda = await db.codaDiInvio();
   for (const { tabella, riga } of coda) {
+    // Il record potrebbe essere stato modificato dopo la lettura della coda.
+    // La transazione condizionale evita di spedire una fotografia vecchia o di
+    // rimettere in corso una modifica che un'altra scheda ha già aggiornato.
+    const avviata = await db.aggiornaSe(
+      tabella,
+      riga.id,
+      (attuale) => attuale
+        && (attuale.sync === 'da_salvare' || attuale.sync === 'errore')
+        && Number(attuale.rev || 0) === Number(riga.rev || 0)
+        && attuale.updated_at === riga.updated_at,
+      (attuale) => ({
+        ...attuale,
+        sync: 'in_corso',
+        tentativi: Number(attuale.tentativi || 0) + 1,
+      }),
+    );
+    if (!avviata) continue;
+
     try {
-      await db.salva(tabella, { ...riga, sync: 'in_corso', tentativi: Number(riga.tentativi || 0) + 1 });
-      let remoto = null;
-      try { remoto = await sb.leggiUno(tabella, riga.id); } catch { /* si prova comunque */ }
+      // Se la lettura fallisce non si può sapere se il server abbia una versione
+      // più nuova: fermarsi qui evita che un successivo upsert la sovrascriva.
+      const remoto = await sb.leggiUno(tabella, riga.id);
       const decisione = decidiPush(riga, remoto);
       if (decisione === 'conflitto') {
-        await registraConflitto(tabella, riga, remoto);
-        await db.salva(tabella, { ...riga, sync: 'conflitto' }, { seguiErrore: true });
-        conflitti++;
+        const idConflitto = await registraConflitto(tabella, riga, remoto);
+        const marcata = await db.aggiornaSe(
+          tabella,
+          riga.id,
+          (attuale) => attuale && attuale.sync === 'in_corso'
+            && Number(attuale.rev || 0) === Number(riga.rev || 0)
+            && attuale.updated_at === riga.updated_at,
+          (attuale) => ({ ...attuale, sync: 'conflitto' }),
+        );
+        if (marcata) esito.conflitti++;
+        else await archiviaConflittoSuperato(idConflitto);
         continue;
       }
       if (decisione === 'identico') {
-        // IL `{ segna: false }` CHE MANCAVA.
-        //
-        // Tutti gli altri rami di questo ciclo passano `segna: false`, perché senza
-        // quello `db.salva` rimette la riga in coda di invio e alza `rev` di uno. In
-        // questo ramo la riga NON è stata inviata (è già identica al remoto): se la
-        // si salva con la segna, `rev` sale senza che sia successo niente e il
-        // numero locale diventa maggiore di quello del server.
-        //
-        // Il danno è permanente e silenzioso: in `applicaRemote` c'è
-        // `if (revRemoto < revLocale) return { azione: 'ignora' }`, quindi da quel
-        // momento tutte le modifiche che arrivano dagli altri dispositivi su quella
-        // riga vengono scartate per sempre. Capita quando la rete va a buon fine ma
-        // la scrittura locale finale fallisce: ed è esattamente il caso che tutto il
-        // resto di questo file cerca di coprire.
-        await db.salva(tabella, dopoInvioRiuscito(riga, Number(riga.rev || 0)), { segna: false });
+        // Il server ha già la stessa revisione: si conferma in locale senza
+        // riscriverla né incrementarne la revisione.
+        await confermaInvio(tabella, riga, Number(riga.rev || 0));
         continue;
       }
       const nuovoRev = Number(riga.rev || 1);
       await sb.scrivi(tabella, { ...rigaPerInvio(riga), rev: nuovoRev });
-      // la coda si svuota SOLO qui, dopo la conferma del database
-      await db.salva(tabella, dopoInvioRiuscito(riga, nuovoRev), { segna: false });
+      // La coda si svuota solo dopo la conferma. Se nel frattempo la riga è
+      // cambiata, la modifica più nuova resta in coda con la base aggiornata.
+      await confermaInvio(tabella, riga, nuovoRev);
+      esito.inviati++;
     } catch (e) {
-      const tentativi = Number(riga.tentativi || 0) + 1;
-      await db.salva(tabella, {
-        ...riga,
-        sync: 'errore',
-        ultimo_errore: e && e.message ? e.message : String(e),
-        tentativi,
-      }, { seguiErrore: true });
+      const messaggio = e && e.message ? e.message : String(e);
+      await db.aggiornaSe(
+        tabella,
+        riga.id,
+        (attuale) => attuale && attuale.sync === 'in_corso'
+          && Number(attuale.rev || 0) === Number(riga.rev || 0)
+          && attuale.updated_at === riga.updated_at,
+        (attuale) => ({ ...attuale, sync: 'errore', ultimo_errore: messaggio }),
+      );
+      esito.errori++;
     }
   }
-  return conflitti;
+  return esito;
+}
+
+function stessaVersione(a, b) {
+  return !!a && !!b
+    && Number(a.rev || 0) === Number(b.rev || 0)
+    && a.updated_at === b.updated_at;
+}
+
+function stessaRigaAttesa(attuale, attesa) {
+  if (!attesa) return !attuale;
+  return stessaVersione(attuale, attesa) && attuale.sync === attesa.sync;
+}
+
+/**
+ * Registra la conferma remota senza cancellare un'eventuale modifica fatta
+ * mentre la richiesta era in viaggio.
+ */
+async function confermaInvio(tabella, snapshot, revRemoto) {
+  const baseAttesa = Number(snapshot.base_rev || 0);
+  const revSpedita = Number(snapshot.rev || 0);
+  return db.aggiornaSe(
+    tabella,
+    snapshot.id,
+    (attuale) => {
+      if (!attuale) return false;
+      if (attuale.sync === 'in_corso' && stessaVersione(attuale, snapshot)) return true;
+      return (attuale.sync === 'da_salvare' || attuale.sync === 'errore')
+        && Number(attuale.rev || 0) > revSpedita
+        && Number(attuale.base_rev || 0) === baseAttesa;
+    },
+    (attuale) => {
+      if (attuale.sync === 'in_corso' && stessaVersione(attuale, snapshot)) {
+        return dopoInvioRiuscito(attuale, revRemoto);
+      }
+      return { ...attuale, base_rev: revRemoto, sync: 'da_salvare' };
+    },
+  );
+}
+
+async function archiviaConflittoSuperato(id) {
+  await db.aggiornaSe(
+    'conflitti',
+    id,
+    (conflitto) => conflitto && conflitto.stato === 'da_scegliere',
+    (conflitto) => ({ ...conflitto, stato: 'superato', risolto_il: adesso() }),
+  );
 }
 
 async function registraConflitto(tabella, locale, remoto) {
@@ -156,6 +226,7 @@ async function registraConflitto(tabella, locale, remoto) {
 async function tira() {
   const dopo = localStorage.getItem(CHIAVE_ULTIMO_PULL) || null;
   let ricevuti = 0;
+  let conflitti = 0;
   try {
     const modificati = await sb.prendiModificate(TABELLE_SINCRONIZZATE, dopo);
     for (const t of TABELLE_SINCRONIZZATE) {
@@ -163,11 +234,23 @@ async function tira() {
         const locale = await db.prendi(t, remoto.id);
         const esito = applicaRemote(locale, remoto);
         if (esito.azione === 'applica') {
-          await db.salva(t, esito.riga, { segna: false });
-          ricevuti++;
+          const applicata = await db.aggiornaSe(
+            t,
+            remoto.id,
+            (attuale) => stessaRigaAttesa(attuale, locale),
+            () => esito.riga,
+          );
+          if (applicata) ricevuti++;
         } else if (esito.azione === 'conflitto') {
-          await registraConflitto(t, locale, remoto);
-          await db.salva(t, { ...locale, sync: 'conflitto' }, { seguiErrore: true });
+          const idConflitto = await registraConflitto(t, locale, remoto);
+          const marcata = await db.aggiornaSe(
+            t,
+            remoto.id,
+            (attuale) => stessaRigaAttesa(attuale, locale),
+            (attuale) => ({ ...attuale, sync: 'conflitto' }),
+          );
+          if (marcata) conflitti++;
+          else await archiviaConflittoSuperato(idConflitto);
         }
       }
     }
@@ -176,7 +259,7 @@ async function tira() {
     // se il download fallisce si riprova dopo: niente viene perso
     throw new Error('Non sono riuscito a scaricare gli aggiornamenti. Riprovo.');
   }
-  return ricevuti;
+  return { ricevuti, conflitti };
 }
 
 /** Ste sceglie quale versione tenere. */

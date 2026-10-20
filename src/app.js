@@ -24,7 +24,7 @@ import { ESERCIZI, SCHEDA_ID, SCHEDA_NOME, PERSONE, CONTATTI, accountId, chiSei,
 import { nuovoId, adesso, TABELLE, riallineaEsercizi } from './sincronizzazione.js';
 // --- il gioco: rank, LP, streak, Aura, missioni, amici ---
 import { statoAccount, ricompenseAllenamento, gruppiDaSerie } from './gioco.js';
-import { calcolaAvatar, CLASSI, classeConsigliata, eCardio, nomePremio, statoVisivo, percorsoStato, schedaProgressione, STATI_IMMAGINE } from './avatar-rpg.js';
+import { calcolaAvatar, CLASSI, classeConsigliata, eCardio, minutiDiCardio, nomePremio, statoVisivo, percorsoStato, schedaProgressione, STATI_IMMAGINE } from './avatar-rpg.js';
 import { haSigillo, creaSigillo, verificaSigillo } from './sigillo-classe.js';
 import { isoGiorno } from './streak.js';
 import { suona, sbloccaAudio, audioSpento, impostaAudioSpento } from './audio.js';
@@ -954,6 +954,17 @@ function vistaHome(zona) {
   }
   const giorni = (v.snapshot && v.snapshot.giorni) || [];
 
+  // La scheda ha un ordine: mostra quale giorno viene dopo l'ultima seduta
+  // completata nella versione attuale, senza cambiare l'ordine o avviare nulla.
+  const seduteCompletate = seduteDellaPersona()
+    .filter((s) => s && !s.eliminata && s.stato === 'completata' && s.versione_id === v.id)
+    .sort((a, b) => String(b.ora_fine || b.data || '').localeCompare(String(a.ora_fine || a.data || '')));
+  const ultimaGiornataId = seduteCompletate[0] && seduteCompletate[0].giorno_id;
+  const indiceUltimaGiornata = giorni.findIndex((g) => g.id === ultimaGiornataId);
+  const indiceProssimaGiornata = giorni.length
+    ? (indiceUltimaGiornata < 0 ? 0 : (indiceUltimaGiornata + 1) % giorni.length)
+    : -1;
+
   zona.appendChild(el('div', { id: 'zona-avviso' }));
 
   // Cambio persona: ogniuno ha il suo link. Non serve alcun account, e i dati
@@ -1024,6 +1035,9 @@ function vistaHome(zona) {
       el('div', { class: 'riga-titoli' }, [
         // il nome del giorno si può toccare per vedere la scheda senza allenarsi
         el('a', { href: '#/giorno/' + g.id, class: 'titolo-collegabile', testo: g.nome }),
+        indiceProssimaGiornata >= 0 && giorni[indiceProssimaGiornata].id === g.id
+          ? el('span', { class: 'tag-prossimo-giorno', testo: 'Prossimo nel giro' })
+          : null,
         el('span', { class: 'conteggio', testo: `${g.esercizi.length} esercizi · ${serie} serie` + (opzionali ? ` · ${opzionali} opzionali` : '') }),
       ]),
       griglia,
@@ -1613,6 +1627,17 @@ function ultimaSedutaConEsercizio(esercizioId, escludiSedutaId) {
   return null;
 }
 
+// I cardio storici non hanno sempre un'unita' salvata: mostro i vecchi secondi
+// convertiti in minuti. Quando il campo viene modificato, salvo da quel momento
+// in poi il numero e l'unita' esplicita, così 60 significa davvero 60 minuti.
+function valoreMinutiCardioNelCampo(serie) {
+  if (!serie || serie.ripetizioni === null || serie.ripetizioni === undefined || serie.ripetizioni === '') return serie && serie.ripetizioni;
+  const n = Number(serie.ripetizioni);
+  if (!Number.isFinite(n)) return serie.ripetizioni;
+  if (!serie.durata_unita && n > 3600) return serie.ripetizioni;
+  return minutiDiCardio(n, serie.durata_unita || 'legacy');
+}
+
 function rigaSerie(serie, numero, confronto, seduta, pesoRigaSorella = null) {
   const e = esercizioPerId(serie.esercizio_id);
   const assistenza = e && !convenzioneMisuraCarico(e.convenzione);
@@ -1770,9 +1795,14 @@ function rigaSerie(serie, numero, confronto, seduta, pesoRigaSorella = null) {
     }
   }
 
-const rip = campoNumero(serie.ripetizioni, {
+const rip = campoNumero(serieCardio ? valoreMinutiCardioNelCampo(serie) : serie.ripetizioni, {
     etichetta: serieCardio ? 'minuti' : 'ripetizioni',
-    onCambio: conRitardo((v) => aggiornaSerie(serie, { ripetizioni: numeroOppureNull(v) })),
+    onCambio: conRitardo((v) => {
+      const ripetizioni = numeroOppureNull(v);
+      return aggiornaSerie(serie, serieCardio
+        ? { ripetizioni, durata_unita: 'minuti' }
+        : { ripetizioni });
+    }),
     onInvalido: (v) => avviso('Dev\'essere un numero. Provo a lasciare com\'era.', { tipo: 'errore' }),
   });
   rip.addEventListener('input', () => {
@@ -2486,7 +2516,8 @@ async function vistaSedutaPassata(zona, sedutaId) {
 
 /** Riga modificabile dello storico: si cambia un numero e si salva da solo. */
 function rigaStorico(serie, numero, e, s, pesoRigaSorella = null) {
-  const assistenza = !convenzioneMisuraCarico(e.convenzione);
+  const serieCardio = eCardio(e);
+  const assistenza = !serieCardio && !convenzioneMisuraCarico(e.convenzione);
   const chiave = assistenza ? 'peso_assistenza' : 'peso';
   const riga = el('div', { class: 'riga-serie', dati: { serieId: serie.id } });
   if (serie.spotter) riga.classList.add('serie-spotter');
@@ -2533,71 +2564,90 @@ function rigaStorico(serie, numero, e, s, pesoRigaSorella = null) {
     },
   }, [el('span', { testo: String(numero) })]));
 
-  const peso = campoNumero(serie[chiave], {
-    onCambio: conRitardo((v) => aggiornaSerie(serie, { [chiave]: numeroOppureNull(v) })),
-  });
-  peso.classList.add('campo-peso');
-  const scriviPeso = (valore) => {
-    const tondo = Math.round(valore * 100) / 100;
-    peso.value = String(tondo).replace('.', ',');
-    perView[chiave] = tondo;
-    aggiornaSerie(serie, { [chiave]: tondo });
-  };
-  riga.appendChild(el('label', { class: 'campetto' }, [
-    el('div', { class: 'gruppo-peso' }, [
-      peso,
-      el('span', { class: 'sotto-campo', testo: assistenza ? 'ASSISTENZA' : 'KG' }),
-      pesoRigaSorella !== null && pesoRigaSorella !== undefined
-        ? el('div', { class: 'passi-peso' }, [
-          bottone('come sopra', {
-            onClick: () => scriviPeso(pesoRigaSorella),
-            classe: 'passo passo-largo',
-            titolo: `Copia ${formattaNumero(pesoRigaSorella)} kg dalla serie precedente`,
-          }),
-        ])
-        : null,
-    ]),
-  ]));
-
-  const rip = campoNumero(serie.ripetizioni, {
-    onCambio: conRitardo((v) => aggiornaSerie(serie, { ripetizioni: numeroOppureNull(v) })),
-  });
-  rip.classList.add('campo-rip');
-  riga.appendChild(el('label', { class: 'campetto' }, [rip, el('span', { class: 'sotto-campo', testo: 'RIP' })]));
-
-  // lo spotter: come in palestra, si vede subito e si può togliere
-  const badgeSpotter = el('span', { class: 'badge-spotter' });
-  const scriviBadge = () => {
-    const testo = etichettaSpotterSerie(perView);
-    badgeSpotter.textContent = testo ? 'fatta con lo spotter · ' + testo : '';
-  };
-  scriviBadge();
-  const botSpotter = bottone(perView.spotter ? '✓ Spotter' : 'Spotter', {
-    onClick: async () => {
-      const nuovo = !perView.spotter;
-      perView.spotter = nuovo;
-      await aggiornaSerie(serie, { spotter: nuovo });
-      if (nuovo) pulsa();
-      disegna();
-    },
-    classe: perView.spotter ? 'spotter attivo' : 'fantasma',
-  });
-riga.appendChild(botSpotter);
-  riga.appendChild(pulsanteDropset(serie, { perView }));
-  riga.appendChild(badgeSpotter);
-
-  const assistite = el('div', { class: 'gruppo-assistite' });
-  if (perView.spotter) {
-    const ass = campoNumero(serie.rip_assistite, {
-      onCambio: conRitardo((v) => aggiornaSerie(serie, { rip_assistite: numeroOppureNull(v) })),
+  if (!serieCardio) {
+    const peso = campoNumero(serie[chiave], {
+      onCambio: conRitardo((v) => aggiornaSerie(serie, { [chiave]: numeroOppureNull(v) })),
     });
-    ass.classList.add('piccolo');
-    assistite.appendChild(el('label', { class: 'campetto' }, [
-      ass, el('span', { class: 'sotto-campo', testo: 'ASSISTITE' }),
+    peso.classList.add('campo-peso');
+    const scriviPeso = (valore) => {
+      const tondo = Math.round(valore * 100) / 100;
+      peso.value = String(tondo).replace('.', ',');
+      perView[chiave] = tondo;
+      aggiornaSerie(serie, { [chiave]: tondo });
+    };
+    riga.appendChild(el('label', { class: 'campetto' }, [
+      el('div', { class: 'gruppo-peso' }, [
+        peso,
+        el('span', { class: 'sotto-campo', testo: assistenza ? 'ASSISTENZA' : 'KG' }),
+        pesoRigaSorella !== null && pesoRigaSorella !== undefined
+          ? el('div', { class: 'passi-peso' }, [
+            bottone('come sopra', {
+              onClick: () => scriviPeso(pesoRigaSorella),
+              classe: 'passo passo-largo',
+              titolo: `Copia ${formattaNumero(pesoRigaSorella)} kg dalla serie precedente`,
+            }),
+          ])
+          : null,
+      ]),
     ]));
   }
-  riga.appendChild(assistite);
-if (serie.dropset) riga.appendChild(bloccoDropset(serie));
+
+  const rip = campoNumero(serieCardio ? valoreMinutiCardioNelCampo(serie) : serie.ripetizioni, {
+    etichetta: serieCardio ? 'minuti' : 'ripetizioni',
+    onCambio: conRitardo((v) => {
+      const ripetizioni = numeroOppureNull(v);
+      return aggiornaSerie(serie, serieCardio
+        ? { ripetizioni, durata_unita: 'minuti' }
+        : { ripetizioni });
+    }),
+  });
+  rip.classList.add('campo-rip');
+  riga.appendChild(el('label', { class: 'campetto' + (serieCardio ? ' campetto-cardio' : '') }, [
+    rip,
+    el('span', { class: 'sotto-campo', testo: serieCardio ? 'MIN' : 'RIP' }),
+  ]));
+  if (serieCardio) {
+    riga.appendChild(el('p', {
+      class: 'nota nota-piccola nota-cardio',
+      testo: 'Scrivi i minuti. I valori storici in secondi sono convertiti.',
+    }));
+  }
+
+  if (!serieCardio) {
+    // lo spotter: come in palestra, si vede subito e si può togliere
+    const badgeSpotter = el('span', { class: 'badge-spotter' });
+    const scriviBadge = () => {
+      const testo = etichettaSpotterSerie(perView);
+      badgeSpotter.textContent = testo ? 'fatta con lo spotter · ' + testo : '';
+    };
+    scriviBadge();
+    const botSpotter = bottone(perView.spotter ? '✓ Spotter' : 'Spotter', {
+      onClick: async () => {
+        const nuovo = !perView.spotter;
+        perView.spotter = nuovo;
+        await aggiornaSerie(serie, { spotter: nuovo });
+        if (nuovo) pulsa();
+        disegna();
+      },
+      classe: perView.spotter ? 'spotter attivo' : 'fantasma',
+    });
+    riga.appendChild(botSpotter);
+    riga.appendChild(pulsanteDropset(serie, { perView }));
+    riga.appendChild(badgeSpotter);
+
+    const assistite = el('div', { class: 'gruppo-assistite' });
+    if (perView.spotter) {
+      const ass = campoNumero(serie.rip_assistite, {
+        onCambio: conRitardo((v) => aggiornaSerie(serie, { rip_assistite: numeroOppureNull(v) })),
+      });
+      ass.classList.add('piccolo');
+      assistite.appendChild(el('label', { class: 'campetto' }, [
+        ass, el('span', { class: 'sotto-campo', testo: 'ASSISTITE' }),
+      ]));
+    }
+    riga.appendChild(assistite);
+    if (serie.dropset) riga.appendChild(bloccoDropset(serie));
+  }
   if (serie.nota) riga.appendChild(el('div', { class: 'nota-serie', testo: serie.nota }));
   return riga;
 }
@@ -5304,6 +5354,13 @@ const grigliaClassi = el('div', { class: 'riga-classi' });
     el('strong', { class: 'valore-stat', testo: String(rpg.livello) }),
   ]));
   box.appendChild(righe);
+  box.appendChild(el('div', { class: 'blocco-progresso-livello' }, [
+    barraProgresso(rpg.progressoLivello, `personaggio: livello ${rpg.livello} → ${rpg.livello + 1}`),
+    el('span', {
+      class: 'nota',
+      testo: `${formattaNumero(rpg.xpNelLivello)} di ${formattaNumero(rpg.xpPerLivello)} punti esperienza · ne mancano ${formattaNumero(rpg.xpMancanti)} al prossimo livello`,
+    }),
+  ]));
 
   // ---- le armature
   box.appendChild(el('h3', { class: 'titolo-sottosezione', testo: 'Armature e armi' }));

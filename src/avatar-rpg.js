@@ -369,9 +369,14 @@ export function eCardio(e) {
   return CARDIO.test(String(e.nome || ''));
 }
 
-export function minutiDiCardio(valore) {
+export function minutiDiCardio(valore, unita = 'legacy') {
   const n = Number(valore) || 0;
   if (n <= 0) return 0;
+  // I valori inseriti dalla schermata nuova hanno l'unita' salvata insieme al
+  // numero. Cosi' 60 minuti restano 60 minuti; non vengono scambiati per secondi.
+  if (unita === 'minuti') return n <= 3600 ? n : 0;
+  if (unita === 'secondi') return n <= 216000 ? n / 60 : 0;
+  // I dati vecchi non hanno l'unita': per loro resta valida la regola storica.
   // sopra un'ora di "minuti" il numero non può essere minuti: o sono secondi che
   // hanno superato l'ora, o sono metri. In entrambi i casi non lo trattiamo come
   // minuti d'agilità, perchÈ il risultato sarebbe un numero che non ha senso.
@@ -413,7 +418,7 @@ export function calcolaAvatar(classe, serie, sedute, esercizioPerId, { profilo =
     // l'esercizio. Prima contava solo il nome: un esercizio chiamato "Camminata
     // veloce" non contava niente e non si capiva il perché.
     if (eCardio(e)) {
-      cardio += minutiDiCardio(r);
+      cardio += minutiDiCardio(r, s.durata_unita || 'legacy');
       continue;
     }
 
@@ -465,6 +470,12 @@ export function calcolaAvatar(classe, serie, sedute, esercizioPerId, { profilo =
 
   const xp = Math.floor(volTot / 100) + cardio * 2;
   const livello = 1 + Math.floor(Math.sqrt(xp / 10));
+  const xpInizioLivello = 10 * (livello - 1) ** 2;
+  const xpProssimoLivello = 10 * livello ** 2;
+  const xpPerLivello = xpProssimoLivello - xpInizioLivello;
+  const xpNelLivello = Math.max(0, xp - xpInizioLivello);
+  const progressoLivello = Math.max(0, Math.min(1, xpNelLivello / xpPerLivello));
+  const xpMancanti = Math.max(0, xpProssimoLivello - xp);
 
   // Le ARMATURE. Sbloccate con la streak PIÙ LUNGA MAI RAGGIUNTA (non quella di
   // adesso): se hai raggiunto 30 giorni una volta, l'elmo resta tuo anche dopo che
@@ -499,7 +510,11 @@ export function calcolaAvatar(classe, serie, sedute, esercizioPerId, { profilo =
     };
   });
 
-  return { st, base, classe: c, streak, recordStreak, livello, xp, premi, volForza, volTot, cardio, giorniAllenati: giorniUnici };
+  return {
+    st, base, classe: c, streak, recordStreak, livello, xp,
+    xpInizioLivello, xpProssimoLivello, xpPerLivello, xpNelLivello, progressoLivello, xpMancanti,
+    premi, volForza, volTot, cardio, giorniAllenati: giorniUnici,
+  };
 }
 
 function dateOggi() {

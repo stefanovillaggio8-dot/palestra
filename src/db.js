@@ -131,6 +131,23 @@ function motoreIdb(db) {
       return esegui([store], 'readonly', (t) => chiedi(t.objectStore(store).index(indice).getAll(valore))) || [];
     },
     async scrivi(store, riga) { return esegui([store], 'readwrite', (t) => { t.objectStore(store).put(riga); return riga; }); },
+    async aggiornaSe(store, id, verifica, trasforma) {
+      return esegui([store], 'readwrite', (t) => {
+        const tabella = t.objectStore(store);
+        const richiesta = tabella.get(id);
+        const esito = { result: false };
+        richiesta.onsuccess = () => {
+          const attuale = richiesta.result || null;
+          if (!verifica(attuale)) return;
+          const nuova = trasforma(attuale);
+          if (nuova !== null && nuova !== undefined) {
+            tabella.put(nuova);
+            esito.result = true;
+          }
+        };
+        return esito;
+      });
+    },
     async svuota(store) { return esegui([store], 'readwrite', (t) => { t.objectStore(store).clear(); }); },
   };
 }
@@ -163,6 +180,18 @@ function motoreMemoria() {
       if (i >= 0) righe[i] = riga; else righe.push(riga);
       if (!scrivi(store, righe)) throw new Error('spazio nel browser esaurito: esporta un backup e libera spazio');
       return riga;
+    },
+    async aggiornaSe(store, id, verifica, trasforma) {
+      const righe = leggi(store);
+      const chiave = id;
+      const i = righe.findIndex((r) => (r.id || r.chiave) === chiave);
+      const attuale = i >= 0 ? righe[i] : null;
+      if (!verifica(attuale)) return { result: false };
+      const nuova = trasforma(attuale);
+      if (nuova === null || nuova === undefined) return { result: false };
+      righe[i] = nuova;
+      if (!scrivi(store, righe)) throw new Error('spazio nel browser esaurito: esporta un backup e libera spazio');
+      return { result: true };
     },
     async svuota(store) { scrivi(store, []); },
   };
@@ -283,6 +312,11 @@ export async function perIndice(tabella, indice, valore) {
   const m = await apriDb();
   const righe = (await m.perIndice(tabella, indice, valore)) || [];
   return righe.filter((r) => !r.eliminata);
+}
+
+export async function aggiornaSe(tabella, id, verifica, trasforma) {
+  const m = await apriDb();
+  return m.aggiornaSe(tabella, id, verifica, trasforma);
 }
 
 /** Cancella davvero ma passando dal cestino: si può sempre recuperare. */
