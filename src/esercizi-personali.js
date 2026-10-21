@@ -254,6 +254,11 @@ export async function imparaParola(accountId, parola, livello) {
  */
 export const RINOMINE = {
   'bodyweight overhead tricep extension': 'One Arm Overhead Tricep Extension',
+  // Ste (21/10/2026): "ho visto ora che questo allena il culo, quello che allena i
+  // lombari è Hyperextension quindi rinominalo così". Il nome giusto è questo: è la
+  // iperextensione, e lavora i lombari (che in questa tavola non sono disegnati, stanno
+  // sotto) e i glutei.
+  'back extension': 'Hyperextension',
 };
 
 /** Il nome nuovo di quell'esercizio, o null se il nome non cambia. */
@@ -282,6 +287,11 @@ export function nuovoNomeEsercizio(nome) {
  */
 export const CONVENZIONI_DA_CAMBIARE = {
   'ex-bodyweight-overhead-tricep': { convenzione: 'cavo_totali', carrucola: 'carrucola_doppia' },
+  // L'IPEREXTENSIONE: i dischi li prende con DUE MANI (non li abbraccia come fa la
+  // foto, perché sono troppi), quindi il numero che scrive è il peso TOTALE dei
+  // dischi: la convenzione "dischi" è quella giusta (come lo Smith, dove i dischi si
+  // contano e il bilanciere no).
+  'ex-back-extension': { convenzione: 'dischi' },
 };
 
 export async function sistemaConvenzioniEsercizi() {

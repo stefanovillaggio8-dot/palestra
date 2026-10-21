@@ -165,7 +165,7 @@ const MOVIMENTI = [
   },
   {
     id: 'gambe_isolamento', livello: 'isolamento', gruppo: 'gambe',
-    parole: ['hip extension', 'back extension', 'leg curl', 'leg extension', 'curl gambe', 'estensioni gambe', 'prone curl',
+    parole: ['hyperextension', 'iperextensione', 'hip extension', 'back extension', 'leg curl', 'leg extension', 'curl gambe', 'estensioni gambe', 'prone curl',
       'leg raise', 'adduzione', 'abduction', 'glute'],
   },
   {

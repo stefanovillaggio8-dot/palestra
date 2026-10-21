@@ -329,7 +329,7 @@ export const ESERCIZI = [
   { id: 'ex-decline-bench-press', nome: 'Decline Bench Press', gruppo: 'Decline Bench Press', convenzione: C.BILANCIERE, foto: 'img/esercizi/decline-bench-press.png', tipo: 'standard' },
   { id: 'ex-decline-dumbbell-bench-press', nome: 'Decline Dumbbell Bench Press', gruppo: 'Decline Dumbbell Bench Press', convenzione: C.PER_MANUBRIO, foto: 'img/esercizi/decline-dumbbell-bench-press.png', tipo: 'standard' },
   { id: 'ex-face-pull', nome: 'Face Pull', gruppo: 'Face Pull', convenzione: C.CAVO, carrucola: C.CARRUCOLA_DOPPIA, foto: 'img/esercizi/face-pull.png', tipo: 'standard' },
-  { id: 'ex-back-extension', nome: 'Back Extension', gruppo: 'Back Extension', convenzione: C.PER_MANUBRIO, foto: 'img/esercizi/back-extension.png', tipo: 'standard' },
+  { id: 'ex-back-extension', nome: 'Hyperextension', gruppo: 'Hyperextension', convenzione: C.DISCHI, foto: 'img/esercizi/back-extension.png', tipo: 'standard' },
   { id: 'ex-smith-machine-bench-press', nome: 'Smith Machine Bench Press', gruppo: 'Smith Machine Bench Press', convenzione: C.MACCHINA, attrezzatura: 'macchina_dischi', foto: 'img/esercizi/smith-machine-bench-press.png', tipo: 'standard' },
   { id: 'ex-smith-machine-bent-over-row', nome: 'Smith Machine Bent Over Row', gruppo: 'Smith Machine Bent Over Row', convenzione: C.MACCHINA, attrezzatura: 'macchina_stack', foto: 'img/esercizi/smith-machine-bent-over-row.png', tipo: 'standard' },
   { id: 'ex-smith-machine-shrug', nome: 'Smith Machine Shrug', gruppo: 'Smith Machine Shrug', convenzione: C.MACCHINA, attrezzatura: 'macchina_stack', foto: 'img/esercizi/smith-machine-shrug.png', tipo: 'standard' },

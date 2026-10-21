@@ -370,7 +370,7 @@ id: 'avambraccio', muscolo: 'avambraccio', parte: 'avambraccio (polso e avanti b
     id: 'glutei', muscolo: 'gambe', parte: 'glutei',
     // l'hip extension e il back extension (iperextensione) sono i glutei:
     // i muscoli della schiena che lavorano con loro in questa tavola non ci sono.
-    parole: ['hip extension', 'back extension', 'hip thrust', 'glute bridge', 'squat', 'stacco', 'affondi'],
+    parole: ['hip extension', 'back extension', 'hyperextension', 'iperextensione', 'hip thrust', 'glute bridge', 'squat', 'stacco', 'affondi'],
     nota: 'Spinta coi fianchi: lavora il gluteo, il muscolo più forte del corpo.',
   },
   {
