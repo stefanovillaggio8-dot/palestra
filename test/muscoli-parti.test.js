@@ -263,3 +263,93 @@ test('M22. stessoLavoro resta coerente col pezzo riconosciuto', () => {
   const c = parteDiMuscolo({ nome: 'Dumbbell Lateral Raise' });
   assert.equal(stessoLavoro(a, c), false);
 });
+
+// LA FASE PARLA DELL'ESERCIZIO, NON SOLO DEL PEZZO DI MUSCOLO (Ste, 18/10/2026).
+//
+// "non si vedono bene e non si capisce quale sta lavorando": la nota del petto era una
+// frase sola per tutti gli esercizi, e diceva "le spinte e i fly caricano soprattutto
+// il centro del petto". Ma il fly non e' una spinta, e la panca inclinata non carica
+// il centro: quindi la frase ora dipende dall'esercizio, e la parte di petto che
+// accende la figura e' la stessa che dice il testo.
+test('M23. la nota del petto parla dell esercizio, e non del pezzo generico', async () => {
+  const { parteDiMuscolo } = await import('../src/muscoli-parti.js');
+
+  // la SPINTA e il FLY non si possono confondere
+  const spinta = parteDiMuscolo({ nome: 'Chest Press' });
+  const fly = parteDiMuscolo({ nome: 'Cable Fly' });
+  assert.notEqual(spinta.nota, fly.nota,
+    'la spinta e il fly devono avere due frasi diverse');
+  assert.match(spinta.nota, /spinte/i);
+  assert.match(fly.nota, /fly/i);
+
+  // e la frase deve dire la zona che la FIGURA accende
+  const zone = { petto_alto: /alto/i, petto_centrale: /centro/i, petto_basso: /basso/i };
+  for (const nome of ['Chest Press', 'Cable Fly', 'Smith Machine Incline Bench Press', 'Dips']) {
+    const p = parteDiMuscolo({ nome });
+    assert.match(p.nota, zone[p.parte],
+      nome + ': la frase non parla della zona che la figura accende (' + p.parte + ')');
+  }
+
+  // la panca inclinata lavora il petto ALTO, quella stesa il CENTRO
+  assert.equal(parteDiMuscolo({ nome: 'Smith Machine Incline Bench Press' }).parte, 'petto_alto');
+  assert.equal(parteDiMuscolo({ nome: 'Chest Press' }).parte, 'petto_centrale');
+  assert.equal(parteDiMuscolo({ nome: 'Flat Barbell Bench Press' }).parte, 'petto_centrale',
+    'la panca stesa e\' la piu\' classica: lavora il capo sternale, cioe\' il centro');
+  assert.equal(parteDiMuscolo({ nome: 'Decline Bench Press' }).parte, 'petto_basso',
+    'la panca declinata lavora le fibre in basso');
+
+  // e un esercizio che non e\' di petto non deve dire niente del petto
+  const curl = parteDiMuscolo({ nome: 'Cable Hammer Curl' });
+  assert.doesNotMatch(curl.nota, /petto/i);
+});
+
+// LA DIREZIONE DEL FLY DECIDE LA FASCIA DEL PETTO (Ste, 18/10/2026).
+//
+// "il cable fly la panca e' messa al primo blocco, e' quasi a 90 gradi" e poi il video
+// di chi lo fa: "Seated Cable Fly", con il CARRELLO IN BASSO. Le maniglie partono in
+// basso e salgono, quindi la tensione tira verso l'alto: e' il capo CLAVICOLARE, il
+// petto alto. Non il centro.
+//
+// Il nome "Cable Fly" da solo non dice niente: lo stesso esercizio a seconda di come
+// lo fai lavora un capo o un altro. Per questo l'app legge la direzione dalla NOTA.
+test('M24. il fly legge dalla nota in che direzione va', async () => {
+  const { parteDiMuscolo } = await import('../src/muscoli-parti.js');
+  const { ESERCIZI } = await import('../src/dati-iniziali.js');
+
+  const su = parteDiMuscolo({
+    nome: 'Cable Fly',
+    descrizione: 'Cavi in basso, le maniglie partono in basso e salgono.',
+  });
+  assert.equal(su.parte, 'petto_alto',
+    'le maniglie che salgono tirano in alto: lavora il capo clavicolare');
+
+  const giu = parteDiMuscolo({
+    nome: 'Cable Fly',
+    descrizione: 'Cavi in alto, le maniglie partono in alto e scendono.',
+  });
+  assert.equal(giu.parte, 'petto_basso',
+    'le maniglie che scendono tirano in basso: lavorano le fibre sternali basse');
+
+  const orizzontale = parteDiMuscolo({
+    nome: 'Cable Fly',
+    descrizione: 'Cavi in orizzontale, come la pec fly.',
+  });
+  assert.equal(orizzontale.parte, 'petto_centrale',
+    'i cavi in orizzontale tirano di lato: lavora il capo sternale, il centro');
+
+  // e il movimento "abbraccio", che è quello del catalogo
+  const abbraccio = parteDiMuscolo({
+    nome: 'Cable Fly',
+    descrizione: 'Carrello a 12, all’altezza delle spalle. Il movimento è come un abbraccio: tiro in avanti.',
+  });
+  assert.equal(abbraccio.parte, 'petto_centrale',
+    'il fly adduzione orizzontale lavora il capo sternale: il petto nel mezzo');
+
+  // e l'esercizio vero del catalogo
+  const fly = ESERCIZI.find((x) => x.nome === 'Cable Fly');
+  assert.ok(fly, 'il catalogo deve avere il Cable Fly');
+  assert.equal(
+    parteDiMuscolo({ nome: fly.nome, descrizione: fly.nota_permanente || '' }).parte,
+    'petto_centrale',
+    'il Cable Fly del catalogo è un abbraccio spinto in avanti: petto nel mezzo');
+});

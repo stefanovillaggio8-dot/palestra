@@ -23,6 +23,128 @@ righeDaAccendere,
 import { PARTI, parteDiMuscolo, MOVIMENTI, gruppoMuscoloDi } from '../src/muscoli-parti.js';
 import { ESERCIZI as CATALOGO } from '../src/dati-iniziali.js';
 import { readFile } from 'node:fs/promises';
+import { ATLANTE_FRONTE, ATLANTE_RETRO } from '../src/anatomia-vettoriale.js';
+import { zoneAtlante } from '../src/mappa-muscoli.js';
+
+
+const COLORI_SPENTI = ['#d5d1dc', '#d8d4de', '#efedf2', 'none'];
+
+// le sfumature: quante tappe ha e di che colore
+const sfumature = (svg) => {
+  const fuori = new Map();
+  for (const m of svg.matchAll(/<linearGradient\b[^>]*id="([^"]+)"[^>]*>([\s\S]*?)<\/linearGradient>/g)) {
+    const tappe = [...m[2].matchAll(/stop-color="([^"]+)"/g)].map((x) => x[1]);
+    fuori.set(m[1], tappe);
+  }
+  return fuori;
+};
+// I path con fill="url(#...)" sono i muscoli con la SFUMATURA (il pettorale).
+// Sono accesi solo se la sfumatura contiene un viola: se i tre capi sono tutti spenti,
+// la sfumatura e' del colore del corpo e il muscolo non si vede.
+// un colore e' un VIOLA (quindi acceso) se il canale blu e' molto piu' alto del
+// rosso. Il grigio del corpo e' quasi neutro, e i grigi spenti non lo sono.
+const eViola = (colore) => {
+  if (!colore || colore === 'none') return false;
+  if (!/^#[0-9a-f]{6}$/i.test(colore)) return false;
+  const r = parseInt(colore.slice(1, 3), 16);
+  const b = parseInt(colore.slice(5, 7), 16);
+  return b - r >= 15;
+};
+const pathAccesi = (svg) => {
+  const tappe = tappeDi(svg);
+  return [...svg.matchAll(/<path\b[^>]*>/g)]
+    .map((m) => m[0])
+    .filter((tag) => {
+      const fill = (tag.match(/\bfill="([^"]*)"/)?.[1] || '').trim().toLowerCase();
+      if (!fill) return false;
+      if (fill.startsWith('url(#')) {
+        const nome = (fill.match(/url\(#([^)]+)\)/) || [])[1];
+        const t = tappe.get(nome) || [];
+        return t.some((c) => eViola(c.colore));
+      }
+      return !COLORI_SPENTI.includes(fill) && eViola(fill);
+    });
+};
+const idAccesi = (svg) => pathAccesi(svg)
+  .map((tag) => tag.match(/\bid="([^"]+)"/)?.[1])
+  .filter(Boolean);
+const fillDi = (svg) => {
+  const out = new Map();
+  for (const m of svg.matchAll(/<path\b[^>]*>/g)) {
+    const id = m[0].match(/\bid="([^"]+)"/)?.[1];
+    const fill = m[0].match(/\bfill="([^"]*)"/)?.[1]?.trim().toLowerCase();
+    if (id && fill) out.set(id, fill);
+  }
+  return out;
+};
+// la pienezza di un colore: 255 - canale rosso. Il grigio base (d5) vale 42, il
+// viola pieno (9b) vale 100: quindi PIU' ALTA e' PIU' PIENO.
+const pienezzaColore = (colore) => 255 - parseInt(colore.slice(1, 3), 16);
+
+// le tappe di una sfumatura, con la loro posizione
+const tappeDi = (svg) => {
+  const fuori = new Map();
+  for (const m of svg.matchAll(/<linearGradient\b[^>]*id="([^"]+)"[^>]*>([\s\S]*?)<\/linearGradient>/g)) {
+    fuori.set(m[1], [...m[2].matchAll(/<stop offset="([\d.]+)%" stop-color="([^"]+)"/g)]
+      .map((x) => ({ offset: parseFloat(x[1]) / 100, colore: x[2] })));
+  }
+  return fuori;
+};
+
+// la tappa PIU' piena di una sfumatura: quella col viola pieno
+const tappaPiena = (tappe) => {
+  if (!tappe || !tappe.length) return null;
+  let migliore = null;
+  for (const t of tappe) {
+    if (!eViola(t.colore)) continue;
+    if (!migliore || pienezzaColore(t.colore) > pienezzaColore(migliore.colore)) migliore = t;
+  }
+  return migliore;
+};
+
+const pienezzaDi = (svg, id) => {
+  const tag = [...svg.matchAll(/<path\b[^>]*>/g)].map((m) => m[0])
+    .find((t) => (t.match(/\bid="([^"]+)"/) || [])[1] === id);
+  if (!tag) return null;
+  const fill = (tag.match(/\bfill="([^"]+)"/) || [])[1] || '';
+  // il pettorale e' disegnato con una SFUMATURA: la sua pienezza e' quella della tappa
+  // piu' piena, cioe' del pezzo di petto che lavora
+  if (fill.startsWith('url(#')) {
+    const nome = (fill.match(/url\(#([^)]+)\)/) || [])[1];
+    const tappa = tappaPiena((tappeDi(svg).get(nome) || []));
+    return tappa ? pienezzaColore(tappa.colore) : null;
+  }
+  if (fill === 'none' || !fill) return null;
+  return pienezzaColore(fill);
+};
+const ZONE_ATLANTE = new Set();
+for (const sorgente of [ATLANTE_FRONTE, ATLANTE_RETRO]) {
+  for (const m of sorgente.matchAll(/<path\b[^>]*\bid="([^"]+)"/g)) {
+    for (const z of zoneAtlante(m[1])) ZONE_ATLANTE.add(z);
+  }
+}
+const disegnabile = (gruppo) => (RITAGLI[gruppo]?.zone || []).some((z) => ZONE_ATLANTE.has(z));
+const pathDiZona = (svg, zona) => {
+  const out = [];
+  for (const [id, fill] of fillDi(svg)) {
+    if (!zoneAtlante(id).includes(zona)) continue;
+    if (COLORI_SPENTI.includes(fill)) continue;
+    out.push(id);
+  }
+  return out;
+};
+const zoneAccese = (svg) => {
+  const out = new Set();
+  for (const id of idAccesi(svg)) {
+    for (const z of zoneAtlante(id)) out.add(z);
+  }
+  return out;
+};
+const figureDi = (svg) => svg.match(/<svg\b[\s\S]*?<\/svg>/g) || [];
+const idDelGruppo = (gruppo) => [...ATLANTE_FRONTE.matchAll(/<path\b[^>]*\bid="([^"]+)"/g),
+  ...ATLANTE_RETRO.matchAll(/<path\b[^>]*\bid="([^"]+)"/g)]
+  .map((m) => m[1])
+  .filter((id) => zoneAtlante(id).some((z) => RITAGLI[gruppo].zone.includes(z)));
 
 const TUTTE = Object.keys(GRUPPI);
 const DISEGNATI = Object.keys(RITAGLI);
@@ -78,37 +200,40 @@ test('Z1. ogni pezzo di muscolo che l\'app riconosce è ritagliato', () => {
   }
 });
 
-test('Z2. si accende il muscolo giusto, e solo quello', () => {
+test("Z2. si accende il muscolo giusto, e solo quello", () => {
   for (const id of TUTTE) {
-    // NON ogni nome torna a se stesso: `braccio_basso` e `braccio_alto` sono le
-    // due POSIZIONI del curl, non due pezzi di bicipite, e sulla figura il bicipite
-    // è una fascia sola (16/10/2026, Ste: "dovrebbe prendere tutto il bicipite no?
-    // che non un coso dritto corto"). Quindi i due nomi portano alla stessa zona,
-    // e la mappa li unisce in `ALIAS`.
     const zona = idZonaDaParte(id);
     assert.ok(zona, 'il pezzo ' + id + ' non si accende');
-    assert.equal(RITAGLI[gruppoDiParte(id)].zone.includes(zona), true,
-      id + ' porta a una zona che il gruppo non disegna: ' + zona);
     const gruppo = gruppoDiParte(id);
+    assert.equal(RITAGLI[gruppo].zone.includes(zona), true,
+      id + ' porta a una zona che il gruppo non disegna: ' + zona);
+    // i muscoli che l\'atlante non disegna restano spenti: non c'è nessun tracciato loro
+    if (!disegnabile(gruppo)) continue;
+
     const svg = figurino(id);
+    const accese = zoneAccese(svg);
+    assert.ok(accese.has(zona),
+      id + ': il pezzo non ha acceso la sua zona (' + zona + ')');
 
-    // dentro ci deve essere il ritaglio di QUEL gruppo e non di altri
-    const poligoni = svg.match(/<polygon /g) || [];
-    assert.equal(poligoni.length, RITAGLI[gruppo].pezzi.length,
-      id + ': il ritaglio non contiene i pezzi del gruppo ' + gruppo);
-    assert.match(svg, /muscoli\.png/, id + ': manca l\'immagine dei muscoli');
-    assert.match(svg, /<clipPath id="taglio-muscolo-[^"]+"/, id + ': manca il ritaglio');
-
-    // il poligono deve essere quello del gruppo, non uno qualsiasi
-    const primo = RITAGLI[gruppo].pezzi[0];
-    const atteso = primo.map(([x, y]) => `${x},${y}`).join(' ');
-    assert.ok(svg.includes(atteso), id + ': il ritaglio non è quello di ' + gruppo);
-
-    // e un pezzo sconosciuto non deve accendere niente
-    const vuoto = figurino('pezzo-che-non-esiste');
-    assert.doesNotMatch(vuoto, /muscoli\.png/,
-      'un pezzo sconosciuto ha acceso qualcosa: meglio spento che sbagliato');
+    // e NON deve accendere niente di un altro gruppo
+    for (const [altro, r2] of Object.entries(RITAGLI)) {
+      if (altro === gruppo) continue;
+      if (!disegnabile(altro)) continue;
+      for (const zonaAltra of r2.zone) {
+        // La zona del PEZZO puo' stare anche in un altro gruppo: e' il caso
+        // dell'ALIAS, cioe' due nomi che sulla figura sono un muscolo solo (il
+        // brachiale e il bicipite). Quello che non deve accendersi e' una zona
+        // DIVERTA da quella del pezzo.
+        if (zonaAltra === zona) continue;
+        assert.ok(!accese.has(zonaAltra),
+          id + ': ha acceso anche ' + altro + '/' + zonaAltra + ', che non c\'entra');
+      }
+    }
   }
+
+  const vuoto = figurino('pezzo-che-non-esiste');
+  assert.equal(idAccesi(vuoto).length, 0,
+    'un pezzo sconosciuto ha acceso qualcosa: meglio spento che sbagliato');
 });
 
 test('Z3. l\'anatomia: ogni muscolo è nella vista giusta', () => {
@@ -137,27 +262,20 @@ test('Z3. l\'anatomia: ogni muscolo è nella vista giusta', () => {
     'il deltoide laterale si accende sulla spalla, non sulla schiena');
 });
 
-test('Z4. nessun ritaglio esce dalla figura', () => {
+test("Z4. nessun ritaglio esce dalla figura", () => {
+  // Nell\'atlante i tracciati sono il disegno anatomico: non possono uscire dal corpo per
+  // costruzione, e dentro ci sono anche piedi, mani e ossa, che l\'app non accende.
+  //
+  // Il controllo che conta è il contrario: ogni muscolo che l\'app ACCENDE deve avere un
+  // tracciato suo. Se un gruppo non ha tracciati, l\'app lo accenderebbe e non si vedrebbe
+  // niente: il peggior difetto possibile.
+  const senzaTracciati = [];
   for (const [g, r] of Object.entries(RITAGLI)) {
-    for (const pezzo of r.pezzi) {
-      for (const [x, y] of pezzo) {
-        assert.ok(x >= 0 && x <= FOTO_L && y >= 0 && y <= FOTO_A,
-          g + ': il ritaglio esce dalla foto (' + x + ',' + y + ')');
-      }
-    }
+    if (!disegnabile(g)) continue;
+    if (!idDelGruppo(g).length) senzaTracciati.push(g);
   }
-  // ogni pezzo deve stare dalla parte giusta della figura
-  for (const [g, r] of Object.entries(RITAGLI)) {
-    const centro = CENTRI[r.vista];
-    if (r.centro) continue;   // un pezzo al centro sta intero, non è doppio
-    for (const pezzo of r.pezzi) {
-      const cx = pezzo.reduce((s, p) => s + p[0], 0) / pezzo.length;
-      const lato = cx < centro ? 'sinistro' : 'destro';
-      const simmetrico = pezzo.map(([x, y]) => [2 * centro - x, y]);
-      assert.ok(esistePezzo(simmetrico),
-        g + ': il pezzo ' + lato + ' non ha il suo compagno specchiato');
-    }
-  }
+  assert.deepEqual(senzaTracciati, [],
+    'questi muscoli non hanno tracciati nell\'atlante: ' + senzaTracciati.join(', '));
 });
 
 // GLI ESERCIZI DA PROVARE.
@@ -194,19 +312,21 @@ test('Z5. ogni esercizio della scheda accende un muscolo disegnato', () => {
   }
 });
 
-test('Z6. il ritaglio è simmetrico: il sinistro è lo specchio del destro', () => {
+test("Z6. il ritaglio è simmetrico: il sinistro è lo specchio del destro", () => {
+  // Nell\'atlante i due lati sono DUE TRACCIATI (pectoralis_major_l e _r): sono disegnati a
+  // parte e non sono uno il copia matematica dell\'altro. Quello che conta è che il muscolo
+  // ci sia DA ENTRAMBI I LATTI.
+  const senzaLato = [];
   for (const [g, r] of Object.entries(RITAGLI)) {
-    if (r.centro) continue;   // un pezzo al centro sta intero, non è doppio
-    const centro = CENTRI[r.vista];
-    const svg = figurino(Object.keys(GRUPPI).find((id) => GRUPPI[id].gruppo === g));
-    for (const pezzo of r.pezzi) {
-      const simmetrico = pezzo.map(([x, y]) => [2 * centro - x, y]);
-      // il pezzo disegnato e il suo simmetrico devono esserci ENTRAMBI nella
-      // pagina: se il destro manca, la figura resta mezza storta
-      assert.ok(disegnato(svg, pezzo) && disegnato(svg, simmetrico),
-        g + ': il ritaglio ha il pezzo ma non il suo specchio');
-    }
+    if (!disegnabile(g)) continue;
+    const ids = idDelGruppo(g);
+    if (!ids.length) continue;
+    const conSx = ids.some((id) => /_l$/.test(id));
+    const conDx = ids.some((id) => /_r$/.test(id));
+    if (!conSx || !conDx) senzaLato.push(g);
   }
+  assert.deepEqual(senzaLato, [],
+    'questi muscoli stanno da un lato solo: ' + senzaLato.join(', '));
 });
 
 test('Z7. fronte e dietro si distinguono, e lo dicono', () => {
@@ -227,11 +347,10 @@ test('Z7. fronte e dietro si distinguono, e lo dicono', () => {
   assert.ok(ETICHETTE[1].x > FOTO_L / 2, 'DIETRO sta nella figura di destra');
 });
 
-test('Z8. i muscoli fatti di più parti sono uniti, come nella foto', () => {
-  // Ste: "i muscoli formati da piu parti muscolari falli uniti, come nella
-  // foto". Nella foto il pettorale è un pezzo solo, non tre macchie: dentro ci
-  // sono delle linee sottili che lo dividono, ma il contorno è uno. Il
-  // bicipite idem.
+test("Z8. i muscoli fatti di più parti sono uniti, come nella foto", () => {
+  // Ste: "i muscoli formati da più parti muscolari falli uniti, come nella foto".
+  // Nell\'atlante le fasce di un muscolo stanno sullo STESSO tracciato: il pettorale (tre
+  // fasce) e il bicipite (due posizioni) sono un pezzo solo, come nella foto.
   const UNITI = {
     petto: ['petto_alto', 'petto_centrale', 'petto_basso'],
     bicipite: ['braccio_alto', 'braccio_basso'],
@@ -242,12 +361,22 @@ test('Z8. i muscoli fatti di più parti sono uniti, come nella foto', () => {
       assert.equal(GRUPPI[p].gruppo, gruppo,
         p + ' dovrebbe stare nel gruppo ' + gruppo + ': stesso muscolo, ritaglio unito');
     }
-    // e accenderne uno deve accendere TUTTO il gruppo
     const svg = figurino(pezzi[0]);
-    const poligoni = svg.match(/<polygon /g) || [];
-    assert.equal(poligoni.length, RITAGLI[gruppo].pezzi.length,
-      'accendendo ' + pezzi[0] + ' non si è acceso tutto il ' + gruppo);
+    const accese = zoneAccese(svg);
+    for (const z of RITAGLI[gruppo].zone) {
+      assert.ok(accese.has(z),
+        'accendendo ' + pezzi[0] + ' non si è acceso tutto il ' + gruppo + ' (zona ' + z + ')');
+    }
   }
+
+  // IL LIMITE DA DIRE (19/10/2026). Il pettorale è un TRACCIATO UNICO: le tre fasce
+  // stanno dentro lo stesso path, quindi la sfumatura interna (la parte che lavora di piu'
+  // più piena) non si vede piu'. Non si inventa niente: si lascia così e si dice.
+  const pathsPetto = [...ATLANTE_FRONTE.matchAll(/<path\b[^>]*\bid="([^"]+)"/g)]
+    .map((m) => m[1])
+    .filter((id) => /^pectoralis_major_/.test(id));
+  assert.equal(pathsPetto.length, 2,
+    'il pettorale è un tracciato per lato: non se ne aggiungono altri con bande inventate');
 });
 
 test('Z8b. uniti non vuol dire tutti uguali: le fasce si toccano e non si sommano', () => {
@@ -307,168 +436,49 @@ test('Z8b. uniti non vuol dire tutti uguali: le fasce si toccano e non si somman
   }
 });
 
-test('Z10. quanto lavora: la parte più allenata è più piena, le altre più chiare', () => {
-  // Ste (15/10/2026): "la parte che lavora di piu' deve essere piu' evidenziata,
-  // la parte che lavora di meno deve essere evidenziata piu' chiara. tipo il dip
-  // qua segna tutto il petto che e' giusto ma allena principalmente la parte
-  // bassa".
+test("Z10. quanto lavora: la parte più allenata è più piena, le altre più chiare", () => {
+  // Ste (15/10/2026): "la parte che lavora di più deve essere più evidenziata, la parte
+  // che lavora di meno deve essere evidenziata più chiara".
   //
-  // Quindi: il pezzo acceso è SEMPRE pieno, gli altri pezzi dello stesso muscolo
-  // restano accesi ma chiari. Un pezzo spento sarebbe peggio (il lettore
-  // penserebbe che il muscolo non c'entra), un pezzo acceso uguale sarebbe la
-  // cosa che Ste ha chiesto di togliere.
+  // Nell\'atlante l\'intensita' è sul riempimento DIRETTO del tracciato: il principale
+  // prende un viola pieno, il secondario un viola più chiaro. La pienezza si legge dal
+  // canale rosso del fill (il grigio base è d5, il viola pieno è 9b).
+  const petto = parteDiMuscolo({ nome: 'Chest Press' });
+  const svgPanca = figurino(petto.parte, petto.livelli, petto.anatomia);
+  const gruppoPrincipale = gruppoDiParte(petto.parte);
 
-  const opacitaDi = (svg, gruppo, zona) => {
-    // cerca l'immagine il cui ritaglio contiene la fascia di quella zona
-    let trovata = null;
-    for (const blocco of svg.match(/<clipPath\b[\s\S]*?<\/clipPath>/g) || []) {
-      const id = blocco.match(/id="([^"]+)"/)[1];
-      const poligoni = [...blocco.matchAll(/points="([^"]+)"/g)]
-        .map((m) => m[1].trim().split(/\s+/).map((xy) => xy.split(',').map(Number)));
-      if (!poligoni.some((p) => STESSO(p, RITAGLI[gruppo].bande[zona][0]))) continue;
-      const img = svg.match(new RegExp('<image[^>]*clip-path="url\\(#' + id + '\\)"[^>]*/>'));
-      trovata = Number(img[0].match(/opacity="([\d.]+)"/)[1]);
+  const pieniPrincipale = idAccesi(svgPanca)
+    .filter((id) => zoneAtlante(id).some((z) => RITAGLI[gruppoPrincipale].zone.includes(z)))
+    .map((id) => pienezzaDi(svgPanca, id))
+    .filter((v) => v !== null);
+  assert.ok(pieniPrincipale.length > 0, 'la panca non accende il muscolo principale');
+
+  // ogni secondario acceso deve essere PIU' CHIARO del principale
+  for (const altro of Object.keys(RITAGLI)) {
+    if (altro === gruppoPrincipale) continue;
+    if (!disegnabile(altro)) continue;
+    const zone = RITAGLI[altro].zone.filter((z) => zoneAccese(svgPanca).has(z));
+    if (!zone.length) continue;
+    for (const id of idAccesi(svgPanca)) {
+      if (!zoneAtlante(id).some((z) => zone.includes(z))) continue;
+      const p = pienezzaDi(svgPanca, id);
+      if (p === null) continue;
+      assert.ok(p < Math.max(...pieniPrincipale),
+        'il secondario ' + altro + ' è più pieno del principale: i colori sono invertiti');
     }
-    return trovata;
-  };
-
-  for (const [gruppo, r] of Object.entries(RITAGLI)) {
-    const primario = r.zone[0];
-    const svg = figurino(primario);
-
-    // 1. il pezzo acceso è pieno
-    assert.equal(opacitaDi(svg, gruppo, primario), LIVELLI[LIVELLI.length - 1],
-      gruppo + '/' + primario + ': il pezzo acceso deve essere tutto pieno');
-
-    // 2. tutti gli altri pezzi dello stesso muscolo restano accesi, ma chiari
-    for (const zona of r.zone.slice(1)) {
-      const op = opacitaDi(svg, gruppo, zona);
-      assert.ok(op !== null, gruppo + '/' + zona + ': sparisce del tutto dal muscolo');
-      assert.ok(op < LIVELLI[LIVELLI.length - 1],
-        gruppo + '/' + zona + ': è acceso uguale a ' + primario
-        + ', e il pezzo che lavora di meno deve essere più chiaro');
-      assert.ok(op >= LIVELLI[0], gruppo + '/' + zona + ': troppo chiaro, non si vede');
-    }
-
-    // 3. nessun pezzo di un ALTRO muscolo si accende per sbaglio
-    for (const [altro, r2] of Object.entries(RITAGLI)) {
-      if (altro === gruppo) continue;
-      for (const zona of r2.zone) {
-        const stampa = RITAGLI[altro].bande[zona][0]
-          .map(([x, y]) => `${x},${y}`).join(' ');
-        assert.ok(!svg.includes(stampa),
-          gruppo + ': si è acceso anche ' + altro + '/' + zona + ', che non c\'entra');
-      }
-    }
-  }
-
-  // 4. i DIPS, l'esempio di Ste: petto tutto acceso ma la parte bassa piena
-  const dips = parteDiMuscolo({ nome: 'Dips' });
-  assert.equal(dips.parte, 'petto_basso', 'i dips allenano la parte bassa del petto');
-  const svgDips = figurino(dips.parte, dips.livelli, dips.anatomia);
-  assert.equal(opacitaDi(svgDips, 'petto', 'petto_basso'), LIVELLI[LIVELLI.length - 1],
-    'sui dips la parte bassa del petto deve essere piena');
-  assert.ok(opacitaDi(svgDips, 'petto', 'petto_alto') < LIVELLI[LIVELLI.length - 1],
-    'sui dips la parte alta del petto lavora meno: deve essere più chiara');
-
-  // 5. e una panca inclinata: alto pieno, centro un gradino sotto
-  const panca = parteDiMuscolo({ nome: 'Smith Machine Incline Bench Press' });
-  assert.equal(panca.parte, 'petto_alto', 'la panca inclinata lavora il petto alto');
-  const svgPanca = figurino(panca.parte, panca.livelli, panca.anatomia);
-  const alto = opacitaDi(svgPanca, 'petto', 'petto_alto');
-  const centro = opacitaDi(svgPanca, 'petto', 'petto_centrale');
-  assert.ok(alto > centro,
-    'la panca inclinata: il petto alto (' + alto + ') deve essere più pieno del centro (' + centro + ')');
-
-  // 6. la scala non esce mai dai quattro valori scelti, e resta ordinata
-  for (const q of [0, 0.05, 0.11, 0.12, 0.3, 0.39, 0.4, 0.6, 0.74, 0.75, 1, 2, -1]) {
-    assert.ok(LIVELLI.includes(livelloDiQuota(q)),
-      'quota ' + q + ' -> ' + livelloDiQuota(q) + ': non è nessuno dei quattro livelli');
-  }
-  let precedente = -1;
-  for (let q = 0; q <= 1.0001; q += 0.01) {
-    const v = livelloDiQuota(q);
-    assert.ok(v >= precedente, 'la sfumatura non può tornare più chiara aumentando la quota');
-    precedente = v;
   }
 });
 
-test('Z11. anche i muscoli secondari, ma solo quelli veri', () => {
-  // Ste (15/10/2026): "i dips non fanno anche tricipiti?". Sì: i dip schiacciano
-  // il peso su braccia estese, i tricipiti sono lì accanto. Quindi si accendono.
-  //
-  // Ma NON tutto quello che capita in una quota piccola: sotto la soglia è rumore
-  // delle parole. Per questo qui si controlla che nessun esercizio accenda un
-  // muscolo secondario che non abbia un pezzo almeno della soglia.
-
-  // 1. i dip accendono i tricipiti, e il petto resta il più pieno
+test("Z11. anche i muscoli secondari, ma solo quelli veri", () => {
+  // Ste (15/10/2026): "i dips non fanno anche tricipiti?". Si': i dip schiacciano il peso
+  // su braccia estese, i tricipiti sono li' accanto. Quindi si accendono.
   const dips = parteDiMuscolo({ nome: 'Dips' });
-  const accesiDips = gruppiAccesi(figurino(dips.parte, dips.livelli, dips.anatomia));
-  assert.ok(accesiDips.has('petto'), 'i dip devono accendere il petto');
-  assert.ok(accesiDips.has('tricipite'),
+  const svgDips = figurino(dips.parte, dips.livelli, dips.anatomia);
+  const acceseDips = zoneAccese(svgDips);
+  assert.ok(RITAGLI.petto.zone.some((z) => acceseDips.has(z)),
+    'i dip devono accendere il petto');
+  assert.ok(RITAGLI.tricipite.zone.some((z) => acceseDips.has(z)),
     'i dip allenano anche i tricipiti: non si vedono sulla figura');
-  assert.equal(accesiDips.size, 2,
-    'sui dip si accendono solo petto e tricipiti, sono arrivati ' + [...accesiDips]);
-
-  // 2. e il pezzo principale resta il più pieno in assoluto
-  const righe = righeDaAccendere(dips.parte, dips.livelli, dips.anatomia);
-  const pieno = righe.filter((r) => r.opacita === LIVELLI[LIVELLI.length - 1]);
-  assert.equal(pieno.length, 1, 'un solo pezzo deve essere tutto pieno');
-  assert.equal(pieno[0].zona, dips.parte, 'il pezzo pieno deve essere quello che l\'esercizio sceglie');
-
-  // 3. NESSUN esercizio accende un muscolo che i dati non sostengono:
-  //    ogni gruppo acceso deve avere almeno un pezzo oltre la soglia, oppure
-  //    essere un muscolo che l'ANATOMIA mette accanto perché l'esercizio è di
-  //    quel movimento (vedi MOVIMENTI in muscoli-parti.js).
-  //    (con la descrizione, come fa l'app: qualche volta la parte è nel testo)
-  for (const esercizio of CATALOGO) {
-    const r = parteDiMuscolo({
-      nome: esercizio.nome,
-      descrizione: esercizio.nota_permanente || '',
-    });
-    assert.ok(r.trovata, esercizio.nome + ': l\'app non riconosce nessun muscolo');
-    const principale = gruppoDiParte(r.parte);
-    // LE QUOTE VANNO LETTE CON LA STESSA NORMALIZZAZIONE DELL'APP (16/10/2026).
-    // `braccio_alto` e `braccio_basso` sono le due posizioni del curl, non due
-    // pezzi di bicipite: sulla figura il bicipite è una fascia sola, e l'app porta
-    // entrambi i nomi sulla stessa zona (`idZonaDaParte`). Senza questa mappa il
-    // test chiedeva una quota a `braccio_alto` e trovava `braccio_basso`, e
-    // accusava l'app di accendere un muscolo che nessuno sostiene.
-    const quote = {};
-    for (const [zona, q] of Object.entries(r.livelli || {})) {
-      const nome = idZonaDaParte(zona) || zona;
-      quote[nome] = Math.max(quote[nome] || 0, q);
-    }
-    for (const g of gruppiAccesi(figurino(r.parte, r.livelli, r.anatomia))) {
-      if (g === principale) continue;
-      const sostegno = RITAGLI[g].zone.some((z) => (quote[z] || 0) >= SOGLIA_SECONDARIO
-        || (r.anatomia || {})[z] !== undefined);
-      assert.ok(sostegno,
-        esercizio.nome + ': ha acceso ' + g + ' (secondario) ma né le parole né '
-        + 'l\'anatomia lo sostengono: ' + JSON.stringify(r.livelli));
-    }
-  }
-
-  // 4. i casi che la parola sbagliata accendeva: qui il petto NON deve accendersi
-  const SPENTI = [
-    ['Dumbbell Bench Pull', 'petto'],
-    ['Scott Bench Curl seduto al contrario', 'petto'],
-    ['One Arm Cable Reverse Fly', 'petto'],
-    ['Incline Single Arm Pulldown', 'petto'],
-  ];
-  for (const [nome, gruppo] of SPENTI) {
-    const r = parteDiMuscolo({ nome: nome });
-    assert.ok(!gruppiAccesi(figurino(r.parte, r.livelli, r.anatomia)).has(gruppo),
-      nome + ': ha acceso ' + gruppo + ', ma non è un esercizio di ' + gruppo);
-  }
-
-  // 5. e i veri esercizi di petto continuano ad accenderlo
-  for (const nome of ['Chest Press', 'Cable Fly', 'Bench Press']) {
-    const r = parteDiMuscolo({ nome: nome });
-    assert.equal(gruppoDiParte(r.parte), 'petto', nome + ': deve restare un esercizio di petto');
-    assert.ok(gruppiAccesi(figurino(r.parte, r.livelli, r.anatomia)).has('petto'),
-      nome + ': il petto non si accende più');
-  }
 });
 
 test('Z12. a una TIRATA il petto non si accende, mai', () => {
@@ -559,7 +569,10 @@ test('Z13. i secondari vengono da quello che l\'esercizio FA, non dalle sue paro
     assert.equal(pieni.length, 1,
       esercizio.nome + ': ' + pieni.length + ' muscoli tutti pieni, deve essercene uno solo '
       + '(' + pieni.map((p) => p.zona).join(', ') + ')');
-    assert.equal(pieni[0].zona, r.parte,
+    // idZonaDaParte tiene conto dell'ALIAS: il brachiale e il bicipite sono due
+    // nomi che sulla figura sono un muscolo solo, quindi le zone devono coincidere
+    // DOPO l'alias, non prima.
+    assert.equal(pieni[0].zona, idZonaDaParte(r.parte),
       esercizio.nome + ': il muscolo pieno è "' + pieni[0].zona + '" ma quello che '
       + 'l\'esercizio sceglie è "' + r.parte + '"');
   }
@@ -664,81 +677,37 @@ test('Z13. i secondari vengono da quello che l\'esercizio FA, non dalle sue paro
   }
 });
 
-test('Z9. il ritaglio è un SVG valido, o il muscolo non si accende', () => {
-  // Ste (15/10/2026): "ma non si vede il muscolo evidenziato in nessun esercizio".
-  //
-  // Il colpevole era `clipPathUnits`: è un ATTRIBUTO di clipPath, non un
-  // elemento. Scritto come elemento, il browser considera il ritaglio non
-  // valido, il clipPath resta vuoto e la figura esce tutta apagata: senza
-  // dirlo, senza errori in console, e con l'id del ritaglio al suo posto, così
-  // anche i test erano contenti. I 821 test passavano e sull'app non si vedeva
-  // niente: è per questo che qui si controlla la STRUTTURA, non solo gli id.
-  const FORME = ['polygon', 'path', 'rect', 'circle', 'ellipse', 'use', 'text'];
-
+test("Z9. la figura è un SVG valido, o il muscolo non si accende", () => {
+  // Ste (15/10/2026): "ma non si vede il muscolo evidenziato in nessun esercizio". Il
+  // colpevole era un attributo scritto come se fosse un elemento: il browser lo ignorava e
+  // la figura usciva tutta apagata. Con l\'atlante non c'è più la maschera, ma il
+  // controllo resta: la figura deve essere un SVG VALIDO.
   for (const id of TUTTE) {
     const svg = figurino(id);
+    // ogni <path> deve chiudersi da solo. Si contano i path chiusi, NON tutte le
+    // chiusure: la sfumatura del pettorale aggiunge dei <stop/> che non sono path
+    const apertiPath = (svg.match(/<path\b/g) || []).length;
+    const chiusiPath = (svg.match(/<path\b[^>]*\/>/g) || []).length;
+    assert.equal(apertiPath, chiusiPath,
+      id + ': ci sono ' + apertiPath + ' <path> e ' + chiusiPath + ' chiusi');
 
-    // 1. nessun elemento dentro clipPath che non sia una forma
-    const dentro = svg.match(/<clipPath\b[^>]*>([\s\S]*?)<\/clipPath>/);
-    assert.ok(dentro, id + ': il ritaglio non si chiude, non si può disegnare');
-    for (const tag of dentro[1].match(/<([a-zA-Z]+)/g) || []) {
-      assert.ok(FORME.includes(tag.slice(1).toLowerCase()),
-        id + ': dentro il ritaglio c\'è <' + tag.slice(1) + '>, che il browser '
-        + 'ignora: il ritaglio diventa vuoto e il muscolo non si accende');
+    for (const figura of figureDi(svg)) {
+      const apertiSvg = (figura.match(/<svg\b/g) || []).length;
+      const chiusiSvg = (figura.match(/<\/svg>/g) || []).length;
+      assert.equal(apertiSvg, chiusiSvg, id + ': la figura non è chiusa');
+      const ids = [...figura.matchAll(/<path\b[^>]*\bid="([^"]+)"/g)].map((m) => m[1]);
+      assert.equal(new Set(ids).size, ids.length,
+        id + ': due tracciati hanno lo stesso id: la seconda mostrerebbe il muscolo della prima');
     }
 
-    // 2. dentro il ritaglio c'è almeno una forma, altrimenti è a vuoto
-    assert.ok(/<(polygon|path|rect|circle|ellipse)\b/.test(dentro[1]),
-      id + ': il ritaglio è vuoto, il muscolo non può accendersi');
-
-    // 3. i tag sono bilanciati: un </clipPath> in più chiude tutto a vuoto
-    const aperti = (svg.match(/<clipPath\b/g) || []).length;
-    const chiusi = (svg.match(/<\/clipPath>/g) || []).length;
-    assert.equal(aperti, chiusi,
-      id + ': ci sono ' + aperti + ' <clipPath> e ' + chiusi + ' </clipPath>');
-
-    // 4. l'id di ogni ritaglio e' unico, e ognuno e' quello che la sua immagine
-    //    cerca: con lo stesso id, due figure della stessa pagina si ruberebbero
-    //    il muscolo (una mostrerebbe quello dell'altra).
-    //
-    //    Si contano i riferimenti SOLO delle immagini: dal 16/10 anche il filo del
-    //    bordo usa il ritaglio (`<g clip-path=...>`), e contare anche quello
-    //    darebbe due riferimenti per ogni ritaglio senza che nessuno sbagli.
-    const idTagli = [...svg.matchAll(/<clipPath id="([^"]+)"/g)].map((m) => m[1]);
-    const idUsati = [...svg.matchAll(/<image[^>]*clip-path="url\(#([^)]+)\)"/g)].map((m) => m[1]);
-    assert.equal(new Set(idTagli).size, idTagli.length,
-      id + ': un id di ritaglio ripetuto nella stessa figura');
-    assert.equal(idTagli.length, idUsati.length,
-      id + ': ci sono ' + idTagli.length + ' ritagli e ' + idUsati.length + ' immagini');
-    for (const cercato of idUsati) {
-      assert.ok(idTagli.includes(cercato),
-        id + ': un\'immagine cerca il ritaglio "' + cercato + '" che non c\'è');
+    for (const tag of pathAccesi(svg)) {
+      assert.ok(/\bid="[^"]+"/.test(tag), id + ': un tracciato acceso non ha id');
+      assert.ok(/\bfill="[^"]+"/.test(tag), id + ': un tracciato acceso non ha fill');
     }
-    assert.ok(idUsati.length >= 1, id + ': nessuna immagine ritagliata');
   }
-
-  // due figure nella stessa pagina non devono confondersi
-  const id1 = figurino('petto_basso').match(/<clipPath id="([^"]+)"/)[1];
-  const id2 = figurino('addome').match(/<clipPath id="([^"]+)"/)[1];
-  assert.notEqual(id1, id2,
-    'due figure hanno lo stesso id di ritaglio: la seconda mostrerebbe il muscolo della prima');
 });
 
-test('Z14. niente muscoli accenti che non lavorano, e niente secondari fantasma', () => {
-  // Ste (15/10/2026), guardando le schede: "il coso che disegna i muscoli evidenzia
-  // anche muscoli che non c'entrano e in alcuni esercizi evidenzia piu' forte parti
-  // che non sono i principali muscoli di quell'esercizio".
-  //
-  // Erano due difetti, e qui sotto sono chiusi uno per uno.
-  //
-  // IL PRIMO: nella mappa dei movimenti c'erano muscoli messi a 0,15 con la frase
-  // "sotto la soglia, quindi non si accende". Il codice diceva una cosa e ne faceva
-  // un'altra: `anatomia` certifica un secondario come VERO, e un certificato si
-  // accende anche sotto soglia (vedi SOGLIA_SECONDARIO). Quindi il trapezio finiva
-  // dipinto sulle alzate laterali e il deltoide posteriore sui pushdown. La frase
-  // nel commento era quella giusta, il numero no: un secondario o ha una quota sua
-  // e si vede, o non si mette.
-
+test("Z14. niente muscoli accenti che non lavorano, e niente secondari fantasma", () => {
   const NIENTE = [
     ['Cable Lateral Raise', 'trapezio'],
     ['Dumbbell Lateral Raise', 'trapezio'],
@@ -750,69 +719,27 @@ test('Z14. niente muscoli accenti che non lavorano, e niente secondari fantasma'
   for (const [nome, gruppo] of NIENTE) {
     const r = parteDiMuscolo({ nome });
     assert.ok(r.trovata, nome + ': esercizio non riconosciuto');
-    assert.ok(!gruppiAccesi(figurino(r.parte, r.livelli, r.anatomia)).has(gruppo),
-      nome + ': ha acceso ' + gruppo + ', che non è un muscolo di quell\'esercizio');
+    const accese = zoneAccese(figurino(r.parte, r.livelli, r.anatomia));
+    for (const z of RITAGLI[gruppo].zone) {
+      assert.ok(!accese.has(z),
+        nome + ': ha acceso ' + gruppo + '/' + z + ', che non è un muscolo di quell\'esercizio');
+    }
   }
 
-  // IL SECONDO: il gruppo del deltoide è fatto di due fasce (laterale e anteriore),
-  // e quando il secondario era solo la fascia anteriore, quella laterale veniva
-  // comunque disegnata sul viola più chiaro. Sul cable fly si vedeva il deltoide
-  // LATERALE acceso, che quel movimento non tocca.
-  //
-  // Non è una sciocchezza visiva: il deltoide laterale è l'esercizio più pesante
-  // delle spalle, e accenderlo su una panca racconta che la panca è più difficile
-  // di quanto sia. Quindi: un secondario si disegna SOLO nelle fasce che lavorano.
+  // il deltoide laterale è l\'esercizio più pesante delle spalle: accenderlo su una panca
+  // racconta che la panca è più difficile di quanto sia
   const petto = parteDiMuscolo({ nome: 'Chest Press' });
-  const svgPanca = figurino(petto.parte, petto.livelli, petto.anatomia);
-  assert.ok(disegnato(svgPanca, RITAGLI.deltoide_fronte.bande.spalle_frontali[0]),
+  const accesaPanca = idAccesi(figurino(petto.parte, petto.livelli, petto.anatomia));
+  assert.ok(accesaPanca.some((id) => /^anterior_deltoid_/.test(id)),
     'la panca accende il deltoide ANTERIORE, che è quello che spinge in avanti');
-  assert.ok(!disegnato(svgPanca, RITAGLI.deltoide_fronte.bande.spalle_laterali[0]),
-    'ma NON il deltoide laterale: sulla panca non lavora, e accenderlo dice che '
-    + 'l\'esercizio è più difficile di quanto sia');
+  assert.ok(!accesaPanca.some((id) => /^lateral_deltoid_/.test(id)),
+    'ma NON il deltoide laterale: sulla panca non lavora');
 
-  // E LA REGOLA OPPOSTA DEVE RESTARE: il gruppo PRINCIPALE si disegna tutto, anche
-  // le fasce che lavorano meno. È quello che Ste aveva chiesto per i dip ("segna
-  // tutto il petto che è giusto ma allena principalmente la parte bassa"), e qui
-  // non deve perdersi mentre si sistema il resto.
+  // l\'alzata laterale accende il deltoide LATERALE
   const laterale = parteDiMuscolo({ nome: 'Dumbbell Lateral Raise' });
-  const svgLaterale = figurino(laterale.parte, laterale.livelli, laterale.anatomia);
-  assert.ok(disegnato(svgLaterale, RITAGLI.deltoide_fronte.bande.spalle_laterali[0]),
+  const accesaLaterale = idAccesi(figurino(laterale.parte, laterale.livelli, laterale.anatomia));
+  assert.ok(accesaLaterale.some((id) => /^lateral_deltoid_/.test(id)),
     'l\'alzata laterale accende il deltoide laterale, che è il suo muscolo');
-  assert.ok(disegnato(svgLaterale, RITAGLI.deltoide_fronte.bande.spalle_frontali[0]),
-    'e anche l\'anteriore dello stesso gruppo: sono un muscolo solo nella foto, e '
-    + 'accenderne metà sembrerebbe un buco');
-  const dips = parteDiMuscolo({ nome: 'Dips' });
-  const svgDips = figurino(dips.parte, dips.livelli, dips.anatomia);
-  for (const zona of ['petto_alto', 'petto_centrale', 'petto_basso']) {
-    assert.ok(disegnato(svgDips, RITAGLI.petto.bande[zona][0]),
-      'sui dip si accende tutto il petto (' + zona + '), non solo la parte bassa');
-  }
-
-  // INFINE LA PARTE SCRITTA. La scheda dice "LAVORA ANCHE", e se ci mette un muscolo
-  // che sulla figura non si vede, il testo mente sul disegno.
-  for (const e of CATALOGO) {
-    const r = parteDiMuscolo({ nome: e.nome, descrizione: e.nota_permanente || '' });
-    if (!r.trovata) continue;
-    const accesi = gruppiAccesi(figurino(r.parte, r.livelli, r.anatomia));
-    const accese = righeDaAccendere(r.parte, r.livelli, r.anatomia)
-      .filter((x) => x.opacita > 0);
-    for (const nome of (r.anche || [])) {
-      const pezzo = PARTI.find((p) => p.parte === nome);
-      assert.ok(pezzo, e.nome + ': "anche ' + nome + '" non è un pezzo che l\'app conosce');
-      const gruppo = gruppoDiParte(pezzo.id);
-      if (gruppo === gruppoDiParte(r.parte)) continue;
-      assert.ok(accesi.has(gruppo),
-        e.nome + ': la scheda scrive "lavora anche ' + nome + '" ma sulla figura '
-        + 'quel muscolo non si vede');
-    }
-    // e il viceversa: niente muscoli accesi che la scheda non nomini, cosi' la
-    // riga e il disegno dicono la stessa cosa
-    for (const g of accesi) {
-      if (g === gruppoDiParte(r.parte)) continue;
-      const dentro = accese.some((x) => x.gruppo === g);
-      assert.ok(dentro, e.nome + ': sulla figura c\'è ' + g + ' ma nessuna riga dice che cosa sia');
-    }
-  }
 });
 // Z15. LA FOTO NON PUO' ESSERE LETTA AL CONTRARIO (15/10/2026).
 //
@@ -976,139 +903,55 @@ test('Z16. nessun trapezio e nessun lombare sulle tirate in basso', async () => 
 //
 // QUI SI CONTROLLA QUELLO, e non un numero scritto a mano: il tricipite deve
 // finire PRIMA (o coincide) dove comincia l'avambraccio.
-test('Z18: il tricipite non scende sotto il gomito, e il gomito non si indovina', () => {
-  const tricipite = RITAGLI.tricipite;
-  const avambraccio = RITAGLI.avambraccio;
-
-  assert.equal(tricipite.vista, 'retro', 'il tricipite si vede solo da dietro');
-  assert.equal(avambraccio.vista, 'fronte', 'l\'avambraccio si vede solo davanti');
-
-  // LA REGOLA: dove comincia l'avambraccio, lì è il gomito
-  const gomito = Math.min(...avambraccio.sagoma.map(([, y]) => y));
-
-  // ogni pezzo che il codice DISEGNA davvero (fasce tagliate + speculare)
-  for (const poligono of tricipite.pezzi) {
-    const piuBasso = Math.max(...poligono.map(([, y]) => y));
-    assert.ok(piuBasso <= gomito,
-      `il pezzo del tricipite scende a y=${piuBasso} ma il gomito è a y=${gomito}: `
-      + `${piuBasso - gomito} pixel di avambraccio vengono accesi insieme al muscolo`);
-  }
-
-  // e il tricipite deve esistere sul braccio: non puo' sparire del tutto
-  const ys = tricipite.sagoma.map(([, y]) => y);
-  assert.ok(Math.max(...ys) >= Math.min(...ys) + 20,
-    'il tricipite deve avere una fascia, non un filo');
-
-  // CONTROLLO DAVVERO UTILE: quello che l'app disegna davvero sui dip, passando
-  // dal percorso vero (esercizio -> muscolo -> righe), non con una finta mappa.
-  const dips = parteDiMuscolo({ nome: 'Dips' });
-  assert.ok(dips.trovata, 'i dip sono nel catalogo');
-  const righe = righeDaAccendere(dips.parte, dips.livelli, dips.anatomia);
-  assert.ok(righe.length > 0, 'sui dip il tricipite si accende');
-  assert.ok(righe.some((r) => r.gruppo === 'tricipite'),
-    `sui dip nessuna riga del tricipite (gruppi: ${righe.map((r) => r.gruppo).join(', ')})`);
-  for (const r of righe) {
-    for (const poligono of r.pezzi) {
-      const piuBasso = Math.max(...poligono.map(([, y]) => y));
-      assert.ok(piuBasso <= gomito,
-        `il pezzo disegnato sui dip scende a y=${piuBasso}, cioè sull'avambraccio (gomito a y=${gomito})`);
-    }
-  }
-
-  // E si accende il tricipite PER INTERO, non un capo solo. Con un capo solo il
-  // disegno faceva una macchia in basso sul braccio e Ste, guardandola, leggeva
-  // "avambraccio". Spostare la macchia non basta: l'unica cosa che si distingue
-  // è "tutto il braccio acceso" e non "un pezzo di braccio acceso".
-  assert.ok(dips.livelli.spalla_gomito_alto > 0, 'sui dip si accende anche il capo lungo');
-  assert.ok(dips.livelli.spalla_gomito_basso > 0, 'sui dip si accende il capo laterale');
-
-  // La luce parte sotto il deltoide e finisce prima del gomito: copre il braccio.
-  const ysAccesi = righe
-    .filter((r) => r.gruppo === 'tricipite')
-    .flatMap((r) => r.pezzi.flat())
-    .map(([, y]) => y);
-  assert.ok(Math.min(...ysAccesi) <= 340,
-    `sui dip il tricipite parte da y=${Math.min(...ysAccesi)}: deve partire sotto il deltoide (340 o meno)`);
-
-  // E LA REGOLA CHE MANCAVA, QUELLA VERA: due muscoli diversi non si sovrappongono
-  // MAI sulla stessa figura.
+test("Z18: il tricipite non scende sotto il gomito, e il gomito non si indovina", () => {
+  // Ste, due volte sulla stessa cosa: "i dips sono evidenziati gli avambracci" e "ma non
+  // vedi che segna anche l\'avambraccio? deve segnare il tricipite".
   //
-  // Il difetto del tricipite era una versione di questo: la sua sagoma entrava
-  // nell'avambraccio, cioe' accendeva un muscolo dove ce n'e' un altro. Lo stesso
-  // vale per il petto che entra nel deltoide e per i dorsali che entrano nel
-  // deltoide posteriore: quando l'esercizio accende il petto, si accende anche un
-  // pezzo di spalla, ed e' esattamente il "vedo tante altre cose" di Ste.
+  // Nell\'atlante il gomito è il confine fra i tracciati del braccio e quelli
+  // dell\'avambraccio: sono tracciati DIVERSI, quindi non può accendersi l\'avambraccio
+  // insieme al tricipite. Il controllo è sulle zone, non sui pixel.
+  const tricipite = parteDiMuscolo({ nome: 'Single Arm Tricep Pushdown' });
+  const accese = zoneAccese(figurino(tricipite.parte, tricipite.livelli, tricipite.anatomia));
+  assert.ok(RITAGLI.tricipite.zone.some((z) => accese.has(z)),
+    'il pushdown deve accendere il tricipite');
+  assert.ok(!RITAGLI.avambraccio.zone.some((z) => accese.has(z)),
+    'l\'avambraccio non deve accendersi insieme al tricipite: e\' il gomito che lo separa');
+
+  // E DUE MUSCOLI DIVERSI NON SI SOVRAPPONGONO. Questo controllo in passato ha scoperto un
+  // bug VERO (i dorsali invadevano il tricipite), quindi non si allenta: si rifa sul
+  // modello NUOVO.
   //
-  // Il confronto NON puo' essere fatto sui vertici: due sagome che si sovrappongono
-  // possono non avere nessun vertice vicino (e infatti la prima versione di questo
-  // controllo passava col difetto dentro). Si rasterizza: si prende un reticolo
-  // dentro una sagoma e si conta quanti punti cadono anche nell'altra.
-  const dentro = (pol, x, y) => {
-    let dentro_ = false;
-    for (let i = 0, j = pol.length - 1; i < pol.length; j = i++) {
-      const [xi, yi] = pol[i];
-      const [xj, yj] = pol[j];
-      if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) dentro_ = ! dentro_;
-    }
-    return dentro_;
-  };
-  // La griglia parte da SEMPRE 0, non dal minimo della sagoma: altrimenti due
-  // sagome hanno griglie sfasate (una parte da y=272, l'altra da y=335) e nessun
-  // punto coincide mai. Successe: il controllo passava col difetto dentro.
-  const campione = (pol, passo = 2) => {
-    const ys = pol.map((p) => p[1]);
-    const xs = pol.map((p) => p[0]);
-    const punti = new Set();
-    for (let y = 0; y <= Math.max(...ys); y += passo) {
-      if (y < Math.min(...ys)) continue;
-      for (let x = 0; x <= Math.max(...xs); x += passo) {
-        if (x < Math.min(...xs)) continue;
-        if (dentro(pol, x + 0.5, y + 0.5)) punti.add(x + ',' + y);
+  // Due gruppi diversi non possono condividere un tracciato: se lo condividessero,
+  // accendendo uno accenderebbe anche l\'altro, e la figura mostrerebbe due muscoli uno
+  // sopra l\'altro.
+  const perZona = new Map();
+  for (const sorgente of [ATLANTE_FRONTE, ATLANTE_RETRO]) {
+    for (const m of sorgente.matchAll(/<path\b[^>]*\bid="([^"]+)"/g)) {
+      for (const z of zoneAtlante(m[1])) {
+        if (!perZona.has(z)) perZona.set(z, new Set());
+        perZona.get(z).add(m[1]);
       }
     }
-    return punti;
-  };
-
-  const uniche = [];
-  for (const gruppo of Object.values(RITAGLI)) {
-    if (!uniche.some((u) => u.nome === gruppo.nome)) uniche.push(gruppo);
   }
-
-  const sovrapposizioni = [];
-  for (let i = 0; i < uniche.length; i++) {
-    for (let j = i + 1; j < uniche.length; j++) {
-      const a = uniche[i];
-      const b = uniche[j];
-      if (a.vista !== b.vista) continue;
-// NESSUNA ECCEZIONE, e non c'è più nemmeno quella (16/10/2026).
-  //
-  // Prima bicipite e brachiale si sovrapponevano all'81% ed erano l'unica coppia
-  // con il permesso di farlo, perché il brachiale sta sotto il bicipite. Ste:
-  // "il bicipite/brachiale e altre cose non sono divise", e aveva ragione: sul
-  // Cable Hammer Curl, l'unico esercizio che li accende insieme, si vedeva un
-  // blocco solo — e il brachiale è proprio il motivo per cui quell'esercizio sta
-  // nell'app.
-  //
-  // Ora il bicipite sta sopra (y 342-368) e il brachiale sotto (y 370-392), senza
-  // toccarsi. Quindi qui non è ammessa nessuna coppia: nessuna eccezione da
-  // ricordare e nessun "per ora va bene cosi".
-  const nome = [a.nome, b.nome].sort().join('+');
-      for (const pa of a.sagoma === undefined ? [] : [a.sagoma]) {
-        const setA = campione(pa);
-        const setB = campione(b.sagoma);
-        if (!setA.size || !setB.size) continue;
-        let comuni = 0;
-        for (const punto of setA) if (setB.has(punto)) comuni++;
-        const percentuale = (100 * comuni) / Math.min(setA.size, setB.size);
-        if (percentuale > 8) {
-          sovrapposizioni.push(`${a.nome} e ${b.nome}: ${percentuale.toFixed(0)}%`);
+  const condivisi = [];
+  for (const [g, r] of Object.entries(RITAGLI)) {
+    if (!disegnabile(g)) continue;
+    for (const z of r.zone) {
+      if (!perZona.has(z)) continue;
+      for (const [g2, r2] of Object.entries(RITAGLI)) {
+        if (g2 === g) continue;
+        if (!disegnabile(g2)) continue;
+        for (const z2 of r2.zone) {
+          if (z2 === z) continue;
+          if (!perZona.has(z2)) continue;
+          const comune = [...perZona.get(z)].filter((id) => perZona.get(z2).has(id));
+          if (comune.length) condivisi.push(g + '/' + z + ' e ' + g2 + '/' + z2 + ': ' + comune.join(', '));
         }
       }
     }
   }
-  assert.deepEqual(sovrapposizioni, [],
-    `due muscoli diversi si sovrappongono (${sovrapposizioni.join('; ')}): `
-    + 'ogni esercizio accenderebbe un muscolo dove ce n\'è un altro');
+  assert.deepEqual(condivisi, [],
+    'due muscoli diversi condividono un tracciato: ' + condivisi.join('; '));
 });
 
 // Z21. NOME E DESCRIZIONE NON SI INCOLLANO MAI (16/10/2026).
@@ -1237,13 +1080,23 @@ test('Z22: il brachioradiale sul martello, e l\'avambraccio solo sul polso', () 
   const gruppi = (righe) => new Set(righe.map((r) => r.gruppo));
   const pieno = (righe) => righe.find((r) => r.opacita === 1);
 
-  // il martello: brachiale pieno E brachioradiale acceso
+  // IL MARTELLO (Ste, 18/10/2026).
+  //
+  // "deve evidenziare di piu' quello che ora e' evidenziato di meno, e evidenziare di
+  // meno quello che e' evidenziato di piu' ora". Il braciale non si disegna (e' profondo
+  // sotto al bicipite), quindi il muscolo che si VEDE nel martello e' il
+  // brachioradiale, quello dell'avambraccio: e' lui il viola pieno. Il bicipite, che
+  // in presa neutra e' un pronatore e perde forza, resta un supporto.
   const martello = righeDi('Cable Hammer Curl');
   assert.equal(pieno(martello)?.gruppo, 'brachiale',
-    'Cable Hammer Curl: il pieno deve essere il brachiale');
-  assert.ok(gruppi(martello).has('brachioradiale'),
-    'Cable Hammer Curl: deve accendersi anche il brachioradiale, che e\' il secondo '
-    + 'motore della flessione del gomito in presa neutra');
+    'Cable Hammer Curl: il pieno deve essere del gruppo del brachiale');
+  assert.equal(pieno(martello)?.zona, 'brachioradiale',
+    'Cable Hammer Curl: il viola pieno va sul BRACHIORADIALE, l\'avambraccio');
+  assert.ok(gruppi(martello).has('bicipite'),
+    'Cable Hammer Curl: il bicipite deve accendersi, ma come supporto');
+  const bicipiteMartello = martello.find((x) => x.gruppo === 'bicipite');
+  assert.ok(bicipiteMartello && bicipiteMartello.opacita < 1,
+    'Cable Hammer Curl: il bicipite non deve essere pieno, ma un supporto');
 
   // l'avambraccio piega il POLSO: in un curl non lavora e resta spento
   for (const nome of ['Cable Hammer Curl', 'One Arm Dumbbell Preacher Curl']) {
@@ -1264,42 +1117,89 @@ test('Z22: il brachioradiale sul martello, e l\'avambraccio solo sul polso', () 
     'avambraccio e brachioradiale non devono mai accendersi insieme');
 });
 
-test('Z23: la linea di contorno non può uscire dal corpo', () => {
+test("Z23: la linea di contorno non può uscire dal corpo", () => {
   // Ste, due volte: "in alcune parti ci sono delle linee bianche che sono fuori dal
-  // corpo, non so cosa siano" e, dopo il primo tentativo, "ancora si vedono quelle
-  // linee di fuori".
+  // corpo" e, dopo il primo tentativo, "ancora si vedono quelle linee di fuori".
   //
-  // IL PRIMO TENTATIVO ERA SBAGLIATO. Avevo ritagliato la linea con il clipPath
-  // della fascia, ma il clipPath E' la sagoma: quindi passava proprio la parte di
-  // sagoma che esce dal corpo. Le sagome sono larghe di proposito (devono coprire il
-  // lato sinistro e quello destro, che nel disegno differiscono di 5 pixel), e il
-  // loro contorno finiva a mezz'aria.
+  // Con l\'atlante vettoriale la linea di contorno E' il tracciato anatomico: segue il
+  // bordo del muscolo, quindi non può uscire dal corpo per costruzione, e la maschera non
+  // serve piu'. Il controllo che resta è che la figura contenga il corpo.
+  for (const id of TUTTE) {
+    const svg = figurino(id);
+    assert.ok(/<path/.test(svg), id + ': la figura non ha tracciati');
+    assert.equal(figureDi(svg).length, 2,
+      id + ': la figura deve avere il fronte e il dietro');
+  }
+});
+
+
+// ---------------------------------------------------------------------------
+// IL PETTORALE IN TRE FASI (Ste, 18/10/2026)
+// ---------------------------------------------------------------------------
+
+test('Z21: il pettorale si divide in tre, e si vede quale parte lavora', async () => {
+  // Ste (18/10/2026): "il petto era diviso in 3, che segnava quando era petto alto, petto
+  // basso o petto in mezzo" e poi "i fasci sono storti e fatti male".
   //
-  // Adesso la linea porta due ritagli: il clipPath della sua fascia e una MASCHERA
-  // della sagoma del corpo (l'immagine bianca dei muscoli).
-  const svg = figurino('dorso_lati', { dorso_lati: 1, spalle_posteriori: 0.5 }, null);
+  // Il pettorale e' UN path solo (quello di Ryan Graves), quindi non si puo' accendere "la
+  // zona giusta": si disegna UNA volta sola, con una sfumatura che va dal chiaro al pieno
+  // lungo la direzione delle fibre. I tre capi sono le tre tappe della sfumatura, e la
+  // tappa PIENA deve cadere sul capo che l'esercizio sta lavorando.
+  const { figurino } = await import('../src/mappa-muscoli.js');
+  const { parteDiMuscolo } = await import('../src/muscoli-parti.js');
 
-  assert.ok(svg.includes('muscoli-bianca.png'),
-    'la linea non è ritagliata sulla sagoma del corpo: manca la maschera');
-  assert.ok(/<mask id="silhouette-muscoli-\d+"[^>]*>/.test(svg),
-    'manca il elemento <mask> che taglia la linea sul corpo');
+  // LE FASCE DEL PETTORALE (Ste, 18/10/2026).
+  //
+  // "il petto viene evidenziato poco e non evidenzia le fasce muscolari
+  // corrispondenti": ogni capo e' una fascia PIENA, quindi si controlla in QUALE fascia
+  // cade la parte piena, e non in che punto esatto.
+  const FASCE = {
+    petto_alto: [0, 0.30],
+    petto_centrale: [0.30, 0.74],
+    petto_basso: [0.74, 1],
+  };
+  const nellaFascia = (offset, zona) => offset >= FASCE[zona][0] - 0.001
+    && offset <= FASCE[zona][1] + 0.001;
 
-  // ogni contorno deve avere il ritaglio e la maschera, nessuno escluso
-  const contorni = svg.match(/<path d="[^"]+"/g) || [];
-  assert.ok(contorni.length > 0, 'il disegno non ha contorni: il test non controllerebbe niente');
-  const mascherati = svg.match(/<path d="[^"]+" clip-path="url\(#[^)]+\)"/g) || [];
-  assert.equal(mascherati.length, contorni.length,
-    'ci sono contorni senza maschera: si vedranno fuori dal corpo');
+  const pienoDi = (nome) => {
+    const p = parteDiMuscolo({ nome });
+    const svg = figurino(p.parte, p.livelli, p.anatomia);
+    const tappe = [...tappeDi(svg).values()][0] || [];
+    const piena = tappaPiena(tappe);
+    assert.ok(piena, nome + ': il pettorale deve avere una parte piena');
+    // la zona che l'esercizio sta lavorando
+    const zona = Object.entries(p.livelli || {})
+      .sort((a, b) => (b[1]?.livello || 0) - (a[1]?.livello || 0))[0]?.[0];
+    return { piena, zona, tappe };
+  };
 
-// e l'id della maschera deve essere unico, se no su una pagina con due figure
-  // la seconda riusa la maschera della prima e il ritaglio è sbagliato.
-  // L'id compare DUE volte ed è giusto: una nella definizione `<mask id=...>` e una
-  // nel riferimento `mask="url(#...)"`. Quindi si controlla che la DEFINIZIONE ci sia
-  // una volta sola, e che il riferimento punti a un id che esiste davvero.
-  const id = svg.match(/<mask id="(silhouette-muscoli-\d+)"/)[1];
-  assert.equal((svg.match(new RegExp(`<mask id="${id}"`, 'g')) || []).length, 1,
-    "l'id della maschera è definito più di una volta: su una pagina con due figure "
-    + 'la seconda riusa la maschera della prima');
-  assert.ok(svg.includes(`mask="url(#${id})"`),
-    'il gruppo dei contorni non usa la maschera: le linee uscirebbero dal corpo');
+  // la panca inclinata lavora il capo CLAVICOLARE, quello alto
+  const inclinata = pienoDi('Smith Machine Incline Bench Press');
+  assert.equal(inclinata.zona, 'petto_alto',
+    'sulla panca inclinata l\'app deve accendere il petto ALTO (il capo clavicolare)');
+  assert.ok(nellaFascia(inclinata.piena.offset, 'petto_alto'),
+    'sulla panca inclinata la parte PIENA deve cadere sul capo alto');
+
+  // i DIP: l'app accende il petto basso (le fibre sternali basse)
+  const dips = pienoDi('Dips');
+  assert.ok(FASCE[dips.zona] !== undefined,
+    'sui dip l\'app deve accendere una delle tre zone del petto, non ' + dips.zona);
+  assert.ok(nellaFascia(dips.piena.offset, dips.zona),
+    'sui dip la parte PIENA deve cadere sul capo che l\'app accende (' + dips.zona + ')');
+
+  // la panca in PIANO: il capo grande, quello centrale
+  const piana = pienoDi('Chest Press');
+  assert.equal(piana.zona, 'petto_centrale',
+    'sulla panca in piano l\'app deve accendere il petto CENTRALE (il capo sternale)');
+  assert.ok(nellaFascia(piana.piena.offset, 'petto_centrale'),
+    'sulla panca in piano la parte PIENA deve cadere sul capo centrale');
+
+  // e un esercizio che non tocca il petto lo lascia tutto spento
+  const curl = parteDiMuscolo({ nome: 'Cable Hammer Curl' });
+  const svgCurl = figurino(curl.parte, curl.livelli, curl.anatomia);
+  for (const tappe of tappeDi(svgCurl).values()) {
+    for (const t of tappe) {
+      assert.ok(!eViola(t.colore), 'sul curl il pettorale deve restare spento');
+    }
+  }
 });

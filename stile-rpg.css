@@ -107,6 +107,103 @@ a { color: var(--blu); }
 }
 .scheda-giorno .riga-titoli { align-items: baseline; }
 .scheda-giorno .titolo-collegabile { font-size: 1.18rem; font-weight: 800; }
+
+/* La mappa muscolare resta la stessa: qui la presentiamo come una piccola tavola
+   anatomica, più leggibile su desktop e telefono. */
+.riga-omino {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(180px, .8fr);
+  align-items: center;
+  gap: clamp(12px, 2.5vw, 28px);
+  position: relative;
+  overflow: hidden;
+  padding: clamp(14px, 2.5vw, 24px);
+  border: 1px solid rgba(165, 140, 255, .22);
+  border-radius: 22px;
+  background:
+    radial-gradient(ellipse at 28% 48%, rgba(165, 140, 255, .13), transparent 54%),
+    linear-gradient(145deg, rgba(31, 43, 37, .98), rgba(18, 26, 22, .98));
+  box-shadow: 0 14px 34px rgba(0, 0, 0, .2), inset 0 1px rgba(255, 255, 255, .035);
+}
+.omino {
+  width: min(100%, 480px);
+  min-width: 0;
+  justify-self: center;
+  padding: 10px 12px 8px;
+  border: 1px solid rgba(174, 191, 179, .13);
+  border-radius: 18px;
+  background: radial-gradient(ellipse at 50% 44%, rgba(165, 140, 255, .11), rgba(255, 255, 255, .018) 68%);
+  box-shadow: inset 0 1px rgba(255, 255, 255, .035);
+}
+.omino-immagine { width: 100%; }
+.omino-svg {
+  width: 100%;
+  max-width: 440px;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+  filter: drop-shadow(0 8px 13px rgba(5, 10, 8, .3));
+}
+.omino-svg .vista-label {
+  fill: #c3d2c8;
+  font-size: 18px;
+  letter-spacing: .13em;
+}
+.omino-legenda {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 16px;
+  padding: 8px 4px 0;
+  color: var(--testo-2);
+  font-size: .76rem;
+}
+.omino-legenda span { display: inline-flex; align-items: center; gap: 7px; }
+.omino-credit {
+  padding-top: 5px;
+  text-align: center;
+  color: rgba(195, 210, 200, .48);
+  font-size: .61rem;
+}
+.omino-credit a { color: inherit; text-underline-offset: 2px; }
+.omino-punto {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #a58cff;
+  box-shadow: 0 0 9px rgba(165, 140, 255, .42);
+}
+.omino-punto.supporto { opacity: .48; box-shadow: none; }
+.omino-didascalia {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  min-width: 0;
+  padding: clamp(14px, 2vw, 22px);
+  border: 1px solid rgba(174, 191, 179, .12);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, .025);
+}
+.omino-sopratitolo {
+  color: var(--verde);
+  font-size: .68rem;
+  font-weight: 800;
+  letter-spacing: .12em;
+}
+.omino-didascalia strong {
+  color: var(--testo);
+  font-size: clamp(1.05rem, 2vw, 1.35rem);
+  line-height: 1.25;
+}
+.omino-didascalia .nota-piccola { margin: 0; font-size: .88rem; line-height: 1.55; }
+
+@media (max-width: 680px) {
+  .riga-omino { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .omino { width: min(100%, 440px); }
+  .omino-didascalia { width: 100%; }
+}
+
 .tag-prossimo-giorno {
   display: inline-flex;
   align-items: center;

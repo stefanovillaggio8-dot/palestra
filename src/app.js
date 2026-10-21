@@ -147,11 +147,11 @@ async function risolviPersona() {
  */
 async function chiediNome() {
   const chiave = nuovoId().replace(/-/g, '').slice(0, 8);
-  const nome = await chiediTesto({
-    titolo: 'Come ti chiami?',
-    spiegazione: 'Questa scheda e\' tua: quello che ci metti lo vedi solo tu.',
-    segnaposto: 'Il tuo nome',
-  });
+  const nome = await chiediTesto(
+    'Come ti chiami?',
+    'Questa scheda e\' tua: quello che ci metti lo vedi solo tu.',
+    { segnaposto: 'Il tuo nome' },
+  );
   if (!nome) {
     // nessun nome: non si entra. Meglio una pagina vuota che una scheda chiamata
     // "senza nome" che poi nessuno ricorda di aver creato.
@@ -1814,9 +1814,8 @@ const rip = campoNumero(serieCardio ? valoreMinutiCardioNelCampo(serie) : serie.
   //
   // Ste (09/10/2026): "come segno che faccio tapis roulant?". Il campo si chiama
   // "ripetizioni" anche per il cardio, e su un tapis non ci sono ripetizioni: ci sono
-  // minuti. Scrivere 30 e non sapere se sono secondi, minuti o metri è il motivo per
-  // cui il cardio non veniva contato bene. Ora la lettera sotto il campo dice MIN, e
-  // sotto la riga c'è scritto cosa scrivere.
+  // minuti. I valori vecchi in secondi si vedono convertiti; i nuovi vengono salvati
+  // con l'unita' esplicita, così 60 minuti non si confondono con 60 secondi.
   riga.appendChild(el('label', { class: 'campetto' + (serieCardio ? ' campetto-cardio' : '') }, [
     rip,
     el('span', { class: 'sotto-campo', testo: serieCardio ? 'MIN' : 'RIP' }),
@@ -1824,8 +1823,7 @@ const rip = campoNumero(serieCardio ? valoreMinutiCardioNelCampo(serie) : serie.
   if (serieCardio) {
     riga.appendChild(el('p', {
       class: 'nota nota-piccola nota-cardio',
-      testo: 'Scrivi i minuti: 30 per mezz\'ora, 45 per tre quarti. '
-        + 'Se scrivi i secondi (1800) l\'app fa la stessa cosa, li riconosce.',
+      testo: 'Scrivi i minuti: 30 per mezz\'ora, 45 per tre quarti. I vecchi valori in secondi sono convertiti.',
     }));
   }
 
@@ -2613,8 +2611,8 @@ function rigaStorico(serie, numero, e, s, pesoRigaSorella = null) {
     }));
   }
 
+  // lo spotter: come in palestra, si vede subito e si può togliere
   if (!serieCardio) {
-    // lo spotter: come in palestra, si vede subito e si può togliere
     const badgeSpotter = el('span', { class: 'badge-spotter' });
     const scriviBadge = () => {
       const testo = etichettaSpotterSerie(perView);
@@ -3453,7 +3451,16 @@ function vistaImpostazioni(zona) {
   const lineaStato = el('p', { class: 'nota', id: 'stato-dettaglio', testo: 'Sto controllando...' });
   statoBox.appendChild(lineaStato);
   statoBox.appendChild(el('div', { class: 'riga-pulsanti' }, [
-    bottone('Sincronizza adesso', { onClick: async () => { const r = await sync.sincronizza(); await aggiornaStatoSalvataggio(); avviso(r.messaggio || 'Sincronizzazione fatta.', { tipo: 'ok' }); }, classe: 'fantasma' }),
+    bottone('Sincronizza adesso', { onClick: async () => {
+      const r = await sync.sincronizza();
+      await aggiornaStatoSalvataggio();
+      if (r.messaggio) avviso(r.messaggio, { tipo: 'errore' });
+      else if (r.motivo === 'non-collegato') avviso('Sincronizzazione online non configurata: i dati restano su questo dispositivo.', { tipo: 'attenzione' });
+      else if (r.motivo === 'offline') avviso('Sei offline: i dati restano salvati e verranno sincronizzati al ritorno della rete.', { tipo: 'attenzione' });
+      else if (r.motivo === 'gia-in-corso') avviso('Sincronizzazione già in corso.', { tipo: 'attenzione' });
+      else if (r.errori) avviso(`Sincronizzazione parziale: ${r.errori} ${r.errori === 1 ? 'errore' : 'errori'}. Le modifiche restano salvate sul dispositivo.`, { tipo: 'errore' });
+      else avviso(`Sincronizzazione fatta: ${r.inviati} righe inviate, ${r.ricevuti} righe ricevute${r.conflitti ? `, ${r.conflitti} ${r.conflitti === 1 ? 'conflitto' : 'conflitti'}` : ''}.`, { tipo: 'ok' });
+    }, classe: 'fantasma' }),
     bottone('Riprova dopo un errore', { onClick: async () => { await sync.riprovaOra(); await aggiornaStatoSalvataggio(); }, classe: 'fantasma' }),
   ]));
   sync.stato().then((s) => { lineaStato.textContent = `${s.testo} — ${s.dettaglio}`; });
@@ -4190,7 +4197,7 @@ function teschioAura(st) {
   return el('div', { class: 'teschio-aura' }, [
     el('span', { class: 'simbolo', testo: 'AURA' }),
     el('strong', { testo: formattaAura(st.aura) }),
-    el('span', { class: 'nota', testo: `livello ${st.livello.livello} · ${formattaNumero(st.livello.xp)} XP` }),
+    el('span', { class: 'nota', testo: `livello account ${st.livello.livello} · ${formattaNumero(st.livello.xp)} XP` }),
   ]);
 }
 
@@ -4993,7 +5000,7 @@ function spiegazioneRpg() {
     el('p', { testo: 'Il cardio si registra come un esercizio qualsiasi, con una differenza: nel campo sotto il peso scrivi i MINUTI, non le ripetizioni.' }),
     el('ul', {}, [
       el('li', { testo: 'Mezz\'ora sul tapis: scrivi 30. Un\'ora: scrivi 60.' }),
-      el('li', { testo: 'Se per caso scrivi i secondi (1800 per mezz\'ora), l\'app li riconosce e conta comunque 30 minuti. Non sbagli.' }),
+      el('li', { testo: 'Nei vecchi allenamenti 1800 per mezz\'ora era salvato in secondi: ora lo vedi come 30 minuti. Da adesso scrivi sempre i minuti.' }),
       el('li', { testo: 'Se l\'esercizio è nuovo e non lo trovi già nell\'app, crealo e spunta "È cardio": senza quella spunta l\'app non sa che quel movimento è cardio e non te lo conta.' }),
     ]),
 
@@ -5004,7 +5011,7 @@ function spiegazioneRpg() {
     el('h4', { class: 'titolo-sottosezione', testo: 'Le armature' }),
     el('p', { testo: 'Si sbloccano con i giorni di fila, e te le restano per sempre: se salti una settimana non le perdi, perché si sbloccano con la sequenza più lunga che hai mai fatto, non con quella di adesso.' }),
 
-    el('p', {}, [el('strong', { testo: 'Cosa NON conta: ' }), el('span', { testo: 'il livello non dice quanto sei forte, dice quanta pratica hai fatto. Il Rank (quello con i nomi e gli LP) è quello che misura quanto sei forte. L\'RPG è un gioco sopra, e serve per divertirti, non per saper quanto stai.' })]),
+    el('p', {}, [el('strong', { testo: 'Cosa NON conta: ' }), el('span', { testo: 'Il livello del personaggio dice quanta pratica hai fatto; il livello account in cima cresce con le ricompense. Nessuno dei due dice quanto sei forte: per quello guarda il Rank.' })]),
   ]);
 }
 
@@ -5163,12 +5170,6 @@ function bloccoAvatarRpg(profilo, st) {
 
   // ---- la classe
   const sceltaClasse = rpg.classe || classeConsigliata(rpg.base);
-  // IL TITOLO DI QUESTA SEZIONE (Ste, 19/10/2026): "RPG: pulsanti delle classi
-  // allineati e titolo cambiato in 'Classe e statistiche RPG'".
-  //
-  // Prima diceva solo "Il tuo avatar", che e' la foto: non diceva che qui sotto ci sono
-  // le statistiche del personaggio e la classe che puoi cambiare. Con il nuovo titolo la
-  // sezione si presenta da sola, e i pulsanti delle classi si capiscono senza doverli provare.
   box.appendChild(el('h2', { testo: 'Classe e statistiche RPG' }));
   if (!rpg.classe) {
     // "Con i numeri di adesso ti viene il Guerriero" non diceva niente: non WHICH
@@ -5353,7 +5354,7 @@ const grigliaClassi = el('div', { class: 'riga-classi' });
       el('span', { class: 'nome-stat', testo: 'Livello' }),
       el('span', {
         class: 'nota nota-piccola',
-        testo: 'Quanta pratica hai fatto in tutto, non quanto sei forte. Sale con i kg '
+        testo: 'È il livello del personaggio: Quanta pratica hai fatto in tutto, non quanto sei forte. Sale con i kg '
           + 'spostati e i minuti di cardio. Per misurare quanto sei forte, guarda il Rank.',
       }),
     ]),
@@ -5398,7 +5399,7 @@ function vistaCasa(zona) {
   const profilo = profiloAttivo();
   zona.appendChild(el('div', { class: 'riga-titoli' }, [
     el('h1', { testo: 'Casa' }),
-    el('span', { class: 'conteggio', testo: `${profilo.username} · livello ${st.livello.livello}` }),
+    el('span', { class: 'conteggio', testo: `${profilo.username} · livello account ${st.livello.livello}` }),
   ]));
 
   // --- riepilogo: fuoco, aura, livello, rank principale ---
@@ -5416,8 +5417,8 @@ function vistaCasa(zona) {
   ]);
   zona.appendChild(riepilogo);
   zona.appendChild(el('div', { class: 'blocco-progresso-livello' }, [
-    barraProgresso(st.livello.progresso, `livello ${st.livello.livello} → ${st.livello.livello + 1}`),
-    el('span', { class: 'nota', testo: `mancano ${formattaNumero(st.livello.mancano)} XP al livello ${st.livello.livello + 1}` }),
+    barraProgresso(st.livello.progresso, `account: livello ${st.livello.livello} → ${st.livello.livello + 1}`),
+    el('span', { class: 'nota', testo: `mancano ${formattaNumero(st.livello.mancano)} XP al livello account ${st.livello.livello + 1}` }),
   ]));
 
   // --- ultimo allenamento ---
@@ -5783,8 +5784,21 @@ async function vistaEsercizio(zona, esercizioId) {
     // parole. E si accende solo il pezzo che quell'esercizio lavora, perché
     // un omino tutto acceso non dice niente.
     zona.appendChild(el('div', { class: 'riga-omino' }, [
-      el('div', { class: 'omino', html: disegnoOmino(parte.parte, parte.livelli, parte.anatomia) }),
+      el('div', { class: 'omino' }, [
+        el('div', { class: 'omino-immagine', html: disegnoOmino(parte.parte, parte.livelli, parte.anatomia) }),
+        el('div', { class: 'omino-legenda', 'aria-label': 'Legenda dei muscoli evidenziati' }, [
+          el('span', {}, [el('i', { class: 'omino-punto principale', 'aria-hidden': 'true' }), 'Principale']),
+          el('span', {}, [el('i', { class: 'omino-punto supporto', 'aria-hidden': 'true' }), 'Muscolo di supporto']),
+        ]),
+        el('div', { class: 'omino-credit' }, [
+          'Disegno anatomico: ',
+          el('a', { href: 'https://www.figma.com/community/file/1320468164820924031', target: '_blank', rel: 'noopener noreferrer' }, 'Ryan Graves'),
+          ' · ',
+          el('a', { href: 'https://creativecommons.org/licenses/by/4.0/', target: '_blank', rel: 'noopener noreferrer' }, 'CC BY 4.0'),
+        ]),
+      ]),
       el('div', { class: 'omino-didascalia' }, [
+        el('span', { class: 'omino-sopratitolo', testo: 'MUSCOLO PRINCIPALE' }),
         el('strong', { testo: parte.nome }),
         el('span', { class: 'nota nota-piccola', testo: parte.nota }),
       ]),
@@ -6075,7 +6089,7 @@ function vistaAmici(zona) {
         el('div', { class: 'cresci' }, [
           el('strong', { testo: a.username }),
           el('span', { class: 'nota', testo: suoStato
-            ? `livello ${suoStato.livello.livello} · ${formattaAura(suoStato.aura)} Aura · ${suoStato.streak.attiva ? suoStato.streak.giorni + ' giorni di fila' : 'streak spenta'}`
+            ? `livello account ${suoStato.livello.livello} · ${formattaAura(suoStato.aura)} Aura · ${suoStato.streak.attiva ? suoStato.streak.giorni + ' giorni di fila' : 'streak spenta'}`
             : 'nessun allenamento registrato' }),
           el('span', { class: 'nota', testo: suoStato && suoStato.rankPrincipale
             ? 'rank migliore: ' + suoStato.rankPrincipale.rank.nome : '' }),
@@ -6179,7 +6193,7 @@ async function vistaProfilo(zona) {
   const testa = el('div', { class: 'testa-profilo' }, [
     avatarNodo(profilo, { grande: true, dimensione: 120 }),
     el('h2', { testo: profilo.username }),
-    el('p', { class: 'nota', testo: `Livello ${st.livello.livello} · ${formattaAura(st.aura)} Aura` }),
+    el('p', { class: 'nota', testo: `Livello account ${st.livello.livello} · ${formattaAura(st.aura)} Aura` }),
     el('div', { class: 'riga-teschio piccolo' }, [teschioStreak(st)]),
   ]);
   zona.appendChild(testa);
@@ -6190,8 +6204,8 @@ async function vistaProfilo(zona) {
   zona.appendChild(bloccoCalendario(profilo, st));
 
   zona.appendChild(el('div', { class: 'blocco-progresso-livello' }, [
-    barraProgresso(st.livello.progresso, `livello ${st.livello.livello}`),
-    el('span', { class: 'nota', testo: `al livello ${st.livello.livello + 1} mancano ${formattaNumero(st.livello.mancano)} XP` }),
+    barraProgresso(st.livello.progresso, `account: livello ${st.livello.livello}`),
+    el('span', { class: 'nota', testo: `al livello account ${st.livello.livello + 1} mancano ${formattaNumero(st.livello.mancano)} XP` }),
   ]));
 
   // ---- il peso corporeo: serve al Rank, quindi sta in alto ----
@@ -6486,9 +6500,9 @@ async function vistaProfilo(zona) {
  * parte bassa". Per questo `livelli` dice quanto lavora ogni pezzo: il petto dei
  * dip si accende tutto, ma la parte bassa pieno e quella alta appena accennata.
  *
- * Se l'id non corrisponde a nessuno dei pezzi disegnati non si accende niente:
- * è meglio un omino tutto grigio che uno con il muscolo sbagliato acceso. Il
- * test Z2 chiama tutte le zone, quindi quel caso non può capitare in silenzio.
+ * Se una fascia profonda non ha un contorno visibile nella tavola, non la
+ * sostituiamo con un muscolo vicino: il brachiale e i romboidi restano indicati
+ * nel testo, mentre l'omino mostra soltanto le fasce superficiali disegnate.
  */
 function disegnoOmino(parteId, livelli, anatomia) {
   const etichette = ETICHETTE_OMINO
@@ -6916,7 +6930,7 @@ function disegnaBarraGioco(contenitore) {
   }, [avatarNodo(profilo, { dimensione: 30 })]),
   el('span', { class: 'chip-gioco', title: 'Streak: giorni di fila', testo: `streak ${st.fuoco.acceso ? st.fuoco.giorni : '0'}` }),
   el('span', { class: 'chip-gioco', testo: `aura ${formattaAura(st.aura)}` }),
-  el('span', { class: 'chip-gioco', testo: `livello ${st.livello.livello}` }),
+  el('span', { class: 'chip-gioco', title: 'Livello account, basato sulle ricompense', testo: `livello account ${st.livello.livello}` }),
   ]);
     riga.children[0].setAttribute('style', `--fuoco:${st.fuoco.colore}`);
     contenitore.appendChild(riga);

@@ -137,6 +137,7 @@ async function manda() {
             && Number(attuale.rev || 0) === Number(riga.rev || 0)
             && attuale.updated_at === riga.updated_at,
           (attuale) => ({ ...attuale, sync: 'conflitto' }),
+          { seguiErrore: true },
         );
         if (marcata) esito.conflitti++;
         else await archiviaConflittoSuperato(idConflitto);
@@ -145,7 +146,13 @@ async function manda() {
       if (decisione === 'identico') {
         // Il server ha già la stessa revisione: si conferma in locale senza
         // riscriverla né incrementarne la revisione.
-        await confermaInvio(tabella, riga, Number(riga.rev || 0));
+        //
+        // IL `segna: false` QUI NON E' UN DETTAGLIO. `db.salva` con `segna: true`
+        // rimette la riga in coda e alza `rev` di uno: il numero locale diventava maggiore
+        // di quello del server, e da quel momento `applicaRemote` scartava PER SEMPRE le
+        // modifiche che arrivavano dagli altri dispositivi su quella riga. Il danno e'
+        // permanente e silenzioso.
+        await confermaInvio(tabella, riga, Number(riga.rev || 0), { segna: false });
         continue;
       }
       const nuovoRev = Number(riga.rev || 1);
@@ -163,6 +170,7 @@ async function manda() {
           && Number(attuale.rev || 0) === Number(riga.rev || 0)
           && attuale.updated_at === riga.updated_at,
         (attuale) => ({ ...attuale, sync: 'errore', ultimo_errore: messaggio }),
+        { seguiErrore: true },
       );
       esito.errori++;
     }
@@ -185,7 +193,7 @@ function stessaRigaAttesa(attuale, attesa) {
  * Registra la conferma remota senza cancellare un'eventuale modifica fatta
  * mentre la richiesta era in viaggio.
  */
-async function confermaInvio(tabella, snapshot, revRemoto) {
+async function confermaInvio(tabella, snapshot, revRemoto, opzioni = {}) {
   const baseAttesa = Number(snapshot.base_rev || 0);
   const revSpedita = Number(snapshot.rev || 0);
   return db.aggiornaSe(
@@ -204,6 +212,7 @@ async function confermaInvio(tabella, snapshot, revRemoto) {
       }
       return { ...attuale, base_rev: revRemoto, sync: 'da_salvare' };
     },
+    opzioni,
   );
 }
 
@@ -248,6 +257,7 @@ async function tira() {
             remoto.id,
             (attuale) => stessaRigaAttesa(attuale, locale),
             (attuale) => ({ ...attuale, sync: 'conflitto' }),
+            { seguiErrore: true },
           );
           if (marcata) conflitti++;
           else await archiviaConflittoSuperato(idConflitto);

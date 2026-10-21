@@ -173,6 +173,18 @@ function motoreMemoria() {
     async prendi(store, id) { return leggi(store).find((r) => r.id === id || r.chiave === id) || null; },
     async tutti(store) { return leggi(store); },
     async perIndice(store, indice, valore) { return leggi(store).filter((r) => r[indice] === valore); },
+    async aggiornaSe(store, id, verifica, trasforma) {
+      const righe = leggi(store);
+      const i = righe.findIndex((r) => r.id === id || r.chiave === id);
+      const attuale = i >= 0 ? righe[i] : null;
+      if (!verifica(attuale)) return false;
+      const nuova = trasforma(attuale);
+      if (nuova === null || nuova === undefined) return false;
+      if (i >= 0) righe[i] = nuova;
+      else righe.push(nuova);
+      if (!scrivi(store, righe)) throw new Error('spazio nel browser esaurito: esporta un backup e libera spazio');
+      return true;
+    },
     async scrivi(store, riga) {
       const righe = leggi(store);
       const chiave = riga.id || riga.chiave;
@@ -180,18 +192,6 @@ function motoreMemoria() {
       if (i >= 0) righe[i] = riga; else righe.push(riga);
       if (!scrivi(store, righe)) throw new Error('spazio nel browser esaurito: esporta un backup e libera spazio');
       return riga;
-    },
-    async aggiornaSe(store, id, verifica, trasforma) {
-      const righe = leggi(store);
-      const chiave = id;
-      const i = righe.findIndex((r) => (r.id || r.chiave) === chiave);
-      const attuale = i >= 0 ? righe[i] : null;
-      if (!verifica(attuale)) return { result: false };
-      const nuova = trasforma(attuale);
-      if (nuova === null || nuova === undefined) return { result: false };
-      righe[i] = nuova;
-      if (!scrivi(store, righe)) throw new Error('spazio nel browser esaurito: esporta un backup e libera spazio');
-      return { result: true };
     },
     async svuota(store) { scrivi(store, []); },
   };
@@ -301,6 +301,12 @@ export async function prendi(tabella, id) {
   return (await m.prendi(tabella, id)) || null;
 }
 
+/** Aggiorna una riga solo se è ancora nello stato letto dal chiamante. */
+export async function aggiornaSe(tabella, id, verifica, trasforma, opzioni = {}) {
+  const m = await apriDb();
+  return m.aggiornaSe(tabella, id, verifica, trasforma, opzioni);
+}
+
 export async function tutti(tabella, { includiEliminati = false } = {}) {
   const m = await apriDb();
   const righe = (await m.tutti(tabella)) || [];
@@ -312,11 +318,6 @@ export async function perIndice(tabella, indice, valore) {
   const m = await apriDb();
   const righe = (await m.perIndice(tabella, indice, valore)) || [];
   return righe.filter((r) => !r.eliminata);
-}
-
-export async function aggiornaSe(tabella, id, verifica, trasforma) {
-  const m = await apriDb();
-  return m.aggiornaSe(tabella, id, verifica, trasforma);
 }
 
 /** Cancella davvero ma passando dal cestino: si può sempre recuperare. */

@@ -62,7 +62,24 @@ export const PARTI = [
       // tirata. La parola "press" da sola invece non si mette: "Shoulder Press"
       // è una spinta alle spalle e la panca no, e senza sapere quale sia
       // finirebbe nel petto un esercizio che lavora le spalle.
-      'incline press', 'inclined press', 'panca a 45', 'upper chest press'],
+      'incline press', 'inclined press', 'panca a 45', 'upper chest press',
+      // LA DIREZIONE DEL FLY (Ste, 18/10/2026).
+      //
+      // "il cable fly la panca e' messa al primo blocco, e' quasi a 90 gradi". Il nome
+      // "Cable Fly" non dice niente: e' lo stesso esercizio a seconda di come lo fai.
+      // Conta la LINEA DI TIRATA: se le maniglie partono in basso e salgono, la
+      // tensione tira verso l'alto e lavora il capo CLAVICOLARE (quello alto); se
+      // partono in alto e scendono, la tensione tira verso il basso e lavora le fibre
+      // STERNALI BASSSE.
+      //
+      // Sono frasi lunghe e per metà dell'esercizio, perché una parola sola
+      // ("cavi alti", "fly basso") dice una cosa diversa a seconda di chi la scrive.
+      'dal basso verso l alto', 'dal basso verso l’alto',
+      'parto in basso e salgo', 'parte in basso e salgo',
+      'parto dal basso e salgo', 'parte dal basso e salgo',
+      'maniglie in basso e salgo', 'cavi in basso e salgo',
+      'in basso e salgo', 'in basso e salgono',
+      'partono in basso e salgono'],
     nota: 'Il peso va in alto: panca inclinata, spinte con le spalle alzate. Lavora di più il capo clavicolare, quello che parte dalla clavicola.',
   },
   {
@@ -73,8 +90,32 @@ export const PARTI = [
     // spingi via dalle parallele, quindi è una spinta. E la spinta va in basso:
     // le braccia sono sotto il corpo e il peso arriva al capo sternale del petto,
     // quello che parte dallo sterno.
-    parole: ['declinato', 'declinata', 'flat bench', 'panca piana', 'low cable fly', 'fly basso', 'in basso',
-      'dip', 'dips', 'dip alle parallele', 'dips al parallels', 'chest dip'],
+    // 'flat bench' ERA QUI, e sbagliava (18/10/2026).
+    //
+    // La panca STESA è la panca più classica e lavora il capo sternale, cioè il
+    // centro del petto: metterla fra le "panche in basso" faceva accendere il petto
+    // basso su "Flat Barbell Bench Press", e la frase diceva una cosa diversa da
+    // quella che si vedeva sulla figura. Tolto: ora "Flat Barbell Bench Press"
+    // cade sul "bench press", quindi sul petto nel mezzo.
+    //
+    // "decline" invece mancava, e senza quello la panca declinata finiva sul petto
+    // nel mezzo. Le FRASI, non la parola: "decline crunch" e' un addominale, e con la
+    // parola sola finiva sul petto.
+    parole: ['declinato', 'declinata', 'decline bench', 'decline press', 'bench decline',
+      'panca declinata', 'panca piana', 'low cable fly', 'fly basso',
+      // 'in basso' era qui, e faceva danno: dentro "parte in basso e salgo" (il fly
+      // che parte in basso e sale, che lavora il petto ALTO) la parola "in basso"
+      // diceva "petto basso" e vinceva il conteggio. Tolta: le frasi vere dicono
+      // da sole in che direzione va il fly.
+      'dip', 'dips', 'dip alle parallele', 'dips al parallels', 'chest dip',
+      // LA DIREZIONE DEL FLY: vedi la nota sul petto alto. Le maniglie che partono
+      // in alto e scendono tirano verso il basso: lavorano le fibre sternali basse.
+      'dall alto verso il basso', 'dal alto verso il basso',
+      'parto in alto e scendo', 'parte in alto e scendo',
+      'parto dall alto e scendo', 'parte dall alto e scendo',
+      'maniglie in alto e scendo', 'cavi in alto e scendo',
+      'in alto e scendo', 'in alto e scendono',
+      'partono in alto e scendono'],
     nota: 'Il peso va in basso: panca piana o declinata, fly con i cavi bassi. Lavora di più il capo sternale, quello che parte dallo sterno.',
   },
   {
@@ -92,7 +133,21 @@ export const PARTI = [
     // restano ("bench press", "cable fly", "panca inclinata", "panca piana"),
     // quindi un esercizio di petto continua a essere trovato dal suo nome.
     parole: ['chest press', 'pecorino', 'cable fly', 'cross over',
-      'crossover', 'crucifix', 'bench press', 'pressione petto', 'horizontal press'],
+      'crossover', 'crucifix', 'bench press', 'pressione petto', 'horizontal press',
+      // il fly con i cavi in orizzontale: la tensione tira di lato, e il petto lavora
+      // tutto: e' il pezzo medio, quello grande
+      'cavi in orizzontale', 'movimento orizzontale', 'in orizzontale',
+      // IL FLY "ABBRACCIO" (Ste, 18/10/2026).
+      //
+      // "il carrello non e' in basso, e' a 12 di altezza tipo altezza spalle. Il
+      // movimento e' tipo quando abbracci qualcuno e allo stesso tempo spingo in avanti".
+      //
+      // Le maniglie si uniscono davanti e tirano in avanti: e' l'adduzione
+      // orizzontale, la stessa della pec fly, e quindi lavora il capo STERNALE, il
+      // pezzo grande del petto. Il carrello alto non cambia niente: conta la
+      // DIREZIONE in cui le mani si muovono, non l'altezza del carrello.
+      'come un abbraccio', 'movimento di abbraccio', 'abbraccio',
+      'tiro in avanti', 'spingo in avanti', 'si uniscono e tirano in avanti'],
     // Ste (13/10/2026): "rivedi tutti i dettagli degli esercizi perché molti sono
     // sbagliati". Qui dentro c'era anche "incline single arm pulldown", e una
     // PULLOWN è una tirata: tiri il peso verso di te partendo dall'alto, e
@@ -115,7 +170,7 @@ export const PARTI = [
     // Il nome È ambiguo ("bench" può voler dire panca o poggiapiedi), quindi se
     // domani un esercizio chiamato "bench pull" intendi un fly col petto, questo
     // elenco va cambiato. Per l'esercizio di Ste vale la schiena.
-    nota: 'Il lavoro è distribuito: il petto lavora in modo abbastanza uniforme. Il fly lavora soprattutto il centro del petto.',
+    nota: 'Il lavoro è distribuito: il petto lavora in modo abbastanza uniforme. Le spinte e i fly caricano soprattutto il centro del petto.',
   },
   // ---- dorso ----
   {
@@ -159,7 +214,7 @@ export const PARTI = [
       // manubri, quindi dorso centrale. Stava fra le parole del PETTO e la
       // scheda gli diceva "il petto lavora in modo abbastanza uniforme".
       'bench pull', 'dumbbell bench pull'],
-    nota: 'Tira verso il corpo: lavora la parte centrale della schiena, quella fra le scapole.',
+    nota: 'Tira verso il corpo: lavora la parte centrale della schiena, quella fra le scapole. I romboidi e gli erettori della colonna sono profondi e questa tavola superficiale non li disegna: l’omino accende il trapezio inferiore, la striscia che sta lungo la spina dorsale, e lascia i dorsali larghi più chiari, perché sono un supporto.',
   },
 
   // ---- spalle ----
@@ -206,7 +261,7 @@ export const PARTI = [
     // una tirata di schiena e abbasserebbe il brachiale dove non c'entra.
     id: 'brachiale', muscolo: 'braccio', parte: 'brachiale (sotto il bicipite)',
     parole: ['hammer curl', 'curl a martello', 'martello', 'impugnatura a martello'],
-    nota: 'Presa neutra a martello: il motore della flessione è il brachiale, il muscolo che sta sotto al bicipite e copre l\'osso. Il bicipite in questa presa è un pronatore, e in pronazione perde forza.',
+    nota: 'Presa neutra a martello: il motore della flessione è il brachiale, profondo sotto al bicipite. Questa tavola mostra i muscoli superficiali, quindi non lo disegna: l’omino accende il brachioradiale, l’avambraccio, che è il motore della flessione accanto al brachiale e il muscolo che si vede in un martello, e lascia il bicipite più chiaro, perché in presa neutra diventa pronatore e perde forza. Il bicipite in questa presa è un pronatore e in pronazione perde forza.',
   },
   {
     id: 'braccio_alto', muscolo: 'braccio', parte: 'bicipite: braccio in alto',
@@ -575,7 +630,7 @@ export const MOVIMENTI = [
     //
     // Quindi ora il curl accende anche il brachioradiale. L'AVAMBRACCIO PIEGA IL
     // POLSO e su un curl continua a non lavorare, quindi resta spento.
-    secondari: { brachioradiale: 0.5 },
+    secondari: { brachioradiale: 0.5, braccio_alto: 0.35 },
   },
   {
     id: 'estensione_gomito',
@@ -706,6 +761,41 @@ function movimentoDi(nome = '', descrizione = '') {
 // che non esiste (una parola scritta male nella tabella deve restare innocua, non
 // rompere la figura).
 const ID_PARTI = new Set(PARTI.map((p) => p.id));
+
+// LA FASE PER ESERCIZIO (Ste, 18/10/2026).
+//
+// La nota del petto era una frase sola per tutti gli esercizi: "le spinte e i fly
+// caricano soprattutto il centro del petto". Ma il fly è un movimento DIVERSO dalla
+// panca: il fly ALLARGA le fibre del petto, la panca SPINGE. E la panca inclinata
+// carica il petto alto, quella stesa il centro, quella declinata il basso.
+//
+// Quindi la frase dipende dall'esercizio: prima si guarda che movimento è (spinta o
+// fly) e in che zona del petto sta lavorando. Il testo e la figura dicono la stessa
+// cosa, perché leggono la stessa zona.
+//
+// Le altre zone (braccia, schiena, spalle) hanno già la loro nota giusta: quella
+// parla del movimento, non della zona, e quindi va bene per ogni esercizio.
+const FRASI_PETTO = {
+  spinta_alto: 'Le spinte con le spalle alzate caricano soprattutto il petto alto, il capo che parte dalla clavicola.',
+  spinta_centro: 'Le spinte con le spalle in piano caricano soprattutto il centro del petto, il capo più grande.',
+  spinta_basso: 'Le spinte con le spalle abbassate caricano soprattutto il petto basso, le fibre più in basso del capo sternale.',
+  dip: 'I dip spingono il corpo in avanti: caricano le fibre più in basso del petto e tirano molto sui tricipiti.',
+  fly_alto: 'Il fly alto allarga le fibre del petto alto, quello che parte dalla clavicola.',
+  fly_centro: 'Il fly allarga le fibre del petto, soprattutto al centro: non spinge, allunga.',
+  fly_basso: 'Il fly basso allarga le fibre più in basso del petto.',
+};
+
+const ZONA_PETTO = { petto_alto: 'alto', petto_centrale: 'centro', petto_basso: 'basso' };
+
+function notaPerEsercizio(parte, movimento) {
+  if (!parte) return null;
+  const zona = ZONA_PETTO[parte.id];
+  if (!zona) return parte.nota;
+  if (movimento === 'dip') return FRASI_PETTO.dip;
+  if (movimento === 'fly_petto') return FRASI_PETTO['fly_' + zona];
+  if (movimento === 'spinta_petto') return FRASI_PETTO['spinta_' + zona];
+  return parte.nota;
+}
 
 export function parteDiMuscolo({ nome = '', descrizione = '' } = {}) {
   const chiave = nome + ' ' + descrizione;
@@ -861,20 +951,23 @@ function riconosciParte({ nome = '', descrizione = '' } = {}) {
 
   const anche = ancheDettaglio.map((x) => x.nome);
 
+  // La nota parla dell'ESERCIZIO, non solo del pezzo di muscolo
+  const nota = notaPerEsercizio(v.parte, movimento ? movimento.id : null);
+
   return {
     trovata: true,
     muscolo: v.parte.muscolo,
     gruppoPrincipale: gruppoMuscoloDi(v.parte.id),
     parte: v.parte.id,
     nome: v.parte.parte,
-    nota: v.parte.nota,
+    nota,
     parole: v.parole,
     livelli,
     anatomia,
     movimento: movimento ? movimento.id : null,
     anche,
     ancheDettaglio,
-    frase: `${v.parte.parte}. ${v.parte.nota}`,
+    frase: `${v.parte.parte}. ${nota}`,
     altre: trovati.slice(1, 3).map((x) => x.parte.parte),
   };
 }

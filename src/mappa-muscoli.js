@@ -1,75 +1,16 @@
-﻿// mappa-muscoli.js -- l'omino che dice DOVE e QUANTO lavori.
-//
-// Ste (13/10/2026), tre volte sulla stessa figura:
-//  1. "voglio che spunti questo omino con il muscolo allenato colorato di viola";
-//  2. "deve essere l'omino come quello nella foto. si deve capire anche fronte e
-//     retro e qua non si capisce e i quadratini grigi non mi piacciono";
-//  3. "e' veramente brutto, non puoi copiare la foto da download e incollarla?
-//     pero' deve ovviamente avere colorati solo i muscoli allenanti" e poi
-//     "lo sfondo deve avere lo stesso colore dell'app".
-// E poi (15/10/2026) il quarto punto, quello sulla FORZA del colore:
-//  4. "la parte che lavora di più deve essere più evidenziata, la parte che
-//     lavora di meno deve essere evidenziata più chiara. tipo il dip qua segna
-//     tutto il petto che e' giusto ma allena principalmente la parte bassa".
-//
-// COSA C'E' QUI ADESSO
-//
-// La figura non e' disegnata: e' la FOTO sua (muscoli.jpeg), ritagliata in due
-// immagini che stanno nella cartella img/muscoli/:
-//   - corpo.png    il corpo con i muscoli spenti e lo sfondo TRASPARENTE, così
-//                   si vede il colore dell'app;
-//   - muscoli.png  gli stessi musoli in viola e tutto il resto trasparente.
-//
-// Per accendere un muscolo basta mostrare muscoli.png ritagliato sulla sagoma
-// di quel muscolo: e' un'immagine sola che l'app ritaglia, quindi sul telefono
-// resta leggera.
-//
-// LA GRADAZIONE (punto 4 di Ste)
-// Un pettorale tutto viola di uguale dice "qui si lavora", ma non dice quanto.
-// Sui DIP il peso arriva al capo sternale, quello in basso, e dipingere tutto
-// il petto uguale e' come dire che si lavora più il capo clavicolare: e'
-// falso. Quindi ogni zona ha una sua intensita', e la più debole e' un viola
-// chiarissimo.
-//
-// L'intensita' non e' un numero inventato qui dentro: arriva da
-// muscoli-parti.js, che già conta quante volte un esercizio parla di ogni
-// pezzo. Noi prendiamo quella classifica e la traduciamo in quattro livelli.
-//
-// E LA SFUMATURA SI FA CON L'OPACITA' DELLA STESSA IMMAGINE, non con quattro
-// immagini diverse: sopra il muscolo spento, il viola al 100% e' pieno, al 20%
-// e' appena accennato. Un file in meno da scaricare e la figura resta leggera
-// sul telefono.
-//
-// I RITAGLI sono le sagome qui sotto, in coordinate della foto. Sono volutamente
-// un po' larghi: quello che fa il bordo preciso e' il ritaglio dell'immagine,
-// non il poligono. Se il poligono e' un filo troppo stretto, il muscolo sparisce
-// e sembra un bug.
-//
-// I PEZZI CHE SI ASSOMIGLIANO SONO UNITI, MA NON UGUALI
-// Ste (13/10/2026): "i muscoli formati da più parti muscolari falli uniti,
-// come nella foto". Nella foto il pettorale e' un pezzo solo. Però il pettorale
-// non e' fatto tutto uguale: ha il capo clavicolare in alto e quello sternale in
-// basso, e un dip non li tratta uguale. Quindi la sagoma viene TAGLIATA in fasce
-// che si toccano e si ricompongono: da lontano e' un pettorale solo, come
-// vuole Ste, e da vicino si vede che la parte bassa lavora di più.
-//
-// Le fasce non sono scritte a mano: sono tagliate dal codice lungo la sagoma
-// originale, quindi non possono sporgere, non possono lasciare buchi e non
-// possono sbagliare un pixel. Come il lato destro, che e' calcolato specchiando
-// il sinistro invece di essere scritto due volte.
-//
-// UN TESTO PER L'ANATOMIA, e non uno qualsiasi:
-//  - i tricipiti stanno DIETRO: davanti al braccio non si vedono, e metterli
-//    davanti direbbe che un dip lavora coi bicipiti;
-//  - i bicipiti davanti, gli addomi davanti, i glutei dietro, la schiena dietro.
-// Il test Z3 lo controlla su tutti e 18 i pezzi.
+// mappa-muscoli.js — calcola i muscoli coinvolti e li disegna sull'atlante anatomico.
+// La logica di classificazione resta in `righeDaAccendere`; la figura colora
+// direttamente i tracciati SVG dei muscoli corrispondenti, senza ritagli o overlay.
 
-// La foto: 809 x 825, con la figura di fronte a sinistra e quella di dietro a destra.
+import { ATLANTE_FRONTE, ATLANTE_RETRO } from './anatomia-vettoriale.js';
+import { regioneFascia, lineeFasce, ZONE_PETTO } from './fasce-petto.js';
+import { riquadroPath } from './path-misura.js';
+
 export const FOTO_L = 809;
 export const FOTO_A = 825;
 
 // La linea centrale di ogni figura: serve a specchiare il sinistro sul destro.
-const CENTRI = { fronte: 162, retro: 577 };
+const CENTRI = { fronte: 185, retro: 605 };
 
 // LE QUATTRO INTENSITA'.
 //
@@ -115,9 +56,8 @@ export const SOGLIA_SECONDARIO = 0.4;
 // come parametro di default.
 const STACCO = 0;
 
-// Il colore della linea che divide le fasce accese: quello del corpo spento, così
-// la linea sembra quella del disegno e non un contorno aggiunto. Vedi `figurino`.
-export const COLORE_LINEA = '#c4c6db';
+// Il contorno interno è una lavanda scura: separa i fasci muscolari attivi senza
+// confondersi con il colore più acceso del muscolo principale.
 
 /** La sfumatura giusta per una quota di lavoro (da 0 a 1). */
 export function livelloDiQuota(quota) {
@@ -145,11 +85,20 @@ const SAGOME = {
     vista: 'fronte',
     nome: 'petto',
     zone: ['petto_alto', 'petto_centrale', 'petto_basso'],
-    tagli: { asse: 'y', valori: [302, 332] },
-    // il bordo superiore segue la curva della clavicola: se lo ritaglio a
-    // dritto il petto sembra una macchia rettangolare invece di un muscolo.
-    sagoma: [[108, 288], [124, 278], [140, 276], [160, 284], [169, 306],
-      [161, 332], [150, 358], [112, 357], [103, 340], [104, 312]],
+    // I tre capi del pettorale seguono linee curve: clavicolare in alto,
+    // sternocostale al centro e la parte bassa che sale verso il braccio. Le
+    // fasce si toccano lungo gli stessi punti, così il muscolo resta unito ma
+    // l'evidenziazione non sembra una pila di rettangoli.
+    fasce: [
+      [[84, 272], [88, 259], [103, 250], [124, 247], [145, 250], [162, 258],
+        [162, 282], [146, 277], [128, 273], [110, 270], [96, 271], [87, 279]],
+      [[87, 279], [96, 271], [110, 270], [128, 273], [146, 277], [162, 282],
+        [162, 319], [145, 312], [127, 303], [109, 294], [95, 288], [85, 292]],
+      [[85, 292], [95, 288], [109, 294], [127, 303], [145, 312], [162, 319],
+        [162, 356], [143, 357], [123, 358], [105, 355], [91, 344], [85, 326], [82, 307]],
+    ],
+    sagoma: [[84, 272], [88, 259], [103, 250], [124, 247], [145, 250], [162, 258],
+      [162, 356], [143, 357], [123, 358], [105, 355], [91, 344], [85, 326], [82, 307]],
   },
 
   // ---- spalla davanti: il deltoide laterale e quello anteriore ----
@@ -159,10 +108,11 @@ const SAGOME = {
     // Il deltoide laterale sta sul BORDO della spalla, l'anteriore guarda verso
     // il petto: si taglia in verticale, col laterale fuori e l'anteriore dentro.
     zone: ['spalle_laterali', 'spalle_frontali'],
-    tagli: { asse: 'x', valori: [74] },
+    tagli: { asse: 'x', valori: [106] },
     // Il DELTOIDE FRONTE finisce a y~338, come dietro (16/10/2026): stava fino a
   // y=352 e si mangiava il bicipite. Vedi la nota sul deltoide posteriore.
-  sagoma: [[50, 284], [94, 278], [100, 300], [98, 320], [92, 338], [58, 338], [42, 310]],
+  sagoma: [[76, 258], [80, 241], [92, 230], [107, 225], [122, 230], [138, 242],
+    [145, 258], [143, 277], [132, 295], [116, 309], [99, 311], [85, 296], [78, 278]],
   },
 
   // ---- braccio davanti ----
@@ -229,8 +179,8 @@ const SAGOME = {
   // La base resta LARGA fino a y=369 (16/10/2026): prima si assottigliava subito e
   // sotto al bicipite restava una fetta di braccio scoperta (19 pixel a y=368),
   // proprio dove il brachioradiale dovrebbe essere attaccato al bicipite.
-  sagoma: [[65, 337], [87, 336], [94, 343], [96, 353], [93, 361],
-    [88, 366], [84, 369], [54, 369], [50, 364], [48, 352], [56, 341]],
+  sagoma: [[79, 286], [92, 276], [106, 277], [117, 289], [122, 307], [120, 329],
+    [113, 351], [104, 370], [92, 375], [82, 361], [76, 342], [73, 322], [74, 303]],
   },
 
   // IL BRACHIALE, IL MOTORE DEL HAMMER CURL (15/10/2026).
@@ -249,8 +199,23 @@ const SAGOME = {
   brachiale: {
     vista: 'fronte',
     nome: 'brachiale',
-    zone: ['brachiale'],
-    sagoma: [[54, 372], [88, 370], [86, 384], [80, 392], [56, 392], [48, 380]],
+    // IL MARTELLO ACCENDE IL BRACHIORADIALE (Ste, 18/10/2026).
+    //
+    // "nell'hammer curl deve evidenziare di più quello che ora è evidenziato di meno, e
+    // evidenziare di meno quello che è evidenziato di più ora". Aveva ragione, e due
+    // motivi: il brachiale (il motore del martello) è PROFONDO e in questa tavola
+    // superficiale non è disegnato; e il muscolo che si VEDE nel martello è il
+    // brachioradiale, quello dell'avambraccio, che è il vero motore della flessione
+    // accanto al brachiale.
+    //
+    // Quindi il gruppo del brachiale accende la ZONA del brachioradiale: il viola
+    // pieno va sull'avambraccio, e il bicipite (la parte alta del braccio) resta
+    // chiaro, perché in presa neutra è un pronatore e perde forza. Non è un trucco:
+    // è la stessa regola dell'ALIAS, cioè due nomi che sulla figura sono un muscolo
+    // solo.
+    zone: ['brachioradiale'],
+    sagoma: [[78, 355], [91, 349], [105, 350], [116, 358], [115, 375], [106, 391],
+      [92, 395], [81, 384], [76, 369]],
   },
 
   // L'AVAMBRACCIO: il pezzo staccato sotto il gomito (y 390-450 su muscoli.png).
@@ -301,8 +266,8 @@ const SAGOME = {
     //
     // Continua anche perché il brachioradiale nasce dall'OMERO, sopra il gomito, e non
     // è un muscolo separato: è attaccato al braccio.
-    sagoma: [[48, 392], [58, 392], [61, 400], [61, 412], [58, 420],
-      [51, 430], [42, 434], [38, 428], [38, 412], [41, 400]],
+    sagoma: [[43, 378], [57, 380], [68, 388], [73, 402], [70, 421], [63, 440],
+      [52, 456], [41, 463], [30, 456], [28, 440], [32, 420], [37, 399]],
   },
 
   // L'AVAMBRACCIO è il pezzo sotto: i flessori del polso. Comincia a y=420 perché
@@ -316,8 +281,8 @@ const SAGOME = {
     vista: 'fronte',
     nome: 'avambraccio',
     zone: ['avambraccio'],
-    sagoma: [[67, 390], [75, 394], [76, 404], [76, 424], [70, 442], [58, 448], [46, 450],
-      [43, 438], [51, 432], [58, 422], [61, 414], [61, 408], [63, 404], [66, 400], [69, 396]],
+    sagoma: [[72, 380], [84, 385], [90, 400], [87, 422], [79, 444], [68, 463],
+      [57, 469], [51, 456], [57, 437], [63, 416], [65, 398]],
   },
 
   // un pezzo solo, al centro: non si specchia
@@ -326,14 +291,16 @@ const SAGOME = {
     nome: 'addome',
     zone: ['addome'],
     centro: true,
-    sagoma: [[112, 358], [214, 358], [214, 472], [112, 472]],
+    sagoma: [[116, 359], [208, 359], [219, 389], [217, 426], [206, 451],
+      [184, 463], [162, 469], [139, 463], [118, 451], [107, 426], [105, 389]],
   },
 
   quadricipite: {
     vista: 'fronte',
     nome: 'quadricipite',
     zone: ['quadricipite'],
-    sagoma: [[100, 472], [154, 472], [156, 554], [146, 600], [114, 598], [96, 540]],
+    sagoma: [[111, 459], [139, 452], [162, 458], [162, 595], [151, 611],
+      [128, 614], [109, 599], [102, 573], [100, 533], [103, 489]],
   },
 
   // ---- schiena, tutto dietro ----
@@ -342,7 +309,8 @@ const SAGOME = {
     nome: 'trapezio',
     zone: ['dorso_alto'],
     centro: true,
-    sagoma: [[561, 250], [592, 248], [624, 300], [529, 302]],
+    sagoma: [[555, 222], [599, 222], [620, 235], [634, 259], [620, 281],
+      [607, 305], [594, 323], [577, 340], [560, 323], [547, 305], [534, 281], [520, 259], [534, 235]],
   },
 
   dorsale: {
@@ -372,7 +340,8 @@ const SAGOME = {
   //
   // Ora il dorsale arriva a x=555, che è il 70% della larghezza della schiena, e
   // il suo bordo interno segue la curva del corpo invece di essere una retta.
-  sagoma: [[544, 320], [555, 330], [555, 418], [534, 438], [528, 400], [522, 350]],
+  sagoma: [[520, 302], [544, 296], [560, 307], [568, 333], [566, 363], [559, 394],
+    [548, 421], [535, 432], [519, 423], [508, 402], [502, 377], [501, 348], [507, 322]],
   },
 
   romboidi: {
@@ -389,7 +358,8 @@ const SAGOME = {
     // alto e in basso, più larga a meta' schiena. Dodici pixel per lato invece di
     // venticinque, così il dorsale torna a essere il muscolo largo che e' nella
     // realtà.
-    sagoma: [[556, 303], [598, 303], [586, 326], [582, 340], [577, 350], [572, 340], [568, 326], [560, 310]],
+    sagoma: [[560, 274], [577, 266], [594, 274], [598, 292], [592, 315],
+      [577, 337], [562, 315], [556, 292]],
   },
 
   deltoide_posteriore: {
@@ -401,7 +371,8 @@ const SAGOME = {
   // Sul disegno originale il deltoide e il tricipite sono un pezzo unico (vedi la
   // nota del tricipite): il confine è la tacca a y~335. Prima finiva a y=370 e si
   // mangiava il tricipite, così una spinta in alto accendeva anche il braccio.
-  sagoma: [[458, 278], [518, 276], [524, 300], [516, 330], [508, 338], [468, 338], [449, 318]],
+  sagoma: [[487, 260], [490, 243], [503, 231], [521, 230], [539, 242], [548, 259],
+    [545, 278], [532, 294], [516, 306], [500, 299], [489, 283]],
   },
 
   tricipite: {
@@ -464,8 +435,9 @@ const SAGOME = {
     // laterale = esterno (x piccolo) e lungo = interno (x grande), le zone vanno
     // nell'ordine giusto.
     zone: ['spalla_gomito_basso', 'spalla_gomito_alto'],
-    tagli: { asse: 'x', valori: [484] },
-    sagoma: [[470, 339], [509, 338], [506, 358], [504, 376], [468, 376], [466, 358]],
+    tagli: { asse: 'x', valori: [504] },
+    sagoma: [[487, 291], [500, 282], [514, 285], [526, 299], [530, 318], [526, 341],
+      [518, 363], [507, 379], [494, 377], [486, 363], [481, 344], [481, 323]],
   },
 
   // ---- gambe ----
@@ -473,21 +445,24 @@ const SAGOME = {
     vista: 'retro',
     nome: 'glutei',
     zone: ['glutei'],
-    sagoma: [[508, 436], [576, 436], [578, 500], [508, 500]],
+    sagoma: [[508, 448], [526, 439], [546, 445], [562, 458], [574, 478],
+      [573, 500], [563, 517], [542, 520], [524, 512], [511, 493], [505, 470]],
   },
 
   femorale: {
     vista: 'retro',
     nome: 'femorale',
     zone: ['femorale'],
-    sagoma: [[504, 502], [568, 502], [568, 576], [560, 592], [520, 590], [502, 558]],
+    sagoma: [[510, 510], [526, 503], [545, 505], [559, 518], [568, 540], [569, 566],
+      [561, 599], [550, 628], [532, 636], [516, 623], [506, 600], [503, 569], [505, 539]],
   },
 
   polpaccio: {
     vista: 'retro',
     nome: 'polpaccio',
     zone: ['polpaccio'],
-    sagoma: [[515, 632], [566, 630], [565, 660], [560, 686], [520, 688], [514, 660]],
+    sagoma: [[521, 614], [536, 602], [551, 609], [562, 627], [565, 652], [561, 681],
+      [553, 715], [544, 744], [530, 755], [518, 746], [513, 724], [513, 694], [515, 660]],
   },
 };
 
@@ -565,8 +540,8 @@ function costruisci() {
       // I due bordi della fascia si ritagliano SEMPRE sul poligono di partenza,
       // uno dopo l'altro: se si taglia prima con il bordo alto e poi con quello
       // basso, la fascia di mezzo esce vuota (non può più contenere niente).
-      let fascia = def.sagoma;
-      if (def.tagli) {
+      let fascia = def.fasce ? def.fasce[k] : def.sagoma;
+      if (def.tagli && !def.fasce) {
         if (confini[k] !== null) {
           fascia = taglia(fascia, def.tagli.asse, confini[k], false);
         }
@@ -584,7 +559,7 @@ function costruisci() {
       // è in tre fasce, si vede come tre rettangoli impilati invece che come un
       // pettorale unico. La fessura resta fra muscoli DIVERSI, che è il suo lavoro.
       const interni = [];
-      if (def.tagli) {
+      if (def.tagli && !def.fasce) {
         for (const valore of def.tagli.valori) interni.push({ asse: def.tagli.asse, valore });
       }
       fascia = stringi(fascia, STACCO, interni);
@@ -672,7 +647,7 @@ export function idZonaDaParte(parteId) {
  * `spalla_gomito_basso`), che sono due muscoli davvero diversi, né per le due
  * fasce del deltoide.
  */
-const ALIAS = { braccio_basso: 'braccio_alto' };
+const ALIAS = { braccio_basso: 'braccio_alto', brachiale: 'brachioradiale' };
 
 /**
  * Porta le chiavi di `livelli` sulle zone che esistono davvero, e tiene la quota
@@ -694,11 +669,6 @@ function normalizzaZone(livelli) {
 export function vistaDiGruppo(gruppo) {
   return RITAGLI[gruppo] ? RITAGLI[gruppo].vista : null;
 }
-
-const punti = (pezzo) => pezzo.map(([x, y]) => `${x},${y}`).join(' ');
-
-/** Lo stesso poligono, come `d` di un `<path>`. Serve per il contorno. */
-const tracciato = (pezzo) => 'M' + punti(pezzo).split(' ').join(' L') + ' Z';
 
 // I MUSCOLI ACCESI VENGONO STACCATI (16/10/2026).
 //
@@ -786,13 +756,6 @@ export function stringi(poligono, passo = STACCO, tagli = null) {
   return fuori;
 }
 
-// L'id del ritaglio deve essere UNICO per ogni fascia.
-// Nell'app c'è una figura sola per pagina, quindi sembrava funzionare: ma se
-// sulla stessa pagina ce n'è due, `url(#taglio-muscolo)` va a cercare l'id nel
-// documento e trova sempre la PRIMA, quindi tutte le figure mostravano il
-// muscolo della prima. Con il numero diventa univoco e ognuna mostra il suo.
-let numeroFigura = 0;
-
 /**
  * Tutte le fasce da accendere, dalla più chiara alla più piena.
  *
@@ -837,6 +800,36 @@ export function righeDaAccendere(acceso = null, livelli = null, anatomia = null)
     for (const zona of RITAGLI[g].zone) {
       let quota = 0;
       if (zona === forzato && g === gruppo) quota = 1;
+      else if (g === gruppo) {
+        // IL GRUPPO PRINCIPALE SI ACCENDE TUTTO, MA SI VEDE CHI LAVORA (18/10/2026).
+        //
+        // Ste: "non si vedono bene e non si capisce quale sta lavorando".
+        //
+        // Prima le zone che non sono quella allenata prendevano la loro quota
+        // dall'anatomia, e due di loro finivano con lo STESSO colore: sul pettorale non si
+        // capiva quale capo stesse lavorando. E anche quando avevano colori diversi, la
+        // gamma era così stretta che non si vedeva.
+        //
+        // Adesso la regola e' una sola e rende i tre capi distinguibili: la zona che
+        // lavora e' piena, quella a due passi di distanza e' chiara, e quella a tre
+        // passi e' la più chiara. Le quote dell'anatomia dicono sempre QUALE zona
+        // lavora, e quella resta quella.
+        //
+        // LE ZONE DEL GRUPPO DIVERSE DA QUELLA ALLENATA: la più vicina è chiara, le
+        // altre sono la più chiara in assoluto. L'ORDINE CONTA: due zone equidistanti
+        // (una sopra e una sotto, come sul petto quando lavora il centro) prendevano
+        // lo stesso colore, e allora non si capiva quale capo stesse lavorando.
+        const altre = RITAGLI[g].zone
+          .filter((z) => z !== forzato)
+          .sort((a, b) => (
+            Math.abs(RITAGLI[g].zone.indexOf(a) - RITAGLI[g].zone.indexOf(forzato))
+            - Math.abs(RITAGLI[g].zone.indexOf(b) - RITAGLI[g].zone.indexOf(forzato))
+            || RITAGLI[g].zone.indexOf(a) - RITAGLI[g].zone.indexOf(b)
+          ));
+        // 0,1 e non 0,2: `livelloDiQuota` scarta il livello 0,2 (usa '>' e non '>='), e
+        // quindi 0,2 diventava 0,42.
+        quota = altre[0] === zona ? 0.42 : 0.1;
+      }
       else if (haQuota(zona)) quota = quote[zona];
       // IL GRUPPO PRINCIPALE SI ACCENDE TUTTO, E SI VEDE (16/10/2026).
       //
@@ -849,7 +842,16 @@ export function righeDaAccendere(acceso = null, livelli = null, anatomia = null)
       // accendeva `braccio_alto` a pieno e `braccio_basso` a 0.2, quindi si vedeva
       // meta' bicipite. Il passo e` solo per i secondari, che continuano a valere
       // `soloQuelloCheLavora`.
-      else if (!soloQuelloCheLavora) quota = 0.66;
+      else if (!soloQuelloCheLavora) {
+        // IL GRUPPO PRINCIPALE SI ACCENDE TUTTO, MA SI VEDE CHI LAVORA (18/10/2026).
+        //
+        // Prima tutte le zone che non sono quella allenata prendevano 0.66, e con la
+        // gamma stretta erano indistinguibili da quella piena: sul pettorale non si capiva
+        // quale capo stesse lavorando. Ora la zona più vicina a quella allenata e' più
+        // chiara, e le altre ancora di più.
+        const distanza = Math.abs(RITAGLI[g].zone.indexOf(zona) - RITAGLI[g].zone.indexOf(forzato));
+        quota = distanza === 1 ? 0.42 : 0.1;
+      }
       // una fascia di un secondario che non ha nessuna quota non si accende
       if (soloQuelloCheLavora && quota === 0) continue;
       righe.push({
@@ -860,7 +862,12 @@ export function righeDaAccendere(acceso = null, livelli = null, anatomia = null)
       });
     }
   };
-  metti(gruppo, acceso, false);
+  // IL PEZZO ALLENATO SI CERCA CON L'ALIAS (18/10/2026).
+  //
+  // Il brachiale e il bicipite sono due nomi che sulla figura sono un muscolo solo:
+  // quindi la zona da accendere pieno e' quella del bicipite, non quella del brachiale.
+  const forzato = idZonaDaParte(acceso) || acceso;
+  metti(gruppo, forzato, false);
 
   // I secondari: raggruppati per muscolo, e per ognuno il pezzo migliore è
   // quello che l'esercizio nomina di più.
@@ -868,6 +875,9 @@ export function righeDaAccendere(acceso = null, livelli = null, anatomia = null)
   for (const zona of Object.keys(quote)) {
     const g = gruppoDiParte(zona);
     if (!g || g === gruppo) continue;
+    // la zona del principale non e' un secondario: con l'alias (brachiale e
+    // bicipite) altrimenti la stessa zona compariva due volte
+    if (zona === forzato) continue;
     if (quote[zona] >= SOGLIA_SECONDARIO || certificato(zona)) altri.add(g);
   }
   for (const g of altri) {
@@ -881,101 +891,222 @@ export function righeDaAccendere(acceso = null, livelli = null, anatomia = null)
   return righe.sort((a, b) => a.opacita - b.opacita);
 }
 
-/**
- * La figura, come stringa SVG pronta da mettere nella pagina.
- *
- * Sono immagini: il corpo con i muscoli spenti, e sopra i muscoli in viola
- * ritagliati sui pezzi giusti, ciascuno con la sua sfumatura. Se il pezzo non
- * esiste non si mette il ritaglio: è meglio un omino tutto spento che uno con
- * il muscolo sbagliato acceso.
- *
- * `livelli` è la classifica di quanto lavora ogni pezzo (vedi muscoli-parti.js):
- * senza, il pezzo acceso va pieno e gli altri restano sul viola più chiaro.
- *
- * `anatomia` dice quali pezzi sono lì perché l'esercizio è di quel movimento e
- * non perché una parola nel nome lo diceva: sono secondari già verificati, quindi
- * si accendono anche sotto la soglia (vedi SOGLIA_SECONDARIO).
- */
-export function figurino(acceso = null, livelli = null, anatomia = null) {
-  const dentro = [];
-  dentro.push(`<image href="./img/muscoli/corpo.png" x="0" y="0" width="${FOTO_L}" height="${FOTO_A}"/>`);
+// L'ATLANTE VETTORIALE sostituisce i poligoni approssimativi con i contorni dei
+// muscoli veri: il colore viene scritto direttamente nel riempimento del singolo
+// percorso, mentre le linee anatomiche originali restano sopra e separano i fasci.
+const MUSCOLO_BASE = '#d5d1dc';
+const COLORE_PRINCIPALE = '#9b72f4';
+const COLORE_SECONDARIO = '#a98add';
 
-  const righe = righeDaAccendere(acceso, livelli, anatomia);
-  // id del ritaglio di ogni fascia: serve anche per la linea del contorno
-  const tagli = [];
+export function zoneAtlante(id) {
+  // Dove il disegno ha un percorso separato, usa proprio quella fascia: per
+  // esempio deltoide anteriore e laterale non si accendono più insieme solo
+  // perché appartengono alla stessa area della spalla.
+  if (/^pectoralis_major_/.test(id)) return ['petto_alto', 'petto_centrale', 'petto_basso'];
+  if (/^anterior_deltoid_/.test(id)) return ['spalle_frontali'];
+  if (/^lateral_deltoid_/.test(id)) return ['spalle_laterali'];
+  if (/^posterior_deltoid_/.test(id)) return ['spalle_posteriori'];
+  if (/^biceps_brachii_/.test(id)) return ['braccio_alto'];
+  if (/^brachioradialis_/.test(id)) return ['brachioradiale'];
+  if (/^triceps_brachii_caput_longum_/.test(id)) return ['spalla_gomito_alto'];
+  if (/^triceps_brachii_(caput_laterale|caput_mediale)_/.test(id)) return ['spalla_gomito_basso'];
+  if (/^anconeus_/.test(id)) return ['spalla_gomito_basso'];
+  if (/^(flexor_|extensor_|pronator_|palmaris_)/.test(id)) return ['avambraccio'];
+  if (/^(rectus_abdominis_|external_oblique_)/.test(id)) return ['addome'];
+  if (/^(vastus_lateralis_|vastus_medialis_|rectus_femoris_)/.test(id)) return ['quadricipite'];
+  // IL CENTRO SCHIENA (Ste, 18/10/2026).
+  //
+  // "l'esercizio fa il centro schiena quindi dovresti evidenziare più forte la linea
+  // centrale della schiena". Il centro schiena sono i romboidi e gli erettori della
+  // colonna: sono profondi, e in questa tavola superficiale non hanno un contorno
+  // proprio. Prima, sul rematore con bilanciere la figura accendeva i DORSALI LARGHI
+  // (le "ali"), che sono un supporto: la figura contraddiceva il testo.
+  //
+  // Il TRAPEZIO INFERIORE è la striscia che sta lungo la spina dorsale, quindi è la
+  // cosa più vicina al centro schiena che questa tavola riusciva a disegnare. Si
+  // accende con il livello del centro schiena, e i dorsali larghi restano chiari.
+  if (/^trapezius_lower_/.test(id)) return ['dorso_centrale'];
+  if (/^trapezius_/.test(id)) return ['dorso_alto'];
+  if (/^latissimus_dorsi_/.test(id)) return ['dorso_lati'];
+  if (/^gluteus_/.test(id)) return ['glutei'];
+  if (/^(semitendinosus_|semimembranosus_|biceps_femoris_)/.test(id)) return ['femorale'];
+  if (/^(gastrocnemius_|soleus_)/.test(id)) return ['polpaccio'];
+  // Brachiale e romboidi sono profondi e non hanno un contorno proprio in questa
+  // tavola superficiale: meglio lasciarli spenti che tingere un muscolo vicino.
+  return [];
+}
+
+const ar = (v) => Math.round(v * 100) / 100;
+
+function mischiaHex(base, accento, forza) {
+  const a = base.match(/[\da-f]{2}/gi).map((x) => parseInt(x, 16));
+  const b = accento.match(/[\da-f]{2}/gi).map((x) => parseInt(x, 16));
+  return '#' + a.map((n, i) => Math.round(n + (b[i] - n) * forza)
+    .toString(16).padStart(2, '0')).join('');
+}
+
+function coloreRiempimento(livello, principale) {
+  const quota = Math.max(0, Math.min(1, Number(livello) || 0));
+  // LA GAMMA DEVE SEPARARE I LIVELLI (Ste, 18/10/2026).
+  //
+  // "non si vedono bene e non si capisce quale sta lavorando". Aveva ragione, e il motivo
+  // non era il taglio delle fasce: era la gamma. I quattro livelli stavano in una
+  // FESSIA: il più chiaro era #a888ee e il pieno #9d75f3, cioe' undici di differenza sul
+  // rosso. Sulla figura due muscoli con livelli diversi sembravano identici, e del
+  // pettorale non si capiva quale capo stesse lavorando.
+  //
+  // Adesso i passi sono VERI: dal grigio chiaro al viola pieno si vede la differenza
+  // anche su uno schermo piccolo.
+  const GAMMA = [
+    { q: 0.20, principale: 0.30, secondario: 0.18 },
+    { q: 0.42, principale: 0.55, secondario: 0.34 },
+    { q: 0.66, principale: 0.78, secondario: 0.50 },
+    { q: 1.00, principale: 1.00, secondario: 0.70 },
+  ];
+  const passo = GAMMA.reduce((a, b) => (
+    Math.abs(b.q - quota) < Math.abs(a.q - quota) ? b : a
+  ));
+  const forza = principale ? passo.principale : passo.secondario;
+  return mischiaHex(MUSCOLO_BASE, principale ? COLORE_PRINCIPALE : COLORE_SECONDARIO, forza);
+}
+
+function dipingiAtlante(sorgente, righe, gruppoPrincipale, posizione) {
+  const intensita = new Map();
   for (const riga of righe) {
-    numeroFigura += 1;
-    const idTaglio = 'taglio-muscolo-' + numeroFigura;
-    tagli.push(idTaglio);
-    // `clipPathUnits` è un ATTRIBUTO di clipPath, non un elemento. Scritto come
-    // elemento (`<clipPathUnits="userSpaceOnUse">`) il browser considera il
-    // ritaglio non valido, il clipPath resta vuoto e il muscolo non si accende:
-    // la figura sembra scarica, senza dirlo. Il default è già userSpaceOnUse,
-    // ma lo scriviamo uguale per non doverci pensare.
-    dentro.push(`<clipPath id="${idTaglio}" clipPathUnits="userSpaceOnUse">`);
-    for (const pezzo of riga.pezzi) {
-      dentro.push(`<polygon points="${punti(pezzo)}"/>`);
+    const principale = riga.gruppo === gruppoPrincipale;
+    const presente = intensita.get(riga.zona);
+    if (!presente || riga.opacita > presente.livello || principale) {
+      intensita.set(riga.zona, { livello: riga.opacita, principale });
     }
-    dentro.push('</clipPath>');
-    dentro.push(`<image href="./img/muscoli/muscoli.png" x="0" y="0" width="${FOTO_L}"`
-      + ` height="${FOTO_A}" clip-path="url(#${idTaglio})"`
-      + ` opacity="${riga.opacita}"/>`);
   }
 
-  // LA MASCHERA CHE TAGLIA LA LINEA SUL CORPO (16/10/2026).
+  // IL PETTORALE IN TRE FASI (Ste, 18/10/2026).
   //
-  // `muscoli-bianca.png` e' la sagoma dei muscoli in bianco pieno: serve come maschera
-  // di luminanza, e il bianco maschera al 100%. Serve perché il ritaglio del
-  // CONTORNO non basta: ritagliare con il clipPath della sagoma lascia passare
-  // esattamente la parte della sagoma che sta FUORI dal corpo (le sagome sono
-  // volutamente più larghe del muscolo, per coprire il lato sinistro e quello
-  // destro che non coincidono). Serve una maschera della SILUETTE.
+  // Ste: "il petto era diviso in 3, che segnava quando era petto alto, petto basso o petto
+  // in mezzo" e "voglio che si veda la parte muscolare tra le 3 del petto che lavora".
   //
-  // Con `muscoli.png` non funzionerebbe benissimo: e' viola, e in una maschera di
-  // luminanza il viola vale circa 0,44, quindi la linea uscirebbe sbiadita. Il
-  // bianco maschera al 100% e la linea resta nitida.
-  const maschera = 'silhouette-muscoli-' + numeroFigura;
+  // Nella tavola vettoriale il pettorale e' UN tracciato per lato, senza parti dentro:
+  // quindi non si può accendere "la zona giusta", perché il path e' uno solo. Qui il path
+  // viene DISEGNATO TRE VOLTE, ognuna ritagliata nella sua fascia, e ognuna prende il
+  // viola della sua zona.
   //
-// LA LINEA CHE SEPARA LE FASCE (16/10/2026).
-  //
-  // Ste: "il brachioradiale è attaccato al bicipite no? devi farli bene le fasce
-  // muscolari". Le fasce ora si toccano (STACCO = 0), ma senza niente che le
-  // separi due muscoli accesi insieme diventerebbero un blocco solo: non si capirebbe
-  // dove finisce l'uno e dove comincia l'altro.
-  //
-  // Quindi la separazione la fa una LINEA sul contorno, non un vuoto: fasce
-  // attaccate e distinguibili, come nelle tavole anatomiche. È anche più sottile di
-  // prima: la fessura grigia era 3 pixel, questa linea è 1.
-  //
-  // LA LINEA DEVE ESSERE RITAGLIATA SUL CORPO (16/10/2026, Ste: "ancora si vedono
-  // quelle linee di fuori"). La prima volta avevo ritagliato la linea con il
-  // clipPath della sagola, ed era sbagliato: il clipPath E' la sagoma, quindi
-  // passava proprio la parte di sagoma che esce dal corpo. Le sagome sono larghe di
-  // proposito (devono coprire il lato sinistro e quello destro, che nel disegno
-  // differiscono di 5 pixel), e il loro contorno finiva a mezz'aria.
-  //
-  // Adesso la linea porta DUE ritagli: il clipPath della sua fascia (per stare
-  // dentro il proprio muscolo) e la maschera della silhouette (per non uscire dal
-  // corpo).
-  numeroFigura += 1;
-  dentro.push(`<mask id="${maschera}" maskUnits="userSpaceOnUse"`
-    + ` x="0" y="0" width="${FOTO_L}" height="${FOTO_A}">`);
-  dentro.push(`<image href="./img/muscoli/muscoli-bianca.png" x="0" y="0"`
-    + ` width="${FOTO_L}" height="${FOTO_A}"/>`);
-  dentro.push('</mask>');
-  dentro.push(`<g fill="none" stroke="${COLORE_LINEA}" stroke-width="1"`
-    + ' stroke-linejoin="round" stroke-linecap="round"'
-    + ` mask="url(#${maschera})">`);
-  righe.forEach((riga, k) => {
-    for (const pezzo of riga.pezzi) {
-      // `<path>` e NON `<polygon>`: i `<polygon>` sono quelli dentro i clipPath, e i
-      // test contano quanti pezzi ha un ritaglio. Un secondo set di `<polygon>`
-      // raddoppierebbe ogni conteggio.
-      dentro.push(`<path d="${tracciato(pezzo)}" clip-path="url(#${tagli[k]})"/>`);
+  // IL CONTORNO RESTA QUELLO DELL'ARTISTA: e' sempre il suo path, ritagliato con
+  // clipPath, quindi la forma non e' inventata. I TAGLI seguono le fibre: partono dallo
+  // sterno e scendono verso l'ascella, che e' la direzione del fascio clavicolare. Le
+  // fasce sono state VISTE prima di entrare nell'app, perché il primo tentativo aveva
+  // misurato i numeri senza mai guardare la figura, ed era venuto fuori sbagliato.
+  const gradPetto = [];
+  const tinta = sorgente.replace(/<path\b[^>]*>/g, (tag) => {
+    const id = tag.match(/\bid="([^"]+)"/)?.[1];
+    // IL PETTORALE: tre fasce, ognuna con la sua zona
+    if (id && /^pectoralis_major_/.test(id)) {
+      const d = tag.match(/\bd="([^"]+)"/)?.[1] || '';
+      const riquadro = riquadroPath(d);
+      if (!riquadro) return tag;
+      // lo sterno del lato sinistro della figura e' a destra: il taglio e' specchiato
+      const specchio = !/_r$/.test(id);
+      const suffisso = /_l$/.test(id) ? 'l' : 'r';
+      // LA SFUMATURA DEL PETTORALE (Ste, 18/10/2026).
+      //
+      // "i fasci sono storti e fatti male": ritagliare il path in tre pezzi dava delle
+      // STRISCE, cioe' bordi netti dentro una forma tondeggiante, e sembravano delle righe
+      // a pennare. Inveza il path si disegna UNA volta sola, con un riempimento a
+      // sfumatura: la sfumatura va dal chiaro al pieno lungo la direzione delle fibre, e
+      // il punto pieno cade sulla parte che lavora. Sembra un muscolo, e la parte che
+      // lavora si vede perché e' la più scura.
+      //
+      // La direzione delle fibre del pettorale va dallo sterno verso l'ascella, e i tre
+      // capi sono separati PERPENDICOLARMENTE a quelle: quindi la sfumatura deve
+      // scendere lungo quella direzione, cioe' dal davanti-alto allo dietro-basso.
+      // LE TRE FASCE DEL PETTORALE (Ste, 18/10/2026).
+      //
+      // "il petto viene evidenziato poco e non evidenzia le fasce muscolari
+      // corrispondenti". Prima la sfumatura aveva il viola PIENO in un punto solo,
+      // di mezzo in mezzo: su una figura piccola quello si "media" e il petto sembrava
+      // slavato, e i tre capi non si distinguevano.
+      //
+      // Adesso ogni capo è una fascia PIENA, con i bordi sfumati: il petto si vede
+      // tutto, e si vede anche QUALE capo sta lavorando, perché quello è pieno e gli
+      // altri due sono chiari.
+      //
+      // Le fasce sono in basso verso l'alto: il capo clavicolare in alto, quello
+      // sternale in mezzo, quello addominale in basso. I confini sono quelli del
+      // disegno (vedi CONFINI in fasce-petto.js), presi nel loro punto medio.
+      const CONFINI_PETTO = [0.30, 0.74];
+      const MORBIDO = 0.04;
+      const colori = ZONE_PETTO.map((zona) => {
+        const attivo = intensita.get(zona);
+        // una fascia che NON lavora resta SPENTA, col colore del corpo: se restasse
+        // su un viola chiaro, il pettorale resterebbe colorato anche quando l'esercizio
+        // non e' di petto
+        return attivo ? coloreRiempimento(attivo.livello, true) : MUSCOLO_BASE;
+      });
+      const idGrad = 'sfumatura-petto-' + suffisso;
+      const fermo = [];
+      const ferma = (v, colore) => fermo.push('<stop offset="' + Math.round(100 * v)
+        + '%" stop-color="' + colore + '"/>');
+      ferma(0, colori[0]);
+      ferma(CONFINI_PETTO[0] - MORBIDO, colori[0]);
+      ferma(CONFINI_PETTO[0] + MORBIDO, colori[1]);
+      ferma(CONFINI_PETTO[1] - MORBIDO, colori[1]);
+      ferma(CONFINI_PETTO[1] + MORBIDO, colori[2]);
+      ferma(1, colori[2]);
+      // la sfumatura scende dall'alto verso il basso: i tre capi sono impilati
+      gradPetto.push('<linearGradient id="' + idGrad + '" gradientUnits="userSpaceOnUse" x1="'
+        + ar((riquadro.x1 + riquadro.x2) / 2) + '" y1="' + ar(riquadro.y1) + '" x2="'
+        + ar((riquadro.x1 + riquadro.x2) / 2) + '" y2="' + ar(riquadro.y2) + '">'
+        + fermo.join('') + '</linearGradient>');
+      const tagUnico = tag.replace(/\bid="([^"]+)"/, 'id="$1-sfumato"');
+      return '<g>' + tagUnico.replace(/\bfill="[^"]*"/, 'fill="url(#' + idGrad + ')"')
+        .replace(/stroke="black"/g, 'stroke="#514a5c"') + '</g>';
+      // LE LINEE DI SEPARAZIONE fra le fasce: sottili, del colore del corpo, come le
+      // linee anatomiche del disegno. Senza queste i tagli sembrano delle righe a pennare
+      // (Ste: "rendi più realistici i fasci muscolari").
+      for (let k = 0; k < lineeFasce(riquadro, specchio).length; k++) {
+        const linea = lineeFasce(riquadro, specchio)[k];
+        parti.push('<path id="separazione-petto-' + suffisso + '-' + k + '" d="' + linea.d
+          + '" fill="none" stroke="' + MUSCOLO_BASE
+          + '" stroke-width="1.1" stroke-linecap="round"/>');
+      }
+      return parti.join('');
     }
-  });
-dentro.push('</g>');
-  return dentro.join('');
+    const attivi = id ? zoneAtlante(id).map((zona) => intensita.get(zona)).filter(Boolean) : [];
+    const attivo = attivi.find((zona) => zona.principale)
+      || attivi.sort((a, b) => b.livello - a.livello)[0];
+    let colore;
+    if (id === 'underlayer') colore = '#efedf2';
+    else if (attivo) colore = coloreRiempimento(attivo.livello, attivo.principale);
+    else {
+      const riempimento = tag.match(/\bfill="([^"]*)"/)?.[1]?.trim().toUpperCase();
+      colore = riempimento === '#E0E0E0' ? '#d8d4de' : MUSCOLO_BASE;
+    }
+    return tag.replace(/\bfill="[^"]*"/, `fill="${colore}"`)
+      .replace(/stroke="black"/g, 'stroke="#514a5c"');
+  }).replace(/stroke="black"/g, 'stroke="#514a5c"');
+
+  const inizio = tinta.indexOf('>') + 1;
+  const fine = tinta.lastIndexOf('</svg>');
+  const contenuto = tinta.slice(inizio, fine);
+  // La radice originale ha `fill="none"`: alcune linee decorative non hanno
+  // un fill proprio e devono restare contorni, non diventare macchie nere.
+  return `<svg fill="none" x="${posizione.x}" y="${posizione.y}" width="${posizione.larghezza}"`
+    + ` height="${posizione.altezza}" viewBox="${posizione.viewBox}"`
+    + ' preserveAspectRatio="none" aria-hidden="true">'
+    + (gradPetto.length ? '<defs>' + gradPetto.join('') + '</defs>' : '')
+    + contenuto + '</svg>';
+}
+
+export function figurino(acceso = null, livelli = null, anatomia = null) {
+  const righe = righeDaAccendere(acceso, livelli, anatomia);
+  const gruppoPrincipale = gruppoDiParte(acceso);
+  const inchiostro = [];
+  inchiostro.push(dipingiAtlante(ATLANTE_FRONTE, righe, gruppoPrincipale, {
+    x: 0, y: 48, larghezza: 370, altezza: 717, viewBox: '0 0 587 1137',
+  }));
+  inchiostro.push(dipingiAtlante(ATLANTE_RETRO, righe, gruppoPrincipale, {
+    x: 420, y: 54, larghezza: 370, altezza: 703, viewBox: '0 0 596 1133',
+  }));
+  return inchiostro.join('');
 }
 
 /**

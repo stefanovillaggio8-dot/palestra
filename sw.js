@@ -1,20 +1,20 @@
-﻿// sw.js -- service worker.
+// sw.js -- service worker.
 // Pre-carica tutto quello che serve, cosi' la seconda volta l'app parte
 // anche senza rete. I dati NON stanno qui: stanno in IndexedDB, quindi
 // cancellare la cache non cancella niente del tuo allenamento.
 
-// Il numero di versione sta anche in index.html (window.PALESTRA_VERSIONE), perché
+// Il numero di versione sta anche in index.html (window.PALESTRA_VERSIONE), perch?
 // e' quello che l'app mostra e quello con cui si controlla che il sito sia davvero
 // aggiornato. Sono due numeri in due file: il test I2 controlla che dicano lo stesso
 // e il test I3 che sia quello dell'ultimo commit, altrimenti si alza la cache e si
 // lascia scritto il numero vecchio. E' successo due volte: nella v54 avevo alzato
 // solo questo file, e dopo la v55 avevo smesso di alzarlo del tutto.
-const VERSIONE = 'palestra-v228';
+const VERSIONE = 'palestra-v229';
 
 // LE 18 FOTO DEI PERSONAGGI, CON LA VERSIONE DENTRO.
 //
 // Il numero viene preso da `palestra-v162` invece di essere scritto due volte: e'
-// l'unico posto in cui il numero compare, quindi la lista non può restare
+// l'unico posto in cui il numero compare, quindi la lista non pu? restare
 // indietro. Prima le 18 righe erano scritte a mano ed e' esattamente li' che il
 // numero era rimasto indietro due volte.
 const NUMERO = VERSIONE.replace(/^palestra-v/, '');
@@ -34,24 +34,26 @@ function immaginiPersonaggi() {
 const FILE = [
   './',
   './index.html',
+  './ATTRIBUZIONE-ILLUSTRAZIONI.md',
   // ANCHE L'ANTEPRIMA va precaricata. Ste (12/10/2046) ha guardato l'anteprima per
   // tre versioni di fila e ha detto "non e' cambiato nulla": l'anteprima chiedeva il
   // CSS come `./stile.css`, senza numero, e il browser lo teneva in cache per sempre.
   // Con il file nella lista, anche quando la pagina non ha rete c'e' una copia
-  // buona, e il fallback per le navigazioni può mandare qui quando serve.
+  // buona, e il fallback per le navigazioni pu? mandare qui quando serve.
   './anteprima-aura.html',
   './rassegna-missioni.html',
   // IL FOGLIO DI STILE HA LA VERSIONE, come il collegamento in index.html.
   //
   // Ste (10/10/2046): "le animazioni non le vedo". Il CSS era online e aggiornato,
-  // ma la cache del browser continuava a restituire il vecchio perché l'indirizzo
+  // ma la cache del browser continuava a restituire il vecchio perch? l'indirizzo
   // era sempre lo stesso. Con `?v=84` anche qui la chiave cambia a ogni versione,
-  // quindi la cache vecchia non viene più richiesta.
+  // quindi la cache vecchia non viene pi? richiesta.
   //
   // Il numero deve essere uguale a quello di `stile.css?v=` in index.html e a
   // `window.PALESTRA_VERSIONE`: se i tre non coincidono, l'app carica un foglio di
   // stile e dice un altro numero.
-  './stile.css?v=228',
+  './stile.css?v=229',
+  './stile-rpg.css?v=229',
 './manifest.webmanifest',
   './manifest-p1.webmanifest',
   './manifest-p2.webmanifest',
@@ -67,14 +69,13 @@ const FILE = [
   './src/esercizi-personali.js',
   './src/muscoli-parti.js',
   // Senza questo la pagina dell'esercizio non si apre offline: l'omino
-  // del muscolo allenato è in questo file.
+  // del muscolo allenato ? in questo file.
   './src/mappa-muscoli.js',
-  // E le due immagini della figura. Il modulo da solo non basta: senza
-  // `corpo.png` la pagina dell'esercizio si apre e l'omino è un rettangolino
-  // vuoto. Servono anche offline, quindi stanno in lista come tutte le altre.
-  './img/muscoli/corpo.png',
-  './img/muscoli/muscoli.png',
-  './img/muscoli/muscoli-bianca.png',
+  './src/anatomia-vettoriale.js',
+  './src/path-misura.js',
+  './src/fasce-petto.js',
+  // Il modulo contiene le due tavole SVG vettoriali e colora i tracciati
+  // dei muscoli direttamente, quindi non servono immagini aggiuntive.
   './src/scala-esercizi.js',
   './src/forza-generale.js',
   './src/scala-auto.js',
@@ -92,13 +93,13 @@ const FILE = [
   './src/rank-config.js',
   './src/rank.js',
 './src/streak.js',
-  // i suoni. Sta qui perché senza questo file nella cache l'app è MUTA quando non
-  // c'è rete: non parte nessun errore, semplicemente non si sente niente, ed è il
-  // modo peggiore in cui può rompersi una cosa che dovrebbe funzionare sempre.
+  // i suoni. Sta qui perch? senza questo file nella cache l'app ? MUTA quando non
+  // c'? rete: non parte nessun errore, semplicemente non si sente niente, ed ? il
+  // modo peggiore in cui pu? rompersi una cosa che dovrebbe funzionare sempre.
   './src/audio.js',
   // il glossario. Come i suoni, se non sta nella cache l'app non parte senza rete,
-  // e questa volta la cosa che manca è una pagina di spiegazioni: si apre e non
-  // c'è, e sembra che l'app sia rotta.
+  // e questa volta la cosa che manca ? una pagina di spiegazioni: si apre e non
+  // c'?, e sembra che l'app sia rotta.
   './src/glossario-app.js',
   // il modulo delle animazioni. Se non sta nella cache, l'app non parte senza rete
   // e resta senza la classe sul <html>: tornano a valere le animazioni di Windows,
@@ -116,7 +117,7 @@ const FILE = [
   //
   // Ste (11/10/2046): "ogni volta che sblocco qualcosa quell'immagine deve
   // vedersi meglio". Prima c'era una foto sola e una fila di pezzi sciolti, presi da
-  // un'altra scheda e in un'altra posa: incollarli veniva male. Adesso c'è una foto
+  // un'altra scheda e in un'altra posa: incollarli veniva male. Adesso c'? una foto
   // per stato e l'app sceglie da sola quella giusta (vedi statoVisivo in
   // src/avatar-rpg.js).
   //
@@ -126,7 +127,7 @@ const FILE = [
   // LE FOTO HANNO IL NUMERO DI VERSIONE NELL'INDIRIZZO, e la lista le costruisce
   // da sola invece di scriverle a mano.
   //
-  // Ste (12/10/2046): "ma non è cambiato nulla", con il file nuovo già online e
+  // Ste (12/10/2046): "ma non ? cambiato nulla", con il file nuovo gi? online e
   // verificato byte per byte. Le foto avevano l'indirizzo fisso, identico per
   // sempre, e su GitHub Pages i file statici hanno una scadenza lunghissima: il
   // browser restituiva la copia di prima. Lo stesso difetto che aveva colpito il
@@ -192,7 +193,7 @@ self.addEventListener('install', (evento) => {
       // l'aggiornamento, e sembrava che la modifica non fosse stata pubblicata.
       //
       // Il nome della cache cambia a ogni versione, quindi la cache del service
-      // worker è nuova e vuota: ma quella sotto, quella del browser, è la stessa
+      // worker ? nuova e vuota: ma quella sotto, quella del browser, ? la stessa
       // per tutte le versioni, e il nome del file non cambia. Serve dirlo qui.
       .then((cache) => cache.addAll(
         [...FILE, ...FOTO].map((percorso) => new Request(percorso, { cache: 'reload' })),
@@ -234,7 +235,7 @@ self.addEventListener('message', (evento) => {
 // PRIMA LA RETE, poi la cache.
 // Prima facevo il contrario (prima la cache) e il telefono continuava a usare
 // i file vecchi anche dopo che avevo pubblicato quelli nuovi: la spunta non
-// spuntava perché quella versione proprio non c'era.
+// spuntava perch? quella versione proprio non c'era.
 // Se non c'e' rete si usa la cache: l'app funziona lo stesso offline.
 self.addEventListener('fetch', (evento) => {
   const richiesta = evento.request;
@@ -259,3 +260,9 @@ self.addEventListener('fetch', (evento) => {
       }),
   );
 });
+
+
+
+
+
+

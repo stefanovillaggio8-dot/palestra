@@ -180,46 +180,46 @@ const PAVIMENTO = {
 // La linea centrale di ogni figura, come in `mappa-muscoli.js`.
 const CENTRI = { fronte: 162, retro: 577 };
 
-test('Z19: ogni sagoma resta sopra il muscolo disegnato, anche specchiata', async () => {
-  const { alpha, larghezza, altezza } = await alphaDelPng(
-    join(RADICE, 'img', 'muscoli', 'muscoli.png'),
-  );
+test('Z19: ogni muscolo che l app accende ha un tracciato VERO nell atlante', async () => {
+  // PRIMA questo test misurava la copertura della sagoma sopra l'immagine dei muscoli
+  // (muscoli.png): la figura era un'immagine ritagliata, e il controllo diceva quanto
+  // della sagoma stava davvero sul muscolo disegnato, per il lato peggiore.
+  //
+  // Con l'ATLANTE VETTORIALE non c'e' piu' niente da ritagliare: i tracciati SONO il
+  // disegno anatomico. Quindi la misura della copertura non ha piu' senso, e il
+  // controllo diventa quello che conta davvero: il tracciato di ogni muscolo che l'app
+  // accende ESISTE, e disegna qualcosa.
+  const { ATLANTE_FRONTE, ATLANTE_RETRO } = await import('../src/anatomia-vettoriale.js');
+  const { zoneAtlante } = await import('../src/mappa-muscoli.js');
 
-  for (const [chiave, minimo] of Object.entries(PAVIMENTO)) {
-    const gruppo = RITAGLI[chiave];
-    assert.ok(gruppo, `il pavimento parla di "${chiave}" ma nei ritagli non c'e'`);
-
-    const percentuale = (sagoma) => {
-      const { tot, sulMuscolo } = copertura(sagoma, alpha, larghezza, altezza);
-      assert.ok(tot > 20, `la sagoma di "${chiave}" e' troppo piccola per essere misurata`);
-      return (100 * sulMuscolo) / tot;
-    };
-
-    const originale = percentuale(gruppo.sagoma);
-
-    // IL PUNTO SULLO SPECCHIO. L'app disegna ogni sagoma una volta e la riflette, e
-    // il FIGLIO NON E' SIMMETRICO: i muscoli sono disegnati a mano e i due lati non
-    // coincidono. Le sagome hanno quindi due coperture diverse, e quella peggiore
-    // e' quella che si vede male.
-    //
-    // Prima questo test guardava solo il lato sinistro, quindi una modifica poteva
-    // sistemare il sinistro e rovinare il destro senza che nessuno se ne accorgesse.
-    // Lo scarto fra i due lati arriva a 8,9 punti (tricipite 88% e 97%), quindi non
-    // e' una differenza da arrotondare: e' la sagoma specchiata che cade peggio.
-    const centro = CENTRI[gruppo.vista];
-    const specchiata = gruppo.centro
-      ? null
-      : gruppo.sagoma.map(([x, y]) => [Math.round((2 * centro - x) * 100) / 100, y]);
-    const altra = specchiata ? percentuale(specchiata) : originale;
-    const peggiore = Math.min(originale, altra);
-
-    assert.ok(
-      peggiore >= minimo,
-      `"${chiave}" copre solo il ${peggiore.toFixed(1)}% del muscolo disegnato `
-      + `(pavimento ${minimo}%; sinistro ${originale.toFixed(1)}%, `
-      + `destro ${altra.toFixed(1)}%): la sagoma sta nel buio, e li' l'app non accende niente`,
-    );
+  const tracciati = new Map();
+  for (const sorgente of [ATLANTE_FRONTE, ATLANTE_RETRO]) {
+    for (const m of sorgente.matchAll(/<path\b[^>]*\bd="([^"]+)"[^>]*>/g)) {
+      const id = m[0].match(/\bid="([^"]+)"/)?.[1];
+      if (!id) continue;
+      tracciati.set(id, m[1]);
+    }
   }
+  assert.ok(tracciati.size > 50, 'l atlante non ha i tracciati');
+
+  // i muscoli che il pavimento nombra devono esistere nei ritagli
+  for (const chiave of Object.keys(PAVIMENTO)) {
+    assert.ok(RITAGLI[chiave], 'il pavimento parla di "' + chiave + '" ma nei ritagli non c e');
+  }
+
+  // e ogni gruppo che l'app accende deve avere almeno un tracciato che disegna qualcosa
+  const senzaDisegno = [];
+  for (const [chiave, gruppo] of Object.entries(RITAGLI)) {
+    const ids = [...tracciati.keys()]
+      .filter((id) => zoneAtlante(id).some((z) => (gruppo.zone || []).includes(z)));
+    if (!ids.length) continue;   // il muscolo non e' nell atlante: resta spento, e va bene
+    for (const id of ids) {
+      const d = tracciati.get(id);
+      if (!d || d.length < 20) senzaDisegno.push(chiave + '/' + id);
+    }
+  }
+  assert.deepEqual(senzaDisegno, [],
+    'questi tracciati non disegnano niente: ' + senzaDisegno.join(', '));
 });
 
 // Il comando per rimisurare i pavimenti, scritto cosi' non si perde:

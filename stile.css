@@ -2440,7 +2440,6 @@ html.animazioni-mai .aura-colonna { animation: none; }
 .classe-rpg {
   border: 1px solid var(--bordo); background: var(--card);
   padding: 9px 13px; border-radius: 10px; font-weight: 600;
-  min-height: 44px; text-align: left;
 }
 .classe-rpg.attiva {
   /* IL CERCHIO DELLA CLASSE SCELTA.
@@ -2819,20 +2818,8 @@ html.animazioni-mai .aura-colonna { animation: none; }
 
    E comunque non può colpire i due casi in cui le animazioni sono volute o spente
    per decisione: il selettore esclude `html` con la classe `animazioni-sempre`. */
-/* L'OMINO CHE DICE DOVE LAVORI.
- *
- * Ste (13/10/2026), tre volte sulla stessa figura. L'ultima: "e' veramente brutto,
- * non puoi copiare la foto da download e incollarla? pero' deve ovviamente avere
- * colorati solo i muscoli allenanti" e "lo sfondo deve avere lo stesso colore
- * dell'app".
- *
- * Quindi non e' piu' un disegno fatto a mano: e' la foto (img/muscoli/corpo.png),
- * con lo sfondo gia' trasparente cosi' si vede il colore dell'app, e sopra i
- * muscoli spenti c'e' muscoli.png ritagliato sul pezzo giusto, in viola.
- *
- * Perche' il ritaglio funziona bene: l'immagine dei muscoli e' gia' della forma
- * esatta del muscolo, quindi il bordo non lo disegna il CSS, lo disegna la foto.
- * Il poligono serve solo a scegliERE quale muscolo accendere. */
+/* L'atlante anatomico vettoriale mantiene lo sfondo trasparente e riempie i
+ * tracciati dei soli muscoli coinvolti. Le due viste sono già incluse nell'SVG. */
 .riga-omino {
   display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
   background: linear-gradient(155deg, var(--viola-scuro, #2a1f45), var(--card, #1a1526) 70%);
@@ -2850,64 +2837,6 @@ html.animazioni-mai .aura-colonna { animation: none; }
 @media (max-width: 430px) {
   .riga-omino { flex-direction: column; align-items: center; }
   .omino-svg { width: 100%; }
-}
-
-/* Rifinitura UI: gerarchie più chiare, spazi regolari e riepiloghi compatti.
-   Regole solo visive: i componenti e i dati dell'app restano invariati. */
-#contenuto > h1 {
-  margin: 2px 0 14px;
-}
-#contenuto > .riga-titoli {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin: 2px 0 16px;
-}
-#contenuto > .riga-titoli h1 { margin: 0; }
-#contenuto > .riga-titoli .conteggio { text-align: right; }
-
-.blocco > h2:first-child {
-  margin-top: 0;
-  margin-bottom: 12px;
-}
-.blocco-progresso-livello {
-  padding: 13px 15px;
-  border: 1px solid rgba(147, 166, 153, .15);
-  border-radius: 16px;
-  background: linear-gradient(145deg, rgba(28, 39, 34, .9), rgba(21, 30, 26, .86));
-}
-.blocco-progresso-livello .nota { margin-top: 8px; }
-
-.riga-teschio {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  align-items: stretch;
-  gap: 12px;
-}
-.riga-teschio > .teschio-streak,
-.riga-teschio > .teschio-aura,
-.riga-teschio > .teschio-rank {
-  min-width: 0;
-  margin: 0;
-}
-.teschio-rank .nota { overflow-wrap: anywhere; }
-
-#contenuto:has(.testa-profilo) .testa-profilo {
-  max-width: 760px;
-  margin: 12px auto 18px;
-  padding: clamp(18px, 3vw, 26px);
-  border: 1px solid rgba(165, 140, 255, .18);
-  border-radius: 22px;
-  background:
-    radial-gradient(70% 100% at 50% 0%, rgba(165, 140, 255, .1), transparent 78%),
-    linear-gradient(145deg, rgba(28, 39, 34, .86), rgba(21, 30, 26, .82));
-}
-#contenuto:has(.testa-profilo) .testa-profilo .riga-teschio.piccolo {
-  display: flex;
-  justify-content: center;
-  width: min(100%, 300px);
-  margin: 10px auto 0;
 }
 
 @media (prefers-reduced-motion: reduce) {
