@@ -364,6 +364,22 @@ test('C15. i 27 esercizi della scheda di Ste hanno il livello giusto', async () 
   'ex-seated-dumbbell-tricep-extension': 'isolamento',
   'ex-seated-hammer-curl': 'isolamento',
   'ex-shoulder-pin-press': 'composto',
+
+  // ESERCIZI AGGIUNTI (Ste, 21/10/2026): sono arrivati da WhatsApp, e
+  // ogni esercizio ha il suo livello come tutti gli altri.
+  'ex-bench-pin-press': 'composto',
+  'ex-bench-press': 'composto',
+  'ex-bench-pull': 'isolamento',
+  'ex-bent-arm-barbell-pullover': 'composto',
+  'ex-bent-over-dumbbell-row': 'composto',
+  'ex-bent-over-row': 'composto',
+  'ex-cable-bicep-curl': 'isolamento',
+  'ex-cable-chest-press': 'composto',
+  'ex-cable-crunch': 'isolamento',
+  'ex-cable-reverse-fly': 'isolamento',
+  'ex-deadlift': 'grande',
+  'ex-decline-bench-press': 'composto',
+  'ex-decline-dumbbell-bench-press': 'composto',
 };
   for (const e of ESERCIZI) {
     const r = classificaEsercizio({ nome: e.nome, convenzione: e.convenzione });

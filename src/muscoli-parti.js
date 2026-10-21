@@ -132,7 +132,8 @@ export const PARTI = [
     // normale" è un curl: in entrambi i casi il petto non lavora. Le frasi vere
     // restano ("bench press", "cable fly", "panca inclinata", "panca piana"),
     // quindi un esercizio di petto continua a essere trovato dal suo nome.
-    parole: ['chest press', 'pecorino', 'cable fly', 'cross over',
+    // il bench col pin (la sbarra di sicurezza) e' una panca come le altre
+    parole: ['chest press', 'bench pin press', 'pecorino', 'cable fly', 'cross over',
       'crossover', 'crucifix', 'bench press', 'pressione petto', 'horizontal press',
       // i push up sono una panca col peso del corpo (Ste, 21/10/2026)
       'push up', 'push-up', 'pushups', 'push ups', 'piegamenti', 'piegamento',

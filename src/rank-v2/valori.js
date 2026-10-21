@@ -684,6 +684,13 @@ export const VALORI_MOVIMENTO = {
     multiplo: 0.58, ingressoMultiplo: 0.05, fonte: 'stima',
     nota: 'Trazioni coi zavorri: il punteggio sono i SOLI kg aggiunti (vedi `valutaEsercizio`), quindi il tetto 0,58x sono circa 38 kg appesi alla cintura, che e\' dove arrivano le trazioni a presa larga con un buon carico. Ste (18/10/2026): "le trazioni in teoria sono un po\' piu\' difficili perche\' le faccio a presa larga mentre la lat machine la faccio a presa stretta". Per questo il tetto sta sotto quello del pulldown. E\' la stessa regola usata per i dip, che pero\' reggono piu\' zavorri e hanno la loro scala (0,95x).',
   },
+  // IL CORE (Ste, 21/10/2026): crunch e simili, i kg non esistono.
+  // Senza questa riga un esercizio col core non aveva nessuna scala, e il Rank non
+  // poteva dire niente.
+  core: {
+    multiplo: 0, ingressoMultiplo: 0, fonte: 'nessuno',
+    nota: 'Crunch e simili: qui i kg non esistono, si contano le ripetizioni.',
+  },
   corpo_libero: {
     multiplo: 0, fonte: 'nessuno',
     nota: 'Trazioni e dip: qui i kg non esistono, si contano le ripetizioni.',

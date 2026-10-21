@@ -44,7 +44,8 @@ const MOVIMENTI = [
   // --- spinte ---
   {
     id: 'spinta_orizzontale', livello: 'composto', gruppo: 'petto',
-    parole: ['chest press', 'panca', 'bench press', 'pecorino',
+    // il bench col pin (la sbarra di sicurezza) e' una panca come le altre
+    parole: ['chest press', 'panca', 'bench press', 'bench pin press', 'pecorino',
       'spinta orizzontale', 'horizontal press', 'panca piana', 'flat bench'],
   },
   {

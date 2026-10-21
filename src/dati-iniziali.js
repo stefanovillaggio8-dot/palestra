@@ -314,6 +314,19 @@ export const ESERCIZI = [
   { id: 'ex-seated-dumbbell-tricep-extension', nome: 'Seated Dumbbell Tricep Extension', gruppo: 'Seated Dumbbell Tricep Extension', convenzione: C.PER_MANUBRIO, foto: 'img/esercizi/seated-dumbbell-tricep-extension.png', tipo: 'standard' },
   { id: 'ex-seated-hammer-curl', nome: 'Seated Hammer Curl', gruppo: 'Seated Hammer Curl', convenzione: C.PER_MANUBRIO, foto: 'img/esercizi/seated-hammer-curl.png', tipo: 'standard' },
   { id: 'ex-shoulder-pin-press', nome: 'Shoulder Pin Press', gruppo: 'Shoulder Pin Press', convenzione: C.ALTRO, foto: 'img/esercizi/shoulder-pin-press.png', tipo: 'standard' },
+  { id: 'ex-bench-pin-press', nome: 'Bench Pin Press', gruppo: 'Bench Pin Press', convenzione: C.BILANCIERE, foto: 'img/esercizi/bench-pin-press.png', tipo: 'standard' },
+  { id: 'ex-bench-press', nome: 'Bench Press', gruppo: 'Bench Press', convenzione: C.BILANCIERE, foto: 'img/esercizi/bench-press.png', tipo: 'standard' },
+  { id: 'ex-bench-pull', nome: 'Bench Pull', gruppo: 'Bench Pull', convenzione: C.BILANCIERE, foto: 'img/esercizi/bench-pull.png', tipo: 'standard' },
+  { id: 'ex-bent-arm-barbell-pullover', nome: 'Bent Arm Barbell Pullover', gruppo: 'Bent Arm Barbell Pullover', convenzione: C.BILANCIERE, foto: 'img/esercizi/bent-arm-barbell-pullover.png', tipo: 'standard' },
+  { id: 'ex-bent-over-dumbbell-row', nome: 'Bent Over Dumbbell Row', gruppo: 'Bent Over Dumbbell Row', convenzione: C.PER_MANUBRIO, foto: 'img/esercizi/bent-over-dumbbell-row.png', tipo: 'standard' },
+  { id: 'ex-bent-over-row', nome: 'Bent Over Row', gruppo: 'Bent Over Row', convenzione: C.BILANCIERE, foto: 'img/esercizi/bent-over-row.png', tipo: 'standard' },
+  { id: 'ex-cable-bicep-curl', nome: 'Cable Bicep Curl', gruppo: 'Cable Bicep Curl', convenzione: C.CAVO, carrucola: C.CARRUCOLA_DOPPIA, foto: 'img/esercizi/cable-bicep-curl.png', tipo: 'standard' },
+  { id: 'ex-cable-chest-press', nome: 'Cable Chest Press', gruppo: 'Cable Chest Press', convenzione: C.CAVO, carrucola: C.CARRUCOLA_DOPPIA, foto: 'img/esercizi/cable-chest-press.png', tipo: 'standard' },
+  { id: 'ex-cable-crunch', nome: 'Cable Crunch', gruppo: 'Cable Crunch', convenzione: C.CORPO_LIBERO, foto: 'img/esercizi/cable-crunch.png', tipo: 'standard' },
+  { id: 'ex-cable-reverse-fly', nome: 'Cable Reverse Fly', gruppo: 'Cable Reverse Fly', convenzione: C.CAVO, carrucola: C.CARRUCOLA_DOPPIA, foto: 'img/esercizi/cable-reverse-fly.png', tipo: 'standard' },
+  { id: 'ex-deadlift', nome: 'Deadlift', gruppo: 'Deadlift', convenzione: C.BILANCIERE, foto: 'img/esercizi/deadlift.png', tipo: 'standard' },
+  { id: 'ex-decline-bench-press', nome: 'Decline Bench Press', gruppo: 'Decline Bench Press', convenzione: C.BILANCIERE, foto: 'img/esercizi/decline-bench-press.png', tipo: 'standard' },
+  { id: 'ex-decline-dumbbell-bench-press', nome: 'Decline Dumbbell Bench Press', gruppo: 'Decline Dumbbell Bench Press', convenzione: C.PER_MANUBRIO, foto: 'img/esercizi/decline-dumbbell-bench-press.png', tipo: 'standard' },
 ];
 
 const s = (peso, rip, extra = {}) => ({ peso, ripetizioni: rip, ...extra });

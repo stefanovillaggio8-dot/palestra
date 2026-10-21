@@ -9,7 +9,7 @@
 // e il test I3 che sia quello dell'ultimo commit, altrimenti si alza la cache e si
 // lascia scritto il numero vecchio. E' successo due volte: nella v54 avevo alzato
 // solo questo file, e dopo la v55 avevo smesso di alzarlo del tutto.
-const VERSIONE = 'palestra-v234';
+const VERSIONE = 'palestra-v235';
 
 // LE 18 FOTO DEI PERSONAGGI, CON LA VERSIONE DENTRO.
 //
@@ -52,8 +52,8 @@ const FILE = [
   // Il numero deve essere uguale a quello di `stile.css?v=` in index.html e a
   // `window.PALESTRA_VERSIONE`: se i tre non coincidono, l'app carica un foglio di
   // stile e dice un altro numero.
-  './stile.css?v=234',
-  './stile-rpg.css?v=234',
+  './stile.css?v=235',
+  './stile-rpg.css?v=235',
 './manifest.webmanifest',
   './manifest-p1.webmanifest',
   './manifest-p2.webmanifest',
@@ -210,6 +210,16 @@ const FOTO = [
   './img/esercizi/seated-dumbbell-tricep-extension.png',
   './img/esercizi/seated-hammer-curl.png',
   './img/esercizi/shoulder-pin-press.png',
+
+  './img/esercizi/bench-pin-press.png',
+  './img/esercizi/bent-arm-barbell-pullover.png',
+  './img/esercizi/bent-over-dumbbell-row.png',
+  './img/esercizi/bent-over-row.png',
+  './img/esercizi/cable-bicep-curl.png',
+  './img/esercizi/cable-chest-press.png',
+  './img/esercizi/cable-crunch.png',
+  './img/esercizi/decline-bench-press.png',
+  './img/esercizi/decline-dumbbell-bench-press.png',
 ];
 
 self.addEventListener('install', (evento) => {
