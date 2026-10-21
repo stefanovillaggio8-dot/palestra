@@ -45,7 +45,7 @@ import { parteDiMuscolo, AVVERTIMENTO_PARTI, stessoLavoro, livelloConMuscolo, or
 // omino con il muscolo allenato colorato di viola se possibile, non di giallo".
 import { figurino as figurinoMuscolo, FOTO_L, FOTO_A, ETICHETTE as ETICHETTE_OMINO }
   from './mappa-muscoli.js';
-import { quantoEPesantePerTe, correggiLivello, dimenticaLivello, livelloImparato, paroleDaChiedere, imparaParola , rinominaEserciziCambiati } from './esercizi-personali.js';
+import { quantoEPesantePerTe, correggiLivello, dimenticaLivello, livelloImparato, paroleDaChiedere, imparaParola , rinominaEserciziCambiati, sistemaConvenzioniEsercizi } from './esercizi-personali.js';
 import { controllaAggiornamento, applicaAggiornamento as prendiVersioneNuova, registraAggiornamentoRapido } from './update-via-sw.js';
 import {
   pesoAttuale, pesiCronologici, segnaPeso, togliPeso, pesoCorporeoValido,
@@ -294,6 +294,9 @@ async function avvia() {
 
     // Un esercizio ha cambiato nome (Ste, 21/10/2026). Solo il nome: l'id resta,
     // cosi le serie vecchie restano attaccate all'esercizio giusto.
+    const convenzioni = await sistemaConvenzioniEsercizi();
+    if (convenzioni.length) await ricaricaTutto();
+
     const rinominati = await rinominaEserciziCambiati();
     if (rinominati.length) {
       await ricaricaTutto();

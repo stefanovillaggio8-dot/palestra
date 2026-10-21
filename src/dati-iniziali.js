@@ -185,6 +185,7 @@ export function eserciziMancanti(catalogo, ufficiale = ESERCIZI) {
 // Ogni riga È una VARIANTA con id proprio: "Chest Press" e "Chest Press - macchina B"
 // hanno id diversi e quindi non verranno mai confrontati fra loro.
 export const ESERCIZI = [
+  { id: 'ex-one-arm-overhead-tricep-extension', nome: 'One Arm Overhead Tricep Extension', gruppo: 'One Arm Overhead Tricep Extension', convenzione: C.CAVO, carrucola: C.CARRUCOLA_DOPPIA, foto: 'img/esercizi/bodyweight-overhead-tricep-ext.png', tipo: 'standard', nota_permanente: 'Al cavo, altezza sopra il culo. Il numero è il peso che tiro io, non l’assistenza.' },
   { id: 'ex-chest-press', nome: 'Chest Press', gruppo: 'Chest Press', convenzione: C.PER_BRACCIO, attrezzatura: C.MACCHINA_DISCHI, bracciaIndipendenti: true, foto: 'img/esercizi/chest-press.png', tipo: 'standard', nota_permanente: 'Macchina a dischi veri sui perni, e i due bracci sono indipendenti: muovo il destro senza muovere il sinistro.' },
   { id: 'ex-cable-hammer-curl', nome: 'Cable Hammer Curl', gruppo: 'Cable Hammer Curl', convenzione: C.CAVO, carrucola: C.CARRUCOLA_DOPPIA, foto: 'img/esercizi/cable-hammer-curl.png', tipo: 'standard', nota_permanente: 'Cavo basso, alla cavigliera.' },
   { id: 'ex-cable-lateral-raise', nome: 'Cable Lateral Raise', gruppo: 'Cable Lateral Raise', convenzione: C.CAVO, carrucola: C.CARRUCOLA_DOPPIA, foto: 'img/esercizi/cable-lateral-raise.png', tipo: 'standard', nota_permanente: 'Fatte bene, alla cavigliera.' },
@@ -328,8 +329,7 @@ export const ESERCIZI = [
   { id: 'ex-decline-bench-press', nome: 'Decline Bench Press', gruppo: 'Decline Bench Press', convenzione: C.BILANCIERE, foto: 'img/esercizi/decline-bench-press.png', tipo: 'standard' },
   { id: 'ex-decline-dumbbell-bench-press', nome: 'Decline Dumbbell Bench Press', gruppo: 'Decline Dumbbell Bench Press', convenzione: C.PER_MANUBRIO, foto: 'img/esercizi/decline-dumbbell-bench-press.png', tipo: 'standard' },
   { id: 'ex-face-pull', nome: 'Face Pull', gruppo: 'Face Pull', convenzione: C.CAVO, carrucola: C.CARRUCOLA_DOPPIA, foto: 'img/esercizi/face-pull.png', tipo: 'standard' },
-  { id: 'ex-back-extension', nome: 'Back Extension', gruppo: 'Back Extension', convenzione: C.CORPO_LIBERO, foto: 'img/esercizi/back-extension.png', tipo: 'standard' },
-  { id: 'ex-hip-extension', nome: 'Hip Extension', gruppo: 'Hip Extension', convenzione: C.CORPO_LIBERO, foto: 'img/esercizi/hip-extension.png', tipo: 'standard' },
+  { id: 'ex-back-extension', nome: 'Back Extension', gruppo: 'Back Extension', convenzione: C.PER_MANUBRIO, foto: 'img/esercizi/back-extension.png', tipo: 'standard' },
   { id: 'ex-smith-machine-bench-press', nome: 'Smith Machine Bench Press', gruppo: 'Smith Machine Bench Press', convenzione: C.MACCHINA, attrezzatura: 'macchina_dischi', foto: 'img/esercizi/smith-machine-bench-press.png', tipo: 'standard' },
   { id: 'ex-smith-machine-bent-over-row', nome: 'Smith Machine Bent Over Row', gruppo: 'Smith Machine Bent Over Row', convenzione: C.MACCHINA, attrezzatura: 'macchina_stack', foto: 'img/esercizi/smith-machine-bent-over-row.png', tipo: 'standard' },
   { id: 'ex-smith-machine-shrug', nome: 'Smith Machine Shrug', gruppo: 'Smith Machine Shrug', convenzione: C.MACCHINA, attrezzatura: 'macchina_stack', foto: 'img/esercizi/smith-machine-shrug.png', tipo: 'standard' },

@@ -72,12 +72,12 @@ test('23 esercizi della scheda + 4 aggiunti dopo, non ancora in nessuna scheda',
     'ex-decline-dumbbell-bench-press',
     'ex-face-pull',
     'ex-back-extension',
-    'ex-hip-extension',
     'ex-smith-machine-bench-press',
     'ex-smith-machine-bent-over-row',
     'ex-smith-machine-shrug',
     'ex-trazioni-corpo-libero',
     'ex-dips-corpo-libero',
+    'ex-one-arm-overhead-tricep-extension',
     ].includes(e.id));
   assert.equal(aggiunti.length, 54, 'gli esercizi aggiunti ci sono');
   // il "liac" e' per il dorso: braccio singolo col cavo alto, NON un curl
@@ -172,8 +172,7 @@ test('i dropset sono gia\' previsti solo dove serve (wrist curl)', () => {
 test('gli esercizi assistiti sono riconosciuti come assistiti', () => {
   const assistiti = ESERCIZI.filter((e) => !convenzioneMisuraCarico(e.convenzione)).map((e) => e.id);
   assert.deepEqual(assistiti.sort(),
-    ['ex-back-extension', 'ex-dips', 'ex-dips-corpo-libero', 'ex-hip-extension',
-      'ex-pull-ups', 'ex-trazioni-corpo-libero']);
+    ['ex-dips', 'ex-dips-corpo-libero', 'ex-pull-ups', 'ex-trazioni-corpo-libero']);
 });
 
 test('lo snapshot della scheda e\' completo e ordinato', () => {

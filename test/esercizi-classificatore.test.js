@@ -384,7 +384,6 @@ test('C15. i 27 esercizi della scheda di Ste hanno il livello giusto', async () 
   // ESERCIZI AGGIUNTI (Ste, 21/10/2026): vengono dalla lista.
   'ex-face-pull': 'isolamento',
   'ex-back-extension': 'isolamento',
-  'ex-hip-extension': 'isolamento',
   'ex-smith-machine-bench-press': 'composto',
   'ex-smith-machine-bent-over-row': 'composto',
   'ex-smith-machine-shrug': 'composto',
@@ -393,6 +392,9 @@ test('C15. i 27 esercizi della scheda di Ste hanno il livello giusto', async () 
   // ESERCIZI AGGIUNTI (Ste, 21/10/2026): dalla lista e i due a corpo libero.
   'ex-trazioni-corpo-libero': 'composto',
   'ex-dips-corpo-libero': 'composto',
+
+  // ESERCIZI AGGIUNTI (Ste, 21/10/2026): dalla lista e i due a corpo libero.
+  'ex-one-arm-overhead-tricep-extension': 'isolamento',
 };
   for (const e of ESERCIZI) {
     const r = classificaEsercizio({ nome: e.nome, convenzione: e.convenzione });

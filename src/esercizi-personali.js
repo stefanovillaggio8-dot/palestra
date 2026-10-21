@@ -269,6 +269,34 @@ export function nuovoNomeEsercizio(nome) {
  * nessuna riga ha più il nome vecchio. Non serve una bandierina: se il browser
  * perde il localStorage, la rinomina viene rifatta e basta.
  */
+/**
+ * LE CONVENZIONI CHE CAMBIANO (Ste, 21/10/2026).
+ *
+ * "non e' assistenza sono kg": l'One Arm Overhead Tricep Extension lo fa al cavo e il
+ * numero che scrive e' il peso che tira lui, non i kg che la macchina gli toglie. Con
+ * la convenzione "assistenza" l'app ti scriveva "28 kg di assistenza" e contava al
+ * contrario, che e' il contrario di quello che ti e' successo.
+ *
+ * La riga è già nel database, quindi il catalogo da solo non basta: va cambiata qui,
+ * una volta sola.
+ */
+export const CONVENZIONI_DA_CAMBIARE = {
+  'ex-bodyweight-overhead-tricep': { convenzione: 'cavo_totali', carrucola: 'carrucola_doppia' },
+};
+
+export async function sistemaConvenzioniEsercizi() {
+  const righe = await db.tutti('esercizi');
+  const cambiate = [];
+  for (const e of righe || []) {
+    const nuovo = CONVENZIONI_DA_CAMBIARE[e.id];
+    if (!nuovo) continue;
+    if (e.convenzione === nuovo.convenzione) continue;
+    await db.salva('esercizi', { ...e, ...nuovo });
+    cambiate.push({ nome: e.nome, da: e.convenzione, a: nuovo.convenzione });
+  }
+  return cambiate;
+}
+
 export async function rinominaEserciziCambiati() {
   const righe = await db.tutti('esercizi');
   const cambiati = [];
