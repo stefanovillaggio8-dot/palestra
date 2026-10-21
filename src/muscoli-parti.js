@@ -244,6 +244,8 @@ export const PARTI = [
     id: 'spalle_frontali', muscolo: 'spalle', parte: 'spalle davanti (deltoide anteriore)',
     parole: ['front raise', 'shoulder press', 'military', 'militare', 'overhead press',
       'spinte in alto', 'presse in alto', 'press a spalle',
+      // la spinta col manubrio infilzato nel bilanciere (Ste, 21/10/2026)
+      'shoulder pin press', 'landmine press',
       // il landmine press e' una spinta in avanti delle spalle (Ste, 21/10/2026)
       'landmine press', 'landmine'],
     nota: 'Spinge in alto davanti: lavora il deltoide anteriore e i trapezi.',
@@ -354,7 +356,8 @@ id: 'avambraccio', muscolo: 'avambraccio', parte: 'avambraccio (polso e avanti b
   },
   {
     id: 'femorale', muscolo: 'gambe', parte: 'femorale (dietro)',
-    parole: ['leg curl', 'curl gambe', 'prone curl', 'stacco'],
+    // il deadlift: le gambe e la catena posteriore (Ste, 21/10/2026)
+    parole: ['leg curl', 'curl gambe', 'prone curl', 'stacco', 'deadlift'],
     nota: 'Piega il ginocchio: lavora il femorale, il muscolo dietro la coscia.',
   },
   {

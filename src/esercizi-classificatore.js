@@ -49,7 +49,9 @@ const MOVIMENTI = [
   },
   {
     id: 'spinta_verticale', livello: 'composto', gruppo: 'spalle',
+    // "Shoulder Pin Press" (la spinta col manubrio infilzato): e' una spinta in alto
     parole: ['shoulder press', 'military press', 'overhead press', 'spinta verticale',
+      'shoulder pin press', 'landmine press',
       'vertical press', 'spalle in alto', 'pressa spalle'],
   },
   // --- tirate ---

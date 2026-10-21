@@ -23,10 +23,42 @@ test('23 esercizi della scheda + 4 aggiunti dopo, non ancora in nessuna scheda',
   // I primi 23 sono quelli trascritti dalle foto. I 4 successivi sono stati
   // aggiunti dopo: sono disponibili nella lista ma NON devono essere finiti in
   // nessuna scheda, altrimenti gli allenamenti di Ste cambierebbero da soli.
-  assert.equal(ESERCIZI.length, 27);
+  assert.equal(ESERCIZI.length, 55);
+  // AGGIUNTI ANCHE QUELLI ARRIVATI DA WHATSAPP (Ste, 21/10/2026): sono
+  // disponibili nella lista ma NON in nessuna scheda, altrimenti gli allenamenti di
+  // Ste cambierebbero da soli.
   const aggiunti = ESERCIZI.filter((e) => ['ex-iso-lateral-row', 'ex-lat-pulldown-lats',
-    'ex-db-lateral-raise', 'ex-lying-cable-curl', 'ex-wide-grip-lat-pulldown'].includes(e.id));
-  assert.equal(aggiunti.length, 5, 'i 5 esercizi aggiunti ci sono');
+    'ex-db-lateral-raise', 'ex-lying-cable-curl', 'ex-wide-grip-lat-pulldown',
+    'ex-incline-side-lying-lateral-raise',
+    'ex-iso-lateral-low-row',
+    'ex-hammer-curl-dumbbell',
+    'ex-high-to-low-cable-fly',
+    'ex-dumbbell-reverse-fly',
+    'ex-dumbbell-row',
+    'ex-dumbbell-spider-curl',
+    'ex-iso-lateral-high-row',
+    'ex-double-kettlebell-row',
+    'ex-dumbbell-bench-press',
+    'ex-dumbbell-concentration-curl',
+    'ex-dumbbell-curl',
+    'ex-dumbbell-deadlift',
+    'ex-dumbbell-face-pull',
+    'ex-incline-bench-press',
+    'ex-incline-cable-curl',
+    'ex-incline-dumbbell-bench-press',
+    'ex-incline-dumbbell-curl',
+    'ex-incline-hammer-curl',
+    'ex-ez-bar-curl',
+    'ex-ez-bar-lying-tricep-extension',
+    'ex-ez-bar-preacher-curl',
+    'ex-ez-bar-spider-curl',
+    'ex-seated-dumbbell-curl',
+    'ex-seated-dumbbell-lateral-raise',
+    'ex-seated-dumbbell-tricep-extension',
+    'ex-seated-hammer-curl',
+    'ex-shoulder-pin-press',
+    ].includes(e.id));
+  assert.equal(aggiunti.length, 33, 'gli esercizi aggiunti ci sono');
   // il "liac" e' per il dorso: braccio singolo col cavo alto, NON un curl
   const liac = ESERCIZI.find((e) => e.id === 'ex-lying-cable-curl');
   assert.equal(liac.gruppo, 'Lat Pulldown', 'il liac sta nel gruppo del dorso');

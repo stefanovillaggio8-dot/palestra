@@ -333,7 +333,38 @@ test('C15. i 27 esercizi della scheda di Ste hanno il livello giusto', async () 
   // classificatore deve dargli il movimento con il tetto piu' basso, altrimenti chi fa il
   // largo viene giudicato come chi fa lo stretto.
   'ex-wide-grip-lat-pulldown': 'composto',
-  };
+  
+  // ESERCIZI AGGIUNTI (Ste, 21/10/2026): sono arrivati da WhatsApp, e
+  // ogni esercizio ha il suo livello come tutti gli altri.
+  'ex-incline-side-lying-lateral-raise': 'isolamento',
+  'ex-iso-lateral-low-row': 'composto',
+  'ex-hammer-curl-dumbbell': 'isolamento',
+  'ex-high-to-low-cable-fly': 'isolamento',
+  'ex-dumbbell-reverse-fly': 'isolamento',
+  'ex-dumbbell-row': 'composto',
+  'ex-dumbbell-spider-curl': 'isolamento',
+  'ex-iso-lateral-high-row': 'composto',
+  'ex-double-kettlebell-row': 'composto',
+  'ex-dumbbell-bench-press': 'composto',
+  'ex-dumbbell-concentration-curl': 'isolamento',
+  'ex-dumbbell-curl': 'isolamento',
+  'ex-dumbbell-deadlift': 'grande',
+  'ex-dumbbell-face-pull': 'isolamento',
+  'ex-incline-bench-press': 'composto',
+  'ex-incline-cable-curl': 'isolamento',
+  'ex-incline-dumbbell-bench-press': 'composto',
+  'ex-incline-dumbbell-curl': 'isolamento',
+  'ex-incline-hammer-curl': 'isolamento',
+  'ex-ez-bar-curl': 'isolamento',
+  'ex-ez-bar-lying-tricep-extension': 'isolamento',
+  'ex-ez-bar-preacher-curl': 'isolamento',
+  'ex-ez-bar-spider-curl': 'isolamento',
+  'ex-seated-dumbbell-curl': 'isolamento',
+  'ex-seated-dumbbell-lateral-raise': 'isolamento',
+  'ex-seated-dumbbell-tricep-extension': 'isolamento',
+  'ex-seated-hammer-curl': 'isolamento',
+  'ex-shoulder-pin-press': 'composto',
+};
   for (const e of ESERCIZI) {
     const r = classificaEsercizio({ nome: e.nome, convenzione: e.convenzione });
     assert.equal(r.livello, attesi[e.id], e.nome + ': preso ' + r.livello + ' invece di ' + attesi[e.id]);
