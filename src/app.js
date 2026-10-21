@@ -5744,6 +5744,7 @@ function vistaRank(zona) {
     ['miei', 'MY RANKS'],
     ['classifica', 'LEADERBOARD'],
     ['amici', 'FRIENDS'],
+    ['prova', 'PROVA UN ESERCIZIO'],
   ];
   for (const [k, t] of voci) {
     bottoni.appendChild(bottone(t, {

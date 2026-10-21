@@ -286,7 +286,7 @@ export function nuovoNomeEsercizio(nome) {
  * una volta sola.
  */
 export const CONVENZIONI_DA_CAMBIARE = {
-  'ex-bodyweight-overhead-tricep': { convenzione: 'cavo_totali', carrucola: 'carrucola_doppia' },
+  'ex-bodyweight-overhead-tricep': { convenzione: 'cavo_totali', carrucola: 'carrucola_mono' },
   // L'IPEREXTENSIONE: i dischi li prende con DUE MANI (non li abbraccia come fa la
   // foto, perché sono troppi), quindi il numero che scrive è il peso TOTALE dei
   // dischi: la convenzione "dischi" è quella giusta (come lo Smith, dove i dischi si
