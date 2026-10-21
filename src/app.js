@@ -1123,7 +1123,8 @@ async function iniziaAllenamento(giorno) {
 const MUSCOLO_ETICHETTA = {
   petto: 'petto',
   dorsale: 'dorso',
-  romboidi: 'dorso centrale',
+  // La BASSA SCHIENA (i lombari): il nome che usa Ste (21/10/2026)
+  romboidi: 'bassa schiena',
   trapezio: 'trapezi',
   deltoide_fronte: 'deltoide',
   deltoide_posteriore: 'deltoide dietro',
@@ -1337,7 +1338,7 @@ function vistaGiorno(zona, giornoId) {
         rigaPrevista.appendChild(campoPeso);
         rigaPrevista.appendChild(el('span', { class: 'prevista-x', testo: '×' }));
         rigaPrevista.appendChild(campoRip);
-        rigaPrevista.appendChild(el('span', { class: 'sotto-campo', testo: assistito ? 'ASSISTENZA' : 'KG / RIP' }));
+        rigaPrevista.appendChild(el('span', { class: 'sotto-campo', testo: assistito ? 'ZAVORRA' : 'KG / RIP' }));
         rigaPrevista.appendChild(bottone('×', {
           onClick: () => { es.serie.splice(i, 1); disegna(); },
           classe: 'passo passo-rosso',
@@ -1787,7 +1788,7 @@ function rigaSerie(serie, numero, confronto, seduta, pesoRigaSorella = null) {
     };
     const rigaPeso = el('div', { class: 'gruppo-peso' }, [
       peso,
-      el('span', { class: 'sotto-campo', testo: conZavorri ? 'ZAVORRI' : (assistenza ? 'ASSISTENZA' : 'KG') }),
+      el('span', { class: 'sotto-campo', testo: conZavorri ? 'ZAVORRI' : (assistenza ? 'ZAVORRA' : 'KG') }),
       pesoRigaSorella !== null && pesoRigaSorella !== undefined
         ? el('div', { class: 'passi-peso' }, [
           bottone('come sopra', {
@@ -2592,7 +2593,7 @@ function rigaStorico(serie, numero, e, s, pesoRigaSorella = null) {
     riga.appendChild(el('label', { class: 'campetto' }, [
       el('div', { class: 'gruppo-peso' }, [
         peso,
-        el('span', { class: 'sotto-campo', testo: assistenza ? 'ASSISTENZA' : 'KG' }),
+        el('span', { class: 'sotto-campo', testo: assistenza ? 'ZAVORRA' : 'KG' }),
         pesoRigaSorella !== null && pesoRigaSorella !== undefined
           ? el('div', { class: 'passi-peso' }, [
             bottone('come sopra', {
@@ -5761,7 +5762,82 @@ function vistaRank(zona) {
     svuota(contenitore);
     if (scheda === 'miei') sezioneMieiRank(st);
     else if (scheda === 'classifica') sezioneClassifica(st);
+    else if (scheda === 'prova') sezioneProvaRank(st);
     else sezioneConfronto(st);
+  }
+
+
+  /**
+   * PROVA UN ESERCIZIO E VEDI IL RANK (Ste, 21/10/2026)
+   *
+   * "aggiungi anche un opzione per cercare un esercizio in cui metto un esercizio il
+   * peso le rep e il mio peso corporeo e mi dice il rank senza bisogno di averlo per
+   * forza nella scheda"
+   *
+   * Cerchi l'esercizio, metti il peso e le ripetizioni, e l'app ti dice che Rank
+   * avresti. Serve per capire se un esercizio che hai visto da un altro ti conviene,
+   * PRIMA di metterlo in schedina.
+   *
+   * Il Rank e' quello vero: si chiama la stessa funzione che usa la schermata dei Rank
+   * (recordEsercizio), quindi la risposta e' identica a quella che vedresti allenandoti.
+   */
+  function sezioneProvaRank(stato) {
+    contenitore.appendChild(el('p', {
+      class: 'nota',
+      testo: 'Cerca un esercizio, metti il peso e le ripetizioni, e l\'app ti dice che Rank '
+        + 'avresti, senza doverlo mettere nella scheda. Il peso corporeo e\' il tuo: '
+        + 'cambialo se ti sei pesato di nuovo.',
+    }));
+
+    // il campo per cercare l'esercizio: con l'elenco sotto, il telefono propone
+    // i nomi mentre scrivi
+    const elencoId = 'elenco-esercizi-prova';
+    const datalist = el('datalist', { id: elencoId },
+      (V.esercizi || []).map((e) => el('option', { value: e.nome })));
+    contenitore.appendChild(datalist);
+    const cerca = el('input', {
+      type: 'text', class: 'campo-testo', list: elencoId,
+      placeholder: 'Cerca l\'esercizio (per nome)...', autocomplete: 'off',
+    });
+    contenitore.appendChild(el('div', { class: 'riga-campo' }, [cerca]));
+
+    const pesoCampo = campoNumero(null, { etichetta: 'PESO', onCambio: () => { } });
+    const repCampo = campoNumero(null, { etichetta: 'REPS', onCambio: () => { } });
+    const corpCampo = campoNumero(pesoCorporeoOra() || 66, { etichetta: 'PESO CORPOREO', onCambio: () => { } });
+    contenitore.appendChild(el('div', { class: 'riga-pulsanti' }, [pesoCampo, repCampo, corpCampo]));
+
+    const esito = el('div');
+    contenitore.appendChild(esito);
+
+    const calcola = () => {
+      svuota(esito);
+      const nome = (cerca.value || '').trim();
+      const e = (V.esercizi || []).find((x) => x.nome.toLowerCase() === nome.toLowerCase());
+      if (!e) {
+        esito.appendChild(el('p', { class: 'nota', testo: 'Scegli un esercizio dall\'elenco.' }));
+        return;
+      }
+      const peso = Number(pesoCampo.value);
+      const rip = Number(repCampo.value);
+      const corp = Number(corpCampo.value);
+      if (!(peso > 0) || !(rip > 0)) {
+        esito.appendChild(el('p', { class: 'nota', testo: 'Metti il peso e le ripetizioni.' }));
+        return;
+      }
+      const serie = [{ peso, ripetizioni: rip, stato: 'fatta', ordine: 1 }];
+      const record = recordEsercizio(serie, e, null, corp > 0 ? corp : null);
+      const rango = record && record.rank ? record.rank : null;
+      esito.appendChild(el('div', { class: 'blocco' }, [
+        el('h3', { testo: e.nome }),
+        el('p', { class: 'nota', testo: peso + ' kg x ' + rip + (corp > 0 ? ' | peso corporeo ' + corp + ' kg' : '') }),
+        el('p', { class: 'nota-nota grande', testo: rango ? rango.nome : (record && record.motivo ? record.motivo : 'Non valutabile') }),
+        record && record.testo ? el('p', { class: 'nota', testo: record.testo }) : null,
+        record && record.lp ? el('p', { class: 'nota', testo: 'LP: ' + Math.round(record.lp) }) : null,
+      ].filter(Boolean)));
+    };
+    contenitore.appendChild(el('div', { class: 'riga-pulsanti' }, [
+      bottone('Calcola il Rank', { onClick: calcola, classe: 'principale' }),
+    ]));
   }
 
   function sezioneMieiRank(stato) {
