@@ -290,7 +290,16 @@ export async function rinominaEserciziCambiati() {
       ...e,
       nome: nuovo,
       gruppo: nuovo,
-      ...(assistito ? { convenzione: 'corpo_libero', misura: 'solo_reps', tipo: 'standard' } : {}),
+      ...(assistito ? {
+        convenzione: 'corpo_libero',
+        misura: 'solo_reps',
+        tipo: 'standard',
+        // E LA NOTA: diceva ancora "al cavo, il numero e' il peso di assistenza che
+        // aggiungo", che dopo il cambio non è più vero: i kg non ci sono. Ste può
+        // riscriverla quando vuole, ma intanto non deve mentire.
+        nota_permanente: 'Un braccio per volta, col peso del corpo: i kg non ci sono, '
+          + 'quindi si contano le ripetizioni.',
+      } : {}),
     });
     cambiati.push({ da: e.nome, a: nuovo });
   }

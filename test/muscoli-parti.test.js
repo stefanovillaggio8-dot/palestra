@@ -353,3 +353,46 @@ test('M24. il fly legge dalla nota in che direzione va', async () => {
     'petto_centrale',
     'il Cable Fly del catalogo è un abbraccio spinto in avanti: petto nel mezzo');
 });
+
+// I NOMI CHE L'APP NON RICONOSCEVA (Ste, 21/10/2026).
+//
+// "Barbell Curl", "Dumbbell Curl", "Curl manubri", "Lat Machine", "Face Pull",
+// "Push Up": nomi che si dicono tutti i giorni e che l'app non capiva, quindi sulla
+// scheda non si vedeva il muscolo. Non e' un词典: e' il vocabolario.
+//
+// E LA PAROLA "CURL" DA SOLA VA TENUTA FUORI (vedi la seconda passata nel
+// classificatore): il "Cable Hammer Curl" e' un martello, e con la parola "curl"
+// farebbe a meta' col bicipite.
+test('M26. i nomi di tutti i giorni vengono riconosciuti', async () => {
+  const { parteDiMuscolo } = await import('../src/muscoli-parti.js');
+
+  const casi = [
+    ['Barbell Curl', 'bicipite: braccio in basso'],
+    ['Dumbbell Curl', 'bicipite: braccio in basso'],
+    ['EZ Bar Curl', 'bicipite: braccio in basso'],
+    ['Cable Curl', 'bicipite: braccio in basso'],
+    ['Curl manubri seduto', 'bicipite: braccio in basso'],
+    ['Curls', 'bicipite: braccio in basso'],
+    ['Panca Scott', 'bicipite: braccio in alto'],
+    ['Lat Machine', 'dorso ai lati (lati del triangolare)'],
+    ['Lat Pull Down', 'dorso ai lati (lati del triangolare)'],
+    ['Face Pull', 'spalle posteriori (deltoide posteriore)'],
+    ['Push Up', 'petto nel mezzo'],
+    ['Russian Twist', 'addome'],
+    ['Hanging Leg Raise', 'addome'],
+    ['Landmine Press', 'spalle davanti (deltoide anteriore)'],
+  ];
+  for (const [nome, atteso] of casi) {
+    const r = parteDiMuscolo({ nome });
+    assert.equal(r.trovata, true, nome + ': non riconosciuto');
+    assert.equal(r.nome, atteso, nome + ': riconosciuto come "' + r.nome + '" invece di "' + atteso + '"');
+  }
+
+  // e la parola generica NON deve rompere i nomi precisi
+  assert.equal(parteDiMuscolo({ nome: 'Cable Hammer Curl' }).parte, 'brachiale',
+    'il martello resta il brachiale: la parola "curl" non deverubil farla');
+  assert.equal(parteDiMuscolo({ nome: 'Leg Curl' }).parte, 'femorale',
+    'il leg curl resta sulle gambe');
+  assert.equal(parteDiMuscolo({ nome: 'Scott Bench Curl' }).parte, 'braccio_alto',
+    'lo scott bench resta il bicipite con il braccio in alto');
+});

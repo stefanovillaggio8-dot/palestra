@@ -134,6 +134,9 @@ export const PARTI = [
     // quindi un esercizio di petto continua a essere trovato dal suo nome.
     parole: ['chest press', 'pecorino', 'cable fly', 'cross over',
       'crossover', 'crucifix', 'bench press', 'pressione petto', 'horizontal press',
+      // i push up sono una panca col peso del corpo (Ste, 21/10/2026)
+      'push up', 'push-up', 'pushups', 'push ups', 'piegamenti', 'piegamento',
+      'banch press',
       // il fly con i cavi in orizzontale: la tensione tira di lato, e il petto lavora
       // tutto: e' il pezzo medio, quello grande
       'cavi in orizzontale', 'movimento orizzontale', 'in orizzontale',
@@ -186,6 +189,8 @@ export const PARTI = [
     // spingi via dalle parallele. Per questo sono passati al petto, e il
     // tricipite li ho aggiunti sotto, dove vanno davvero.
     parole: ['pullover', 'lat pulldown', 'trazioni', 'trazione', 'pull up', 'pull-up', 'pull ups',
+      // la macchina dei dorsali, detta in tre modi (Ste, 21/10/2026)
+      'lat machine', 'lat pull down', 'pulldown machine',
       'single arm pulldown', 'pulldown', 'pulldowns', 'tirata verticale',
       'tirate', 'tirate in basso', 'straight arm', 'auzhang',
       // IL REMATORE E' UN DORSALE, NON CENTRO SCHIENA (16/10/2026).
@@ -226,6 +231,8 @@ export const PARTI = [
   {
     id: 'spalle_posteriori', muscolo: 'spalle', parte: 'spalle posteriori (deltoide posteriore)',
     parole: ['rear delt', 'rear deltoid', 'reverse fly', 'delt posteriori', 'tirate a braccia aperte',
+      // il face pull e' il reverse fly col nome nuovo (Ste, 21/10/2026)
+      'face pull',
       // la macchina del reverse fly: si chiama "Pec Deck" e lavora il deltoide
       // dietro, non il petto. Fino al 15/10/2026 la parola stava nella lista
       // del FLY col petto, che è l'esatto contrario: "pec" vuol dire "petto"
@@ -236,7 +243,9 @@ export const PARTI = [
   {
     id: 'spalle_frontali', muscolo: 'spalle', parte: 'spalle davanti (deltoide anteriore)',
     parole: ['front raise', 'shoulder press', 'military', 'militare', 'overhead press',
-      'spinte in alto', 'presse in alto', 'press a spalle'],
+      'spinte in alto', 'presse in alto', 'press a spalle',
+      // il landmine press e' una spinta in avanti delle spalle (Ste, 21/10/2026)
+      'landmine press', 'landmine'],
     nota: 'Spinge in alto davanti: lavora il deltoide anteriore e i trapezi.',
   },
 
@@ -265,7 +274,9 @@ export const PARTI = [
   },
   {
     id: 'braccio_alto', muscolo: 'braccio', parte: 'bicipite: braccio in alto',
-    parole: ['incline curl', 'curl inclinato', 'scott bench', 'preacher'],
+    parole: ['incline curl', 'curl inclinato', 'scott bench', 'preacher',
+      // "Panca Scott" e' il preacher curl detto in italiano (Ste, 21/10/2026)
+      'panca scott', 'panca scott inclinata'],
     nota: 'Braccio in alto: il bicipite si vede e lavora nella posizione più corta, quindi è più difficile.',
   },
   {
@@ -358,7 +369,9 @@ id: 'avambraccio', muscolo: 'avambraccio', parte: 'avambraccio (polso e avanti b
   },
   {
     id: 'addome', muscolo: 'core', parte: 'addome',
-    parole: ['crunch', 'plank', 'addome', 'sit up', 'tCrunch'],
+    parole: ['crunch', 'plank', 'addome', 'sit up', 'tCrunch',
+      // due nomi che si sentono spesso e non erano nel vocabolario (Ste, 21/10/2026)
+      'russian twist', 'hanging leg raise', 'leg raise', 'abs', 'sit-up', 'obliquo'],
     nota: 'Lavora il core: gli addominali e il fondo della schiena.',
   },
 ];
@@ -847,6 +860,19 @@ function riconosciParte({ nome = '', descrizione = '' } = {}) {
 
   const trovati = [];
   const soloTirata = TIRATA.test(nome);
+  // LE PAROLE GENERICHE (Ste, 21/10/2026).
+  //
+  // "Barbell Curl", "Dumbbell Curl", "Curl manubri", "Curls": l'app non li
+  // riconosceva, perché il bicipite aveva solo le FRASI ("curl con bilanciere",
+  // "curl al cavo") e non la parola "curl" da sola. E la parola da sola non può stare
+  // nella lista principale: il "Cable Hammer Curl" e' un martello (brachiale), e con la
+  // parola "curl" farebbe pari punti col bicipite, e a parita' di punti vince chi
+  // arriva prima nella lista.
+  //
+  // Quindi: se il nome non ha dato niente, si riprova con le parole generiche. Sono
+  // l'ultimo tentativo, non il primo: ogni nome che una parola specifica riconosce
+  // resta riconosciuto da quella.
+  const PAROLE_GENERICHE = { curl: 'braccio_basso', curls: 'braccio_basso' };
   for (const p of PARTI) {
     // una tirata non può essere una spinta: vedi la nota su TIRATA
     if (soloTirata && SPINGONO.includes(p.muscolo)) continue;
@@ -862,6 +888,15 @@ function riconosciParte({ nome = '', descrizione = '' } = {}) {
       parole.push(w);
     }
     if (punti > 0) trovati.push({ parte: p, punti, parole, soloNelNome });
+  }
+  if (!trovati.length) {
+    // il riprovo con le parole generiche
+    for (const [parola, idParte] of Object.entries(PAROLE_GENERICHE)) {
+      if (conta(soloNome, parola) === 0) continue;
+      const p = PARTI.find((x) => x.id === idParte);
+      if (!p) continue;
+      trovati.push({ parte: p, punti: 1, parole: [parola], soloNelNome: true });
+    }
   }
   if (!trovati.length) {
     return {

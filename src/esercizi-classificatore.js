@@ -190,7 +190,8 @@ const MOVIMENTI = [
     // spalle laterali andrebbero a finire sulla scala dell'alzata laterale, che è
     // un muscolo diverso.
     id: 'spalle_posteriori', livello: 'isolamento', gruppo: 'spalle',
-    parole: ['reverse fly', 'rear delt', 'rear deltoid', 'reverse pec', 'pec deck',
+    // il face pull e' lo stesso movimento del reverse fly (Ste, 21/10/2026)
+    parole: ['reverse fly', 'rear delt', 'rear deltoid', 'reverse pec', 'pec deck', 'face pull',
       'pecorino a', 'delt posteriori', 'tirate a braccia aperte'],
   },
   {
