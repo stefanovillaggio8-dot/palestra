@@ -191,7 +191,7 @@ test('16. le divisioni stanno dentro il rank, col numero che sale', () => {
 });
 
 test('17. solo reps: conta il numero, non i kg', () => {
-  const trazioni = { id: 'ex-pull-ups', nome: 'Pull Ups', convenzione: 'assistenza' };
+  const trazioni = { id: 'ex-pull-ups', nome: 'Trazioni zavorrate', convenzione: 'assistenza' };
   const profilo = profiloEsercizio(trazioni);
   assert.equal(profilo.misura, MISURE.SOLO_REPS);
   const res = performanceEsercizio([{ id: 'x', peso: null, peso_assistenza: 0, ripetizioni: 12, stato: 'fatta' }], trazioni);
@@ -263,7 +263,7 @@ test('24. recordAccount e\' gia\' ordinato dal rank piu\' alto', () => {
   const catalogo = [
     chest,
     lateral,
-    { id: 'ex-pull-ups', nome: 'Pull Ups', convenzione: 'assistenza' },
+    { id: 'ex-pull-ups', nome: 'Trazioni zavorrate', convenzione: 'assistenza' },
   ];
   // pesi realistici. ATTENZIONE ALLE UNITA': le alzate laterali sono al cavo con
   // doppia carrucola, quindi il numero che leggi e' il TOTALE sui due cavi e quello

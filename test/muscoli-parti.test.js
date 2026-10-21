@@ -117,7 +117,7 @@ test('M8. riconosce i pezzi dei 27 esercizi della scheda', () => {
     ['Cable Lateral Raise', 'spalle'],
     ['Seated Cable Row', 'dorso'],
     ['Lat Pulldown presa stretta', 'dorso'],
-    ['Pull Ups', 'dorso'],
+    ['Trazioni zavorrate', 'dorso'],
     ['Cable Hammer Curl', 'braccio'],
     ['Scott Bench Curl', 'braccio'],
     ['Single Arm Tricep Pushdown', 'braccio'],
@@ -146,7 +146,7 @@ test('M9. due esercizi possono fare lo stesso lavoro', () => {
   const c = parte('Panca piana');
   assert.equal(stessoLavoro(a, c), false, 'inclusa e piana no: parti diverse');
 
-  const x = parte('Pull Ups');
+  const x = parte('Trazioni zavorrate');
   const y = parte('Lat Pulldown presa stretta');
   assert.equal(stessoLavoro(x, y), true, 'trazioni e pulldown sono lo stesso lavoro');
 
@@ -284,7 +284,7 @@ test('M23. la nota del petto parla dell esercizio, e non del pezzo generico', as
 
   // e la frase deve dire la zona che la FIGURA accende
   const zone = { petto_alto: /alto/i, petto_centrale: /centro/i, petto_basso: /basso/i };
-  for (const nome of ['Chest Press', 'Cable Fly', 'Smith Machine Incline Bench Press', 'Dips']) {
+  for (const nome of ['Chest Press', 'Cable Fly', 'Smith Machine Incline Bench Press', 'Dips zavorrati']) {
     const p = parteDiMuscolo({ nome });
     assert.match(p.nota, zone[p.parte],
       nome + ': la frase non parla della zona che la figura accende (' + p.parte + ')');

@@ -65,9 +65,9 @@ test('C4. "assistito" vuol dire che la MACCHINA ti aiuta, non che usi il corpo',
     'fatto col braccio e col corpo non è assistito: è un isolamento del tricipite');
   assert.equal(liv('One Arm Overhead Tricep Extension', { convenzione: 'corpo_libero' }), 'isolamento',
     'e con la convenzione del corpo libero lo stesso');
-  assert.equal(liv('Pull Ups'), 'composto',
+  assert.equal(liv('Trazioni zavorrate'), 'composto',
     'le trazioni col peso del corpo non sono assistite: più kg è più difficile');
-  assert.equal(liv('Dips'), 'composto',
+  assert.equal(liv('Dips zavorrati'), 'composto',
     'i dips nemmeno: sono una spinta, e la spinta è un composto');
   assert.equal(liv('Push Up'), 'composto', 'il push up pure');
 });
@@ -75,8 +75,8 @@ test('C4. "assistito" vuol dire che la MACCHINA ti aiuta, non che usi il corpo',
 test('C4b. le trazioni e i dips non sono la stessa cosa', () => {
   // Lo stesso difetto faceva cadere i due nella stessa risposta. Una tirata e
   // una spinta sono due movimenti diversi, su muscoli diversi.
-  const tirata = classificaEsercizio({ nome: 'Pull Ups' });
-  const spinta = classificaEsercizio({ nome: 'Dips' });
+  const tirata = classificaEsercizio({ nome: 'Trazioni zavorrate' });
+  const spinta = classificaEsercizio({ nome: 'Dips zavorrati' });
   assert.notEqual(tirata.movimento, spinta.movimento,
     'trazioni e dips devono essere due movimenti diversi');
   assert.equal(tirata.gruppo, 'dorso', 'le trazioni tirano: dorso');
@@ -116,7 +116,7 @@ test('C7. se non capisce, lo dice e non inventa', () => {
 
 test('C8. spiega SEMPRE perche\' ha deciso cosi\'', () => {
   // se non dice il perche', quando sbaglia non si puo' correggere
-  for (const nome of ['Chest Press', 'Dumbbell Lateral Raise', 'Leg Press', 'Pull Ups', 'xyz']) {
+  for (const nome of ['Chest Press', 'Dumbbell Lateral Raise', 'Leg Press', 'Trazioni zavorrate', 'xyz']) {
     const r = classificaEsercizio({ nome });
     assert.ok(Array.isArray(r.motivi) && r.motivi.length > 0, nome + ': deve dire il perche\'');
     assert.ok(['alta', 'media', 'bassa'].includes(r.confidenza), nome + ': e quanto e\' sicuro');
@@ -183,7 +183,7 @@ test('C14. riconosce 59 nomi veri di palestra, italiano e inglese', () => {
   ['Lat Pulldown presa stretta', 'composto'],
   ['Trazioni', 'composto'],
   ['Trazioni assistite', 'composto'], // le trazioni non si fanno assistite
-  ['Dips', 'composto'],
+  ['Dips zavorrati', 'composto'],
   ['Seated Cable Row', 'composto'],
   ['Tirate in basso al cavo', 'composto'],
   ['Rematore con bilanciere', 'composto'],
@@ -223,7 +223,7 @@ test('C14. riconosce 59 nomi veri di palestra, italiano e inglese', () => {
   ['Crunch', 'isolamento'],
   ['Plank', 'isolamento'],
   ['Iso-Lateral Row', 'composto'],
-  ['Pull Ups', 'composto'],
+  ['Trazioni zavorrate', 'composto'],
   // Ste (06/10/2026): "e' una tirata del trapezio con pesi sui due bracci". Prima
   // questo nome era atteso come isolamento sulle spalle, e il test era la prova
   // che il classificatore sbagliava: 45 kg per braccio non sono un isolamento.
@@ -389,6 +389,10 @@ test('C15. i 27 esercizi della scheda di Ste hanno il livello giusto', async () 
   'ex-smith-machine-bent-over-row': 'composto',
   'ex-smith-machine-shrug': 'composto',
   'ex-jm-press': 'isolamento',
+
+  // ESERCIZI AGGIUNTI (Ste, 21/10/2026): dalla lista e i due a corpo libero.
+  'ex-trazioni-corpo-libero': 'composto',
+  'ex-dips-corpo-libero': 'composto',
 };
   for (const e of ESERCIZI) {
     const r = classificaEsercizio({ nome: e.nome, convenzione: e.convenzione });

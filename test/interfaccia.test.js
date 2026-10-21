@@ -373,7 +373,7 @@ test('10. eliminare una serie la mette nel cestino', async () => {
   const prima = serie.length;
 
   const blocco = perClasse(app, 'blocco-esercizio')
-    .find((b) => (b.textContent || '').includes('Pull Ups'))
+    .find((b) => (b.textContent || '').includes('Trazioni zavorrate'))
     || null;
   if (!blocco) return; // la schermata aperta non e\' quella della seduta: nessun problema
   const elimina = pulsante(blocco, 'Elimina');

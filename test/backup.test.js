@@ -7,7 +7,7 @@ import {
 
 const esercizi = [
   { id: 'ex-chest-press', nome: 'Chest Press', gruppo: 'Chest Press', convenzione: 'macchina', foto: 'img/esercizi/chest-press.png' },
-  { id: 'ex-pull-ups', nome: 'Pull Ups', gruppo: 'Pull Ups', convenzione: 'assistenza', foto: 'img/esercizi/pull-ups.png' },
+  { id: 'ex-pull-ups', nome: 'Trazioni zavorrate', gruppo: 'Trazioni zavorrate', convenzione: 'assistenza', foto: 'img/esercizi/pull-ups.png' },
 ];
 const sedute = [
   { id: 's1', data: '2026-10-01', ora_inizio: '2026-10-01T18:00:00Z', ora_fine: '2026-10-01T19:12:00Z', durata_secondi: 4320, stato: 'completata' },
@@ -132,7 +132,7 @@ test('il backup ridotto tiene SOLO i dati della mia scheda (Ste, 18/10/2026)', a
   const { soloMiaScheda } = await import('../src/backup.js');
 
   const database = {
-    esercizi: [{ id: 'ex-1', nome: 'Chest Press' }, { id: 'ex-2', nome: 'Dips' }],
+    esercizi: [{ id: 'ex-1', nome: 'Chest Press' }, { id: 'ex-2', nome: 'Dips zavorrati' }],
     schede: [
       { id: 'sc-mia', account_id: 'account-1' },
       { id: 'sc-sua', account_id: 'account-2' },

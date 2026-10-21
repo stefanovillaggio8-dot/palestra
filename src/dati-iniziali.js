@@ -243,8 +243,8 @@ export const ESERCIZI = [
   { id: 'ex-one-arm-preacher-curl', nome: 'One Arm Dumbbell Preacher Curl', gruppo: 'Curl bilanciere', convenzione: C.PER_MANUBRIO, foto: 'img/esercizi/one-arm-dumbbell-preacher-curl.png', tipo: 'standard', nota_permanente: '' },
   { id: 'ex-one-arm-cable-reverse-fly', nome: 'One Arm Cable Reverse Fly', gruppo: 'Reverse Fly', convenzione: C.CAVO, carrucola: C.CARRUCOLA_DOPPIA, foto: 'img/esercizi/one-arm-cable-reverse-fly.png', tipo: 'standard', nota_permanente: 'Cavo ad altezza 23 gradi.' },
 
-  { id: 'ex-pull-ups', nome: 'Pull Ups', gruppo: 'Pull Ups', convenzione: C.ZAVORRI, foto: 'img/esercizi/pull-ups.png', tipo: 'zavorre', nota_permanente: 'Zavorra: il numero e\' l\'assistenza che uso.' },
-  { id: 'ex-dips', nome: 'Dips', gruppo: 'Dips', convenzione: C.ZAVORRI, foto: 'img/esercizi/dips.png', tipo: 'zavorre', nota_permanente: 'Zavorra: il numero e\' l\'assistenza che uso.' },
+  { id: 'ex-pull-ups', nome: 'Trazioni zavorrate', gruppo: 'Trazioni zavorrate', convenzione: C.ZAVORRI, foto: 'img/esercizi/pull-ups.png', tipo: 'zavorre', nota_permanente: 'Zavorra: il numero e\' l\'assistenza che uso.' },
+  { id: 'ex-dips', nome: 'Dips zavorrati', gruppo: 'Dips zavorrati', convenzione: C.ZAVORRI, foto: 'img/esercizi/dips.png', tipo: 'zavorre', nota_permanente: 'Zavorra: il numero e\' l\'assistenza che uso.' },
   // Ste (10/10/2026), audit: questo esercizio aveva `carrucola: carrucola_mono` ma
 // convenzione `bilanciere`. La carrucola sta solo sui CAVI: un bilanciere non ha
 // un carrello da cui il peso si dimezzi. Qui non cambiava il Rank (il bilanciere non
@@ -333,6 +333,8 @@ export const ESERCIZI = [
   { id: 'ex-smith-machine-bench-press', nome: 'Smith Machine Bench Press', gruppo: 'Smith Machine Bench Press', convenzione: C.MACCHINA, attrezzatura: 'macchina_dischi', foto: 'img/esercizi/smith-machine-bench-press.png', tipo: 'standard' },
   { id: 'ex-smith-machine-bent-over-row', nome: 'Smith Machine Bent Over Row', gruppo: 'Smith Machine Bent Over Row', convenzione: C.MACCHINA, attrezzatura: 'macchina_stack', foto: 'img/esercizi/smith-machine-bent-over-row.png', tipo: 'standard' },
   { id: 'ex-smith-machine-shrug', nome: 'Smith Machine Shrug', gruppo: 'Smith Machine Shrug', convenzione: C.MACCHINA, attrezzatura: 'macchina_stack', foto: 'img/esercizi/smith-machine-shrug.png', tipo: 'standard' },
+  { id: 'ex-trazioni-corpo-libero', nome: 'Trazioni a corpo libero', gruppo: 'Trazioni a corpo libero', convenzione: C.CORPO_LIBERO, foto: 'img/esercizi/pull-ups.png', tipo: 'standard', nota_permanente: 'Senza zavorra: si contano solo le ripetizioni.' },
+  { id: 'ex-dips-corpo-libero', nome: 'Dips a corpo libero', gruppo: 'Dips a corpo libero', convenzione: C.CORPO_LIBERO, foto: 'img/esercizi/dips.png', tipo: 'standard', nota_permanente: 'Senza zavorra: si contano solo le ripetizioni.' },
 ];
 
 const s = (peso, rip, extra = {}) => ({ peso, ripetizioni: rip, ...extra });

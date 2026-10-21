@@ -9,7 +9,7 @@ import { CONVENZIONI } from '../src/numeri.js';
 const CP = { id: 'ex-chest-press', nome: 'Chest Press', convenzione: CONVENZIONI.MACCHINA };
 const CP_ALTRO = { id: 'ex-chest-press-b', nome: 'Chest Press - macchina B', convenzione: CONVENZIONI.MACCHINA };
 const CP_CAVO = { id: 'ex-chest-press', nome: 'Chest Press', convenzione: CONVENZIONI.CAVO };
-const PULL_UP = { id: 'ex-pull-ups', nome: 'Pull Ups', convenzione: CONVENZIONI.ASSISTENZA };
+const PULL_UP = { id: 'ex-pull-ups', nome: 'Trazioni zavorrate', convenzione: CONVENZIONI.ASSISTENZA };
 
 const s = (o, peso, rip, extra = {}) => ({ ordine: o, peso, ripetizioni: rip, spotter: false, ...extra });
 

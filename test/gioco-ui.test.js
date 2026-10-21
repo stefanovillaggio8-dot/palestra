@@ -236,7 +236,7 @@ test('8. la scheda del singolo esercizio mostra record, soglie e progressi', asy
 });
 
 test('9. il dettaglio di un esercizio senza dati non inventa un rank', async () => {
-  await vai('#/esercizio/ex-dips', () => app.textContent.includes('Dips'));
+  await vai('#/esercizio/ex-dips', () => app.textContent.includes('Dips zavorrati'));
   assert.match(app.textContent, /Nessuna prestazione registrata/);
   assert.equal(perClasse(app, 'badge-rank').length, 0, 'nessun badge senza record');
 });

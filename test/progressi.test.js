@@ -4,7 +4,7 @@ import { testoProgresso, serieARipetizioniCostanti, riepilogoGenerale } from '..
 import { CONVENZIONI } from '../src/numeri.js';
 
 const CP = { id: 'ex-chest-press', nome: 'Chest Press', convenzione: CONVENZIONI.MACCHINA };
-const PULL = { id: 'ex-pull-ups', nome: 'Pull Ups', convenzione: CONVENZIONI.ASSISTENZA };
+const PULL = { id: 'ex-pull-ups', nome: 'Trazioni zavorrate', convenzione: CONVENZIONI.ASSISTENZA };
 
 const s = (o, peso, rip, extra = {}) => ({ ordine: o, peso, ripetizioni: rip, spotter: false, ...extra });
 const punto = (data, serie) => ({ data, serie });
@@ -96,7 +96,7 @@ test('volume con decimali: dichiarato indicatore convenzionale', () => {
 });
 
 test('23. esercizi assistiti: meno contrappeso = piu\' lavoro, mai "record"', () => {
-  const r = testoProgresso('Pull Ups', PULL, [
+  const r = testoProgresso('Trazioni zavorrate', PULL, [
     punto('2026-09-01', [s(1, null, 6, { peso_assistenza: 15 })]),
     punto('2026-10-01', [s(1, null, 7, { peso_assistenza: 10 })]),
   ]);
@@ -107,7 +107,7 @@ test('23. esercizi assistiti: meno contrappeso = piu\' lavoro, mai "record"', ()
 });
 
 test('23b. assistenza salita: detto che NON e\' un passo avanti', () => {
-  const r = testoProgresso('Pull Ups', PULL, [
+  const r = testoProgresso('Trazioni zavorrate', PULL, [
     punto('2026-09-01', [s(1, null, 6, { peso_assistenza: 10 })]),
     punto('2026-10-01', [s(1, null, 6, { peso_assistenza: 20 })]),
   ]);
@@ -183,17 +183,17 @@ test('riepilogo: non nasconde gli esercizi andati indietro', () => {
 });
 
 test('riepilogo: con l\'assistenza meno assistenza vuol dire meglio', () => {
-  // Pull Ups: se l'assistenza scende da 10 a 5 hai fatto PIU' lavoro da solo
+  // Trazioni zavorrate: se l'assistenza scende da 10 a 5 hai fatto PIU' lavoro da solo
   const sAss = (o, assistenza) => ({ ordine: o, peso: null, peso_assistenza: assistenza, ripetizioni: 6, spotter: false });
   const r = riepilogoGenerale([{
-    nome: 'Pull Ups', esercizio: PULL,
+    nome: 'Trazioni zavorrate', esercizio: PULL,
     punti: [
       punto('2026-09-01', [sAss(1, 10)]),
       punto('2026-10-01', [sAss(1, 5)]),
     ],
   }]);
   assert.equal(r.migliorati, 1, 'meno assistenza = meglio');
-  assert.match(testo(r), /Pull Ups −5 kg di assistenza in meno/);
+  assert.match(testo(r), /Trazioni zavorrate −5 kg di assistenza in meno/);
 });
 
 test('riepilogo: il quadro misto non viene venduto come successo', () => {
@@ -248,7 +248,7 @@ test('riepilogo: la percentuale c\'e\' solo se ha un senso', () => {
 test('riepilogo: con l\'assistenza spiega il verso della differenza', () => {
   const sAss = (o, assistenza) => ({ ordine: o, peso: null, peso_assistenza: assistenza, ripetizioni: 6, spotter: false });
   const r = riepilogoGenerale([{
-    nome: 'Pull Ups', esercizio: PULL,
+    nome: 'Trazioni zavorrate', esercizio: PULL,
     punti: [punto('2026-09-01', [sAss(1, 10)]), punto('2026-10-01', [sAss(1, 5)])],
   }]);
   assert.match(r.gruppi.migliorati[0].frase, /assistenza da 10 a 5 kg, −5 kg in meno/);

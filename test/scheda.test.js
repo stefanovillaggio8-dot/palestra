@@ -23,7 +23,7 @@ test('23 esercizi della scheda + 4 aggiunti dopo, non ancora in nessuna scheda',
   // I primi 23 sono quelli trascritti dalle foto. I 4 successivi sono stati
   // aggiunti dopo: sono disponibili nella lista ma NON devono essere finiti in
   // nessuna scheda, altrimenti gli allenamenti di Ste cambierebbero da soli.
-  assert.equal(ESERCIZI.length, 74);
+  assert.equal(ESERCIZI.length, 76);
   // AGGIUNTI ANCHE QUELLI ARRIVATI DA WHATSAPP (Ste, 21/10/2026): sono
   // disponibili nella lista ma NON in nessuna scheda, altrimenti gli allenamenti di
   // Ste cambierebbero da soli.
@@ -76,8 +76,10 @@ test('23 esercizi della scheda + 4 aggiunti dopo, non ancora in nessuna scheda',
     'ex-smith-machine-bench-press',
     'ex-smith-machine-bent-over-row',
     'ex-smith-machine-shrug',
+    'ex-trazioni-corpo-libero',
+    'ex-dips-corpo-libero',
     ].includes(e.id));
-  assert.equal(aggiunti.length, 52, 'gli esercizi aggiunti ci sono');
+  assert.equal(aggiunti.length, 54, 'gli esercizi aggiunti ci sono');
   // il "liac" e' per il dorso: braccio singolo col cavo alto, NON un curl
   const liac = ESERCIZI.find((e) => e.id === 'ex-lying-cable-curl');
   assert.equal(liac.gruppo, 'Lat Pulldown', 'il liac sta nel gruppo del dorso');
@@ -170,7 +172,8 @@ test('i dropset sono gia\' previsti solo dove serve (wrist curl)', () => {
 test('gli esercizi assistiti sono riconosciuti come assistiti', () => {
   const assistiti = ESERCIZI.filter((e) => !convenzioneMisuraCarico(e.convenzione)).map((e) => e.id);
   assert.deepEqual(assistiti.sort(),
-    ['ex-back-extension', 'ex-dips', 'ex-hip-extension', 'ex-pull-ups']);
+    ['ex-back-extension', 'ex-dips', 'ex-dips-corpo-libero', 'ex-hip-extension',
+      'ex-pull-ups', 'ex-trazioni-corpo-libero']);
 });
 
 test('lo snapshot della scheda e\' completo e ordinato', () => {

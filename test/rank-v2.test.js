@@ -365,7 +365,7 @@ test('V15. i kg ci sono, ma solo dove ci sono davvero (16/10/2026)', () => {
   // resta per l'esercizio che NON ha kg (il Bodyweight Overhead Tricep Extension,
   // movimento `corpo_libero` con multiplo 0): li kg li toglie la macchina, non sono
   // un peso che l'atleta spinge.
-  for (const nome of ['Pull Ups', 'Dips']) {
+  for (const nome of ['Trazioni zavorrate', 'Dips zavorrati']) {
     const e = ESERCIZI.find((x) => x.nome === nome);
     const r = v2.valutaEsercizio({
       esercizio: e,
@@ -425,7 +425,7 @@ test('V16. l\'app usa il motore NUOVO, e il vecchio non regala pi\' OLYMPIAN', (
     'l\'app e il motore nuovo devono dire lo stesso Rank: due sistemi, una risposta');
   assert.equal(record.lp, nuovo.lp, 'e gli stessi LP');
 // Le trazioni sono ZAVORRI, non assistenza (Ste, 13/10/2026).
-  const trazioni = ESERCIZI.find((e) => /pull ups/i.test(e.nome));
+  const trazioni = ESERCIZI.find((e) => /trazioni zavorrate|pull ups/i.test(e.nome));
   assert.equal(trazioni.convenzione, 'zavorri',
     'le trazioni devono essere zavorri: i kg che metti sono addosso a te, non kg che la macchina ti toglie');
 
@@ -1256,7 +1256,7 @@ test('R20. le serie contano solo da seduta completata, e la pagina lo dice', asy
   // fosse ignorato.
   const { gruppiDaSerie } = await import('../src/gioco.js');
   const { ESERCIZI } = await import('../src/dati-iniziali.js');
-  const e = ESERCIZI.find((x) => x.nome === 'Dips');
+  const e = ESERCIZI.find((x) => x.nome === 'Dips zavorrati');
   assert.ok(e, 'i dip devono esistere nel catalogo');
 
   const serie = [{ id: 's1', esercizio_id: e.id, seduta_id: 'sed1', peso: 40, ripetizioni: 8, stato: 'fatta' }];
@@ -1292,7 +1292,7 @@ test('V28. la scheda dice QUANDO hai fatto le serie, non solo quante', async () 
   const { recordEsercizio } = await import('../src/rank.js');
   const { gruppiDaSerie } = await import('../src/gioco.js');
   const { ESERCIZI } = await import('../src/dati-iniziali.js');
-  const esercizio = ESERCIZI.find((e) => /pull ups/i.test(e.nome));
+  const esercizio = ESERCIZI.find((e) => /trazioni zavorrate|pull ups/i.test(e.nome));
   const sedute = [
     { id: 's-vecchia', stato: 'completata', data: '2026-10-10T00:00:00.000Z' },
     { id: 's-nuova', stato: 'completata', data: '2026-10-17T00:00:00.000Z' },
@@ -1365,7 +1365,7 @@ test('V29. ogni soglia è un peso che QUELLA attrezzatura ha (Ste, 18/10/2026)',
   const cavo = ESERCIZI.find((e) => /Cable Fly/i.test(e.nome));
   const macchina = ESERCIZI.find((e) => /^Lat Pulldown presa stretta/i.test(e.nome));
   const manubrio = ESERCIZI.find((e) => /Preacher/i.test(e.nome));
-  const zavorra = ESERCIZI.find((e) => /^Dips$/i.test(e.nome));
+  const zavorra = ESERCIZI.find((e) => /^Dips zavorrati$/i.test(e.nome));
   assert.equal(passoCaricabile(cavo), 1, 'i cavi vanno di 1 kg, con i piattini sopra');
   assert.equal(passoCaricabile(macchina), 1, 'i carrelli vanno di 1 kg, con i piattini sopra');
   assert.equal(passoCaricabile(manubrio), 1, 'i manubri vanno di 1 kg');
@@ -1528,7 +1528,7 @@ test('V33. lo stesso sforzo prende lo stesso Rank, anche con dueScale diverse (S
   const { ESERCIZI } = await import('../src/dati-iniziali.js');
   const N = ['BRONZE', 'SILVER', 'GOLD', 'PLATINUM', 'DIAMOND', 'TITAN', 'OLYMPIAN'];
   const cavo = ESERCIZI.find((e) => /^Lat Pulldown presa stretta/i.test(e.nome));
-  const trazioni = ESERCIZI.find((e) => /^Pull Ups$/i.test(e.nome));
+  const trazioni = ESERCIZI.find((e) => /^Trazioni zavorrate$/i.test(e.nome));
 
   const sulCavo = valutaEsercizio({
     esercizio: cavo,

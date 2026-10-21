@@ -293,7 +293,7 @@ const NOMI_PROVA = [
   'Seated Leg Curl', 'Smith Machine Incline Bench Press', 'Seated Cable Row',
   'Chest Supported Dumbbell Shrug', 'Sled Press Calf Raise', 'Single Leg Press',
   'One Arm Dumbbell Preacher Curl', 'One Arm Overhead Tricep Extension',
-  'One Arm Cable Reverse Fly', 'Pull Ups', 'Dips', 'Wrist Curl',
+  'One Arm Cable Reverse Fly', 'Trazioni zavorrate', 'Dips zavorrati', 'Wrist Curl',
   'Iso-Lateral Row', 'Lat Pulldown (lats)', 'Dumbbell Lateral Raise',
   'Incline Single Arm Pulldown',
 ];
@@ -472,7 +472,7 @@ test("Z10. quanto lavora: la parte più allenata è più piena, le altre più ch
 test("Z11. anche i muscoli secondari, ma solo quelli veri", () => {
   // Ste (15/10/2026): "i dips non fanno anche tricipiti?". Si': i dip schiacciano il peso
   // su braccia estese, i tricipiti sono li' accanto. Quindi si accendono.
-  const dips = parteDiMuscolo({ nome: 'Dips' });
+  const dips = parteDiMuscolo({ nome: 'Dips zavorrati' });
   const svgDips = figurino(dips.parte, dips.livelli, dips.anatomia);
   const acceseDips = zoneAccese(svgDips);
   assert.ok(RITAGLI.petto.zone.some((z) => acceseDips.has(z)),
@@ -608,11 +608,11 @@ test('Z13. i secondari vengono da quello che l\'esercizio FA, non dalle sue paro
   // 4. LA DOMANDA SUI DIP: petto pieno e tricipiti veri, ma NIENT'ALTRO.
   //    Il deltoide sui dip passa quasi inosservato, e accenderlo sarebbe dire il
   //    contrario di quello che Ste ha chiesto.
-  assert.ok(accesi('Dips').has('tricipite'), 'sui dip i tricipiti si accendono');
-  assert.ok(!accesi('Dips').has('deltoide_fronte'),
+  assert.ok(accesi('Dips zavorrati').has('tricipite'), 'sui dip i tricipiti si accendono');
+  assert.ok(!accesi('Dips zavorrati').has('deltoide_fronte'),
     'sui dip il deltoide non si accende: non è un muscolo del movimento');
-  assert.equal(pieno('Dips').length, 1);
-  assert.equal(pieno('Dips')[0].zona, 'petto_basso');
+  assert.equal(pieno('Dips zavorrati').length, 1);
+  assert.equal(pieno('Dips zavorrati')[0].zona, 'petto_basso');
 
   // 5. I NOMI MALE SCRITTI. Nessuno di questi compare in nessuna lista di
   //    parole, eppure devono accendere i muscoli giusti: è la prova che i
@@ -834,7 +834,7 @@ test('Z16. nessun trapezio e nessun lombare sulle tirate in basso', async () => 
 
   // Tutti gli esercizi che il riconoscitore manda al movimento tirata_verticale.
   const TIRATE_IN_BASSO = [
-    'Pull Ups', 'Lat Pulldown presa stretta', 'Lat Pulldown (lats)',
+    'Trazioni zavorrate', 'Lat Pulldown presa stretta', 'Lat Pulldown (lats)',
     'Incline Single Arm Pulldown', 'Neutral Grip Pulldown', 'Pullover',
   ];
   for (const nome of TIRATE_IN_BASSO) {
@@ -1039,7 +1039,7 @@ test('Z20: rematore e tirata in basso sui dorsali, niente centro schiena', () =>
 
   // le due tirate: dorsali pieni, niente centro schiena
   for (const nome of ['Seated Cable Row', 'Seated Dumbbell Row',
-    'Lat Pulldown', 'Pull Ups', 'Neutral Grip Lat Pulldown',
+    'Lat Pulldown', 'Trazioni zavorrate', 'Neutral Grip Lat Pulldown',
     'Incline Single Arm Pulldown']) {
     const righe = righeDi(nome);
     assert.equal(pieno(righe)?.gruppo, 'dorsale',
@@ -1181,7 +1181,7 @@ test('Z21: il pettorale si divide in tre, e si vede quale parte lavora', async (
     'sulla panca inclinata la parte PIENA deve cadere sul capo alto');
 
   // i DIP: l'app accende il petto basso (le fibre sternali basse)
-  const dips = pienoDi('Dips');
+  const dips = pienoDi('Dips zavorrati');
   assert.ok(FASCE[dips.zona] !== undefined,
     'sui dip l\'app deve accendere una delle tre zone del petto, non ' + dips.zona);
   assert.ok(nellaFascia(dips.piena.offset, dips.zona),
