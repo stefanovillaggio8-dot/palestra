@@ -743,6 +743,34 @@ body.scorso .banda-cronometro .bot.grande {
   background: linear-gradient(to top, var(--card) 72%, transparent);
 }
 
+/* LA RICERCA E I FILTRI DELLA LISTA ESERCIZI (Ste, 21/10/2026)
+   "aggiungi una barra di ricerca nella lista degli esercizi da aggiungere alla scheda
+   perche' sono tanti, aggiungi anche un filtro per parte muscolare specifico e un
+   altro in generale". */
+.zona-ricerca { margin: 12px 0 0; }
+.zona-ricerca .campo-testo { text-transform: none; }
+.zona-filtri { display: flex; flex-direction: column; gap: 7px; margin: 12px 0 2px; }
+.riga-filtri { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.etichetta-filtro {
+  font-size: .56rem; font-weight: 900; letter-spacing: .1em; color: var(--testo-3);
+  text-transform: uppercase; min-width: 58px;
+}
+.bot.filtro {
+  min-height: 30px; padding: 4px 12px; font-size: .74rem; font-weight: 800;
+  border-radius: 999px; background: var(--card-2); color: var(--testo-2);
+  border: 1px solid var(--bordo); text-transform: lowercase; letter-spacing: 0;
+}
+.bot.filtro.filtro-attivo {
+  background: var(--viola); color: #16121f; border-color: var(--viola);
+}
+/* la lista scorre da sola: i filtri stanno fermi in alto, la lista scorre sotto */
+.lista-scelte {
+  display: flex; flex-direction: column; gap: 6px;
+  max-height: 44vh; overflow: auto; margin-top: 8px;
+  padding-right: 2px;
+}
+.lista-scelte .nota { margin: 6px 2px; }
+
 /* --- tutorial amministratore dentro il dialogo "crea esercizio" --- */
 .tutorial {
   margin: 14px 0 16px; border: 1px solid var(--bordo); border-radius: 13px;

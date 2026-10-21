@@ -1126,6 +1126,10 @@ const MUSCOLO_ETICHETTA = {
   deltoide_posteriore: 'deltoide dietro',
   bicipite: 'bicipiti',
   tricipite: 'tricipiti',
+  // il brachiale e il brachioradiale non avevano un'etichetta: sulla scheda quegli
+  // esercizi comparivano col nome e nient'altro (Ste, 21/10/2026)
+  brachiale: 'brachiale',
+  brachioradiale: 'brachioradiale',
   avambraccio: 'avambraccio',
   quadricipite: 'quadricipiti',
   femorale: 'femorali',
@@ -2798,26 +2802,139 @@ function pulisciOrdini(bozza) {
   return bozza;
 }
 
+/**
+ * I FILTRI GENERALI (Ste, 21/10/2026).
+ *
+ * "aggiungi anche un filtro per parte muscolare specifico (tricipiti, petto, dorsali,
+ * centro schiena, lombari, trapezi, bicipiti, quadricipiti, femorali ecc) e un altro in
+ * generale (gambe, braccia, schiena, petto)".
+ *
+ * I due filtri sono due cose diverse: quello GENERALE dice l'argomento (gambe,
+ * braccia, schiena, petto), quello SPECIFICO dice il muscolo (tricipiti, dorsali,
+ * centro schiena, trapezi...). Scelto il generale, lo specifico si restringe dentro:
+ * non si può chiedere "tricipiti" e "gambe" insieme, che non hanno senso.
+ *
+ * I nomi sono quelli di Ste, non quelli del codice: l'avambraccio è "braccia", il dorso
+ * è "schiena".
+ */
+const FILTRO_GENERALE = {
+  petto: 'petto',
+  braccio: 'braccia',
+  avambraccio: 'braccia',
+  dorso: 'schiena',
+  gambe: 'gambe',
+  core: 'addome',
+  spalle: 'spalle',
+};
+
 function scegliEsercizio(bozza, g) {
   const usati = new Set(g.esercizi.map((x) => x.esercizio_id));
   const liberi = V.esercizi.filter((e) => !usati.has(e.id));
   if (!liberi.length) { avviso('In questo giorno ci sono gia\' tutti gli esercizi.'); return; }
   const box = el('div', { class: 'sfondo-dialogo' });
   const lista = el('div', { class: 'dialogo dialogo-largo' }, [el('h3', { testo: 'Aggiungi a ' + g.nome })]);
-  for (const e of liberi) {
-    lista.appendChild(bottone('', {
-      onClick: () => {
-        g.esercizi.push({
-          id: 'es-' + nuovoId(), ordine: g.esercizi.length + 1, esercizio_id: e.id,
-          opzionale: false, nota: '', serie: [{ peso: null, peso_assistenza: null, ripetizioni: null, dropset: false }],
-        });
-        box.remove();
-        disegna();
-      },
-      classe: 'voce-scelta',
-      figli: [el('img', { src: e.foto, alt: '', class: 'foto-esercizio' }), el('span', { testo: nomeConMuscolo(e, { soloPrincipale: true }) })],
-    }));
-  }
+
+  // LA RICERCA E I FILTRI (Ste, 21/10/2026)
+  //
+  // "aggiungi una barra di ricerca nella lista degli esercizi da aggiungere alla scheda
+  // perché sono tanti". La lista prima era piatta: con venti esercizi e un telefono in
+  // mano, si scorreva per trovare quello giusto.
+  //
+  // Ogni esercizio sa già quale muscolo lavora (è il classificatore), quindi i filtri
+  // non sono un elenco scritto a mano: sono quello che l'app sa davvero.
+  const voci = liberi.map((e) => {
+    const p = parteDiMuscolo({ nome: e.nome, descrizione: e.nota_permanente || '' });
+    const trovato = !!(p && p.trovata);
+    return {
+      e,
+      gruppo: trovato ? (etichettaMuscolo(p.gruppoPrincipale) || '') : '',
+      generale: trovato ? (FILTRO_GENERALE[p.muscolo] || '') : '',
+      cerca: ((e.nome || '') + ' ' + (trovato && p.nome ? p.nome : '')).toLowerCase(),
+    };
+  });
+
+  let testoRicerca = '';
+  let filtroGenerale = '';
+  let filtroGruppo = '';
+
+  const campo = campoTesto('', {
+    segnaposto: 'Cerca per nome o per muscolo...',
+    onCambio: (v) => { testoRicerca = String(v || '').trim().toLowerCase(); ridisegna(); },
+  });
+  lista.appendChild(el('div', { class: 'zona-ricerca' }, [campo]));
+
+  const zonaFiltri = el('div', { class: 'zona-filtri' });
+  const zonaScelte = el('div', { class: 'lista-scelte' });
+  lista.appendChild(zonaFiltri);
+  lista.appendChild(zonaScelte);
+
+  const chip = (testo, attivo, onClick) => bottone(testo, {
+    onClick,
+    classe: 'filtro' + (attivo ? ' filtro-attivo' : ''),
+  });
+
+  const ridisegna = () => {
+    svuota(zonaFiltri);
+    svuota(zonaScelte);
+
+    // il filtro GENERALE: l'argomento
+    const generali = [...new Set(voci.map((v) => v.generale).filter(Boolean))];
+    if (generali.length > 1) {
+      zonaFiltri.appendChild(el('div', { class: 'riga-filtri' }, [
+        el('span', { class: 'etichetta-filtro', testo: 'argomento' }),
+        chip('tutti', !filtroGenerale, () => { filtroGenerale = ''; filtroGruppo = ''; ridisegna(); }),
+        ...generali.map((gr) => chip(gr, filtroGenerale === gr, () => {
+          filtroGenerale = filtroGenerale === gr ? '' : gr;
+          filtroGruppo = '';
+          ridisegna();
+        })),
+      ]));
+    }
+
+    // il filtro SPECIFICO: il muscolo (e si restringe dentro al generale scelto)
+    const disponibili = [...new Set(voci
+      .filter((v) => !filtroGenerale || v.generale === filtroGenerale)
+      .map((v) => v.gruppo)
+      .filter(Boolean))];
+    if (disponibili.length > 1) {
+      zonaFiltri.appendChild(el('div', { class: 'riga-filtri' }, [
+        el('span', { class: 'etichetta-filtro', testo: 'muscolo' }),
+        chip('tutti', !filtroGruppo, () => { filtroGruppo = ''; ridisegna(); }),
+        ...disponibili.map((gr) => chip(gr, filtroGruppo === gr, () => {
+          filtroGruppo = filtroGruppo === gr ? '' : gr;
+          ridisegna();
+        })),
+      ]));
+    }
+
+    // la lista filtrata
+    const filtrate = voci.filter((v) => {
+      if (filtroGenerale && v.generale !== filtroGenerale) return false;
+      if (filtroGruppo && v.gruppo !== filtroGruppo) return false;
+      if (testoRicerca && !v.cerca.includes(testoRicerca)) return false;
+      return true;
+    });
+    if (!filtrate.length) {
+      zonaScelte.appendChild(el('p', { class: 'nota', testo: 'Nessun esercizio con questi filtri.' }));
+    }
+    for (const v of filtrate) {
+      const e = v.e;
+      zonaScelte.appendChild(bottone('', {
+        onClick: () => {
+          g.esercizi.push({
+            id: 'es-' + nuovoId(), ordine: g.esercizi.length + 1, esercizio_id: e.id,
+            opzionale: false, nota: '', serie: [{ peso: null, peso_assistenza: null, ripetizioni: null, dropset: false }],
+          });
+          box.remove();
+          disegna();
+        },
+        classe: 'voce-scelta',
+        figli: [el('img', { src: e.foto, alt: '', class: 'foto-esercizio' }), el('span', { testo: nomeConMuscolo(e, { soloPrincipale: true }) })],
+      }));
+    }
+  };
+  ridisegna();
+
   lista.appendChild(bottone('Annulla', { onClick: () => box.remove(), classe: 'fantasma' }));
   box.appendChild(lista);
   box.addEventListener('click', (ev) => { if (ev.target === box) box.remove(); });
