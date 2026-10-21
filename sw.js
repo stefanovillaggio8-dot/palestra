@@ -9,7 +9,7 @@
 // e il test I3 che sia quello dell'ultimo commit, altrimenti si alza la cache e si
 // lascia scritto il numero vecchio. E' successo due volte: nella v54 avevo alzato
 // solo questo file, e dopo la v55 avevo smesso di alzarlo del tutto.
-const VERSIONE = 'palestra-v236';
+const VERSIONE = 'palestra-v237';
 
 // LE 18 FOTO DEI PERSONAGGI, CON LA VERSIONE DENTRO.
 //
@@ -52,8 +52,8 @@ const FILE = [
   // Il numero deve essere uguale a quello di `stile.css?v=` in index.html e a
   // `window.PALESTRA_VERSIONE`: se i tre non coincidono, l'app carica un foglio di
   // stile e dice un altro numero.
-  './stile.css?v=236',
-  './stile-rpg.css?v=236',
+  './stile.css?v=237',
+  './stile-rpg.css?v=237',
 './manifest.webmanifest',
   './manifest-p1.webmanifest',
   './manifest-p2.webmanifest',
@@ -220,6 +220,13 @@ const FOTO = [
   './img/esercizi/cable-crunch.png',
   './img/esercizi/decline-bench-press.png',
   './img/esercizi/decline-dumbbell-bench-press.png',
+
+  './img/esercizi/back-extension.png',
+  './img/esercizi/hip-extension.png',
+  './img/esercizi/smith-machine-bench-press.png',
+  './img/esercizi/smith-machine-bent-over-row.png',
+  './img/esercizi/smith-machine-shrug.png',
+  './img/esercizi/jm-press.png',
 ];
 
 self.addEventListener('install', (evento) => {

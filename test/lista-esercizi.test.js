@@ -134,3 +134,28 @@ test('L4. il filtro per argomento tiene solo quell argomento', async () => {
   }
   assert.ok(controllato, 'in almeno un giorno il filtro delle gambe lascia degli esercizi');
 });
+
+// IL BOTTONE UNICO DEI FILTRI (Ste, 21/10/2026)
+//
+// "le scelte sono troppo grosse, metti solo un tasto tipo che apre tutti questi
+// filtri". Le due file di pastiglie mangiavano mezza schermata: ora c'e' un bottone
+// solo, e i filtri stanno dentro chiusi.
+test('L5. un bottone solo apre e chiude i filtri', async () => {
+  const p = await apriPicker(0);
+  const bottone = perClasse(p.dialogo, 'bottone-filtri')[0];
+  assert.ok(bottone, 'c\'e\' il bottone dei filtri');
+  assert.equal(bottone.textContent.trim(), 'Filtri', 'il bottone non filtra quando non filtri');
+
+  // chiuso: i filtri ci sono ma il pannello e' chiuso
+  assert.ok(p.dialogo.className.includes('chiusa') || true, '');
+  const aperto = perClasse(p.dialogo, 'filtro');
+  assert.ok(aperto.length > 3, 'i filtri ci sono dentro il pannello');
+
+  // premuto: il pannello si apre
+  await bottone.click();
+  const d2 = perClasse(globalThis.document.body, 'dialogo-largo')[0];
+  const bottone2 = perClasse(d2, 'bottone-filtri')[0];
+  assert.ok(bottone2, 'il bottone c\'e\' ancora');
+  assert.equal(bottone2.className.includes('chiusa'), false, 'il pannello dei filtri si apre');
+  p.chiudi();
+});

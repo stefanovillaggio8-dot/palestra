@@ -368,7 +368,9 @@ id: 'avambraccio', muscolo: 'avambraccio', parte: 'avambraccio (polso e avanti b
   },
   {
     id: 'glutei', muscolo: 'gambe', parte: 'glutei',
-    parole: ['hip thrust', 'glute bridge', 'squat', 'stacco', 'affondi'],
+    // l'hip extension e il back extension (iperextensione) sono i glutei:
+    // i muscoli della schiena che lavorano con loro in questa tavola non ci sono.
+    parole: ['hip extension', 'back extension', 'hip thrust', 'glute bridge', 'squat', 'stacco', 'affondi'],
     nota: 'Spinta coi fianchi: lavora il gluteo, il muscolo più forte del corpo.',
   },
   {
@@ -652,7 +654,7 @@ export const MOVIMENTI = [
   {
     id: 'estensione_gomito',
     parole: ['tricep pushdown', 'pushdown', 'french press', 'skull', 'tricep extension',
-      'tricep ext', 'estensioni sopra la testa', 'overhead extension', 'single arm tricep',
+      'tricep ext', 'estensioni sopra la testa', 'overhead extension', 'jm press', 'single arm tricep',
       'overhead tricep', 'tricipite', 'tricipiti'],
     // IL DELTOIDE POSTERIORE E' STATO TOLTO (15/10/2026). La spalla dietra tiene il
     // braccio fermo mentre il gomito si stende: lavora un po', ma era messo a 0,15 e

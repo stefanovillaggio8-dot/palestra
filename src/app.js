@@ -2865,6 +2865,24 @@ function scegliEsercizio(bozza, g) {
 
   const zonaFiltri = el('div', { class: 'zona-filtri' });
   const zonaScelte = el('div', { class: 'lista-scelte' });
+
+  // UN SOLO BOTTONE CHE APRE I FILTRI (Ste, 21/10/2026)
+  //
+  // "le scelte sono troppo grosse, metti solo un tasto tipo che apre tutti questi
+  // filtri". Le due file di pastiglie (argomento e muscolo) erano lunghe e mangiavano
+  // mezza schermata: si vedeva la lista solo in fondo. Ora c’è un bottone solo, e
+  // i filtri stanno dentro, chiusi, finché non li chiedi.
+  //
+  // Il bottone dice sempre COME STAI filtrando: "Filtri · petto, tricipiti", così
+  // non resti a chiederti perché la lista è corta.
+  let filtriAperti = false;
+  const bottoneFiltri = bottone('Filtri', {
+    onClick: () => { filtriAperti = !filtriAperti; disegnaFiltri(); },
+    classe: 'bottone-filtri',
+  });
+  const rigaFiltri = el('div', { class: 'riga-filtri' });
+  lista.appendChild(bottoneFiltri);
+  lista.appendChild(rigaFiltri);
   lista.appendChild(zonaFiltri);
   lista.appendChild(zonaScelte);
 
@@ -2873,9 +2891,20 @@ function scegliEsercizio(bozza, g) {
     classe: 'filtro' + (attivo ? ' filtro-attivo' : ''),
   });
 
+  const disegnaFiltri = () => {
+    // il bottone dice come stai filtrando
+    const attivi = [filtroGenerale, filtroGruppo].filter(Boolean);
+    bottoneFiltri.textContent = attivi.length ? 'Filtri \u00b7 ' + attivi.join(', ') : 'Filtri';
+    bottoneFiltri.className = 'bot bottone-filtri' + (attivi.length ? ' filtro-attivo' : '') + (filtriAperti ? ' aperto' : '');
+    // il pannello dei filtri: chiuso, si vede solo quando lo chiedi
+    if (filtriAperti) zonaFiltri.classList.remove('chiusa');
+    else zonaFiltri.classList.add('chiusa');
+  };
+
   const ridisegna = () => {
     svuota(zonaFiltri);
     svuota(zonaScelte);
+    disegnaFiltri();
 
     // il filtro GENERALE: l'argomento
     const generali = [...new Set(voci.map((v) => v.generale).filter(Boolean))];

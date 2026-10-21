@@ -148,7 +148,10 @@ test('la macchina a dischi resta solo dove i dischi li metti davvero', () => {
   const aDischi = ESERCIZI.filter((e) => e.attrezzatura === CONVENZIONI.MACCHINA_DISCHI);
   assert.deepEqual(
     aDischi.map((e) => e.nome),
-    ['Chest Press', 'Smith Machine Incline Bench Press', 'Iso-Lateral Row'],
+    // il Smith Machine Bench Press e' una macchina a dischi come le altre: i dischi
+    // li carichi tu (Ste, 21/10/2026: arriva dalla lista del telefono)
+    ['Chest Press', 'Smith Machine Incline Bench Press', 'Iso-Lateral Row',
+      'Smith Machine Bench Press'],
   );
 });
 

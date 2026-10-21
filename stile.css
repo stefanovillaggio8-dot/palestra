@@ -763,6 +763,17 @@ body.scorso .banda-cronometro .bot.grande {
 .bot.filtro.filtro-attivo {
   background: var(--viola); color: #16121f; border-color: var(--viola);
 }
+/* IL BOTTONE UNICO DEI FILTRI (Ste, 21/10/2026) */
+.bot.bottone-filtri {
+  align-self: flex-start;
+  min-height: 34px; padding: 5px 14px; margin: 10px 0 2px;
+  font-size: .8rem; font-weight: 900; letter-spacing: .04em;
+  border-radius: 999px; border: 1px solid var(--bordo);
+  background: var(--card-2); color: var(--testo-2);
+}
+.bot.bottone-filtri.filtro-attivo { border-color: var(--viola); color: var(--viola); }
+.bot.bottone-filtri.aperto { background: var(--card); }
+.zona-filtri.chiusa { display: none; }
 /* la lista scorre da sola: i filtri stanno fermi in alto, la lista scorre sotto */
 .lista-scelte {
   display: flex; flex-direction: column; gap: 6px;

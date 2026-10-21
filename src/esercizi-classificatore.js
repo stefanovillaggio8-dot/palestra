@@ -140,7 +140,8 @@ const MOVIMENTI = [
     // cosa. Vale la stessa lezione del reverse fly e del bench pull: due esercizi
     // diversi non possono stare sulla stessa scala solo perché hanno parole simili.
     id: 'tricipiti_alta', livello: 'isolamento', gruppo: 'tricipiti',
-    parole: ['overhead extension', 'overhead tricep', 'estensioni sopra la testa',
+    // il JM press (presa stretta) e' un'estensione dei tricipiti come le altre
+    parole: ['overhead extension', 'overhead tricep', 'estensioni sopra la testa', 'jm press',
       'sopra la testa', 'overhead press tricep', 'tricep sopra la testa',
       'standing overhead', 'overhead triceps'],
   },
@@ -164,7 +165,7 @@ const MOVIMENTI = [
   },
   {
     id: 'gambe_isolamento', livello: 'isolamento', gruppo: 'gambe',
-    parole: ['leg curl', 'leg extension', 'curl gambe', 'estensioni gambe', 'prone curl',
+    parole: ['hip extension', 'back extension', 'leg curl', 'leg extension', 'curl gambe', 'estensioni gambe', 'prone curl',
       'leg raise', 'adduzione', 'abduction', 'glute'],
   },
   {
