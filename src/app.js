@@ -5048,7 +5048,10 @@ function bloccoPersonaggio(profilo, st) {
     // La striscia si prepara qui dentro, ma si mette a schermo DOPO la foto e il
     // nome. Per questo e' `let` e non `const`: il codice che la mette sta sotto,
     // fuori da questo blocco.
-    const caselle = schedaProgressione(rpg.premi, classeId, rpg.recordStreak)
+    // Gli sblocchi restano (il record), ma il contatore per la prossima ricompensa si
+  // conta con la streak di ADESSO: se l'hai persa, ricomincia da capo (Ste, 21/10/2026).
+  const caselle = schedaProgressione(rpg.premi, classeId, rpg.recordStreak,
+    rpg.streak ? rpg.streak.giorni : null)
       .map((c) => ({ ...c, inCorso: c.immagine === viso.indice && (!c.aura || viso.aura) }));
     rigaStati = el('div', { class: 'riga-pezzi personaggio-' + classeId });
     rigaStati.appendChild(el('p', {

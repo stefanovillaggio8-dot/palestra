@@ -283,6 +283,11 @@ export const LIVELLI_DIFFICOLTA = {
   composto:   { id: 'composto',   nome: 'COMPOSTO',   rapporto: 0.90 },
   isolamento: { id: 'isolamento', nome: 'ISOLAMENTO', rapporto: 0.34 },
   assistito:  { id: 'assistito',  nome: 'ASSISTITO',  rapporto: null },
+  // IL "CORPO LIBERO" (Ste, 21/10/2026): "gli esercizi a corpo libero deve spuntare
+  // corpo libero non assistito". Sono gli esercizi col peso del tuo corpo: i kg non
+  // ci sono (quindi non c’è una scala in kg) ma la parola "assistito" è sbagliata,
+  // perché l’assistenza è quella che ti REGGE la macchina.
+  corpo_libero: { id: 'corpo_libero', nome: 'CORPO LIBERO', rapporto: null },
 };
 
 /**
@@ -317,6 +322,9 @@ export function descrizioneLivello(livello) {
   }
   if (livello === 'grande') {
     return 'GRANDE · carichi alti, movimento facilitato';
+  }
+  if (livello === 'corpo_libero') {
+    return 'CORPO LIBERO · contano le ripetizioni, non i kg';
   }
   if (livello === 'assistito') {
     return 'ASSISTITO · contano le ripetizioni, non i kg';
@@ -377,6 +385,9 @@ export function livelloEsercizio(esercizio) {
   // Il "corpo libero" quindi non viene deciso qui: arriva dal classificatore, che sa
   // guardare il nome (vedi classificaEsercizio).
   if (convenzione === 'assistenza') return 'assistito';
+  // Il corpo libero NON e' assistito (Ste, 21/10/2026): l'assistenza e' la macchina che
+  // ti regge. Qui i kg non ci sono, e si contano le ripetizioni.
+  if (convenzione === 'corpo_libero') return 'corpo_libero';
 
   // 3) altrimenti lo riconosce dal nome
   return classificaEsercizio({

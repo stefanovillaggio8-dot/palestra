@@ -262,9 +262,21 @@ function versioneRisorse() {
  * @param classeId     la classe scelta, per i nomi
  * @param recordStreak il record di giorni di fila: serve per dire quanti ne mancano
  */
-export function schedaProgressione(premi, classeId, recordStreak = 0) {
+export function schedaProgressione(premi, classeId, recordStreak = 0, streakAttuale = null) {
   const lista = premi || [];
   const record = Number(recordStreak) || 0;
+  // QUANTI GIORNI MANCANO ALLA RICOMPENSA SUCCESSIVA (Ste, 21/10/2026)
+  //
+  // "quando qualcuno perde la streak, le cose sbloccate dell'avatar devono restare, ma i
+  // giorni di streak per sbloccare la ricompensa successiva devono ritornare come
+  // all'inizio, che ricomincia a contarli da capo".
+  //
+  // Le cose sbloccate restano: si guarda il RECORD (quello che hai già raggiunto una
+  // volta). Ma il contatore per la prossima ricompensa si conta con la STREAK DI
+  // ADESSO: se hai perso la fila di giorni, la prossima ricompensa riparte da capo.
+  const adesso = (streakAttuale === null || streakAttuale === undefined)
+    ? record
+    : (Number(streakAttuale) || 0);
   const caselle = [{
     chiave: 'niente',
     nome: STATI_IMMAGINE[0].nome,
@@ -296,7 +308,7 @@ export function schedaProgressione(premi, classeId, recordStreak = 0) {
       // L'AURA è l'ultimo premio: non un'immagine nuova, ma una luce sopra l'ultima.
       aura: i === lista.length - 1,
       giorni: p.giorni,
-      mancano: Math.max(0, (Number(p.giorni) || 0) - record),
+      mancano: Math.max(0, (Number(p.giorni) || 0) - adesso),
     });
   }
   return caselle;
