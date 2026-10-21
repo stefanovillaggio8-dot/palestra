@@ -178,12 +178,18 @@ test('M25. l esercizio col nome nuovo, e il Rank che non cambia', async () => {
     'gli altri esercizi non si toccano');
   assert.ok(Object.keys(RINOMINE).length >= 1, 'le rinomine stanno in un posto solo');
 
-  // IL PUNTE ESSENZIALE: col nome nuovo l'esercizio deve restare "a corpo del
-  // corpo". Se no, il Rank cambierebbe da solo, e il peso che la macchina ti toglie
-  // non e' un peso che l'atleta spinge.
+  // IL PUNTE ESSENZIALE: col nome nuovo l'esercizio NON e' piu' "assistito".
+  //
+  // Ste (21/10/2026): "dice che i kg sono assistiti, sistema il rank e sistema il
+  // classificamento". I kg assistiti sono quelli che la macchina ti REGGE: l'esercizio
+  // fatto col braccio e col corpo non ha kg per niente, e il livello lo decide il
+  // movimento, cioe' un isolamento del tricipite come tutti gli altri tricipiti.
   assert.equal(classificaEsercizio({ nome: 'One Arm Overhead Tricep Extension' }).livello,
-    'assistito',
-    'col nome nuovo l esercizio deve restare assistito (a corpo del corpo col cavo)');
-  assert.equal(classificaEsercizio({ nome: 'Bodyweight Overhead Tricep Extension' }).livello,
-    'assistito', 'e anche col nome vecchio');
+    'isolamento',
+    'fatto col corpo non e assistito: e un isolamento del tricipite');
+  assert.equal(classificaEsercizio({ nome: 'One Arm Overhead Tricep Extension', convenzione: 'corpo_libero' }).livello,
+    'isolamento', 'e anche con la convenzione del corpo libero');
+  // e con la macchina che ti regge, invece, resta assistito: i kg non sono tuoi
+  assert.equal(classificaEsercizio({ nome: 'One Arm Overhead Tricep Extension', convenzione: 'assistenza' }).livello,
+    'assistito', 'al cavo il numero e il peso che ti viene tolto: assistito vero');
 });

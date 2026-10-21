@@ -195,7 +195,12 @@ test('S7. il totale non e\' il doppio del lato, e la ragione e\' scritta', () =>
   // 21 kg per mano non sono un curl da 42. Se il "totale" fosse il doppio, la
   // scala di ogni esercizio bilaterale sarebbe il doppio della giusta.
   for (const [movimento, voce] of Object.entries(SCALA_MOVIMENTO)) {
-    if (movimento === 'core' || movimento === 'spalle_isolamento') continue;
+    // il "core" e le spalle hanno un caso loro (vedi sotto). E c'è ora il "corpo
+    // libero", che non ha kg per niente: Ste (21/10/2026) "dice che i kg sono
+    // assistiti, sistema il rank e sistema il classificamento". La scala 0 sta sul
+    // MOVIMENTO, e il totale e il lato sono entrambi 0: la regola del totale non lo
+    // riguarda, perché non c'è nessun peso da sommare.
+    if (movimento === 'core' || movimento === 'spalle_isolamento' || movimento === 'corpo_libero') continue;
     assert.ok(voce.totale > voce.lato * 1.5,
       movimento + ': il totale (' + voce.totale + ') deve stare fra il lato e il suo doppio');
   }

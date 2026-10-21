@@ -55,8 +55,16 @@ test('C4. "assistito" vuol dire che la MACCHINA ti aiuta, non che usi il corpo',
   // 21/10/2026 e il nome nuovo non ha piu' la parola "bodyweight").
   assert.equal(liv('Trazioni assistite'), 'composto',
     'le trazioni non si fanno assistite: ci si appendo e basta');
-  assert.equal(liv('One Arm Overhead Tricep Extension'), 'assistito',
-    'questo invece è assistito vero: al cavo, il numero è il peso che ti viene tolto');
+  // Ste (21/10/2026): "dice che i kg sono assistiti, sistema il rank e sistema
+  // il classificamento". I kg ASSISTITI sono quelli che la MACCHINA ti regge: e'
+  // quello che decide, non il nome. Quindi l'esercizio al cavo resta assistito, e
+  // quello fatto col braccio e col corpo no: e' un isolamento del tricipite.
+  assert.equal(liv('One Arm Overhead Tricep Extension', { convenzione: 'assistenza' }), 'assistito',
+    'al cavo il numero è il peso che ti viene tolto: quello è assistito vero');
+  assert.equal(liv('One Arm Overhead Tricep Extension'), 'isolamento',
+    'fatto col braccio e col corpo non è assistito: è un isolamento del tricipite');
+  assert.equal(liv('One Arm Overhead Tricep Extension', { convenzione: 'corpo_libero' }), 'isolamento',
+    'e con la convenzione del corpo libero lo stesso');
   assert.equal(liv('Pull Ups'), 'composto',
     'le trazioni col peso del corpo non sono assistite: più kg è più difficile');
   assert.equal(liv('Dips'), 'composto',
@@ -224,7 +232,7 @@ test('C14. riconosce 59 nomi veri di palestra, italiano e inglese', () => {
   ['Shrug sulla macchina', 'composto'],
   ['Scrollate con bilanciere', 'composto'],
   ['Seated Dumbbell Shoulder Press', 'composto'],
-  ['One Arm Overhead Tricep Extension', 'assistito'],
+  ['One Arm Overhead Tricep Extension', 'isolamento'],
   ['Spinte in basso', 'composto'],
   ];
   for (const [nome, atteso] of casi) {

@@ -365,8 +365,18 @@ export function livelloEsercizio(esercizio) {
   const imparato = LIVELLI_IMPARATI[id];
   if (imparato) return imparato;
 
-  // 2) se È scritto "corpo libero", si contano le ripetizioni
-  if (convenzione === 'corpo_libero' || convenzione === 'assistenza') return 'assistito';
+  // 2) "ASSISTITO" SOLO SE I KG SONO L'ASSISTENZA DELLA MACCHINA (Ste, 21/10/2026).
+  //
+  // Ste: "dice che i kg sono assistiti, sistema il rank e sistema il classificamento".
+  // Aveva ragione: i kg ASSISTITI sono quelli che la MACCHINA ti regge (più ne metti e
+  // meno fatica fai, quindi il conteggio va al contrario). Un esercizio col peso del
+  // CORPO non ha kg assistiti: non ha kg per niente, e il suo livello lo decide il
+  // movimento che il nome descrive. Un'estensione dei tricipiti col braccio e' un
+  // ISOLAMENTO, come tutte le altre estensioni dei tricipiti.
+  //
+  // Il "corpo libero" quindi non viene deciso qui: arriva dal classificatore, che sa
+  // guardare il nome (vedi classificaEsercizio).
+  if (convenzione === 'assistenza') return 'assistito';
 
   // 3) altrimenti lo riconosce dal nome
   return classificaEsercizio({

@@ -275,7 +275,23 @@ export async function rinominaEserciziCambiati() {
   for (const e of righe || []) {
     const nuovo = nuovoNomeEsercizio(e.nome);
     if (!nuovo) continue;
-    await db.salva('esercizi', { ...e, nome: nuovo, gruppo: nuovo });
+    // IL CARICO CAMBIA CON IL NOME (Ste, 21/10/2026).
+    //
+    // Ste: "dice che i kg sono assistiti, sistema il rank e sistema il classificamento".
+    // Aveva ragione: l'esercizio era "al cavo, il numero e' il peso di assistenza che
+    // aggiungo", cioe' i kg NON erano tuoi. Ma il nome nuovo dice che lo fai col
+    // braccio e col corpo: i kg non ci sono, e l'app deve contare le ripetizioni.
+    //
+    // Quindi la convenzione passa da "assistenza" a "corpo libero", e la misura
+    // diventa "solo ripetizioni". I numeri già salvati NON si toccano: le serie
+    // vecchie restano così come sono, e il Rank di quelle resta quello che era.
+    const assistito = e.convenzione === 'assistenza';
+    await db.salva('esercizi', {
+      ...e,
+      nome: nuovo,
+      gruppo: nuovo,
+      ...(assistito ? { convenzione: 'corpo_libero', misura: 'solo_reps', tipo: 'standard' } : {}),
+    });
     cambiati.push({ da: e.nome, a: nuovo });
   }
   return cambiati;

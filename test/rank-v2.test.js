@@ -390,8 +390,8 @@ test('V15. i kg ci sono, ma solo dove ci sono davvero (16/10/2026)', () => {
     id: 'ex-bodyweight-overhead-tricep',
     nome: 'One Arm Overhead Tricep Extension',
     gruppo: 'One Arm Overhead Tricep Extension',
-    convenzione: 'ripetizioni',
-    misura: 'ripetizioni',
+    convenzione: 'corpo_libero',
+    misura: 'solo_reps',
     tipo: 'standard',
   };
   const r = v2.valutaEsercizio({ esercizio: senzaKg, serie: [], pesoCorporeo: 66 });

@@ -281,8 +281,7 @@ const MOVIMENTI = [
     // essere riconosciuto come esercizio a corpo del corpo, e il Rank cambierebbe:
     // la parola nuova è messa QUI apposta.
     parole: ['corpo libero', 'bodyweight', 'auzhang', 'scorpione', 'handstand',
-      'planche', 'handstand push', 'wall sit',
-      'one arm overhead tricep extension'],
+      'planche', 'handstand push', 'wall sit'],
   },
 ];
 
@@ -558,14 +557,49 @@ export function classificaEsercizio({
   // nuovo non ha più la parola "bodyweight", ma È lo stesso esercizio. Senza la frase
   // nuova qui sotto, il Rank cambierebbe da solo e l'app conterebbe i kg di un
   // esercizio in cui i kg non li spinge nessuno: te li toglie la macchina.
-  const FRASI_CORPO_LIBERO = ['bodyweight', 'corpo libero', 'one arm overhead tricep extension'];
+  const FRASI_CORPO_LIBERO = ['bodyweight', 'corpo libero'];
   const dettoCorpo = FRASI_CORPO_LIBERO.reduce((n, f) => n + conta(testoLungo, f), 0)
     + (convenzione === 'corpo_libero' || convenzione === 'assistenza' ? 1 : 0);
   const conCarico = conta(testoLungo, 'bilanciere') + conta(testoLungo, 'barbell')
     + conta(testoLungo, 'manubri') + conta(testoLungo, 'dumbbell') + conta(testoLungo, 'carico');
+  //
+  // "ASSISTITO" SOLO SE I KG SONO DAVVERO L'ASSISTENZA (Ste, 21/10/2026).
+  //
+  // Ste: "dice che i kg sono assistiti, sistema il rank e sistema il classificamento".
+  // Aveva ragione: i kg ASSISTITI sono quelli che la macchina ti REGGE, e contano al
+  // contrario (più ne metti e meno fatica fai). Un esercizio col peso del CORPO non
+  // e' assistito: non ha kg per niente, e il livello lo decide il movimento (un
+  // isolamento del tricipite resta un isolamento). Vedi la nota sotto l'uscita.
   if (dettoCorpo > conCarico) {
+    // I KG ASSISTITI SONO QUELLI CHE LA MACCHINA TI REGGE (Ste, 21/10/2026).
+    //
+    // Ste: "dice che i kg sono assistiti, sistema il rank e sistema il classificamento".
+    // Aveva ragione: un esercizio col peso del CORPO non è assistito, e il suo livello
+    // lo decide il movimento che il nome descrive. Un'estensione dei tricipiti fatta
+    // col braccio è un ISOLAMENTO, come tutte le altre estensioni dei tricipiti; e i
+    // kg non ci sono, quindi si contano le ripetizioni.
+    //
+    // "Assistito" resta SOLO per la convenzione assistenza: lì il numero è il peso
+    // che la macchina ti toglie, e contare al contrario sarebbe falso.
+    const assistito = convenzione === 'assistenza';
+    let livello = 'assistito';
+    if (!assistito) {
+      // il movimento migliore che il nome descrive, escluso il "corpo libero" stesso
+      let migliore = null;
+      for (const m of MOVIMENTI) {
+        if (m.id === 'corpo_libero') continue;
+        let punti = 0;
+        for (const par of m.parole) {
+          const n = conta(testoLungo, par);
+          if (n === 0) continue;
+          punti += n * (normalizza(par).includes(' ') ? 2 : 1);
+        }
+        if (punti > 0 && (!migliore || punti > migliore.punti)) migliore = { punti, movimento: m };
+      }
+      livello = migliore ? migliore.movimento.livello : 'isolamento';
+    }
     return {
-      livello: 'assistito',
+      livello,
       gruppo: 'corpo libero',
       movimento: 'corpo_libero',
       confidenza: 'alta',

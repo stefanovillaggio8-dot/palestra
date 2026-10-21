@@ -112,6 +112,17 @@ export function unitaDi({ convenzione = null, carrucola = null } = {}) {
  * sempre, quindi se È sbagliato si nota.
  */
 export const SCALA_MOVIMENTO = {
+  // IL "CORPO LIBERO" NON HA KG (Ste, 21/10/2026).
+  //
+  // Prima la scala 0 dei movimenti col peso del corpo veniva dal LIVELLO "assistito",
+  // che vuol dire "i kg non li spinge nessuno". Ma il livello "assistito" dice anche
+  // "la macchina ti aiuta", e non e' vero per un esercizio col braccio e col corpo:
+  // Ste, "dice che i kg sono assistiti, sistema il rank e sistema il classificamento".
+  //
+  // Quindi la scala 0 sta qui, sul MOVIMENTO (che e' la cosa giusta: e' il movimento
+  // a non avere kg), e il livello può dire la verità sull'esercizio: un'estensione
+  // dei tricipiti col braccio e' un isolamento, come tutte le altre.
+  corpo_libero: { totale: 0, lato: 0 },
   gambe_pesanti: {
     // 40 per gamba era un numero PRESTATO: veniva dalla leg press normale a 100 kg
     // per lato, che È un esercizio diverso fatto su un'altra macchina (l'obliqua
