@@ -5826,13 +5826,15 @@ function vistaRank(zona) {
       const testo = (cerca.value || '').trim().toLowerCase();
       const nomi = (V.esercizi || []).map((e) => e.nome);
       // comincia per quello che scrivi: se scrivi "st", spuntano quelli che iniziano con "st"
+      // e se non hai scritto niente non spunta NESSUN esercizio (Ste, 21/10/2026)
       const trovati = testo
         ? nomi.filter((n) => n.toLowerCase().startsWith(testo))
-        : nomi.slice(0, 8);
-      if (!trovati.length) {
+        : [];
+      if (testo && !trovati.length) {
         scelte.appendChild(el('p', { class: 'nota', testo: 'Nessun esercizio comincia cosi.' }));
         return;
       }
+      if (!testo) return;
       for (const n of trovati.slice(0, 12)) {
         scelte.appendChild(bottone(n, {
           onClick: () => {
