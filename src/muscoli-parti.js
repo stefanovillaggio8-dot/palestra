@@ -210,12 +210,12 @@ export const PARTI = [
     nota: 'Tira con le braccia: lavora il dorso largo, quello che si vede di lato sotto le ascelle.',
   },
   {
-    id: 'dorso_centrale', muscolo: 'dorso', parte: 'bassa schiena (lombari)',
+    id: 'dorso_centrale', muscolo: 'dorso', parte: 'dorso centrale (fra le scapole)',
     // IL REMATORE NON E' QUI (16/10/2026). Le parole "rematore", "row",
     // "tiremento" e le tirate orizzontali stanno adesso dentro `dorso_lati`, perché
     // Ste ha detto che il rematore lavora i dorsali e non il centro schiena. Qui
     // resta solo la tirata PRONA con i manubri, che e' la decisione dell'08/10.
-    parole: ['hyperextension', 'iperextensione', 'prone',
+    parole: ['prone',
       // Ste (08/10/2026): il Dumbbell Bench Pull È una tirata prona coi
       // manubri, quindi dorso centrale. Stava fra le parole del PETTO e la
       // scheda gli diceva "il petto lavora in modo abbastanza uniforme".
@@ -372,7 +372,7 @@ id: 'avambraccio', muscolo: 'avambraccio', parte: 'avambraccio (polso e avanti b
     // i muscoli della schiena che lavorano con loro in questa tavola non ci sono.
     // l'iperextensione e' a 45 gradi: lavora i glutei, ma SOPRATTUTTO i lombari
     // (la bassa schiena), che sono la parte profonda
-    parole: ['hip thrust', 'glute bridge', 'squat', 'stacco', 'affondi'],
+    parole: ['hyperextension', 'iperextensione', 'hip thrust', 'glute bridge', 'squat', 'stacco', 'affondi'],
     nota: 'Spinta coi fianchi: lavora il gluteo, il muscolo più forte del corpo.',
   },
   {

@@ -1147,6 +1147,19 @@ function etichettaMuscolo(gruppo) {
 }
 
 /**
+ * LE ETICHETTE CHE ARRIVANO DAL PEZZO, non dal gruppo (Ste, 21/10/2026).
+ *
+ * I tre deltoidi stanno nello stesso gruppo (quello davanti), ma sono tre muscoli
+ * diversi: senza questo il filtro ne mostrava uno solo. E i trapezi hanno il loro nome.
+ */
+const ETICHETTE_PARTE = {
+  spalle_frontali: 'deltoide avanti',
+  spalle_laterali: 'deltoide laterale',
+  spalle_posteriori: 'deltoide dietro',
+  dorso_alto: 'trapezi',
+};
+
+/**
  * Il pezzo di muscolo di un esercizio, come stringa breve.
  * `soloPrincipale` serve dove lo spazio è poco (la pillola col cerchietto da 30 px).
  */
@@ -2038,6 +2051,9 @@ function giriVivi(idSerie) {
   return sovrapponiGiri(dalDisco, ULTIMI_GIRI.get(idSerie));
 }
 const giri = giriVivi(serie.id);
+  // UN SALVATAGGIO PER TUTTA LA RIGA: il ritardo cancellava il giro precedente,
+  // e così sparivano i valori degli altri giri (Ste, 21/10/2026)
+  const salvaGiri = conRitardo(() => aggiornaSerie(serie, { giri_extra: giriVivi(serie.id) }));
 giri.slice(0, GIRI_DROPSET).forEach((g, idx) => {
   const gp = campoNumero(g.peso, {
     etichetta: 'giro peso',
@@ -2851,8 +2867,13 @@ function scegliEsercizio(bozza, g) {
     const trovato = !!(p && p.trovata);
     return {
       e,
-      gruppo: trovato ? (etichettaMuscolo(p.gruppoPrincipale) || '') : '',
-      generale: trovato ? (FILTRO_GENERALE[p.muscolo] || '') : '',
+      // I DELTOIDI SONO TRE (Ste, 21/10/2026): "se premo spalle spunta deltoide
+      // dietro e deltoide, ma deve esserci deltoide dietro, avanti, laterale". Il
+      // gruppo li aveva tutti insieme, quindi il filtro li mostrava uniti.
+      gruppo: trovato ? (ETICHETTE_PARTE[p.parte] || etichettaMuscolo(p.gruppoPrincipale) || '') : '',
+      // e i TRAPEZI non sono "schiena": sono collo e spalle ("mica i trapezi sono
+      // muscoli della schiena")
+      generale: trovato ? (p.parte === 'dorso_alto' ? 'spalle' : (FILTRO_GENERALE[p.muscolo] || '')) : '',
       cerca: ((e.nome || '') + ' ' + (trovato && p.nome ? p.nome : '')).toLowerCase(),
     };
   });
