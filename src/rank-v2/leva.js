@@ -155,6 +155,18 @@ export const LEVE = {
     unita: 'per braccio',
     nota: 'Braccia orizzontali: la panca. Il petto ha il braccio di leva piu\' generoso di tutti i muscoli della spalla, e per meta\' del movimento non e\' solo lui a tirare.',
   },
+  // IL CORE (Ste, 21/10/2026): il crunch al cavo.
+  //
+  // Il crunch e' un movimento piccolo: il gomito e il braccio non sono il punto, e'
+  // il petto (o l'addome) a stare in arco. Quindi la leva e' come quella del fly al
+  // cavo, ma un filo piu' corta perche' il punto di spinta e' vicino.
+  core: {
+    muscoli: { addome: 0.9, petto: 0.1 },
+    dMuscolo: 4.0,
+    dCarico: 'braccio',
+    unita: 'per lato',
+    nota: 'Crunch al cavo: il movimento è piccolo e il braccio non è il punto, quindi la leva è corta. Il petto partecipa poco: la pancia è il muscolo che spinge. È una stima: i numeri veri li scrive Ste dal suo app.',
+  },
   petto_isolamento: {
     muscoli: { petto: 0.85, deltoide_avanti: 0.15 },
     dMuscolo: 4.5,

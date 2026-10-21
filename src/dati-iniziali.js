@@ -322,7 +322,7 @@ export const ESERCIZI = [
   { id: 'ex-bent-over-row', nome: 'Bent Over Row', gruppo: 'Bent Over Row', convenzione: C.BILANCIERE, foto: 'img/esercizi/bent-over-row.png', tipo: 'standard' },
   { id: 'ex-cable-bicep-curl', nome: 'Cable Bicep Curl', gruppo: 'Cable Bicep Curl', convenzione: C.CAVO, carrucola: C.CARRUCOLA_DOPPIA, foto: 'img/esercizi/cable-bicep-curl.png', tipo: 'standard' },
   { id: 'ex-cable-chest-press', nome: 'Cable Chest Press', gruppo: 'Cable Chest Press', convenzione: C.CAVO, carrucola: C.CARRUCOLA_DOPPIA, foto: 'img/esercizi/cable-chest-press.png', tipo: 'standard' },
-  { id: 'ex-cable-crunch', nome: 'Cable Crunch', gruppo: 'Cable Crunch', convenzione: C.CORPO_LIBERO, foto: 'img/esercizi/cable-crunch.png', tipo: 'standard' },
+  { id: 'ex-cable-crunch', nome: 'Cable Crunch', gruppo: 'Cable Crunch', convenzione: C.CAVO, carrucola: C.CARRUCOLA_DOPPIA, foto: 'img/esercizi/cable-crunch.png', tipo: 'standard' },
   { id: 'ex-cable-reverse-fly', nome: 'Cable Reverse Fly', gruppo: 'Cable Reverse Fly', convenzione: C.CAVO, carrucola: C.CARRUCOLA_DOPPIA, foto: 'img/esercizi/cable-reverse-fly.png', tipo: 'standard' },
   { id: 'ex-deadlift', nome: 'Deadlift', gruppo: 'Deadlift', convenzione: C.BILANCIERE, foto: 'img/esercizi/deadlift.png', tipo: 'standard' },
   { id: 'ex-decline-bench-press', nome: 'Decline Bench Press', gruppo: 'Decline Bench Press', convenzione: C.BILANCIERE, foto: 'img/esercizi/decline-bench-press.png', tipo: 'standard' },

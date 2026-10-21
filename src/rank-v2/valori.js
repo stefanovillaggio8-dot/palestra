@@ -687,9 +687,22 @@ export const VALORI_MOVIMENTO = {
   // IL CORE (Ste, 21/10/2026): crunch e simili, i kg non esistono.
   // Senza questa riga un esercizio col core non aveva nessuna scala, e il Rank non
   // poteva dire niente.
+  // IL CORE CON I KG (Ste, 21/10/2026)
+  //
+  // "il crounch e' cable crouch quindi e' con i kg comunque". Ha ragione: il crunch
+  // e' al cavo, quindi ha un peso, e va giudicato come gli altri. La scala e' quella
+  // del fly al cavo (tetto 0,4x il corpo per lato, ingresso 0,17x): un movimento
+  // piccolo con un carico leggero.
+  // IL CRUNCH AL CAVO HA I KG (Ste, 21/10/2026): "il crounch e' cable crouch
+  // quindi e' con i kg comunque". Quindi l'addome ha la sua scala, e non viene
+  // piu' trattato come un movimento in ripetizioni.
+  addome: {
+    multiplo: 0.4, ingressoMultiplo: 0.17, fonte: 'stima',
+    nota: 'Crunch al cavo, PER LATO: tetto 0,4x il corpo per lato, ingresso 0,17x, come il fly al cavo. E’ una stima: i numeri veri li scrive Ste dal suo app.',
+  },
   core: {
-    multiplo: 0, ingressoMultiplo: 0, fonte: 'nessuno',
-    nota: 'Crunch e simili: qui i kg non esistono, si contano le ripetizioni.',
+    multiplo: 0.4, ingressoMultiplo: 0.17, fonte: 'stima',
+    nota: 'Crunch al cavo, PER LATO: tetto 0,4x il corpo per lato, ingresso 0,17x, come il fly al cavo. E’ una stima: i numeri veri li scrive Ste dal suo app.',
   },
   corpo_libero: {
     multiplo: 0, fonte: 'nessuno',

@@ -938,7 +938,7 @@ test('V22. le leve: il conto torna e i numeri non sono nonsense', async () => {
   const senzaScala = Object.keys(L.LEVE)
     .filter((m) => !(V.VALORI_MOVIMENTO[m] && V.VALORI_MOVIMENTO[m].multiplo))
     .filter((m) => !variantiCoperte.some((v) => m.endsWith(v) || m.includes(v)))
-    .filter((m) => m !== 'addome');   // l'addome si conta in ripetizioni, non in kg
+    ;   // l'addome ha i kg (il crunch al cavo): la sua scala c'e'
   assert.deepEqual(senzaScala, [],
     'ci sono leve senza un tetto corrispondente: il movimento non avrebbe un tetto '
     + `possibile. ${senzaScala.join(', ')}`);

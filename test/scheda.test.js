@@ -163,7 +163,7 @@ test('i dropset sono gia\' previsti solo dove serve (wrist curl)', () => {
 
 test('gli esercizi assistiti sono riconosciuti come assistiti', () => {
   const assistiti = ESERCIZI.filter((e) => !convenzioneMisuraCarico(e.convenzione)).map((e) => e.id);
-  assert.deepEqual(assistiti.sort(), ['ex-cable-crunch', 'ex-dips', 'ex-pull-ups']);
+  assert.deepEqual(assistiti.sort(), ['ex-dips', 'ex-pull-ups']);
 });
 
 test('lo snapshot della scheda e\' completo e ordinato', () => {
