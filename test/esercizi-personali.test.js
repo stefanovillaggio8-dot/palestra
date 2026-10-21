@@ -159,3 +159,31 @@ test('P10. il vocabolario dell\'app è pubblico e ispezionabile', () => {
     assert.ok(conosciute.has(p), 'deve conoscere "' + p + '"');
   }
 });
+
+// L'ESERCIZIO CHE HA CAMBIATO NOME (Ste, 21/10/2026).
+//
+// "sostituisci il nome bodyweight overhead tricep extension con one arm overhead tricep
+// extension". L'esercizio sta nei DATI di Ste (l'avevo tolto dal catalogo il 18/10),
+// quindi il nome glielo rinomino sul dispositivo: id uguale, cosi' le serie vecchie
+// restano attaccate all'esercizio giusto, e nessun numero viene toccato.
+test('M25. l esercizio col nome nuovo, e il Rank che non cambia', async () => {
+  const { nuovoNomeEsercizio, RINOMINE } = await import('../src/esercizi-personali.js');
+  const { classificaEsercizio } = await import('../src/esercizi-classificatore.js');
+
+  assert.equal(nuovoNomeEsercizio('Bodyweight Overhead Tricep Extension'),
+    'One Arm Overhead Tricep Extension', 'il nome vecchio va rinominato');
+  assert.equal(nuovoNomeEsercizio('One Arm Overhead Tricep Extension'), null,
+    'il nome nuovo non si rinomina da solo');
+  assert.equal(nuovoNomeEsercizio('Chest Press'), null,
+    'gli altri esercizi non si toccano');
+  assert.ok(Object.keys(RINOMINE).length >= 1, 'le rinomine stanno in un posto solo');
+
+  // IL PUNTE ESSENZIALE: col nome nuovo l'esercizio deve restare "a corpo del
+  // corpo". Se no, il Rank cambierebbe da solo, e il peso che la macchina ti toglie
+  // non e' un peso che l'atleta spinge.
+  assert.equal(classificaEsercizio({ nome: 'One Arm Overhead Tricep Extension' }).livello,
+    'assistito',
+    'col nome nuovo l esercizio deve restare assistito (a corpo del corpo col cavo)');
+  assert.equal(classificaEsercizio({ nome: 'Bodyweight Overhead Tricep Extension' }).livello,
+    'assistito', 'e anche col nome vecchio');
+});

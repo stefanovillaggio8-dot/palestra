@@ -292,7 +292,7 @@ const NOMI_PROVA = [
   'Scott Bench Curl seduto al contrario', 'Single Arm Tricep Pushdown',
   'Seated Leg Curl', 'Smith Machine Incline Bench Press', 'Seated Cable Row',
   'Chest Supported Dumbbell Shrug', 'Sled Press Calf Raise', 'Single Leg Press',
-  'One Arm Dumbbell Preacher Curl', 'Bodyweight Overhead Tricep Extension',
+  'One Arm Dumbbell Preacher Curl', 'One Arm Overhead Tricep Extension',
   'One Arm Cable Reverse Fly', 'Pull Ups', 'Dips', 'Wrist Curl',
   'Iso-Lateral Row', 'Lat Pulldown (lats)', 'Dumbbell Lateral Raise',
   'Incline Single Arm Pulldown',
@@ -713,7 +713,7 @@ test("Z14. niente muscoli accenti che non lavorano, e niente secondari fantasma"
     ['Dumbbell Lateral Raise', 'trapezio'],
     ['Single Arm Tricep Pushdown', 'deltoide_posteriore'],
     ['Cable Overhead Tricep Extension', 'deltoide_posteriore'],
-    ['Bodyweight Overhead Tricep Extension', 'deltoide_posteriore'],
+    ['One Arm Overhead Tricep Extension', 'deltoide_posteriore'],
     ['Cable Fly', 'deltoide_fronte'],
   ];
   for (const [nome, gruppo] of NIENTE) {

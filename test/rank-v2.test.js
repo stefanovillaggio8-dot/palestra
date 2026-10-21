@@ -379,7 +379,21 @@ test('V15. i kg ci sono, ma solo dove ci sono davvero (16/10/2026)', () => {
   }
 
   // il movimento senza kg deve ANCORA dire il perché, in chiaro
-  const senzaKg = ESERCIZI.find((e) => /bodyweight overhead tricep extension/i.test(e.nome));
+  //
+  // QUI C'ERA UN BUCO (21/10/2026): il test cercava l'esercizio col nome vecchio nel
+  // CATALOGO, ma il catalogo non lo contiene piu' (l'ho tolto il 18/10 e Ste il
+  // 21/10 ha rinominato l'esercizio che aveva nei SUOI dati). Quindi la ricerca
+  // tornava vuota e il test passava senza verificare niente: un test che non guarda
+  // niente non guarda niente. Adesso l'esercizio e' costruito qui, con lo stesso id
+  // di quello che sta nel database di Ste.
+  const senzaKg = {
+    id: 'ex-bodyweight-overhead-tricep',
+    nome: 'One Arm Overhead Tricep Extension',
+    gruppo: 'One Arm Overhead Tricep Extension',
+    convenzione: 'ripetizioni',
+    misura: 'ripetizioni',
+    tipo: 'standard',
+  };
   const r = v2.valutaEsercizio({ esercizio: senzaKg, serie: [], pesoCorporeo: 66 });
   assert.equal(r.valido, false);
   assert.match(r.motivo, /ripetizioni/, 'deve dire PERCHÉ non può valutarlo in kg');

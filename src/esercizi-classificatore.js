@@ -271,11 +271,18 @@ const MOVIMENTI = [
     // del corpo più gli zavorri, e la macchina non c'è.
     //
     // Quindi il nome non decide: decide la convenzione. E l'unico esercizio
-    // davvero assistito della scheda è il Bodyweight Overhead Tricep Extension,
-    // che sta al cavo: lì il numero è il peso che ti viene TOLTO, e lo prende
-    // dalla parola "bodyweight" qui sotto.
+    // davvero assistito della scheda è l'One Arm Overhead Tricep Extension, che sta
+    // al cavo: lì il numero è il peso che ti viene TOLTO, e lo prende dalla parola
+    // "bodyweight" qui sotto.
+    //
+    // Ste (21/10/2026) l'ha rinominato: "sostituisci il nome bodyweight overhead
+    // tricep extension con one arm overhead tricep extension". Il nome nuovo non ha
+    // più la parola "bodyweight", quindi senza qui l'esercizio smetterebbe di
+    // essere riconosciuto come esercizio a corpo del corpo, e il Rank cambierebbe:
+    // la parola nuova è messa QUI apposta.
     parole: ['corpo libero', 'bodyweight', 'auzhang', 'scorpione', 'handstand',
-      'planche', 'handstand push', 'wall sit'],
+      'planche', 'handstand push', 'wall sit',
+      'one arm overhead tricep extension'],
   },
 ];
 
@@ -546,7 +553,13 @@ export function classificaEsercizio({
   // "Bodyweight Overhead Tricep Extension" contiene "tricep", ma È un esercizio
   // col peso del corpo: senza questo controllo finiva come isolamento dei
   // tricipiti, che È sbagliato (si contano le ripetizioni).
-  const dettoCorpo = conta(testoLungo, 'bodyweight') + conta(testoLungo, 'corpo libero')
+  //
+  // Ste (21/10/2026) l'ha rinominato "One Arm Overhead Tricep Extension": il nome
+  // nuovo non ha più la parola "bodyweight", ma È lo stesso esercizio. Senza la frase
+  // nuova qui sotto, il Rank cambierebbe da solo e l'app conterebbe i kg di un
+  // esercizio in cui i kg non li spinge nessuno: te li toglie la macchina.
+  const FRASI_CORPO_LIBERO = ['bodyweight', 'corpo libero', 'one arm overhead tricep extension'];
+  const dettoCorpo = FRASI_CORPO_LIBERO.reduce((n, f) => n + conta(testoLungo, f), 0)
     + (convenzione === 'corpo_libero' || convenzione === 'assistenza' ? 1 : 0);
   const conCarico = conta(testoLungo, 'bilanciere') + conta(testoLungo, 'barbell')
     + conta(testoLungo, 'manubri') + conta(testoLungo, 'dumbbell') + conta(testoLungo, 'carico');
@@ -558,7 +571,7 @@ export function classificaEsercizio({
       confidenza: 'alta',
       pesoModificatori: 0,
       motivi: ['è scritto che è col peso del corpo: si contano le ripetizioni, non i kg'],
-      paroleRiconosciute: ['bodyweight'],
+      paroleRiconosciute: FRASI_CORPO_LIBERO.filter((f) => conta(testoLungo, f) > 0),
       riconosciutoDa: 'corpo_libero',
     };
   }

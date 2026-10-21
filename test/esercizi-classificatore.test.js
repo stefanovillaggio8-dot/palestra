@@ -50,10 +50,12 @@ test('C4. "assistito" vuol dire che la MACCHINA ti aiuta, non che usi il corpo',
   // Ste (13/10/2026): "nelle trazioni non vengo manco assistito, mi appendo e
   // basta". Quindi nemmeno "trazioni assistite" è assistito: in palestra le
   // trazioni non si fanno assistite. L'unico assistito vero della scheda è
-  // l'esercizio al cavo, che arriva qui dalla parola "bodyweight".
+  // l'esercizio al cavo, che arriva qui dalla parola "bodyweight" (e dalla parola
+  // nuova "one arm overhead tricep extension", perche' Ste lo ha rinominato il
+  // 21/10/2026 e il nome nuovo non ha piu' la parola "bodyweight").
   assert.equal(liv('Trazioni assistite'), 'composto',
     'le trazioni non si fanno assistite: ci si appendo e basta');
-  assert.equal(liv('Bodyweight Overhead Tricep Extension'), 'assistito',
+  assert.equal(liv('One Arm Overhead Tricep Extension'), 'assistito',
     'questo invece è assistito vero: al cavo, il numero è il peso che ti viene tolto');
   assert.equal(liv('Pull Ups'), 'composto',
     'le trazioni col peso del corpo non sono assistite: più kg è più difficile');
@@ -222,7 +224,7 @@ test('C14. riconosce 59 nomi veri di palestra, italiano e inglese', () => {
   ['Shrug sulla macchina', 'composto'],
   ['Scrollate con bilanciere', 'composto'],
   ['Seated Dumbbell Shoulder Press', 'composto'],
-  ['Bodyweight Overhead Tricep Extension', 'assistito'],
+  ['One Arm Overhead Tricep Extension', 'assistito'],
   ['Spinte in basso', 'composto'],
   ];
   for (const [nome, atteso] of casi) {

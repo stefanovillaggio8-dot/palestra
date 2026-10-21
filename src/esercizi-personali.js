@@ -235,4 +235,50 @@ export async function imparaParola(accountId, parola, livello) {
   return riga;
 }
 
+/**
+ * UN ESERCIZIO HA CAMBIATO NOME (Ste, 21/10/2026).
+ *
+ * "sostituisci il nome bodyweight overhead tricep extension con one arm overhead
+ * tricep extension".
+ *
+ * L'esercizio l'avevo tolto dal CATALOGO il 18/10/2026, ma la riga è rimasta nel
+ * database di Ste: quindi il nome nuovo glielo metto qui, sul dispositivo, e non
+ * nel catalogo (metterlo nel catalogo aggiungerebbe di nuovo a tutti un esercizio
+ * che Ste aveva chiesto di togliere).
+ *
+ * TRE COSE CHE NON SI TOCCANO:
+ *  - l'id resta lo stesso, cosi le serie già salvate restano attaccate all'esercizio
+ *    giusto e nessuno storico si sposta;
+ *  - nessun numero viene toccato (carico, ripetizioni, date);
+ *  - la convenzione resta quella già decisa: è un esercizio a corpo del corpo.
+ */
+export const RINOMINE = {
+  'bodyweight overhead tricep extension': 'One Arm Overhead Tricep Extension',
+};
+
+/** Il nome nuovo di quell'esercizio, o null se il nome non cambia. */
+export function nuovoNomeEsercizio(nome) {
+  const chiave = String(nome || '').trim().toLowerCase();
+  return RINOMINE[chiave] || null;
+}
+
+/**
+ * Rinomina gli esercizi che hanno cambiato nome.
+ *
+ * Si può chiamare ogni volta all'avvio: è idempotente, perché dopo la prima volta
+ * nessuna riga ha più il nome vecchio. Non serve una bandierina: se il browser
+ * perde il localStorage, la rinomina viene rifatta e basta.
+ */
+export async function rinominaEserciziCambiati() {
+  const righe = await db.tutti('esercizi');
+  const cambiati = [];
+  for (const e of righe || []) {
+    const nuovo = nuovoNomeEsercizio(e.nome);
+    if (!nuovo) continue;
+    await db.salva('esercizi', { ...e, nome: nuovo, gruppo: nuovo });
+    cambiati.push({ da: e.nome, a: nuovo });
+  }
+  return cambiati;
+}
+
 export { nuovoId, stimaMassimo };

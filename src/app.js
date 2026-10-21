@@ -45,7 +45,7 @@ import { parteDiMuscolo, AVVERTIMENTO_PARTI, stessoLavoro, livelloConMuscolo, or
 // omino con il muscolo allenato colorato di viola se possibile, non di giallo".
 import { figurino as figurinoMuscolo, FOTO_L, FOTO_A, ETICHETTE as ETICHETTE_OMINO }
   from './mappa-muscoli.js';
-import { quantoEPesantePerTe, correggiLivello, dimenticaLivello, livelloImparato, paroleDaChiedere, imparaParola } from './esercizi-personali.js';
+import { quantoEPesantePerTe, correggiLivello, dimenticaLivello, livelloImparato, paroleDaChiedere, imparaParola , rinominaEserciziCambiati } from './esercizi-personali.js';
 import { controllaAggiornamento, applicaAggiornamento as prendiVersioneNuova, registraAggiornamentoRapido } from './update-via-sw.js';
 import {
   pesoAttuale, pesiCronologici, segnaPeso, togliPeso, pesoCorporeoValido,
@@ -292,6 +292,15 @@ async function avvia() {
     const sistematiZavorri = await sistemaZavorriComeZavorri();
     if (sistematiZavorri.length) await ricaricaTutto();
 
+    // Un esercizio ha cambiato nome (Ste, 21/10/2026). Solo il nome: l'id resta,
+    // cosi le serie vecchie restano attaccate all'esercizio giusto.
+    const rinominati = await rinominaEserciziCambiati();
+    if (rinominati.length) {
+      await ricaricaTutto();
+      avviso(rinominati.map((r) => r.a).join(' e ') + ': adesso l\'app lo chiama cosi\'. '
+        + 'I tuoi numeri non sono cambiati.', { tipo: 'ok' });
+    }
+
     sync.iscriviti(() => { aggiornaStatoSalvataggio(); });
     // il peso corporeo serve al Rank: lo carico in memoria subito all'avvio
     await aggiornaPesoInMemoria();
@@ -501,7 +510,7 @@ async function ricaricaTutto() {
  *   - il nome deve essere uno di quelli che si fanno col peso del corpo più
  *     zavorra;
  *   - la nota personale deve dire "zavorra".
- *   Serve tutto e tre. Il "Bodyweight Overhead Tricep Extension", che al cavo
+ *   Serve tutto e tre. Il "One Arm Overhead Tricep Extension", che al cavo
  *   è assistenza vera, non ha nessuna delle tre condizioni e resta com'è.
  *
  * NON si tocca nessun numero: solo l'etichetta di che cosa misuri. Le serie,
