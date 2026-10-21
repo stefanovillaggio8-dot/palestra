@@ -560,7 +560,7 @@ export const VALORI_MOVIMENTO = {
   //
   // L'ingresso tiene la proporzione di prima, poco più di un terzo del tetto.
   tricipiti_alta: {
-    multiplo: 0.62, ingressoMultiplo: 0.23, fonte: 'prestazione',
+    multiplo: 0.62, ingressoMultiplo: 0.16, fonte: 'prestazione',
     nota: 'Estensioni sopra la testa al cavo, PER LATO: tetto 0,62x, ingresso 0,23x. Differenza anatomica voluta da Ste il 15/10/2026, "ma le estensioni sopra la testa non lavorano il capo lungo del tricipite? non è come il pushdown": sopra la testa lavora il capo lungo, che è l\'unico che attraversa la spalla e si accorcia per tutta la sua corsa mentre il gomito si stende (circa 0,85 del tricipite), mentre nel pushdown il braccio è al fianco e quel capo è svantaggiato (circa 0,65). Il suo braccio di leveraggio però è il peggiore del corpo (1,9 cm contro 2,8), perché con il braccio in alto il tendine tira quasi in parallelo all\'omero: le due cose si compensano quasi. IL TETTO è 0,62x e sta SOPRA quello del pushdown (0,44x), non sotto: il rapporto meccanico tra i due è 0,89 e darebbe 0,39x, ma Ste con questo esercizio mette 60 kg nel carrello, cioè 30 kg sentiti per lato, e su un tetto da 26,5 kg sarebbero sopra il tetto con OLYMPIAN a ogni costo. Quindi su questa coppia il rapporto meccanico è sostituito da due numeri che poggiano ognuno su un fatto, e il risultato è che i due tricipiti di Ste stanno entrambi al 70% della scala: 30 kg sentiti qui e 21 kg nel pushdown. Prima stavano sulla stessa scala e la differenza di muscolo non si vedeva da nessuna parte.',
   },
   gambe_isolamento: {
