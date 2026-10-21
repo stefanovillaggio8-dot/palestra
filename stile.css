@@ -764,6 +764,41 @@ body.scorso .banda-cronometro .bot.grande {
   background: var(--viola); color: #16121f; border-color: var(--viola);
 }
 /* IL BOTTONE UNICO DEI FILTRI (Ste, 21/10/2026) */
+/* LA PROVA DI UN ESERCIZIO (Ste, 21/10/2026)
+   "quando scrivo le scelte non devono apparire li ma e' come una barra di ricerca" e
+   "quando faccio calcola il rank deve farmi un animazione bella e farmi spunta il rank a
+   tutto schermo". */
+.lista-scelte-suggerite { display: flex; flex-direction: column; gap: 4px; margin: 8px 0 2px; }
+.bot.voce-suggerita {
+  text-align: left; justify-content: flex-start; min-height: 34px;
+  padding: 6px 12px; font-size: .86rem; font-weight: 800;
+}
+.riga-campi-prova { display: flex; gap: 12px; flex-wrap: wrap; margin: 10px 0; }
+.campo-prova { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.etichetta-prova {
+  font-size: .55rem; font-weight: 900; letter-spacing: .08em; color: var(--testo-3);
+}
+/* il rank a tutto schermo */
+.sfondo-prova {
+  position: fixed; inset: 0; z-index: 120;
+  background: rgba(5, 4, 8, .93);
+  display: flex; align-items: center; justify-content: center; padding: 22px;
+  animation: dialogo-entra .28s ease-out;
+  backdrop-filter: blur(6px);
+}
+.pannello-prova {
+  width: 100%; max-width: 420px; text-align: center;
+  background: var(--card); border: 1px solid var(--bordo); border-radius: 20px;
+  padding: 26px 22px 20px;
+  animation: numero-pulse .5s ease-out;
+}
+.pannello-prova-titolo {
+  font-size: 2.6rem; font-weight: 900; letter-spacing: .02em; line-height: 1.05;
+  color: var(--viola); margin-bottom: 12px;
+}
+.pannello-prova .nota { margin: 4px 0; }
+.pannello-prova .bot { margin-top: 18px; }
+
 .bot.bottone-filtri {
   align-self: flex-start;
   min-height: 34px; padding: 5px 14px; margin: 10px 0 2px;

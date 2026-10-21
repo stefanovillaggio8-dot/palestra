@@ -5790,30 +5790,71 @@ function vistaRank(zona) {
         + 'cambialo se ti sei pesato di nuovo.',
     }));
 
-    // il campo per cercare l'esercizio: con l'elenco sotto, il telefono propone
-    // i nomi mentre scrivi
-    const elencoId = 'elenco-esercizi-prova';
-    const datalist = el('datalist', { id: elencoId },
-      (V.esercizi || []).map((e) => el('option', { value: e.nome })));
-    contenitore.appendChild(datalist);
+    // LA RICERCA (Ste, 21/10/2026)
+    //
+    // "quando scrivo le scelte non devono apparire li ma e' come una barra di ricerca:
+    // se scrivo la s spuntano quelli che iniziano con la s, se dopo la s scrivo t mi
+    // spuntano quelli che iniziano con st"
+    //
+    // Quindi niente l'elenco del browser (quello che spuntava sotto, con la barretta
+    // "Inserisci info"): qui sotto c'e' una lista mia, che si accorcia mentre scrivi.
     const cerca = el('input', {
-      type: 'text', class: 'campo-testo', list: elencoId,
+      type: 'text', class: 'campo-testo',
       placeholder: 'Cerca l\'esercizio (per nome)...', autocomplete: 'off',
     });
+    const scelte = el('div', { class: 'lista-scelte-suggerite' });
     contenitore.appendChild(el('div', { class: 'riga-campo' }, [cerca]));
+    contenitore.appendChild(scelte);
 
+    // I CAMPI: con l'etichetta VISTA (il peso, le ripetizioni, il peso corporeo)
     const pesoCampo = campoNumero(null, { etichetta: 'PESO', onCambio: () => { } });
     const repCampo = campoNumero(null, { etichetta: 'REPS', onCambio: () => { } });
     const corpCampo = campoNumero(pesoCorporeoOra() || 66, { etichetta: 'PESO CORPOREO', onCambio: () => { } });
-    contenitore.appendChild(el('div', { class: 'riga-pulsanti' }, [pesoCampo, repCampo, corpCampo]));
+    const campo = (nodo, etichetta) => el('div', { class: 'campo-prova' }, [
+      nodo, el('span', { class: 'etichetta-prova', testo: etichetta }),
+    ]);
+    contenitore.appendChild(el('div', { class: 'riga-campi-prova' }, [
+      campo(pesoCampo, 'KG'), campo(repCampo, 'REPS'), campo(corpCampo, 'PESO CORPOREO'),
+    ]));
 
     const esito = el('div');
     contenitore.appendChild(esito);
 
+    let scelto = null;
+    const disegnaScelte = () => {
+      svuota(scelte);
+      const testo = (cerca.value || '').trim().toLowerCase();
+      const nomi = (V.esercizi || []).map((e) => e.nome);
+      // comincia per quello che scrivi: se scrivi "st", spuntano quelli che iniziano con "st"
+      const trovati = testo
+        ? nomi.filter((n) => n.toLowerCase().startsWith(testo))
+        : nomi.slice(0, 8);
+      if (!trovati.length) {
+        scelte.appendChild(el('p', { class: 'nota', testo: 'Nessun esercizio comincia cosi.' }));
+        return;
+      }
+      for (const n of trovati.slice(0, 12)) {
+        scelte.appendChild(bottone(n, {
+          onClick: () => {
+            cerca.value = n;
+            scelto = (V.esercizi || []).find((x) => x.nome === n) || null;
+            svuota(scelte);
+          },
+          classe: 'voce-scelta voce-suggerita',
+        }));
+      }
+    };
+    cerca.addEventListener('input', () => { scelto = null; disegnaScelte(); });
+    disegnaScelte();
+
+    // IL RANK A TUTTO SCHERMO (Ste, 21/10/2026)
+    //
+    // "quando faccio calcola il rank deve farmi un animazione bella e farmi spunta il
+    // rank a tutto schermo"
     const calcola = () => {
       svuota(esito);
-      const nome = (cerca.value || '').trim();
-      const e = (V.esercizi || []).find((x) => x.nome.toLowerCase() === nome.toLowerCase());
+      const e = scelto
+        || (V.esercizi || []).find((x) => x.nome.toLowerCase() === (cerca.value || '').trim().toLowerCase());
       if (!e) {
         esito.appendChild(el('p', { class: 'nota', testo: 'Scegli un esercizio dall\'elenco.' }));
         return;
@@ -5828,13 +5869,29 @@ function vistaRank(zona) {
       const serie = [{ peso, ripetizioni: rip, stato: 'fatta', ordine: 1 }];
       const record = recordEsercizio(serie, e, null, corp > 0 ? corp : null);
       const rango = record && record.rank ? record.rank : null;
-      esito.appendChild(el('div', { class: 'blocco' }, [
-        el('h3', { testo: e.nome }),
-        el('p', { class: 'nota', testo: peso + ' kg x ' + rip + (corp > 0 ? ' | peso corporeo ' + corp + ' kg' : '') }),
-        el('p', { class: 'nota-nota grande', testo: rango ? rango.nome : (record && record.motivo ? record.motivo : 'Non valutabile') }),
-        record && record.testo ? el('p', { class: 'nota', testo: record.testo }) : null,
-        record && record.lp ? el('p', { class: 'nota', testo: 'LP: ' + Math.round(record.lp) }) : null,
-      ].filter(Boolean)));
+      const kgReali = record && record.caricoReale !== null && record.caricoReale !== undefined
+        ? record.caricoReale : peso;
+      const testo = [
+        e.nome,
+        peso + ' kg x ' + rip + (corp > 0 ? ' | peso corporeo ' + corp + ' kg' : ''),
+        rango ? rango.nome : (record && record.motivo ? record.motivo : 'Non valutabile'),
+        record && record.lp ? 'LP: ' + Math.round(record.lp) : '',
+        kgReali !== peso ? 'il peso che conta è ' + kgReali + ' kg' : '',
+        record && record.testo ? record.testo : '',
+        record && record.sogliaAttuale !== undefined && record.sogliaSuccessiva
+          ? 'la prossima soglia è a ' + record.sogliaSuccessiva + ' kg' : '',
+      ].filter(Boolean);
+
+      // il pannello a tutto schermo, con l’animazione che c’è già per i dialoghi
+      const sfondo = el('div', { class: 'sfondo-prova' });
+      const pannello = el('div', { class: 'pannello-prova' }, [
+        el('div', { class: 'pannello-prova-titolo', testo: rango ? rango.nome : 'Non valutabile' }),
+        ...testo.slice(1).map((t) => el('p', { class: 'nota', testo: t })),
+        bottone('Chiudi', { onClick: () => sfondo.remove(), classe: 'principale grande' }),
+      ]);
+      sfondo.appendChild(pannello);
+      sfondo.addEventListener('click', (ev) => { if (ev.target === sfondo) sfondo.remove(); });
+      document.body.appendChild(sfondo);
     };
     contenitore.appendChild(el('div', { class: 'riga-pulsanti' }, [
       bottone('Calcola il Rank', { onClick: calcola, classe: 'principale' }),
