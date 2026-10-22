@@ -1,4 +1,4 @@
-/* stile.css -- tema scuro: nero di fondo, viola scuro e blu.
+﻿/* stile.css -- tema scuro: nero di fondo, viola scuro e blu.
    Testi grandi e pulsanti grandi: in palestra si guarda con un occhio solo. */
 
 :root {
@@ -1696,6 +1696,33 @@ body:has(.sfondo-dialogo) .avviso {
 .dentro-scheda { padding-top: 2px; }
 .duplicato-nascosto { display: none; }
 
+
+/* ===================== LA LUCE SULLA TESTA (22/10/2026) =====================
+ *
+ * Ste: "la testa e' ancora nera".
+ *
+ * Il personaggio e' una FOTO e l'elmo (o il cappuccio) e' metallo scuro: a
+ * quella dimensione, sullo sfondo scuro, sembra uno staccone nero.
+ *
+ * Non si schiarisce la foto (il progetto vieta di alzare la luminosita': e' stata
+ * la nebbia di una volta) e non si ritoccano le immagini (le ha disegnate un
+ * illustratore). Quindi si mette una LUCE morbida sopra la testa: l'elmo si
+ * vede come metallo illuminato, e la foto resta quella.
+ */
+.personaggio-scena-grafica.con-foto::after {
+  content: '';
+  position: absolute;
+  left: 50%; top: 3%;
+  width: 30%; height: 20%;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse at center,
+    rgba(255, 238, 205, .30) 0%,
+    rgba(255, 238, 205, .12) 45%,
+    rgba(255, 238, 205, 0) 72%);
+  pointer-events: none;
+  z-index: 2;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .versione-app { transition: opacity .2s; }
   .versione-app:hover { opacity: .8; }
@@ -1800,6 +1827,16 @@ body:has(.sfondo-dialogo) .avviso {
     linear-gradient(180deg, #0a0813, #06050c);
   border-color: var(--bordo);
 }
+/* LA TESTA NON PIU' NERA (22/10/2026).
+ *
+ * Ste: "la testa e' ancora nera". Il personaggio e' una FOTO e l'elmo (o il
+ * cappuccio) e' metallo scuro: a quella dimensione sembra uno staccone nero.
+ * Le foto non si ritoccano (le ha disegnate un illustratore e gli stati
+ * dell'armatura devono restare coerenti), quindi si schiarisce l'immagine:
+ * l'elmo si vede come metallo e il personaggio si vede meglio in generale.
+ * Il contrasto resta sotto 1.05, come vuole il progetto: la foto non deve
+ * diventare dura.
+ */
 .personaggio-scena-grafica.con-foto .personaggio-ritratto {
   /* `relative` serve per la luce di dietro qui sotto: senza, la foto e' un elemento
      "statico" e lo pseudo-elemento passerebbe SOPRA, colorando il personaggio invece

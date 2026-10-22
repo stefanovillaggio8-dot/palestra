@@ -6116,7 +6116,7 @@ function vistaRank(zona) {
       const testo = [
         e.nome,
         peso + ' kg x ' + rip + (corp > 0 ? ' | peso corporeo ' + corp + ' kg' : ''),
-        rango ? rango.nome : (record && record.motivo ? record.motivo : 'Non valutabile'),
+        rango ? rango.nome + (rango.divisione ? ' ' + rango.divisione.nome : '') : (record && record.motivo ? record.motivo : 'Non valutabile'),
         record && record.lp ? 'LP: ' + Math.round(record.lp) : '',
         kgReali !== peso ? 'il peso che conta è ' + kgReali + ' kg' : '',
         record && record.testo ? record.testo : '',
@@ -6127,7 +6127,7 @@ function vistaRank(zona) {
       // il pannello a tutto schermo, con l’animazione che c’è già per i dialoghi
       const sfondo = el('div', { class: 'sfondo-prova' });
       const pannello = el('div', { class: 'pannello-prova' }, [
-        el('div', { class: 'pannello-prova-titolo', testo: rango ? rango.nome : 'Non valutabile' }),
+        el('div', { class: 'pannello-prova-titolo', testo: rango ? rango.nome + (rango.divisione ? ' ' + rango.divisione.nome : '') : 'Non valutabile' }),
         ...testo.slice(1).map((t) => el('p', { class: 'nota', testo: t })),
         bottone('Chiudi', { onClick: () => sfondo.remove(), classe: 'principale grande' }),
       ]);
