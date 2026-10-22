@@ -66,18 +66,20 @@ test('Z2. il corpo si SOMMA ai zavorri, non si sottrae', () => {
     + 'sono il contrario');
 });
 
-test('Z3. senza i kg di zavorri la serie non vale niente', () => {
+test('Z3. a corpo libero vale il peso del corpo, non zero', () => {
   const prof = profiloPerPesoCorporeo(profiloEsercizio(zavorri), 85);
   // senza i kg non c'è niente da valutare: il solo numero di ripetizioni non dice
   // quanto hai tirato, perché sulle trazioni conta il peso
   const senzaKg = punteggioSerie({ ripetizioni: 5, stato: 'fatta', peso_corpo: 85 }, prof);
-  assert.equal(senzaKg.valido, false, 'senza i kg di zavorri non si valuta');
-  assert.match(senzaKg.motivo, /zavorri/, 'e si sa perché');
-  // zero zavorri è trazione a corpo libero: non è la stessa prestazione, ma non è
-  // nemmeno un numero da inventare
+  assert.equal(senzaKg.valido, true,
+    'a corpo libero la serie vale: stai sollevando il tuo corpo');
+  assert.ok(senzaKg.punteggio > 98 && senzaKg.punteggio < 100,
+    `conta il peso del corpo (85 kg) a 5 ripetizioni: ${senzaKg.punteggio}`);
+  // zero zavorri e' la stessa cosa di nessuna zavorra: corpo libero.
   const conZero = punteggioSerie({ peso: 0, ripetizioni: 5, stato: 'fatta', peso_corpo: 85 }, prof);
-  assert.equal(conZero.valido, false, 'zero zavorri non è una prestazione pesata');
-});
+  assert.equal(conZero.valido, true, 'zero zavorri è corpo libero, non una serie vuota');
+  assert.equal(conZero.punteggio, senzaKg.punteggio,
+    'zero scritto e zero mancante devono valere lo stesso');});
 
 test('Z4. si usa il peso del GIORNO, non quello di adesso', () => {
   // Il peso è salvato nella serie al momento in cui l'hai fatta. Se ti sei pesato

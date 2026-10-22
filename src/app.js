@@ -6124,29 +6124,24 @@ function vistaRank(zona) {
       const divisione = record && record.divisione ? record.divisione : null;
       const kgReali = record && record.caricoReale !== null && record.caricoReale !== undefined
         ? record.caricoReale : peso;
-      // IL PUNTEGGIO DI FORZA (22/10/2026): il massimale stimato diviso per il
-      // peso corporeo elevato a 0,67. E' il numero che rende confrontabili due
-      // persone di taglie diverse, e quello che la scala allometrica usa.
+      // IL PUNTEGGIO DI FORZA (22/10/2026): la serie vera divisa per il peso
+      // corporeo elevato a 0,67. Il Rank non passa pi\u00f9 da un massimale
+      // stimato: contano i kg e le ripetizioni che hai fatto davvero.
       //
-      // IL NUMERO VIENE DAL MOTORE, non da qui: il modello (rank-v3) stima il
-      // massimale con Epley, conta il corpo nei dip e nelle trazioni, e dice
-      // anche se la stima e' affidabile. Prima questa riga si calcolava da sola,
-      // con la formula scritta a mano, e su un esercizio col peso del corpo
-      // guardava i kg aggiunti invece del carico vero: era un secondo calcolo
-      // del numero, e la regola del progetto e' che il numero ha UN posto solo.
+      // IL NUMERO VIENE DAL MOTORE, non da qui: rank-v3 conta il corpo nei dip
+      // e nelle trazioni e applica la curva delle ripetizioni. Prima questa riga
+      // si calcolava da sola, con la formula scritta a mano, e su un esercizio
+      // col peso del corpo guardava i kg aggiunti invece del carico vero: era un
+      // secondo calcolo del numero, e la regola del progetto e' che il numero ha
+      // UN posto solo.
       const corpPerForza = (record && record.pesoCorporeo) || (corp > 0 ? corp : null);
       const forzaRelativa = record && record.forzaRelativa !== undefined && record.forzaRelativa !== null
         ? record.forzaRelativa
         : null;
-      const massimaleInfo = record && record.massimale !== undefined && record.massimale !== null
-        ? record.massimale
-        : (kgReali > 0 && rip > 0 ? kgReali * (1 + rip / 30) : null);
-      const stimaIncerta = record && record.massimaleAffidabile === false;
       const testo = [
           forzaRelativa !== null
             ? 'forza relativa ' + (Math.round(forzaRelativa * 10) / 10)
-              + ' (1RM ' + (Math.round(massimaleInfo * 10) / 10) + ' kg su ' + corpPerForza + ' kg^0,67)'
-              + (stimaIncerta ? ', stima poco affidabile sopra le 12 ripetizioni' : '')
+              + ' (' + kgReali + ' kg x ' + rip + ' rip su ' + corpPerForza + ' kg^0,67)'
             : '',
         e.nome,
         peso + ' kg x ' + rip + (corp > 0 ? ' | peso corporeo ' + corp + ' kg' : ''),
@@ -6408,13 +6403,14 @@ async function vistaEsercizio(zona, esercizioId) {
     ]));
   }
 
-  // spiego sempre come sono fatte le soglie di questo esercizio, e dico se il
-  // peso corporeo lo sta cambiando
+  // Il peso corporeo non sposta più le soglie: entra nel punteggio (1RM / peso^0,67).
+  // Quindi la riga deve dire che il punteggio e' rapportato al corpo, non che le
+  // soglie cambiano, altrimenti sembra che il Rank sia tarato sul peso di oggi.
   const rigaSoglie = [ETICHETTE_MISURA[profilo.misura]];
   if (profilo.pesoConsiderato) {
-    rigaSoglie.push(`soglie calcolate sul tuo peso: ${formattaNumero(profilo.pesoCorporeo)} kg`);
+    rigaSoglie.push(`prestazione rapportata al tuo peso: ${formattaNumero(profilo.pesoCorporeo)} kg`);
   } else if (profilo.misura === 'kg_reps' || profilo.misura === 'kg_tempo') {
-    rigaSoglie.push('metti il tuo peso nel profilo e le soglie si adattano');
+    rigaSoglie.push('metti il tuo peso nel profilo: senza, il punteggio non tiene conto del tuo corpo');
   }
 // LA RIGA MOSTRA LE SOGLIE CHE TI DANNO IL RANK, TRADOTTE IN PESI CHE SI CARICANO
   // (16/10/2026).

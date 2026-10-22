@@ -1,4 +1,4 @@
-﻿// rank-v2.test.js -- il motore nuovo, provato PRIMA che diventi il Rank vero.
+// rank-v2.test.js -- il motore nuovo, provato PRIMA che diventi il Rank vero.
 //
 // Ste (07/10/2026): "procedi prima creando la struttura e mostrando i nuovi
 // valori/soglie per gli esercizi, senza modificare ancora il codice del Rank".
@@ -399,7 +399,7 @@ test('V15. i kg ci sono, ma solo dove ci sono davvero (16/10/2026)', () => {
   assert.match(r.motivo, /ripetizioni/, 'deve dire PERCHÉ non può valutarlo in kg');
 });
 
-test('V16. l\'app usa il motore NUOVO, e il vecchio non regala pi\' OLYMPIAN', () => {
+test('V16. l\'app usa il motore NUOVO, e il vecchio non regala pi\' OLYMPIAN', async () => {
   // Ste: "non modificare arbitrariamente i Rank gia\' esistenti". Il controllo che
   // faceva questo test era giusto, ma dal 08/10/2026 la situazione e\' rovesciata:
   // il motore VECCHIO e\' quello che regala l\'OLYMPIAN (20 kg per lato di alzate
@@ -420,7 +420,8 @@ test('V16. l\'app usa il motore NUOVO, e il vecchio non regala pi\' OLYMPIAN', (
     `il Rank dell\'app non deve regalare l\'OLYMPIAN su 20 kg per lato di alzate `
     + `laterali, ma dice ${record.rank.nome}`);
   // e il nuovo dice la stessa cosa del motore, perche' l'app passa per lui
-  const nuovo = v2.valutaEsercizio({ esercizio: LAT_RAISE, serie, pesoCorporeo: 66 });
+  const v3 = await import('../src/rank-v3/valutazione.js');
+  const nuovo = v3.valutaPrestazione({ esercizio: LAT_RAISE, serie, pesoCorporeo: 66 });
   assert.equal(record.rank.nome, nuovo.rank.nome,
     'l\'app e il motore nuovo devono dire lo stesso Rank: due sistemi, una risposta');
   // LP puo' differire di 1 per arrotondamenti nel nuovo modello (Epley + allometrico)
@@ -433,9 +434,16 @@ test('V16. l\'app usa il motore NUOVO, e il vecchio non regala pi\' OLYMPIAN', (
   const senzaZavorra = recordEsercizio(
     [{ id: 's', esercizio_id: trazioni.id, stato: 'fatta', peso: null, ripetizioni: 7 }],
     trazioni, null, 66);
-  assert.equal(senzaZavorra.valido, false,
-    'senza i kg di zavorra non c\'è niente da valutare: prima tornava un record vuoto');
-
+  assert.equal(senzaZavorra.valido, true,
+    'le trazioni a corpo libero sono una prestazione valida: conta il peso del corpo');
+  assert.ok(senzaZavorra.rank,
+    'a corpo libero il movimento ha un Rank: non e\' "niente da valutare"');
+  assert.ok(senzaZavorra.score > 3.7 && senzaZavorra.score < 4.0,
+    `lo score usa il corpo totale (66 kg) a 7 ripetizioni: ${senzaZavorra.score}`);
+  assert.match(senzaZavorra.testo, /corpo libero/,
+    'la riga deve dire "corpo libero", non "0 kg di zavorri"');
+  assert.doesNotMatch(senzaZavorra.testo, /0 kg di zavorri/,
+    'e non deve inventare un massimale di zero');
   const conZavorra = recordEsercizio(
     [{ id: 's', esercizio_id: trazioni.id, stato: 'fatta', peso: null, peso_assistenza: 20, ripetizioni: 7 }],
     trazioni, null, 66);
@@ -448,15 +456,12 @@ test('V16. l\'app usa il motore NUOVO, e il vecchio non regala pi\' OLYMPIAN', (
     'le trazioni con i zavorri scritti si valutano col motore NUOVO: il vecchio regalava '
     + 'l\'OLYMPIAN e un massimale calcolato sul totale col corpo');
   assert.ok(conZavorra.rank, 'con i zavorri scritti la trazione ha un Rank');
-  // e il Rank ragiona sui SOLI kg aggiunti (Ste: "il massimale mettilo per i pesi in più
-  // rispetto al mio corpo non in generale"), quindi 20 kg di zavorra non si sommano al
-  // corpo. Il punteggio non è 20 esatto perché 7 ripetizioni non sono 8: il motore le
-  // porta a "ripetizioni piene", e il conto si chiude su 19,48.
-  assert.ok(conZavorra.punteggio > 15 && conZavorra.punteggio < 25,
-    `il punteggio deve venire dai 20 kg AGGIUNTI (qui ${conZavorra.punteggio}), non dal `
-    + 'totale col corpo: con 20 + 66 kg sarebbe stato intorno a 80');
-  assert.ok(conZavorra.punteggio < (20 + 66) * 0.35,
-    'e non può essere il totale col corpo moltiplicato per le ripetizioni');
+  // IL PESO CORPOREO CONTA (Ste, 22/10/2026): il Rank usa il TOTALE, corpo +
+  // zavorra. Sono 86 kg per 7 ripetizioni, non 20: score 5,06 e PLATINUM.
+  assert.ok(conZavorra.punteggio > 4.9 && conZavorra.punteggio < 5.2,
+    `lo score deve usare corpo + zavorra (qui ${conZavorra.punteggio}), non i soli 20 kg`);
+  assert.ok(conZavorra.punteggio > senzaZavorra.score,
+    'con 20 kg di zavorra la prestazione vale più che a corpo libero');
   assert.notEqual(conZavorra.rank.nome, 'OLYMPIAN',
     `20 kg di zavorra non possono dare l'OLYMPIAN, ma dice ${conZavorra.rank.nome}`);
 });
@@ -559,7 +564,8 @@ test('V17. la doppia carrucola dimezza SEMPRE, anche con un braccio solo', async
 
   // e sotto l'ingresso il numero resta nascosto, che è la difesa che nel mese di
   // agosto mancava del tutto.
-  const sotto = recordEsercizio([{ id: 's', peso: 15, ripetizioni: 8, stato: 'fatta' }],
+  // 5 kg letti sono 2,5 reali per lato: sotto l'ingresso di 8 kg circa.
+  const sotto = recordEsercizio([{ id: 's', peso: 5, ripetizioni: 8, stato: 'fatta' }],
     pushdown, null, 66);
   assert.ok(!sotto.rank,
     'sotto l\'ingresso non si dà un livello inventato: è un carico da principiante e va detto, non nascosto');
@@ -1206,7 +1212,7 @@ test('V27. il peso scritto e il Rank che dà coincidono', async () => {
   // Raise diceva "BRONZE da 7 kg" mentre 7 kg sul carrello non prendevano nessun Rank
   // (servivano 14, perche' sono 7 per lato).
   const { recordEsercizio } = await import('../src/rank.js');
-  const { scoreSerie } = await import('../src/rank-v2/curve.js');
+  const { soglieLegibiliNuove } = await import('../src/rank-v3/valutazione.js');
   const { pesiCaricabili } = await import('../src/rank-config.js');
   const { ESERCIZI } = await import('../src/dati-iniziali.js');
   const ORD = ['BRONZE', 'SILVER', 'GOLD', 'PLATINUM', 'DIAMOND', 'TITAN', 'OLYMPIAN'];
@@ -1220,11 +1226,11 @@ test('V27. il peso scritto e il Rank che dà coincidono', async () => {
     const rec = recordEsercizio([{ peso: 20, ripetizioni: 8, stato: 'fatta', ordine: 1 }], e, null, 66);
     if (!Array.isArray(rec.soglie) || rec.soglie.length !== ORD.length) continue;
 
-    const punteggioDi = (kg) => {
-      const s = scoreSerie({ peso: kg, ripetizioni: 8, esercizio: e });
-      return Number(s && s.score !== undefined ? s.score : s) || 0;
-    };
-    const letti = scalata.soglieLegibili(rec.soglie, punteggioDi);
+    // IL PESO SCRITTO SI TRADUCE CON LO STESSO MOTORE CHE FA IL RANK (v3):
+    // caricoReale + Epley + normalizzazione + meccanica. Prima si usava
+    // `scoreSerie` di v2, che restituiva un numero assoluto e non parlava la
+    // stessa lingua delle soglie normalizzate.
+    const letti = soglieLegibiliNuove(rec.soglie, { esercizio: e, pesoCorporeo: 66 });
 
     for (let i = 0; i < letti.length; i += 1) {
       const kg = letti[i];
@@ -1591,5 +1597,25 @@ test('V34. presa larga e presa stretta non possono avere lo stesso tetto (Ste, 1
   for (const nome of ['Lat Pulldown presa stretta', 'Lat machine', 'Pulldown']) {
     assert.equal(classificaEsercizio({ nome }).movimento, 'tirata_verticale',
       `"${nome}" deve restare presa stretta`);
+  }
+});
+
+test('V35. le prestazioni vere di Ste non stanno al tetto del modello v3 (22/10/2026)', async () => {
+  // Il difetto storico: il wrist curl da 30 kg e il reverse fly da 28 kg letti
+  // finivano al 113% del tetto, cioe' OLYMPIAN garantito e scala gia' finita.
+  // Il modello v3 deve usare gli stessi tetti approvati, non abbassarli.
+  const casi = [
+    ['ex-wrist-curl', 30, 5],
+    ['ex-one-arm-cable-reverse-fly', 28, 9],
+    ['ex-cable-overhead-tricep', 60, 5],
+    ['ex-seated-db-shoulder-press', 32.5, 6],
+  ];
+  for (const [id, peso, ripetizioni] of casi) {
+    const e = ESERCIZI.find((x) => x.id === id);
+    assert.ok(e, `manca l'esercizio ${id}`);
+    const r = recordEsercizio([{ stato: 'fatta', peso, ripetizioni }], e, null, 66);
+    assert.equal(r.valido, true, `${e.nome}: la serie vera deve essere valutabile`);
+    assert.notEqual(r.rank.nome, 'OLYMPIAN',
+      `${e.nome}: ${peso} kg x ${ripetizioni} non devono essere OLYMPIAN`);
   }
 });

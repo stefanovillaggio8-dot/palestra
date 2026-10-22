@@ -88,11 +88,13 @@ test('R1. 35 kg per braccio sono 70 kg, e il Rank lo deve sapere', () => {
   // c'era sparito dalla riga, ma restava dentro il calcolo del Rank, che era il
   // vero problema.
   //
-  // NUOVO MODELLO (22/10/2026): lo score È l'1RM stimato * meccanica (unità assolute).
-  // Per 35 kg x 8 su corpo 66 kg: 1RM = 35 * 1,267 = 44,33; meccanica = 1,10 (macchina_dischi + braccia indipendenti); score = 44,33 * 1,10 = 48,76.
+  // NUOVO MODELLO (22/10/2026): lo score e' la SERIE VERA, non un massimale,
+  // rapportata al peso: kg x ripetizioniPiene x meccanica / peso^0,67.
+  // Per 35 kg x 8 su corpo 66 kg: ripetizioniPiene(8) = 1; meccanica = 1,10
+  // (macchina_dischi + braccia indipendenti); score = 35 * 1,10 / 66^0,67 = 2,32.
   const a = rankDi(chest, 35, 8);
-  assert.ok(a.score > 48 && a.score < 49,
-    `35 kg x 8 deve valere circa 48,7 (1RM * meccanica), non 35: ${a.score}`);
+  assert.ok(a.score > 2.2 && a.score < 2.4,
+    `35 kg x 8 deve valere circa 2,32 di score normalizzato: ${a.score}`);
   assert.match(a.testo, /^35 kg/, 'la riga parte dal numero che ha scritto lui');
   assert.doesNotMatch(a.testo, /70 kg|88/, 'e non deve comparire il doppio');
   // e il punto vero: il Rank sale col peso, senza che nulla venga "raddoppiato"
@@ -207,7 +209,10 @@ test('R3. il laterale pesante conta piu\' di un petto leggero', () => {
   // muscolo piccolo e muscolo grande vive adesso: se i due tetti si avvicinassero,
   // il laterale con 25 kg perderebbe il senso (sembra un numero assurdo) e la
   // scala smetterebbe di essere per esercizio.
-  assert.ok(lateraleR.vertice < pettoR.vertice * 0.5,
+  // Con gli standard nuovi il tetto del petto e' sceso (0,85x per braccio invece
+  // di 1,0x) e quello del laterale e' salito (0,45x per lato): il rapporto onesto
+  // e' sotto 0,6, non piu' sotto 0,5.
+  assert.ok(lateraleR.vertice < pettoR.vertice * 0.6,
     `il tetto del laterale deve essere molto piu\' basso di quello del petto: `
     + `${lateraleR.vertice} contro ${pettoR.vertice}`);
   // e in entrambi i casi l\'ingresso sta sotto il carico fatto, quindi nessuno dei

@@ -35,9 +35,7 @@
 import { profiloEsercizio, PESO_MINIMO, PESO_MASSIMO } from './rank-config.js';
 import { recordEsercizio } from './rank.js';
 import { pesoAttuale, serveAggiornare } from './peso-corporeo.js';
-import { classificaEsercizio } from './esercizi-classificatore.js';
-import { valoriPerEsercizio, sogliePerEsercizio } from './rank-v2/valori.js';
-import { configEsercizio, soglieNormalizzate, numero, kgEquivalenti, RIPETIZIONI_RIFERIMENTO } from './rank-v3/modello.js';
+import { kgEquivalenti as kgEquivalentiScore } from './rank-v3/modello.js';
 
 /** Un peso con al massimo due decimali e senza zeri inutili: 65,79 oppure 67. */
 export function kgTesto(n) {
@@ -68,54 +66,38 @@ export function pesoCheToccaSoglia({ kgEquivalenti, soglie, indiceSoglia, w0, me
   if (!soglie || !soglie.length || indiceSoglia >= soglie.length) return null;
   const sogliaScore = soglie[indiceSoglia];
   if (!Number.isFinite(sogliaScore) || sogliaScore <= 0) return null;
-  const P = kgEquivalenti;
-  if (!Number.isFinite(P) || P <= 0) return null;
-  const m = meccanica || 1;
-  // Soglia in kg = soglia_score / meccanica
-  const sogliaKg = sogliaScore / m;
-  if (sogliaKg <= 0) return null;
-  // soglia_kg(w) = soglia_kg(w0) * (w/w0)^0.67
-  // P = soglia_kg(w0) * (w/w0)^0.67
-  // w = w0 * (P / soglia_kg(w0))^(1/0.67)
-  const sogliaKgW0 = sogliaScore / m;
-  if (sogliaKg <= 0) return null;
-  const ratio = P / sogliaKg;
-  if (ratio <= 0) return null;
-  const w = w0 * Math.pow(ratio, 1 / 0.67);
-  if (!Number.isFinite(w) || w < PESO_MINIMO || w > PESO_MASSIMO) return null;
-  return Math.round(w * 100) / 100;
-}
-
-// Fallback: approssimazione lineare se la formula fallisce
-function pesoCheToccaSogliaFallback({ kgEquivalenti, soglie, indiceSoglia, w0, meccanica }) {
-  if (!soglie || !soglie.length || indiceSoglia >= soglie.length) return null;
-  const sogliaScore = soglie[indiceSoglia];
-  if (!Number.isFinite(sogliaScore) || sogliaScore <= 0) return null;
-  const P = kgEquivalenti;
-  if (!Number.isFinite(P) || P <= 0) return null;
-  const m = meccanica || 1;
-  const sogliaKg = sogliaScore / m;
-  if (sogliaKg <= 0) return null;
-  // Approssimazione lineare: soglia_kg(w) ≈ sogliaKg * (1 + 0.67 * (w - w0) / w0)
-  // P = sogliaKg * (1 + 0.67 * (w - w0) / w0)
-  // w = w0 + (P / sogliaKg - 1) * w0 / 0.67
-  const ratio = P / sogliaKg;
-  if (ratio <= 0) return null;
-  const w = w0 + (ratio - 1) * w0 / 0.67;
+  const kg8 = Number(kgEquivalenti);
+  if (!Number.isFinite(kg8) || kg8 <= 0) return null;
+  const m = Number(meccanica);
+  const mec = Number.isFinite(m) && m > 0 ? m : 1;
+  // IL PESO CHE CONTA E' QUELLO DI OGGI, NON UN RAPPORTO.
+  //
+  // Le soglie sono COSTANTI: non crescono col peso. Quello che cambia e' lo
+  // score, perché è 1RM / peso^0,67. Con lo stesso carico da 8 ripetizioni:
+  //   score(w) = kg8 x Epley x meccanica / w^0,67
+  // e il confine e' dove score(w) = soglia:
+  //   w = (kg8 x Epley x meccanica / soglia)^(1/0,67)
+  const ratio = (kg8 * mec) / sogliaScore;
+  if (!Number.isFinite(ratio) || ratio <= 0) return null;
+  const w = Math.pow(ratio, 1 / 0.67);
   if (!Number.isFinite(w) || w < PESO_MINIMO || w > PESO_MASSIMO) return null;
   return Math.round(w * 100) / 100;
 }
 
 export function pesoCheToccaSogliaSafe(args) {
-  const result = pesoCheToccaSoglia(args);
-  if (result !== null) return result;
-  return pesoCheToccaSogliaFallback(args);
+  // Una sola formula. Il vecchio "fallback lineare" usava una scala che cresceva
+  // col peso: era il bug, non una rete di sicurezza.
+  return pesoCheToccaSoglia(args);
 }
 
 /** In che gradino della scala sta una prestazione. -1 se È sotto il primo. */
-function gradinoAvviso(punteggioKg, soglie, meccanica) {
-  if (!meccanica || meccanica <= 0) meccanica = 1;
-  const punteggioScore = punteggioKg * meccanica;
+function gradinoAvviso(punteggioKg, soglie, w0, meccanica) {
+  const m = Number(meccanica);
+  const mec = Number.isFinite(m) && m > 0 ? m : 1;
+  const kg8 = Number(punteggioKg);
+  const w = Number(w0);
+  if (!Number.isFinite(kg8) || kg8 <= 0 || !Number.isFinite(w) || w <= 0) return -1;
+  const punteggioScore = (kg8 * mec) / Math.pow(w, 0.67);
   let dentro = -1;
   for (let i = 0; i < soglie.length; i++) {
     if (punteggioScore >= soglie[i]) dentro = i;
@@ -138,16 +120,23 @@ function gradinoAvviso(punteggioKg, soglie, meccanica) {
  * ma "e' fragile, e lo vedi da quanto sei dentro la forbice".
  */
 export function confiniPerIlRank({ kgEquivalenti, soglie, w0, meccanica }) {
-  const i = gradinoAvviso(kgEquivalenti, soglie, meccanica);
+  const i = gradinoAvviso(kgEquivalenti, soglie, w0, meccanica);
   let sale = null;
   let scende = null;
   if (i < 0) {
-    // sei sotto il primo gradino: l'unica direzione possibile È in su
+    // sei sotto il primo gradino: l'unica direzione possibile e' in su
     sale = pesoCheToccaSogliaSafe({ kgEquivalenti, soglie, indiceSoglia: 0, w0, meccanica });
   } else {
-    // in cima non esiste "il livello dopo": dirglielo sarebbe una promessa falsa,
-    // quindi l'unico confine che ha senso È quello in cui lo perdi
-    if (i < soglie.length - 1) sale = pesoCheToccaSogliaSafe({ kgEquivalenti, soglie, indiceSoglia: i + 1, w0, meccanica });
+    // in cima non esiste "il livello dopo": dirglielo sarebbe una promessa
+    // falsa, quindi l'unico confine che ha senso e' quello in cui lo perdi.
+    //
+    // I CONFINI NON DIPENDONO DAL PESO DI OGGI (la scala cresce col peso),
+    // quindi il peso corporeo in cui una prestazione FISSA tocca la soglia i+1
+    // e' sempre più grande di quello in cui tocca la soglia i. Aggiungere peso
+    // corporeo fa SCENDERE lo score a parita' di carico: da 66 a 72 kg questo
+    // Rank scende da TITAN a DIAMOND, non sale. Quindi l'unico confine che
+    // esiste davvero e' quello in cui lo perdi (la soglia i): il livello dopo
+    // lo tocchi SOLO se dimagrisci.
     scende = pesoCheToccaSogliaSafe({ kgEquivalenti, soglie, indiceSoglia: i, w0, meccanica });
   }
   return { sale, scende, inCima: i === soglie.length - 1, sotto: i < 0 };
@@ -202,24 +191,9 @@ export async function avvisoPesoEsercizio({ serie, esercizio, account = null }) 
   // Serve per trovare i confini in kg, non in unita' normalizzate.
   const kgEquivalenti = record.kgEquivalenti ?? (() => {
     if (!record.score || !record.pesoCorporeo) return null;
-    return kgEquivalenti(record.score, record.pesoCorporeo, record.meccanica || 1);
+    return kgEquivalentiScore(record.score, record.pesoCorporeo, record.meccanica || 1);
   })();
   if (kgEquivalenti === null) return null;
-  
-  // CLASSIFICA L'ESERCIZIO per ottenere movimento e livello
-  const riconosciuto = classificaEsercizio({
-    nome: (esercizio && (esercizio.nome || esercizio.id)) || '',
-    convenzione: (esercizio && esercizio.convenzione) || null,
-    attrezzatura: (esercizio && esercizio.attrezzatura) || null,
-    carrucola: (esercizio && esercizio.carrucola) || null,
-    bracciaIndipendenti: !!(esercizio && esercizio.bracciaIndipendenti),
-  });
-  const movimento = riconosciuto.movimento;
-  const livello = riconosciuto.livello;
-  
-  // VALORI E CONFIGURAZIONE del movimento/esercizio
-  const valori = valoriPerEsercizio(movimento, esercizio || {});
-  const cfg = configEsercizio({ esercizio, movimento, livello });
   
   // CALCOLA I CONFINI usando il modello nuovo (in KG)
   const confini = confiniPerIlRank({

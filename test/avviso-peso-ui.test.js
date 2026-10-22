@@ -96,8 +96,10 @@ test('1. la pagina dell\'esercizio si disegna e mostra l\'avviso col peso del da
   assert.match(testo, /PERCHE/, 'e c\'e\' il resto del giudizio');
   // e l'avviso c'e', con il numero che viene dal database
   assert.match(testo, /Questo vale per 66 kg\./, 'l\'avviso c\'e\' con il peso registrato');
-  assert.match(testo, /tocchi il livello dopo/, 'e dice a che peso sali');
-  assert.match(testo, /lo perdi/, 'e a che peso perdi');
+  // NUOVO MODELLO (22/10/2026): col Rank sulla serie vera, ingrassare abbassa
+  // lo score a parita' di carico. Quindi l'unico confine che ha senso mostrare
+  // e' quello in cui lo perdi: il livello dopo lo tocchi solo dimagrendo.
+  assert.match(testo, /lo perdi/, 'e dice a che peso perdi il Rank');
   assert.deepEqual(errori, [], 'nessun errore mentre si disegna');
 });
 

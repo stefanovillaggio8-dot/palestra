@@ -43,14 +43,15 @@
 //     ENTRA nel calcolo del Rank, ma nella schermata resta chiaro che e' una
 //     stima (vedi `metodo` e `affidabile` qui sotto, e la scritta nella scheda).
 //
-//  3) LE SOGLIE RESTANO QUELLE DI ST.
+//  3) LE SOGLIE SONO STANDARD 1RM, E NON FINGONO CHE IL RANK SIA LO STESSO.
 //
-//     I numeri per esercizio (ingresso e vertice) sono quelli che Ste ha
-//     guardato con i suoi carichi veri: NON si toccano. Quello che cambia e' il
-//     modo in cui la prestazione viene MISURATA e messa sulla scala. Per questo
-//     le soglie del nuovo modello sono i numeri di Ste convertiti nella unita'
-//     nuova (1RM normalizzato): a 8 ripetizioni il Rank resta IDENTICO a
-//     prima, e cambia solo la curva fra 1 e 12 ripetizioni.
+//     I numeri per esercizio sono standard di forza realistici, nel formato
+//     "1RM / peso corporeo" (vedi `STANDARD_1RM`). Non sono i vecchi tetti
+//     usati come se fossero carichi da 8 ripetizioni: quella confusione
+//     rimetteva Epley due volte e teneva i Rank fermi. Quindi una stessa serie
+//     puo' cambiare Rank rispetto al motore vecchio: e' voluto, ed e' la
+//     conseguenza di misurare la prestazione in 1RM normalizzato. I casi con i
+//     carichi veri di Ste restano comunque sotto il vertice (V35).
 //
 //  4) IL MODELLO NON INVENTA NULLA.
 //
@@ -230,19 +231,35 @@ export function punteggioNormalizzato(carico, ripetizioni, pesoCorporeo, opzioni
  * Un allarme non cancella niente e non abbassa il Rank da solo: il Rank resta
  * quello che hai fatto, e l'allarme spiega il perché.
  */
-export function controllaIngresso({ peso = null, ripetizioni = null, pesoCorporeo = null, spotter = false } = {}) {
+export function controllaIngresso({
+  peso = null,
+  ripetizioni = null,
+  pesoCorporeo = null,
+  spotter = false,
+  consentiCaricoZero = false,
+} = {}) {
   const allarmi = [];
   const p = numero(peso);
   const r = numero(ripetizioni);
   const corpo = numero(pesoCorporeo);
 
+  // NEL CORPO LIBERO LO ZERO E' UN CARICO VALIDO (22/10/2026).
+  //
+  // Un dip o una trazione senza zavorra hanno zero kg scritti, ma non sono
+  // "carico zero": stanno sollevando tutto il corpo. Il chiamante lo sa e passa
+  // `consentiCaricoZero: true`; per tutti gli altri esercizi lo zero resta un
+  // errore, perche' una panca a zero kg non e' una panca.
   if (p === null) {
-    return { valido: false, motivo: 'manca il carico', allarmi };
+    if (consentiCaricoZero) {
+      // niente zavorra: si va avanti col solo corpo
+    } else {
+      return { valido: false, motivo: 'manca il carico', allarmi };
+    }
   }
-  if (p < 0) {
+  if (p !== null && p < 0) {
     return { valido: false, motivo: 'il carico non puo\' essere negativo', allarmi };
   }
-  if (p === 0) {
+  if (p === 0 && !consentiCaricoZero) {
     return { valido: false, motivo: 'il carico e\' zero', allarmi };
   }
   if (r === null) {
@@ -257,7 +274,7 @@ export function controllaIngresso({ peso = null, ripetizioni = null, pesoCorpore
   if (r > RIPETIZIONI_SOSPETTE) {
     allarmi.push(`${r} ripetizioni in una serie: e\' un numero altissimo, controlla di averlo scritto bene`);
   }
-  if (p > CARICO_SOSPETTO) {
+  if (p !== null && p > CARICO_SOSPETTO) {
     allarmi.push(`${p} kg: un carico cosi\' alto e\' da controllare`);
   }
   if (corpo !== null) {
@@ -416,6 +433,227 @@ export const DIFFICOLTA_MOVIMENTO = {
  */
 export const CONFIG_ESERCIZI = {};
 
+// ---------------------------------------------------------------------------
+// 5-bis. GLI STANDARD DI FORZA REALISTICI (1RM)
+// ---------------------------------------------------------------------------
+//
+// Ste, 22/10/2026: "fai la cosa piu' realistica e segui le formule matematiche".
+//
+// QUESTI NUMERI SONO 1RM, NON CARICHI DA 8 RIPETIZIONI. E' la differenza che
+// faceva restare i Rank fermi: prima la tabella veniva letta come "quanto fai a
+// 8 ripetizioni", poi lo score la riportava a 1RM con Epley, e la stessa
+// conversione veniva fatta anche sulle soglie. Le due conversioni si
+// annullavano, quindi a 8 ripetizioni il Rank era identico al vecchio.
+//
+// QUI INVECE il numero e' gia' il massimale: un 1,0x significa "con una
+// ripetizione sola sollevi il tuo peso". Lo score invece parte dai kg veri e
+// stima il 1RM con Epley. A 8 ripetizioni il 1RM stimato e' 1,267 volte il
+// carico, quindi la stessa serie vale di piu' sulla scala: e' voluto, ed e' la
+// conseguenza matematica di usare standard 1RM.
+//
+// L'UNITA' DI MISURA E' QUELLA CHE L'APP REGISTRA:
+//  - `per_manubrio` e `per_braccio`: il numero e' per un lato, non doppio;
+//  - cavo a doppia carrucola: il numero e' per lato;
+//  - macchine a pila: il numero e' quello sullo stack;
+//  - dip e trazioni: il numero e' il TOTALE (corpo + zavorra).
+//
+// I VALORI SONO MULTIPLI DEL PESO CORPOREO A 75 KG. Sono una sintesi di range
+// pubblici di forza (principiante / intermedio / avanzato / elite) adattati
+// all'attrezzatura e alla convenzione di carico di questa app. Non sono una
+// verita' fisiologica: sono il punto di partenza documentato, e si cambiano
+// SOLO qui. La conversione in unita' normalizzata e' in `normalizzaStandard`.
+export const PESO_RIFERIMENTO_1RM = PESO_ALLOMETRICO_RIFERIMENTO;
+
+export const STANDARD_1RM = {
+  // Gambe: la leg press a due gambe regge molto piu' di tutti gli altri.
+  gambe_pesanti: {
+    ingresso: 0.80, vertice: 3.10,
+    nota: 'Leg press a due gambe: 0,80x per iniziare, 3,10x per il vertice. A una gamba si dimezza.',
+    varianti: { per_gamba: { ingresso: 0.40, vertice: 1.55 } },
+  },
+  tirata_verticale_larga: {
+    ingresso: 0.55, vertice: 1.75,
+    nota: 'Lat pulldown a presa larga: 0,55x-1,75x. La presa larga e\' leggermente piu\' difficile della stretta.',
+  },
+  tirata_verticale: {
+    ingresso: 0.60, vertice: 1.90,
+    nota: 'Lat pulldown a presa stretta: 0,60x-1,90x. E\' il riferimento delle tirate verticali.',
+  },
+  tirata_orizzontale: {
+    ingresso: 0.65, vertice: 1.85,
+    nota: 'Remo al cavo: 0,65x-1,85x. Il dorso orizzontale regge piu\' della lat a parita\' di sensazione.',
+  },
+  spinta_orizzontale: {
+    ingresso: 0.30, vertice: 0.85,
+    nota: 'Chest press a dischi PER BRACCIO: 0,30x-0,85x per lato. La panca a bilanciere ha la sua scala.',
+    varianti: {
+      guidata: { ingresso: 0.25, vertice: 0.75 },
+      bilanciere: { ingresso: 0.50, vertice: 1.60 },
+    },
+  },
+  spinta_verticale: {
+    ingresso: 0.15, vertice: 0.70,
+    nota: 'Spinta sopra la testa PER MANUBRIO: 0,15x-0,70x per mano. La spalla regge meno del petto. '
+      + 'Vertice 0,60 -> 0,70 (22/10/2026): Strength Level da\' 0,70x per manubrio come elite, nella '
+      + 'nostra stessa unita\' (per lato), quindi il vecchio vertice tagliava fuori chi e\' davvero elite.',
+  },
+  spalle_trapezio: {
+    ingresso: 0.45, vertice: 1.50,
+    nota: 'Shrug PER MANUBRIO: 0,45x-1,50x per mano. Il trapezio e\' forte ma la corsa e\' corta.',
+  },
+  petto_isolamento: {
+    ingresso: 0.10, vertice: 0.50,
+    nota: 'Cable fly PER LATO sentito (la doppia carrucola dimezza): 0,10x-0,50x. Vertice 0,35 -> 0,50 '
+      + '(22/10/2026): Strength Level da\' elite 84 kg a 1RM sul carrello = 66 kg a 6 rip = 33 kg per '
+      + 'lato su 66 kg di corpo = 0,50x. Prima 0,35x rendeva TITAN un cable fly che nella realta\' e\' '
+      + 'DIAMOND, e Ste stesso l\'aveva notato.',
+  },
+  tirata_manubri: {
+    ingresso: 0.40, vertice: 1.10,
+    nota: 'Bench pull PER MANUBRIO: 0,40x-1,10x per mano.',
+  },
+  spalle_isolamento: {
+    ingresso: 0.08, vertice: 0.45,
+    nota: 'Alzate laterali PER LATO: 0,08x-0,45x. 20 kg per mano a 8 ripetizioni sono TITAN, non OLYMPIAN.',
+  },
+  spalle_posteriori: {
+    ingresso: 0.08, vertice: 0.55,
+    nota: 'Reverse fly PER MANUBRIO: 0,08x-0,55x per lato. Il deltoide posteriore e\' piccolo e la leva '
+      + 'e\' sfavorevole, ma Strength Level da\' 0,55x per manubrio come elite. Vertice 0,30 -> 0,55 '
+      + '(22/10/2026): a 0,30 chi faceva 28 kg sentiti risultava OLYMPIAN senza esserlo.',
+  },
+  bicipiti: {
+    ingresso: 0.15, vertice: 0.95,
+    nota: 'Curl al cavo e coi manubri PER LATO: 0,15x-0,95x. Con la doppia carrucola i kg letti sono gia\' la meta\'.',
+  },
+  bicipiti_panca: {
+    ingresso: 0.15, vertice: 0.85,
+    nota: 'Curl alla panca Scott PER BRACCIO: 0,15x-0,85x. La leva e\' peggiore del cavo, quindi il vertice e\' piu\' basso.',
+  },
+  tricipiti: {
+    ingresso: 0.10, vertice: 0.48,
+    nota: 'Pushdown PER LATO: 0,10x-0,48x.',
+  },
+  tricipiti_alta: {
+    ingresso: 0.16, vertice: 0.62,
+    nota: 'Estensione sopra la testa PER LATO: 0,16x-0,62x.',
+  },
+  gambe_isolamento: {
+    ingresso: 0.55, vertice: 1.80,
+    nota: 'Leg extension sullo stack: 0,55x-1,80x.',
+  },
+  gambe_curl: {
+    ingresso: 0.40, vertice: 1.25,
+    nota: 'Leg curl sullo stack: 0,40x-1,25x.',
+  },
+  gambe_stabilizzatore: {
+    ingresso: 1.00, vertice: 3.00,
+    nota: 'Hip thrust e glutei: 1,00x-3,00x. E\' un movimento di anca, non un isolamento piccolo.',
+  },
+  polso: {
+    ingresso: 0.12, vertice: 0.75,
+    nota: 'Wrist curl: 0,12x-0,75x. Strength Level da\' 0,75x come elite per manubrio. Vertice 0,60 -> '
+      + '0,75 (22/10/2026): i 30 kg veri di Ste restano dentro la scala e non toccano piu\' il vertice.',
+  },
+  polpacci: {
+    ingresso: 0.45, vertice: 1.70,
+    nota: 'Calf raise al carrello: 0,45x-1,70x. Sulla pressa orizzontale la scala e\' quella delle gambe.',
+    varianti: { pressa: { ingresso: 0.90, vertice: 3.00 } },
+  },
+  // Dip e trazioni: il numero e' il TOTALE (corpo + zavorra), non i soli kg
+  // appesi. Un dip a corpo libero e' 1,0x: e' il primo gradino.
+  spinta_corpo_libero: {
+    ingresso: 1.00, vertice: 2.10,
+    nota: 'Dip: totale corpo + zavorra, 1,00x-2,10x. A corpo libero sei gia\' all\'ingresso.',
+  },
+  tirata_verticale_corpo: {
+    ingresso: 1.00, vertice: 1.95,
+    nota: 'Trazioni: totale corpo + zavorra, 1,00x-1,95x. La presa larga sta sotto la lat.',
+  },
+  addome: {
+    ingresso: 0.12, vertice: 0.45,
+    nota: 'Crunch al cavo PER LATO: 0,12x-0,45x.',
+  },
+  core: {
+    ingresso: 0.12, vertice: 0.45,
+    nota: 'Crunch al cavo PER LATO: 0,12x-0,45x.',
+  },
+};
+
+/**
+ * Il moltiplicatore 1RM standard di un movimento, scegliendo la variante giusta.
+ *
+ * La scelta e' la stessa logica di `valoriPerEsercizio` di v2: prima la
+ * convenzione (una gamba sola), poi la macchina (Smith, pressa), poi il tipo di
+ * carico. Non si guarda il nome dell'esercizio se non per le macchine che non
+ * hanno un campo dedicato.
+ */
+export function standardPerMovimento(movimento, esercizio = {}) {
+  const base = STANDARD_1RM[movimento];
+  if (!base) return null;
+  const e = esercizio || {};
+  let scelto = base;
+
+  if (base.varianti) {
+    if (movimento === 'gambe_pesanti' && e.convenzione === 'per_gamba') {
+      scelto = base.varianti.per_gamba || base;
+    } else if (movimento === 'spinta_orizzontale') {
+      const nome = String(e.nome || '').toLowerCase();
+      const guidata = String(e.id || '').toLowerCase().includes('smith')
+        || nome.includes('smith') || nome.includes('multipower') || nome.includes('multigym');
+      if (guidata) scelto = base.varianti.guidata || base;
+      else if (e.convenzione === 'bilanciere') scelto = base.varianti.bilanciere || base;
+    } else if (movimento === 'polpacci') {
+      const id = String(e.id || '').toLowerCase();
+      const nome = String(e.nome || '').toLowerCase();
+      const pressa = id.includes('sled') || nome.includes('sled')
+        || nome.includes('pressa') || nome.includes('press');
+      if (pressa) scelto = base.varianti.pressa || base;
+    }
+  }
+
+  return {
+    ingresso: Number(scelto.ingresso),
+    vertice: Number(scelto.vertice),
+    nota: scelto.nota || base.nota || '',
+    fonte: 'standard_1rm',
+  };
+}
+
+/** 75 kg elevato a 0,33: il ponte fra "multiplo del peso" e unita' normalizzata. */
+const PONTE_1RM = Math.pow(PESO_RIFERIMENTO_1RM, 1 - ESPONENTE_ALLOMETRICO);
+
+/**
+ * Il ponte fra uno standard 1RM e il carico da 8 ripetizioni.
+ *
+ * Lo score nuovo usa direttamente la serie vera: a 8 ripetizioni vale il carico
+ * scritto, non un massimale stimato. Gli standard restano espressi in 1RM, quindi
+ * vanno riportati UNA VOLTA a 8 ripetizioni: 1RM / (1 + 8/30).
+ *
+ * Non e' Epley applicato alla serie: e' la conversione fissa dello standard, e
+ * non dipende da quante ripetizioni ha fatto Ste.
+ */
+export const FATTORE_8_RIP = 1 + RIPETIZIONI_RIFERIMENTO / 30;
+
+/**
+ * Da "1,5x il corpo a 75 kg" all'unita' dello score, che non dipende dal peso.
+ *
+ * LA FORMULA, in una riga:
+ *   standard_normalizzato = multiplo_1RM * 75 / 75^0,67
+ *                         = multiplo_1RM * 75^0,33
+ *
+ * Perche' non si moltiplica per il peso di chi si allena: lo score e' gia'
+ * 1RM / peso^0,67. Se anche la soglia venisse moltiplicata per peso^0,67, il
+ * peso si semplificherebbe e il Rank non cambierebbe mai. La soglia e' la
+ * prestazione attesa per un corpo di riferimento, e il peso entra una volta
+ * sola, nel punteggio.
+ */
+export function normalizzaStandard(multiplo) {
+  const m = Number(multiplo);
+  if (!Number.isFinite(m) || m <= 0) return null;
+  return arrotonda(m * PONTE_1RM, 4);
+}
+
 /**
  * La configurazione completa di un esercizio.
  *
@@ -508,10 +746,14 @@ export function caricoEffettivo(serie, cfg, { pesoCorporeo = null, esercizio = {
     // LA ZAVORRA: il numero che Ste scrive. Nei dip e nelle trazioni sta nel
     // campo dell'assistenza; il fallback su `peso` serve per chi ha i numeri
     // nel campo vecchio.
-    const aggiunti = assistenza !== null && assistenza > 0 ? assistenza : peso;
-    if (aggiunti === null || aggiunti <= 0) {
-      // nessuna zavorra: l'esercizio e' a corpo libero e si contano le ripetizioni
-      return { carico: null, motivo: 'nessuna zavorra: questo esercizio si conta in ripetizioni' };
+    //
+    // ZERO E' UN NUMERO, NON UN ERRORE (22/10/2026). Prima qui si usciva con
+    // "nessuna zavorra: si contano le ripetizioni", e un dip a corpo libero non
+    // aveva nessun Rank. Ma il dip a corpo libero e' il primo gradino della
+    // scala: il carico e' il corpo, non la zavorra.
+    const aggiunti = assistenza !== null ? assistenza : (peso !== null ? peso : 0);
+    if (aggiunti < 0) {
+      return { carico: null, motivo: 'la zavorra non puo\' essere negativa' };
     }
     const totale = corpo + aggiunti;
     return {
@@ -537,65 +779,56 @@ export function caricoEffettivo(serie, cfg, { pesoCorporeo = null, esercizio = {
 // ---------------------------------------------------------------------------
 
 /**
- * Le soglie di un esercizio, nella unita' del nuovo modello (score absolute: kg * meccanica).
+ * Le soglie di un esercizio, nella unita' normalizzata dello score.
  *
- * IL TRUCCHETTO, che e' il punto in cui il modello rispetta i numeri di Ste:
+ * PRIMA (fino al 21/10/2026) qui c'era un errore che teneva fermi tutti i Rank:
+ * le soglie erano `1RM(kg, 8) * meccanica / peso^0,67`, e lo score era
+ * `1RM(carico) * meccanica / peso^0,67`. Il peso si semplificava, ma restava
+ * anche la conversione Epley a 8 ripetizioni su entrambi i lati: a 8 ripetizioni
+ * il Rank tornava esattamente quello vecchio. Non era un caso: era la stessa
+ * formula scritta due volte.
  *
- * I numeri di riferimento dell'esercizio (ingresso e vertice, in kg) sono
- * quelli approvati da Ste guardando i suoi carichi veri. Qui vengono
- * convertiti nella unita' dello score (kg * meccanica):
+ * ORA le soglie sono COSTANTI NORMALIZZATE, una per movimento:
  *
- *   soglia = 1RM(referimento, 8 ripetizioni) * meccanica
- *         = riferimento_kg * (1 + 8/30) * meccanica
+ *   soglia = standard_1RM(multiplo del corpo a 75 kg) * 75^0,33 * meccanica
  *
- * COSA COMPORTA. La prestazione di riferimento (i kg giusti a 8 ripetizioni)
- * cade ESATTAMENTE sulla soglia: il Rank a 8 ripetizioni resta IDENTICO a
- * quello di prima. Quello che cambia e' la curva fra 1 e 12 ripetizioni (la
- * stima di Epley al posto della curva delle ripetizioni piene) e il modo in
- * cui il peso corporeo entra (esplicito, con l'esponente 0,67) - ma solo per
- * le soglie, che sono tarate sul peso corporeo allometrico.
+ * Il peso corporeo entra UNA VOLTA SOLA, nello score (`1RM / peso^0,67`). A 75 kg
+ * lo standard e' esattamente il multiplo scritto nella tabella; a 90 kg lo stesso
+ * Rank chiede piu' kg, perche' un corpo piu' grande ha piu' sezione muscolare
+ * (`90^0,67 / 75^0,67`), ma non tutti i kg in piu' del suo peso.
  *
- * LA DIFFICOLTA' DOVE ENTRA: il coefficiente `difficoltaScala` moltiplica il
- * carico di riferimento, non il corpo. Un esercizio piu' difficile chiede una
- * prestazione relativa piu' grande per lo stesso Rank, e il corpo resta il
- * corpo. Per tutti i movimenti vale 1 (vedi `DIFFICOLTA_MOVIMENTO` e il
- * perche' scritto li'): i numeri di riferimento sono gia' tarati e non si
- * toccano.
- *
- * LA MECCANICA DOVE ENTRA: il coefficiente `meccanica` moltiplica sia lo score
- * che le soglie, perche' il motore v2 lo fa cosi'. Questo garantisce che i
- * numeri siano confrontabili tra v2 e v3.
+ * LA DIFFICOLTA' dove entra: moltiplica il moltiplicatore prima di normalizzarlo.
+ * Oggi vale 1 per tutti (i numeri sono gia' tarati); resta configurabile perche'
+ * e' parte del modello, non un numero nascosto.
  */
 export function soglieNormalizzate({
-  ingressoKg = null,
-  verticeKg = null,
-  quotaCorpo = 0,
+  standard = null,
   difficoltaScala = 1,
-  pesoCorporeo = null,
   curva = null,
-  corpoRif = null,
   meccanica = 1,
 } = {}) {
-  const ing = numero(ingressoKg);
-  const ver = numero(verticeKg);
-  if (ing === null || ver === null || ver <= ing) return null;
-  const corpo = numero(corpoRif);
-  const quota = Number(quotaCorpo) || 0;
+  if (!standard) return null;
+  const ingresso = numero(standard.ingresso);
+  const vertice = numero(standard.vertice);
+  if (ingresso === null || vertice === null || vertice <= ingresso) return null;
   const diff = Number(difficoltaScala);
   const d = Number.isFinite(diff) && diff > 0 ? diff : 1;
-  // il riferimento in kg: il corpo (quota) piu' il carico, con la difficolta' sul
-  // carico. Il corpo e' il peso REALE: e' quello che stai spostando davvero.
-  const corpoEffettivo = quota > 0 && corpo !== null ? corpo : 0;
-  const refIngresso = corpoEffettivo + d * ing;
-  const refVertice = corpoEffettivo + d * ver;
-  if (refVertice <= refIngresso) return null;
+  // GLI STANDARD SONO 1RM, LO SCORE E' LA SERIE VERA (22/10/2026).
+  //
+  // Lo score nuovo vale `kg x ripetizioniPiene / peso^0,67 x meccanica`: a 8
+  // ripetizioni il carico vale 1,0. Lo standard 1RM va quindi riportato a 8
+  // ripetizioni una volta sola, dividendo per (1 + 8/30). La serie di Ste non
+  // viene trasformata in 1RM: la conversione e' solo nella soglia.
+  const ing1rm = normalizzaStandard(ingresso * d);
+  const ver1rm = normalizzaStandard(vertice * d);
+  if (ing1rm === null || ver1rm === null || ver1rm <= ing1rm) return null;
+  const ing = arrotonda(ing1rm / FATTORE_8_RIP, 4);
+  const ver = arrotonda(ver1rm / FATTORE_8_RIP, 4);
+  if (ing === null || ver === null || ver <= ing) return null;
+  const m = numero(meccanica);
+  const mec = m !== null && m > 0 ? m : 1;
   const punti = curva || [0, 0.10, 0.24, 0.42, 0.60, 0.78, 1];
-  const fattoreEpley = 1 + RIPETIZIONI_RIFERIMENTO / 30; // 1.267
-  return punti.map((f) => {
-    const kg = refIngresso + (refVertice - refIngresso) * f;
-    // Soglia in unita' di score: 1RM(kg, 8) * meccanica = kg * 1.267 * meccanica
-    return arrotonda(kg * fattoreEpley * meccanica);
-  }).filter((n) => n !== null);
+  return punti.map((f) => arrotonda((ing + (ver - ing) * f) * mec));
 }
 
 // ---------------------------------------------------------------------------

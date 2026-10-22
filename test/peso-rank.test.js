@@ -134,14 +134,16 @@ test('6. il record resta legato al peso del giorno in cui l\'hai fatto', () => {
     'i due pesi devono essere la stessa prestazione sul corpo che conta');
   const ra = recordEsercizio([serie(1, 40, 10, { peso_corpo: 60 })], CP, null, 90);
   const rb = recordEsercizio([serie(1, secondoPeso, 10, { peso_corpo: 90 })], CP, null, 90);
-  const quotaA = Math.round((ra.punteggio / ra.vertice) * 100);
-  const quotaB = Math.round((rb.punteggio / rb.vertice) * 100);
+  const quotaA = Math.round((ra.score / ra.soglie[6]) * 100);
+  const quotaB = Math.round((rb.score / rb.soglie[6]) * 100);
   assert.ok(Math.abs(quotaA - quotaB) <= 2,
     `la stessa prestazione in rapporto al corpo che conta deve stare allo stesso `
     + `posto della scala: ${quotaA}% contro ${quotaB}%`);
-  // e le scale restano diverse: è quello che il Rank deve dire
-  assert.ok(ra.soglie[6] !== rb.soglie[6],
-    `ma le scale sono diverse: tetto ${ra.soglie[6]} contro ${rb.soglie[6]}`);
+  // LE SOGLIE SONO COSTANTI (22/10/2026): non cambiano col corpo. Era il bug:
+  // se crescevano insieme allo score, il peso si semplificava e il Rank non si
+  // muoveva mai.
+  assert.equal(ra.soglie[6], rb.soglie[6],
+    `le soglie non dipendono dal peso corporeo: ${ra.soglie[6]} contro ${rb.soglie[6]}`);
   // e soprattutto: il peso corporeo di ADESSO (90) non ha toccato il record vecchio.
   // Se il motore usasse il peso di oggi per ricalcolare tutto, r60 avrebbe la
   // scala di un corpo da 90 e il suo Rank cambierebbe ogni volta che ti pesi.
@@ -158,19 +160,21 @@ test('7. senza peso salvato dentro si usa quello di adesso', () => {
   assert.equal(r.pesoCorporeo, 80, 'usa il peso attuale per le prestazioni vecchie senza peso');
 });
 
-test('8. il punteggio non cambia col peso, le soglie si adattano', () => {
-  // Il punteggio È assoluto (1RM * meccanica), le soglie si adattano col peso.
-  // Quindi lo score NON cambia col peso, ma il Rank PUÒ cambiare perchè le soglie
-  // si spostano. Una persona più pesante ha soglie più alte per lo stesso score.
+test('8. lo score cambia col peso, le soglie restano ferme', () => {
+  // La formula è 1RM / peso^0,67, quindi lo score CAMBIA col peso corporeo. Le
+  // soglie invece sono costanti: se scalassero anche loro il peso si semplificherebbe
+  // e il Rank non cambierebbe mai, che era il bug.
   const serieFissa = [serie(1, 60, 5)]; // 1RM 70 kg
   const prima = recordEsercizio(serieFissa, CP, null, 60);
   const dopo = recordEsercizio(serieFissa, CP, null, 90);
-  assert.equal(prima.punteggio, dopo.punteggio, 'il punteggio della serie non cambia: è assoluto (1RM * meccanica)');
-  // Il rank PUÒ cambiare perchè le soglie scalano col peso corporeo
-  const nomePrima = prima.rank ? prima.rank.nome : 'nessuno';
-  const nomeDopo = dopo.rank ? dopo.rank.nome : 'nessuno';
-  // Con 90kg le soglie sono più alte, quindi lo stesso score dà un rank più basso
-  assert.ok(nomePrima !== nomeDopo, `il Rank si adatta al peso (prima ${nomePrima}, dopo ${nomeDopo})`);
+  assert.ok(prima.score > dopo.score,
+    `lo stesso carico su un corpo più pesante vale meno: ${prima.score} contro ${dopo.score}`);
+  assert.deepEqual(prima.soglie, dopo.soglie,
+    'le soglie NON cambiano col peso corporeo');
+  const indicePrima = prima.rank ? prima.rank.indice : -1;
+  const indiceDopo = dopo.rank ? dopo.rank.indice : -1;
+  assert.ok(indicePrima >= indiceDopo,
+    `pesare di più non può far salire il Rank (prima ${indicePrima}, dopo ${indiceDopo})`);
 });
 
 test('9. il Rank prende la prestazione migliore, non l\'ultima', () => {

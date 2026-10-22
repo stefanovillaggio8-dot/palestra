@@ -23,9 +23,12 @@ import { moltiplicatoreSerie, ripetizioniPiene } from './curve.js';
  *
  * 0 = BRONZE (ingresso), 6 = OLYMPIAN (vertice).
  *
- * Nota la parte destra: dopo il PLATINUM (0.42) ci vuole il 18% del restante per
- * ogni gradino, mentre fra bronzo e platino bastava il 10-18%. E' qui che i Rank
- * alti diventano difficili: non sono una riga in piu', sono il pezzo finale.
+ * LA CURVA E' SEVERA SULLA PARTE ALTA (Ste, 08/10/2026 e 22/10/2026).
+ * Dopo il PLATINUM (0.42) i gradini costano il 18% del restante ognuno, mentre
+ * fra bronzo e platino bastavano il 10-18%: e' qui che i Rank alti diventano
+ * difficili. Provato a "distenderla" sui percentili (TITAN al 72%): il risultato
+ * era PEGGIORE (9 TITAN invece di 7), perche' abbassare la soglia TITAN la rende
+ * piu' facile. Quindi la parte alta resta com'e'.
  */
 export const CURVA_SOGLIE = [0, 0.10, 0.24, 0.42, 0.60, 0.78, 1];
 
@@ -334,7 +337,7 @@ export function rankDaScore(score, soglie, { serieFatte = 1 } = {}) {
     // fermando il volume a 99 LP la divisione restava "I", che vuol dire "la
     // piu' bassa", mentre 99 LP dovrebbero dire "III", la piu' alta. La divisione
     // si ricalcola SEMPRE dagli LP, in un posto solo.
-    fermato.divisione = divisioneDaLp(fermato.lp);
+    fermato.divisione = fermato.indice >= sog.length - 1 ? null : divisioneDaLp(fermato.lp);
     // E POI UN ALTRO, PIU' VISIBILE AGLI OCCHI DI STE.
     //
     // "progresso" e' la barra che vede a schermo. Prima qui finiva 1,000: la barra
@@ -448,8 +451,11 @@ function bandaDaValore(valore, soglie) {
     progresso = Math.max(0, Math.min(1, (valore - sotto) / spessore));
   }
   // la divisione: I e' la piu' bassa e III la piu' alta (Ste, 07/10/2026)
-  // Anche in cima (OLYMPIAN) la divisione va calcolata dagli LP
-  const divisione = divisioneDaLp(lp);
+  //
+  // OLYMPIAN NON HA DIVISIONI (Ste, 22/10/2026). Sopra l'ultima soglia non c'e'
+  // un Rank dopo da preparare: gli LP continuano a salire (sono la misura di
+  // quanto sei sopra il vertice), ma "OLYMPIAN I/II/III" non vuol dire niente.
+  const divisione = inCima ? null : divisioneDaLp(lp);
   // l'oggetto rank deve avere 'indice' per compatibilita' con il codice che
   // leggeva rank.indice dal motore vecchio. Senza questo, record[0].rank.indice
   // era undefined e i confronti (a.rank.indice > b.rank.indice) davano sempre

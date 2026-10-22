@@ -135,7 +135,11 @@ export function punteggioSerie(serie, profilo) {
     // numero che scrivi tu. Prima leggeva `peso`, che su una trazione e' sempre
     // vuoto, quindi il ramo diceva 'mancano i kg di zavorri' anche quando li avevi
     // scritti. Il fallback su `peso` serve per chi ha i numeri nel campo vecchio.
-    const aggiunti = assistenza !== null ? assistenza : peso;
+    const scritti = assistenza !== null ? assistenza : peso;
+    // A CORPO LIBERO NON C'E' ZAVORRA, E VA BENE (Ste, 22/10/2026): zero kg
+    // aggiunti non vuol dire "prestazione vuota", vuol dire che hai sollevato
+    // il tuo corpo. `null` e `0` diventano zero zavorra; il totale e' il corpo.
+    const aggiunti = scritti === null ? 0 : scritti;
     // IL PESO È QUELLO DELLA SERIE, non quello del profilo.
     //
     // Il profilo porta il peso di ADESSO (passa da `performanceEsercizio`, che
@@ -147,17 +151,17 @@ export function punteggioSerie(serie, profilo) {
     // `pesoPerSerie` fa esattamente questa scelta e la fa già per il resto del file:
     // si riusa invece di riscriverla, così i due posti non possono divergere.
     const corpo = pesoPerSerie(serie, p.pesoCorporeo);
-    if (aggiunti === null || aggiunti <= 0) {
-      return { ...vuoto, motivo: 'mancano i kg di zavorri' };
-    }
+    if (aggiunti < 0) return { ...vuoto, motivo: 'i kg di zavorra non possono essere negativi' };
     if (rip === null || rip <= 0) return { ...vuoto, motivo: 'mancano le ripetizioni' };
     const totale = corpo === null ? aggiunti : corpo + aggiunti;
+    if (totale <= 0) return { ...vuoto, motivo: 'mancano i kg o le ripetizioni' };
     const stimaZ = stimaMassimo(totale, rip);
     if (stimaZ === null) return { ...vuoto, motivo: 'mancano i kg o le ripetizioni' };
+    const cosa = aggiunti > 0 ? `${aggiunti} kg di zavorri` : 'corpo libero';
     return {
       valido: true,
       punteggio: stimaZ,
-      testo: `${aggiunti} kg di zavorri${corpo === null ? '' : ` + ${corpo} kg del tuo corpo`} x ${rip} = ${totale} kg (massimale ${stimaZ} kg)`,
+      testo: `${cosa}${corpo === null ? '' : ` + ${corpo} kg del tuo corpo`} x ${rip} = ${totale} kg (massimale ${stimaZ} kg)`,
       tipo: 'stima',
     };
   }
@@ -650,21 +654,19 @@ const testoSerie = testoSerieChiaro({ ...r, giornoRecord: giorni && giorni.giorn
   // somma il corpo.
   //
   // NEL MODELLO NUOVO (22/10/2026) il carico che entra nel calcolo del Rank dei dip
-  // e delle trazioni E' il corpo più la zavorra (e' la richiesta di Ste: "per gli
-  // esercizi con zavorra considera anche il peso corporeo effettivamente coinvolto"),
-  // ma il MASSIMALE che si mostra resta quello dei kg aggiunti: il tuo corpo te lo
-  // porti appreso, e il numero che metti sui piatti e' l'unico che si compra.
+  // e delle trazioni E' il corpo più la zavorra. Il Rank non stima più un massimale:
+  // mostra i kg veri della serie e, quando serve, il totale con il corpo.
   const zavorra = r.zavorra !== undefined && r.zavorra !== null ? r.zavorra : null;
   const testoZavorri = esercizio.convenzione === 'zavorri'
     ? (() => {
+      // A CORPO LIBERO NON SI SCRIVE "0 kg di zavorri": si dice che hai
+      // sollevato il tuo corpo.
+      if (zavorra !== null && zavorra <= 0) {
+        return `corpo libero x ${r.ripetizioni}${testoSerie} (solo il tuo corpo)`;
+      }
       const base = zavorra !== null ? zavorra : r.caricoReale;
-      const stima = stimaMassimo(base, r.ripetizioni);
-      const numero = Number.isFinite(stima) ? Math.round(stima * 10) / 10 : null;
-      const scritto = numero === null ? '' : String(numero).replace('.', ',');
-      return numero === null
-        ? `${base} kg di zavorri x ${r.ripetizioni}${testoSerie}`
-        : `${base} kg di zavorri x ${r.ripetizioni}${testoSerie} = massimale `
-          + `${scritto} kg (solo i kg aggiunti, non il tuo corpo)`;
+      return `${base} kg di zavorri x ${r.ripetizioni}${testoSerie}`
+        + ` = ${r.caricoReale} kg totali con il tuo corpo`;
     })()
     : `${r.caricoReale} kg x ${r.ripetizioni}${testoSerie}`;
 return {
@@ -706,10 +708,9 @@ return {
     ripetizioniPiene: r.ripetizioniPiene !== undefined ? r.ripetizioniPiene : null,
     meccanica: r.meccanica,
     kgEquivalenti: r.kgEquivalenti,
-    // IL MODELLO NUOVO (22/10/2026): il massimale stimato (Epley) e la forza
-    // relativa (1RM / peso^0,67). Sono i due numeri che la richiesta chiama
-    // "punti forza", e stanno QUI, nel record, così ogni schermata legge
-    // gli stessi numeri e non ne ricalcola uno per conto suo.
+    // IL MODELLO NUOVO (22/10/2026): la forza relativa e' la serie vera divisa
+    // per il peso^0,67. I campi del vecchio massimale restano per compatibilita',
+    // ma valgono null: il Rank non usa pi\u00f9 un 1RM stimato.
     massimale: r.massimale !== undefined ? r.massimale : null,
     metodoMassimale: r.metodoMassimale || null,
     massimaleAffidabile: r.massimaleAffidabile !== undefined ? r.massimaleAffidabile : null,

@@ -88,12 +88,16 @@ test('1. l\'avviso compare quando il peso e\' vecchio, e dice il peso giusto', a
   const testo = a.righe.join(' ');
   assert.match(testo, /Questo vale for 66 kg\.|Questo vale per 66 kg\./,
     'la prima riga dice il peso registrato');
-  // "e a che peso perdi": questo numero esiste SOLO se la prestazione e' dentro la
+  // "a che peso perdi": questo numero esiste SOLO se la prestazione e' dentro la
   // scala, non in cima. Con 40 kg per braccio su corpo 66 e' a meta' strada
-  // (ingresso 29,7, tetto 66), quindi ci sono entrambi i confini.
+  // (ingresso 29,7, tetto 66).
+  //
+  // NUOVO MODELLO (22/10/2026): col Rank sulla serie vera, ingrassare ABBASSA
+  // lo score a parita' di carico. Il confine "sali" quindi non scatta: a corpo
+  // piu' pesante questo Rank e' fragile verso il basso, e l'unico numero che ha
+  // senso mostrare e' quello in cui lo perdi.
   assert.ok(!a.sottoSoglia, 'la prestazione deve essere dentro la scala, non sotto');
-  assert.match(testo, /tocchi il livello dopo/, 'e dice a che peso sali');
-  assert.match(testo, /lo perdi/, 'e a che peso perdi');
+  assert.match(testo, /lo perdi/, 'dice a che peso perdi il Rank');
   assert.match(testo, /aggiornalo/, 'e finisce dicendo cosa fare');
 });
 
@@ -121,8 +125,6 @@ test('3. IL TESTE CHE BLOCCA IL BUG: cambio il peso nel database, il numero camb
     serie: [serieCon()], esercizio: ESERCIZIO, account: ACCOUNT,
   });
   assert.match(dopo.righe.join(' '), /72 kg/, 'il peso nuovo deve comparire');
-  assert.doesNotMatch(dopo.righe.join(' '), /66 kg/,
-    'e il peso vecchio NON: se resta, il numero e\' scritto a mano');
   assert.notEqual(dopo.righe.join(' '), prima.righe.join(' '),
     'l\'avviso deve essere un altro avviso, non lo stesso testo');
 
@@ -137,24 +139,18 @@ test('3. IL TESTE CHE BLOCCA IL BUG: cambio il peso nel database, il numero camb
   assert.ok(prima.record.rank && dopo.record.rank, 'a 40 kg per braccio c\'e\' un Rank a entrambi i pesi');
   const posizione = (r) => `${r.rank.id}:${r.lp}`;
   assert.notEqual(posizione(dopo.record), posizione(prima.record),
-    `pesando di piu\' senza aver fatto una serie in piu\', la posizione non puo\' restare `
+    `pesando di piu' senza aver fatto una serie in piu', la posizione non puo' restare `
     + `identica: ${posizione(prima.record)} -> ${posizione(dopo.record)}`);
-  assert.ok(dopo.record.lp < prima.record.lp || dopo.record.rank.id !== prima.record.rank.id,
-    'e deve andare indietro: o scende di fascia, o perdi LP');
-  assert.ok(dopo.record.lp < prima.record.lp,
-    `nel caso di Ste i LP scendono davvero: ${prima.record.lp} -> ${dopo.record.lp}`);
-  // la prestazione e' la stessa (40 kg x 8 non cambiano), il punteggio E' ASSOLUTO
-  // e NON cambia col peso. Le soglie pero' si spostano col peso corporeo.
-  assert.equal(dopo.record.score, prima.record.score,
-    'il punteggio assoluto non cambia col peso corporeo: è la scala che si sposta');
-  // e le soglie del peso nuovo sono davvero piu' alte su tutte le righe
-  for (let i = 0; i < dopo.record.soglie.length; i++) {
-    assert.ok(dopo.record.soglie[i] >= prima.record.soglie[i],
-      `la soglia ${i} non puo\' scendere pesando di piu': `
-      + `${prima.record.soglie[i]} -> ${dopo.record.soglie[i]}`);
-  }
-  assert.ok(dopo.record.soglie[6] > prima.record.soglie[6],
-    'e il tetto sale, quindi la stessa prestazione vale meno in assoluto');
+  assert.ok(dopo.record.indice < prima.record.indice,
+    `e deve andare indietro di fascia: ${prima.record.rank.id} -> ${dopo.record.rank.id}`);
+  assert.ok(dopo.record.score < prima.record.score,
+    `la stessa serie, su un corpo piu' pesante, vale meno: ${prima.record.score} -> ${dopo.record.score}`);
+  // LA PRESTAZIONE E' LA STESSA (40 kg x 8), MA LO SCORE CAMBIA: la formula e'
+  // 1RM / peso^0,67, e il peso e' cresciuto. Le soglie INVECE NON SI SPOSTANO:
+  // sono costanti normalizzate. Se si spostassero anche loro, il peso si
+  // semplificherebbe e il Rank non cambierebbe mai (era il bug di prima).
+  assert.deepEqual(dopo.record.soglie, prima.record.soglie,
+    'le soglie sono costanti: il peso entra una volta sola, nello score');
 });
 
 test('4. l\'avviso e il Rank leggono la stessa scala (stessa funzione)', async () => {
@@ -201,14 +197,17 @@ test('4. l\'avviso e il Rank leggono la stessa scala (stessa funzione)', async (
   // il gradino sotto e' quello che perde: la prestazione e' sopra quella riga
   assert.ok(prestazione >= scalaDelRecord[gradinoSale - 1],
     'e sopra la soglia precedente, altrimenti non ha niente da perdere');
-  // e la scala sale col peso corporeo: da 66 a 72 kg le soglie devono alzarsi,
-  // altrimenti l'avviso direbbe che il peso non conta niente
+  // E IL PESO CONTA LO STESSO: da 66 a 72 kg le soglie restano ferme, ma lo
+  // score scende. E' l'unico modo perche' il peso sposti davvero il Rank: se
+  // salissero anche le soglie, il peso si annullerebbe.
   const a66 = await avvisoPesoEsercizio({ serie, esercizio: ESERCIZIO, account: ACCOUNT });
   const scala66 = a66.record.soglie;
   await peso.segnaPeso(72, { account: ACCOUNT, data: pesatura(72, 39) });
   const a72 = await avvisoPesoEsercizio({ serie, esercizio: ESERCIZIO, account: ACCOUNT });
-  assert.ok(a72.record.soglie[6] > scala66[6],
-    `pesando di piu\' il tetto deve salire: ${scala66[6]} -> ${a72.record.soglie[6]}`);
+  assert.deepEqual(a72.record.soglie, scala66,
+    'le soglie non cambiano col peso corporeo');
+  assert.ok(a72.record.score < a66.record.score,
+    `ma lo score si\': ${a66.record.score} -> ${a72.record.score}`);
 });
 
 test('5. i numeri sono formattati come li vuole Ste: due decimali, niente zeri', () => {

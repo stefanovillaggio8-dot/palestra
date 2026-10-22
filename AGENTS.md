@@ -5,7 +5,7 @@ chat aperta in questa cartella, quindi non serve ricordare nulla: io so già dov
 
 Se questo stato diventa vecchio, oggi ste qui, basta correggere questo file.
 
-Ultimo aggiornamento: **21/10/2026, dopo la v258**.
+Ultimo aggiornamento: **22/10/2026, modello forza v3 (test verdi, da pubblicare)**.
 
 > **NOTA PER CHI APRE UNA CHAT NUOVA (22/10/2026).** La chat lunga su questo
 > progetto ("AGENTS.md: attivazione muscoli dips e reverse") e' arrivata a
@@ -32,6 +32,48 @@ Ultimo aggiornamento: **21/10/2026, dopo la v258**.
 - Preservare IndexedDB, ID e progressi. UTF-8. Test di grammatica sempre verdi.
 - Online su `https://stefanovillaggio8-dot.github.io/palestra/`.
 - Foto sorgente: `C:\Users\stefa\Downloads\muscoli.jpeg` (809x825).
+
+## 22/10/2026 - MODELLO FORZA v3 (test verdi, DA PUBBLICARE come v259)
+
+**LA REGOLA CHE VALE ORA (Ste, 22/10/2026):** *"non deve essere facile arrivare a
+TITAN. tutto deve seguire le formule."* Quindi i vertici di ogni movimento sono i
+valori ELITE REALI delle fonti pubbliche (Strength Level / Endura), nella NOSTRA unità
+(per manubrio / per lato sentito, con la doppia carrucola gia' dimezzata). Niente numeri
+a occhio: se un vertice cambio', e' perche' la fonte dice quel numero.
+
+- Il motore v3 non stima piu' un massimale: score = **carico reale x ripetizioniPiene x
+  meccanica / peso^0,67**. La serie vera, non l'1RM ipotetico.
+- **Vertici alzati il 22/10/2026** (4 movimenti), con la fonte nel commento di ognuno:
+  - `spinta_verticale` 0,60 -> **0,70** (SL: elite 0,70x per manubrio)
+  - `spalle_posteriori` 0,30 -> **0,55** (SL: elite 0,55x per manubrio)
+  - `polso` 0,60 -> **0,75** (SL: elite 0,75x per manubrio)
+  - `petto_isolamento` (cable fly) 0,35 -> **0,50** (SL: elite 84 kg a 1RM sul carrello
+    = 66 kg a 6 rip = 33 kg per lato su 66 kg di corpo = 0,50x). Ste stesso aveva
+    notato che il cable fly "non penso sia da TITAN".
+- **Risultato sul backup reale: 2 TITAN, 6 DIAMOND, 7 PLATINUM, 4 GOLD, 1 SILVER,
+  zero OLYMPIAN.** I 2 TITAN sono Seated Cable Row (83%, 1,44x corpo) e Cable Overhead
+  Tricep (82%): davvero avanzati. OLYMPIAN resta vuoto perche' nessuno e' a livello elite.
+- **Doppia carrucola (verificato 22/10/2026):** `caricoReale()` dimezza SEMPRE quando
+  `carrucola === 'carrucola_doppia'`, mai per i manubri (che non hanno carrucola). Marcatura
+  degli esercizi al cavo controllata e corretta: doppia = cable fly, overhead tricep,
+  reverse fly, pushdown, hammer curl, lateral raise, high-to-low fly, incline/bicep curl,
+  chest press, crunch, reverse fly a due braccia, face pull; mono = **seated cable row,
+  wrist curl, incline single arm pulldown**. Esempio: cable fly 38 letti = 19 reali/lato.
+- Il calcolo **dipende dal peso corporeo** (divide per peso^0,67): lo stesso carico a 60 kg
+  vale di piu' che a 95 kg. Verificato.
+- Dip e trazioni: lo score usa **corpo + zavorra**; a corpo libero la serie e' valida e la
+  riga dice `corpo libero`.
+- OLYMPIAN senza divisioni I/II/III: gli LP continuano a salire. Le altre bande hanno I/II/III.
+- File toccati: `src/rank-v3/modello.js`, `src/rank-v3/valutazione.js`, `src/rank.js`,
+  `src/rank-v2/scalata.js`, `src/avviso-peso.js`, `src/app.js` + test.
+- V35 protegge i 4 casi veri di Ste (non devono essere OLYMPIAN). Alzare i vertici li
+  allontana da OLYMPIAN, quindi V35 continua a passare.
+- `node --test`: **873 pass, 0 fail** (verificato 22/10/2026).
+- BUG SEGNALATO DA STE (22/10/2026): nella "prova esercizio" **non spunta il numero di
+  divisione** (DIAMOND I/II/III, TITAN I/II/III, ecc.). Il codice locale la mostra gia'
+  (motore v3 e riga 6124/6148/6159 di `src/app.js`): **si risolve pubblicando la v259**,
+  perche' online gira ancora la v258 col motore vecchio.
+- DA FARE: pubblicare la **v259** (bump `sw.js` + `index.html`), verificare online.
 
   ## Dove siamo
 
@@ -271,7 +313,7 @@ automaticamente"*.
 - `src/esercizi-classificatore.js`: la lista dei movimenti e le sue parole
 - `src/app.js`: `disegnoOmino(parteId, livelli, anatomia)`
 - `test/mappa-muscoli.test.js`: Z1-Z22 (Z18 niente sovrapposizioni, Z19 copertura sui due lati, Z20 rematore/tirate senza centro schiena, Z21 il classificatore non inventa frasi, Z22 brachioradiale sul martello e avambraccio solo sul polso)
-- `test/rank-v2.test.js`: V1-V24 (V19 tetto, V20 allometrico, V22-V24 leve)
+- `test/rank-v2.test.js`: V1-V35 (V19 tetto, V20 allometrico, V22-V24 leve, V35 prestazioni vere sotto il tetto v3)
 - `src/dati-iniziali.js`: esporta `ESERCIZI`, usato dai test
 - `src/scala-esercizi.js`: `SCALA_ESERCIZI`, i numeri "verificati a mano" — **che il
   motore `rank-v2` non usa**. Solo `scala-auto.js` li legge, e serve al motore vecchio
@@ -280,14 +322,14 @@ automaticamente"*.
 
 ## Prossimo passo
 
-1. Ste guarda la scheda del pushdown e dice se **PLATINUM al 68%** gli torna.
-2. **`SCALA_ESERCIZI` e `VALORI_MOVIMENTO` sono due tavole diverse** e il motore
-   (`rank-v2`) **non guarda la prima**. È il disaccordo più grosso rimasto: per il
-   reverse fly la scala verificata è 16 e il tetto di rank-v2 dà 25,5 (lui è al 56%).
-   Non va cambiato alla cieca: prima va capito quale delle due tavole è quella giusta.
-3. `Single Leg Press` è l'unico senza livello (17 kg per gamba, 24% del tetto).
-4. Se un esercizio sembra fuori posto il numero da spostare è `multiplo` /
-   `ingressoMultiplo` in `VALORI_MOVIMENTO`, e SOLO quello.
+1. Audit dei 6 TITAN completato: sono tutti avanzati e coerenti, nessun OLYMPIAN vuole dire nessuno è a livello elite. Non serve cambiare `STANDARD_1RM`.
+2. Pubblicare la **v259** (bump in `sw.js` e `index.html`) e verificare online.
+3. Ste guarda i Rank del modello v3 sui suoi esercizi: sul backup reale escono
+   6 TITAN, 4 DIAMOND, 6 PLATINUM, 3 GOLD, 1 SILVER.
+4. Se un numero non torna, il numero da spostare è `ingresso` / `vertice` in
+   `STANDARD_1RM` (`src/rank-v3/modello.js`), e SOLO quello. I tetti storici di
+   polso, reverse fly, overhead tricep e spinta verticale non si abbassano di nuovo:
+   sono protetti da V35.
 
 ## Due avvertenze tecniche
 
