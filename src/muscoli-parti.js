@@ -215,7 +215,10 @@ export const PARTI = [
     // (lui sono profondi, sotto i dorsali), ma nel kit del disegnatore c’è la figura
     // dedicata: questo path viene da li'.
     id: 'dorso_basso', muscolo: 'dorso', parte: 'bassa schiena (lombari)',
-    parole: ['lombare', 'lombari', 'lower back', 'bassa schiena'],
+    // I LOMBARI SONO IL PEZZO PRINCIPALE DELL'IPERESTENSIONE (22/10/2026).
+    // Ste: "no il contrario, i lombari principali". Stesa a 45 gradi, l'iperextensione
+    // carica la bassa schiena pieno, e i glutei aiutano ma più piano.
+    parole: ['hyperextension', 'iperextensione', 'back extension', 'lombare', 'lombari'],
     nota: 'La bassa schiena, cioè i muscoli che stanno lungo la colonna (l’erector spinae). Nell’iperextensione lavorano insieme ai glutei, ma più piano: per questo si vedono meno chiari. Se ti fa male la schiena, questo esercizio non è per te.',
   },
   {
@@ -381,14 +384,7 @@ id: 'avambraccio', muscolo: 'avambraccio', parte: 'avambraccio (polso e avanti b
     // i muscoli della schiena che lavorano con loro in questa tavola non ci sono.
     // l'iperextensione è a 45 gradi: lavora i glutei, ma SOPRATTUTTO i lombari
     // (la bassa schiena), che sono la parte profonda
-    parole: ['hip thrust', 'glute bridge', 'squat', 'stacco', 'affondi',
-      // L'IPERESTENSIONE (22/10/2026). Ste: "oltre alla parte già evidenziata
-      // evidenzia meno forte i lombari". Il pezzo principale è il gluteo (la
-      // spinta coi fianchi), e i lombari sono un secondario: si vedono, ma più
-      // chiari. Prima, quando i lombari erano il pezzo principale, la figura
-      // accendeva la striscia lungo la colonna a pieno e i glutei restavano
-      // spenti: il disegno diceva una cosa, l'esercizio un'altra.
-      'hyperextension', 'iperextensione', 'back extension'],
+    parole: ['hip thrust', 'glute bridge', 'squat', 'stacco', 'affondi'],
     nota: 'Spinta coi fianchi: lavora il gluteo, il muscolo più forte del corpo.',
   },
   {
@@ -527,7 +523,7 @@ export const MOVIMENTI = [
     // discreta. NESSUN secondario arriva a 1, il pieno è del principale.
     id: 'iperextensione',
     parole: ['hyperextension', 'iperextensione', 'back extension'],
-    secondari: { dorso_basso: 0.5 },
+    secondari: { glutei: 0.5 },
   },
   {
     id: 'dip',
