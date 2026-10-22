@@ -6120,7 +6120,17 @@ function vistaRank(zona) {
       const rango = record && record.rank ? record.rank : null;
       const kgReali = record && record.caricoReale !== null && record.caricoReale !== undefined
         ? record.caricoReale : peso;
+      // IL PUNTEGGIO DI FORZA (22/10/2026): il massimale stimato diviso per il
+      // peso corporeo elevato a 0,67. E' il numero che rende confrontabili due
+      // persone di taglie diverse, e quello che la scala allometrica usa.
+      const corpPerForza = (record && record.pesoCorporeo) || (corp > 0 ? corp : null);
+      const unRM = kgReali * (1 + rip / 30);
+      const forzaRelativa = corpPerForza > 0 ? unRM / Math.pow(corpPerForza, 0.67) : null;
       const testo = [
+          forzaRelativa !== null
+            ? 'forza relativa ' + (Math.round(forzaRelativa * 10) / 10)
+              + ' (1RM ' + (Math.round(unRM * 10) / 10) + ' kg su ' + corpPerForza + ' kg^0,67)'
+            : '',
         e.nome,
         peso + ' kg x ' + rip + (corp > 0 ? ' | peso corporeo ' + corp + ' kg' : ''),
         rango ? rango.nome + (rango.divisione ? ' ' + rango.divisione.nome : '') : (record && record.motivo ? record.motivo : 'Non valutabile'),

@@ -103,7 +103,7 @@ test('C1. il foglio di stile ha la versione nell\'indirizzo', () => {
   // file in cache per mesi. Quindi le animazioni esistevano per chi apriva la pagina
   // per la prima volta e non per chi le aveva già aperte: cioè non per Ste.
   //
-  // Con `?v=254` l'indirizzo cambia a ogni versione e la cache non può più restituire
+  // Con `?v=255` l'indirizzo cambia a ogni versione e la cache non può più restituire
   // il file vecchio.
   const collegamento = /<link rel="stylesheet" href="\.\/stile\.css\?v=(\d+)"/.exec(indexHtml);
   assert.ok(collegamento, 'il foglio di stile deve avere la versione nell\'indirizzo');
