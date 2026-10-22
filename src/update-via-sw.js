@@ -45,6 +45,28 @@ export async function controllaAggiornamento({ forzato = false } = {}) {
   const remota = versioneOnline(testo);
   const locale = Number(versioneLocale());
   if (!remota || remota <= locale) return null;
+
+  // IL BLOCCO ANTI-LOOP (22/10/2026).
+  //
+  // Ste: "appena apro l'app in basso spunta c’è la versione 248, ti aggiorno e
+  // mi si aggiorna all'infinito".
+  //
+  // Il motivo: la pagina dichiarava una versione vecchia (247) mentre il sw.js
+  // online diceva già 248. Ogni volta che la pagina partiva vedeva "c’è una
+  // versione nuova", ricaricava, e al ricaricamento rivedeva la stessa cosa:
+  // un ciclo che non finiva più.
+  //
+  // Qui si segna in sessionStorage la versione che si è già provata a prendere.
+  // Se è la stessa e la pagina è ANCORA quella vecchia, non si insiste: la
+  // pagina non si ricarica in giro. Con una versione nuova vera, invece, la
+  // pagina si aggiorna come prima e il segno si cancella da solo (la pagina
+  // nuova dichiara la versione nuova, quindi il confronto non arriva più qui).
+  try {
+    const giaProvata = Number(sessionStorage.getItem('palestra:versione-provata') || 0);
+    if (giaProvata === remota) return null;
+    sessionStorage.setItem('palestra:versione-provata', String(remota));
+  } catch { /* pazienza: se sessionStorage non c’è si prosegue come prima */ }
+
   return { remota, locale };
 }
 

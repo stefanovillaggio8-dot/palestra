@@ -218,7 +218,7 @@ export function percorsoStato(classeId, indice) {
  * Ste (12/10/2026), la terza volta che la stessa cosa morde: "ma non è cambiato
  * nulla", con la foto nuova già online e verificata byte per byte.
  *
- * Il CSS aveva il numero (`stile.css?v=137`) e quindi si aggiornava. Le foto
+ * Il CSS aveva il numero (`stile.css?v=249`) e quindi si aggiornava. Le foto
  * no: l'indirizzo era sempre `img/personaggi/stati/berserker-5.webp`, identico
  * per sempre, e su GitHub Pages i file statici hanno una scadenza lunghissima.
  * Il browser restituiva la copia di prima, per sempre, e io cambiavo il file

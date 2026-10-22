@@ -9,11 +9,11 @@
 // e il test I3 che sia quello dell'ultimo commit, altrimenti si alza la cache e si
 // lascia scritto il numero vecchio. E' successo due volte: nella v54 avevo alzato
 // solo questo file, e dopo la v55 avevo smesso di alzarlo del tutto.
-const VERSIONE = 'palestra-v248';
+const VERSIONE = 'palestra-v249';
 
 // LE 18 FOTO DEI PERSONAGGI, CON LA VERSIONE DENTRO.
 //
-// Il numero viene preso da `palestra-v162` invece di essere scritto due volte: e'
+// Il numero viene preso da `palestra-v249` invece di essere scritto due volte: e'
 // l'unico posto in cui il numero compare, quindi la lista non pu? restare
 // indietro. Prima le 18 righe erano scritte a mano ed e' esattamente li' che il
 // numero era rimasto indietro due volte.
@@ -46,14 +46,14 @@ const FILE = [
   //
   // Ste (10/10/2046): "le animazioni non le vedo". Il CSS era online e aggiornato,
   // ma la cache del browser continuava a restituire il vecchio perch? l'indirizzo
-  // era sempre lo stesso. Con `?v=84` anche qui la chiave cambia a ogni versione,
+  // era sempre lo stesso. Con `?v=249` anche qui la chiave cambia a ogni versione,
   // quindi la cache vecchia non viene pi? richiesta.
   //
   // Il numero deve essere uguale a quello di `stile.css?v=` in index.html e a
   // `window.PALESTRA_VERSIONE`: se i tre non coincidono, l'app carica un foglio di
   // stile e dice un altro numero.
-  './stile.css?v=248',
-  './stile-rpg.css?v=248',
+  './stile.css?v=249',
+  './stile-rpg.css?v=249',
 './manifest.webmanifest',
   './manifest-p1.webmanifest',
   './manifest-p2.webmanifest',
