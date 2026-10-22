@@ -127,9 +127,9 @@ export const PESI_GOLERIA = [
 export function pesiCaricabili(passo = 1) {
   const p = Number(passo) > 0 ? Number(passo) : 1;
   const aggiunti = [];
-  // SOTTO I 50 KG vale la lista dei manubri, che NON e' uniforme (ci sono 2, 4, 6, 7,
+  // SOTTO I 50 KG vale la lista dei manubri, che NON è uniforme (ci sono 2, 4, 6, 7,
   // 8, 10, 12, 12,5...): Ste li ha elencati uno per uno, e 17 kg non ci sono. Sopra i 50
-  // kg si aggiunge il passo, che e' di 1 kg.
+  // kg si aggiunge il passo, che è di 1 kg.
   const da = p <= 1 ? 51 : p;
   for (let kg = da; kg <= 250; kg += p) aggiunti.push(Math.round(kg * 100) / 100);
   const base = p <= 1 ? PESI_GOLERIA : [];
@@ -275,7 +275,7 @@ export function spessoreSoglia(profilo, indiceRank) {
 // il livello lo capisce dal nome ("Dumbbell Lateral Raise" -> isolamento)
 import { classificaEsercizio } from './esercizi-classificatore.js';
 import { parteDiMuscolo, intrinsecoDi } from './muscoli-parti.js';
-import { scalaSulCorpo } from './scala-esercizi.js';
+import { scalaSulCorpo, ESPONENTE_ALLOMETRICO } from './scala-esercizi.js';
 import { scalaDerivata } from './scala-auto.js';
 
 export const LIVELLI_DIFFICOLTA = {
@@ -379,13 +379,13 @@ export function livelloEsercizio(esercizio) {
   // Aveva ragione: i kg ASSISTITI sono quelli che la MACCHINA ti regge (più ne metti e
   // meno fatica fai, quindi il conteggio va al contrario). Un esercizio col peso del
   // CORPO non ha kg assistiti: non ha kg per niente, e il suo livello lo decide il
-  // movimento che il nome descrive. Un'estensione dei tricipiti col braccio e' un
+  // movimento che il nome descrive. Un'estensione dei tricipiti col braccio è un
   // ISOLAMENTO, come tutte le altre estensioni dei tricipiti.
   //
   // Il "corpo libero" quindi non viene deciso qui: arriva dal classificatore, che sa
   // guardare il nome (vedi classificaEsercizio).
   if (convenzione === 'assistenza') return 'assistito';
-  // Il corpo libero NON e' assistito (Ste, 21/10/2026): l'assistenza e' la macchina che
+  // Il corpo libero NON è assistito (Ste, 21/10/2026): l'assistenza è la macchina che
   // ti regge. Qui i kg non ci sono, e si contano le ripetizioni.
   if (convenzione === 'corpo_libero') return 'corpo_libero';
 
@@ -902,7 +902,10 @@ export function profiloPerPesoCorporeo(profilo, pesoCorporeo) {
     }
   } else if (p.riferimentoFisso) {
     riferimento = p.riferimento;
-    soglie = p.soglie.map((s) => Math.round(s * (peso / PESO_RIFERIMENTO) * 100) / 100);
+      // ALLOMETRICO, non lineare (22/10/2026): vedi la spiegazione in
+      // `scalaSulCorpo`. Le soglie crescono con il peso elevato a 0,67.
+      const fattoreSoglia = Math.pow(peso / PESO_RIFERIMENTO, ESPONENTE_ALLOMETRICO);
+      soglie = p.soglie.map((s) => Math.round(s * fattoreSoglia * 100) / 100);
   } else {
     // Il nome passa OBBLIGATORIO. Prima qui passavo solo id e convenzione: senza
     // il nome il classificatore non poteva riconoscere il movimento, e quindi due

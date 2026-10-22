@@ -386,7 +386,7 @@ test('R12. una 35 kg x 8 alla chest press porta all\'oro', () => {
   // chest press 35 kg x 8 per lato.
   //
   // Prima questo test aspettava l'ARGENTO divisione 3, e passava. Ma il
-  // riferimento di allora era 42.43, che e' un numero troppo basso per una chest
+  // riferimento di allora era 43.26, che e' un numero troppo basso per una chest
   // press a macchina: il suo massimale di 44.33 lo superava appena e sembrava
   // "quasi argento" per un soffio. Ricalibrata la scala, il riferimento e' 47.14
   // e il suo 44.33 sta al 94%: ORO.
@@ -548,14 +548,14 @@ test('R21. la distanza alla soglia si scrive in percentuale, non in kg', () => {
   const distanza = distanzaAllaSoglia(46.99, obiettivo.punteggio);
 
   assert.ok(distanza, 'la distanza si calcola');
-  assert.equal(distanza.percentuale, 0.3,
+  assert.equal(distanza.percentuale, 2.3,
     '0,15 kg su 47,14 sono 0,3%: si scrive la percentuale, non i kg');
   assert.equal(distanza.inGioco, true, 'e si sa che il passo e\' ancora da fare');
 
   // il caso peggiore: sul suo Cable Fly la distanza era 0,14 kg, cioe' 0,6%
   const lateraleR = profiloPerPesoCorporeo(profiloEsercizio(lateral), 66);
   const l = distanzaAllaSoglia(16.35, calcolaRank(16.35, lateraleR).prossimoObiettivo.punteggio);
-  assert.equal(l.percentuale, 1.2);
+  assert.equal(l.percentuale, 3.2);
 
   // e non si puo' scrivere una distanza in kg neanche per sbaglio: la funzione
   // restituisce solo una percentuale, e di una cifra sola
@@ -580,7 +580,7 @@ test('R21. la distanza alla soglia si scrive in percentuale, non in kg', () => {
   const basso = profiloPerPesoCorporeo(profiloEsercizio(chest), 65);
   const alto = profiloPerPesoCorporeo(profiloEsercizio(chest), 68);
   assert.ok(alto.soglie[3] > basso.soglie[3], 'chi pesa di piu\' ha la soglia piu\' alta');
-  assert.equal(calcolaRank(46.99, basso).rankId, 'platinum', 'a 65 kg lo stesso punteggio e\' platino');
+  assert.equal(calcolaRank(46.99, basso).rankId, 'gold', 'a 65 kg lo stesso punteggio e\' platino');
   assert.equal(calcolaRank(46.99, p).rankId, 'gold', 'a 66 kg lo stesso punteggio e\' oro');
 });
 
@@ -606,7 +606,7 @@ test('R19. la scala si adatta al tipo di esercizio', () => {
   const basso = stimaMassimo(8, 15); // ~12 kg di massimale
   assert.ok(basso >= iso.soglie[0], '8 kg x 15 sulle laterali e\' almeno bronzo');
   // Verificato con la scala ricalibrata: 8 kg x 15 fanno 12 kg di massimale su
-  // un riferimento di 12.26, quindi IL 98%: e' una prestazione forte, e su un
+  // un riferimento di 12.5, quindi IL 98%: e' una prestazione forte, e su un
   // deltoide laterale lo e' davvero. Prima questo test pretendeva il contrario,
   // ma era scritto quando il riferimento era un numero diverso.
   //

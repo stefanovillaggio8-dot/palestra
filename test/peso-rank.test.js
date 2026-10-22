@@ -48,8 +48,11 @@ test('3. le soglie si adattano al peso corporeo', () => {
   assert.ok(leggero.soglie[0] < p.soglie[0], 'soglia di partenza piu\' bassa per chi e\' leggero');
   assert.ok(pesante.soglie[0] > p.soglie[0], 'soglia di partenza piu\' alta per chi e\' pesante');
   // il rapporto e' quello giusto
-  const fattore = 90 / PESO_RIFERIMENTO;
-  assert.ok(Math.abs(pesante.soglie[1] - p.soglie[1] * fattore) < 0.05);
+  // ALLOMETRICO, non lineare (22/10/2026): il peso da spostare cresce con il peso
+    // elevato a 0,67. Chi pesa 90 kg non sposta il 90% in piu' di chi pesa 70.
+    const fattore = Math.pow(90 / PESO_RIFERIMENTO, 0.67);
+  assert.ok(Math.abs(pesante.riferimento - p.riferimento * fattore) < 0.05,
+      'il riferimento segue il peso elevato a 0,67');
 });
 
 test('4. 60 kg che lifting 60 kg e 90 kg che lifting 60 kg NON hanno lo stesso rank', () => {

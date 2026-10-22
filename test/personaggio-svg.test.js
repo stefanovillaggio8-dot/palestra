@@ -373,7 +373,7 @@ test('la foto non viene mai tagliata', () => {
     // della classe aveva lo sfondo nero dentro l'immagine: la testa restava nera.
     // e il codice dice che qui dentro c'e' il DISEGNO (22/10/2026): la foto
     assert.match(app, /classList\.add\('con-foto'\)/,
-      'il codice deve dire che qui dentro c\'e una foto');
+      'il profilo mostra la foto del personaggio, non il disegno');
 });
 
 test('la foto del personaggio è grande, non una figurina', () => {

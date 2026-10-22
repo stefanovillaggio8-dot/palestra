@@ -32,6 +32,24 @@
  */
 
 // massa di riferimento: i numeri sotto sono per un corpo di questa taglia
+/**
+ * L'ESPONENTE ALLOMETRICO (22/10/2026).
+ *
+ * Ste, con il parere di Gemini: "attualmente il sistema usa un rapporto lineare
+ * tra peso corporeo e peso sollevato, ma questo approccio e' errato perché la
+ * forza cresce in modo non lineare rispetto al peso corporeo (segue una curva a
+ * rendimenti decrescenti ed esponenziali)".
+ *
+ * Il peso del corpo cresce con il cubo della taglia, la sezione del muscolo
+ * (che e' quello che genera forza) con il quadrato: quindi la forza cresce con
+ * l'esponente 2/3 = 0,67 della massa. E' la normalizzazione allometrica
+ * usata in ambito sportivo.
+ *
+ * In pratica: il peso da spostare per lo stesso punteggio cresce con il peso
+ * elevato a 0,67, e NON con il peso se stesso.
+ */
+export const ESPONENTE_ALLOMETRICO = 0.67;
+
 export const PESO_RIFERIMENTO_SCALA = 70;
 
 /**
@@ -160,5 +178,11 @@ export function scalaSulCorpo(scala, pesoCorporeo) {
   if (!Number.isFinite(scala)) return null;
   const peso = Number(pesoCorporeo);
   if (!Number.isFinite(peso) || peso <= 0) return scala;
+    // ALLOMETRICO, non lineare (22/10/2026): il peso da spostare per lo stesso
+    // punteggio cresce con il peso elevato a 0,67 (forza ~ massa^0,67), non con il
+    // peso se stesso. 70 kg che sollevano 70 kg valgono così circa il 4,5% in più
+    // di 80 kg che sollevano 80 kg.
+    const fattore = Math.pow(peso / PESO_RIFERIMENTO_SCALA, ESPONENTE_ALLOMETRICO);
+    return Math.round(scala * fattore * 100) / 100;
   return Math.round(scala * (peso / PESO_RIFERIMENTO_SCALA) * 100) / 100;
 }

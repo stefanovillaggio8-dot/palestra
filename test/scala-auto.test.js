@@ -33,24 +33,24 @@ const PESO_RIF = 70;
 // La tabella e' volutamente scritta qui, e non ricalcolata: un test che ricalcola
 // la tabella con lo stesso codice che sta provando non controlla niente.
 const RIFERIMENTI_VERIFICATI = {
-  'ex-chest-press': 47.14,
-  'ex-cable-hammer-curl': 30.17,
-  'ex-cable-lateral-raise': 12.26,
-  'ex-cable-overhead-tricep': 30.17,
-  'ex-leg-extension': 86.74,
-  'ex-neutral-grip-lat-pulldown': 96.17,
-  'ex-dumbbell-bench-pull': 42.43,
-  'ex-seated-db-shoulder-press': 30.17,
-  'ex-cable-fly': 18.86,
-  'ex-scott-bench-curl': 19.8,
-  'ex-single-arm-tricep-pushdown': 28.29,
-  'ex-seated-leg-curl': 80.14,
-  'ex-smith-incline-bench': 30.17,
-  'ex-seated-cable-row': 96.17,
-  'ex-chest-supported-shrug': 42.43,
-  'ex-sled-press-calf-raise': 132,
-  'ex-single-leg-press': 34.62,
-  'ex-one-arm-preacher-curl': 17.91,
+  'ex-chest-press': 48.07,
+  'ex-cable-hammer-curl': 30.76,
+  'ex-cable-lateral-raise': 12.5,
+  'ex-cable-overhead-tricep': 30.76,
+  'ex-leg-extension': 88.44,
+  'ex-neutral-grip-lat-pulldown': 98.06,
+  'ex-dumbbell-bench-pull': 43.26,
+  'ex-seated-db-shoulder-press': 30.76,
+  'ex-cable-fly': 19.23,
+  'ex-scott-bench-curl': 20.19,
+  'ex-single-arm-tricep-pushdown': 28.84,
+  'ex-seated-leg-curl': 81.71,
+  'ex-smith-incline-bench': 30.76,
+  'ex-seated-cable-row': 98.06,
+  'ex-chest-supported-shrug': 43.26,
+  'ex-sled-press-calf-raise': 134.59,
+  'ex-single-leg-press': 35.3,
+  'ex-one-arm-preacher-curl': 18.27,
   // Trazioni e dips: qui il numero cambia, ed è l'unica eccezione di tutto il
   // file, quindi la spiego. Fino alla v153 erano 15, cioè la scala delle
   // ripetizioni, e su una trazione i kg che metti sono i zavorri: 20 kg di
@@ -64,14 +64,14 @@ const RIFERIMENTI_VERIFICATI = {
 // "non so manco perché c'è". Sul catalogo non c'è più, quindi non c'è più neanche il suo
   // numero verificato qui. Quello che resta della sua logica è il movimento `corpo_libero`
   // del classificatore, che serve ancora a distinguere il peso del corpo dall'assistenza.
-  'ex-one-arm-cable-reverse-fly': 15.09,
+  'ex-one-arm-cable-reverse-fly': 15.38,
   'ex-pull-ups': 90.75,
   'ex-dips': 90.75,
-  'ex-wrist-curl': 32.06,
-  'ex-iso-lateral-row': 47.14,
-  'ex-lat-pulldown-lats': 95.23,
-  'ex-db-lateral-raise': 12.26,
-  'ex-lying-cable-curl': 103.71,
+  'ex-wrist-curl': 32.69,
+  'ex-iso-lateral-row': 48.07,
+  'ex-lat-pulldown-lats': 97.1,
+  'ex-db-lateral-raise': 12.5,
+  'ex-lying-cable-curl': 105.75,
 };
 
 // ---------------------------------------------------------------------------
@@ -158,10 +158,10 @@ test('S5. sul doppio carrucola la scala NON si dimezza', () => {
   assert.equal(scala, SCALA_MOVIMENTO.petto_isolamento.lato,
     'la scala del carrello e\' quella di un lato, non la meta\'');
 
-  // e sul suo Cable Fly vero: 20 kg sul corpo di 70, cioe' 18.86 sul suo corpo
+  // e sul suo Cable Fly vero: 20 kg sul corpo di 70, cioe' 19.23 sul suo corpo (la scala ora e' allometrica)
   const fly = ESERCIZI.find((e) => e.id === 'ex-cable-fly');
   const p = profiloPerPesoCorporeo(profiloEsercizio(fly), PESO_STE);
-  assert.equal(p.riferimento, 18.86);
+  assert.equal(p.riferimento, 19.23);
   assert.ok(p.riferimento > 12.5,
     'il riferimento deve stare sopra i suoi 12,5 kg sentiti, non sotto: '
     + 'un riferimento sotto fa sembrare chi si allena un campione');
@@ -338,7 +338,7 @@ test('S14. la scala segue il peso del corpo', () => {
   const a = profiloPerPesoCorporeo(profiloEsercizio(e), 70).riferimento;
   const b = profiloPerPesoCorporeo(profiloEsercizio(e), 35).riferimento;
   assert.equal(a, 102);
-  assert.equal(b, 51, 'la meta\' del peso e\' la meta\' della scala');
+  assert.equal(b, 64.11, 'la meta\' del peso e\' la meta\' della scala');
   assert.equal(scalaSulCorpo(scalaDerivata({ id: 'x', movimento: 'tirata_verticale', livello: 'composto' }), 35),
     scalaSulCorpo(SCALA_MOVIMENTO.tirata_verticale.totale, 35));
   // e senza peso la scala resta quella scritta, l'app non si rompe
@@ -366,7 +366,7 @@ test('S16. riferimentoPerEsercizio e\' l\'unico posto che riporta sul peso', () 
   const e = ESERCIZI.find((x) => x.id === 'ex-single-leg-press');
   // 34 di base, ma la sua macchina e' a stack e il correttivo la alza dell'8%: la
   // scala vera e' 36,72 sul corpo di riferimento, e 34,62 sul suo corpo di 66 kg
-  assert.equal(riferimentoPerEsercizio(e, PESO_STE), 34.62);
+  assert.equal(riferimentoPerEsercizio(e, PESO_STE), 35.3);
   assert.equal(riferimentoPerEsercizio(e, null), 36.72,
     'senza peso torna il numero del corpo di riferimento');
   assert.equal(riferimentoPerEsercizio(e, 700), 36.72, 'un peso assurdo si ignora, non si rompe');

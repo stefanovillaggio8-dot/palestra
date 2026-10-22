@@ -51,7 +51,11 @@ a { color: var(--blu); }
 
 .contenuto {
   padding-top: 18px;
-  animation: copia-ingresso .38s cubic-bezier(.2, .75, .25, 1) both;
+  /* Solo quando cambia la schermata (22/10/2026): prima l'animazione ripartiva
+   * a ogni salvataggio, e sembrava che l'app si impiantasse. La classe
+   * "cascata" la mette app.js quando cambia la rotta. */
+  animation: none;
+  #contenuto.cascata { animation: copia-ingresso .38s cubic-bezier(.2, .75, .25, 1) both; }
 }
 
 .stato-save {
