@@ -65,8 +65,8 @@ export const PARTI = [
       'incline press', 'inclined press', 'panca a 45', 'upper chest press',
       // LA DIREZIONE DEL FLY (Ste, 18/10/2026).
       //
-      // "il cable fly la panca e' messa al primo blocco, e' quasi a 90 gradi". Il nome
-      // "Cable Fly" non dice niente: e' lo stesso esercizio a seconda di come lo fai.
+      // "il cable fly la panca è messa al primo blocco, è quasi a 90 gradi". Il nome
+      // "Cable Fly" non dice niente: è lo stesso esercizio a seconda di come lo fai.
       // Conta la LINEA DI TIRATA: se le maniglie partono in basso e salgono, la
       // tensione tira verso l'alto e lavora il capo CLAVICOLARE (quello alto); se
       // partono in alto e scendono, la tensione tira verso il basso e lavora le fibre
@@ -99,7 +99,7 @@ export const PARTI = [
     // cade sul "bench press", quindi sul petto nel mezzo.
     //
     // "decline" invece mancava, e senza quello la panca declinata finiva sul petto
-    // nel mezzo. Le FRASI, non la parola: "decline crunch" e' un addominale, e con la
+    // nel mezzo. Le FRASI, non la parola: "decline crunch" è un addominale, e con la
     // parola sola finiva sul petto.
     parole: ['declinato', 'declinata', 'decline bench', 'decline press', 'bench decline',
       'panca declinata', 'panca piana', 'low cable fly', 'fly basso',
@@ -132,21 +132,21 @@ export const PARTI = [
     // normale" è un curl: in entrambi i casi il petto non lavora. Le frasi vere
     // restano ("bench press", "cable fly", "panca inclinata", "panca piana"),
     // quindi un esercizio di petto continua a essere trovato dal suo nome.
-    // il bench col pin (la sbarra di sicurezza) e' una panca come le altre
+    // il bench col pin (la sbarra di sicurezza) è una panca come le altre
     parole: ['chest press', 'bench pin press', 'pecorino', 'cable fly', 'cross over',
       'crossover', 'crucifix', 'bench press', 'pressione petto', 'horizontal press',
       // i push up sono una panca col peso del corpo (Ste, 21/10/2026)
       'push up', 'push-up', 'pushups', 'push ups', 'piegamenti', 'piegamento',
       'banch press',
       // il fly con i cavi in orizzontale: la tensione tira di lato, e il petto lavora
-      // tutto: e' il pezzo medio, quello grande
+      // tutto: è il pezzo medio, quello grande
       'cavi in orizzontale', 'movimento orizzontale', 'in orizzontale',
       // IL FLY "ABBRACCIO" (Ste, 18/10/2026).
       //
-      // "il carrello non e' in basso, e' a 12 di altezza tipo altezza spalle. Il
-      // movimento e' tipo quando abbracci qualcuno e allo stesso tempo spingo in avanti".
+      // "il carrello non è in basso, è a 12 di altezza tipo altezza spalle. Il
+      // movimento è tipo quando abbracci qualcuno e allo stesso tempo spingo in avanti".
       //
-      // Le maniglie si uniscono davanti e tirano in avanti: e' l'adduzione
+      // Le maniglie si uniscono davanti e tirano in avanti: è l'adduzione
       // orizzontale, la stessa della pec fly, e quindi lavora il capo STERNALE, il
       // pezzo grande del petto. Il carrello alto non cambia niente: conta la
       // DIREZIONE in cui le mani si muovono, non l'altezza del carrello.
@@ -205,25 +205,25 @@ export const PARTI = [
       // secondo fascia, cioe' il contrario di quello che l'esercizio fa.
       //
       // Qui il rematore e i dorsali. Il centro schiena, come muscolo pieno, resta al
-      // bench pull prono con i manubri, che e' la decisione dell'08/10 e non si tocca.
+      // bench pull prono con i manubri, che è la decisione dell'08/10 e non si tocca.
       'row', 'rematore', 'tiremento', 'tirate orizzontali', 'tirata orizzontale'],
     nota: 'Tira con le braccia: lavora il dorso largo, quello che si vede di lato sotto le ascelle.',
   },
   {
     // I LOMBARI (la bassa schiena) (Ste, 21/10/2026): sono l'erector spinae, cioe' i
     // muscoli che stanno lungo la colonna. Nella tavola dell'atlante non ci sono
-    // (lui sono profondi, sotto i dorsali), ma nel kit del disegnatore c'e' la figura
+    // (lui sono profondi, sotto i dorsali), ma nel kit del disegnatore c’è la figura
     // dedicata: questo path viene da li'.
     id: 'dorso_basso', muscolo: 'dorso', parte: 'bassa schiena (lombari)',
-    parole: ['hyperextension', 'iperextensione', 'back extension', 'lombare', 'lombari'],
-    nota: 'Lavora la bassa schiena, cioè i muscoli che stanno lungo la colonna (l’erector spinae), e anche i glutei. Se ti fa male la schiena, questo esercizio non è per te.',
+    parole: ['lombare', 'lombari', 'lower back', 'bassa schiena'],
+    nota: 'La bassa schiena, cioè i muscoli che stanno lungo la colonna (l’erector spinae). Nell’iperextensione lavorano insieme ai glutei, ma più piano: per questo si vedono meno chiari. Se ti fa male la schiena, questo esercizio non è per te.',
   },
   {
     id: 'dorso_centrale', muscolo: 'dorso', parte: 'dorso centrale (fra le scapole)',
     // IL REMATORE NON E' QUI (16/10/2026). Le parole "rematore", "row",
     // "tiremento" e le tirate orizzontali stanno adesso dentro `dorso_lati`, perché
     // Ste ha detto che il rematore lavora i dorsali e non il centro schiena. Qui
-    // resta solo la tirata PRONA con i manubri, che e' la decisione dell'08/10.
+    // resta solo la tirata PRONA con i manubri, che è la decisione dell'08/10.
     parole: ['prone',
       // Ste (08/10/2026): il Dumbbell Bench Pull È una tirata prona coi
       // manubri, quindi dorso centrale. Stava fra le parole del PETTO e la
@@ -241,7 +241,7 @@ export const PARTI = [
   {
     id: 'spalle_posteriori', muscolo: 'spalle', parte: 'spalle posteriori (deltoide posteriore)',
     parole: ['rear delt', 'rear deltoid', 'reverse fly', 'delt posteriori', 'tirate a braccia aperte',
-      // il face pull e' il reverse fly col nome nuovo (Ste, 21/10/2026)
+      // il face pull è il reverse fly col nome nuovo (Ste, 21/10/2026)
       'face pull',
       // la macchina del reverse fly: si chiama "Pec Deck" e lavora il deltoide
       // dietro, non il petto. Fino al 15/10/2026 la parola stava nella lista
@@ -256,7 +256,7 @@ export const PARTI = [
       'spinte in alto', 'presse in alto', 'press a spalle',
       // la spinta col manubrio infilzato nel bilanciere (Ste, 21/10/2026)
       'shoulder pin press', 'landmine press',
-      // il landmine press e' una spinta in avanti delle spalle (Ste, 21/10/2026)
+      // il landmine press è una spinta in avanti delle spalle (Ste, 21/10/2026)
       'landmine press', 'landmine'],
     nota: 'Spinge in alto davanti: lavora il deltoide anteriore e i trapezi.',
   },
@@ -287,13 +287,13 @@ export const PARTI = [
   {
     id: 'braccio_alto', muscolo: 'braccio', parte: 'bicipite: braccio in alto',
     parole: ['incline curl', 'curl inclinato', 'scott bench', 'preacher',
-      // "Panca Scott" e' il preacher curl detto in italiano (Ste, 21/10/2026)
+      // "Panca Scott" è il preacher curl detto in italiano (Ste, 21/10/2026)
       'panca scott', 'panca scott inclinata'],
     nota: 'Braccio in alto: il bicipite si vede e lavora nella posizione più corta, quindi è più difficile.',
   },
   {
     id: 'braccio_basso', muscolo: 'braccio', parte: 'bicipite: braccio in basso',
-    // "hammer curl" NON e' qui: e' il brachiale, vedi la nota sopra.
+    // "hammer curl" NON è qui: è il brachiale, vedi la nota sopra.
     parole: ['curl bilanciere', 'curl al cavo', 'bicipiti', 'curl con bilanciere',
       'in piedi', 'standing curl', 'curl a terra', 'curl basso'],
     nota: 'Braccio giù lungo il fianco: è la posizione facile, quella con la serie più lunga.',
@@ -379,9 +379,16 @@ id: 'avambraccio', muscolo: 'avambraccio', parte: 'avambraccio (polso e avanti b
     id: 'glutei', muscolo: 'gambe', parte: 'glutei',
     // l'hip extension e il back extension (iperextensione) sono i glutei:
     // i muscoli della schiena che lavorano con loro in questa tavola non ci sono.
-    // l'iperextensione e' a 45 gradi: lavora i glutei, ma SOPRATTUTTO i lombari
+    // l'iperextensione è a 45 gradi: lavora i glutei, ma SOPRATTUTTO i lombari
     // (la bassa schiena), che sono la parte profonda
-    parole: ['hip thrust', 'glute bridge', 'squat', 'stacco', 'affondi'],
+    parole: ['hip thrust', 'glute bridge', 'squat', 'stacco', 'affondi',
+      // L'IPERESTENSIONE (22/10/2026). Ste: "oltre alla parte già evidenziata
+      // evidenzia meno forte i lombari". Il pezzo principale è il gluteo (la
+      // spinta coi fianchi), e i lombari sono un secondario: si vedono, ma più
+      // chiari. Prima, quando i lombari erano il pezzo principale, la figura
+      // accendeva la striscia lungo la colonna a pieno e i glutei restavano
+      // spenti: il disegno diceva una cosa, l'esercizio un'altra.
+      'hyperextension', 'iperextensione', 'back extension'],
     nota: 'Spinta coi fianchi: lavora il gluteo, il muscolo più forte del corpo.',
   },
   {
@@ -508,6 +515,21 @@ const SPINGONO = ['petto'];
 // essere i muscoli allenanti principali di quell'esercizio".
 export const MOVIMENTI = [
   {
+    // L'IPERESTENSIONE (22/10/2026).
+    //
+    // Ste: "oltre alla parte già evidenziata evidenzia meno forte i lombari".
+    // Il pezzo principale è il gluteo (lo prende dalla parola "hyperextension"),
+    // e i lombari sono un secondario a 0,5: la striscia lungo la colonna si
+    // accende, ma più chiara del gluteo.
+    //
+    // La quota 0,5 è la soglia: da 0,45 in su il muscolo muove davvero insieme
+    // al principale (si vede, ma più chiaro), sotto 0,45 è una sfumatura
+    // discreta. NESSUN secondario arriva a 1, il pieno è del principale.
+    id: 'iperextensione',
+    parole: ['hyperextension', 'iperextensione', 'back extension'],
+    secondari: { dorso_basso: 0.5 },
+  },
+  {
     id: 'dip',
     parole: ['dip', 'dips', 'dip alle parallele', 'chest dip', 'push up', 'push ups',
       'pushup', 'pushups'],
@@ -590,8 +612,8 @@ export const MOVIMENTI = [
     // Ste: "il pulley fa dorsali, i lombari stanno in isometria, e i bicipiti pure
     // lavorano perché è di tirata". È la risposta giusta, e in due pezzi.
     //
-    // I Bicipiti restano, e la ragione e' quella che ha detto lui: e' una TIRATA,
-    // quindi il gomito si piega e chi lo piega e' il bicipite. Vale per tutte le
+    // I Bicipiti restano, e la ragione è quella che ha detto lui: è una TIRATA,
+    // quindi il gomito si piega e chi lo piega è il bicipite. Vale per tutte le
     // tirate, non solo per il pulley.
     //
     // I TRAPEZI vanno via. Qui prima c'era `dorso_alto: 0,3`, cioe' la zona fra collo
@@ -882,7 +904,7 @@ function riconosciParte({ nome = '', descrizione = '' } = {}) {
   // "Barbell Curl", "Dumbbell Curl", "Curl manubri", "Curls": l'app non li
   // riconosceva, perché il bicipite aveva solo le FRASI ("curl con bilanciere",
   // "curl al cavo") e non la parola "curl" da sola. E la parola da sola non può stare
-  // nella lista principale: il "Cable Hammer Curl" e' un martello (brachiale), e con la
+  // nella lista principale: il "Cable Hammer Curl" è un martello (brachiale), e con la
   // parola "curl" farebbe pari punti col bicipite, e a parita' di punti vince chi
   // arriva prima nella lista.
   //
@@ -935,20 +957,20 @@ function riconosciParte({ nome = '', descrizione = '' } = {}) {
   //
   // Ste (15/10/2026): "la parte che lavora di più deve essere più evidenziata,
   // la parte che lavora di meno deve essere evidenziata più chiara. tipo il dip
-  // qua segna tutto il petto che e' giusto ma allena principalmente la parte
+  // qua segna tutto il petto che è giusto ma allena principalmente la parte
   // bassa".
   //
   // Qui i pezzi sono già ordinati per punti, quindi basta dividere per il primo:
   // il pezzo migliore fa 1, uno che ha la meta' dei punti fa 0,5. I pezzi che
   // l'esercizio non nomina affatto non ci sono: sulla figura restano al viola
-  // più chiaro, che vuol dire "ci passa, ma il lavoro vero e' un altro".
+  // più chiaro, che vuol dire "ci passa, ma il lavoro vero è un altro".
   //
   // LO SCONTO DI POSIZIONE. Su "Smith Machine Incline Bench Press" il capo
-  // clavicolare e quello centrale danno gli stessi punti (la parola "bench" e' in
+  // clavicolare e quello centrale danno gli stessi punti (la parola "bench" è in
   // entrambe le liste), e senza scontarli la figura accenderebbe i due pezzi
   // uguali: proprio la cosa che Ste ha detto di non volere. Quindi a parita' di
   // punti il pezzo più in alto nella classifica resta pieno e gli altri scendono
-  // un gradino. Non e' una misura: e' il modo di dire "quando i dati non
+  // un gradino. Non è una misura: è il modo di dire "quando i dati non
   // distinguono, mostrami comunque quale lavora di più".
   const migliore = trovati[0].punti;
   const livelli = {};
@@ -1065,11 +1087,11 @@ export const INTRINSECO = {
   "spalle_frontali": 1,
   braccio_alto: 5, // il bicipite in alto lavora in posizione corta: è il caso difficile
   braccio_basso: 0, // in basso è in posizione lunga: il modo più facile di arrivare a fare i bicipiti
-  // Il brachiale NON e' un caso come l'alzata laterale (che ha 6 perché la leva è
-  // la peggiore del corpo). Qui la leva e' buona e il movimento e' a corsa
-  // completa: il brachiale sta solo sotto al bicipite e non si vede, ma non e' un
+  // Il brachiale NON è un caso come l'alzata laterale (che ha 6 perché la leva è
+  // la peggiore del corpo). Qui la leva è buona e il movimento è a corsa
+  // completa: il brachiale sta solo sotto al bicipite e non si vede, ma non è un
   // muscolo piccolo e instabile. Quindi numero neutro, 2, e nessuna spinta ne in
-  // su ne giu': il giudizio lo danno il movimento e l'attrezzo, che e' come deve
+  // su ne giu': il giudizio lo danno il movimento e l'attrezzo, che è come deve
   // essere. (Prima avevo messo 6 e la soglia SCENDEVA del 24%, cioe' l'app lo
   // trattava come il muscolo più facile del braccio: il contrario di come si vede
   // lifting in presa neutra.)
