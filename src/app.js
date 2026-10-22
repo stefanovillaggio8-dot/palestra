@@ -3129,15 +3129,47 @@ function cardRiepilogoMio() {
   if (!generale || !generale.analizzati) return null;
   const card = el('div', { class: 'card-riepilogo' });
   card.appendChild(el('p', { class: 'titolo-riepilogo', testo: 'In generale, quanto sei migliorato' }));
-  const quadro = (numero, parola, colore) => el('div', { class: 'quadro-riepilogo ' + colore }, [
-    el('strong', { class: 'numero-riepilogo', testo: String(numero) }),
-    el('span', { class: 'parola-riepilogo', testo: parola }),
-  ]);
+
+  // I TRE RIQUADRI SI APRONO (22/10/2026): Ste "se premo sugli esercizi in cui
+  // sono migliorato devono spuntare gli esercizi in cui sono migliorato, stessa
+  // cosa su peggiorato e uguale". Premendo un riquadro sotto compare la lista
+  // degli esercizi di quel gruppo; premendo un altro, quella lista cambia.
+  const dettaglio = el('div', { class: 'dettaglio-riepilogo' });
+  const colori = { migliorati: 'verde', indietro: 'rosso', fermi: 'neutro' };
+  const aperti = [];
+  const quadro = (numero, parola, colore, chiave) => {
+    const b = el('button', {
+      type: 'button',
+      class: 'quadro-riepilogo ' + colore,
+      'aria-pressed': 'false',
+    }, [
+      el('strong', { class: 'numero-riepilogo', testo: String(numero) }),
+      el('span', { class: 'parola-riepilogo', testo: parola }),
+    ]);
+    aperti.push(b);
+    b.addEventListener('click', () => {
+      const eraAperto = b.getAttribute('aria-pressed') === 'true';
+      for (const x of aperti) x.setAttribute('aria-pressed', 'false');
+      svuota(dettaglio);
+      if (eraAperto) return;
+      b.setAttribute('aria-pressed', 'true');
+      const voci = (generale.gruppi && generale.gruppi[chiave]) || [];
+      if (!voci.length) {
+        dettaglio.appendChild(el('p', { class: 'nota', testo: 'Nessun esercizio in questo gruppo.' }));
+        return;
+      }
+      for (const v of voci) {
+        dettaglio.appendChild(el('p', { class: 'riga-variazione ' + (colori[chiave] || 'neutro'), testo: v.frase }));
+      }
+    });
+    return b;
+  };
   card.appendChild(el('div', { class: 'tre-riquadri' }, [
-    quadro(generale.migliorati, 'MIGLIORATI', 'verde'),
-    quadro(generale.fermi, 'INVARIATI', 'neutro'),
-    quadro(generale.indietro, 'PEGGIORATI', 'rosso'),
+    quadro(generale.migliorati, 'MIGLIORATI', 'verde', 'migliorati'),
+    quadro(generale.fermi, 'INVARIATI', 'neutro', 'fermi'),
+    quadro(generale.indietro, 'PEGGIORATI', 'rosso', 'indietro'),
   ]));
+  card.appendChild(dettaglio);
   if (generale.linee && generale.linee.length) {
     card.appendChild(el('p', { class: 'nota nota-piccola', testo: generale.linee[0] }));
   }
@@ -3760,9 +3792,6 @@ function contaAnimazioniCss() {
 
 function vistaImpostazioni(zona) {
   zona.appendChild(el('h1', { testo: 'Impostazioni' }));
-  // LA CARD COMPATTA ANCHE QUI (22/10/2026): la stessa dei Progressi e del Profilo.
-  const cardRiepilogo = cardRiepilogoMio();
-  if (cardRiepilogo) zona.appendChild(cardRiepilogo);
 
   zona.appendChild(bloccoGiorniAllenamento());
 
@@ -5093,7 +5122,7 @@ function bloccoPersonaggio(profilo, st) {
     // `con-foto` toglie al riquadro qualsiasi altezza: la foto è un elemento nel
     // flusso e l'altezza la decide lei. Senza scatola il browser non può
     // decidere come infilarla e la taglia.
-    grafica.classList.add('con-foto');
+    // (niente 'con-foto': ora il personaggio e' il disegno, non la foto)
     // L'AURA è il sesto premio: non ha un'immagine tutta sua (l'ultima riga è
     // già "tutto addosso"), quindi è una luce che si accende sopra la foto.
     if (viso.aura) {
@@ -5194,13 +5223,10 @@ function bloccoPersonaggio(profilo, st) {
       // ci passa sopra, davvero, e non è un colore fermo.
       grafica.appendChild(el('div', { class: 'aura-lustro', aria: { hidden: 'true' } }));
     }
-    grafica.appendChild(el('img', {
-      class: 'personaggio-ritratto',
-      src: percorsoStato(classeId, viso.indice),
-      alt: `${rpg.classe.nome}: ${viso.stato.riga}`,
-      loading: 'lazy',
-      decoding: 'async',
-    }));
+    grafica.appendChild(el('div', {
+        class: 'personaggio-ritratto personaggio-svg-profilo',
+        html: personaggioSvg({ classe: classeId, sbloccati: idsIndossati }),
+      }));
 
     // LA FILMSTRIP: sei miniature, una per stato.
     //
@@ -6685,9 +6711,6 @@ async function vistaProfilo(zona) {
   zona.appendChild(el('h1', { testo: 'Profilo' }));
 
   // l'avatar grande e centrale, come nei giochi
-  // LA CARD COMPATTA ANCHE QUI (22/10/2026): la stessa del Profilo.
-  const cardRiepilogo = cardRiepilogoMio();
-  if (cardRiepilogo) zona.appendChild(cardRiepilogo);
   const testa = el('div', { class: 'testa-profilo' }, [
     avatarNodo(profilo, { grande: true, dimensione: 120 }),
     el('h2', { testo: profilo.username }),

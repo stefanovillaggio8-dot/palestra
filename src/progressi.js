@@ -226,6 +226,29 @@ function ordinaPerImportanza(lista) {
  * esercizi = [{ nome, esercizio, punti }], dove punti = [{ data, serie }]
  *            come li usa testoProgresso.
  */
+/**
+ * Le ripetizioni migliori fatte con un peso preciso.
+ *
+ * Serve alla regola di Ste (22/10/2026): il peso che sale conta come
+ * miglioramento solo se con quel peso nuovo hai fatto almeno 5 ripetizioni.
+ * Quindi di una seduta conta solo il set fatto con il peso migliore, e contano
+ * le sue ripetizioni.
+ */
+function miglioriRipetizioniCon(serie, peso, assistito) {
+  if (peso === null || peso === undefined || !Number.isFinite(Number(peso))) return null;
+  let max = null;
+  for (const s of (serie || [])) {
+    if (!s || s.eliminata) continue;
+    const p = assistito ? s.peso_assistenza : s.peso;
+    if (p === null || p === undefined || !Number.isFinite(Number(p))) continue;
+    if (Math.abs(Number(p) - Number(peso)) > 0.01) continue;
+    const r = Number(s.ripetizioni);
+    if (!Number.isFinite(r)) continue;
+    if (max === null || r > max) max = r;
+  }
+  return max;
+}
+
 export function riepilogoGenerale(esercizi) {
   const voci = [];
   const saltati = [];
@@ -280,10 +303,28 @@ export function riepilogoGenerale(esercizi) {
     }
 
     // nell'assistenza "meno assistenza" vuol dire meglio: quindi il segno va girato
-    const migliore = assistito ? -d : d;
+    let migliore = assistito ? -d : d;
+    let delta = d;
+    if (migliore > 0) {
+      // LA REGOLA DI STE (22/10/2026).
+      //
+      // "sei migliorato soltanto se faccio un peso maggiore a quello precedente
+      //  ma delle rep superiori o uguali a 5 col peso nuovo (più alto) se
+      //  invece aumento il peso ma faccio meno di 5 rep non sono migliorato"
+      //
+      // Quindi il peso che sale conta come miglioramento solo se con quel peso
+      // nuovo hai fatto almeno 5 ripetizioni. Se le ripetizioni sono meno di 5
+      // non sei migliorato: e siccome non sei nemmeno andato indietro, resti
+      // com'eri (il gruppo degli "invariati").
+      const rip = miglioriRipetizioniCon(punti[punti.length - 1].serie, a, assistito);
+      if (rip === null || rip < 5) {
+        migliore = 0;
+        delta = 0;
+      }
+    }
     voci.push({
       nome, esercizio: e, assistito, chiave, contro, dataDa, dataA, sequenza,
-      da, a, delta: d, migliore, punti: punti.length,
+      da, a, delta, migliore, punti: punti.length,
       serie: punti.length,
     });
   }

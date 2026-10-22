@@ -369,11 +369,11 @@ test('la foto non viene mai tagliata', () => {
   assert.doesNotMatch(blocco, /aspect-ratio/,
     'e non c\'è un aspect-ratio: sarebbe un altro modo di imporre una forma fissa');
   // l'aspect-ratio resta SOLO per l'ologramma, che è un disegno e non una foto
-  assert.match(css, /personaggio-scena-grafica:not\(\.con-foto\)\s*\{[^}]*aspect-ratio/,
-    'l\'ologramma invece ha bisogno di una forma sua');
-  // e il codice mette la classe
-  assert.match(app, /classList\.add\('con-foto'\)/,
-    'il codice deve dire che qui dentro c\'è una foto');
+    // e il codice dice che qui dentro c'e' il DISEGNO (22/10/2026): la foto della
+    // della classe aveva lo sfondo nero dentro l'immagine: la testa restava nera.
+    // e il codice dice che qui dentro c'e' il DISEGNO (22/10/2026): la foto
+    assert.match(app, /personaggio-svg-profilo/,
+      'il codice deve dire che qui dentro c\'e il disegno');
 });
 
 test('la foto del personaggio è grande, non una figurina', () => {
