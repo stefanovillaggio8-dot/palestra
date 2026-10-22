@@ -3204,6 +3204,18 @@ function prestazioniDiQuestaPersona() {
 
 function vistaProgressi(zona) {
   zona.appendChild(el('h1', { testo: 'Progressi' }));
+
+  // LA CARD COMPATTA PRIMA DI TUTTO (22/10/2026):
+  //
+  // Ste ha mandato la foto: in alto, tre riquadri con il numero (migliorati,
+  // invariati, peggiorati) e sotto la frase con il verdetto. Tutto il resto della
+  // pagina viene dopo, e ripiegato dentro sezioni chiuse: la pagina era troppo
+  // lunga e troppo incasinata.
+  const boxGenerale = el('div', { class: 'spiegazione generale box-riepilogo' });
+  const spazioGenerale = el('div', { id: 'riepilogo-generale' });
+  boxGenerale.appendChild(el('h3', { testo: 'In generale, quanto sei migliorato' }));
+  boxGenerale.appendChild(spazioGenerale);
+  zona.appendChild(boxGenerale);
   // LA CARD COMPATTA PRIMA DI TUTTO (22/10/2026): è il riepilogo che si
   // guarda per primo, e sta in alto anche nel Profilo e nelle Impostazioni.
   const cardRiepilogo = cardRiepilogoMio();
@@ -3295,11 +3307,6 @@ function vistaProgressi(zona) {
   // nuova (che sta in cima alla pagina, con i riquadri cliccabili). Ste (22/10/2026):
   // "la cosa dei progressi in quanti sono migliorato peggiorato e uguale".
   // Quindi questo qui sotto si nasconde e resta solo la card.
-  const boxGenerale = el('div', { class: 'spiegazione generale duplicato-nascosto' });
-  boxGenerale.appendChild(el('h3', { testo: 'In generale, quanto sei migliorato' }));
-  const spazioGenerale = el('div', { id: 'riepilogo-generale' });
-  boxGenerale.appendChild(spazioGenerale);
-  zona.appendChild(boxGenerale);
   zona.appendChild(el('p', { class: 'nota', testo: 'Gli esercizi sono divisi per variante: Chest Press e Chest Press su un\'altra macchina non vengono mai messi a confronto.' }));
 
   const v = versioneCorrente();
