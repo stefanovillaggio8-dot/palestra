@@ -1153,6 +1153,7 @@ function etichettaMuscolo(gruppo) {
  * diversi: senza questo il filtro ne mostrava uno solo. E i trapezi hanno il loro nome.
  */
 const ETICHETTE_PARTE = {
+  dorso_basso: 'bassa schiena (lombari)',
   spalle_frontali: 'deltoide avanti',
   spalle_laterali: 'deltoide laterale',
   spalle_posteriori: 'deltoide dietro',
@@ -2871,9 +2872,7 @@ function scegliEsercizio(bozza, g) {
       // dietro e deltoide, ma deve esserci deltoide dietro, avanti, laterale". Il
       // gruppo li aveva tutti insieme, quindi il filtro li mostrava uniti.
       gruppo: trovato ? (ETICHETTE_PARTE[p.parte] || etichettaMuscolo(p.gruppoPrincipale) || '') : '',
-      // e i TRAPEZI non sono "schiena": sono collo e spalle ("mica i trapezi sono
-      // muscoli della schiena")
-      generale: trovato ? (p.parte === 'dorso_alto' ? 'spalle' : (FILTRO_GENERALE[p.muscolo] || '')) : '',
+      generale: trovato ? (FILTRO_GENERALE[p.muscolo] || '') : '',
       cerca: ((e.nome || '') + ' ' + (trovato && p.nome ? p.nome : '')).toLowerCase(),
     };
   });

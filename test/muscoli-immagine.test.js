@@ -139,6 +139,9 @@ function copertura(sagoma, alpha, larghezza, altezza, passo = 2) {
 // sagoma "cosi' com'e'". Vedi la nota sulla specchiatura sotto.
 // Se sposti una sagoma, rimisura e sposta qui.
 const PAVIMENTO = {
+  // I LOMBARI: l'erector spinae, presi dal kit del disegnatore. Il pavimento
+  // e' la copertura minima misurata sul disegno.
+  dorso_basso: 85,
   petto: 90,
   deltoide_fronte: 60,
 // Il bicipite e' una fascia PIENA dal 16/10 (prima era un esagono che lasciava

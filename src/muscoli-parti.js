@@ -210,6 +210,15 @@ export const PARTI = [
     nota: 'Tira con le braccia: lavora il dorso largo, quello che si vede di lato sotto le ascelle.',
   },
   {
+    // I LOMBARI (la bassa schiena) (Ste, 21/10/2026): sono l'erector spinae, cioe' i
+    // muscoli che stanno lungo la colonna. Nella tavola dell'atlante non ci sono
+    // (lui sono profondi, sotto i dorsali), ma nel kit del disegnatore c'e' la figura
+    // dedicata: questo path viene da li'.
+    id: 'dorso_basso', muscolo: 'dorso', parte: 'bassa schiena (lombari)',
+    parole: ['hyperextension', 'iperextensione', 'back extension', 'lombare', 'lombari'],
+    nota: 'Lavora la bassa schiena, cioè i muscoli che stanno lungo la colonna (l’erector spinae), e anche i glutei. Se ti fa male la schiena, questo esercizio non è per te.',
+  },
+  {
     id: 'dorso_centrale', muscolo: 'dorso', parte: 'dorso centrale (fra le scapole)',
     // IL REMATORE NON E' QUI (16/10/2026). Le parole "rematore", "row",
     // "tiremento" e le tirate orizzontali stanno adesso dentro `dorso_lati`, perché
@@ -372,7 +381,7 @@ id: 'avambraccio', muscolo: 'avambraccio', parte: 'avambraccio (polso e avanti b
     // i muscoli della schiena che lavorano con loro in questa tavola non ci sono.
     // l'iperextensione e' a 45 gradi: lavora i glutei, ma SOPRATTUTTO i lombari
     // (la bassa schiena), che sono la parte profonda
-    parole: ['hyperextension', 'iperextensione', 'hip thrust', 'glute bridge', 'squat', 'stacco', 'affondi'],
+    parole: ['hip thrust', 'glute bridge', 'squat', 'stacco', 'affondi'],
     nota: 'Spinta coi fianchi: lavora il gluteo, il muscolo più forte del corpo.',
   },
   {

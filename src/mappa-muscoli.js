@@ -1,4 +1,4 @@
-// mappa-muscoli.js — calcola i muscoli coinvolti e li disegna sull'atlante anatomico.
+﻿// mappa-muscoli.js — calcola i muscoli coinvolti e li disegna sull'atlante anatomico.
 // La logica di classificazione resta in `righeDaAccendere`; la figura colora
 // direttamente i tracciati SVG dei muscoli corrispondenti, senza ritagli o overlay.
 
@@ -313,6 +313,17 @@ const SAGOME = {
       [607, 305], [594, 323], [577, 340], [560, 323], [547, 305], [534, 281], [520, 259], [534, 235]],
   },
 
+  // I LOMBARI (la bassa schiena): l'erector spinae, i muscoli che stanno lungo
+  // la colonna. Nella figura dell'atlante li ho presi dal kit del disegnatore
+  // (la figura dedicata all’erector spinae), perché nelle due figure
+  // frontale/posteriore non si vedono (stanno sotto i dorsali).
+  dorso_basso: {
+    vista: 'retro',
+    nome: 'bassa schiena',
+    zone: ['dorso_basso'],
+    sagoma: [[277,336],[319,336],[319,456],[277,456]],
+  },
+
   dorsale: {
     vista: 'retro',
     nome: 'dorsali larghi',
@@ -594,6 +605,7 @@ export const GRUPPI = {
   petto_basso: { nome: 'parte bassa del petto', gruppo: 'petto' },
   dorso_alto: { nome: 'parte alta del dorso (trapezio)', gruppo: 'trapezio' },
   dorso_centrale: { nome: 'dorso centrale', gruppo: 'romboidi' },
+  dorso_basso: { nome: 'bassa schiena (lombari)', gruppo: 'dorso_basso' },
   dorso_lati: { nome: 'dorso ai lati (lati del triangolare)', gruppo: 'dorsale' },
   spalle_frontali: { nome: 'spalle davanti (deltoide anteriore)', gruppo: 'deltoide_fronte' },
   spalle_posteriori: { nome: 'spalle posteriori (deltoide posteriore)', gruppo: 'deltoide_posteriore' },
@@ -925,6 +937,8 @@ export function zoneAtlante(id) {
   // Il TRAPEZIO INFERIORE è la striscia che sta lungo la spina dorsale, quindi è la
   // cosa più vicina al centro schiena che questa tavola riusciva a disegnare. Si
   // accende con il livello del centro schiena, e i dorsali larghi restano chiari.
+  // i LOMBARI: l'erector spinae, il path dedicato del kit
+  if (/^erector_spinae/.test(id)) return ['dorso_basso'];
   if (/^trapezius_lower_/.test(id)) return ['dorso_centrale'];
   if (/^trapezius_/.test(id)) return ['dorso_alto'];
   if (/^latissimus_dorsi_/.test(id)) return ['dorso_lati'];
