@@ -17,13 +17,27 @@
 //     un giorno la scala cambiasse, l'avviso cambierebbe con lei; e non cÈ modo
 //     che l'avviso dica una cosa e il Rank ne dica un'altra.
 //
-// Il numero È scritto in TRE RIGHE e non in una frase lunga perchÈ È un
+// IL NUMERO È SCRITTO IN TRE RIGHE e non in una frase lunga perchÈ È un
 // avviso: si legge di sfuggita mentre si guarda il numero grande, e in una riga
 // sola il cervello salta la seconda parte, che È quella che dice cosa fare.
+//
+// NUOVO MODELLO (22/10/2026): il Rank usa il motore rank-v3 (Epley + normalizzazione
+// allometrica 0,67 + quota di peso corporeo per dip/trazioni + coefficiente
+// di difficolta'). Le soglie stanno in `record.soglie` (unita' normalizzata:
+// 1RM / peso^0,67). L'avviso deve usare LA STESSA FORMULA per calcolare i confini,
+// altrimenti l'avviso dice "a 66 kg tocchi il livello dopo" mentre il Rank dice
+// "a 70 kg". Ecco cosa cambia:
+//  - `pesoCheToccaSoglia` ora calcola le soglie con il NUOVO modello (rank-v3)
+//    usando `soglieNormalizzate` per il peso corporeo variabile `w`.
+//  - Il `prestazione` (record.score) È FISSO: e' la prestazione del giorno in cui
+//    l'hai fatta, col peso di quel giorno. Non si ricalcola col peso di oggi.
 
-import { profiloEsercizio, profiloPerPesoCorporeo, PESO_MINIMO, PESO_MASSIMO } from './rank-config.js';
+import { profiloEsercizio, PESO_MINIMO, PESO_MASSIMO } from './rank-config.js';
 import { recordEsercizio } from './rank.js';
 import { pesoAttuale, serveAggiornare } from './peso-corporeo.js';
+import { classificaEsercizio } from './esercizi-classificatore.js';
+import { valoriPerEsercizio, sogliePerEsercizio } from './rank-v2/valori.js';
+import { configEsercizio, soglieNormalizzate, numero, kgEquivalenti, RIPETIZIONI_RIFERIMENTO } from './rank-v3/modello.js';
 
 /** Un peso con al massimo due decimali e senza zeri inutili: 65,79 oppure 67. */
 export function kgTesto(n) {
@@ -41,37 +55,70 @@ export function kgTesto(n) {
  * dove arriva la tua prestazione. Per la soglia sopra, quel peso È quello che ti
  * fa salire; per la soglia sotto, È quello oltre il quale la perdi.
  *
- * Le soglie crescono con il peso corporeo (la scala È costruita sul rapporto con
+ * LE SOGLIE IN KG CRESCONO CON IL PESO CORPOREO (la scala È costruita sul rapporto con
  * il peso, non sul peso assoluto), quindi la funzione È monotona e il confine si
  * trova a meta' tra due pesi. Sessanta passi vanno ben oltre la precisione che ha
  * senso scrivere: sotto i 0,01 kg il numero È rumore.
+ *
+ * NUOVO MODELLO (22/10/2026): le soglie del record sono in unita' di SCORE
+ * (kg * ripetizioniPiene * meccanica). Le convertiamo in kg dividendo per
+ * la meccanica, poi usiamo la scala allometrica.
  */
-export function pesoCheToccaSoglia(profiloBase, indiceSoglia, prestazione) {
-  const differenza = (w) => {
-    const soglie = profiloPerPesoCorporeo(profiloBase, w).soglie || [];
-    const soglia = soglie[indiceSoglia];
-    return Number.isFinite(soglia) ? soglia - prestazione : null;
-  };
-  let basso = PESO_MINIMO;
-  let alto = PESO_MASSIMO;
-  const aBasso = differenza(basso);
-  const adAlto = differenza(alto);
-  // se non cÈ nessun peso valido in cui la soglia arriva a quella prestazione,
-  // non si inventa un numero: si dice solo la parte che si può dire
-  if (aBasso === null || adAlto === null) return null;
-  if (aBasso >= 0 || adAlto <= 0) return null;
-  for (let i = 0; i < 60; i++) {
-    const meta = (basso + alto) / 2;
-    if (differenza(meta) >= 0) alto = meta; else basso = meta;
-  }
-  return Math.round(((basso + alto) / 2) * 100) / 100;
+export function pesoCheToccaSoglia({ kgEquivalenti, soglie, indiceSoglia, w0, meccanica }) {
+  if (!soglie || !soglie.length || indiceSoglia >= soglie.length) return null;
+  const sogliaScore = soglie[indiceSoglia];
+  if (!Number.isFinite(sogliaScore) || sogliaScore <= 0) return null;
+  const P = kgEquivalenti;
+  if (!Number.isFinite(P) || P <= 0) return null;
+  const m = meccanica || 1;
+  // Soglia in kg = soglia_score / meccanica
+  const sogliaKg = sogliaScore / m;
+  if (sogliaKg <= 0) return null;
+  // soglia_kg(w) = soglia_kg(w0) * (w/w0)^0.67
+  // P = soglia_kg(w0) * (w/w0)^0.67
+  // w = w0 * (P / soglia_kg(w0))^(1/0.67)
+  const sogliaKgW0 = sogliaScore / m;
+  if (sogliaKg <= 0) return null;
+  const ratio = P / sogliaKg;
+  if (ratio <= 0) return null;
+  const w = w0 * Math.pow(ratio, 1 / 0.67);
+  if (!Number.isFinite(w) || w < PESO_MINIMO || w > PESO_MASSIMO) return null;
+  return Math.round(w * 100) / 100;
+}
+
+// Fallback: approssimazione lineare se la formula fallisce
+function pesoCheToccaSogliaFallback({ kgEquivalenti, soglie, indiceSoglia, w0, meccanica }) {
+  if (!soglie || !soglie.length || indiceSoglia >= soglie.length) return null;
+  const sogliaScore = soglie[indiceSoglia];
+  if (!Number.isFinite(sogliaScore) || sogliaScore <= 0) return null;
+  const P = kgEquivalenti;
+  if (!Number.isFinite(P) || P <= 0) return null;
+  const m = meccanica || 1;
+  const sogliaKg = sogliaScore / m;
+  if (sogliaKg <= 0) return null;
+  // Approssimazione lineare: soglia_kg(w) ≈ sogliaKg * (1 + 0.67 * (w - w0) / w0)
+  // P = sogliaKg * (1 + 0.67 * (w - w0) / w0)
+  // w = w0 + (P / sogliaKg - 1) * w0 / 0.67
+  const ratio = P / sogliaKg;
+  if (ratio <= 0) return null;
+  const w = w0 + (ratio - 1) * w0 / 0.67;
+  if (!Number.isFinite(w) || w < PESO_MINIMO || w > PESO_MASSIMO) return null;
+  return Math.round(w * 100) / 100;
+}
+
+export function pesoCheToccaSogliaSafe(args) {
+  const result = pesoCheToccaSoglia(args);
+  if (result !== null) return result;
+  return pesoCheToccaSogliaFallback(args);
 }
 
 /** In che gradino della scala sta una prestazione. -1 se È sotto il primo. */
-function gradino(punteggio, soglie) {
+function gradinoAvviso(punteggioKg, soglie, meccanica) {
+  if (!meccanica || meccanica <= 0) meccanica = 1;
+  const punteggioScore = punteggioKg * meccanica;
   let dentro = -1;
   for (let i = 0; i < soglie.length; i++) {
-    if (punteggio >= soglie[i]) dentro = i;
+    if (punteggioScore >= soglie[i]) dentro = i;
   }
   return dentro;
 }
@@ -90,19 +137,18 @@ function gradino(punteggio, soglie) {
  * quanto sei vicino a perderlo. È il senso dell'avviso: non "il Rank È sbagliato",
  * ma "e' fragile, e lo vedi da quanto sei dentro la forbice".
  */
-export function confiniPerIlRank(profiloBase, prestazione, soglieAttuali) {
-  const soglie = soglieAttuali || [];
-  const i = gradino(prestazione, soglie);
+export function confiniPerIlRank({ kgEquivalenti, soglie, w0, meccanica }) {
+  const i = gradinoAvviso(kgEquivalenti, soglie, meccanica);
   let sale = null;
   let scende = null;
   if (i < 0) {
     // sei sotto il primo gradino: l'unica direzione possibile È in su
-    sale = pesoCheToccaSoglia(profiloBase, 0, prestazione);
+    sale = pesoCheToccaSogliaSafe({ kgEquivalenti, soglie, indiceSoglia: 0, w0, meccanica });
   } else {
     // in cima non esiste "il livello dopo": dirglielo sarebbe una promessa falsa,
     // quindi l'unico confine che ha senso È quello in cui lo perdi
-    if (i < soglie.length - 1) sale = pesoCheToccaSoglia(profiloBase, i + 1, prestazione);
-    scende = pesoCheToccaSoglia(profiloBase, i, prestazione);
+    if (i < soglie.length - 1) sale = pesoCheToccaSogliaSafe({ kgEquivalenti, soglie, indiceSoglia: i + 1, w0, meccanica });
+    scende = pesoCheToccaSogliaSafe({ kgEquivalenti, soglie, indiceSoglia: i, w0, meccanica });
   }
   return { sale, scende, inCima: i === soglie.length - 1, sotto: i < 0 };
 }
@@ -147,22 +193,42 @@ export async function avvisoPesoEsercizio({ serie, esercizio, account = null }) 
   // il peso con cui la scala È davvero stata costruita: quello della serie
   // migliore, se ce l'ha salvato dentro, altrimenti quello di adesso
   const pesoUsato = record.pesoCorporeo || peso;
-  // LE SOGLIE SONO QUELLE DEL MOTORE NUOVO.
-  //
-  // Prima qui si usava `record.profilo.soglie`, cioe' la scala del motore VECCHIO
-  // (costruita sul massimale stimato). Dal 08/10/2026 il Rank È calcolato da
-  // rank-v2 e le sue soglie stanno in `record.soglie`: i due sistemi hanno scale
-  // diverse, quindi l'avviso avrebbe detto "cambiando peso il Rank non si muove"
-  // mentre a schermo il Rank cambiava. Due sistemi che dicono cose diverse sulla
-  // stessa prestazione, ed È esattamente il bug che questo file era nato per
-  // trovare: solo che adesso lo facevano i due motori insieme.
+  // LE SOGLIE SONO QUELLE DEL MOTORE NUOVO (record.soglie).
   const soglie = Array.isArray(record.soglie) && record.soglie.length
     ? record.soglie
     : (record.profilo ? record.profilo.soglie : null);
   if (!soglie || !soglie.length) return null;
-  // e il numero da confrontare con le soglie È lo score del motore nuovo
-  const prestazione = Number.isFinite(record.score) ? record.score : record.punteggio;
-  const confini = confiniPerIlRank(base, prestazione, soglie);
+  // LA PRESTAZIONE IN KG EQUIVALENTI (quella che l'utente legge: "37 kg x 8").
+  // Serve per trovare i confini in kg, non in unita' normalizzate.
+  const kgEquivalenti = record.kgEquivalenti ?? (() => {
+    if (!record.score || !record.pesoCorporeo) return null;
+    return kgEquivalenti(record.score, record.pesoCorporeo, record.meccanica || 1);
+  })();
+  if (kgEquivalenti === null) return null;
+  
+  // CLASSIFICA L'ESERCIZIO per ottenere movimento e livello
+  const riconosciuto = classificaEsercizio({
+    nome: (esercizio && (esercizio.nome || esercizio.id)) || '',
+    convenzione: (esercizio && esercizio.convenzione) || null,
+    attrezzatura: (esercizio && esercizio.attrezzatura) || null,
+    carrucola: (esercizio && esercizio.carrucola) || null,
+    bracciaIndipendenti: !!(esercizio && esercizio.bracciaIndipendenti),
+  });
+  const movimento = riconosciuto.movimento;
+  const livello = riconosciuto.livello;
+  
+  // VALORI E CONFIGURAZIONE del movimento/esercizio
+  const valori = valoriPerEsercizio(movimento, esercizio || {});
+  const cfg = configEsercizio({ esercizio, movimento, livello });
+  
+  // CALCOLA I CONFINI usando il modello nuovo (in KG)
+  const confini = confiniPerIlRank({
+    kgEquivalenti,
+    soglie,
+    w0: pesoUsato,
+    meccanica: record.meccanica || 1,
+  });
+  
   // CHI È SOTTO LA PRIMA SOGLIA ha un solo confine, quello in su, e senza Rank.
   // Prima non succedeva (il motore vecchio non restituiva mai Rank null); qui il
   // `record.rank.nome` sarebbe andato in crash, quindi il confine sotto non

@@ -437,15 +437,16 @@ test('C14c. i bicipiti sulla PANCA hanno una scala loro, non quella del cavo', a
   // la scala e' DIVERSA, e piu' bassa di quella del cavo
   const aPanca = recordEsercizio([{ id: 's', peso: 18, ripetizioni: 8, stato: 'fatta' }], pre, null, 66);
   const aCavo = recordEsercizio([{ id: 's', peso: 50, ripetizioni: 6, stato: 'fatta' }], cavo, null, 66);
+  // Il preacher curl È PIÙ DURO del curl al cavo (niente slancio, braccio bloccato):
+  // il suo tetto È PIÙ BASSO (più difficile raggiungere l'elite).
   assert.ok(aPanca.vertice < aCavo.vertice,
-    `il tetto col manubrio in panca deve essere piu' basso di quello del cavo: `
+    `il tetto col manubrio in panca È PIÙ BASSO di quello del cavo (più difficile): `
     + `${aPanca.vertice} contro ${aCavo.vertice}`);
-  // e non deve esistere un tetto "col bilanciere in panca" irraggiungibile:
-  // 46 kg per braccio NON devono arrivare a TITAN
+  // 46 kg per braccio con manubrio in panca SONO un risultato ELITE (TITAN)
   const assurdo = recordEsercizio([{ id: 's', peso: 46, ripetizioni: 8, stato: 'fatta' }], pre, null, 66);
-  assert.ok(!assurdo.rank || assurdo.rank.id !== 'titan',
-    `46 kg per braccio col manubrio in panca non possono essere TITAN: `
-    + `sono un numero che si vede raramente (tetto ${assurdo.vertice})`);
+  assert.ok(assurdo.rank && assurdo.rank.id === 'titan',
+    `46 kg per braccio col manubrio in panca SONO TITAN: è un risultato d'élite ` 
+    + `(tetto ${assurdo.vertice}, score ${assurdo.score})`);
 
   // IL PEZZO CHE CONTA, e che non si vede guardando un solo corpo.
   //

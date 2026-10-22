@@ -25,7 +25,7 @@ delete globalThis.indexedDB;
 const db = await import('../src/db.js');
 const peso = await import('../src/peso-corporeo.js');
 const {
-  avvisoPesoEsercizio, righeAvviso, confiniPerIlRank, kgTesto, pesoCheToccaSoglia,
+  avvisoPesoEsercizio, righeAvviso, confiniPerIlRank, kgTesto, pesoCheToccaSoglia, kgEquivalenti,
 } = await import('../src/avviso-peso.js');
 const { profiloEsercizio, profiloPerPesoCorporeo } = await import('../src/rank-config.js');
 const { ESERCIZI } = await import('../src/dati-iniziali.js');
@@ -131,17 +131,10 @@ test('3. IL TESTE CHE BLOCCA IL BUG: cambio il peso nel database, il numero camb
   // peso e' fragile: non e' che il numero cambia da solo, e' che cambia la fascia
   // in cui stai senza che tu abbia sollevato un grammo in piu'.
   //
-  // La scala e' quella del RECORD (motore nuovo, in `record.soglie`), non quella
-  // del profilo vecchio ricostruita a mano: altrimenti questo test misurerebbe due
-  // sistemi diversi e passerebbe anche quando l'app e' rotta.
+  // NUOVO MODELLO: il punteggio È normalizzato col peso (allometrico 0,67),
+  // quindi CAMBIA col peso. Il Rank cambia perchè la prestazione relativa
+  // alla scala cambia.
   assert.ok(prima.record.rank && dopo.record.rank, 'a 40 kg per braccio c\'e\' un Rank a entrambi i pesi');
-  // IL RANK NON PUO' RESTARE IDENTICO. Ma "identico" non vuol dire solo "stessa
-  // fascia": vuol dire stessa posizione. Dopo aver abbassato gli ingressi del 15%
-  // (08/10/2026) i due pesi stanno nella STESSA fascia ma a punti molto diversi
-  // (a 66 kg sei GOLD 69 LP, a 72 kg sei GOLD 23 LP): il peso ti ha fatto perdere
-  // 46 LP senza che tu abbia sollevato un grammo. Prima il test guardava solo
-  // l'id della fascia, quindi passava per un motivo sbagliato: se la fascia non
-  // cambiava ma i LP no, il test non se ne accorgeva.
   const posizione = (r) => `${r.rank.id}:${r.lp}`;
   assert.notEqual(posizione(dopo.record), posizione(prima.record),
     `pesando di piu\' senza aver fatto una serie in piu\', la posizione non puo\' restare `
@@ -150,10 +143,10 @@ test('3. IL TESTE CHE BLOCCA IL BUG: cambio il peso nel database, il numero camb
     'e deve andare indietro: o scende di fascia, o perdi LP');
   assert.ok(dopo.record.lp < prima.record.lp,
     `nel caso di Ste i LP scendono davvero: ${prima.record.lp} -> ${dopo.record.lp}`);
-  // la prestazione e' la stessa (40 kg x 8 non cambiano), quindi a cambiare e' solo
-  // la scala: e questo e' il punto fragile dell'app
+  // la prestazione e' la stessa (40 kg x 8 non cambiano), il punteggio E' ASSOLUTO
+  // e NON cambia col peso. Le soglie pero' si spostano col peso corporeo.
   assert.equal(dopo.record.score, prima.record.score,
-    'la prestazione non e\' cambiata: e\' la scala che si e\' spostata');
+    'il punteggio assoluto non cambia col peso corporeo: è la scala che si sposta');
   // e le soglie del peso nuovo sono davvero piu' alte su tutte le righe
   for (let i = 0; i < dopo.record.soglie.length; i++) {
     assert.ok(dopo.record.soglie[i] >= prima.record.soglie[i],
@@ -168,7 +161,7 @@ test('4. l\'avviso e il Rank leggono la stessa scala (stessa funzione)', async (
   await peso.segnaPeso(66, { account: ACCOUNT, data: pesatura(66) });
   const serie = [serieCon()];
   const a = await avvisoPesoEsercizio({ serie, esercizio: ESERCIZIO, account: ACCOUNT });
-  const base = profiloEsercizio(ESERCIZIO);
+  const record = a.record;
   // LA SCALA DA USARE E' QUELLA DEL RECORD, non piu' quella del profilo vecchio.
   //
   // Prima questo test ricostruiva la scala con `profiloPerPesoCorporeo(base, ...)`,
@@ -178,11 +171,21 @@ test('4. l\'avviso e il Rank leggono la stessa scala (stessa funzione)', async (
   // direbbe "tocchi il livello dopo a 61 kg" mentre sul telefono il Rank cambierebbe
   // a 76. Due numeri che dicono cose diverse sullo stesso record, che e'
   // esattamente il bug che questo file e' nato per trovare.
-  const scalaDelRecord = a.record.soglie;
+  const scalaDelRecord = record.soglie;
   assert.ok(Array.isArray(scalaDelRecord) && scalaDelRecord.length === 7,
     'il record porta con se\' le 7 soglie del motore nuovo');
-  const prestazione = a.record.score;
-  const mine = confiniPerIlRank(base, prestazione, scalaDelRecord);
+  const prestazione = record.score;
+  // USARE LA NUOVA API confiniPerIlRank (kgEquivalenti, soglie, w0, meccanica)
+  const kgEquivalenti = record.kgEquivalenti ?? (() => {
+    if (!record.score || !record.pesoCorporeo) return null;
+    return kgEquivalenti(record.score, record.pesoCorporeo);
+  })();
+  const mine = confiniPerIlRank({
+    kgEquivalenti,
+    soglie: scalaDelRecord,
+    w0: record.pesoCorporeo,
+    meccanica: record.meccanica || 1,
+  });
   assert.equal(mine.sale, a.confini.sale, 'il peso per salire deve essere lo stesso');
   assert.equal(mine.scende, a.confini.scende, 'il peso per perdere deve essere lo stesso');
   // e il confine ha un senso: pesando quel peso la prestazione tocca davvero la

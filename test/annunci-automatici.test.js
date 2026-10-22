@@ -157,14 +157,16 @@ test('A7. se il peso non cambia nessun Rank, lo dice e basta', () => {
     'e dire chiaramente che nessun Rank e\' cambiato');
 });
 
-test('A8. il peso NON cambia il punteggio, solo la scala', () => {
-  // Il presupposto che rende sensato tutto: se il peso cambiasse anche il punteggio,
-  // i confronti sopra misurerebbero la cosa sbagliata. Il punteggio dipende SOLO
-  // dai kg e dalle ripetizioni che hai scritto; il peso sposta le soglie.
+test('A8. il punteggio non cambia col peso, le soglie si adattano', () => {
+  // Il punteggio È assoluto (1RM * meccanica), le soglie si adattano col peso.
+  // Quindi lo score NON cambia col peso, ma il Rank resta uguale perchè le soglie
+  // si spostano insieme allo score.
   const serie = [{ id: 'x1', seduta_id: 's1', esercizio_id: chest.id, peso: 37, ripetizioni: 8, stato: 'fatta' }];
   const sedute = [{ id: 's1', data: '2026-10-08', stato: 'completata', eliminata: false }];
   const leggero = mappaRank([chest], serie, sedute, 60);
   const pesante = mappaRank([chest], serie, sedute, 75);
   assert.equal(leggero.get(chest.id).punteggio, pesante.get(chest.id).punteggio,
-    'la prestazione e\' la stessa: cambia la scala, non il numero che hai fatto');
+    'il punteggio NON cambia col peso corporeo: è assoluto (1RM * meccanica)');
+  assert.equal(leggero.get(chest.id).rankId, pesante.get(chest.id).rankId,
+    'il Rank resta lo stesso perchè le soglie scalano insieme');
 });

@@ -391,7 +391,7 @@ function lpDentro(valore, soglie, indice) {
   if (indice < 0) return 0;
   if (indice >= soglie.length - 1) {
     const base = soglie[indice] || 1;
-    return Math.max(0, Math.round(((valore - base) / base) * 100));
+    return Math.max(0, Math.min(99, Math.round(((valore - base) / base) * 100)));
   }
   const sotto = soglie[indice];
   const spessore = soglie[indice + 1] - sotto || 1;
@@ -439,7 +439,7 @@ function bandaDaValore(valore, soglie) {
   let progresso = 1;
   if (inCima) {
     const base = soglie[indice] || 1;
-    lp = Math.max(0, Math.round(((valore - base) / base) * 100));
+    lp = Math.max(0, Math.min(99, Math.round(((valore - base) / base) * 100)));
   } else {
     const sotto = soglie[indice];
     const sopra = soglie[indice + 1];
@@ -448,7 +448,8 @@ function bandaDaValore(valore, soglie) {
     progresso = Math.max(0, Math.min(1, (valore - sotto) / spessore));
   }
   // la divisione: I e' la piu' bassa e III la piu' alta (Ste, 07/10/2026)
-  const divisione = inCima ? null : divisioneDaLp(lp);
+  // Anche in cima (OLYMPIAN) la divisione va calcolata dagli LP
+  const divisione = divisioneDaLp(lp);
   // l'oggetto rank deve avere 'indice' per compatibilita' con il codice che
   // leggeva rank.indice dal motore vecchio. Senza questo, record[0].rank.indice
   // era undefined e i confronti (a.rank.indice > b.rank.indice) davano sempre

@@ -107,9 +107,9 @@ test('C1. il foglio di stile ha la versione nell\'indirizzo', () => {
   // il file vecchio.
   const collegamento = /<link rel="stylesheet" href="\.\/stile\.css\?v=(\d+)"/.exec(indexHtml);
   assert.ok(collegamento, 'il foglio di stile deve avere la versione nell\'indirizzo');
-  assert.match(indexHtml, /window\.PALESTRA_VERSIONE = '(\d+)'/,
+  assert.match(indexHtml, /window\.PALESTRA_VERSIONE = 'palestra-v(\d+)'/,
     'e la versione deve essere dichiarata nella pagina');
-  assert.equal(collegamento[1], /PALESTRA_VERSIONE = '(\d+)'/.exec(indexHtml)[1],
+  assert.equal(collegamento[1], /PALESTRA_VERSIONE = 'palestra-v(\d+)'/.exec(indexHtml)[1],
     'la versione del collegamento e quella della pagina devono essere la stessa: '
     + 'se non lo sono, la pagina disegna con un foglio e si dichiara un\'altra versione');
 });

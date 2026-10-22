@@ -158,15 +158,19 @@ test('7. senza peso salvato dentro si usa quello di adesso', () => {
   assert.equal(r.pesoCorporeo, 80, 'usa il peso attuale per le prestazioni vecchie senza peso');
 });
 
-test('8. il Rank si adatta da solo quando il peso cambia', () => {
+test('8. il punteggio non cambia col peso, le soglie si adattano', () => {
+  // Il punteggio È assoluto (1RM * meccanica), le soglie si adattano col peso.
+  // Quindi lo score NON cambia col peso, ma il Rank PUÒ cambiare perchè le soglie
+  // si spostano. Una persona più pesante ha soglie più alte per lo stesso score.
   const serieFissa = [serie(1, 60, 5)]; // 1RM 70 kg
   const prima = recordEsercizio(serieFissa, CP, null, 60);
   const dopo = recordEsercizio(serieFissa, CP, null, 90);
-  assert.equal(prima.punteggio, dopo.punteggio, 'il punteggio della serie non cambia');
-  // ma il rank si sposta, perche' le soglie sono diverse
+  assert.equal(prima.punteggio, dopo.punteggio, 'il punteggio della serie non cambia: è assoluto (1RM * meccanica)');
+  // Il rank PUÒ cambiare perchè le soglie scalano col peso corporeo
   const nomePrima = prima.rank ? prima.rank.nome : 'nessuno';
   const nomeDopo = dopo.rank ? dopo.rank.nome : 'nessuno';
-  assert.ok(nomePrima !== nomeDopo, `il rank si adatta (prima ${nomePrima}, dopo ${nomeDopo})`);
+  // Con 90kg le soglie sono più alte, quindi lo stesso score dà un rank più basso
+  assert.ok(nomePrima !== nomeDopo, `il Rank si adatta al peso (prima ${nomePrima}, dopo ${nomeDopo})`);
 });
 
 test('9. il Rank prende la prestazione migliore, non l\'ultima', () => {

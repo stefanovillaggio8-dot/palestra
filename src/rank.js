@@ -23,6 +23,23 @@ import {
 // il motore del Rank NUOVO. Vedi recordEsercizio: il collegamento È fatto li', e
 // questo import È l'unico pezzo di rank-v2 che entra nel motore vecchio.
 import { valutaEsercizio as valutaEsercizioNuovo, PENALITA_SPOTTER } from './rank-v2/index.js';
+// IL MOTORE DEL MODELLO NUOVO (22/10/2026). Ste ha chiesto "modifica esclusivamente
+// il sistema di calcolo dei rank e dei punti forza, integrandolo con un algoritmo
+// matematico più realistico": qui c'e' il modello (Epley, normalizzazione
+// allometrica con l'esponente 0,67, quota di peso corporeo per i dip e le
+// trazioni, coefficienti di difficolta' e controlli sull'ingresso).
+//
+// L'ORDINE DEI MOTORI, che e' la parte importante:
+//
+//   1) il modello NUOVO (rank-v3): e' quello che calcola il Rank adesso;
+//   2) il motore di v2 (rank-v2/index.js): il ripiego per gli esercizi che il
+//      modello nuovo non sa valutare;
+//   3) il motore VECCHIO (questo file): l'ultimo ripiego, e lo schema dei
+//      campi che le schermate leggono.
+//
+// I tre non si pestano i piedi: ognuno ha la sua forma, e `recordDaMotoreNuovo`
+// mette tutto nella stessa forma, così le schermate non cambiano.
+import { valutaPrestazione } from './rank-v3/valutazione.js';
 
 const R = RANK;
 const PER_ID = RANK_PER_ID;
@@ -425,18 +442,44 @@ export function recordEsercizio(serie, esercizio, profilo = null, pesoAttuale = 
   // GIORNO in cui hai fatto la serie migliore: È il peso che avevi quando hai
   // spinto, non quello di adesso. Se non cÈ, si usa quello attuale.
   const pesoDelGiorno = res.migliore.pesoCorporeo || pesoAttuale;
+  // IL MODELLO NUOVO PRIMO (22/10/2026): e' il motore che calcola il Rank adesso.
+  const modello = valutaConModelloNuovo({
+    serie: res.tutte.map((t) => t.serie),
+    esercizio,
+    pesoCorporeo: pesoDelGiorno,
+  });
+  if (modello && modello.valido) {
+    return recordDaMotoreNuovo(modello, esercizio, res, giorniDelRecord(serie, modello));
+  }
+  // il modello nuovo non sa valutarlo (esercizio a ripetizioni, nessuna serie in kg):
+  // si prova il motore di v2, che copre gli esercizi a ripetizioni
   const nuovo = valutaConMotoreNuovo({
     serie: res.tutte.map((t) => t.serie),
     esercizio,
     pesoCorporeo: pesoDelGiorno,
   });
-if (nuovo && nuovo.valido) {
+  if (nuovo && nuovo.valido) {
     return recordDaMotoreNuovo(nuovo, esercizio, res, giorniDelRecord(serie, nuovo));
   }
-  // il motore nuovo non sa valutarlo (esercizio a ripetizioni, nessuna serie in kg):
-  // si torna al vecchio, che in quel caso sa ancora dire qualcosa
+  // il motore vecchio, che in quel caso sa ancora dire qualcosa
   const resVecchio = recordVecchio(serie, esercizio, profilo, pesoAttuale, res);
   return resVecchio;
+}
+
+/**
+ * Il modello nuovo, se c'è e se risponde. Altrimenti null: si passa al motore
+ * di v2 e poi a quello vecchio.
+ *
+ * L'errore non viene lasciato passare: un motore che sbaglia fa cadere
+ * l'app, e un record che c'è vale meglio di un record che si è rotto.
+ */
+function valutaConModelloNuovo({ serie, esercizio, pesoCorporeo }) {
+  if (!pesoCorporeoValido(pesoCorporeo)) return null;
+  try {
+    return valutaPrestazione({ esercizio, serie, pesoCorporeo });
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -543,10 +586,18 @@ function giorniDelRecord(serie, record) {
   };
   for (const s of (serie || [])) conta(s);
 // il giorno del record: la serie che fa il punteggio migliore. Non serve rifare il
-    // calcolo del motore: si cerca la serie con lo stesso carico e le stesse ripetizioni
-    // della migliore, e se ne prende il giorno più recente.
+// calcolo del motore: si cerca la serie con lo stesso carico e le stesse ripetizioni
+// della migliore, e se ne prende il giorno più recente.
+//
+// IL CARICO DA CONFRONTARE (22/10/2026): nei dip e nelle trazioni il modello nuovo
+// calcola il Rank sul carico TOTALE (corpo + zavorra), ma il numero che Ste scrive
+// e' la zavorra. Quindi il confronto va fatto sui kg AGGIUNTI, altrimenti il giorno
+// del record non si trova più e la scheda smette di dire WHEN hai fatto la serie.
+  const caricoConfrontato = (record.zavorra !== undefined && record.zavorra !== null)
+    ? Number(record.zavorra)
+    : Number(record.caricoReale);
   const stesse = (serie || []).filter((s) => s
-    && Number(s.peso_assistenza !== undefined && s.peso_assistenza !== null ? s.peso_assistenza : s.peso) === Number(record.caricoReale)
+    && Number(s.peso_assistenza !== undefined && s.peso_assistenza !== null ? s.peso_assistenza : s.peso) === caricoConfrontato
     && Number(s.ripetizioni) === Number(record.ripetizioni)
     && String(s._giorno || '') !== '');
   const giornoRecord = stesse.length
@@ -586,7 +637,7 @@ const testoSerie = testoSerieChiaro({ ...r, giornoRecord: giorni && giorni.giorn
       distanza: r.distanza,
     }
     : null;
-// IL MASSIMALE DEGLI ESERCIZI A ZAVORRI (Ste, 16/10/2026): "il massimale mettilo per
+  // IL MASSIMALE DEGLI ESERCIZI A ZAVORRI (Ste, 16/10/2026): "il massimale mettilo per
   // i pesi in più rispetto al mio corpo non in generale".
   //
   // Prima la frase diceva "35 kg di zavorri + 66 kg del tuo corpo x 8 = 101 kg
@@ -597,14 +648,22 @@ const testoSerie = testoSerieChiaro({ ...r, giornoRecord: giorni && giorni.giorn
   // esistono davvero: sono quelli che metti sui piatti, e sono gli stessi con cui sono
   // tarate le soglie. Il massimale si stima quindi sui kg aggiunti (Epley) e non si
   // somma il corpo.
+  //
+  // NEL MODELLO NUOVO (22/10/2026) il carico che entra nel calcolo del Rank dei dip
+  // e delle trazioni E' il corpo più la zavorra (e' la richiesta di Ste: "per gli
+  // esercizi con zavorra considera anche il peso corporeo effettivamente coinvolto"),
+  // ma il MASSIMALE che si mostra resta quello dei kg aggiunti: il tuo corpo te lo
+  // porti appreso, e il numero che metti sui piatti e' l'unico che si compra.
+  const zavorra = r.zavorra !== undefined && r.zavorra !== null ? r.zavorra : null;
   const testoZavorri = esercizio.convenzione === 'zavorri'
     ? (() => {
-      const stima = stimaMassimo(r.caricoReale, r.ripetizioni);
+      const base = zavorra !== null ? zavorra : r.caricoReale;
+      const stima = stimaMassimo(base, r.ripetizioni);
       const numero = Number.isFinite(stima) ? Math.round(stima * 10) / 10 : null;
       const scritto = numero === null ? '' : String(numero).replace('.', ',');
       return numero === null
-        ? `${r.caricoReale} kg di zavorri x ${r.ripetizioni}${testoSerie}`
-        : `${r.caricoReale} kg di zavorri x ${r.ripetizioni}${testoSerie} = massimale `
+        ? `${base} kg di zavorri x ${r.ripetizioni}${testoSerie}`
+        : `${base} kg di zavorri x ${r.ripetizioni}${testoSerie} = massimale `
           + `${scritto} kg (solo i kg aggiunti, non il tuo corpo)`;
     })()
     : `${r.caricoReale} kg x ${r.ripetizioni}${testoSerie}`;
@@ -638,10 +697,27 @@ return {
     pesoCorporeo: r.pesoCorporeo || (res.migliore ? res.migliore.pesoCorporeo : null),
     movimento: r.movimento,
     livello: r.livello,
+    // LA CONFIGURAZIONE DELL'ESERCIZIO (22/10/2026): categoria, come si registra
+    // il carico, coefficiente di difficolta', quota di peso corporeo. La schermata
+    // la usa per tradurre le soglie in pesi che si caricano, e per dire COME si
+    // conta quell'esercizio.
+    cfg: r.cfg || null,
     // i pezzi nuovi, per la schermata che li vuole mostrare
-    ripetizioniPiene: r.ripetizioniPiene,
+    ripetizioniPiene: r.ripetizioniPiene !== undefined ? r.ripetizioniPiene : null,
     meccanica: r.meccanica,
     kgEquivalenti: r.kgEquivalenti,
+    // IL MODELLO NUOVO (22/10/2026): il massimale stimato (Epley) e la forza
+    // relativa (1RM / peso^0,67). Sono i due numeri che la richiesta chiama
+    // "punti forza", e stanno QUI, nel record, così ogni schermata legge
+    // gli stessi numeri e non ne ricalcola uno per conto suo.
+    massimale: r.massimale !== undefined ? r.massimale : null,
+    metodoMassimale: r.metodoMassimale || null,
+    massimaleAffidabile: r.massimaleAffidabile !== undefined ? r.massimaleAffidabile : null,
+    forzaRelativa: r.forzaRelativa !== undefined ? r.forzaRelativa : null,
+    // GLI ALLARMI DEL MODELLO: i dati sospetti (carico strano, ripetizioni
+    // impossibili, peso corporeo fuori range). Non cancellano niente e non
+    // abbassano il Rank: dicono che il numero c'e' ma e' strano.
+    allarmi: r.allarmi || [],
     // il carico che entra nel calcolo (la doppia carrucola dimezzata): serve a
     // chi vuole sapere "quanto ho spinto davvero" e non "quanto leggevo"
     caricoReale: r.caricoReale,
@@ -748,6 +824,68 @@ export function giudizioPerformance(profilo, punteggio) {
     frase += '. E su questo esercizio contano le ripetizioni, non i kg';
   }
 
+  return {
+    valido: true,
+    livello,
+    quota: Math.round(quota * 1000) / 1000,
+    giudizio,
+    frase,
+  };
+}
+
+/**
+ * Il giudizio "quanto ho fatto" di un RECORD, cioe' con le soglie del motore che
+ * ha calcolato quel record (22/10/2026).
+ *
+ * PERCHE' SERVE UNA FUNZIONE NUOVA: prima il giudizio si calcolava con
+ * `giudizioPerformance(profilo, punteggio)`, cioe' con la scala del profilo
+ * (quella vecchia) e con il punteggio del motore. Sono due unita' diverse: il
+ * giudizio usciva fuori strada, e su una scheda diceva "poco" a chi era a meta'
+ * scala. Adesso il giudizio esce dalle soglie del record: gli stessi numeri con
+ * cui il Rank e' stato deciso.
+ */
+export function giudizioPerformanceRecord(record) {
+  if (!record || !record.valido) {
+    return { valido: false, livello: null, frase: 'Non c\'e\' ancora nessuna prestazione su questo esercizio.', giudizio: null };
+  }
+  const soglie = Array.isArray(record.soglie) ? record.soglie : [];
+  const n = numero(record.punteggio);
+  if (!soglie.length || n === null) {
+    return { valido: false, livello: record.livello || null, frase: 'Non c\'e\' ancora nessuna prestazione su questo esercizio.', giudizio: null };
+  }
+  const livello = record.livello || (record.profilo && record.profilo.livello) || null;
+  // il riferimento e' il PLATINO di quell'esercizio: la stessa soglia che il
+  // motore usa, quindi il giudizio e il Rank non possono dire cose diverse
+  const rif = soglie[3] || 1;
+  const quota = Math.max(0, n / rif);
+  const alza = livello === 'isolamento' ? 0.28 : (livello === 'grande' ? -0.12 : 0);
+  const q = quota + alza;
+  let giudizio;
+  let fraseBase;
+  if (n < soglie[0]) {
+    giudizio = 'sotto';
+    fraseBase = 'sotto il bronzo: hai appena mosso i pesi su questo esercizio';
+  } else if (q < 0.72) {
+    giudizio = 'poco';
+    fraseBase = 'poco, ma e\' il primo gradino e l\'hai preso';
+  } else if (q < 0.88) {
+    giudizio = 'discreto';
+    fraseBase = 'discreto: e\' un buon livello per un esercizio';
+  } else if (q < 1.00) {
+    giudizio = 'tanto';
+    fraseBase = 'tanto: sei vicino al platino';
+  } else {
+    giudizio = 'molto';
+    fraseBase = 'molto: questo e\' un livello alto, guarda solo te';
+  }
+  let frase = fraseBase;
+  if (livello === 'isolamento' && (giudizio === 'discreto' || giudizio === 'tanto' || giudizio === 'molto')) {
+    frase += '. E su un esercizio di isolamento il numero e\' basso ma il lavoro e\' vero';
+  } else if (livello === 'grande' && (giudizio === 'poco' || giudizio === 'sotto')) {
+    frase += '. Qui i numeri sono alti per natura, non ti preoccupare';
+  } else if (livello === 'assistito' && (giudizio === 'tanto' || giudizio === 'molto')) {
+    frase += '. E su questo esercizio contano le ripetizioni, non i kg';
+  }
   return {
     valido: true,
     livello,
@@ -906,7 +1044,24 @@ export function classificaEsercizio(voci, profilo = null) {
         ? recordEsercizio(v.serie, v.esercizio, p).punteggio
         : null);
     if (punteggio === null) continue;
-    const r = calcolaRank(punteggio, p);
+    // IL RANK DELLA VOCE, se c'e' (22/10/2026).
+    //
+    // Prima qui il Rank lo ricalcolava `calcolaRank(punteggio, profilo)`, cioe' col
+    // motore VECCHIO e con la scala vecchia. Ma il punteggio che arriva qui e' già
+    // quello del motore NUOVO (l'unico che calcola il Rank adesso), e i due non
+    // stanno nella stessa unita': il risultato era una classifica con un Rank
+    // diverso da quello della scheda dello stesso esercizio.
+    //
+    // Quindi: se la voce ha già il suo Rank (e ce l'ha, quando arriva da
+    // `classifichePerEsercizio`), si usa quello. Se non ce l'ha, si calcola il
+    // record con il motore che vale adesso.
+    let r = null;
+    if (v.rank) {
+      r = { rank: v.rank, rankId: v.rank.id, lp: v.lp || 0, divisione: v.divisione || null };
+    } else {
+      const rec = recordEsercizio(v.serie, v.esercizio, p);
+      r = { rank: rec.rank, rankId: rec.rankId, lp: rec.lp, divisione: rec.divisione };
+    }
     righe.push({
       account: v.account || null,
       username: v.username || 'senza nome',

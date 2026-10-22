@@ -168,7 +168,7 @@ test('I2. la versione di index.html e quella di sw.js sono lo stesso numero', ()
   const html = readFileSync(join(radice, 'index.html'), 'utf8');
 
   const dalWorker = /const VERSIONE = 'palestra-v(\d+)'/.exec(sw);
-  const dallaPagina = /window\.PALESTRA_VERSIONE = '(\d+)'/.exec(html);
+  const dallaPagina = /window\.PALESTRA_VERSIONE = 'palestra-v(\d+)'/.exec(html);
   assert.ok(dalWorker, 'sw.js deve dichiarare la versione come palestra-vNUMERO');
   assert.ok(dallaPagina, 'index.html deve dichiarare window.PALESTRA_VERSIONE');
 
@@ -209,7 +209,7 @@ const m = /^v(\d+)/.exec(titolo);
   if (!m) return; // l'ultimo commit non e' una versione: non e' un mio errore
 
   const html = readFileSync(join(radice, 'index.html'), 'utf8');
-  const dichiarata = /window\.PALESTRA_VERSIONE = '(\d+)'/.exec(html);
+  const dichiarata = /window\.PALESTRA_VERSIONE = 'palestra-v(\d+)'/.exec(html);
   assert.ok(dichiarata, 'index.html deve dichiarare window.PALESTRA_VERSIONE');
 
   const ultima = Number(m[1]);

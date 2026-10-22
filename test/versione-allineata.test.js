@@ -26,7 +26,7 @@ const RADICE = join(dirname(fileURLToPath(import.meta.url)), '..');
 const leggi = (nome) => readFileSync(join(RADICE, nome), 'utf8');
 
 function numeroPagina(testo) {
-  const m = /window\.PALESTRA_VERSIONE\s*=\s*'(\d+)'/.exec(testo);
+  const m = /window\.PALESTRA_VERSIONE\s*=\s*'palestra-v(\d+)'/.exec(testo);
   return m ? m[1] : null;
 }
 

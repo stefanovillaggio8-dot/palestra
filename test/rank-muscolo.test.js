@@ -79,20 +79,20 @@ test('R1. 35 kg per braccio sono 70 kg, e il Rank lo deve sapere', () => {
   //
   // Quindi il massimale NON si raddoppia. Il numero che si vede e' quello che lui
   // ha scritto, e si puo' confrontare a occhio con la serie.
-  // IL NUMERO E' CAMBIATO il 08/10/2026 col motore nuovo, ma l\'INSEGNAMENTO no.
+  // IL NUMERO E' CAMBIATO il 22/10/2026 col modello nuovo (v3: Epley + allometrico),
+  // ma l'INSEGNAMENTO no: il carico per braccio e' quello che lui scrive.
   //
   // Il vecchio punteggio era il massimale stimato: 35 kg x 8 -> 44,33 kg (Epley).
-  // Ste aveva detto di non volerlo: "non voglio che spunti un numero cosi\' alto,
+  // Ste aveva detto di non volerlo: "non voglio che spunti un numero cosi' alto,
   // voglio che rimanga il numero di peso che metto in una sola parte". Il numero
-  // c\'era sparito dalla riga, ma restava dentro il calcolo del Rank, che era il
+  // c'era sparito dalla riga, ma restava dentro il calcolo del Rank, che era il
   // vero problema.
   //
-  // Adesso lo score e\' la prestazione reale: 35 kg x 8 = 35 (le 8 ripetizioni di
-  // riferimento valgono 1,0), piu\' il piccolo correttivo di meccanica della
-  // macchina a dischi. Nessun massimale, nessuna domanda ipotetica.
+  // NUOVO MODELLO (22/10/2026): lo score È l'1RM stimato * meccanica (unità assolute).
+  // Per 35 kg x 8 su corpo 66 kg: 1RM = 35 * 1,267 = 44,33; meccanica = 1,10 (macchina_dischi + braccia indipendenti); score = 44,33 * 1,10 = 48,76.
   const a = rankDi(chest, 35, 8);
-  assert.ok(a.score > 35 && a.score < 40,
-    `35 kg x 8 deve valere circa 35, non un massimale stimato: ${a.score}`);
+  assert.ok(a.score > 48 && a.score < 49,
+    `35 kg x 8 deve valere circa 48,7 (1RM * meccanica), non 35: ${a.score}`);
   assert.match(a.testo, /^35 kg/, 'la riga parte dal numero che ha scritto lui');
   assert.doesNotMatch(a.testo, /70 kg|88/, 'e non deve comparire il doppio');
   // e il punto vero: il Rank sale col peso, senza che nulla venga "raddoppiato"

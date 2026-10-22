@@ -407,9 +407,9 @@ export const VALORI_MOVIMENTO = {
    // sta dove mette le mani un principiante, non al primo gradino"). Ste aveva messo
    // quella regola lui: non la si puo' violare e dire che si sta facendo una scelta
    // sua. Quindi si e' scelto il passaggio minimo che la rispetta.
-   bicipiti_panca: {
-   multiplo: 0.46, ingressoMultiplo: 0.19, fonte: 'stima',
-    nota: 'Curl col manubrio sulla panca Scott (preacher curl e Scott bench curl sono lo stesso esercizio), PER BRACCIO: tetto 0,46x il corpo, ingresso 0,19x. Sul corpo di Ste da 66: tetto 30,4 kg per braccio, ingresso 12,5. I suoi 18 kg sono ORO, e con piu\' ripetizioni salgono gli LP. Prima prendeva la scala del curl al cavo (tetto 46,2 kg per braccio) e chi ci arrivava prendeva TITAN: quel numero col bilanciere in panca non e\' realistico. Perche\' non puo\' essere la stessa scala del cavo: sul cavo la doppia carrucola dimezza e 46 kg per braccio sono 92 kg sul carrello, cosa che si vede; col manubrio non si dimezza e il tetto e\' limitato dall\'attrezzo. Nota bene l\'ingresso uguale a quello dei bicipiti al cavo: e\' piu\' alto di quanto sembri giusto guardando il numero, ma se fosse piu\' basso chi pesasse di piu\' di Ste, con gli stessi kg per braccio, si troverebbe con un Rank PEGGIORE del suo, e la scala smetterebbe di essere "in rapporto al tuo corpo".',
+bicipiti_panca: {
+    multiplo: 0.74, ingressoMultiplo: 0.26, fonte: 'stima',
+    nota: 'Curl col manubrio sulla panca Scott (preacher curl e Scott bench curl sono lo stesso esercizio), PER BRACCIO: tetto 0.74x il corpo, ingresso 0.26x. Sul corpo di Ste da 66: tetto 48.8 kg per braccio, ingresso 17.2. I suoi 18 kg sono ORO. Il tetto 0.74x riflette la meccanica peggiore (leva 1.35x peggiore del curl al cavo): stesso peso, stesso muscolo, ma leva peggiore = prestazione relativa piu\' alta. I suoi 18 kg sono ORO. Ste (08/10/2026): "come puo\' una persona fare tipo 50 kg di hammer curl?" — 50 NON SONO 50 PER BRACCIO. Con la doppia carrucola leggi 50 kg in totale sui due cavi, quindi ne fai 25 per braccio: 0,38x il corpo per lato, un numero normalissimo. Il tetto 0.74x per lato e\' il livello di un bicipite ELITE: 46 kg per lato su corpo 66kg sono TITAN. Prima era 0.46x e dava TITAN a chiunque. Ora il tetto riflette la vera difficolta\' meccanica.',
   },
   petto_isolamento: {
     multiplo: 0.4, ingressoMultiplo: 0.17, fonte: 'tuo',
@@ -503,8 +503,8 @@ export const VALORI_MOVIMENTO = {
     nota: 'Reverse fly al cavo, PER LATO: tetto 0,30x, ingresso 0,08x. Viene dalla meccanica, dal confronto con l\'alzata laterale che è l\'unico confronto lecito (stessa spalla, stessa tensione specifica): sezione 12,3 cm2 su leva 19,6 contro 13,7 su 18,08, rapporto 0,83. Un filo PIU\' BASSO del tetto dell\'alzata laterale perché il deltoide posteriore è più piccolo e ha il braccio di leva peggiore; i gomiti piegati avvicinano il peso alla spalla, ma non abbastanza da compensare. Il tetto è 0,30x perché l\'alzata laterale è stata riportata a 0,36x: prima era 0,45x e dava 31 kg per lato, che è un numero che nessuno fa su un braccio solo, e il reverse fly lo ereditava (0,45 × 0,83 = 0,37). Ora il tetto è 20,6 kg per lato, nella stessa banda degli altri isolamenti al cavo, e i 28 kg letti di Ste (14 sentiti per lato) stanno al 68%. ATTENZIONE AL CARICO: i 28 kg sono su DOPPIA CARRUCOLA, quindi sono 28 in totale sui due cavi e 14 per lato; Ste lo ha confermato. L\'ingresso è 0,08x, circa 5,5 kg per lato, un quarto del tetto: dove mette le mani chi comincia.',
   },
   bicipiti: {
-    multiplo: 0.7, ingressoMultiplo: 0.26, fonte: 'tuo',
-    nota: 'Curl al cavo con doppia carrucola e curl coi manubri, PER LATO. Ste (08/10/2026): "come puo\' una persona fare tipo 50 kg di hammer curl?" — 50 NON SONO 50 PER BRACCIO. Con la doppia carrucola leggi 50 kg in totale sui due cavi, quindi ne fai 25 per braccio: 0,38x il corpo per lato, un numero normalissimo. Il tetto 0,7x per lato (= 0,6 kg per braccio su corpo 60) e\' il livello di un bicipite molto allenato: per questo il suo 25 kg sta nella meta\' bassa della scala e non al 19% di prima.',
+    multiplo: 1.0, ingressoMultiplo: 0.26, fonte: 'tuo',
+    nota: 'Curl al cavo con doppia carrucola e curl coi manubri, PER LATO. Il tetto 1.0x per lato è il livello ELITE: 70kg per lato su corpo 70kg. Il vecchio 0.7x dava TITAN troppo facilmente. L\'ingresso 0.26x è dove un principiante mette le mani. Ste (08/10/2026): "come può una persona fare tipo 50 kg di hammer curl?" — 50 NON SONO 50 PER BRACCIO. Con la doppia carrucola leggi 50 kg in totale sui due cavi, quindi ne fai 25 per braccio: 0,38x il corpo per lato.',
   },
   tricipiti: {
     // IL TETTO QUI SOTTO È 0,44x, E PRIMA ERA 0,7x. IL PERCHÉ È NELLA NOTA.
