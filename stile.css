@@ -1679,9 +1679,6 @@ body:has(.sfondo-dialogo) .avviso {
 /* IL BOTTONE LARGO (22/10/2026): il "Salva come nuova versione" della scheda. */
 .largo-tutto { display: block; width: 100%; margin-top: 12px; }
 
-/* IL PERSONAGGIO DEL PROFILO (22/10/2026): il disegno, non la foto. */
-.personaggio-svg-profilo { display: block; width: 100%; background: transparent; }
-.personaggio-svg-profilo svg { width: 100%; height: auto; display: block; }
 
 /* ===================== LE SCHEDE CHIUSE (22/10/2026) =====================
  *

@@ -372,8 +372,8 @@ test('la foto non viene mai tagliata', () => {
     // e il codice dice che qui dentro c'e' il DISEGNO (22/10/2026): la foto della
     // della classe aveva lo sfondo nero dentro l'immagine: la testa restava nera.
     // e il codice dice che qui dentro c'e' il DISEGNO (22/10/2026): la foto
-    assert.match(app, /personaggio-svg-profilo/,
-      'il codice deve dire che qui dentro c\'e il disegno');
+    assert.match(app, /classList\.add\('con-foto'\)/,
+      'il codice deve dire che qui dentro c\'e una foto');
 });
 
 test('la foto del personaggio è grande, non una figurina', () => {

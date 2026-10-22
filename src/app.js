@@ -5135,7 +5135,7 @@ function bloccoPersonaggio(profilo, st) {
     // `con-foto` toglie al riquadro qualsiasi altezza: la foto è un elemento nel
     // flusso e l'altezza la decide lei. Senza scatola il browser non può
     // decidere come infilarla e la taglia.
-    // (niente 'con-foto': ora il personaggio e' il disegno, non la foto)
+    grafica.classList.add('con-foto');
     // L'AURA è il sesto premio: non ha un'immagine tutta sua (l'ultima riga è
     // già "tutto addosso"), quindi è una luce che si accende sopra la foto.
     if (viso.aura) {
@@ -5236,9 +5236,12 @@ function bloccoPersonaggio(profilo, st) {
       // ci passa sopra, davvero, e non è un colore fermo.
       grafica.appendChild(el('div', { class: 'aura-lustro', aria: { hidden: 'true' } }));
     }
-    grafica.appendChild(el('div', {
-        class: 'personaggio-ritratto personaggio-svg-profilo',
-        html: personaggioSvg({ classe: classeId, sbloccati: idsIndossati }),
+    grafica.appendChild(el('img', {
+        class: 'personaggio-ritratto',
+        src: percorsoStato(classeId, viso.indice),
+        alt: `${rpg.classe.nome}: ${viso.stato.riga}`,
+        loading: 'lazy',
+        decoding: 'async',
       }));
 
     // LA FILMSTRIP: sei miniature, una per stato.
