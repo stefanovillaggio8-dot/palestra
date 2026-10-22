@@ -1494,6 +1494,13 @@ function vistaGiorno(zona, giornoId) {
         classe: 'fantasma',
       }),
     ]));
+    // IL BOTTONE LARGO IN FONDO (22/10/2026): nella foto di Ste c’è un solo
+    // bottone, largo, e dice "Salva come nuova versione": così si capisce
+    // che premendolo nasce una versione nuova e quella vecchia resta nel numero.
+    zona.appendChild(bottone('Salva come nuova versione', {
+      onClick: () => { giornoInModifica = null; disegna(); },
+      classe: 'principale grande largo-tutto',
+    }));
     return;
   }
 
@@ -3074,6 +3081,69 @@ function scegliEsercizio(bozza, g) {
   document.body.appendChild(box);
 }
 
+/* ===================== la card "quanto sei migliorato" =====================
+ *
+ * Ste (22/10/2026): "ordina tutta la pagina dei progressi (e anche del profilo e
+ * impostazioni), e' troppo incasinata e troppo lunga e metti che segna che
+ * esercizi hai migliorato, in quale sei peggiorato ecc.. come nella foto".
+ *
+ * Nella foto: tre riquadri con il numero (migliorati, invariati, peggiorati) e
+ * sotto la frase che spiega il verdetto. Nient'altro, tutto stretto.
+ *
+ * La stessa card va in cima alla pagina dei Progressi, del Profilo e delle
+ * Impostazioni: e' il riepilogo che si guarda per primo.
+ */
+
+/** Le sedute in cui ho fatto un esercizio, in ordine di data. */
+function puntiDiEsercizioMio(id) {
+  const sedute = (seduteMie() || [])
+    .filter((s) => s && !s.eliminata && s.stato === 'completata')
+    .sort((a, b) => String(a.data).localeCompare(String(b.data)));
+  const punti = [];
+  for (const s of sedute) {
+    const serie = (V.serie || []).filter((x) => x.seduta_id === s.id && x.esercizio_id === id && !x.eliminata);
+    if (!serie.length) continue;
+    punti.push({ seduta: s, data: s.data, serie });
+  }
+  return punti;
+}
+
+/** Gli esercizi che ho fatto, con tutto il loro storico. */
+function vociEserciziMie() {
+  const mie = serieDellaPersona() || [];
+  const ids = [...new Set(mie.filter((x) => x && !x.eliminata).map((x) => x.esercizio_id))];
+  return ids.map((id) => {
+    const punti = puntiDiEsercizioMio(id);
+    return {
+      nome: (esercizioPerId(id) || {}).nome || id,
+      esercizio: esercizioPerId(id),
+      punti,
+      prevista: null,
+    };
+  });
+}
+
+/** I tre riquadri: quanti esercizi sono andati avanti, quanti fermi, quanti indietro. */
+function cardRiepilogoMio() {
+  const generale = riepilogoGenerale(vociEserciziMie());
+  if (!generale || !generale.analizzati) return null;
+  const card = el('div', { class: 'card-riepilogo' });
+  card.appendChild(el('p', { class: 'titolo-riepilogo', testo: 'In generale, quanto sei migliorato' }));
+  const quadro = (numero, parola, colore) => el('div', { class: 'quadro-riepilogo ' + colore }, [
+    el('strong', { class: 'numero-riepilogo', testo: String(numero) }),
+    el('span', { class: 'parola-riepilogo', testo: parola }),
+  ]);
+  card.appendChild(el('div', { class: 'tre-riquadri' }, [
+    quadro(generale.migliorati, 'MIGLIORATI', 'verde'),
+    quadro(generale.fermi, 'INVARIATI', 'neutro'),
+    quadro(generale.indietro, 'PEGGIORATI', 'rosso'),
+  ]));
+  if (generale.linee && generale.linee.length) {
+    card.appendChild(el('p', { class: 'nota nota-piccola', testo: generale.linee[0] }));
+  }
+  return card;
+}
+
 /* ===================== vista: progressi ===================== */
 
 /**
@@ -3102,6 +3172,10 @@ function prestazioniDiQuestaPersona() {
 
 function vistaProgressi(zona) {
   zona.appendChild(el('h1', { testo: 'Progressi' }));
+  // LA CARD COMPATTA PRIMA DI TUTTO (22/10/2026): è il riepilogo che si
+  // guarda per primo, e sta in alto anche nel Profilo e nelle Impostazioni.
+  const cardRiepilogo = cardRiepilogoMio();
+  if (cardRiepilogo) zona.appendChild(cardRiepilogo);
 
   // Ste (04/10/2026): "voglio il rapporto peso potenza quindi in base al peso
   // corporeo". E poi: "con kg intendo il peso che alzo in più rispetto al mio
@@ -3686,6 +3760,9 @@ function contaAnimazioniCss() {
 
 function vistaImpostazioni(zona) {
   zona.appendChild(el('h1', { testo: 'Impostazioni' }));
+  // LA CARD COMPATTA ANCHE QUI (22/10/2026): la stessa dei Progressi e del Profilo.
+  const cardRiepilogo = cardRiepilogoMio();
+  if (cardRiepilogo) zona.appendChild(cardRiepilogo);
 
   zona.appendChild(bloccoGiorniAllenamento());
 
@@ -6608,6 +6685,9 @@ async function vistaProfilo(zona) {
   zona.appendChild(el('h1', { testo: 'Profilo' }));
 
   // l'avatar grande e centrale, come nei giochi
+  // LA CARD COMPATTA ANCHE QUI (22/10/2026): la stessa del Profilo.
+  const cardRiepilogo = cardRiepilogoMio();
+  if (cardRiepilogo) zona.appendChild(cardRiepilogo);
   const testa = el('div', { class: 'testa-profilo' }, [
     avatarNodo(profilo, { grande: true, dimensione: 120 }),
     el('h2', { testo: profilo.username }),

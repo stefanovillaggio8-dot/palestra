@@ -1655,6 +1655,30 @@ body:has(.sfondo-dialogo) .avviso {
 }
 .riga-bottoni-serie .badge-spotter { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
+/* ===================== LA CARD "QUANTO SEI MIGLIORATO" (22/10/2026) =============
+ *
+ * Ste ha mandato la foto: tre riquadri con il numero e sotto la parola, e poi
+ * la frase con il verdetto. Stretto, e leggibile in un colpo d'occhio.
+ */
+.card-riepilogo {
+  background: var(--card); border: 1px solid var(--bordo);
+  border-radius: var(--r); padding: 12px; margin: 0 0 14px;
+}
+.titolo-riepilogo { font-weight: 800; font-size: .95rem; margin: 0 0 10px; }
+.tre-riquadri { display: flex; gap: 8px; }
+.quadro-riepilogo {
+  flex: 1; text-align: center; border: 1px solid var(--bordo);
+  border-radius: 10px; padding: 10px 4px; background: rgba(255, 255, 255, .03);
+}
+.numero-riepilogo { display: block; font-size: 1.5rem; line-height: 1.1; }
+.parola-riepilogo { display: block; font-size: .58rem; font-weight: 800; letter-spacing: .06em; opacity: .85; }
+.quadro-riepilogo.verde { border-color: #1f6b3f; color: #35d07f; }
+.quadro-riepilogo.rosso { border-color: #6b2430; color: #ff6b7a; }
+.quadro-riepilogo.neutro { color: var(--testo-2); }
+
+/* IL BOTTONE LARGO (22/10/2026): il "Salva come nuova versione" della scheda. */
+.largo-tutto { display: block; width: 100%; margin-top: 12px; }
+
 @media (prefers-reduced-motion: no-preference) {
   .versione-app { transition: opacity .2s; }
   .versione-app:hover { opacity: .8; }
