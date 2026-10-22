@@ -32,7 +32,10 @@ import { bloccoGlossario } from './glossario-app.js';
 import {
   SCELTE_ANIMAZIONI, sceltaAnimazioni, impostaSceltaAnimazioni, pocoMovimento, avviaAnimazioni,
 } from './animazioni.js';
-import { recordEsercizio, recordAccount, classificaEsercizio, storicoMiglioramenti, giudizioPerformance, distanzaAllaSoglia, soglieLegibili, scoreSerie } from './rank.js';
+import { recordEsercizio, recordAccount, classificaEsercizio, storicoMiglioramenti, giudizioPerformance, giudizioPerformanceRecord, distanzaAllaSoglia, soglieLegibili, scoreSerie } from './rank.js';
+// IL MODELLO NUOVO DEL RANK (22/10/2026): la traduzione delle soglie in pesi che
+// si caricano la fa il motore, non una formula scritta qui.
+import { soglieLegibiliNuove } from './rank-v3/valutazione.js';
 import { confrontoGiorno, confrontiMensili, GIORNI_UN_MESE } from './confronto-mensile.js';
 import { profiloEsercizio, profiloPerPesoCorporeo, RANK, ETICHETTE_MISURA, descriviPunteggio, descrizioneLivello, livelloEsercizio, impostaLivelliImparati, livelliImparati, rapportoDifficolta, MOLTIPLICATORI_SOGLIA, passoCaricabile } from './rank-config.js';
 import { formattaAura } from './aura.js';
@@ -4673,7 +4676,7 @@ function cardRank(record, { compatta = false } = {}) {
         class: 'tag-livello piccolo liv-' + (r.profilo.livello || 'composto'),
         testo: (r.profilo.livello || 'composto').toUpperCase(),
       }),
-      el('span', { class: 'nota nota-piccola', testo: giudizioPerformance(r.profilo, r.punteggio).frase }),
+      el('span', { class: 'nota nota-piccola', testo: giudizioPerformanceRecord(r).frase }),
     ]),
 el('div', { class: 'card-rank-basso' }, [
       // la barra degli LP si riempie con gli LP (vedi frazioneLp): il numero che dice
@@ -6118,22 +6121,36 @@ function vistaRank(zona) {
       const serie = [{ peso, ripetizioni: rip, stato: 'fatta', ordine: 1 }];
       const record = recordEsercizio(serie, e, null, corp > 0 ? corp : null);
       const rango = record && record.rank ? record.rank : null;
+      const divisione = record && record.divisione ? record.divisione : null;
       const kgReali = record && record.caricoReale !== null && record.caricoReale !== undefined
         ? record.caricoReale : peso;
       // IL PUNTEGGIO DI FORZA (22/10/2026): il massimale stimato diviso per il
       // peso corporeo elevato a 0,67. E' il numero che rende confrontabili due
       // persone di taglie diverse, e quello che la scala allometrica usa.
+      //
+      // IL NUMERO VIENE DAL MOTORE, non da qui: il modello (rank-v3) stima il
+      // massimale con Epley, conta il corpo nei dip e nelle trazioni, e dice
+      // anche se la stima e' affidabile. Prima questa riga si calcolava da sola,
+      // con la formula scritta a mano, e su un esercizio col peso del corpo
+      // guardava i kg aggiunti invece del carico vero: era un secondo calcolo
+      // del numero, e la regola del progetto e' che il numero ha UN posto solo.
       const corpPerForza = (record && record.pesoCorporeo) || (corp > 0 ? corp : null);
-      const unRM = kgReali * (1 + rip / 30);
-      const forzaRelativa = corpPerForza > 0 ? unRM / Math.pow(corpPerForza, 0.67) : null;
+      const forzaRelativa = record && record.forzaRelativa !== undefined && record.forzaRelativa !== null
+        ? record.forzaRelativa
+        : null;
+      const massimaleInfo = record && record.massimale !== undefined && record.massimale !== null
+        ? record.massimale
+        : (kgReali > 0 && rip > 0 ? kgReali * (1 + rip / 30) : null);
+      const stimaIncerta = record && record.massimaleAffidabile === false;
       const testo = [
           forzaRelativa !== null
             ? 'forza relativa ' + (Math.round(forzaRelativa * 10) / 10)
-              + ' (1RM ' + (Math.round(unRM * 10) / 10) + ' kg su ' + corpPerForza + ' kg^0,67)'
+              + ' (1RM ' + (Math.round(massimaleInfo * 10) / 10) + ' kg su ' + corpPerForza + ' kg^0,67)'
+              + (stimaIncerta ? ', stima poco affidabile sopra le 12 ripetizioni' : '')
             : '',
         e.nome,
         peso + ' kg x ' + rip + (corp > 0 ? ' | peso corporeo ' + corp + ' kg' : ''),
-        rango ? rango.nome + (rango.divisione ? ' ' + rango.divisione.nome : '') : (record && record.motivo ? record.motivo : 'Non valutabile'),
+        rango ? rango.nome + (divisione ? ' ' + divisione.nome : '') : (record && record.motivo ? record.motivo : 'Non valutabile'),
         record && record.lp ? 'LP: ' + Math.round(record.lp) : '',
         kgReali !== peso ? 'il peso che conta è ' + kgReali + ' kg' : '',
         record && record.testo ? record.testo : '',
@@ -6144,7 +6161,7 @@ function vistaRank(zona) {
       // il pannello a tutto schermo, con l’animazione che c’è già per i dialoghi
       const sfondo = el('div', { class: 'sfondo-prova' });
       const pannello = el('div', { class: 'pannello-prova' }, [
-        el('div', { class: 'pannello-prova-titolo', testo: rango ? rango.nome + (rango.divisione ? ' ' + rango.divisione.nome : '') : 'Non valutabile' }),
+        el('div', { class: 'pannello-prova-titolo', testo: rango ? rango.nome + (divisione ? ' ' + divisione.nome : '') : 'Non valutabile' }),
         ...testo.slice(1).map((t) => el('p', { class: 'nota', testo: t })),
         bottone('Chiudi', { onClick: () => sfondo.remove(), classe: 'principale grande' }),
       ]);
@@ -6418,10 +6435,32 @@ async function vistaEsercizio(zona, esercizioId) {
   const soglieDelMotore = Array.isArray(record.soglie) && record.soglie.length === RANK.length
     ? record.soglie
     : profilo.soglie;
+  // il punteggio del motore VECCHIO: serve solo per il ripiego (gli esercizi che
+  // il modello nuovo non sa valutare)
   const punteggioDi = (kg) => {
     const s = scoreSerie({ peso: kg, ripetizioni: 8, esercizio: e });
     return Number(s && s.score !== undefined ? s.score : s) || 0;
   };
+  // LE SOGLIE LEGGIBILI VENGONO DAL MOTORE NUOVO (22/10/2026).
+  //
+  // Prima qui la traduzione la faceva `soglieLegibili` con `scoreSerie` del
+  // motore VECCHIO: le soglie del record sono nel punteggio del modello nuovo
+  // (1RM normalizzato) e il punteggio del motore vecchio era un'altra unita',
+  // quindi i pesi che uscivano erano sbagliati. E' il caso che la stessa richiesta
+  // segnala: "evita che rimangano vecchi calcoli in altre schermate".
+  //
+  // Ora la traduzione la fa il modello stesso: si chiede al motore che
+  // punteggio da' ogni peso caricabile e si prende il primo che raggiunge la
+  // soglia. Il numero e' verificato, e quello che leggi e' quello che il motore
+  // fa.
+  const soglieDaLeggere = (record.motore === 'nuovo' && record.cfg)
+    ? soglieLegibiliNuove(soglieDelMotore, {
+      esercizio: e,
+      pesoCorporeo: record.pesoCorporeo || pesoCorporeoOra(),
+      cfg: record.cfg,
+      passo: passoCaricabile(e),
+    })
+    : soglieLegibili(soglieDelMotore, punteggioDi, passoCaricabile(e));
   // LE SOGLIE SI SCRIVONO COI PESI CHE HAI DAVVERO (Ste, 18/10/2026).
   //
   // Tre risposte in un giorno, e la terza è quella giusta: "vanno di 5kg in su, 5 10 15
@@ -6431,7 +6470,6 @@ async function vistaEsercizio(zona, esercizioId) {
   //
   // Un piatto da 1 sopra uno da 5 fa esistere quel numero: quindi 1 kg alla volta si
   // arriva su tutto, macchine comprese. Sotto i 50 kg vale la lista dei manubri.
-  const soglieDaLeggere = soglieLegibili(soglieDelMotore, punteggioDi, passoCaricabile(e));
   zona.appendChild(el('p', { class: 'nota', testo: `${rigaSoglie.join(' · ')}. Soglie: ${soglieDaLeggere.map((s, i) => `${RANK[i].nome} da ${formattaNumero(s)}`).join(' · ')}` }));
 
   // L'AVVISO DEL PESO. Ste (07/10/2026): "il peso corporeo È l'ultima cosa
@@ -6464,7 +6502,12 @@ async function vistaEsercizio(zona, esercizioId) {
 
   // QUANTO HO FATTO, in parole. Ste: "capisce se È tanto quello che fai o
   // poco". Il giudizio tiene conto anche del livello di difficolta'.
-  const giudizio = giudizioPerformance(profilo, record.punteggio);
+  //
+  // IL GIUDIZIO ESCE DAL RECORD (22/10/2026): le sue soglie sono quelle del
+  // motore che ha deciso il Rank, quindi il giudizio e il Rank non possono
+  // dire cose diverse. Prima veniva calcolato con la scala del profilo (quella
+  // vecchia) e il punteggio del motore: due unita' diverse.
+  const giudizio = giudizioPerformanceRecord(record);
   if (giudizio.valido) {
     zona.appendChild(el('div', { class: 'riga-giudizio giud-' + giudizio.giudizio }, [
       el('strong', { testo: 'QUANTO HAI FATTO' }),
