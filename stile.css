@@ -1683,6 +1683,22 @@ body:has(.sfondo-dialogo) .avviso {
 .personaggio-svg-profilo { display: block; width: 100%; background: transparent; }
 .personaggio-svg-profilo svg { width: 100%; height: auto; display: block; }
 
+/* ===================== LE SCHEDE CHIUSE (22/10/2026) =====================
+ *
+ * La pagina dei Progressi era troppo lunga: i paragrafi lunghi stanno dentro
+ * una scheda chiusa, il titolo si vede e il resto si apre con un tocco.
+ */
+.scheda-chiusa { margin: 4px 0 8px; }
+.scheda-chiusa > summary {
+  cursor: pointer; font-weight: 800; font-size: .88rem; padding: 8px 0;
+  list-style: none; color: var(--testo-2);
+}
+.scheda-chiusa > summary::-webkit-details-marker { display: none; }
+.scheda-chiusa > summary::before { content: '\25B8  '; color: var(--viola); }
+.scheda-chiusa[open] > summary::before { content: '\25BE  '; }
+.dentro-scheda { padding-top: 2px; }
+.duplicato-nascosto { display: none; }
+
 @media (prefers-reduced-motion: no-preference) {
   .versione-app { transition: opacity .2s; }
   .versione-app:hover { opacity: .8; }

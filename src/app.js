@@ -3220,16 +3220,25 @@ function vistaProgressi(zona) {
   if (pesoOraProgressi) {
     const prestazioniOra = prestazioniDiQuestaPersona();
     const media = mediaPrestazioni(prestazioniOra);
+    // La spiegazione lunga sta in una scheda chiusa (22/10/2026): la pagina
+    // dei Progressi era troppo lunga e troppo incasinata.
     const boxForza = el('div', { class: 'spiegazione generale' });
-    boxForza.appendChild(el('h3', { testo: 'Quanto stai sollevando in più del tuo corpo' }));
+      // La spiegazione lunga sta in una SCHEDA CHIUSA (22/10/2026): la pagina dei
+      // Progressi era troppo lunga e troppo incasinata. Il titolo si vede, il
+      // resto si apre con un tocco.
+      const dentroForza = el('div', { class: 'dentro-scheda' });
+      boxForza.appendChild(el('details', { class: 'scheda-chiusa' }, [
+        el('summary', { class: 'scheda-titolo', testo: 'Quanto stai sollevando in più del tuo corpo' }),
+        dentroForza,
+      ]));
     if (media.media === null) {
-      boxForza.appendChild(el('p', { class: 'nota', testo: 'Non ci sono ancora esercizi con un peso registrato.' }));
+      dentroForza.appendChild(el('p', { class: 'nota', testo: 'Non ci sono ancora esercizi con un peso registrato.' }));
     } else {
-      boxForza.appendChild(el('p', {
+      dentroForza.appendChild(el('p', {
         class: 'nota numero-grande',
         testo: `${formattaNumero(media.percentuale)}%`,
       }));
-      boxForza.appendChild(el('p', {
+      dentroForza.appendChild(el('p', {
         class: 'nota nota-piccola',
         testo: `La percentuale è quanto hai sollevato rispetto a quello che ci si aspetta `
           + `da una persona forte come te, su quel pezzo. 100% vuol dire che l'hai eguagliato, `
@@ -3237,13 +3246,13 @@ function vistaProgressi(zona) {
           + `È calcolata sul tuo corpo di ${formattaNumero(pesoOraProgressi)} kg, `
           + `su ${media.conta} esercizi${media.saltate ? ` (ne ho esclusi ${media.saltate})` : ''}.`,
       }));
-      boxForza.appendChild(el('p', {
+      dentroForza.appendChild(el('p', {
         class: 'nota nota-piccola',
         testo: 'Sopra il 100% vuol dire che hai superato il livello di chi si allena bene: '
           + 'i numeri di riferimento sono stime prudenti, e se per te sono sbagliati, '
           + 'il numero giusto è quello che dici tu.',
       }));
-      boxForza.appendChild(el('p', {
+      dentroForza.appendChild(el('p', {
         class: 'nota nota-piccola',
         testo: 'Le gambe non contano nella media: i loro numeri sono troppo alti e la farebbero saltare. '
           + 'Restano visibili uno per uno, però.',
@@ -3282,7 +3291,11 @@ function vistaProgressi(zona) {
 
   // Il riepilogo generale viene PRIMA di tutto il resto: Ste ha detto che coi
   // grafici da solo non capisce, quindi la risposta principale È in parole.
-  const boxGenerale = el('div', { class: 'spiegazione generale' });
+  // Il riquadro vecchio "In generale, quanto sei migliorato" duplicava la card
+  // nuova (che sta in cima alla pagina, con i riquadri cliccabili). Ste (22/10/2026):
+  // "la cosa dei progressi in quanti sono migliorato peggiorato e uguale".
+  // Quindi questo qui sotto si nasconde e resta solo la card.
+  const boxGenerale = el('div', { class: 'spiegazione generale duplicato-nascosto' });
   boxGenerale.appendChild(el('h3', { testo: 'In generale, quanto sei migliorato' }));
   const spazioGenerale = el('div', { id: 'riepilogo-generale' });
   boxGenerale.appendChild(spazioGenerale);
