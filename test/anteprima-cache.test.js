@@ -2,7 +2,7 @@
  *
  * Questo test esiste perché Ste ha perso tre versioni di fila.
  *
- * Cosa era successo: l'app chiedeva il CSS come `stile.css?v=252`, l'anteprima lo
+ * Cosa era successo: l'app chiedeva il CSS come `stile.css?v=253`, l'anteprima lo
  * chiedeva come `stile.css`, senza numero. Due indirizzi diversi per lo stesso
  * file. Il browser tiene in cache il secondo per sempre, perché GitHub Pages manda
  * le cartelle statiche con una scadenza lunghissima, e quindi l'anteprima mostrava
@@ -70,7 +70,7 @@ test('T2. nessuna pagina chiede stile.css senza numero', async () => {
 test('T3. nessuna pagina chiede una foto senza numero di versione', async () => {
   // Lo stesso difetto del CSS, ma sulle immagini, e Ste l'ha trovato per la terza
   // volta: "ma non e' cambiato nulla", con il file nuovo gia' online e verificato
-  // byte per byte. Il CSS aveva `?v=252`, le foto no: indirizzo identico per
+  // byte per byte. Il CSS aveva `?v=253`, le foto no: indirizzo identico per
   // sempre, scadenza lunghissima, e il browser restituiva la copia di prima.
   //
   // `src="./img/....webp"` e' un indirizzo valido e funziona: nessuno lo rifiuta.

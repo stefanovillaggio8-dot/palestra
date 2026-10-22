@@ -892,7 +892,7 @@ function cornice() {
   // Ste ha mandato la foto della barra che vuole: ogni voce ha la sua icona
   // SOPRA la parola. Le icone sono disegnate qui (linee, non immagini): si
   // colorano con il colore della voce, quindi la voce attiva si accende
-  // tutta, e non c'e' nessun file da caricare.
+  // tutta, e non c’è nessun file da caricare.
   const ICONE_MENU = {
     allenamento: '<path d="M4 9v6M7 7v10M17 7v10M20 9v6M7 12h10"/>',
     rank: '<path d="M12 3l7 2.8v5.4c0 4.2-2.9 7.6-7 9.4-4.1-1.8-7-5.2-7-9.4V5.8L12 3z"/><path d="M12 9.2l1.5 3 3.3.5-2.4 2.3.6 3.3-3-1.6-3 1.6.6-3.3-2.4-2.3 3.3-.5 1.5-3z"/>',
@@ -1543,12 +1543,12 @@ async function vistaSeduta(zona, sedutaId) {
   //
   // Ste: "per terminare l'allenamento metti solo questo quando scorri verso il
   // basso così da occupare meno spazio". Nella foto che ha mandato il
-  // bottone e' una barra stretta in fondo, con il cronometro e il contatore
+  // bottone è una barra stretta in fondo, con il cronometro e il contatore
   // delle serie a sinistra e il bottone rosso a destra.
   //
   // Prima il bottone era grosso e stava in alto, nella banda del cronometro:
   // occupava mezza schermata e restava lontano dal pollice mentre scorrevi.
-  // Ora e' in fondo, compatto, e la banda in alto ha solo il cronometro.
+  // Ora è in fondo, compatto, e la banda in alto ha solo il cronometro.
   const barraFine = el('div', { class: 'barra-fine' }, [
     el('div', { class: 'barra-fine-contatori' }, [
       el('span', { class: 'barra-fine-crono', id: 'cronometro-fine', testo: '00:00' }),
@@ -1956,9 +1956,21 @@ const rip = campoNumero(serieCardio ? valoreMinutiCardioNelCampo(serie) : serie.
   // lo spotter?" su un esercizio a corpo libero è una domanda senza senso, e
   // obbligarlo a rispondere con un numero lo spinge a scrivere "0" dappertutto.
   if (!serieCardio) {
-    riga.appendChild(botSpotter);
-    riga.appendChild(pulsanteDropset(serie, { perView }));
-    riga.appendChild(badgeSpotter);
+    // I QUATTRO PULSANTI IN UNA RIGA SOLA (22/10/2026).
+    //
+    // Ste: "spotter dropset nota ed elimina mettili tutti in una riga così da
+    // occupare meno spazio". Prima erano quattro figli della riga della serie,
+    // e ognuno andava a capo: la riga occupava tre righe di schermo.
+    //
+    // Ora stanno in un contenitore solo, e il contenitore è una riga: il
+    // testo si accorcia se non ci sta (con la regola "flex-wrap: nowrap" e
+    // i pulsanti che si restringono).
+    const rigaBottoni = el('div', { class: 'riga-bottoni-serie' }, [
+      botSpotter,
+      pulsanteDropset(serie, { perView }),
+      badgeSpotter,
+    ]);
+    riga.appendChild(rigaBottoni);
   }
 
   const campiAssistite = el('div', { class: 'gruppo-assistite' });
@@ -2057,7 +2069,7 @@ function pulsanteDropset(serie, { perView = null } = {}) {
       if (perView) perView.dropset = nuovo;
       // spento il dropset, i giri in attesa non hanno più senso: se restassero,
       // riaccendendo il pulsante comparirebbero numeri di una serie che nel frattempo
-      // e' cambiata
+      // è cambiata
       if (!nuovo) ULTIMI_GIRI.delete(serie.id);
       await aggiornaSerie(serie, { dropset: nuovo });
       if (nuovo) pulsa();
@@ -2767,7 +2779,7 @@ function prendiBozza() {
   // `undefined` (non una stringa) e `JSON.parse(undefined)` LANCIA. Il chiamante pensava
   // solo al caso `null`, quindi l'eccezione saliva fuori e la pagina restava a meta'.
   // Uno snapshot mancante È una versione corrotta o un import a meta': meglio dire
-  // "non c'e'" che far esplodere la schermata.
+  // "non c’è" che far esplodere la schermata.
   if (!v || !v.snapshot) return null;
   if (!bozzaAttiva || bozzaAttiva.versioneId !== v.id) {
     bozzaAttiva = { versioneId: v.id, dati: JSON.parse(JSON.stringify(v.snapshot)) };
@@ -4394,12 +4406,12 @@ function teschioStreak(st) {
     // accanto: si leggeva "STREAKgiorno", cioe' due pezzi attaccati che non
     // formavano una frase. Ste me l'ha fatto vedere con uno screenshot.
     //
-    // Il numero grosso resta dov'e', perchè è la cosa che guardi per prima. Sotto,
+    // Il numero grosso resta dov'è, perchè è la cosa che guardi per prima. Sotto,
     // la parola STREAK e la frase intera. Il numero compare UNA volta sola: due
     // volte nella stessa card faceva pensare che fossero due cose diverse, e il
     // test gioco-ui lo segnalava ("qui era 2").
     //
-    // E nel caso "da accendere" il numero c'e' lo stesso: la tua streak non è
+    // E nel caso "da accendere" il numero c’è lo stesso: la tua streak non è
     // sparita, è a un passo dal salire. Mostrare "??" diceva che avevi perso tutto.
     el('span', {
       class: 'fuoco',
@@ -4780,7 +4792,7 @@ function bloccoMese(anno, mese, previsti, giorniFatti, oggi) {
     NOMI_MESCE[mese - 1],
     // IL NUMERO DI ALLENAMENTI DEL MESE, accanto al nome. Un calendario senza
     // questo dice COME è andato il mese solo se lo leggi giorno per giorno:
-    // metterlo li' risponde subito a "marzo com'e' andato".
+    // metterlo li' risponde subito a "marzo com'è andato".
     el('span', {
       class: 'calendario-conto',
       testo: `${fattiDelMese} ${fattiDelMese === 1 ? 'giornata' : 'giornate'}`,
@@ -5001,12 +5013,12 @@ function bloccoPersonaggio(profilo, st) {
     // contando quanti premi hai preso. Il numero viene da `statoVisivo`, che
     // guarda il RECORD di streak: se smetti una settimana non ti spogli di dosso
     // quello che ti sei guadagnato.
-    // `con-foto` toglie al riquadro qualsiasi altezza: la foto e' un elemento nel
+    // `con-foto` toglie al riquadro qualsiasi altezza: la foto è un elemento nel
     // flusso e l'altezza la decide lei. Senza scatola il browser non può
     // decidere come infilarla e la taglia.
     grafica.classList.add('con-foto');
-    // L'AURA e' il sesto premio: non ha un'immagine tutta sua (l'ultima riga e'
-    // già "tutto addosso"), quindi e' una luce che si accende sopra la foto.
+    // L'AURA è il sesto premio: non ha un'immagine tutta sua (l'ultima riga è
+    // già "tutto addosso"), quindi è una luce che si accende sopra la foto.
     if (viso.aura) {
       grafica.classList.add('personaggio-aura');
       // LE SCINTILLE. La luce, i fazzi, l'anello e il contorno li fa il CSS; le
@@ -5060,7 +5072,7 @@ function bloccoPersonaggio(profilo, st) {
         // Ste (12/10/2026): "prova a mettere degli effetti in più che valorizzino
         // arrivare fino a 75 giorni di fila". Da nove a quattordici: le prime nove
         // coprono i bordi, queste cinque stanno dentro e in mezzo, che era la zona
-        // rimasta vuota. Nessuna e' sulla faccia della figura, così non copre il
+        // rimasta vuota. Nessuna è sulla faccia della figura, così non copre il
         // personaggio. I tempi sono tutti diversi dalle altre, altrimenti si muovono
         // a gruppi e si capisce che sono un effetto unico.
         { x: 52, y: 26, g: 5, r: .9, d: 3.9 },
@@ -5081,18 +5093,18 @@ function bloccoPersonaggio(profilo, st) {
       //
       // Ste (12/10/2026): "prova a mettere degli effetti in più che valorizzino
       // arrivare fino a 75 giorni di fila". Un'aura che sta li' e basta dice
-      // "questo personaggio e' luminoso"; un'aura che ogni tanto SPARA qualcosa dice
+      // "questo personaggio è luminoso"; un'aura che ogni tanto SPARA qualcosa dice
       // "appena hai fatto qualcosa di straordinario". Sono due cose diverse e
       // servono entrambe.
       //
-      // L'onda parte dalla figura e si allarga finche' sparisce: e' il segnale che
-      // dice che qualcosa e' appena successo. La corona e' l'anello che sta fermo
-      // sopra la testa e si allarga piano, e quello dice che la luce e' sua.
+      // L'onda parte dalla figura e si allarga finche' sparisce: è il segnale che
+      // dice che qualcosa è appena successo. La corona è l'anello che sta fermo
+      // sopra la testa e si allarga piano, e quello dice che la luce è sua.
       //
       // Perche' si animano `width`/`height` e NON `scale`: il progetto vieta le scale
       // forti, giustamente, perché deformano il contenuto. Qui pero' un onda che
-      // non cresce non e' un'onda. Con larghezza e altezza non si deforma niente,
-      // perché l'onda e' un anello vuoto e dentro non c'e' contenuto da stortare.
+      // non cresce non è un'onda. Con larghezza e altezza non si deforma niente,
+      // perché l'onda è un anello vuoto e dentro non c’è contenuto da stortare.
       const onde = el('div', { class: 'aura-onde', aria: { hidden: 'true' } });
       for (const ritardo of [0, 2.6, 5.2]) {
         onde.appendChild(el('i', { stile: `--ritardo:${ritardo}s` }));
@@ -5118,7 +5130,7 @@ function bloccoPersonaggio(profilo, st) {
     // LA FILA DELLA PROGRESSIONE: una casella per PREMIO, col nome che dice la classe.
     //
     // Ste (12/10/2026): "nelle foto piccole spunta senza armatura, bracciali,
-    // corazza, armatura, arma, completo. ma giu' nelle ricompense, dove c'e' anche
+    // corazza, armatura, arma, completo. ma giu' nelle ricompense, dove c’è anche
     // il lucchetto, spunta bracciali di cuoio, vesti leggeri, cintura da assassino,
     // pugnale, armatura leggendaria, arma divina: che sono cose diverse".
     //
@@ -5128,17 +5140,17 @@ function bloccoPersonaggio(profilo, st) {
     // stessa cosa: la casella diceva "Corazza" e la ricompensa "Vesti leggere" per
     // lo stesso sblocco, e non si capiva quale dei due fosse quello giusto.
     //
-    // Adesso e' la stessa lista: una casella per ogni premio di `PREMI`, con il nome
-    // di `nomePremio`. Davanti c'e' la casella "Senza armatura", che non e' una
+    // Adesso è la stessa lista: una casella per ogni premio di `PREMI`, con il nome
+    // di `nomePremio`. Davanti c’è la casella "Senza armatura", che non è una
     // ricompensa ma il punto da cui si parte.
     //
-    // Le caselle sono SETTE e le immagini sei: l'ultima casella e' "Aura divina", il
-    // sesto premio, che non ha una foto tutta sua perché l'ultima riga e' già
-    // "tutto addosso". Quella mostra l'ultima foto con l'AURA accesa sopra, che e'
+    // Le caselle sono SETTE e le immagini sei: l'ultima casella è "Aura divina", il
+    // sesto premio, che non ha una foto tutta sua perché l'ultima riga è già
+    // "tutto addosso". Quella mostra l'ultima foto con l'AURA accesa sopra, che è
     // quello che dice `viso.aura`.
     //
     // La striscia si prepara qui dentro, ma si mette a schermo DOPO la foto e il
-    // nome. Per questo e' `let` e non `const`: il codice che la mette sta sotto,
+    // nome. Per questo è `let` e non `const`: il codice che la mette sta sotto,
     // fuori da questo blocco.
     // Gli sblocchi restano (il record), ma il contatore per la prossima ricompensa si
   // conta con la streak di ADESSO: se l'hai persa, ricomincia da capo (Ste, 21/10/2026).
@@ -5159,8 +5171,8 @@ function bloccoPersonaggio(profilo, st) {
         title: c.nome,
       }, [
         // LA SPUNTA. Dice "questo l'hai preso" senza dover leggere la riga sotto, e
-        // sta solo dove il premio e' davvero sbloccato: e' un segno, non una
-        // decorazione. Sulle caselle ancora chiuse c'e' un puntino, così la fila si
+        // sta solo dove il premio è davvero sbloccato: è un segno, non una
+        // decorazione. Sulle caselle ancora chiuse c’è un puntino, così la fila si
         // legge tutta di un colpo.
         el('span', {
           class: 'pezzo-spunta' + (c.sbloccato ? ' acceso' : ''),
@@ -5201,7 +5213,7 @@ scena.appendChild(grafica);
     el('span', {
       class: 'nota',
       // Con la classe scelta si dice anche COME SEI VESTITO, non solo quanti pezzi
-      // hai: e' la cosa che cambia da sola quando la streak cresce.
+      // hai: è la cosa che cambia da sola quando la streak cresce.
       testo: classeScelta
         ? `Livello ${rpg.livello} · ${viso.stato.riga} · ${indosano.length} di ${rpg.premi.length} armature`
 : `Livello ${rpg.livello} · ${indosano.length} di ${rpg.premi.length} armature`,
@@ -5644,9 +5656,30 @@ const grigliaClassi = el('div', { class: 'riga-classi' });
 
 /* ---------- schermate ---------- */
 
+// LA RIGA DELLE PILLOLE (22/10/2026).
+//
+// Ste ha mandato la foto: in alto, una riga sola con il cerchietto con le
+// iniziali, la streak, l'Aura e il livello. "in alto invece inserisci anche
+// queste che in questo modo è più carino".
+//
+// Sono le stesse informazioni delle schede grandi che stanno più in basso
+// (la streak, l'Aura e il livello), ma compatte: si vedono subito e non
+// costringono a scorrere. Le icone sono emoji perché sono le stesse che
+// usa già l'app.
+function rigaPillole(st, profilo) {
+  const iniziali = String((profilo && profilo.username) || '??').slice(0, 2).toUpperCase();
+  return el('div', { class: 'riga-pillole' }, [
+    el('span', { class: 'pallone-classe', testo: iniziali }),
+    el('span', { class: 'pillola pillola-streak', testo: '\u{1F525} ' + st.fuoco.giorni }),
+    el('span', { class: 'pillola pillola-aura', testo: '\u2728 ' + formattaAura(st.aura) }),
+    el('span', { class: 'pillola pillola-livello', testo: '\u2B21 ' + st.livello.livello }),
+  ]);
+}
+
 function vistaCasa(zona) {
   const st = statoMio();
   const profilo = profiloAttivo();
+  zona.appendChild(rigaPillole(st, profilo));
   zona.appendChild(el('div', { class: 'riga-titoli' }, [
     el('h1', { testo: 'Casa' }),
     el('span', { class: 'conteggio', testo: `${profilo.username} · livello account ${st.livello.livello}` }),
@@ -5880,12 +5913,12 @@ function vistaRank(zona) {
 
     // LA RICERCA (Ste, 21/10/2026)
     //
-    // "quando scrivo le scelte non devono apparire li ma e' come una barra di ricerca:
+    // "quando scrivo le scelte non devono apparire li ma è come una barra di ricerca:
     // se scrivo la s spuntano quelli che iniziano con la s, se dopo la s scrivo t mi
     // spuntano quelli che iniziano con st"
     //
     // Quindi niente l'elenco del browser (quello che spuntava sotto, con la barretta
-    // "Inserisci info"): qui sotto c'e' una lista mia, che si accorcia mentre scrivi.
+    // "Inserisci info"): qui sotto c’è una lista mia, che si accorcia mentre scrivi.
     const cerca = el('input', {
       type: 'text', class: 'campo-testo',
       placeholder: 'Cerca l\'esercizio (per nome)...', autocomplete: 'off',
@@ -6240,12 +6273,12 @@ async function vistaEsercizio(zona, esercizioId) {
   // `rank-v2` e finisce con OLYMPIAN a 33,3 kg. Leggere "PLATINUM da 17,9" e poi prendere
   // ORO non si spiega in nessun modo.
   //
-  // E poi le soglie sono in PUNTEGGIO, non in kg. Il punteggio a 8 ripetizioni e'
-  // `kg x meccanica`, e la meccanica cambia da esercizio a esercizio; sui CAVI c'e' di
+  // E poi le soglie sono in PUNTEGGIO, non in kg. Il punteggio a 8 ripetizioni è
+  // `kg x meccanica`, e la meccanica cambia da esercizio a esercizio; sui CAVI c’è di
   // più, perché la soglia è per lato mentre il peso registrato è quello del
   // carrello. Per questo NON si calcola il peso corrispondente: si chiede al motore che
   // punteggio dà ogni peso caricabile e si prende il primo che raggiunge la soglia. Il
-  // numero e' verificato, e quello che leggi e' quello che il motore fa.
+  // numero è verificato, e quello che leggi è quello che il motore fa.
   const soglieDelMotore = Array.isArray(record.soglie) && record.soglie.length === RANK.length
     ? record.soglie
     : profilo.soglie;
@@ -6819,7 +6852,7 @@ async function vistaProfilo(zona) {
     // IL RIQUADRO DELLE QUATTRO SPIEGAZIONI, UNA VOLTA SOLA.
     //
     // Prima stava dentro il ciclo delle parole da chiedere, quindi se ne avevi
-    // tre ti comparivano tre volte di fila, identiche. La spiegazione e' sempre
+    // tre ti comparivano tre volte di fila, identiche. La spiegazione è sempre
     // la stessa: una volta basta e avanza.
     const aiuto = el('div', { class: 'aiuto-livelli' }, [
       el('p', { class: 'aiuto-livelli-titolo', testo: 'Cosa vuol dire ciascuna parola' }),
@@ -6944,7 +6977,7 @@ function finestraCreaEsercizio() {
     el('option', { value: 'corpo_libero', testo: 'corpo libero' }),
     el('option', { value: 'assistenza', testo: 'kg di assistenza (la macchina ti aiuta)' }),
     // Senza questa voce non potevi scegliere i zavorri quando creavi un esercizio
-    // nuovo: il menu offriva solo "kg di assistenza", che e' il contrario esatto.
+    // nuovo: il menu offriva solo "kg di assistenza", che è il contrario esatto.
     el('option', { value: 'zavorri', testo: 'kg di zavorri SOPRA il tuo corpo (trazioni, dips)' }),
   ]);
   // Ste (04/10/2026): "metti che si può decidere quando fai un nuovo esercizio se

@@ -1625,6 +1625,36 @@ body:has(.sfondo-dialogo) .avviso {
 }
 .principale.grande { animation: pulsante-luce 2.8s ease-in-out infinite; }
 
+/* ===================== LA RIGA DELLE PILLOLE (22/10/2026) ===================== */
+.riga-pillole { display: flex; align-items: center; gap: 8px; margin: 8px 0 4px; flex-wrap: wrap; }
+.pallone-classe {
+  width: 38px; height: 38px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, #ff9f1c, #ff6b00);
+  color: #2a1500; font-weight: 900; font-size: .95rem; letter-spacing: .02em;
+  box-shadow: 0 0 14px rgba(255, 138, 0, .45);
+}
+.pillola {
+  display: inline-flex; align-items: center; gap: 5px;
+  border: 1px solid var(--bordo); border-radius: 999px;
+  padding: 6px 12px; font-size: .78rem; font-weight: 800; letter-spacing: .03em;
+  background: rgba(255, 255, 255, .04);
+}
+.pillola-streak { border-color: #4a3a1c; color: var(--arancio); }
+.pillola-aura { border-color: #3a3a5c; color: var(--viola); }
+.pillola-livello { border-color: #2c4a5c; color: var(--blu); }
+
+/* ===================== I QUATTRO PULSANTI IN UNA RIGA (22/10/2026) ============= */
+.riga-bottoni-serie {
+  display: flex; align-items: center; gap: 6px;
+  flex-wrap: nowrap; width: 100%; margin-top: 4px;
+}
+.riga-bottoni-serie .bot {
+  padding: 5px 9px; min-height: 34px; font-size: .66rem; font-weight: 800;
+  white-space: nowrap; flex: 0 0 auto;
+}
+.riga-bottoni-serie .badge-spotter { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
 @media (prefers-reduced-motion: no-preference) {
   .versione-app { transition: opacity .2s; }
   .versione-app:hover { opacity: .8; }

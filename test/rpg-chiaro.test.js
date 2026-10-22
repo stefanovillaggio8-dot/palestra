@@ -124,11 +124,13 @@ test('CARDIO-5. sul cardio spariscono i kg, lo spotter e il dropset', () => {
   // spotter: deve stare DENTRO il blocco "non cardio". Verifico che l'ultima
   // occorrenza di `if (!serieCardio)` prima dello spotter sia l'apertura del blocco,
   // cioè che non ci sia un `if` che lo chiude prima.
-  const iSpotter = riga.indexOf('riga.appendChild(botSpotter)');
+  // I QUATTRO PULSANTI IN UNA RIGA (22/10/2026): lo spotter non e' piu' un
+  // figlio diretto della riga, sta nel contenitore "riga-bottoni-serie".
+  const iSpotter = riga.indexOf('botSpotter,');
   const iBloccoSpotter = riga.lastIndexOf('if (!serieCardio)', iSpotter);
   assert.ok(iSpotter > 0, 'lo spotter viene aggiunto da qualche parte');
   assert.ok(iBloccoSpotter > 0, 'ed è dentro un blocco "non cardio"');
-  const dentroBlocco = riga.slice(iBloccoSpotter, riga.indexOf('}', iBloccoSpotter));
+  const dentroBlocco = riga.slice(iBloccoSpotter, riga.indexOf('riga.appendChild(rigaBottoni)', iBloccoSpotter));
   assert.match(dentroBlocco, /botSpotter/,
     'e quel blocco contiene davvero lo spotter');
   assert.match(riga, /if \(serie\.dropset && !serieCardio\)/,
