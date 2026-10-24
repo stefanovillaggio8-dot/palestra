@@ -19,18 +19,26 @@ import { RANK, divisioneDaLp, divisioneSuccessiva, pesoPiuVicino, pesiCaricabili
 import { moltiplicatoreSerie, ripetizioniPiene } from './curve.js';
 
 /**
- * Le 7 posizioni sulla scala, da ingresso a vertice.
+ * I primi cinque gradini mantengono la curva approvata per non riscrivere i Rank
+ * bassi e intermedi. TITAN e OLYMPIAN sono invece calibrati sulla coda alta:
+ * Strength Level definisce Elite come >95° percentile, quindi quel vertice non
+ * puo' essere anche il tetto OLYMPIAN.
  *
- * 0 = BRONZE (ingresso), 6 = OLYMPIAN (vertice).
- *
- * LA CURVA E' SEVERA SULLA PARTE ALTA (Ste, 08/10/2026 e 22/10/2026).
- * Dopo il PLATINUM (0.42) i gradini costano il 18% del restante ognuno, mentre
- * fra bronzo e platino bastavano il 10-18%: e' qui che i Rank alti diventano
- * difficili. Provato a "distenderla" sui percentili (TITAN al 72%): il risultato
- * era PEGGIORE (9 TITAN invece di 7), perche' abbassare la soglia TITAN la rende
- * piu' facile. Quindi la parte alta resta com'e'.
+ * Per gli standard con riferimento Elite p95, la coda si estrapola dalla pendenza
+ * p80->p95: TITAN ~= p98 e OLYMPIAN ~= p99,5. Se un esercizio ha una curva
+ * specifica, viene passata dal suo standard. Per i movimenti senza distribuzione
+ * completa pubblica questa e' una stima modellata, non un percentile misurato.
+ * I primi cinque gradini restano invariati; solo TITAN e OLYMPIAN si spostano.
  */
-export const CURVA_SOGLIE = [0, 0.10, 0.24, 0.42, 0.60, 0.78, 1];
+export const CURVA_SOGLIE = [0, 0.10, 0.24, 0.42, 0.60, 1.05, 1.075];
+
+// Strength Level, rapporto maschile: squat p5=.75x, p80=2.25x, p95=2.75x.
+// La coda p80->p95 dà p98=2.85x e p99,5=2.90x.
+export const CURVA_PERCENTILI_SQUAT = [0, 0.10, 0.24, 0.42, 0.60, 1.05, 1.075];
+
+// Strength Level, rapporto maschile: deadlift p5=1x, p80=2.5x, p95=3.25x.
+// La coda p80->p95 dà p98=3.40x e p99,5=3.475x.
+export const CURVA_PERCENTILI_STACCO = [0, 0.10, 0.24, 0.42, 0.60, 1 + (0.2 * (0.75 / 2.25)), 1 + (0.3 * (0.75 / 2.25))];
 
 /**
  * Le 7 soglie dai tre valori dell'esercizio.
@@ -38,7 +46,7 @@ export const CURVA_SOGLIE = [0, 0.10, 0.24, 0.42, 0.60, 0.78, 1];
  * @param ingresso il carico da cui l'esercizio e' "affrontato"
  * @param vertice  il carico oltre il quale, per quell'esercizio, sei al massimo
  */
-export function soglieDaValori({ ingresso, vertice }) {
+export function soglieDaValori({ ingresso, vertice, curva = CURVA_SOGLIE }) {
   const ing = Number(ingresso);
   const ver = Number(vertice);
   if (!Number.isFinite(ing) || !Number.isFinite(ver) || ing <= 0 || ver <= ing) return null;
@@ -62,7 +70,8 @@ export function soglieDaValori({ ingresso, vertice }) {
   //
   // QUINDI: il motore tiene i suoi numeri esatti, e la lista dei pesi serve SOLO per
   // quello che si legge. Vedi `kgPerLaLettura`.
-  return CURVA_SOGLIE.map((f) => Math.round((ing + (ver - ing) * f) * 100) / 100);
+  const punti = Array.isArray(curva) && curva.length === CURVA_SOGLIE.length ? curva : CURVA_SOGLIE;
+  return punti.map((f) => Math.round((ing + (ver - ing) * f) * 100) / 100);
 }
 
 /**
