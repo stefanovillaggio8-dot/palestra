@@ -576,7 +576,7 @@ export function classificaEsercizio({
   nome = '', descrizione = '', convenzione = null, attrezzatura = null,
   bracciaIndipendenti = false, carrucola = null,
 } = {}) {
-  const chiave = [nome, descrizione, convenzione, attrezzatura, bracciaIndipendenti ? 'si' : 'no'].join('|');
+  const chiave = [nome, descrizione, convenzione, attrezzatura, carrucola, bracciaIndipendenti ? 'si' : 'no'].join('|');
     + (attrezzatura || '') + (bracciaIndipendenti ? '|bi' : '');
   const gia = CACHE.get(chiave);
   if (gia !== undefined) return gia;
