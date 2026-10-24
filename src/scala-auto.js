@@ -129,6 +129,7 @@ export const SCALA_MOVIMENTO = {
   gambe_squat_macchina: { lato: 34, totale: 140 },
   gambe_squat_front: { lato: 34, totale: 135 },
   gambe_squat: { lato: 34, totale: 135 },
+  gambe_stacco_manubri: { lato: 34, totale: 100 },
   gambe_stacco_rumeno: { lato: 34, totale: 140 },
   gambe_stacco: { lato: 34, totale: 140 },
   gambe_pesanti: {
