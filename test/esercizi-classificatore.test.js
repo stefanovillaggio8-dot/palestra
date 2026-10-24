@@ -558,3 +558,22 @@ test('C18. il motore usa anche la descrizione per riconoscere il movimento', () 
   const r = movimentoDi({ nome: 'Esercizio personalizzato', descrizione: 'Leg press a 45 gradi' });
   assert.equal(r.movimento, 'gambe_pressa');
 });
+
+
+test('C19. hack squat, front squat e RDL non ereditano lo standard del back squat/stacco', () => {
+  const casi = [
+    ['Hack Squat', 'gambe_squat_macchina', 3.10],
+    ['Power Squat Machine', 'gambe_squat_macchina', 3.10],
+    ['Front Squat', 'gambe_squat_front', 3.60],
+    ['Back Squat', 'gambe_squat', 4.20],
+    ['Romanian Deadlift', 'gambe_stacco_rumeno', 3.80],
+    ['Stacco rumeno', 'gambe_stacco_rumeno', 3.80],
+    ['Conventional Deadlift', 'gambe_stacco', 4.60],
+  ];
+  for (const [nome, movimento, vertice] of casi) {
+    const classificazione = classificaEsercizio({ nome });
+    assert.equal(classificazione.movimento, movimento, nome + ' classificazione');
+    assert.equal(standardPerMovimento(movimento, { nome }).vertice, vertice, nome + ' standard v3');
+    assert.equal(valoriPerEsercizio(movimento).multiplo, vertice, nome + ' standard v2');
+  }
+});
