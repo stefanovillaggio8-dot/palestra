@@ -185,9 +185,9 @@ test('C16. squat, stacco e leg press hanno classificazione e standard indipenden
   const legPress = classificaEsercizio({ nome: '45 Degree Leg Press' });
 
   assert.equal(squat.movimento, 'gambe_squat');
-  assert.equal(hackSquat.movimento, 'gambe_squat');
+  assert.equal(hackSquat.movimento, 'gambe_squat_macchina');
   assert.equal(deadlift.movimento, 'gambe_stacco');
-  assert.equal(romanianDeadlift.movimento, 'gambe_stacco');
+  assert.equal(romanianDeadlift.movimento, 'gambe_stacco_rumeno');
   assert.equal(legPress.movimento, 'gambe_pressa');
 
   const standardSquat = standardPerMovimento(squat.movimento, { nome: 'Back Squat' });
