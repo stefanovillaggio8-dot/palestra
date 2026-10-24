@@ -401,11 +401,11 @@ const SIGLE = [
   { nome: 'lat machine', movimento: 'tirata_verticale' },
   { nome: 'leg press', movimento: 'gambe_pesanti' },
   { nome: 'leg extension', movimento: 'gambe_isolamento' },
-  { nome: 'leg curl', movimento: 'gambe_isolamento' },
+  { nome: 'leg curl', movimento: 'gambe_curl' },
   { nome: 'calf raise', movimento: 'gambe_isolamento' },
   { nome: 'triceps pushdown', movimento: 'tricipiti' },
   { nome: 'lateral raise', movimento: 'spalle_isolamento' },
-  { nome: 'rear delt', movimento: 'spalle_isolamento' },
+  { nome: 'rear delt', movimento: 'spalle_posteriori' },
   { nome: 'chest press', movimento: 'spinta_orizzontale' },
   { nome: 'chest fly', movimento: 'petto_isolamento' },
   { nome: 'shoulder press', movimento: 'spinta_verticale' },
@@ -427,7 +427,7 @@ const SIGLE = [
   // 'trazioni ASSISTITE', che invece sono assistenza vera. La parola da sola
   // la riconosce già la lista dei movimenti qui sopra.
   { nome: 'push up', movimento: 'spinta_corpo_libero' },
-  { nome: 'hip thrust', movimento: 'gambe_pesanti' },
+  { nome: 'hip thrust', movimento: 'gambe_stabilizzatore' },
   { nome: 'bench press', movimento: 'spinta_orizzontale' },
   { nome: 'back extension', movimento: 'tirata_orizzontale' },
   { nome: 'biceps curl', movimento: 'bicipiti' },
