@@ -343,6 +343,11 @@ export const LEVE = {
     dMuscolo: 4.5, dCarico: 50, unita: 'sul bilanciere',
     nota: 'Back squat con bilanciere: estensione coordinata di ginocchio e anca, con carico assiale e stabilizzazione del tronco; leva provvisoria.',
   },
+  gambe_stacco_manubri: {
+    muscoli: { quadricipiti: 0.2, glutei: 0.4, femorali: 0.4 },
+    dMuscolo: 5.0, dCarico: 55, unita: 'per manubrio',
+    nota: 'Deadlift con manubri: catena posteriore, carico registrato per singolo manubrio; leva e tetto provvisori.',
+  },
   gambe_stacco_rumeno: {
     muscoli: { quadricipiti: 0.05, glutei: 0.45, femorali: 0.5 },
     dMuscolo: 5.0, dCarico: 55, unita: 'sul bilanciere',
