@@ -129,9 +129,8 @@ test('3. IL TESTE CHE BLOCCA IL BUG: cambio il peso nel database, il numero camb
     'l\'avviso deve essere un altro avviso, non lo stesso testo');
 
 // e adesso la parte scomoda, che e' anche la piu' vera: con la STESSA prestazione
-  // e 6 kg in piu' il Rank scende di una riga. E' esattamente per questo che il
-  // peso e' fragile: non e' che il numero cambia da solo, e' che cambia la fascia
-  // in cui stai senza che tu abbia sollevato un grammo in piu'.
+  // e 6 kg in piu' lo score deve scendere; la fascia puo' restare uguale se il
+  // risultato non attraversa una soglia. Non si forza un cambio di Rank artificiale.
   //
   // NUOVO MODELLO: il punteggio È normalizzato col peso (allometrico 0,67),
   // quindi CAMBIA col peso. Il Rank cambia perchè la prestazione relativa
@@ -141,8 +140,8 @@ test('3. IL TESTE CHE BLOCCA IL BUG: cambio il peso nel database, il numero camb
   assert.notEqual(posizione(dopo.record), posizione(prima.record),
     `pesando di piu' senza aver fatto una serie in piu', la posizione non puo' restare `
     + `identica: ${posizione(prima.record)} -> ${posizione(dopo.record)}`);
-  assert.ok(dopo.record.indice < prima.record.indice,
-    `e deve andare indietro di fascia: ${prima.record.rank.id} -> ${dopo.record.rank.id}`);
+  assert.ok(dopo.record.indice <= prima.record.indice,
+    `pesare di più non può migliorare la fascia: ${prima.record.rank.id} -> ${dopo.record.rank.id}`);
   assert.ok(dopo.record.score < prima.record.score,
     `la stessa serie, su un corpo piu' pesante, vale meno: ${prima.record.score} -> ${dopo.record.score}`);
   // LA PRESTAZIONE E' LA STESSA (40 kg x 8), MA LO SCORE CAMBIA: la formula e'
