@@ -195,7 +195,7 @@ test('V5. le soglie mantengono i Rank bassi e portano TITAN/OLYMPIAN oltre Elite
   }
 });
 
-test('V5b. TITAN e OLYMPIAN sono estrapolati dai percentili pubblicati per squat e stacco', () => {
+test('V5b. TITAN e OLYMPIAN sono estrapolati dai percentili pubblicati per squat e stacco', async () => {
   const squat = scalata.soglieDaValori({
     ingresso: 0.75, vertice: 2.75, curva: scalata.CURVA_PERCENTILI_SQUAT,
   });
