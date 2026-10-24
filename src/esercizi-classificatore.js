@@ -178,8 +178,7 @@ const MOVIMENTI = [
     id: 'polpacci', livello: 'isolamento', gruppo: 'polpacci',
     parole: ['calf raise', 'calf', 'panturrino', 'soleo', 'gemelli', 'heel raise'],
   },
-  {
-    // L'hip thrust è un'estensione d'anca composta, non un isolamento del quadricipite.
+  // L'hip thrust è un'estensione d'anca composta, non un isolamento del quadricipite.
   {
     id: 'gambe_stabilizzatore', livello: 'composto', gruppo: 'gambe',
     parole: ['hip thrust', 'glute bridge'],
