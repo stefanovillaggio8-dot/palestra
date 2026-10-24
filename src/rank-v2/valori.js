@@ -183,29 +183,31 @@ export const VALORI_MOVIMENTO = {
     nota: 'Leg press: 2,2x su due gambe oppure 1,1x per gamba. Scala legacy mantenuta; il motore rank-v3 usa lo standard 1RM dedicato.',
   },
   // Scale legacy indipendenti: vertici volutamente severi in linea con rank-v3.
+  // Riferimenti Elite maschili Strength Level; il carico macchina resta dipendente
+  // dal modello e non va confrontato direttamente con bilanciere o altre macchine.
   gambe_squat: {
-    multiplo: 4.2, ingressoMultiplo: 0.8, fonte: 'stima',
-    nota: 'Back squat con bilanciere: vertice provvisorio 4,2x il peso corporeo. Standard severo, non percentile certificato.',
+    multiplo: 2.75, ingressoMultiplo: 0.75, fonte: 'strengthlevel',
+    nota: 'Back squat: Elite 2,75x e Beginner 0,75x, standard Strength Level.',
   },
   gambe_squat_macchina: {
-    multiplo: 3.1, ingressoMultiplo: 0.8, fonte: 'stima',
-    nota: 'Hack/power/pendulum squat: vertice provvisorio 3,1x; il carico macchina non è confrontabile col bilanciere.',
+    multiplo: 3.75, ingressoMultiplo: 0.75, fonte: 'strengthlevel',
+    nota: 'Hack squat: Elite 3,75x e Beginner 0,75x, Strength Level; non estendere automaticamente ad altre macchine.',
   },
   gambe_squat_front: {
-    multiplo: 3.6, ingressoMultiplo: 0.8, fonte: 'stima',
-    nota: 'Front squat: vertice provvisorio 3,6x; da calibrare su distribuzione specifica.',
+    multiplo: 2.25, ingressoMultiplo: 0.75, fonte: 'strengthlevel',
+    nota: 'Front squat: Elite 2,25x e Beginner 0,75x, standard Strength Level.',
   },
   gambe_stacco_manubri: {
-    multiplo: 1.2, ingressoMultiplo: 0.25, fonte: 'stima',
-    nota: 'Deadlift con manubri, peso per manubrio: vertice provvisorio 1,2x; non usare la scala del bilanciere.',
+    multiplo: 1.15, ingressoMultiplo: 0.15, fonte: 'strengthlevel',
+    nota: 'Dumbbell deadlift, carico per singolo manubrio: Elite 1,15x e Beginner 0,15x, Strength Level.',
   },
   gambe_stacco_rumeno: {
-    multiplo: 3.8, ingressoMultiplo: 0.8, fonte: 'stima',
-    nota: 'Stacco rumeno/RDL: vertice provvisorio 3,8x; da calibrare separatamente dallo stacco da terra.',
+    multiplo: 2.75, ingressoMultiplo: 0.75, fonte: 'strengthlevel',
+    nota: 'Romanian deadlift: Elite 2,75x e Beginner 0,75x, standard Strength Level.',
   },
   gambe_stacco: {
-    multiplo: 4.6, ingressoMultiplo: 0.8, fonte: 'stima',
-    nota: 'Stacco da terra: vertice provvisorio 4,6x il peso corporeo. Standard severo, non percentile certificato.',
+    multiplo: 3.25, ingressoMultiplo: 1.00, fonte: 'strengthlevel',
+    nota: 'Deadlift: Elite 3,25x e Beginner 1,00x, standard Strength Level.',
   },
   gambe_pesanti: {
     multiplo: 2.2, ingressoMultiplo: 0.85, fonte: 'tuo',
@@ -607,8 +609,8 @@ bicipiti_panca: {
     nota: 'Leg curl seduto: tetto 1,2x il corpo, ingresso 0,45x. Vale anche per gamba come l\'estensione, ma il femorale regge un po\' meno del quadricipite: un gradino sotto.',
   },
   gambe_stabilizzatore: {
-    multiplo: 3.0, ingressoMultiplo: 1.0, fonte: 'stima',
-    nota: 'Hip thrust e glute bridge: estensione d\'anca, non leg press. Vertice legacy provvisorio 3,0x e ingresso 1,0x; non e\' calibrato con una distribuzione agonistica specifica.',
+    multiplo: 3.75, ingressoMultiplo: 0.50, fonte: 'strengthlevel',
+    nota: 'Hip thrust/glute bridge: Elite 3,75x e Beginner 0,50x secondo Strength Level.',
   },
   polso: {
     // IL TETTO ERA SBAGLIATO DI UN TERZO (15/10/2026). Qui c'era 0,4x e la nota
