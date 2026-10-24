@@ -29,7 +29,7 @@
 // valere per quello che coprono.
 
 import { classificaEsercizio } from '../esercizi-classificatore.js';
-import { pesiCaricabili, pesoPiuVicino } from '../rank-config.js';
+import { pesiCaricabili, pesoPiuVicino, PESI_GOLERIA } from '../rank-config.js';
 import { soglieDaValori, rankDaScore, CURVA_SOGLIE } from '../rank-v2/scalata.js';
 import { valoriPerEsercizio } from '../rank-v2/valori.js';
 import {
@@ -179,15 +179,22 @@ export function valutaPrestazione({ esercizio, serie = [], pesoCorporeo = null, 
   if (!standard) {
     return { valido: false, motivo: 'standard di forza mancante per questo movimento', movimento, livello, cfg, allarmi };
   }
-  const soglie = soglieNormalizzate({
+  const soglieTeoriche = soglieNormalizzate({
     standard,
     difficoltaScala: cfg.difficoltaScala,
     curva: CURVA_SOGLIE,
     meccanica: migliore.meccanica,
   });
-  if (!soglie || soglie.length < 2) {
+  if (!soglieTeoriche || soglieTeoriche.length < 2) {
     return { valido: false, motivo: 'soglie incoerenti', movimento, livello, cfg, allarmi };
   }
+  // I due Rank d'élite devono restare raggiungibili separatamente con i carichi
+  // realmente disponibili: se TITAN e OLYMPIAN cadono sullo stesso manubrio,
+  // spostiamo solo la soglia superiore al successivo carico disponibile.
+  // È una correzione di granularità dell'attrezzatura, non un nuovo percentile.
+  const soglie = separaRankAltiPerCarichi(soglieTeoriche, {
+    esercizio: esercizio || {}, cfg, pesoCorporeo, meccanica: migliore.meccanica,
+  });
 
   // I NUMERI IN KG PER LA SCHERMATA: la soglia normalizzata riportata a 8
   // ripetizioni sul corpo di oggi. Le soglie del calcolo restano costanti; qui
@@ -272,6 +279,49 @@ export function valutaPrestazione({ esercizio, serie = [], pesoCorporeo = null, 
     limiteRipetizioni: null,
     distanza,
   };
+}
+
+/**
+ * Evita che due Rank alti collassino sullo stesso peso caricabile.
+ * La soglia di percentile rimane la base; se la granularità dei pesi la rende
+ * indistinguibile da quella precedente, il Rank superiore richiede il prossimo
+ * carico realmente disponibile. Le soglie di Bronze-Diamond non vengono toccate.
+ */
+function separaRankAltiPerCarichi(soglie, { esercizio = {}, cfg = {}, pesoCorporeo, meccanica = 1 } = {}) {
+  if (!Array.isArray(soglie) || soglie.length < 7) return soglie;
+  const corpo = fattoreCorpo(pesoCorporeo);
+  if (corpo === null) return soglie;
+  const disponibili = cfg.caricamento === 'manubri'
+    ? PESI_GOLERIA
+    : pesiCaricabili(1);
+  const scoreDi = (kg) => {
+    const carico = caricoReale(kg, esercizio);
+    if (!Number.isFinite(carico) || carico <= 0) return null;
+    return (carico / corpo) * (Number(meccanica) > 0 ? Number(meccanica) : 1);
+  };
+  const risultato = [...soglie];
+  let caricoPrecedente = disponibili.find((kg) => {
+    const score = scoreDi(kg);
+    return score !== null && score >= risultato[4];
+  });
+  for (let i = 5; i <= 6; i += 1) {
+    let caricoRank = disponibili.find((kg) => {
+      const score = scoreDi(kg);
+      return score !== null && score >= risultato[i];
+    });
+    if (caricoRank !== undefined && caricoPrecedente !== undefined && caricoRank <= caricoPrecedente) {
+      const successivo = disponibili.find((kg) => {
+        const score = scoreDi(kg);
+        return kg > caricoPrecedente && score !== null && score > risultato[i - 1];
+      });
+      if (successivo !== undefined) {
+        risultato[i] = scoreDi(successivo);
+        caricoRank = successivo;
+      }
+    }
+    if (caricoRank !== undefined) caricoPrecedente = caricoRank;
+  }
+  return risultato;
 }
 
 /**
@@ -391,7 +441,7 @@ function kgRealizzabile(g, caricoAttuale) {
 export function soglieLegibiliNuove(soglie, { esercizio = {}, pesoCorporeo = null, cfg = null, passo = 1 } = {}) {
   if (!Array.isArray(soglie)) return soglie;
   const config = cfg || configEsercizio({ esercizio });
-  const pesi = pesiCaricabili(passo);
+  const pesi = config.caricamento === 'manubri' ? PESI_GOLERIA : pesiCaricabili(passo);
   const corpo = numero(pesoCorporeo);
   const punteggioDi = (kg) => {
     const carico = config.modello === 'corpo_libero'
