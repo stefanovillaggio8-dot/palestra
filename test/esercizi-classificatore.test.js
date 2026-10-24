@@ -7,6 +7,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
 import { classificaEsercizio } from '../src/esercizi-classificatore.js';
+import { standardPerMovimento } from '../src/rank-v3/modello.js';
 import { livelloEsercizio } from '../src/rank-config.js';
 
 const liv = (nome, extra = {}) => classificaEsercizio({ nome, ...extra }).livello;
@@ -172,6 +173,29 @@ test('C15. leg curl, hip thrust e pec deck usano il movimento corretto', () => {
 
   const reversePecDeck = classificaEsercizio({ nome: 'Reverse Pec Deck Rear Delt' });
   assert.equal(reversePecDeck.movimento, 'spalle_posteriori');
+});
+
+test('C16. squat, stacco e leg press hanno classificazione e standard indipendenti', () => {
+  const squat = classificaEsercizio({ nome: 'Back Squat' });
+  const hackSquat = classificaEsercizio({ nome: 'Hack Squat Machine' });
+  const deadlift = classificaEsercizio({ nome: 'Conventional Deadlift' });
+  const romanianDeadlift = classificaEsercizio({ nome: 'Romanian Deadlift' });
+  const legPress = classificaEsercizio({ nome: '45 Degree Leg Press' });
+
+  assert.equal(squat.movimento, 'gambe_squat');
+  assert.equal(hackSquat.movimento, 'gambe_squat');
+  assert.equal(deadlift.movimento, 'gambe_stacco');
+  assert.equal(romanianDeadlift.movimento, 'gambe_stacco');
+  assert.equal(legPress.movimento, 'gambe_pressa');
+
+  const standardSquat = standardPerMovimento(squat.movimento, { nome: 'Back Squat' });
+  const standardDeadlift = standardPerMovimento(deadlift.movimento, { nome: 'Conventional Deadlift' });
+  const standardPressa = standardPerMovimento(legPress.movimento, { nome: '45 Degree Leg Press' });
+  assert.equal(standardSquat.vertice, 4.20);
+  assert.equal(standardDeadlift.vertice, 4.60);
+  assert.equal(standardPressa.vertice, 3.10);
+  assert.ok(standardDeadlift.vertice > standardSquat.vertice);
+  assert.ok(standardSquat.vertice > standardPressa.vertice);
 });
 
 test('C12. accenti e maiuscole non contano', () => {
