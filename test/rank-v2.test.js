@@ -180,12 +180,12 @@ test('V4. lo score NON e\' il massimale stimato', () => {
 // 2. Le soglie
 // ---------------------------------------------------------------------------
 
-test('V5. le soglie vanno dall\'ingresso al vertice, e sono SEVERE', () => {
+test('V5. le soglie mantengono i Rank bassi e portano TITAN/OLYMPIAN oltre Elite', () => {
   const soglie = scalata.soglieDaValori({ ingresso: 40, vertice: 100 });
   assert.equal(soglie[0], 40, 'BRONZE = ingresso');
-  assert.equal(soglie[6], 100, 'OLYMPIAN = vertice');
-  // severita': i gradini alti devono essere piu' larghi di quelli bassi, altrimenti
-  // i Rank alti si prendono con niente
+  assert.equal(soglie[4], 76, 'DIAMOND conserva la posizione approvata');
+  assert.equal(soglie[5], 103, 'TITAN richiede il 5% oltre il vertice Elite');
+  assert.equal(soglie[6], 104.5, 'OLYMPIAN richiede il 7,5% oltre il vertice Elite');
   const bassi = soglie[3] - soglie[0];
   const alti = soglie[6] - soglie[3];
   assert.ok(alti > bassi,
@@ -193,6 +193,26 @@ test('V5. le soglie vanno dall\'ingresso al vertice, e sono SEVERE', () => {
   for (let i = 1; i < soglie.length; i++) {
     assert.ok(soglie[i] > soglie[i - 1], 'le soglie crescono sempre');
   }
+});
+
+test('V5b. TITAN e OLYMPIAN sono estrapolati dai percentili pubblicati per squat e stacco', () => {
+  const squat = scalata.soglieDaValori({
+    ingresso: 0.75, vertice: 2.75, curva: scalata.CURVA_PERCENTILI_SQUAT,
+  });
+  assert.equal(squat[5], 2.85, 'squat p98');
+  assert.equal(squat[6], 2.9, 'squat p99,5');
+
+  const deadlift = scalata.soglieDaValori({
+    ingresso: 1.0, vertice: 3.25, curva: scalata.CURVA_PERCENTILI_STACCO,
+  });
+  assert.equal(deadlift[5], 3.4, 'stacco p98');
+  assert.equal(deadlift[6], 3.48, 'stacco p99,5 arrotondato alla precisione del motore');
+
+  const { standardPerMovimento, soglieNormalizzate } = await import('../src/rank-v3/modello.js');
+  const standard = standardPerMovimento('gambe_stacco', { nome: 'Deadlift' });
+  const soglieV3 = soglieNormalizzate({ standard });
+  assert.ok(soglieV3[5] > soglieV3[4], 'TITAN sopra Elite');
+  assert.ok(soglieV3[6] > soglieV3[5], 'OLYMPIAN sopra TITAN');
 });
 
 test('V6. il volume fa salire gli LP dentro il Rank, ma non compra MAI il Rank', () => {
