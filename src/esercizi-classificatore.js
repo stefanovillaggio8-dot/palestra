@@ -42,13 +42,28 @@ const MOVIMENTI = [
     id: 'gambe_pressa', livello: 'grande', gruppo: 'gambe',
     parole: ['leg press', 'pressa gambe', 'sled press', 'pressa polipette', 'pressa orizzontale'],
   },
+  // Le macchine per squat non condividono il carico esterno con il bilanciere:
+  // il peso indicato dipende dalla geometria e dal contrappeso della macchina.
+  {
+    id: 'gambe_squat_macchina', livello: 'grande', gruppo: 'gambe',
+    parole: ['hack squat', 'power squat', 'pendulum squat', 'v-squat', 'machine squat'],
+  },
+  {
+    id: 'gambe_squat_front', livello: 'grande', gruppo: 'gambe',
+    parole: ['front squat', 'squat frontale'],
+  },
   {
     id: 'gambe_squat', livello: 'grande', gruppo: 'gambe',
-    parole: ['hack squat', 'front squat', 'power squat', 'squat', 'accosciata'],
+    parole: ['back squat', 'squat', 'accosciata'],
+  },
+  // RDL: il range e la posizione del carico differiscono dallo stacco da terra.
+  {
+    id: 'gambe_stacco_rumeno', livello: 'grande', gruppo: 'gambe',
+    parole: ['romanian deadlift', 'romanian dead lift', 'stacco rumeno', 'rdl'],
   },
   {
     id: 'gambe_stacco', livello: 'grande', gruppo: 'gambe',
-    parole: ['deadlift', 'stacco sumo', 'sumo deadlift', 'stacco', 'romanian deadlift', 'rdl'],
+    parole: ['deadlift', 'stacco sumo', 'sumo deadlift', 'stacco'],
   },
   // Fallback legacy per altri esercizi pesanti non ancora calibrati
   // individualmente (affondi/lunge ecc.); non usato dai tre movimenti sopra.
