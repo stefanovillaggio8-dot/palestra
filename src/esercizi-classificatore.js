@@ -35,14 +35,26 @@
 //    "isolamento" = un muscolo solo, carico basso
 // ---------------------------------------------------------------------------
 const MOVIMENTI = [
-  // --- gambe pesanti: il livello più alto ---
+  // --- gambe pesanti: scale separate, non un unico tetto ---
+  // Leg press, squat e stacco hanno meccaniche e distribuzioni diverse: non
+  // possono condividere lo stesso vertice. I riferimenti sono in modello.js.
+  {
+    id: 'gambe_pressa', livello: 'grande', gruppo: 'gambe',
+    parole: ['leg press', 'pressa gambe', 'sled press', 'pressa polipette', 'pressa orizzontale'],
+  },
+  {
+    id: 'gambe_squat', livello: 'grande', gruppo: 'gambe',
+    parole: ['hack squat', 'front squat', 'power squat', 'squat', 'accosciata'],
+  },
+  {
+    id: 'gambe_stacco', livello: 'grande', gruppo: 'gambe',
+    parole: ['deadlift', 'stacco sumo', 'sumo deadlift', 'stacco', 'romanian deadlift', 'rdl'],
+  },
+  // Fallback legacy per altri esercizi pesanti non ancora calibrati
+  // individualmente (affondi/lunge ecc.); non usato dai tre movimenti sopra.
   {
     id: 'gambe_pesanti', livello: 'grande', gruppo: 'gambe',
-    // Questa famiglia resta per gli esercizi pesanti non ancora dotati di uno
-    // standard distinto. Hip thrust/glute bridge hanno una famiglia dedicata
-    // sotto; non devono ereditare automaticamente il riferimento della leg press.
-    parole: ['leg press', 'pressa gambe', 'squat', 'stacco', 'deadlift', 'sled press', 'pressa polipette',
-      'sled', 'hack squat', 'front squat', 'sumo', 'power squat', 'affondi', 'lunge'],
+    parole: ['affondi', 'lunge', 'bulgarian split squat', 'split squat'],
   },
   // --- spinte ---
   {
@@ -399,7 +411,9 @@ const SIGLE = [
   { nome: 'tirate pendenti', movimento: 'tirata_verticale' },
   { nome: 'spin to cross', movimento: 'tirata_orizzontale' },
   { nome: 'lat machine', movimento: 'tirata_verticale' },
-  { nome: 'leg press', movimento: 'gambe_pesanti' },
+  { nome: 'leg press', movimento: 'gambe_pressa' },
+  { nome: 'squat', movimento: 'gambe_squat' },
+  { nome: 'deadlift', movimento: 'gambe_stacco' },
   { nome: 'leg extension', movimento: 'gambe_isolamento' },
   { nome: 'leg curl', movimento: 'gambe_curl' },
   { nome: 'calf raise', movimento: 'gambe_isolamento' },
