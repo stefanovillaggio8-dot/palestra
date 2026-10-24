@@ -93,6 +93,7 @@
 // prestazione in se'", ma "quanto ci vuole su QUEL corpo".
 
 import { ripetizioniPiene, fattoreMeccanica, caricoReale, RIPETIZIONI_RIFERIMENTO } from './curve.js';
+import { CURVA_PERCENTILI_SQUAT, CURVA_PERCENTILI_STACCO } from './scalata.js';
 
 /**
  * I tetti per movimento, come multipli del peso corporeo.
@@ -186,8 +187,8 @@ export const VALORI_MOVIMENTO = {
   // Riferimenti Elite maschili Strength Level; il carico macchina resta dipendente
   // dal modello e non va confrontato direttamente con bilanciere o altre macchine.
   gambe_squat: {
-    multiplo: 2.75, ingressoMultiplo: 0.75, fonte: 'strengthlevel',
-    nota: 'Back squat: Elite 2,75x e Beginner 0,75x, standard Strength Level.',
+    multiplo: 2.75, ingressoMultiplo: 0.75, fonte: 'strengthlevel', curvaRank: CURVA_PERCENTILI_SQUAT,
+    nota: 'Back squat Strength Level: p5 0,75x; p20 1,25x; p50 1,75x; p80 2,25x; p95 2,75x. Titan/Olympian estrapolati a p98/p99,5.',
   },
   gambe_squat_macchina: {
     multiplo: 3.75, ingressoMultiplo: 0.75, fonte: 'strengthlevel',
@@ -206,8 +207,8 @@ export const VALORI_MOVIMENTO = {
     nota: 'Romanian deadlift: Elite 2,75x e Beginner 0,75x, standard Strength Level.',
   },
   gambe_stacco: {
-    multiplo: 3.25, ingressoMultiplo: 1.00, fonte: 'strengthlevel',
-    nota: 'Deadlift: Elite 3,25x e Beginner 1,00x, standard Strength Level.',
+    multiplo: 3.25, ingressoMultiplo: 1.00, fonte: 'strengthlevel', curvaRank: CURVA_PERCENTILI_STACCO,
+    nota: 'Deadlift Strength Level: p5 1,00x; p20 1,50x; p50 2,00x; p80 2,50x; p95 3,25x. Titan/Olympian estrapolati a p98/p99,5.',
   },
   gambe_pesanti: {
     multiplo: 2.2, ingressoMultiplo: 0.85, fonte: 'tuo',
@@ -1047,10 +1048,12 @@ export function sogliePerEsercizio(valori, livello, pesoCorporeo, movimento = nu
     ingresso,
     vertice: v.vertice,
     multiplo: v.multiplo,
+    curvaRank: valori.curvaRank || null,
     ingressoMultiplo: valori.ingressoMultiplo,
     tetto: v.tetto,
     tettoRaggiunto: v.tettoRaggiunto,
     fonte: valori.fonte,
+    curvaRank: valori.curvaRank || null,
     nota: valori.nota,
   };
 }
