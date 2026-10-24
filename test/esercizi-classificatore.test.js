@@ -8,6 +8,7 @@ import assert from 'node:assert/strict';
 
 import { classificaEsercizio } from '../src/esercizi-classificatore.js';
 import { standardPerMovimento } from '../src/rank-v3/modello.js';
+import { valoriPerEsercizio } from '../src/rank-v2/valori.js';
 import { livelloEsercizio } from '../src/rank-config.js';
 
 const liv = (nome, extra = {}) => classificaEsercizio({ nome, ...extra }).livello;
@@ -196,6 +197,13 @@ test('C16. squat, stacco e leg press hanno classificazione e standard indipenden
   assert.equal(standardPressa.vertice, 3.10);
   assert.ok(standardDeadlift.vertice > standardSquat.vertice);
   assert.ok(standardSquat.vertice > standardPressa.vertice);
+
+  // Anche il motore legacy deve riconoscere le nuove famiglie: altrimenti un
+  // fallback v2 perderebbe il riferimento appena il classificatore cambia ID.
+  assert.equal(valoriPerEsercizio('gambe_squat').multiplo, 4.2);
+  assert.equal(valoriPerEsercizio('gambe_stacco').multiplo, 4.6);
+  assert.equal(valoriPerEsercizio('gambe_pressa', { convenzione: 'per_gamba' }).multiplo, 1.1);
+  assert.equal(valoriPerEsercizio('gambe_stabilizzatore').multiplo, 3.0);
 });
 
 test('C12. accenti e maiuscole non contano', () => {
