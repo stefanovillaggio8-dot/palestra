@@ -372,6 +372,15 @@ export function serieDuplicate(serie) {
  * c'e' nessun numero tarato da spostare.
  */
 export const DIFFICOLTA_MOVIMENTO = {
+  // Standard separati per i tre movimenti principali delle gambe.
+  gambe_pressa: { categoria: 'gambe', caricamento: 'macchina', difficolta: 1, difficoltaScala: 1, quotaCorpo: 0, modello: 'carico_esterno' },
+  gambe_squat_macchina: { categoria: 'gambe', caricamento: 'macchina', difficolta: 1, difficoltaScala: 1, quotaCorpo: 0, modello: 'carico_esterno' },
+  gambe_squat_front: { categoria: 'gambe', caricamento: 'bilanciere', difficolta: 1, difficoltaScala: 1, quotaCorpo: 0, modello: 'carico_esterno' },
+  gambe_squat: { categoria: 'gambe', caricamento: 'bilanciere', difficolta: 1, difficoltaScala: 1, quotaCorpo: 0, modello: 'carico_esterno' },
+  gambe_stacco_manubri: { categoria: 'gambe', caricamento: 'manubri', difficolta: 1, difficoltaScala: 1, quotaCorpo: 0, modello: 'carico_esterno' },
+  gambe_stacco_rumeno: { categoria: 'gambe', caricamento: 'bilanciere', difficolta: 1, difficoltaScala: 1, quotaCorpo: 0, modello: 'carico_esterno' },
+  gambe_stacco: { categoria: 'gambe', caricamento: 'bilanciere', difficolta: 1, difficoltaScala: 1, quotaCorpo: 0, modello: 'carico_esterno' },
+  // Fallback per affondi e altri esercizi pesanti non ancora calibrati singolarmente.
   gambe_pesanti: { categoria: 'gambe', caricamento: 'macchina', difficolta: 1, difficoltaScala: 1, quotaCorpo: 0, modello: 'carico_esterno' },
   gambe_isolamento: { categoria: 'gambe', caricamento: 'macchina', difficolta: 0.9, difficoltaScala: 1, quotaCorpo: 0, modello: 'carico_esterno' },
   gambe_curl: { categoria: 'gambe', caricamento: 'macchina', difficolta: 0.9, difficoltaScala: 1, quotaCorpo: 0, modello: 'carico_esterno' },
@@ -465,11 +474,53 @@ export const CONFIG_ESERCIZI = {};
 export const PESO_RIFERIMENTO_1RM = PESO_ALLOMETRICO_RIFERIMENTO;
 
 export const STANDARD_1RM = {
-  // Gambe: la leg press a due gambe regge molto piu' di tutti gli altri.
+  // LEG PRESS: standard mantenuto, ma ora riservato alla pressa.
+  // I dati OpenPowerlifting non validano la leg press; il valore resta quindi
+  // provvisorio e non viene spacciato per un percentile agonistico.
+  gambe_pressa: {
+    ingresso: 0.80, vertice: 3.10,
+    nota: 'Leg press a due gambe: 0,80x-3,10x. Standard provvisorio, non calibrato con dati agonistici specifici della pressa.',
+    varianti: { per_gamba: { ingresso: 0.40, vertice: 1.55 } },
+  },
+  // Vertici basati sui riferimenti Elite maschili di Strength Level (circa 95°
+  // percentile dei risultati qualificati della community), non su stime a occhio.
+  // Le soglie sono 1RM normalizzati al peso corporeo di riferimento; la curva Rank
+  // resta una scelta di prodotto e non coincide con i percentili intermedi di SL.
+  // Squat: Elite 2,75x; dataset Strength Level aggiornato al 5 marzo 2026.
+  gambe_squat: {
+    ingresso: 0.75, vertice: 2.75,
+    nota: 'Back squat: 0,75x ingresso Beginner e 2,75x vertice Elite maschile Strength Level; community, non popolazione generale.',
+  },
+  // Hack squat: Elite 3,75x. I carichi delle altre macchine non sono confrontabili;
+  // questa famiglia resta da usare solo come riferimento aggregato, con cautela.
+  gambe_squat_macchina: {
+    ingresso: 0.75, vertice: 3.75,
+    nota: 'Hack squat: 0,75x-3,75x secondo Strength Level (Elite maschile). Altri modelli di squat macchina non sono direttamente comparabili.',
+  },
+  // Front squat: Elite 2,25x nella community Strength Level.
+  gambe_squat_front: {
+    ingresso: 0.75, vertice: 2.25,
+    nota: 'Front squat: 0,75x ingresso Beginner e 2,25x vertice Elite maschile Strength Level.',
+  },
+  // Deadlift: Elite 3,25x nella community Strength Level.
+  gambe_stacco: {
+    ingresso: 1.00, vertice: 3.25,
+    nota: 'Stacco da terra: 1,00x ingresso Beginner e 3,25x vertice Elite maschile Strength Level.',
+  },
+  // Dumbbell deadlift: Strength Level esplicita il peso per un singolo manubrio.
+  gambe_stacco_manubri: {
+    ingresso: 0.15, vertice: 1.15,
+    nota: 'Deadlift con manubri, peso per manubrio: 0,15x Beginner e 1,15x Elite maschile Strength Level.',
+  },
+  // Romanian deadlift: Elite 2,75x nella community Strength Level.
+  gambe_stacco_rumeno: {
+    ingresso: 0.75, vertice: 2.75,
+    nota: 'Stacco rumeno/RDL: 0,75x ingresso Beginner e 2,75x vertice Elite maschile Strength Level.',
+  },
+  // Fallback legacy per altri esercizi pesanti non ancora calibrati singolarmente.
   gambe_pesanti: {
     ingresso: 0.80, vertice: 3.10,
-    nota: 'Leg press a due gambe: 0,80x per iniziare, 3,10x per il vertice. A una gamba si dimezza.',
-    varianti: { per_gamba: { ingresso: 0.40, vertice: 1.55 } },
+    nota: 'Standard provvisorio per affondi e altri esercizi pesanti non ancora separati; non usare per squat, stacco o leg press.',
   },
   tirata_verticale_larga: {
     ingresso: 0.55, vertice: 1.75,
@@ -547,8 +598,8 @@ export const STANDARD_1RM = {
     nota: 'Leg curl sullo stack: 0,40x-1,25x.',
   },
   gambe_stabilizzatore: {
-    ingresso: 1.00, vertice: 3.00,
-    nota: 'Hip thrust e glutei: 1,00x-3,00x. E\' un movimento di anca, non un isolamento piccolo.',
+    ingresso: 0.50, vertice: 3.75,
+    nota: 'Hip thrust/glute bridge: 0,50x Beginner e 3,75x Elite maschile Strength Level; standard community, non universale.',
   },
   polso: {
     ingresso: 0.12, vertice: 0.75,
@@ -595,7 +646,7 @@ export function standardPerMovimento(movimento, esercizio = {}) {
   let scelto = base;
 
   if (base.varianti) {
-    if (movimento === 'gambe_pesanti' && e.convenzione === 'per_gamba') {
+    if ((movimento === 'gambe_pesanti' || movimento === 'gambe_pressa') && e.convenzione === 'per_gamba') {
       scelto = base.varianti.per_gamba || base;
     } else if (movimento === 'spinta_orizzontale') {
       const nome = String(e.nome || '').toLowerCase();

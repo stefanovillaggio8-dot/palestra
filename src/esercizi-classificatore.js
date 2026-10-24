@@ -35,11 +35,47 @@
 //    "isolamento" = un muscolo solo, carico basso
 // ---------------------------------------------------------------------------
 const MOVIMENTI = [
-  // --- gambe pesanti: il livello più alto ---
+  // --- gambe pesanti: scale separate, non un unico tetto ---
+  // Leg press, squat e stacco hanno meccaniche e distribuzioni diverse: non
+  // possono condividere lo stesso vertice. I riferimenti sono in modello.js.
+  {
+    id: 'gambe_pressa', livello: 'grande', gruppo: 'gambe',
+    parole: ['leg press', 'pressa gambe', 'sled press', 'pressa polipette', 'pressa orizzontale'],
+  },
+  // Le macchine per squat non condividono il carico esterno con il bilanciere:
+  // il peso indicato dipende dalla geometria e dal contrappeso della macchina.
+  {
+    id: 'gambe_squat_macchina', livello: 'grande', gruppo: 'gambe',
+    parole: ['hack squat', 'power squat', 'pendulum squat', 'v-squat', 'machine squat'],
+  },
+  {
+    id: 'gambe_squat_front', livello: 'grande', gruppo: 'gambe',
+    parole: ['front squat', 'squat frontale'],
+  },
+  {
+    id: 'gambe_squat', livello: 'grande', gruppo: 'gambe',
+    parole: ['back squat', 'squat', 'accosciata'],
+  },
+  // Il deadlift con manubri è registrato per manubrio, non come carico totale
+  // del bilanciere: deve avere una scala distinta e molto più bassa.
+  {
+    id: 'gambe_stacco_manubri', livello: 'grande', gruppo: 'gambe',
+    parole: ['dumbbell deadlift', 'db deadlift', 'stacco con manubri', 'deadlift con manubri'],
+  },
+  // RDL: il range e la posizione del carico differiscono dallo stacco da terra.
+  {
+    id: 'gambe_stacco_rumeno', livello: 'grande', gruppo: 'gambe',
+    parole: ['romanian deadlift', 'romanian dead lift', 'stacco rumeno', 'rdl'],
+  },
+  {
+    id: 'gambe_stacco', livello: 'grande', gruppo: 'gambe',
+    parole: ['deadlift', 'stacco sumo', 'sumo deadlift', 'stacco'],
+  },
+  // Fallback legacy per altri esercizi pesanti non ancora calibrati
+  // individualmente (affondi/lunge ecc.); non usato dai tre movimenti sopra.
   {
     id: 'gambe_pesanti', livello: 'grande', gruppo: 'gambe',
-    parole: ['leg press', 'pressa gambe', 'squat', 'stacco', 'deadlift', 'hip thrust', 'sled press', 'pressa polipette',
-      'sled', 'hack squat', 'front squat', 'sumo', 'power squat', 'glute bridge', 'affondi', 'lunge'],
+    parole: ['affondi', 'lunge', 'bulgarian split squat', 'split squat'],
   },
   // --- spinte ---
   {
@@ -163,9 +199,20 @@ const MOVIMENTI = [
     id: 'polpacci', livello: 'isolamento', gruppo: 'polpacci',
     parole: ['calf raise', 'calf', 'panturrino', 'soleo', 'gemelli', 'heel raise'],
   },
+  // L'hip thrust è un'estensione d'anca composta, non un isolamento del quadricipite.
+  {
+    id: 'gambe_stabilizzatore', livello: 'composto', gruppo: 'gambe',
+    parole: ['hip thrust', 'glute bridge'],
+  },
+  // La leg curl ha una scala dedicata in STANDARD_1RM: deve produrre
+  // gambe_curl, altrimenti quel riferimento resta irraggiungibile.
+  {
+    id: 'gambe_curl', livello: 'isolamento', gruppo: 'gambe',
+    parole: ['leg curl', 'curl gambe', 'seated leg curl', 'prone curl', 'lying leg curl', 'hamstring curl'],
+  },
   {
     id: 'gambe_isolamento', livello: 'isolamento', gruppo: 'gambe',
-    parole: ['hyperextension', 'iperextensione', 'hip extension', 'back extension', 'leg curl', 'leg extension', 'curl gambe', 'estensioni gambe', 'prone curl',
+    parole: ['hyperextension', 'iperextensione', 'hip extension', 'back extension', 'leg extension', 'estensioni gambe',
       'leg raise', 'adduzione', 'abduction', 'glute'],
   },
   {
@@ -195,7 +242,9 @@ const MOVIMENTI = [
     // un muscolo diverso.
     id: 'spalle_posteriori', livello: 'isolamento', gruppo: 'spalle',
     // il face pull e' lo stesso movimento del reverse fly (Ste, 21/10/2026)
-    parole: ['reverse fly', 'rear delt', 'rear deltoid', 'reverse pec', 'pec deck', 'face pull',
+    // "Pec deck" da solo identifica normalmente la macchina per il petto;
+    // il reverse pec deck deve dichiarare il verso/rear delt per usare questa scala.
+    parole: ['reverse fly', 'rear delt', 'rear deltoid', 'reverse pec', 'reverse pec deck', 'face pull',
       'pecorino a', 'delt posteriori', 'tirate a braccia aperte'],
   },
   {
@@ -382,13 +431,15 @@ const SIGLE = [
   { nome: 'tirate pendenti', movimento: 'tirata_verticale' },
   { nome: 'spin to cross', movimento: 'tirata_orizzontale' },
   { nome: 'lat machine', movimento: 'tirata_verticale' },
-  { nome: 'leg press', movimento: 'gambe_pesanti' },
+  { nome: 'leg press', movimento: 'gambe_pressa' },
+  { nome: 'squat', movimento: 'gambe_squat' },
+  { nome: 'deadlift', movimento: 'gambe_stacco' },
   { nome: 'leg extension', movimento: 'gambe_isolamento' },
-  { nome: 'leg curl', movimento: 'gambe_isolamento' },
+  { nome: 'leg curl', movimento: 'gambe_curl' },
   { nome: 'calf raise', movimento: 'gambe_isolamento' },
   { nome: 'triceps pushdown', movimento: 'tricipiti' },
   { nome: 'lateral raise', movimento: 'spalle_isolamento' },
-  { nome: 'rear delt', movimento: 'spalle_isolamento' },
+  { nome: 'rear delt', movimento: 'spalle_posteriori' },
   { nome: 'chest press', movimento: 'spinta_orizzontale' },
   { nome: 'chest fly', movimento: 'petto_isolamento' },
   { nome: 'shoulder press', movimento: 'spinta_verticale' },
@@ -410,7 +461,7 @@ const SIGLE = [
   // 'trazioni ASSISTITE', che invece sono assistenza vera. La parola da sola
   // la riconosce già la lista dei movimenti qui sopra.
   { nome: 'push up', movimento: 'spinta_corpo_libero' },
-  { nome: 'hip thrust', movimento: 'gambe_pesanti' },
+  { nome: 'hip thrust', movimento: 'gambe_stabilizzatore' },
   { nome: 'bench press', movimento: 'spinta_orizzontale' },
   { nome: 'back extension', movimento: 'tirata_orizzontale' },
   { nome: 'biceps curl', movimento: 'bicipiti' },
@@ -546,8 +597,7 @@ export function classificaEsercizio({
   nome = '', descrizione = '', convenzione = null, attrezzatura = null,
   bracciaIndipendenti = false, carrucola = null,
 } = {}) {
-  const chiave = [nome, descrizione, convenzione, attrezzatura, bracciaIndipendenti ? 'si' : 'no'].join('|');
-    + (attrezzatura || '') + (bracciaIndipendenti ? '|bi' : '');
+  const chiave = [nome, descrizione, convenzione, attrezzatura, carrucola, bracciaIndipendenti ? 'si' : 'no'].join('|');
   const gia = CACHE.get(chiave);
   if (gia !== undefined) return gia;
   const testo = soloNome(nome);

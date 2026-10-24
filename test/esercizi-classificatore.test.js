@@ -7,6 +7,9 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
 import { classificaEsercizio } from '../src/esercizi-classificatore.js';
+import { standardPerMovimento } from '../src/rank-v3/modello.js';
+import { movimentoDi } from '../src/rank-v3/valutazione.js';
+import { valoriPerEsercizio } from '../src/rank-v2/valori.js';
 import { livelloEsercizio } from '../src/rank-config.js';
 
 const liv = (nome, extra = {}) => classificaEsercizio({ nome, ...extra }).livello;
@@ -154,6 +157,56 @@ test('C11. il rank usa il classificatore per gli esercizi nuovi', () => {
   assert.equal(livelloEsercizio(nuovo2), 'grande');
 });
 
+test('C15. leg curl, hip thrust e pec deck usano il movimento corretto', () => {
+  const legCurl = classificaEsercizio({ nome: 'Seated Leg Curl' });
+  assert.equal(legCurl.movimento, 'gambe_curl',
+    'la leg curl deve raggiungere la sua scala dedicata, non gambe_isolamento');
+
+  const hipThrust = classificaEsercizio({ nome: 'Barbell Hip Thrust' });
+  assert.equal(hipThrust.movimento, 'gambe_stabilizzatore',
+    'hip thrust deve usare lo standard d estensione d anca dedicato');
+
+  const gluteBridge = classificaEsercizio({ nome: 'Glute Bridge' });
+  assert.equal(gluteBridge.movimento, 'gambe_stabilizzatore');
+
+  const pecDeck = classificaEsercizio({ nome: 'Pec Deck' });
+  assert.equal(pecDeck.movimento, 'petto_isolamento',
+    'pec deck senza indicazione reverse non deve ereditare la scala del deltoide posteriore');
+
+  const reversePecDeck = classificaEsercizio({ nome: 'Reverse Pec Deck Rear Delt' });
+  assert.equal(reversePecDeck.movimento, 'spalle_posteriori');
+});
+
+test('C16. squat, stacco e leg press hanno classificazione e standard indipendenti', () => {
+  const squat = classificaEsercizio({ nome: 'Back Squat' });
+  const hackSquat = classificaEsercizio({ nome: 'Hack Squat Machine' });
+  const deadlift = classificaEsercizio({ nome: 'Conventional Deadlift' });
+  const romanianDeadlift = classificaEsercizio({ nome: 'Romanian Deadlift' });
+  const legPress = classificaEsercizio({ nome: '45 Degree Leg Press' });
+
+  assert.equal(squat.movimento, 'gambe_squat');
+  assert.equal(hackSquat.movimento, 'gambe_squat_macchina');
+  assert.equal(deadlift.movimento, 'gambe_stacco');
+  assert.equal(romanianDeadlift.movimento, 'gambe_stacco_rumeno');
+  assert.equal(legPress.movimento, 'gambe_pressa');
+
+  const standardSquat = standardPerMovimento(squat.movimento, { nome: 'Back Squat' });
+  const standardDeadlift = standardPerMovimento(deadlift.movimento, { nome: 'Conventional Deadlift' });
+  const standardPressa = standardPerMovimento(legPress.movimento, { nome: '45 Degree Leg Press' });
+  assert.equal(standardSquat.vertice, 2.75);
+  assert.equal(standardDeadlift.vertice, 3.25);
+  assert.equal(standardPressa.vertice, 3.10);
+  assert.ok(standardDeadlift.vertice > standardSquat.vertice);
+  assert.notEqual(standardSquat.vertice, standardPressa.vertice);
+
+  // Anche il motore legacy deve riconoscere le nuove famiglie: altrimenti un
+  // fallback v2 perderebbe il riferimento appena il classificatore cambia ID.
+  assert.equal(valoriPerEsercizio('gambe_squat').multiplo, 2.75);
+  assert.equal(valoriPerEsercizio('gambe_stacco').multiplo, 3.25);
+  assert.equal(valoriPerEsercizio('gambe_pressa', { convenzione: 'per_gamba' }).multiplo, 1.1);
+  assert.equal(valoriPerEsercizio('gambe_stabilizzatore').multiplo, 3.75);
+});
+
 test('C12. accenti e maiuscole non contano', () => {
   assert.equal(liv('PANCA INCLINATA'), liv('panca inclinata'));
   assert.equal(liv('Lat Pulldown'), liv('lat pulldown'));
@@ -214,7 +267,7 @@ test('C14. riconosce 59 nomi veri di palestra, italiano e inglese', () => {
   ['Sled Press Calf Raise', 'isolamento'],
   ['Squat', 'grande'],
   ['Stacco', 'grande'],
-  ['Hip Thrust', 'grande'],
+  ['Hip Thrust', 'composto'],
   ['Leg Extension', 'isolamento'],
   ['Seated Leg Curl', 'isolamento'],
   ['Single Leg Press', 'grande'],
@@ -486,4 +539,52 @@ test('C14c. i bicipiti sulla PANCA hanno una scala loro, non quella del cavo', a
       `la posizione non puo' saltare piu' di una fascia fra due corpi vicini: `
       + `corpo ${corpi[i - 1]}=${posizioni[i - 1]} -> corpo ${corpi[i]}=${posizioni[i]}`);
   }
+});
+
+
+test('C17. la cache distingue gli esercizi con carrucola diversa', () => {
+  // Stesso nome, ma la doppia carrucola cambia la meccanica: non si può
+  // riutilizzare la classificazione calcolata senza quel dato.
+  const nome = 'Cable Hammer Curl cache carrucola';
+  const normale = classificaEsercizio({ nome, carrucola: null });
+  const doppia = classificaEsercizio({ nome, carrucola: 'carrucola_doppia' });
+  assert.equal(normale.movimento, doppia.movimento);
+  assert.notEqual(normale.pesoModificatori, doppia.pesoModificatori);
+  assert.ok(doppia.motivi.some((m) => m.includes('doppia carrucola')));
+});
+
+
+test('C18. il motore usa anche la descrizione per riconoscere il movimento', () => {
+  const r = movimentoDi({ nome: 'Esercizio personalizzato', descrizione: 'Leg press a 45 gradi' });
+  assert.equal(r.movimento, 'gambe_pressa');
+});
+
+
+test('C19. hack squat, front squat e RDL non ereditano lo standard del back squat/stacco', () => {
+  const casi = [
+    ['Hack Squat', 'gambe_squat_macchina', 3.75],
+    ['Power Squat Machine', 'gambe_squat_macchina', 3.75],
+    ['Front Squat', 'gambe_squat_front', 2.25],
+    ['Back Squat', 'gambe_squat', 2.75],
+    ['Romanian Deadlift', 'gambe_stacco_rumeno', 2.75],
+    ['Stacco rumeno', 'gambe_stacco_rumeno', 2.75],
+    ['Conventional Deadlift', 'gambe_stacco', 3.25],
+  ];
+  for (const [nome, movimento, vertice] of casi) {
+    const classificazione = classificaEsercizio({ nome });
+    assert.equal(classificazione.movimento, movimento, nome + ' classificazione');
+    assert.equal(standardPerMovimento(movimento, { nome }).vertice, vertice, nome + ' standard v3');
+    assert.equal(valoriPerEsercizio(movimento).multiplo, vertice, nome + ' standard v2');
+  }
+});
+
+
+test('C20. deadlift con manubri usa una scala per manubrio, non quella del bilanciere', () => {
+  const nome = 'Dumbbell Deadlift';
+  const classificazione = classificaEsercizio({ nome });
+  assert.equal(classificazione.movimento, 'gambe_stacco_manubri');
+  assert.equal(standardPerMovimento(classificazione.movimento, { nome }).vertice, 1.15);
+  assert.equal(valoriPerEsercizio(classificazione.movimento).multiplo, 1.15);
+  assert.ok(standardPerMovimento(classificazione.movimento, { nome }).vertice
+    < standardPerMovimento('gambe_stacco', { nome: 'Deadlift' }).vertice);
 });
