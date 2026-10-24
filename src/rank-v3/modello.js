@@ -75,6 +75,7 @@
 
 import { ESPONENTE_ALLOMETRICO, PESO_ALLOMETRICO_RIFERIMENTO, pesoAllometrico } from '../rank-v2/valori.js';
 import { caricoReale, fattoreMeccanica, RIPETIZIONI_RIFERIMENTO } from '../rank-v2/curve.js';
+import { CURVA_PERCENTILI_SQUAT, CURVA_PERCENTILI_STACCO } from '../rank-v2/scalata.js';
 
 export { ESPONENTE_ALLOMETRICO, PESO_ALLOMETRICO_RIFERIMENTO, pesoAllometrico, RIPETIZIONI_RIFERIMENTO };
 
@@ -488,8 +489,8 @@ export const STANDARD_1RM = {
   // resta una scelta di prodotto e non coincide con i percentili intermedi di SL.
   // Squat: Elite 2,75x; dataset Strength Level aggiornato al 5 marzo 2026.
   gambe_squat: {
-    ingresso: 0.75, vertice: 2.75,
-    nota: 'Back squat: 0,75x ingresso Beginner e 2,75x vertice Elite maschile Strength Level; community, non popolazione generale.',
+    ingresso: 0.75, vertice: 2.75, curvaRank: CURVA_PERCENTILI_SQUAT,
+    nota: 'Back squat Strength Level: p5 0,75x; p20 1,25x; p50 1,75x; p80 2,25x; p95 2,75x. TITAN/OLYMPIAN estrapolati a p98/p99,5 (2,85x/2,90x), community maschile.',
   },
   // Hack squat: Elite 3,75x. I carichi delle altre macchine non sono confrontabili;
   // questa famiglia resta da usare solo come riferimento aggregato, con cautela.
@@ -504,8 +505,8 @@ export const STANDARD_1RM = {
   },
   // Deadlift: Elite 3,25x nella community Strength Level.
   gambe_stacco: {
-    ingresso: 1.00, vertice: 3.25,
-    nota: 'Stacco da terra: 1,00x ingresso Beginner e 3,25x vertice Elite maschile Strength Level.',
+    ingresso: 1.00, vertice: 3.25, curvaRank: CURVA_PERCENTILI_STACCO,
+    nota: 'Deadlift Strength Level: p5 1,00x; p20 1,50x; p50 2,00x; p80 2,50x; p95 3,25x. TITAN/OLYMPIAN estrapolati a p98/p99,5 (3,40x/3,475x), community maschile.',
   },
   // Dumbbell deadlift: Strength Level esplicita il peso per un singolo manubrio.
   gambe_stacco_manubri: {
@@ -666,6 +667,7 @@ export function standardPerMovimento(movimento, esercizio = {}) {
   return {
     ingresso: Number(scelto.ingresso),
     vertice: Number(scelto.vertice),
+    curvaRank: scelto.curvaRank || base.curvaRank || null,
     nota: scelto.nota || base.nota || '',
     fonte: 'standard_1rm',
   };
@@ -878,7 +880,9 @@ export function soglieNormalizzate({
   if (ing === null || ver === null || ver <= ing) return null;
   const m = numero(meccanica);
   const mec = m !== null && m > 0 ? m : 1;
-  const punti = curva || [0, 0.10, 0.24, 0.42, 0.60, 0.78, 1];
+  const punti = Array.isArray(standard.curvaRank) && standard.curvaRank.length === 7
+    ? standard.curvaRank
+    : (curva || [0, 0.10, 0.24, 0.42, 0.60, 1.05, 1.075]);
   return punti.map((f) => arrotonda((ing + (ver - ing) * f) * mec));
 }
 
