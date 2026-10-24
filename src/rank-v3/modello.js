@@ -377,6 +377,7 @@ export const DIFFICOLTA_MOVIMENTO = {
   gambe_squat_macchina: { categoria: 'gambe', caricamento: 'macchina', difficolta: 1, difficoltaScala: 1, quotaCorpo: 0, modello: 'carico_esterno' },
   gambe_squat_front: { categoria: 'gambe', caricamento: 'bilanciere', difficolta: 1, difficoltaScala: 1, quotaCorpo: 0, modello: 'carico_esterno' },
   gambe_squat: { categoria: 'gambe', caricamento: 'bilanciere', difficolta: 1, difficoltaScala: 1, quotaCorpo: 0, modello: 'carico_esterno' },
+  gambe_stacco_manubri: { categoria: 'gambe', caricamento: 'manubri', difficolta: 1, difficoltaScala: 1, quotaCorpo: 0, modello: 'carico_esterno' },
   gambe_stacco_rumeno: { categoria: 'gambe', caricamento: 'bilanciere', difficolta: 1, difficoltaScala: 1, quotaCorpo: 0, modello: 'carico_esterno' },
   gambe_stacco: { categoria: 'gambe', caricamento: 'bilanciere', difficolta: 1, difficoltaScala: 1, quotaCorpo: 0, modello: 'carico_esterno' },
   // Fallback per affondi e altri esercizi pesanti non ancora calibrati singolarmente.
@@ -506,6 +507,10 @@ export const STANDARD_1RM = {
   gambe_stacco: {
     ingresso: 0.80, vertice: 4.60,
     nota: 'Stacco da terra: 0,80x-4,60x. Vertice provvisorio severo; 3,10x era superato dal 22,85% degli uomini nel campione OpenPowerlifting.',
+  },
+  gambe_stacco_manubri: {
+    ingresso: 0.25, vertice: 1.20,
+    nota: 'Deadlift con manubri, carico espresso per manubrio: 0,25x-1,20x. Stima provvisoria conservativa, non percentile certificato.',
   },
   gambe_stacco_rumeno: {
     ingresso: 0.80, vertice: 3.80,
