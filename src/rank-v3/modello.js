@@ -374,7 +374,10 @@ export function serieDuplicate(serie) {
 export const DIFFICOLTA_MOVIMENTO = {
   // Standard separati per i tre movimenti principali delle gambe.
   gambe_pressa: { categoria: 'gambe', caricamento: 'macchina', difficolta: 1, difficoltaScala: 1, quotaCorpo: 0, modello: 'carico_esterno' },
+  gambe_squat_macchina: { categoria: 'gambe', caricamento: 'macchina', difficolta: 1, difficoltaScala: 1, quotaCorpo: 0, modello: 'carico_esterno' },
+  gambe_squat_front: { categoria: 'gambe', caricamento: 'bilanciere', difficolta: 1, difficoltaScala: 1, quotaCorpo: 0, modello: 'carico_esterno' },
   gambe_squat: { categoria: 'gambe', caricamento: 'bilanciere', difficolta: 1, difficoltaScala: 1, quotaCorpo: 0, modello: 'carico_esterno' },
+  gambe_stacco_rumeno: { categoria: 'gambe', caricamento: 'bilanciere', difficolta: 1, difficoltaScala: 1, quotaCorpo: 0, modello: 'carico_esterno' },
   gambe_stacco: { categoria: 'gambe', caricamento: 'bilanciere', difficolta: 1, difficoltaScala: 1, quotaCorpo: 0, modello: 'carico_esterno' },
   // Fallback per affondi e altri esercizi pesanti non ancora calibrati singolarmente.
   gambe_pesanti: { categoria: 'gambe', caricamento: 'macchina', difficolta: 1, difficoltaScala: 1, quotaCorpo: 0, modello: 'carico_esterno' },
@@ -487,6 +490,15 @@ export const STANDARD_1RM = {
     ingresso: 0.80, vertice: 4.20,
     nota: 'Squat con bilanciere: 0,80x-4,20x. Vertice provvisorio volutamente severo; 3,10x era superato dal 6,50% degli uomini nel campione OpenPowerlifting.',
   },
+  // Varianti separate: vertici provvisori di prodotto, NON percentili misurati.
+  gambe_squat_macchina: {
+    ingresso: 0.80, vertice: 3.10,
+    nota: 'Hack/power/pendulum squat su macchina: 0,80x-3,10x. Provvisorio; il carico indicato dipende dalla macchina e non e\' confrontabile con il bilanciere.',
+  },
+  gambe_squat_front: {
+    ingresso: 0.80, vertice: 3.60,
+    nota: 'Front squat: 0,80x-3,60x. Vertice provvisorio inferiore al back squat; da calibrare con distribuzioni specifiche.',
+  },
   // STACCO: il medesimo 3,10x viene superato dal 22,85% degli uomini agonisti,
   // prova che non può condividere il tetto dello squat. Il vertice 4,60x è una
   // scelta provvisoria conservativa per rendere TITAN/OLYMPIAN molto più rari;
@@ -494,6 +506,10 @@ export const STANDARD_1RM = {
   gambe_stacco: {
     ingresso: 0.80, vertice: 4.60,
     nota: 'Stacco da terra: 0,80x-4,60x. Vertice provvisorio severo; 3,10x era superato dal 22,85% degli uomini nel campione OpenPowerlifting.',
+  },
+  gambe_stacco_rumeno: {
+    ingresso: 0.80, vertice: 3.80,
+    nota: 'Stacco rumeno/RDL: 0,80x-3,80x. Vertice provvisorio: ROM e convenzione differiscono dallo stacco da terra; percentile non certificato.',
   },
   // Fallback legacy per altri esercizi pesanti non ancora calibrati singolarmente.
   gambe_pesanti: {
