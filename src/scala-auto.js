@@ -123,6 +123,11 @@ export const SCALA_MOVIMENTO = {
   // a non avere kg), e il livello può dire la verità sull'esercizio: un'estensione
   // dei tricipiti col braccio e' un isolamento, come tutte le altre.
   corpo_libero: { totale: 0, lato: 0 },
+  // Le tre famiglie principali hanno riferimenti distinti anche nel motore legacy.
+  // Qui i valori sono kg sul corpo di riferimento (70 kg), non i multipli 1RM di v3.
+  gambe_pressa: { lato: 34, totale: 140 },
+  gambe_squat: { lato: 34, totale: 145 },
+  gambe_stacco: { lato: 34, totale: 155 },
   gambe_pesanti: {
     // 40 per gamba era un numero PRESTATO: veniva dalla leg press normale a 100 kg
     // per lato, che È un esercizio diverso fatto su un'altra macchina (l'obliqua
