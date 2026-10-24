@@ -495,10 +495,11 @@ test('C14c. i bicipiti sulla PANCA hanno una scala loro, non quella del cavo', a
   assert.ok(aPanca.vertice < aCavo.vertice,
     `il tetto col manubrio in panca È PIÙ BASSO di quello del cavo (più difficile): `
     + `${aPanca.vertice} contro ${aCavo.vertice}`);
-  // 46 kg per braccio con manubrio in panca SONO un risultato ELITE (TITAN)
+  // 46 kg per braccio non bastano da soli per TITAN: il vertice Elite non è più
+  // il tetto del Rank più alto. La coda superiore è calibrata più severamente.
   const assurdo = recordEsercizio([{ id: 's', peso: 46, ripetizioni: 8, stato: 'fatta' }], pre, null, 66);
-  assert.ok(assurdo.rank && assurdo.rank.id === 'titan',
-    `46 kg per braccio col manubrio in panca SONO TITAN: è un risultato d'élite ` 
+  assert.ok(assurdo.rank && assurdo.rank.id === 'diamond',
+    `46 kg per braccio col manubrio in panca restano DIAMOND sotto la soglia TITAN ` 
     + `(tetto ${assurdo.vertice}, score ${assurdo.score})`);
 
   // IL PEZZO CHE CONTA, e che non si vede guardando un solo corpo.
