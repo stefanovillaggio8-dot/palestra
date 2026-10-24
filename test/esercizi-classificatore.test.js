@@ -577,3 +577,14 @@ test('C19. hack squat, front squat e RDL non ereditano lo standard del back squa
     assert.equal(valoriPerEsercizio(movimento).multiplo, vertice, nome + ' standard v2');
   }
 });
+
+
+test('C20. deadlift con manubri usa una scala per manubrio, non quella del bilanciere', () => {
+  const nome = 'Dumbbell Deadlift';
+  const classificazione = classificaEsercizio({ nome });
+  assert.equal(classificazione.movimento, 'gambe_stacco_manubri');
+  assert.equal(standardPerMovimento(classificazione.movimento, { nome }).vertice, 1.20);
+  assert.equal(valoriPerEsercizio(classificazione.movimento).multiplo, 1.20);
+  assert.ok(standardPerMovimento(classificazione.movimento, { nome }).vertice
+    < standardPerMovimento('gambe_stacco', { nome: 'Deadlift' }).vertice);
+});
