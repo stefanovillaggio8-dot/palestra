@@ -266,7 +266,7 @@ test('C14. riconosce 59 nomi veri di palestra, italiano e inglese', () => {
   ['Sled Press Calf Raise', 'isolamento'],
   ['Squat', 'grande'],
   ['Stacco', 'grande'],
-  ['Hip Thrust', 'grande'],
+  ['Hip Thrust', 'composto'],
   ['Leg Extension', 'isolamento'],
   ['Seated Leg Curl', 'isolamento'],
   ['Single Leg Press', 'grande'],
