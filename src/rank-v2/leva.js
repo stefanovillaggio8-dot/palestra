@@ -323,6 +323,21 @@ export const LEVE = {
     unita: 'per lato',
     nota: 'Sopra la testa il capo lungo e\' il principale: e\' l\'unico che passa dalla spalla, e si accorcia per tutta la sua corsa mentre il gomito si stende (0,85 del tricipite lavora). Per contro il braccio di leveraggio scende a 1,9 cm, il piu\' corto del corpo, perche\' con il braccio in alto il tendine tira quasi in parallelo all\'omero. Le due cose si compensano quasi: vedi `scaleDaSeparare`.',
   },
+  gambe_pressa: {
+    muscoli: { quadricipiti: 0.45, glutei: 0.35, femorali: 0.2 },
+    dMuscolo: 4.5, dCarico: 55, unita: 'sul carico',
+    nota: 'Leg press: macchina guidata con quadricipiti, glutei e femorali che spingono insieme; standard meccanico distinto da squat e stacco.',
+  },
+  gambe_squat: {
+    muscoli: { quadricipiti: 0.45, glutei: 0.35, femorali: 0.2 },
+    dMuscolo: 4.5, dCarico: 50, unita: 'sul bilanciere',
+    nota: 'Squat con bilanciere: estensione coordinata di ginocchio e anca, con carico assiale e stabilizzazione del tronco; leva provvisoria.',
+  },
+  gambe_stacco: {
+    muscoli: { quadricipiti: 0.25, glutei: 0.4, femorali: 0.35 },
+    dMuscolo: 5.0, dCarico: 60, unita: 'sul bilanciere',
+    nota: 'Stacco da terra: catena posteriore dominante con contributo di glutei, femorali e quadricipiti; leva provvisoria separata dallo squat.',
+  },
   gambe_pesanti: {
     muscoli: { quadricipiti: 0.45, glutei: 0.35, femorali: 0.2 },
     dMuscolo: 4.5,
@@ -331,11 +346,11 @@ export const LEVE = {
     nota: 'Leg press e simili: e\' il movimento con la sezione muscolare piu\' grande del corpo (quadricipiti + glutei + femorali, oltre 170 cm2) e con tre muscoli che tirano insieme. Per questo regge piu\' di ogni altra cosa.',
   },
   gambe_stabilizzatore: {
-    muscoli: { polpacci: 0.5, quadricipiti: 0.5 },
-    dMuscolo: 4.0,
-    dCarico: 45,
-    unita: 'per gamba',
-    nota: 'Calf raise su pressa orizzontale: i polpacci tirano ma le gambe spingono la pedana come in una leg press, quindi il carico e\' molto piu\' grosso di quanto dicano i kg di polpaccio.',
+    muscoli: { glutei: 0.6, femorali: 0.25, quadricipiti: 0.15 },
+    dMuscolo: 4.5,
+    dCarico: 50,
+    unita: 'sul bilanciere o macchina',
+    nota: 'Hip thrust e glute bridge: estensione d’anca con enfasi sui glutei; non va confuso con la leg press o con il calf raise.',
   },
   gambe_isolamento: {
     muscoli: { quadricipiti: 1 },
