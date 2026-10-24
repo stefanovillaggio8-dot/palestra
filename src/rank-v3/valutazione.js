@@ -65,6 +65,7 @@ export const RIP_MINIME_PER_PESO = 5;
 export function movimentoDi(esercizio) {
   return classificaEsercizio({
     nome: (esercizio && esercizio.nome) || '',
+    descrizione: (esercizio && esercizio.descrizione) || '',
     convenzione: (esercizio && esercizio.convenzione) || null,
     attrezzatura: (esercizio && esercizio.attrezzatura) || null,
     carrucola: (esercizio && esercizio.carrucola) || null,
