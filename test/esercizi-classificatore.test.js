@@ -8,6 +8,7 @@ import assert from 'node:assert/strict';
 
 import { classificaEsercizio } from '../src/esercizi-classificatore.js';
 import { standardPerMovimento } from '../src/rank-v3/modello.js';
+import { movimentoDi } from '../src/rank-v3/valutazione.js';
 import { valoriPerEsercizio } from '../src/rank-v2/valori.js';
 import { livelloEsercizio } from '../src/rank-config.js';
 
@@ -550,4 +551,10 @@ test('C17. la cache distingue gli esercizi con carrucola diversa', () => {
   assert.equal(normale.movimento, doppia.movimento);
   assert.notEqual(normale.pesoModificatori, doppia.pesoModificatori);
   assert.ok(doppia.motivi.some((m) => m.includes('doppia carrucola')));
+});
+
+
+test('C18. il motore usa anche la descrizione per riconoscere il movimento', () => {
+  const r = movimentoDi({ nome: 'Esercizio personalizzato', descrizione: 'Leg press a 45 gradi' });
+  assert.equal(r.movimento, 'gambe_pressa');
 });
