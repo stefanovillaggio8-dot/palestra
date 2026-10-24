@@ -46,14 +46,14 @@ const FILE = [
   //
   // Ste (10/10/2046): "le animazioni non le vedo". Il CSS era online e aggiornato,
   // ma la cache del browser continuava a restituire il vecchio perch? l'indirizzo
-  // era sempre lo stesso. Con `?v=258` anche qui la chiave cambia a ogni versione,
+  // era sempre lo stesso. Con `?v=259` anche qui la chiave cambia a ogni versione,
   // quindi la cache vecchia non viene pi? richiesta.
   //
   // Il numero deve essere uguale a quello di `stile.css?v=` in index.html e a
   // `window.PALESTRA_VERSIONE`: se i tre non coincidono, l'app carica un foglio di
   // stile e dice un altro numero.
-  './stile.css?v=258',
-  './stile-rpg.css?v=258',
+  './stile.css?v=259',
+  './stile-rpg.css?v=259',
 './manifest.webmanifest',
   './manifest-p1.webmanifest',
   './manifest-p2.webmanifest',
