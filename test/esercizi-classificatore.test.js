@@ -154,6 +154,26 @@ test('C11. il rank usa il classificatore per gli esercizi nuovi', () => {
   assert.equal(livelloEsercizio(nuovo2), 'grande');
 });
 
+test('C15. leg curl, hip thrust e pec deck usano il movimento corretto', () => {
+  const legCurl = classificaEsercizio({ nome: 'Seated Leg Curl' });
+  assert.equal(legCurl.movimento, 'gambe_curl',
+    'la leg curl deve raggiungere la sua scala dedicata, non gambe_isolamento');
+
+  const hipThrust = classificaEsercizio({ nome: 'Barbell Hip Thrust' });
+  assert.equal(hipThrust.movimento, 'gambe_stabilizzatore',
+    'hip thrust deve usare lo standard d estensione d anca dedicato');
+
+  const gluteBridge = classificaEsercizio({ nome: 'Glute Bridge' });
+  assert.equal(gluteBridge.movimento, 'gambe_stabilizzatore');
+
+  const pecDeck = classificaEsercizio({ nome: 'Pec Deck' });
+  assert.equal(pecDeck.movimento, 'petto_isolamento',
+    'pec deck senza indicazione reverse non deve ereditare la scala del deltoide posteriore');
+
+  const reversePecDeck = classificaEsercizio({ nome: 'Reverse Pec Deck Rear Delt' });
+  assert.equal(reversePecDeck.movimento, 'spalle_posteriori');
+});
+
 test('C12. accenti e maiuscole non contano', () => {
   assert.equal(liv('PANCA INCLINATA'), liv('panca inclinata'));
   assert.equal(liv('Lat Pulldown'), liv('lat pulldown'));
