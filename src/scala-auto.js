@@ -126,7 +126,10 @@ export const SCALA_MOVIMENTO = {
   // Le tre famiglie principali hanno riferimenti distinti anche nel motore legacy.
   // Qui i valori sono kg sul corpo di riferimento (70 kg), non i multipli 1RM di v3.
   gambe_pressa: { lato: 34, totale: 140 },
+  gambe_squat_macchina: { lato: 34, totale: 140 },
+  gambe_squat_front: { lato: 34, totale: 135 },
   gambe_squat: { lato: 34, totale: 135 },
+  gambe_stacco_rumeno: { lato: 34, totale: 140 },
   gambe_stacco: { lato: 34, totale: 140 },
   gambe_pesanti: {
     // 40 per gamba era un numero PRESTATO: veniva dalla leg press normale a 100 kg
