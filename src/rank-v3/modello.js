@@ -372,6 +372,11 @@ export function serieDuplicate(serie) {
  * c'e' nessun numero tarato da spostare.
  */
 export const DIFFICOLTA_MOVIMENTO = {
+  // Standard separati per i tre movimenti principali delle gambe.
+  gambe_pressa: { categoria: 'gambe', caricamento: 'macchina', difficolta: 1, difficoltaScala: 1, quotaCorpo: 0, modello: 'carico_esterno' },
+  gambe_squat: { categoria: 'gambe', caricamento: 'bilanciere', difficolta: 1, difficoltaScala: 1, quotaCorpo: 0, modello: 'carico_esterno' },
+  gambe_stacco: { categoria: 'gambe', caricamento: 'bilanciere', difficolta: 1, difficoltaScala: 1, quotaCorpo: 0, modello: 'carico_esterno' },
+  // Fallback per affondi e altri esercizi pesanti non ancora calibrati singolarmente.
   gambe_pesanti: { categoria: 'gambe', caricamento: 'macchina', difficolta: 1, difficoltaScala: 1, quotaCorpo: 0, modello: 'carico_esterno' },
   gambe_isolamento: { categoria: 'gambe', caricamento: 'macchina', difficolta: 0.9, difficoltaScala: 1, quotaCorpo: 0, modello: 'carico_esterno' },
   gambe_curl: { categoria: 'gambe', caricamento: 'macchina', difficolta: 0.9, difficoltaScala: 1, quotaCorpo: 0, modello: 'carico_esterno' },
@@ -465,11 +470,35 @@ export const CONFIG_ESERCIZI = {};
 export const PESO_RIFERIMENTO_1RM = PESO_ALLOMETRICO_RIFERIMENTO;
 
 export const STANDARD_1RM = {
-  // Gambe: la leg press a due gambe regge molto piu' di tutti gli altri.
+  // LEG PRESS: standard mantenuto, ma ora riservato alla pressa.
+  // I dati OpenPowerlifting non validano la leg press; il valore resta quindi
+  // provvisorio e non viene spacciato per un percentile agonistico.
+  gambe_pressa: {
+    ingresso: 0.80, vertice: 3.10,
+    nota: 'Leg press a due gambe: 0,80x-3,10x. Standard provvisorio, non calibrato con dati agonistici specifici della pressa.',
+    varianti: { per_gamba: { ingresso: 0.40, vertice: 1.55 } },
+  },
+  // SQUAT: il report OpenPowerlifting mostra che 3,10x viene superato dal 6,50%
+  // degli uomini raw agonisti (18-39 anni). Per rendere TITAN e OLYMPIAN davvero
+  // selettivi, alziamo il vertice a 4,20x. È una soglia di prodotto provvisoria,
+  // NON un percentile certificato: il dataset descrive powerlifter, non utenti
+  // generici di palestra, e la distribuzione completa va ricalcolata per sesso.
+  gambe_squat: {
+    ingresso: 0.80, vertice: 4.20,
+    nota: 'Squat con bilanciere: 0,80x-4,20x. Vertice provvisorio volutamente severo; 3,10x era superato dal 6,50% degli uomini nel campione OpenPowerlifting.',
+  },
+  // STACCO: il medesimo 3,10x viene superato dal 22,85% degli uomini agonisti,
+  // prova che non può condividere il tetto dello squat. Il vertice 4,60x è una
+  // scelta provvisoria conservativa per rendere TITAN/OLYMPIAN molto più rari;
+  // non viene dichiarato un percentile esatto senza il ricalcolo dei quantili.
+  gambe_stacco: {
+    ingresso: 0.80, vertice: 4.60,
+    nota: 'Stacco da terra: 0,80x-4,60x. Vertice provvisorio severo; 3,10x era superato dal 22,85% degli uomini nel campione OpenPowerlifting.',
+  },
+  // Fallback legacy per altri esercizi pesanti non ancora calibrati singolarmente.
   gambe_pesanti: {
     ingresso: 0.80, vertice: 3.10,
-    nota: 'Leg press a due gambe: 0,80x per iniziare, 3,10x per il vertice. A una gamba si dimezza.',
-    varianti: { per_gamba: { ingresso: 0.40, vertice: 1.55 } },
+    nota: 'Standard provvisorio per affondi e altri esercizi pesanti non ancora separati; non usare per squat, stacco o leg press.',
   },
   tirata_verticale_larga: {
     ingresso: 0.55, vertice: 1.75,
@@ -595,7 +624,7 @@ export function standardPerMovimento(movimento, esercizio = {}) {
   let scelto = base;
 
   if (base.varianti) {
-    if (movimento === 'gambe_pesanti' && e.convenzione === 'per_gamba') {
+    if ((movimento === 'gambe_pesanti' || movimento === 'gambe_pressa') && e.convenzione === 'per_gamba') {
       scelto = base.varianti.per_gamba || base;
     } else if (movimento === 'spinta_orizzontale') {
       const nome = String(e.nome || '').toLowerCase();
