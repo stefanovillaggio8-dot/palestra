@@ -469,6 +469,7 @@ test('C14c. i bicipiti sulla PANCA hanno una scala loro, non quella del cavo', a
   const { ESERCIZI } = await import('../src/dati-iniziali.js');
   const { classificaEsercizio } = await import('../src/esercizi-classificatore.js');
   const { recordEsercizio } = await import('../src/rank.js');
+  const { standardPerMovimento } = await import('../src/rank-v3/modello.js');
   const perId = (id) => ESERCIZI.find((e) => e.id === id);
 
   const casi = [
@@ -490,11 +491,13 @@ test('C14c. i bicipiti sulla PANCA hanno una scala loro, non quella del cavo', a
   // la scala e' DIVERSA, e piu' bassa di quella del cavo
   const aPanca = recordEsercizio([{ id: 's', peso: 18, ripetizioni: 8, stato: 'fatta' }], pre, null, 66);
   const aCavo = recordEsercizio([{ id: 's', peso: 50, ripetizioni: 6, stato: 'fatta' }], cavo, null, 66);
-  // Il preacher curl È PIÙ DURO del curl al cavo (niente slancio, braccio bloccato):
-  // il suo tetto È PIÙ BASSO (più difficile raggiungere l'elite).
-  assert.ok(aPanca.vertice < aCavo.vertice,
-    `il tetto col manubrio in panca È PIÙ BASSO di quello del cavo (più difficile): `
-    + `${aPanca.vertice} contro ${aCavo.vertice}`);
+  // Il riferimento standard di base del preacher è più basso di quello del cavo.
+  // record.vertice è invece la soglia OLYMPIAN leggibile, che può arrotondarsi a
+  // un carico disponibile diverso e non va usata per confrontare gli standard.
+  const standardPanca = standardPerMovimento('bicipiti_panca', pre);
+  const standardCavo = standardPerMovimento('bicipiti', cavo);
+  assert.ok(standardPanca.vertice < standardCavo.vertice,
+    `il riferimento base della panca deve restare più basso: ${standardPanca.vertice} contro ${standardCavo.vertice}`);
   // 46 kg per braccio non bastano da soli per TITAN: il vertice Elite non è più
   // il tetto del Rank più alto. La coda superiore è calibrata più severamente.
   const assurdo = recordEsercizio([{ id: 's', peso: 46, ripetizioni: 8, stato: 'fatta' }], pre, null, 66);
