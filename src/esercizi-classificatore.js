@@ -38,8 +38,11 @@ const MOVIMENTI = [
   // --- gambe pesanti: il livello più alto ---
   {
     id: 'gambe_pesanti', livello: 'grande', gruppo: 'gambe',
-    parole: ['leg press', 'pressa gambe', 'squat', 'stacco', 'deadlift', 'hip thrust', 'sled press', 'pressa polipette',
-      'sled', 'hack squat', 'front squat', 'sumo', 'power squat', 'glute bridge', 'affondi', 'lunge'],
+    // Questa famiglia resta per gli esercizi pesanti non ancora dotati di uno
+    // standard distinto. Hip thrust/glute bridge hanno una famiglia dedicata
+    // sotto; non devono ereditare automaticamente il riferimento della leg press.
+    parole: ['leg press', 'pressa gambe', 'squat', 'stacco', 'deadlift', 'sled press', 'pressa polipette',
+      'sled', 'hack squat', 'front squat', 'sumo', 'power squat', 'affondi', 'lunge'],
   },
   // --- spinte ---
   {
@@ -164,8 +167,20 @@ const MOVIMENTI = [
     parole: ['calf raise', 'calf', 'panturrino', 'soleo', 'gemelli', 'heel raise'],
   },
   {
+    // L'hip thrust è un'estensione d'anca composta, non un isolamento del quadricipite.
+  {
+    id: 'gambe_stabilizzatore', livello: 'composto', gruppo: 'gambe',
+    parole: ['hip thrust', 'glute bridge'],
+  },
+  // La leg curl ha una scala dedicata in STANDARD_1RM: deve produrre
+  // gambe_curl, altrimenti quel riferimento resta irraggiungibile.
+  {
+    id: 'gambe_curl', livello: 'isolamento', gruppo: 'gambe',
+    parole: ['leg curl', 'curl gambe', 'seated leg curl', 'prone curl', 'lying leg curl', 'hamstring curl'],
+  },
+  {
     id: 'gambe_isolamento', livello: 'isolamento', gruppo: 'gambe',
-    parole: ['hyperextension', 'iperextensione', 'hip extension', 'back extension', 'leg curl', 'leg extension', 'curl gambe', 'estensioni gambe', 'prone curl',
+    parole: ['hyperextension', 'iperextensione', 'hip extension', 'back extension', 'leg extension', 'estensioni gambe',
       'leg raise', 'adduzione', 'abduction', 'glute'],
   },
   {
@@ -195,7 +210,9 @@ const MOVIMENTI = [
     // un muscolo diverso.
     id: 'spalle_posteriori', livello: 'isolamento', gruppo: 'spalle',
     // il face pull e' lo stesso movimento del reverse fly (Ste, 21/10/2026)
-    parole: ['reverse fly', 'rear delt', 'rear deltoid', 'reverse pec', 'pec deck', 'face pull',
+    // "Pec deck" da solo identifica normalmente la macchina per il petto;
+    // il reverse pec deck deve dichiarare il verso/rear delt per usare questa scala.
+    parole: ['reverse fly', 'rear delt', 'rear deltoid', 'reverse pec', 'reverse pec deck', 'face pull',
       'pecorino a', 'delt posteriori', 'tirate a braccia aperte'],
   },
   {
