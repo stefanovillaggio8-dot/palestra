@@ -5,7 +5,7 @@ chat aperta in questa cartella, quindi non serve ricordare nulla: io so già dov
 
 Se questo stato diventa vecchio, oggi ste qui, basta correggere questo file.
 
-Ultimo aggiornamento: **24/10/2026, v259 pubblicata; PR #1 integrata; 877 test verdi**.
+Ultimo aggiornamento: **24/10/2026, calibrazione TITAN/OLYMPIAN integrata in v259; 878 test verdi**.
 
 > **NOTA PER CHI APRE UNA CHAT NUOVA (22/10/2026).** La chat lunga su questo
 > progetto ("AGENTS.md: attivazione muscoli dips e reverse") e' arrivata a
@@ -32,6 +32,20 @@ Ultimo aggiornamento: **24/10/2026, v259 pubblicata; PR #1 integrata; 877 test v
 - Preservare IndexedDB, ID e progressi. UTF-8. Test di grammatica sempre verdi.
 - Online su `https://stefanovillaggio8-dot.github.io/palestra/`.
 - Foto sorgente: `C:\Users\stefa\Downloads\muscoli.jpeg` (809x825).
+
+## 24/10/2026 - CALIBRAZIONE TITAN / OLYMPIAN
+
+- `src/rank-v2/scalata.js` ora mantiene i primi cinque gradini approvati ma porta TITAN e OLYMPIAN oltre il vertice Elite: fallback modellato a +5% e +7,5% dell'intervallo ingresso-Elite.
+- Back squat: Strength Level pubblica Beginner 0,75x, Novice 1,25x, Intermediate 1,75x, Advanced 2,25x ed Elite 2,75x. Usando la pendenza Advanced→Elite, TITAN è estrapolato a circa 2,85x (p98) e OLYMPIAN a 2,90x (p99,5).
+- Deadlift: Strength Level pubblica 1,00x / 1,50x / 2,00x / 2,50x / 3,25x; la stessa estrapolazione dà TITAN 3,40x e OLYMPIAN 3,475x.
+- Rank v2 e v3 condividono la curva e le due famiglie principali hanno profili espliciti, per non divergere fra motori.
+- **Limite statistico:** i valori p98/p99,5 sono estrapolazioni dalla pendenza p80→p95, non quantili osservati direttamente. Per gli altri esercizi, la curva generale è una stima, non un percentile certificato. I riferimenti Strength Level sono della community autoselezionata e qui usano la curva maschile; non esiste ancora una curva separata per sesso.
+- I carichi disponibili possono far superare due soglie con lo stesso peso registrabile. Il calcolo conserva soglie matematiche distinte; la scheda può mostrare lo stesso peso minimo per due ranghi se l'attrezzatura non ha un incremento intermedio. Non si spostano le soglie in base al peso corporeo, perché devono restare costanti dopo la normalizzazione allometrica.
+- Verifica su GitHub Actions: **878/878 test superati, 0 falliti**. GitHub Pages build/deploy: **successo**.
+
+Fonti: [Strength Level squat](https://strengthlevel.com/strength-standards/squat/lb), [Strength Level deadlift](https://strengthlevel.com/strength-standards/deadlift/lb), [metodologia Liftoff Rank](https://info.liftoffrank.com/research/strength-standards) per il principio di rifit sui dati reali.
+
+---
 
 ## 22/10/2026 - MODELLO FORZA v3 (storico del rilascio v259, pubblicato il 24/10/2026)
 
