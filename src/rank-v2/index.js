@@ -150,7 +150,11 @@ export function valutaEsercizio({ esercizio, serie = [], pesoCorporeo = null, ri
     return { valido: false, motivo: 'peso corporeo non disponibile', movimento, livello };
   }
   const fattore = fattoreSogliaDaKg(esercizio);
-  const soglie = soglieDaValori({ ingresso: tre.ingresso * fattore, vertice: tre.vertice * fattore });
+  const soglie = soglieDaValori({
+    ingresso: tre.ingresso * fattore,
+    vertice: tre.vertice * fattore,
+    curva: tre.curvaRank || undefined,
+  });
   if (!soglie) {
     return { valido: false, motivo: 'soglie incoerenti', movimento, livello };
   }
