@@ -5,7 +5,7 @@ chat aperta in questa cartella, quindi non serve ricordare nulla: io so già dov
 
 Se questo stato diventa vecchio, oggi ste qui, basta correggere questo file.
 
-Ultimo aggiornamento: **22/10/2026, modello forza v3 (test verdi, da pubblicare)**.
+Ultimo aggiornamento: **24/10/2026, v259 pubblicata; PR #1 integrata; 877 test verdi**.
 
 > **NOTA PER CHI APRE UNA CHAT NUOVA (22/10/2026).** La chat lunga su questo
 > progetto ("AGENTS.md: attivazione muscoli dips e reverse") e' arrivata a
@@ -33,7 +33,7 @@ Ultimo aggiornamento: **22/10/2026, modello forza v3 (test verdi, da pubblicare)
 - Online su `https://stefanovillaggio8-dot.github.io/palestra/`.
 - Foto sorgente: `C:\Users\stefa\Downloads\muscoli.jpeg` (809x825).
 
-## 22/10/2026 - MODELLO FORZA v3 (test verdi, DA PUBBLICARE come v259)
+## 22/10/2026 - MODELLO FORZA v3 (storico del rilascio v259, pubblicato il 24/10/2026)
 
 **LA REGOLA CHE VALE ORA (Ste, 22/10/2026):** *"non deve essere facile arrivare a
 TITAN. tutto deve seguire le formule."* Quindi i vertici di ogni movimento sono i
@@ -73,11 +73,12 @@ a occhio: se un vertice cambio', e' perche' la fonte dice quel numero.
   divisione** (DIAMOND I/II/III, TITAN I/II/III, ecc.). Il codice locale la mostra gia'
   (motore v3 e riga 6124/6148/6159 di `src/app.js`): **si risolve pubblicando la v259**,
   perche' online gira ancora la v258 col motore vecchio.
-- DA FARE: pubblicare la **v259** (bump `sw.js` + `index.html`), verificare online.
+- **COMPLETATO il 24/10/2026:** PR #1 integrata in `main` con commit `11709db1d827867f32593a17dfad74bd5ca7d385`; GitHub Actions ha superato **877/877 test** e il workflow GitHub Pages è terminato con successo. `index.html` e `sw.js` dichiarano `palestra-v259`.
+- **Limite aperto:** i vertici Elite delle varianti nuove sono riferimenti Strength Level della community maschile; le fasce Rank intermedie non sono percentili certificati e le macchine per squat non sono equivalenti. La calibrazione TITAN/OLYMPIAN per sesso e popolazione richiede distribuzioni specifiche.
 
   ## Dove siamo
 
-  - **v258 pubblicata e verificata online**, `HEAD`/`origin/main` = `6b7d67b`.
+  - **Storico al 16/10: v258 pubblicata e verificata online**, `HEAD`/`origin/main` = `6b7d67b`.
   - Test verdi: `node --test` → **844 pass, 0 fail** (verifica del 16/10, prima della v192;
     le versioni successive hanno i loro test in `test/`).
   - **Lavoro non committato al momento**: 7 file modificati (`src/rank-config.js`,
@@ -322,14 +323,10 @@ automaticamente"*.
 
 ## Prossimo passo
 
-1. Audit dei 6 TITAN completato: sono tutti avanzati e coerenti, nessun OLYMPIAN vuole dire nessuno è a livello elite. Non serve cambiare `STANDARD_1RM`.
-2. Pubblicare la **v259** (bump in `sw.js` e `index.html`) e verificare online.
-3. Ste guarda i Rank del modello v3 sui suoi esercizi: sul backup reale escono
-   6 TITAN, 4 DIAMOND, 6 PLATINUM, 3 GOLD, 1 SILVER.
-4. Se un numero non torna, il numero da spostare è `ingresso` / `vertice` in
-   `STANDARD_1RM` (`src/rank-v3/modello.js`), e SOLO quello. I tetti storici di
-   polso, reverse fly, overhead tricep e spinta verticale non si abbassano di nuovo:
-   sono protetti da V35.
+1. Controllare i Rank reali dopo il rilascio v259, senza alterare i numeri approvati solo per far passare test.
+2. Per rendere TITAN/OLYMPIAN equivalenti a rarità precise, raccogliere distribuzioni per esercizio, sesso e popolazione; non dichiarare percentile esatto finché non esistono quei dati.
+3. Separare ulteriormente le macchine per squat solo quando esistono riferimenti distinti e confrontabili per modello/variante.
+4. Se un numero non torna, intervenire su `ingresso` / `vertice` in `STANDARD_1RM` (`src/rank-v3/modello.js`) e allineare i test e il motore legacy. I tetti storici di polso, reverse fly, overhead tricep e spinta verticale restano protetti da V35.
 
 ## Due avvertenze tecniche
 
