@@ -172,6 +172,25 @@ import { ripetizioniPiene, fattoreMeccanica, caricoReale, RIPETIZIONI_RIFERIMENT
  * perche' la fascia e' piu' spessa), e chi era sotto ora entra.
  */
 export const VALORI_MOVIMENTO = {
+  // Leg press separata da squat e stacco. Mantiene la scala legacy della pressa.
+  gambe_pressa: {
+    multiplo: 2.2, ingressoMultiplo: 0.85, fonte: 'tuo',
+    scegliConConvenzione: (e) => (e && e.convenzione === 'per_gamba' ? 'per_gamba' : 'due_gambe'),
+    varianti: {
+      due_gambe: { multiplo: 2.2, ingressoMultiplo: 0.85, fonte: 'tuo' },
+      per_gamba: { multiplo: 1.1, ingressoMultiplo: 0.42, fonte: 'stima' },
+    },
+    nota: 'Leg press: 2,2x su due gambe oppure 1,1x per gamba. Scala legacy mantenuta; il motore rank-v3 usa lo standard 1RM dedicato.',
+  },
+  // Scale legacy indipendenti: vertici volutamente severi in linea con rank-v3.
+  gambe_squat: {
+    multiplo: 4.2, ingressoMultiplo: 0.8, fonte: 'stima',
+    nota: 'Squat con bilanciere: vertice provvisorio 4,2x il peso corporeo. Standard severo, non percentile certificato.',
+  },
+  gambe_stacco: {
+    multiplo: 4.6, ingressoMultiplo: 0.8, fonte: 'stima',
+    nota: 'Stacco da terra: vertice provvisorio 4,6x il peso corporeo. Standard severo, non percentile certificato.',
+  },
   gambe_pesanti: {
     multiplo: 2.2, ingressoMultiplo: 0.85, fonte: 'tuo',
     // A UNA GAMBA SOLA IL TETTO E' LA META' (15/10/2026).
@@ -572,8 +591,8 @@ bicipiti_panca: {
     nota: 'Leg curl seduto: tetto 1,2x il corpo, ingresso 0,45x. Vale anche per gamba come l\'estensione, ma il femorale regge un po\' meno del quadricipite: un gradino sotto.',
   },
   gambe_stabilizzatore: {
-    multiplo: 2.2, ingressoMultiplo: 0.85, fonte: 'tuo',
-    nota: 'Sled press calf raise e single leg press: stessa zona del leg press perche\' il carico e\' grosso e la macchina scarica. Tetto e ingresso come il leg press. Sul single leg press valgono i kg per gamba.',
+    multiplo: 3.0, ingressoMultiplo: 1.0, fonte: 'stima',
+    nota: 'Hip thrust e glute bridge: estensione d\'anca, non leg press. Vertice legacy provvisorio 3,0x e ingresso 1,0x; non e\' calibrato con una distribuzione agonistica specifica.',
   },
   polso: {
     // IL TETTO ERA SBAGLIATO DI UN TERZO (15/10/2026). Qui c'era 0,4x e la nota
