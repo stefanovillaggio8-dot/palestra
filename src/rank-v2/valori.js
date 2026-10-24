@@ -195,6 +195,10 @@ export const VALORI_MOVIMENTO = {
     multiplo: 3.6, ingressoMultiplo: 0.8, fonte: 'stima',
     nota: 'Front squat: vertice provvisorio 3,6x; da calibrare su distribuzione specifica.',
   },
+  gambe_stacco_manubri: {
+    multiplo: 1.2, ingressoMultiplo: 0.25, fonte: 'stima',
+    nota: 'Deadlift con manubri, peso per manubrio: vertice provvisorio 1,2x; non usare la scala del bilanciere.',
+  },
   gambe_stacco_rumeno: {
     multiplo: 3.8, ingressoMultiplo: 0.8, fonte: 'stima',
     nota: 'Stacco rumeno/RDL: vertice provvisorio 3,8x; da calibrare separatamente dallo stacco da terra.',
