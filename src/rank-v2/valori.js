@@ -185,7 +185,19 @@ export const VALORI_MOVIMENTO = {
   // Scale legacy indipendenti: vertici volutamente severi in linea con rank-v3.
   gambe_squat: {
     multiplo: 4.2, ingressoMultiplo: 0.8, fonte: 'stima',
-    nota: 'Squat con bilanciere: vertice provvisorio 4,2x il peso corporeo. Standard severo, non percentile certificato.',
+    nota: 'Back squat con bilanciere: vertice provvisorio 4,2x il peso corporeo. Standard severo, non percentile certificato.',
+  },
+  gambe_squat_macchina: {
+    multiplo: 3.1, ingressoMultiplo: 0.8, fonte: 'stima',
+    nota: 'Hack/power/pendulum squat: vertice provvisorio 3,1x; il carico macchina non è confrontabile col bilanciere.',
+  },
+  gambe_squat_front: {
+    multiplo: 3.6, ingressoMultiplo: 0.8, fonte: 'stima',
+    nota: 'Front squat: vertice provvisorio 3,6x; da calibrare su distribuzione specifica.',
+  },
+  gambe_stacco_rumeno: {
+    multiplo: 3.8, ingressoMultiplo: 0.8, fonte: 'stima',
+    nota: 'Stacco rumeno/RDL: vertice provvisorio 3,8x; da calibrare separatamente dallo stacco da terra.',
   },
   gambe_stacco: {
     multiplo: 4.6, ingressoMultiplo: 0.8, fonte: 'stima',
