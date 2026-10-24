@@ -328,10 +328,25 @@ export const LEVE = {
     dMuscolo: 4.5, dCarico: 55, unita: 'sul carico',
     nota: 'Leg press: macchina guidata con quadricipiti, glutei e femorali che spingono insieme; standard meccanico distinto da squat e stacco.',
   },
+  gambe_squat_macchina: {
+    muscoli: { quadricipiti: 0.5, glutei: 0.35, femorali: 0.15 },
+    dMuscolo: 4.5, dCarico: 55, unita: 'sulla macchina',
+    nota: 'Hack/power/pendulum squat: profilo meccanico provvisorio; carichi non confrontabili tra macchine diverse.',
+  },
+  gambe_squat_front: {
+    muscoli: { quadricipiti: 0.5, glutei: 0.3, femorali: 0.2 },
+    dMuscolo: 4.5, dCarico: 50, unita: 'sul bilanciere',
+    nota: 'Front squat: busto più verticale e domanda maggiore sui quadricipiti; leva provvisoria.',
+  },
   gambe_squat: {
     muscoli: { quadricipiti: 0.45, glutei: 0.35, femorali: 0.2 },
     dMuscolo: 4.5, dCarico: 50, unita: 'sul bilanciere',
-    nota: 'Squat con bilanciere: estensione coordinata di ginocchio e anca, con carico assiale e stabilizzazione del tronco; leva provvisoria.',
+    nota: 'Back squat con bilanciere: estensione coordinata di ginocchio e anca, con carico assiale e stabilizzazione del tronco; leva provvisoria.',
+  },
+  gambe_stacco_rumeno: {
+    muscoli: { quadricipiti: 0.05, glutei: 0.45, femorali: 0.5 },
+    dMuscolo: 5.0, dCarico: 55, unita: 'sul bilanciere',
+    nota: 'RDL: hip hinge con catena posteriore dominante e ROM differente dallo stacco da terra; leva provvisoria.',
   },
   gambe_stacco: {
     muscoli: { quadricipiti: 0.25, glutei: 0.4, femorali: 0.35 },
