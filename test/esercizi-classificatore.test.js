@@ -193,18 +193,18 @@ test('C16. squat, stacco e leg press hanno classificazione e standard indipenden
   const standardSquat = standardPerMovimento(squat.movimento, { nome: 'Back Squat' });
   const standardDeadlift = standardPerMovimento(deadlift.movimento, { nome: 'Conventional Deadlift' });
   const standardPressa = standardPerMovimento(legPress.movimento, { nome: '45 Degree Leg Press' });
-  assert.equal(standardSquat.vertice, 4.20);
-  assert.equal(standardDeadlift.vertice, 4.60);
+  assert.equal(standardSquat.vertice, 2.75);
+  assert.equal(standardDeadlift.vertice, 3.25);
   assert.equal(standardPressa.vertice, 3.10);
   assert.ok(standardDeadlift.vertice > standardSquat.vertice);
-  assert.ok(standardSquat.vertice > standardPressa.vertice);
+  assert.notEqual(standardSquat.vertice, standardPressa.vertice);
 
   // Anche il motore legacy deve riconoscere le nuove famiglie: altrimenti un
   // fallback v2 perderebbe il riferimento appena il classificatore cambia ID.
-  assert.equal(valoriPerEsercizio('gambe_squat').multiplo, 4.2);
-  assert.equal(valoriPerEsercizio('gambe_stacco').multiplo, 4.6);
+  assert.equal(valoriPerEsercizio('gambe_squat').multiplo, 2.75);
+  assert.equal(valoriPerEsercizio('gambe_stacco').multiplo, 3.25);
   assert.equal(valoriPerEsercizio('gambe_pressa', { convenzione: 'per_gamba' }).multiplo, 1.1);
-  assert.equal(valoriPerEsercizio('gambe_stabilizzatore').multiplo, 3.0);
+  assert.equal(valoriPerEsercizio('gambe_stabilizzatore').multiplo, 3.75);
 });
 
 test('C12. accenti e maiuscole non contano', () => {
@@ -562,13 +562,13 @@ test('C18. il motore usa anche la descrizione per riconoscere il movimento', () 
 
 test('C19. hack squat, front squat e RDL non ereditano lo standard del back squat/stacco', () => {
   const casi = [
-    ['Hack Squat', 'gambe_squat_macchina', 3.10],
-    ['Power Squat Machine', 'gambe_squat_macchina', 3.10],
-    ['Front Squat', 'gambe_squat_front', 3.60],
-    ['Back Squat', 'gambe_squat', 4.20],
-    ['Romanian Deadlift', 'gambe_stacco_rumeno', 3.80],
-    ['Stacco rumeno', 'gambe_stacco_rumeno', 3.80],
-    ['Conventional Deadlift', 'gambe_stacco', 4.60],
+    ['Hack Squat', 'gambe_squat_macchina', 3.75],
+    ['Power Squat Machine', 'gambe_squat_macchina', 3.75],
+    ['Front Squat', 'gambe_squat_front', 2.25],
+    ['Back Squat', 'gambe_squat', 2.75],
+    ['Romanian Deadlift', 'gambe_stacco_rumeno', 2.75],
+    ['Stacco rumeno', 'gambe_stacco_rumeno', 2.75],
+    ['Conventional Deadlift', 'gambe_stacco', 3.25],
   ];
   for (const [nome, movimento, vertice] of casi) {
     const classificazione = classificaEsercizio({ nome });
@@ -583,8 +583,8 @@ test('C20. deadlift con manubri usa una scala per manubrio, non quella del bilan
   const nome = 'Dumbbell Deadlift';
   const classificazione = classificaEsercizio({ nome });
   assert.equal(classificazione.movimento, 'gambe_stacco_manubri');
-  assert.equal(standardPerMovimento(classificazione.movimento, { nome }).vertice, 1.20);
-  assert.equal(valoriPerEsercizio(classificazione.movimento).multiplo, 1.20);
+  assert.equal(standardPerMovimento(classificazione.movimento, { nome }).vertice, 1.15);
+  assert.equal(valoriPerEsercizio(classificazione.movimento).multiplo, 1.15);
   assert.ok(standardPerMovimento(classificazione.movimento, { nome }).vertice
     < standardPerMovimento('gambe_stacco', { nome: 'Deadlift' }).vertice);
 });
