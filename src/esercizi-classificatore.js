@@ -56,6 +56,12 @@ const MOVIMENTI = [
     id: 'gambe_squat', livello: 'grande', gruppo: 'gambe',
     parole: ['back squat', 'squat', 'accosciata'],
   },
+  // Il deadlift con manubri è registrato per manubrio, non come carico totale
+  // del bilanciere: deve avere una scala distinta e molto più bassa.
+  {
+    id: 'gambe_stacco_manubri', livello: 'grande', gruppo: 'gambe',
+    parole: ['dumbbell deadlift', 'db deadlift', 'stacco con manubri', 'deadlift con manubri'],
+  },
   // RDL: il range e la posizione del carico differiscono dallo stacco da terra.
   {
     id: 'gambe_stacco_rumeno', livello: 'grande', gruppo: 'gambe',
