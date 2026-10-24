@@ -539,3 +539,15 @@ test('C14c. i bicipiti sulla PANCA hanno una scala loro, non quella del cavo', a
       + `corpo ${corpi[i - 1]}=${posizioni[i - 1]} -> corpo ${corpi[i]}=${posizioni[i]}`);
   }
 });
+
+
+test('C17. la cache distingue gli esercizi con carrucola diversa', () => {
+  // Stesso nome, ma la doppia carrucola cambia la meccanica: non si può
+  // riutilizzare la classificazione calcolata senza quel dato.
+  const nome = 'Cable Hammer Curl cache carrucola';
+  const normale = classificaEsercizio({ nome, carrucola: null });
+  const doppia = classificaEsercizio({ nome, carrucola: 'carrucola_doppia' });
+  assert.equal(normale.movimento, doppia.movimento);
+  assert.notEqual(normale.pesoModificatori, doppia.pesoModificatori);
+  assert.ok(doppia.motivi.some((m) => m.includes('doppia carrucola')));
+});
