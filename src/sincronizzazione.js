@@ -186,6 +186,9 @@ export function riallineaEsercizi(catalogo, righeLocali) {
     for (const campo of CAMPI_CARICO) {
       const voluto = e[campo];
       if (voluto === undefined) continue; // il catalogo non lo dichiara: non si tocca
+      // Una scelta manuale del rapporto del cavo deve sopravvivere ai riallineamenti
+      // del catalogo: altrimenti al riavvio il Rank tornerebbe al valore predefinito.
+      if (locale.configurazioneCavoPersonalizzata && (campo === 'carrucola' || campo === 'usoBraccia')) continue;
       if (locale[campo] !== voluto) {
         corretti[campo] = voluto;
         cambia = true;
