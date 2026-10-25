@@ -92,7 +92,14 @@ async function richiesta(cfg, percorso, opzioni, rinnovoGiaTentato = false, tent
   } catch (e) {
     if (e instanceof ErroreSupabase) throw e;
     if (e && e.name === 'AbortError') {
-      throw new ErroreSupabase('Il database non ha risposto entro 15 secondi. Controlla la connessione e riprova.', 0, String(e));
+      // Anche una richiesta idempotente può aver raggiunto Supabase mentre la
+      // risposta si perde sulla rete. Ritentare l'UPSERT è sicuro grazie a id.
+      if (tentativoRete < 2) {
+        clearTimeout(timer);
+        await new Promise((resolve) => setTimeout(resolve, 700 * (tentativoRete + 1)));
+        return await richiesta(cfg, percorso, opzioni, rinnovoGiaTentato, tentativoRete + 1);
+      }
+      throw new ErroreSupabase('Il database non ha risposto entro 15 secondi dopo 3 tentativi. Controlla la connessione e riprova.', 0, String(e));
     }
     // Safari su iPhone può interrompere fetch per brevi oscillazioni della rete
     // anche quando la connessione torna subito disponibile. Ritenta due volte
