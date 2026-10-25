@@ -32,6 +32,16 @@ BEGIN
       tabella, tabella || '_user_id_id_key'
     );
   END LOOP;
-END $$;
+END $;
+
+-- Anche gli indici di deduplicazione devono essere isolati per utente:
+-- account_id è un ID locale (es. account-1), quindi si ripete tra account Supabase.
+DROP INDEX IF EXISTS public.ricompense_unica;
+CREATE UNIQUE INDEX ricompense_unica
+  ON public.ricompense (user_id, account_id, tipo, coalesce(fonte, ''));
+
+DROP INDEX IF EXISTS public.missioni_unica;
+CREATE UNIQUE INDEX missioni_unica
+  ON public.missioni (user_id, account_id, missione_id, categoria, coalesce(data::text, ''), coalesce(settimana, ''));
 
 commit;
