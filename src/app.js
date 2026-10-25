@@ -4074,10 +4074,8 @@ function vistaImpostazioni(zona) {
   // La parte tecnica (database online) sta in una sezione CHIUSA: Ste l'ha
   // vista e non ha capito a che cosa serviva, con dentro pure un indirizzo
   // finto. Non serve a niente per usarlo, quindi non la metto in primo piano.
-  const accountBox = el('details', { class: 'blocco blocco-chiuso' });
-  accountBox.appendChild(el('summary', {}, [
-    el('h2', { testo: 'Sincronizzazione online (opzione avanzata)' }),
-  ]));
+  const accountBox = el('section', { class: 'blocco' });
+  accountBox.appendChild(el('h2', { testo: 'Account e database online' }));
   const dentroAccount = el('div');
   accountBox.appendChild(dentroAccount);
   const cfg = sb.leggiConfig();
