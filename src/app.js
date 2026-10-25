@@ -141,7 +141,7 @@ async function risolviPersona() {
     installata = window.navigator.standalone === true ||
       (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
   } catch { /* browser senza rilevamento modalità installata */ }
-  if (installata && !/[?&](?:p=\\d+|n=)/.test(ricerca) && !memoria) {
+  if (installata && !/[?&](?:p=\d+|n=)/.test(ricerca) && !memoria) {
     ricerca = '?p=1';
   }
 
