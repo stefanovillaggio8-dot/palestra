@@ -4168,7 +4168,12 @@ function vistaImpostazioni(zona) {
       ]));
     }
   }
-  zona.appendChild(accountBox);
+  // La configurazione tecnica resta disponibile, ma chiusa di default: non intralcia chi vuole solo allenarsi.
+  const accountDettagli = el('details', { class: 'blocco-chiuso' }, [
+    el('summary', { testo: 'Opzione avanzata: Account e database online' }),
+    accountBox,
+  ]);
+  zona.appendChild(accountDettagli);
 
   const backupBox = el('section', { class: 'blocco' });
   backupBox.appendChild(el('h2', { testo: 'Backup' }));
