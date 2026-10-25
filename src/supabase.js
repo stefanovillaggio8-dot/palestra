@@ -64,17 +64,25 @@ export class ErroreSupabase extends Error {
 
 async function richiesta(cfg, percorso, opzioni) {
   let res;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 15000);
   try {
-    res = await fetch(cfg.url + percorso, opzioni);
+    res = await fetch(cfg.url + percorso, { ...opzioni, signal: controller.signal });
+    const corpo = await json(res);
+    if (!res.ok) {
+      const msg = (corpo && (corpo.msg || corpo.error_description || corpo.message)) || ('Errore ' + res.status);
+      throw new ErroreSupabase(msg, res.status, corpo);
+    }
+    return corpo;
   } catch (e) {
+    if (e instanceof ErroreSupabase) throw e;
+    if (e && e.name === 'AbortError') {
+      throw new ErroreSupabase('Il database non ha risposto entro 15 secondi. Controlla la connessione e riprova.', 0, String(e));
+    }
     throw new ErroreSupabase('Nessuna connessione con il database.', 0, String(e));
+  } finally {
+    clearTimeout(timer);
   }
-  const corpo = await json(res);
-  if (!res.ok) {
-    const msg = (corpo && (corpo.msg || corpo.error_description || corpo.message)) || ('Errore ' + res.status);
-    throw new ErroreSupabase(msg, res.status, corpo);
-  }
-  return corpo;
 }
 
 /* ---------------- autenticazione ---------------- */
