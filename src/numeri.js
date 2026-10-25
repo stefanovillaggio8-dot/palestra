@@ -95,7 +95,7 @@ export const ETICHETTE_CONVENZIONE = {
   [CONVENZIONI.DISCHI]: 'kg dischi (senza bilanciere)',
   [CONVENZIONI.PER_GAMBA]: 'kg per gamba',
   [CONVENZIONI.PER_BRACCIO]: 'kg per lato/braccio (inserisci il valore di un lato)',
-  [CONVENZIONI.BILANCIERE]: 'kg bilanciere',
+  [CONVENZIONI.BILANCIERE]: 'kg di dischi aggiunti (barra esclusa)',
   [CONVENZIONI.ASSISTENZA]: 'kg di assistenza (la macchina ti aiuta)',
   // L'etichetta dei zavorri dice due cose che servono entrambe: il numero che
   // scrivi e il fatto che l'app aggiunge il tuo corpo. Se scrivi solo "kg", chi legge
