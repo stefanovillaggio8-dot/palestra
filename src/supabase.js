@@ -136,7 +136,13 @@ export async function rinnovaSessione() {
   if (!s || !s.refresh_token) throw new ErroreSupabase('Sessione scaduta.', 401);
   const corpo = await richiesta(cfg, '/auth/v1/token?grant_type=refresh_token', {
     method: 'POST',
-    headers: intestazioni(cfg),
+    // Il refresh deve usare il refresh_token, non il vecchio access_token
+    // che potrebbe essere proprio quello rifiutato da PostgREST.
+    headers: {
+      apikey: cfg.anonKey,
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    },
     body: JSON.stringify({ refresh_token: s.refresh_token }),
   });
   salvaSessione(corpo);
