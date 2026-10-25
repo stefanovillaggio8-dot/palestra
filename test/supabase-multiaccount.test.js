@@ -7,6 +7,8 @@ const schema = await readFile(new URL('../supabase/schema.sql', import.meta.url)
 const migration = await readFile(new URL('../supabase/migrations/20261025_user_scoped_ids.sql', import.meta.url), 'utf8');
 
 test('gli ID sincronizzati sono unici per utente, non globalmente', () => {
+  assert.match(client, /tabella === 'versioni' \? 'versi' : tabella/,
+    'la tabella locale versioni deve puntare alla tabella Supabase versi');
   assert.match(client, /on_conflict=user_id,id/,
     'l’UPSERT deve usare la chiave composta prevista dalla migrazione');
   for (const tabella of ['esercizi', 'schede', 'versi', 'sedute', 'serie', 'note', 'profili', 'missioni', 'ricompense', 'pesi']) {
