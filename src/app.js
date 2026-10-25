@@ -7238,7 +7238,7 @@ function finestraCreaEsercizio() {
 // serve per decidere.
 const carrucola = el('select', { class: 'selettore' }, [
     el('option', { value: '', testo: 'non è un cavo' }),
-    el('option', { value: 'carrucola_mono', testo: 'MONO carrucola — un cavo solo, e il numero che scrivi è quello che senti' }),
+    el('option', { value: 'carrucola_mono', testo: 'MONO / rapporto 1:1 — non dimezzare il numero' }),
     el('option', { value: 'carrucola_doppia', testo: 'DOPPIA carrucola (rapporto 2:1) — selezionala solo se il carico effettivo al cavo è metà del numero sulla pila' }),
   ]);
   const spiegazioneCarrucola = el('p', { class: 'nota nota-piccola nota-zavorri' });
@@ -7251,6 +7251,7 @@ const carrucola = el('select', { class: 'selettore' }, [
     }
   };
   carrucola.addEventListener('change', () => { scriviSpiegazioneCarrucola(); aggiornaAnteprima(); });
+  usoBraccia.addEventListener('change', () => { aggiornaRiconoscimento(); aggiornaAnteprima(); });
   scriviSpiegazioneCarrucola();
 
   const attrezzatura = el('select', { class: 'selettore' }, [
@@ -7338,6 +7339,10 @@ const carrucola = el('select', { class: 'selettore' }, [
   nome.addEventListener('input', aggiornaRiconoscimento);
   descrizione.addEventListener('input', aggiornaRiconoscimento);
   convenzione.addEventListener('change', aggiornaRiconoscimento);
+  braccia.addEventListener('change', aggiornaRiconoscimento);
+  carrucola.addEventListener('change', aggiornaRiconoscimento);
+  usoBraccia.addEventListener('change', aggiornaRiconoscimento);
+  attrezzatura.addEventListener('change', aggiornaRiconoscimento);
   aggiornaRiconoscimento();
 
   /** Ricalcola l'anteprima ogni volta che cambia qualcosa. */
