@@ -128,6 +128,45 @@ export async function rinnovaSessione() {
   return corpo;
 }
 
+
+/** Verifica l'identità effettiva del token presso Supabase Auth.
+ * Non fidarsi soltanto dell'oggetto user salvato nel localStorage.
+ */
+export async function utenteCorrente() {
+  const cfg = leggiConfig();
+  let s = sessione();
+  if (!cfg.attivo || !s || !s.access_token) {
+    throw new ErroreSupabase('Non sei autenticato su Supabase. Accedi con email e password.', 401);
+  }
+
+  const verifica = async () => richiesta(cfg, '/auth/v1/user', {
+    method: 'GET',
+    headers: intestazioni(cfg),
+  });
+
+  let utente;
+  try {
+    utente = await verifica();
+  } catch (e) {
+    if (e && e.stato === 401 && s.refresh_token) {
+      s = await rinnovaSessione();
+      utente = await verifica();
+    } else {
+      throw e;
+    }
+  }
+
+  if (!utente || !utente.id) {
+    throw new ErroreSupabase('Supabase non ha restituito un utente valido. Accedi di nuovo.', 401);
+  }
+
+  // Aggiorna i metadati utente memorizzati senza toccare i dati degli allenamenti.
+  if (!s.user || s.user.id !== utente.id) {
+    salvaSessione({ ...s, user: { ...(s.user || {}), ...utente } });
+  }
+  return utente;
+}
+
 export async function esci() {
   const cfg = leggiConfig();
   try { await richiesta(cfg, '/auth/v1/logout', { method: 'POST', headers: intestazioni(cfg) }); } catch { /* pazienza */ }
