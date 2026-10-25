@@ -43,7 +43,10 @@ export async function controllaAggiornamento({ forzato = false } = {}) {
   }
 
   const remota = versioneOnline(testo);
-  const locale = Number(versioneLocale());
+  // PALESTRA_VERSIONE contiene "palestra-v280", non un numero puro.
+  // Number("palestra-v280") restituisce NaN: il confronto falliva sempre e
+  // l'app non riconosceva correttamente la versione già installata.
+  const locale = versioneOnline(versioneLocale());
   if (!remota || remota <= locale) return null;
 
   // IL BLOCCO ANTI-LOOP (22/10/2026).
