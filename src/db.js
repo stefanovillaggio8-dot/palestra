@@ -115,8 +115,16 @@ function motoreIdb(db) {
       const trans = db.transaction(nomi, modo);
       risultato = corpo(trans);
       trans.oncomplete = () => risolvi(risultato && risultato.result !== undefined ? risultato.result : risultato);
-      trans.onerror = () => rifiuta(trans.error || new Error('IndexedDB: transazione fallita (' + modo + ', ' + nomi.join(', ') + ')'));
-      trans.onabort = () => rifiuta(trans.error || new Error('IndexedDB: transazione annullata (' + modo + ', ' + nomi.join(', ') + ')'));
+      trans.onerror = (ev) => {
+        const errore = (ev && ev.target && ev.target.error) || trans.error;
+        rifiuta(new Error('IndexedDB: transazione fallita (' + modo + ', ' + nomi.join(', ') + ')' +
+          (errore ? ' — ' + (errore.name || 'Errore') + ': ' + (errore.message || String(errore)) : ' — causa non esposta dal browser')));
+      };
+      trans.onabort = (ev) => {
+        const errore = (ev && ev.target && ev.target.error) || trans.error;
+        rifiuta(new Error('IndexedDB: transazione annullata (' + modo + ', ' + nomi.join(', ') + ')' +
+          (errore ? ' — ' + (errore.name || 'Errore') + ': ' + (errore.message || String(errore)) : ' — causa non esposta dal browser')));
+      };
     } catch (e) { rifiuta(e); }
   });
   const chiedi = (req) => new Promise((risolvi, rifiuta) => {
