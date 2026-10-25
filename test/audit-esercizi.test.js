@@ -146,13 +146,11 @@ test('le varianti a cavo e i macchinari personali hanno metadati coerenti', () =
   assert.equal(crunch.carrucola, 'carrucola_mono',
     'il Cable Crunch indicato da Ste è monocarrucola');
 
-  const faceMono = perId('ex-face-pull');
-  const faceDoppia = perId('ex-face-pull-doppia');
-  assert.ok(faceMono && faceDoppia, 'il Face Pull ha entrambe le varianti');
-  assert.equal(faceMono.carrucola, 'carrucola_mono');
-  assert.equal(faceDoppia.carrucola, 'carrucola_doppia');
-  assert.equal(faceMono.foto, faceDoppia.foto,
-    'le due varianti Face Pull condividono la stessa immagine');
+  const face = perId('ex-face-pull');
+  assert.ok(face, 'il catalogo contiene un solo Face Pull configurabile');
+  assert.equal(face.carrucola, 'carrucola_mono', 'parte dal valore mono ma è modificabile in app');
+  assert.equal(ESERCIZI.filter((e) => e.gruppo === 'Face Pull').length, 1,
+    'non serve una seconda voce: il rapporto si sceglie nella configurazione');
 
   for (const id of [
     'ex-smith-incline-bench',
