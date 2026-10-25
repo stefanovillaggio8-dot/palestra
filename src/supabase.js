@@ -62,7 +62,7 @@ export class ErroreSupabase extends Error {
   }
 }
 
-async function richiesta(cfg, percorso, opzioni) {
+async function richiesta(cfg, percorso, opzioni, rinnovoGiaTentato = false) {
   let res;
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 15000);
@@ -70,6 +70,21 @@ async function richiesta(cfg, percorso, opzioni) {
     res = await fetch(cfg.url + percorso, { ...opzioni, signal: controller.signal });
     const corpo = await json(res);
     if (!res.ok) {
+      // Se il JWT è scaduto o non è più valido, la REST API risponde 401
+      // (spesso PGRST303). Prima il download si fermava qui senza tentare il
+      // rinnovo, anche se nel dispositivo era presente un refresh_token valido.
+      // Rinnoviamo una sola volta e ripetiamo la stessa richiesta con il token nuovo.
+      if (res.status === 401 && !rinnovoGiaTentato && percorso.startsWith('/rest/v1/')) {
+        const s = sessione();
+        if (s && s.refresh_token) {
+          const nuovaSessione = await rinnovaSessione();
+          const headers = { ...(opzioni.headers || {}) };
+          if (nuovaSessione && nuovaSessione.access_token) {
+            headers.Authorization = 'Bearer ' + nuovaSessione.access_token;
+          }
+          return await richiesta(cfg, percorso, { ...opzioni, headers }, true);
+        }
+      }
       const msg = (corpo && (corpo.msg || corpo.error_description || corpo.message)) || ('Errore ' + res.status);
       throw new ErroreSupabase(msg, res.status, corpo);
     }
