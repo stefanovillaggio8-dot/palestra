@@ -300,6 +300,10 @@ async function avvia() {
     const convenzioni = await sistemaConvenzioniEsercizi();
     if (convenzioni.length) await ricaricaTutto();
 
+    // Il Face Pull ora è un solo esercizio: la carrucola si sceglie nella sua configurazione.
+    const facePullUnificato = await unificaFacePullDoppia();
+    if (facePullUnificato) await ricaricaTutto();
+
     const rinominati = await rinominaEserciziCambiati();
     if (rinominati.length) {
       await ricaricaTutto();
@@ -599,6 +603,41 @@ async function riallineaCatalogo(gi) {
     await risistemaCampiCarico([...(gi || []), ...mancanti]);
   }
   return mancanti;
+}
+
+
+/**
+ * Unisce la vecchia voce Face Pull doppia nella voce unica configurabile.
+ * Sposta lo storico serie/note e mette la voce duplicata nel cestino, così
+ * non si perde lo storico e non compare due volte nel catalogo.
+ */
+async function unificaFacePullDoppia() {
+  const vecchio = await db.prendi('esercizi', 'ex-face-pull-doppia');
+  if (!vecchio || vecchio.eliminata) return false;
+  const unico = await db.prendi('esercizi', 'ex-face-pull');
+  if (!unico) return false;
+
+  const serieVecchie = (await db.tutti('serie')).filter((r) => r.esercizio_id === vecchio.id);
+  const noteVecchie = (await db.tutti('note')).filter((r) => r.esercizio_id === vecchio.id);
+  for (const r of serieVecchie) {
+    await db.salva('serie', { ...r, esercizio_id: unico.id });
+  }
+  for (const r of noteVecchie) {
+    await db.salva('note', { ...r, esercizio_id: unico.id });
+  }
+
+  // Se esisteva uno storico registrato nella variante doppia, mantieni quel
+  // rapporto come scelta iniziale, senza sovrascrivere una scelta già manuale.
+  if (serieVecchie.length && !unico.configurazioneCavoPersonalizzata
+      && vecchio.carrucola) {
+    await db.salva('esercizi', {
+      ...unico,
+      carrucola: vecchio.carrucola,
+      configurazioneCavoPersonalizzata: true,
+    });
+  }
+  await db.cestino('esercizi', vecchio.id);
+  return true;
 }
 
 async function seminaSeVuoto() {
