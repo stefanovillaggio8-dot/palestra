@@ -1118,28 +1118,9 @@ function vistaHome(zona) {
 
   zona.appendChild(el('div', { id: 'zona-avviso' }));
 
-  // Cambio persona: ogniuno ha il suo link. Non serve alcun account, e i dati
-  // non si mescolano: sono schede e storico separati.
-  const persone = personeDiQuestaApp();
-  if (persone.length > 1) {
-    const boxPersone = el('div', { class: 'scelta-persona' });
-    boxPersone.appendChild(el('span', { class: 'nota', testo: 'Stai usando:' }));
-    const scelte = el('div', { class: 'chip-scelte' });
-    for (const p of persone) {
-      const attiva = p.id === personaAttiva().id;
-      scelte.appendChild(bottone(p.nome, {
-        onClick: () => {
-          if (attiva) return;
-          try { window.location.href = linkPersona(p) + window.location.hash; }
-          catch { vai('/'); }
-        },
-        classe: 'chip' + (attiva ? ' attivo' : ''),
-      }));
-    }
-    boxPersone.appendChild(scelte);
-    zona.appendChild(boxPersone);
-  }
-
+  // Ogni persona usa il proprio link: non mostrare un selettore che fa sembrare
+  // l'account di Andrea parte del profilo di Stefano. Gli amici si aprono da Amici.
+  
   // Se cÈ una seduta aperta, questa È la cosa più importante della schermata:
   // la metto in cima, grossa, prima ancora del titolo. Se chiudi l'app a meta'
   // allenamento la trovi subito e la riprendi.
@@ -6933,6 +6914,27 @@ async function vistaProfilo(zona) {
   const st = statoMio();
   const profilo = profiloAttivo();
   zona.appendChild(el('h1', { testo: 'Profilo' }));
+
+  // Ogni persona condivide solo il proprio link: Andrea ha il suo link separato,
+  // Stefano il suo. Il collegamento fra i due si gestisce dalla scheda Amici.
+  const mioLink = linkPersona(personaAttiva());
+  const boxLink = el('section', { class: 'blocco' }, [
+    el('h2', { testo: 'Il tuo link personale' }),
+    el('p', { class: 'nota', testo: 'Condividi questo link per far aprire la tua scheda. I tuoi allenamenti restano separati da quelli degli amici.' }),
+    el('p', { class: 'nota nota-piccola', testo: mioLink }),
+    bottone('Copia il mio link', {
+      onClick: async () => {
+        try {
+          await navigator.clipboard.writeText(new URL(mioLink, window.location.href).href);
+          avviso('Link personale copiato.', { tipo: 'ok' });
+        } catch {
+          window.prompt('Copia il tuo link personale:', new URL(mioLink, window.location.href).href);
+        }
+      },
+      classe: 'principale',
+    }),
+  ]);
+  zona.appendChild(boxLink);
 
   // l'avatar grande e centrale, come nei giochi
   const testa = el('div', { class: 'testa-profilo' }, [
