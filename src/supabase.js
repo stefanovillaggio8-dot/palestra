@@ -62,7 +62,7 @@ export class ErroreSupabase extends Error {
   }
 }
 
-async function richiesta(cfg, percorso, opzioni, rinnovoGiaTentato = false) {
+async function richiesta(cfg, percorso, opzioni, rinnovoGiaTentato = false, tentativoRete = 0) {
   let res;
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 15000);
@@ -93,6 +93,15 @@ async function richiesta(cfg, percorso, opzioni, rinnovoGiaTentato = false) {
     if (e instanceof ErroreSupabase) throw e;
     if (e && e.name === 'AbortError') {
       throw new ErroreSupabase('Il database non ha risposto entro 15 secondi. Controlla la connessione e riprova.', 0, String(e));
+    }
+    // Safari su iPhone può interrompere fetch per brevi oscillazioni della rete
+    // anche quando la connessione torna subito disponibile. Ritenta due volte
+    // SOLO gli errori di rete del browser; gli errori HTTP/schema/RLS non passano
+    // da qui e non vengono mascherati.
+    if (e && e.name === 'TypeError' && tentativoRete < 2) {
+      clearTimeout(timer);
+      await new Promise((resolve) => setTimeout(resolve, 700 * (tentativoRete + 1)));
+      return await richiesta(cfg, percorso, opzioni, rinnovoGiaTentato, tentativoRete + 1);
     }
     throw new ErroreSupabase('Nessuna connessione con il database.', 0, String(e));
   } finally {
