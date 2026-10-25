@@ -1523,15 +1523,16 @@ let timerSeduta = null;
  * La carrucola e il numero di braccia sono due scelte separate.
  */
 function configuraCaricoEsercizio(e) {
+  if (!e || e.convenzione !== 'cavo_totali') return;
   const box = el('div', { class: 'sfondo-dialogo' });
   const dialogo = el('div', { class: 'dialogo dialogo-largo' }, [
     el('h3', { testo: 'Configura ' + e.nome }),
-    el('p', { class: 'nota', testo: 'La configurazione viene salvata per questo esercizio e riutilizzata nelle prossime sedute.' }),
+    el('p', { class: 'nota', testo: 'Questa scelta vale per questo esercizio e modifica anche il calcolo del Rank.' }),
   ]);
   const carrucola = el('select', { class: 'selettore' }, [
-    el('option', { value: '', testo: 'Non è un esercizio al cavo / rapporto non verificato' }),
-    el('option', { value: 'carrucola_mono', testo: 'Monocarrucola / rapporto 1:1 — non dimezzare' }),
-    el('option', { value: 'carrucola_doppia', testo: 'Doppia carrucola / rapporto 2:1 — dimezza il carico effettivo' }),
+    el('option', { value: '', testo: 'Non so il rapporto: non dimezzare' }),
+    el('option', { value: 'carrucola_mono', testo: 'Mono / rapporto 1:1' }),
+    el('option', { value: 'carrucola_doppia', testo: 'Doppia / rapporto 2:1' }),
   ]);
   carrucola.value = e.carrucola || '';
   const usoBraccia = el('select', { class: 'selettore' }, [
@@ -1540,23 +1541,23 @@ function configuraCaricoEsercizio(e) {
     el('option', { value: 'due_braccia', testo: 'Uso due braccia insieme' }),
   ]);
   usoBraccia.value = e.usoBraccia || '';
-  const attrezzatura = el('select', { class: 'selettore' }, [
-    el('option', { value: '', testo: 'Attrezzatura non specificata / non è una macchina' }),
-    el('option', { value: 'macchina_dischi', testo: 'Macchina a dischi o multipower' }),
-    el('option', { value: 'macchina_stack', testo: 'Macchina con pacco pesi e linguetta' }),
+
+  const spiegazione = el('div', { class: 'nota nota-piccola' }, [
+    el('p', { testo: 'MONO 1:1: il numero sulla pila è quello che consideri. Se la pila segna 20 kg, conti 20.' }),
+    el('p', { testo: 'DOPPIA 2:1: il meccanismo riduce a circa la metà il carico al cavo. Se la pila segna 20 kg, conti 10.' }),
+    el('p', { testo: 'Uno o due bracci indica come fai il movimento, non il rapporto della carrucola. Puoi usare due mani anche con un cavo 1:1.' }),
+    el('p', { testo: 'Se non conosci il rapporto, lascia “Non so”: l’app non dimezza il peso. Controlla l’etichetta della macchina o chiedi in palestra.' }),
   ]);
-  attrezzatura.value = e.attrezzatura || '';
-  const indipendenti = el('select', { class: 'selettore' }, [
-    el('option', { value: 'no', testo: 'I bracci non sono indipendenti / non applicabile' }),
-    el('option', { value: 'si', testo: 'I bracci della macchina sono indipendenti' }),
-  ]);
-  indipendenti.value = e.bracciaIndipendenti ? 'si' : 'no';
+  spiegazione.hidden = true;
+  const spiega = bottone('Spiegami in modo semplice', {
+    classe: 'fantasma',
+    onClick: () => { spiegazione.hidden = !spiegazione.hidden; },
+  });
   dialogo.append(
-    el('label', { class: 'nota', testo: 'Rapporto della carrucola' }), carrucola,
-    el('p', { class: 'nota nota-piccola', testo: 'Scegli doppia solo quando il rapporto è davvero 2:1: non dipende dal fatto che usi una o due mani.' }),
-    el('label', { class: 'nota', testo: 'Come esegui il movimento' }), usoBraccia,
-    el('label', { class: 'nota', testo: 'Tipo di attrezzatura' }), attrezzatura,
-    el('label', { class: 'nota', testo: 'Indipendenza meccanica dei bracci' }), indipendenti,
+    el('label', { class: 'nota', testo: 'Che rapporto ha la carrucola?' }), carrucola,
+    el('label', { class: 'nota', testo: 'Usi un braccio o due?' }), usoBraccia,
+    spiega,
+    spiegazione,
     el('div', { class: 'dialogo-azioni' }, [
       bottone('Annulla', { onClick: () => box.remove(), classe: 'fantasma' }),
       bottone('SALVA', { onClick: async () => {
@@ -1564,14 +1565,13 @@ function configuraCaricoEsercizio(e) {
           ...e,
           carrucola: carrucola.value || null,
           usoBraccia: usoBraccia.value || null,
-          attrezzatura: attrezzatura.value || null,
-          bracciaIndipendenti: indipendenti.value === 'si',
+          configurazioneCavoPersonalizzata: true,
         };
         await db.salva('esercizi', aggiornato);
         await ricaricaTutto();
         box.remove();
         disegna();
-        avviso('Configurazione salvata per ' + e.nome + '.', { tipo: 'ok' });
+        avviso('Configurazione salvata: il Rank userà questa scelta.', { tipo: 'ok' });
       }, classe: 'principale' }),
     ]),
   );
@@ -1701,12 +1701,12 @@ async function vistaSeduta(zona, sedutaId) {
       el('h2', { testo: nomeConMuscolo(e) }),
       // il rank di questo esercizio: record, LP e progressione
       el('a', { href: '#/esercizio/' + e.id, class: 'bottone-guarda piccolo-b', testo: 'Il suo Rank' }),
-      bottone('Configura', { onClick: () => configuraCaricoEsercizio(e), classe: 'fantasma piccolo-b' }),
+      e.convenzione === 'cavo_totali' ? bottone('Configura', { onClick: () => configuraCaricoEsercizio(e), classe: 'fantasma piccolo-b' }) : null,
     ]));
     blocco.appendChild(el('div', { class: 'riga-convenzione' }, [
       el('span', { class: 'badge-conv', testo: ETICHETTE_CONVENZIONE[e.convenzione] || '' }),
-      e.usoBraccia ? el('span', { class: 'nota', testo: e.usoBraccia === 'un_braccio' ? 'un braccio' : e.usoBraccia === 'due_braccia' ? 'due braccia' : e.usoBraccia }) : null,
-      e.carrucola ? el('span', { class: 'nota', testo: e.carrucola === 'carrucola_doppia' ? 'rapporto carrucola 2:1' : 'monocarrucola / rapporto 1:1' }) : null,
+      e.convenzione === 'cavo_totali' && e.usoBraccia ? el('span', { class: 'nota', testo: e.usoBraccia === 'un_braccio' ? 'un braccio' : e.usoBraccia === 'due_braccia' ? 'due braccia' : e.usoBraccia }) : null,
+      e.convenzione === 'cavo_totali' && e.carrucola ? el('span', { class: 'nota', testo: e.carrucola === 'carrucola_doppia' ? 'rapporto carrucola 2:1' : 'monocarrucola / rapporto 1:1' }) : null,
       e.nota_permanente ? el('span', { class: 'nota', testo: 'nota permanente sotto' }) : null,
     ]));
 
