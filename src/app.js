@@ -1062,44 +1062,96 @@ function vistaImpostazioni(zona) {
   const accountBox = el('section', { class: 'blocco' });
   accountBox.appendChild(el('h2', { testo: 'Account e database online' }));
   const cfg = sb.leggiConfig();
-  if (!cfg.attivo) {
-    accountBox.appendChild(el('p', { class: 'nota', testo: 'Il database online non e\' ancora collegato. Intanto l\'app funziona tutto: i tuoi dati si salvano su questo dispositivo e puoi usare l\'app anche senza rete.' }));
-    const url = el('input', { type: 'url', class: 'campo-testo', placeholder: 'https://xxxxxxxxxxxx.supabase.co' });
-    const chiave = el('input', { type: 'text', class: 'campo-testo', placeholder: 'chiave publishable anon' });
-    const mail = el('input', { type: 'email', class: 'campo-testo', placeholder: 'la tua email' });
-    const pass = el('input', { type: 'password', class: 'campo-testo', placeholder: 'password' });
-    accountBox.appendChild(el('div', { class: 'campi-account' }, [url, chiave, mail, pass]));
-    accountBox.appendChild(el('div', { class: 'riga-pulsanti' }, [
-      bottone('Collega il database', {
-        onClick: () => {
-          if (!url.value || !chiave.value) { avviso('Mancano l\'indirizzo del database o la chiave.', { tipo: 'errore' }); return; }
-          sb.scriviConfig({ url: url.value.replace(/\/$/, ''), anonKey: chiave.value });
-          avviso('Database collegato. Ora accedi.', { tipo: 'ok' });
+  let pannelloConfig = null;
+
+  const mostraModificaConfig = () => {
+    if (pannelloConfig) return;
+    pannelloConfig = el('div', { class: 'campi-account' });
+    const url = el('input', { type: 'url', class: 'campo-testo', placeholder: 'https://xxxxxxxxxxxx.supabase.co', value: cfg.url || '', autocomplete: 'url' });
+    const chiave = el('input', { type: 'password', class: 'campo-testo', placeholder: 'Chiave publishable / anon', autocomplete: 'off' });
+    chiave.value = cfg.anonKey || '';
+    const esito = el('p', { class: 'nota', testo: 'Inserisci l’URL del progetto Supabase (non il link alla dashboard) e la chiave pubblica.' });
+    const salva = bottone('Salva e verifica connessione', {
+      classe: 'principale',
+      onClick: async () => {
+        const nuovoUrl = url.value.trim().replace(/\/+$/, '');
+        const nuovaChiave = chiave.value.trim();
+        if (!/^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(nuovoUrl)) {
+          avviso('URL non valido: usa l’indirizzo https://…supabase.co del progetto.', { tipo: 'errore', durata: 9000 });
+          return;
+        }
+        if (!nuovaChiave) {
+          avviso('Inserisci la chiave pubblica del progetto.', { tipo: 'errore' });
+          return;
+        }
+        salva.disabled = true;
+        salva.textContent = 'Verifica in corso…';
+        esito.textContent = 'Sto verificando il collegamento senza modificare i tuoi dati.';
+        try {
+          const risposta = await fetch(nuovoUrl + '/auth/v1/settings', {
+            method: 'GET',
+            headers: { apikey: nuovaChiave, Accept: 'application/json' },
+          });
+          if (risposta.status === 401 || risposta.status === 403) {
+            throw new Error('Il server risponde, ma la chiave pubblica non è accettata. Ricontrolla la chiave.');
+          }
+          if (!risposta.ok) {
+            throw new Error('Il server risponde (HTTP ' + risposta.status + '), ma il controllo non è riuscito. Verifica URL e chiave.');
+          }
+          sb.scriviConfig({ url: nuovoUrl, anonKey: nuovaChiave });
+          pannelloConfig = null;
+          avviso('Database raggiungibile e configurazione salvata. Ora puoi accedere.', { tipo: 'ok', durata: 8000 });
           disegna();
-        },
-        classe: 'principale',
-      }),
-    ]));
+        } catch (e) {
+          esito.textContent = e && e.message ? e.message : 'Connessione non riuscita.';
+          salva.disabled = false;
+          salva.textContent = 'Salva e verifica connessione';
+        }
+      },
+    });
+    pannelloConfig.append(url, chiave, esito, salva);
+    accountBox.appendChild(pannelloConfig);
+  };
+
+  if (!cfg.attivo) {
+    accountBox.appendChild(el('p', { class: 'nota', testo: 'Collega il progetto Supabase per usare la sincronizzazione online. I dati locali restano salvati su questo dispositivo.' }));
+    mostraModificaConfig();
   } else {
     const s = sb.sessione();
-    accountBox.appendChild(el('p', { class: 'nota', testo: s ? `Collegato come ${s.user && s.user.email ? s.user.email : 'account tuo'}.` : 'Database collegato ma non hai ancora fatto l\'accesso.' }));
+    let host = 'URL da verificare';
+    try { host = new URL(cfg.url).host; } catch { /* URL malformato: il pannello permette di correggerlo */ }
+    accountBox.appendChild(el('p', { class: 'nota', testo: 'Database configurato: ' + host + (s ? ' · Accesso come ' + (s.user && s.user.email ? s.user.email : 'account') + '.' : ' · Non hai effettuato l’accesso.') }));
+    const modifica = bottone('Modifica URL / chiave database', {
+      classe: 'fantasma',
+      onClick: () => {
+        mostraModificaConfig();
+        modifica.disabled = true;
+      },
+    });
+    accountBox.appendChild(el('div', { class: 'riga-pulsanti' }, [modifica]));
     if (!s) {
-      const mail = el('input', { type: 'email', class: 'campo-testo', placeholder: 'la tua email' });
-      const pass = el('input', { type: 'password', class: 'campo-testo', placeholder: 'password' });
+      const mail = el('input', { type: 'email', class: 'campo-testo', placeholder: 'la tua email', autocomplete: 'username' });
+      const pass = el('input', { type: 'password', class: 'campo-testo', placeholder: 'password', autocomplete: 'current-password' });
       accountBox.appendChild(el('div', { class: 'campi-account' }, [mail, pass]));
       accountBox.appendChild(el('div', { class: 'riga-pulsanti' }, [
         bottone('Accedi', {
           onClick: async () => {
             if (!mail.value.trim() || !pass.value) { avviso('Inserisci email e password.', { tipo: 'errore' }); return; }
-            try { await sb.accedi(mail.value.trim(), pass.value); avviso('Accesso riuscito.', { tipo: 'ok' }); await ricarcaTutto(); disegna(); }
-            catch (e) { avviso('Accesso non riuscito: ' + e.message, { tipo: 'errore', durata: 8000 }); }
+            try {
+              await sb.accedi(mail.value.trim(), pass.value);
+              avviso('Accesso riuscito.', { tipo: 'ok' });
+              await ricarcaTutto();
+              disegna();
+            } catch (e) {
+              avviso('Accesso non riuscito: ' + e.message, { tipo: 'errore', durata: 9000 });
+            }
           },
           classe: 'principale',
         }),
         bottone('Crea account', {
           onClick: async () => {
             const email = mail.value.trim();
-            if (!email || !pass.value) { avviso('Inserisci email e password per creare l\'account.', { tipo: 'errore' }); return; }
+            if (!email || !pass.value) { avviso('Inserisci email e password per creare l’account.', { tipo: 'errore' }); return; }
             if (pass.value.length < 6) { avviso('La password deve contenere almeno 6 caratteri.', { tipo: 'errore' }); return; }
             try {
               const risultato = await sb.registrati(email, pass.value);
@@ -1108,7 +1160,7 @@ function vistaImpostazioni(zona) {
                 await ricarcaTutto();
                 disegna();
               } else {
-                avviso('Registrazione inviata. Controlla la tua email e conferma l\'account, poi torna qui e premi Accedi.', { tipo: 'ok', durata: 10000 });
+                avviso('Registrazione inviata. Controlla la tua email e conferma l’account, poi torna qui e premi Accedi.', { tipo: 'ok', durata: 10000 });
               }
             } catch (e) {
               avviso('Registrazione non riuscita: ' + e.message, { tipo: 'errore', durata: 10000 });
