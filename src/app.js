@@ -129,8 +129,21 @@ function schedaAttivaId() { return personaAttiva().schedaId; }
  * condividere.
  */
 async function risolviPersona() {
-  const ricerca = (typeof window !== 'undefined' && window.location && window.location.search) || '';
+  let ricerca = (typeof window !== 'undefined' && window.location && window.location.search) || '';
   const memoria = await db.leggiMeta('persona', null);
+
+  // Su iPhone l'icona Home può aprire una finestra senza parametri URL e con
+  // IndexedDB separato da Safari. Se è installata e non ha identità locale,
+  // apri il profilo di Stefano invece di chiedere un nome.
+  let installata = false;
+  try {
+    installata = window.navigator.standalone === true ||
+      (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
+  } catch { /* browser senza rilevamento modalità installata */ }
+  if (installata && !/[?&](?:p=\\d+|n=)/.test(ricerca) && !memoria) {
+    ricerca = '?p=1';
+  }
+
   const schede = (await db.tutti('schede')).map((s) => s && s.id).filter(Boolean);
   const esito = chiSei({ ricerca, memoria, schede });
   if (esito.persona) {
