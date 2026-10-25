@@ -436,6 +436,7 @@ test('C15. i 27 esercizi della scheda di Ste hanno il livello giusto', async () 
 
   // ESERCIZI AGGIUNTI (Ste, 21/10/2026): vengono dalla lista.
   'ex-face-pull': 'isolamento',
+  'ex-face-pull-doppia': 'isolamento',
   'ex-back-extension': 'isolamento',
   'ex-smith-machine-bench-press': 'composto',
   'ex-smith-machine-bent-over-row': 'composto',
