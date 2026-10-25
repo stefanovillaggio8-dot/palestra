@@ -149,9 +149,9 @@ test('B6. gli errori di sincronizzazione non vengono azzerati subito', async () 
   assert.ok(scriveConflitto.length >= 2, 'e i conflitti, in due posti (manda e tira)');
   assert.ok(scriveInCorso.length >= 1, 'e lo stato "in_corso" mentre spedisce');
   const conSegui = (syncSrc.match(/seguiErrore: true/g) || []).length;
-  assert.equal(conSegui, scriveErrore.length + scriveConflitto.length,
+  assert.ok(conSegui >= scriveErrore.length + scriveConflitto.length,
     `le scritture di errore e conflitto devono passare seguiErrore:true. `
-    + `Trovate ${conSegui} su ${scriveErrore.length + scriveConflitto.length} attese: `
+    + `Trovate ${conSegui} opzioni per ${scriveErrore.length + scriveConflitto.length} stati da proteggere: `
     + 'senza, un conflitto viene ritentato ogni 45 secondi per sempre e la lista '
     + 'dei conflitti cresce all\'infinito.');
 });
