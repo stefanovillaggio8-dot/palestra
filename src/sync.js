@@ -208,7 +208,10 @@ async function manda() {
       await confermaInvio(tabella, riga, nuovoRev);
       esito.inviati++;
     } catch (e) {
-      const messaggio = e && e.message ? e.message : String(e);
+      const messaggioBase = e && e.message ? e.message : String(e);
+      // Aggiunge tabella e ID alla diagnosi: così si può distinguere un ID
+      // condiviso/duplicato da un problema di sessione o di policy RLS.
+      const messaggio = tabella + ' [' + String(riga.id || '(senza id)') + ']: ' + messaggioBase;
       await db.aggiornaSe(
         tabella,
         riga.id,
