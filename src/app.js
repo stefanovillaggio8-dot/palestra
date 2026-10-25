@@ -7173,15 +7173,15 @@ function finestraCreaEsercizio() {
 const carrucola = el('select', { class: 'selettore' }, [
     el('option', { value: '', testo: 'non è un cavo' }),
     el('option', { value: 'carrucola_mono', testo: 'MONO carrucola — un cavo solo, e il numero che scrivi è quello che senti' }),
-    el('option', { value: 'carrucola_doppia', testo: 'DOPPIA carrucola — due cavi che si dividono: se segni 50 ne senti 25' }),
+    el('option', { value: 'carrucola_doppia', testo: 'DOPPIA carrucola (rapporto 2:1) — selezionala solo se il carico effettivo al cavo è metà del numero sulla pila' }),
   ]);
   const spiegazioneCarrucola = el('p', { class: 'nota nota-piccola nota-zavorri' });
   const scriviSpiegazioneCarrucola = () => {
     svuota(spiegazioneCarrucola);
     if (carrucola.value === 'carrucola_mono') {
-      spiegazioneCarrucola.appendChild(el('span', { testo: 'Mono carrucola: un cavo solo. 50 sul bilanciere sono 50 che senti.' }));
+      spiegazioneCarrucola.appendChild(el('span', { testo: 'Mono / rapporto 1:1: 50 sulla pila corrispondono a 50 nominali al cavo; non dimezzare.' }));
     } else if (carrucola.value === 'carrucola_doppia') {
-      spiegazioneCarrucola.appendChild(el('span', { testo: 'Doppia carrucola: il carico si divide fra due cavi. Se il bilanciere dice 50, ai due lati senti 25, quindi l\'app ti mette 25. E su una doppia carrucola si lavora su UN braccio alla volta.' }));
+      spiegazioneCarrucola.appendChild(el('span', { testo: 'Rapporto 2:1: con 50 sulla pila, al cavo arrivano circa 25. Non dipende dal fatto che usi uno o due bracci: conta il rapporto della macchina. Se non sai il rapporto, non scegliere doppia per supposizione.' }));
     }
   };
   carrucola.addEventListener('change', () => { scriviSpiegazioneCarrucola(); aggiornaAnteprima(); });
@@ -7196,9 +7196,9 @@ const carrucola = el('select', { class: 'selettore' }, [
   const scriviSpiegazioneAttrezzatura = () => {
     svuota(spiegazioneAttrezzatura);
     if (attrezzatura.value === 'macchina_dischi') {
-      spiegazioneAttrezzatura.appendChild(el('span', { testo: 'Dischi veri: i dischi si montano su ENTRAMBI i lati, quindi 20 per lato vuol dire 40 in tutto. È il caso della chest press.' }));
+      spiegazioneAttrezzatura.appendChild(el('span', { testo: 'Dischi caricati a mano: per il multipower inserisci i kg di dischi PER LATO e non contare la barra. Per macchine con bracci indipendenti, inserisci il carico per lato/braccio come indicato nella scheda.' }));
     } else if (attrezzatura.value === 'macchina_stack') {
-      spiegazioneAttrezzatura.appendChild(el('span', { testo: 'Stack: infili la linguetta e il pacco è già per entrambi i lati. 50 sono 50 in tutto, non vanno dimezzati. È il caso di leg press, lat pulldown, leg curl.' }));
+      spiegazioneAttrezzatura.appendChild(el('span', { testo: 'Stack: scegli il numero sulla pila con la linguetta. Di norma registri quel numero senza raddoppiarlo; il rapporto del cavo va verificato sulla macchina specifica.' }));
     }
   };
   attrezzatura.addEventListener('change', () => { scriviSpiegazioneAttrezzatura(); aggiornaAnteprima(); });
