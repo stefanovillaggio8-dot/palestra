@@ -152,7 +152,7 @@ export function applicaRemote(locale, remoto) {
 //
 // Ordine: prima quelli che c'erano, poi `convenzione`. La lista si legge come una
 // frase, quindi i campi nuovi vanno in fondo e non in mezzo.
-export const CAMPI_CARICO = ['carrucola', 'attrezzatura', 'bracciaIndipendenti', 'convenzione'];
+export const CAMPI_CARICO = ['carrucola', 'attrezzatura', 'bracciaIndipendenti', 'convenzione', 'usoBraccia'];
 
 /**
  * Rimette i tre campi dal catalogo, per ogni esercizio che li perse.
