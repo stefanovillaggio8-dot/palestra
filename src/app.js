@@ -7251,7 +7251,6 @@ const carrucola = el('select', { class: 'selettore' }, [
     }
   };
   carrucola.addEventListener('change', () => { scriviSpiegazioneCarrucola(); aggiornaAnteprima(); });
-  usoBraccia.addEventListener('change', () => { aggiornaRiconoscimento(); aggiornaAnteprima(); });
   scriviSpiegazioneCarrucola();
 
   const attrezzatura = el('select', { class: 'selettore' }, [
@@ -7371,6 +7370,7 @@ const carrucola = el('select', { class: 'selettore' }, [
     }));
   };
   riferimento.addEventListener('input', aggiornaAnteprima);
+  usoBraccia.addEventListener('change', aggiornaAnteprima);
   tipo.addEventListener('change', aggiornaAnteprima);
   convenzione.addEventListener('change', aggiornaAnteprima);
   aggiornaAnteprima();
