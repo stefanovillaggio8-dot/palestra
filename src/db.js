@@ -111,17 +111,25 @@ function apriIdb() {
 function motoreIdb(db) {
   const esegui = (nomi, modo, corpo) => new Promise((risolvi, rifiuta) => {
     let risultato;
+    let erroreRichiesta = null;
     try {
       const trans = db.transaction(nomi, modo);
+      // Gli errori delle singole richieste IndexedDB risalgono alla transazione.
+      // Il target dell'evento sulla transazione non espone necessariamente .error:
+      // conserviamo quindi l'errore originale della richiesta per non nascondere
+      // DataError, DataCloneError, ConstraintError o QuotaExceededError.
+      trans.addEventListener('error', (ev) => {
+        if (ev.target && ev.target !== trans && ev.target.error) erroreRichiesta = ev.target.error;
+      }, true);
       risultato = corpo(trans);
       trans.oncomplete = () => risolvi(risultato && risultato.result !== undefined ? risultato.result : risultato);
-      trans.onerror = (ev) => {
-        const errore = (ev && ev.target && ev.target.error) || trans.error;
+      trans.onerror = () => {
+        const errore = erroreRichiesta || trans.error;
         rifiuta(new Error('IndexedDB: transazione fallita (' + modo + ', ' + nomi.join(', ') + ')' +
           (errore ? ' — ' + (errore.name || 'Errore') + ': ' + (errore.message || String(errore)) : ' — causa non esposta dal browser')));
       };
-      trans.onabort = (ev) => {
-        const errore = (ev && ev.target && ev.target.error) || trans.error;
+      trans.onabort = () => {
+        const errore = erroreRichiesta || trans.error;
         rifiuta(new Error('IndexedDB: transazione annullata (' + modo + ', ' + nomi.join(', ') + ')' +
           (errore ? ' — ' + (errore.name || 'Errore') + ': ' + (errore.message || String(errore)) : ' — causa non esposta dal browser')));
       };
