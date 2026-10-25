@@ -5,7 +5,7 @@ export const TABELLE = ['esercizi', 'schede', 'versioni', 'sedute', 'serie', 'no
   'profili', 'missioni', 'ricompense', 'pesi'];
 
 /** Campi che non vengono mai scritti sul server (sono solo del dispositivo). */
-export const CAMPI_LOCALI = ['sync', 'base_rev', 'ultimo_errore', 'tentativi', 'in_flight'];
+export const CAMPI_LOCALI = ['sync', 'base_rev', 'ultimo_errore', 'tentativi', 'in_flight', 'configurazioneCavoPersonalizzata'];
 
 export function chiave(tabella, id) { return tabella + ':' + id; }
 
