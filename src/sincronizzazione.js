@@ -26,10 +26,14 @@ export function nuovoId() {
 export function adesso() { return new Date().toISOString(); }
 
 /** Prepara la riga per il server: toglie i campi locali e la clona. */
-export function rigaPerInvio(riga) {
+export function rigaPerInvio(riga, tabella = '') {
   const out = {};
   for (const k of Object.keys(riga)) {
     if (CAMPI_LOCALI.includes(k)) continue;
+    // Il flag amministratore appartiene al profilo, non a una riga esercizio.
+    // I vecchi esercizi globali locali lo portavano dentro per errore e
+    // PostgREST rifiutava l'intera sincronizzazione.
+    if (tabella === 'esercizi' && k === 'amministratore') continue;
     if (riga[k] === undefined) continue;
     out[k] = riga[k];
   }
