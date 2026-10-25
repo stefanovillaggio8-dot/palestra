@@ -181,6 +181,20 @@ test('31. il catalogo rimette i tre campi a ogni avvio, anche se il database li 
   );
 });
 
+test('la scelta manuale della carrucola sopravvive al riallineamento del catalogo', () => {
+  const catalogo = [{
+    id: 'ex-face-pull', convenzione: 'cavo_totali',
+    carrucola: 'carrucola_mono', usoBraccia: 'due_braccia',
+  }];
+  const sceltaUtente = [{
+    id: 'ex-face-pull', convenzione: 'cavo_totali',
+    carrucola: 'carrucola_doppia', usoBraccia: 'un_braccio',
+    configurazioneCavoPersonalizzata: true,
+  }];
+  assert.deepEqual(riallineaEsercizi(catalogo, sceltaUtente), [],
+    'la scelta personale non viene sovrascritta dal valore iniziale del catalogo');
+});
+
 test('32. una riga remota SENZA quei campi non cancella quelli locali', () => {
   // E\' il buco vero, e da solo spiega i 7 OLYMPIAN.
   const locale = riga({
