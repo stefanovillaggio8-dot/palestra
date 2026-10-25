@@ -95,7 +95,13 @@ export async function registrati(email, password) {
   const corpo = await richiesta(cfg, '/auth/v1/signup', {
     method: 'POST',
     headers: intestazioni(cfg),
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({
+      email,
+      password,
+      options: {
+        emailRedirectTo: 'https://stefanovillaggio8-dot.github.io/palestra/index.html?p=1',
+      },
+    }),
   });
   if (corpo && corpo.access_token) salvaSessione(corpo);
   return corpo;
