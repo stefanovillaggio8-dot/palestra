@@ -64,17 +64,25 @@ export class ErroreSupabase extends Error {
 
 async function richiesta(cfg, percorso, opzioni) {
   let res;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 15000);
   try {
-    res = await fetch(cfg.url + percorso, opzioni);
+    res = await fetch(cfg.url + percorso, { ...opzioni, signal: controller.signal });
+    const corpo = await json(res);
+    if (!res.ok) {
+      const msg = (corpo && (corpo.msg || corpo.error_description || corpo.message)) || ('Errore ' + res.status);
+      throw new ErroreSupabase(msg, res.status, corpo);
+    }
+    return corpo;
   } catch (e) {
+    if (e instanceof ErroreSupabase) throw e;
+    if (e && e.name === 'AbortError') {
+      throw new ErroreSupabase('Il database non ha risposto entro 15 secondi. Controlla la connessione e riprova.', 0, String(e));
+    }
     throw new ErroreSupabase('Nessuna connessione con il database.', 0, String(e));
+  } finally {
+    clearTimeout(timer);
   }
-  const corpo = await json(res);
-  if (!res.ok) {
-    const msg = (corpo && (corpo.msg || corpo.error_description || corpo.message)) || ('Errore ' + res.status);
-    throw new ErroreSupabase(msg, res.status, corpo);
-  }
-  return corpo;
 }
 
 /* ---------------- autenticazione ---------------- */
@@ -95,7 +103,13 @@ export async function registrati(email, password) {
   const corpo = await richiesta(cfg, '/auth/v1/signup', {
     method: 'POST',
     headers: intestazioni(cfg),
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({
+      email,
+      password,
+      options: {
+        emailRedirectTo: 'https://stefanovillaggio8-dot.github.io/palestra/index.html?p=1',
+      },
+    }),
   });
   if (corpo && corpo.access_token) salvaSessione(corpo);
   return corpo;
@@ -115,17 +129,21 @@ export async function rinnovaSessione() {
 }
 
 
-/** Verifica l'identità effettiva del token presso Supabase Auth. */
+/** Verifica l'identità effettiva del token presso Supabase Auth.
+ * Non fidarsi soltanto dell'oggetto user salvato nel localStorage.
+ */
 export async function utenteCorrente() {
   const cfg = leggiConfig();
   let s = sessione();
   if (!cfg.attivo || !s || !s.access_token) {
     throw new ErroreSupabase('Non sei autenticato su Supabase. Accedi con email e password.', 401);
   }
+
   const verifica = async () => richiesta(cfg, '/auth/v1/user', {
     method: 'GET',
     headers: intestazioni(cfg),
   });
+
   let utente;
   try {
     utente = await verifica();
@@ -137,9 +155,12 @@ export async function utenteCorrente() {
       throw e;
     }
   }
+
   if (!utente || !utente.id) {
     throw new ErroreSupabase('Supabase non ha restituito un utente valido. Accedi di nuovo.', 401);
   }
+
+  // Aggiorna i metadati utente memorizzati senza toccare i dati degli allenamenti.
   if (!s.user || s.user.id !== utente.id) {
     salvaSessione({ ...s, user: { ...(s.user || {}), ...utente } });
   }
