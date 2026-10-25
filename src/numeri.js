@@ -94,7 +94,7 @@ export const ETICHETTE_CONVENZIONE = {
   [CONVENZIONI.PER_MANUBRIO]: 'kg per manubrio',
   [CONVENZIONI.DISCHI]: 'kg dischi (senza bilanciere)',
   [CONVENZIONI.PER_GAMBA]: 'kg per gamba',
-  [CONVENZIONI.PER_BRACCIO]: 'kg per braccio (totale = doppio)',
+  [CONVENZIONI.PER_BRACCIO]: 'kg per lato/braccio (inserisci il valore di un lato)',
   [CONVENZIONI.BILANCIERE]: 'kg bilanciere',
   [CONVENZIONI.ASSISTENZA]: 'kg di assistenza (la macchina ti aiuta)',
   // L'etichetta dei zavorri dice due cose che servono entrambe: il numero che
