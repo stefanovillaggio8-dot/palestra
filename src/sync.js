@@ -173,6 +173,11 @@ async function manda() {
         { seguiErrore: true },
       );
       esito.errori++;
+      // Se la rete o il database non rispondono, non provare subito tutte le
+      // altre righe in errore: possono essercene centinaia e ogni richiesta
+      // ha un timeout. Fermarsi qui evita che l'interfaccia resti in
+      // "Salvataggio..." per un tempo enorme; il prossimo giro ritenterà.
+      break;
     }
   }
   return esito;
