@@ -79,6 +79,20 @@ export async function stato() {
 export async function riprovaOra() {
   const coda = await db.codaDiInvio();
   for (const { tabella, riga } of coda) {
+    // Il catalogo iniziale usa ID condivisi (ex-...). Non va inserito nella tabella
+    // privata public.esercizi: se un altro account possiede già lo stesso ID,
+    // l'UPSERT viene respinto dalla policy RLS. Il catalogo resta locale; si sincronizzano
+    // soltanto esercizi personali con ID propri.
+    if (tabella === 'esercizi' && (String(riga.id || '').startsWith('ex-') || riga.globale === true)) {
+      await db.aggiornaSe(
+        tabella,
+        riga.id,
+        (attuale) => attuale && (attuale.sync === 'da_salvare' || attuale.sync === 'errore'),
+        (attuale) => ({ ...attuale, sync: 'pulito', ultimo_errore: null, tentativi: 0 }),
+        { seguiErrore: true },
+      );
+      continue;
+    }
     await db.salva(tabella, { ...riga, sync: 'da_salvare', tentativi: 0, ultimo_errore: null });
   }
   avvisa();
