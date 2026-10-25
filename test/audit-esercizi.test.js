@@ -140,3 +140,34 @@ test('il Wrist Curl da cavo non cambia di movimento né di tetto', () => {
     <= tettoPerEsercizio(r.livello, r.movimento, perId('ex-wrist-curl')),
   'un tetto più largo del multiplo non tronca niente: il numero è solo rumore');
 });
+
+test('le varianti a cavo e i macchinari personali hanno metadati coerenti', () => {
+  const crunch = perId('ex-cable-crunch');
+  assert.equal(crunch.carrucola, 'carrucola_mono',
+    'il Cable Crunch indicato da Ste è monocarrucola');
+
+  const faceMono = perId('ex-face-pull');
+  const faceDoppia = perId('ex-face-pull-doppia');
+  assert.ok(faceMono && faceDoppia, 'il Face Pull ha entrambe le varianti');
+  assert.equal(faceMono.carrucola, 'carrucola_mono');
+  assert.equal(faceDoppia.carrucola, 'carrucola_doppia');
+  assert.equal(faceMono.foto, faceDoppia.foto,
+    'le due varianti Face Pull condividono la stessa immagine');
+
+  for (const id of [
+    'ex-smith-incline-bench',
+    'ex-smith-machine-bench-press',
+    'ex-smith-machine-bent-over-row',
+    'ex-smith-machine-shrug',
+  ]) {
+    const e = perId(id);
+    assert.equal(e.attrezzatura, CONVENZIONI.MACCHINA_DISCHI,
+      `${e.nome}: il multipower si carica con dischi, non con uno stack`);
+    assert.equal(e.convenzione, CONVENZIONI.PER_BRACCIO,
+      `${e.nome}: il numero inserito rappresenta i dischi per lato`);
+  }
+
+  assert.equal(perId('ex-lat-pulldown-lats').attrezzatura, CONVENZIONI.MACCHINA_STACK);
+  assert.equal(perId('ex-seated-cable-row').attrezzatura, CONVENZIONI.MACCHINA_STACK);
+  assert.equal(perId('ex-seated-cable-row').carrucola, CONVENZIONI.CARRUCOLA_MONO);
+});
