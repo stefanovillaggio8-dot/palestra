@@ -326,76 +326,35 @@ export function rankDaScore(score, soglie, { serieFatte = 1 } = {}) {
   const valore = Number(score);
   if (!Number.isFinite(valore)) return { rank: null, indice: -1, lp: 0, motivo: 'nessun punteggio' };
 
-  // la serie migliore da sola: e' questa che decide il Rank, sempre
+  // Il Rank e gli LP partono dalla MIGLIORE SERIE, non da un punteggio gonfiato
+  // dal numero di serie. Il volume dà solo un piccolo bonus separato.
   const conSerie = valore * moltiplicatoreSerie(serieFatte);
-  const onesto = bandaDaValore(conSerie, sog);
+  const conVolume = bandaDaValore(conSerie, sog);
   const daSola = bandaDaValore(valore, sog);
-  const haVolume = serieFatte > 1 && onesto.indice > daSola.indice;
+  const haVolume = serieFatte > 1 && conVolume.indice > daSola.indice;
 
-  if (haVolume) {
-    // QUI C'ERA UN BUG MIO, e me lo ha fatto vedere il test V6: restituivo la
-    // fascia calcolata sul numero CON il volume, quindi il Rank era gia' salito
-    // ("bloccato" ma salito). Il blocco deve valere per il RANK, non per gli LP:
-    // quindi qui si tiene la fascia della serie migliore e si prende solo il
-    // merito delle serie, cioe' gli LP, fermati dentro quella fascia.
-    const fermato = { ...daSola };
-    fermato.lp = lpDentro(conSerie, sog, daSola.indice);
-    // QUI STAVA UN BUG MIO: gli LP venivano ricalcolati a mano ma la divisione
-    // restava quella del Record senza volume. Il risultato era una contraddizione
-    // che Ste aveva gia' segnalato una volta ("99 LP" con "platinum 2"):
-    // fermando il volume a 99 LP la divisione restava "I", che vuol dire "la
-    // piu' bassa", mentre 99 LP dovrebbero dire "III", la piu' alta. La divisione
-    // si ricalcola SEMPRE dagli LP, in un posto solo.
-    fermato.divisione = fermato.indice >= sog.length - 1 ? null : divisioneDaLp(fermato.lp);
-    // E POI UN ALTRO, PIU' VISIBILE AGLI OCCHI DI STE.
-    //
-    // "progresso" e' la barra che vede a schermo. Prima qui finiva 1,000: la barra
-    // si mostrava PIENA con due serie, ma il Rank non era cambiato e la soglia
-    // dopo non era stata toccata. Cioe' l'app diceva "hai finito" mentre non
-    // aveva finito niente, che e' il modo peggiore di mentire.
-    //
-    // Ora la barra resta ferma sul posto del LAVORO VERO (la serie migliore da
-    // sola), e il merito delle serie si legge negli LP. Il volume spinge gli LP
-    // dentro il Rank che hai, non la barra verso il Rank dopo: e' esattamente la
-    // regola secca di Ste, resa visibile.
-    fermato.progresso = daSola.progresso;
-    fermato.progressoConVolume = progressoDentro(conSerie, sog, daSola.indice);
-    fermato.volumeBloccato = true;
-    fermato.lpConVolume = onesto.lp;
-    fermato.rankCheAvrestiAvuto = onesto.rank;
-    return fermato;
-  }
-  // LA BARRA SEMPRE SUL LAVORO VERO, E ADESSO SEMPRE (08/10/2026).
-  //
-  // Prima la barra si fermava sul lavoro vero SOLO quando il volume veniva fermato
-  // (il ramo sopra). Quando invece il volume riusciva a spingere dentro la stessa
-  // fascia, la barra prendeva `onesto.progresso`, cioe' il numero COL volume: e
-  // allora due serie identiche movevano la barra quanto una serie piu' pesante.
-  //
-  // Il caso vero, con i numeri di Ste (corpo 66, chest press 35 kg x 8):
-  //
-  //   1x8  -> GOLD   1 LP  barra   1%
-  //   2x8  -> GOLD  48 LP  barra  49%
-  //   3x8  -> GOLD  77 LP  barra  77%
-  //
-  // Stesso esercizio, stesso peso, e la barra arriva al 77% perche' ha fatto tre
-  // volte la stessa identica serie. Non e' sbagliato (tre serie SONO piu' lavoro),
-  // ma e' una cosa che si rompe appena cambi qualcosa: prima del 15% sugli ingressi
-  // la 3a serie cambiava fascia, quindi la barra saliva "onestamente" e il test
-  // passava senza accorgersene. Con gli ingressi bassi non cambia piu' fascia, e il
-  // gonfiaggio e' comparso.
-  //
-  // Ste ha deciso: "barra = lavoro vero". Quindi qui sotto `progresso` e' SEMPRE
-  // quello della serie migliore da sola, e il volume si legge solo negli LP. E'
-  // la regola che rende impossibile comprare una fascia col volume.
-  const fermo = { ...onesto };
-  fermo.progresso = daSola.progresso;
-  fermo.volumeBloccato = false;
-  // `progressoConVolume` resta il posto dove si vede quanto avrebbe fatto la barra
-  // col volume, se un domani volessi mostrarlo. Serve anche alla schermata per
-  // spiegare "con 3 serie saresti al 77%". Non e' mai la barra principale.
-  fermo.progressoConVolume = onesto.progresso;
-  return fermo;
+  // Il volume conta, ma non può trasformare una prestazione lontana dalla
+  // soglia in 99 LP. Bonus lineare di 2 LP per serie aggiuntiva, massimo 8 LP.
+  // Non si assegnano LP prima del primo Rank né si gonfiano quelli sopra OLYMPIAN.
+  const nSerie = Math.max(1, Math.floor(Number(serieFatte) || 1));
+  const bonusLp = daSola.indice >= 0 && daSola.indice < sog.length - 1
+    ? Math.min(8, (nSerie - 1) * 2)
+    : 0;
+  const lp = Math.min(99, daSola.lp + bonusLp);
+  const risultato = {
+    ...daSola,
+    lp,
+    divisione: daSola.indice >= 0 && daSola.indice < sog.length - 1
+      ? divisioneDaLp(lp)
+      : null,
+    progresso: daSola.progresso,
+    progressoConVolume: conVolume.progresso,
+    volumeBloccato: haVolume,
+    lpConVolume: conVolume.lp,
+    bonusLp,
+  };
+  if (haVolume) risultato.rankCheAvrestiAvuto = conVolume.rank;
+  return risultato;
 }
 
 /** Gli LP che il volume ti porta a prendere, fermati dentro la fascia data. */
