@@ -216,9 +216,9 @@ async function manda() {
       // Alcuni dati locali più vecchi possono contenere user_id dell'account interno
       // dell'app (o nessun user_id): Postgres RLS li rifiuta. La coda è già locale
       // a questo account autenticato, quindi assegniamo l'UUID verificato dalla sessione.
-      const sessione = sb.sessione();
-      const utenteSupabase = sessione && sessione.user && sessione.user.id;
-      if (!utenteSupabase) throw new Error('Sessione Supabase senza ID utente: accedi di nuovo e riprova.');
+      const utenteVerificato = await sb.utenteCorrente();
+      const utenteSupabase = utenteVerificato && utenteVerificato.id;
+      if (!utenteSupabase) throw new Error('Supabase non ha confermato l’utente autenticato: accedi di nuovo e riprova.');
       await sb.scrivi(tabella, { ...rigaPerInvio(riga, tabella), user_id: utenteSupabase, rev: nuovoRev });
       // La coda si svuota solo dopo la conferma. Se nel frattempo la riga è
       // cambiata, la modifica più nuova resta in coda con la base aggiornata.
