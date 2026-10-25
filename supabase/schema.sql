@@ -337,6 +337,36 @@ create policy "proprie ricompense" on public.ricompense
 -- un utente possa cambiare per farsi dare un rank: il massimo che potrebbe
 -- fare e' allenarsi davvero.
 
+-- Chiavi isolate per utente: indispensabili con RLS e ID locali riutilizzati.
+DO $
+DECLARE
+  tabella text;
+  chiave_primaria text;
+BEGIN
+  FOREACH tabella IN ARRAY ARRAY[
+    'esercizi', 'schede', 'versi', 'sedute', 'serie', 'note',
+    'profili', 'missioni', 'ricompense', 'pesi'
+  ] LOOP
+    SELECT conname INTO chiave_primaria
+    FROM pg_constraint
+    WHERE conrelid = format('public.%I', tabella)::regclass
+      AND contype = 'p';
+
+    IF chiave_primaria IS NOT NULL THEN
+      EXECUTE format('ALTER TABLE public.%I DROP CONSTRAINT %I', tabella, chiave_primaria);
+    END IF;
+
+    EXECUTE format(
+      'ALTER TABLE public.%I DROP CONSTRAINT IF EXISTS %I',
+      tabella, tabella || '_user_id_id_key'
+    );
+    EXECUTE format(
+      'ALTER TABLE public.%I ADD CONSTRAINT %I UNIQUE (user_id, id)',
+      tabella, tabella || '_user_id_id_key'
+    );
+  END LOOP;
+END $;
+
 commit;
 
 -- Riepilogo dei limiti del piano gratuito che ti servono:
