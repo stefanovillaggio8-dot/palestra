@@ -115,8 +115,8 @@ function motoreIdb(db) {
       const trans = db.transaction(nomi, modo);
       risultato = corpo(trans);
       trans.oncomplete = () => risolvi(risultato && risultato.result !== undefined ? risultato.result : risultato);
-      trans.onerror = () => rifiuta(trans.error || new Error('operazione fallita'));
-      trans.onabort = () => rifiuta(trans.error || new Error('operazione annullata'));
+      trans.onerror = () => rifiuta(trans.error || new Error('IndexedDB: transazione fallita (' + modo + ', ' + nomi.join(', ') + ')'));
+      trans.onabort = () => rifiuta(trans.error || new Error('IndexedDB: transazione annullata (' + modo + ', ' + nomi.join(', ') + ')'));
     } catch (e) { rifiuta(e); }
   });
   const chiedi = (req) => new Promise((risolvi, rifiuta) => {
