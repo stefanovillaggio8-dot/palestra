@@ -1517,6 +1517,69 @@ function vistaGiorno(zona, giornoId) {
 
 let timerSeduta = null;
 
+
+/**
+ * Configurazione rapida della macchina/esecuzione, direttamente dalla scheda.
+ * La carrucola e il numero di braccia sono due scelte separate.
+ */
+function configuraCaricoEsercizio(e) {
+  const box = el('div', { class: 'sfondo-dialogo' });
+  const dialogo = el('div', { class: 'dialogo dialogo-largo' }, [
+    el('h3', { testo: 'Configura ' + e.nome }),
+    el('p', { class: 'nota', testo: 'La configurazione viene salvata per questo esercizio e riutilizzata nelle prossime sedute.' }),
+  ]);
+  const carrucola = el('select', { class: 'selettore' }, [
+    el('option', { value: '', testo: 'Non è un esercizio al cavo / rapporto non verificato' }),
+    el('option', { value: 'carrucola_mono', testo: 'Monocarrucola / rapporto 1:1 — non dimezzare' }),
+    el('option', { value: 'carrucola_doppia', testo: 'Doppia carrucola / rapporto 2:1 — dimezza il carico effettivo' }),
+  ]);
+  carrucola.value = e.carrucola || '';
+  const usoBraccia = el('select', { class: 'selettore' }, [
+    el('option', { value: '', testo: 'Non specificato' }),
+    el('option', { value: 'un_braccio', testo: 'Uso un braccio alla volta' }),
+    el('option', { value: 'due_braccia', testo: 'Uso due braccia insieme' }),
+  ]);
+  usoBraccia.value = e.usoBraccia || '';
+  const attrezzatura = el('select', { class: 'selettore' }, [
+    el('option', { value: '', testo: 'Attrezzatura non specificata / non è una macchina' }),
+    el('option', { value: 'macchina_dischi', testo: 'Macchina a dischi o multipower' }),
+    el('option', { value: 'macchina_stack', testo: 'Macchina con pacco pesi e linguetta' }),
+  ]);
+  attrezzatura.value = e.attrezzatura || '';
+  const indipendenti = el('select', { class: 'selettore' }, [
+    el('option', { value: 'no', testo: 'I bracci non sono indipendenti / non applicabile' }),
+    el('option', { value: 'si', testo: 'I bracci della macchina sono indipendenti' }),
+  ]);
+  indipendenti.value = e.bracciaIndipendenti ? 'si' : 'no';
+  dialogo.append(
+    el('label', { class: 'nota', testo: 'Rapporto della carrucola' }), carrucola,
+    el('p', { class: 'nota nota-piccola', testo: 'Scegli doppia solo quando il rapporto è davvero 2:1: non dipende dal fatto che usi una o due mani.' }),
+    el('label', { class: 'nota', testo: 'Come esegui il movimento' }), usoBraccia,
+    el('label', { class: 'nota', testo: 'Tipo di attrezzatura' }), attrezzatura,
+    el('label', { class: 'nota', testo: 'Indipendenza meccanica dei bracci' }), indipendenti,
+    el('div', { class: 'dialogo-azioni' }, [
+      bottone('Annulla', { onClick: () => box.remove(), classe: 'fantasma' }),
+      bottone('SALVA', { onClick: async () => {
+        const aggiornato = {
+          ...e,
+          carrucola: carrucola.value || null,
+          usoBraccia: usoBraccia.value || null,
+          attrezzatura: attrezzatura.value || null,
+          bracciaIndipendenti: indipendenti.value === 'si',
+        };
+        await db.salva('esercizi', aggiornato);
+        await ricaricaTutto();
+        box.remove();
+        disegna();
+        avviso('Configurazione salvata per ' + e.nome + '.', { tipo: 'ok' });
+      }, classe: 'principale' }),
+    ]),
+  );
+  box.appendChild(dialogo);
+  box.addEventListener('click', (ev) => { if (ev.target === box) box.remove(); });
+  document.body.appendChild(box);
+}
+
 async function vistaSeduta(zona, sedutaId) {
   if (timerSeduta) { clearInterval(timerSeduta); timerSeduta = null; }
   const s = V.sedute.find((x) => x.id === sedutaId);
@@ -1638,9 +1701,12 @@ async function vistaSeduta(zona, sedutaId) {
       el('h2', { testo: nomeConMuscolo(e) }),
       // il rank di questo esercizio: record, LP e progressione
       el('a', { href: '#/esercizio/' + e.id, class: 'bottone-guarda piccolo-b', testo: 'Il suo Rank' }),
+      bottone('Configura', { onClick: () => configuraCaricoEsercizio(e), classe: 'fantasma piccolo-b' }),
     ]));
     blocco.appendChild(el('div', { class: 'riga-convenzione' }, [
       el('span', { class: 'badge-conv', testo: ETICHETTE_CONVENZIONE[e.convenzione] || '' }),
+      e.usoBraccia ? el('span', { class: 'nota', testo: e.usoBraccia === 'un_braccio' ? 'un braccio' : e.usoBraccia === 'due_braccia' ? 'due braccia' : e.usoBraccia }) : null,
+      e.carrucola ? el('span', { class: 'nota', testo: e.carrucola === 'carrucola_doppia' ? 'rapporto carrucola 2:1' : 'monocarrucola / rapporto 1:1' }) : null,
       e.nota_permanente ? el('span', { class: 'nota', testo: 'nota permanente sotto' }) : null,
     ]));
 
@@ -7207,6 +7273,11 @@ const carrucola = el('select', { class: 'selettore' }, [
     el('option', { value: '', testo: 'i due bracci vanno insieme' }),
     el('option', { value: 'si', testo: 'braccia indipendenti' }),
   ]);
+  const usoBraccia = el('select', { class: 'selettore' }, [
+    el('option', { value: '', testo: 'non specificato' }),
+    el('option', { value: 'un_braccio', testo: 'uso un braccio alla volta' }),
+    el('option', { value: 'due_braccia', testo: 'uso due braccia insieme' }),
+  ]);
 
   // Ste (09/10/2026): "come segno che faccio tapis roulant?".
   //
@@ -7248,6 +7319,7 @@ const carrucola = el('select', { class: 'selettore' }, [
       convenzione: convenzione.value,
       attrezzatura: attrezzatura.value || null,
       bracciaIndipendenti: braccia.value === 'si',
+      usoBraccia: usoBraccia.value || null,
     });
     riconosciuto.appendChild(el('p', { class: 'nota nota-piccola' }, [
       el('span', { class: 'tag-livello piccolo liv-' + r.livello, testo: descrizioneLivello(r.livello) }),
@@ -7274,7 +7346,7 @@ const carrucola = el('select', { class: 'selettore' }, [
     const usaQuelloScrittto = Number.isFinite(scritto) && scritto > 0;
     const peso = pesoCorporeoOra();
     const profilo = profiloEsercizio(
-      { id: 'ex-nuovo', nome: nome.value || 'Nuovo esercizio', convenzione: convenzione.value, misura: tipo.value, attrezzatura: attrezzatura.value || null, bracciaIndipendenti: braccia.value === 'si', carrucola: carrucola.value || null },
+      { id: 'ex-nuovo', nome: nome.value || 'Nuovo esercizio', convenzione: convenzione.value, misura: tipo.value, attrezzatura: attrezzatura.value || null, bracciaIndipendenti: braccia.value === 'si', carrucola: carrucola.value || null, usoBraccia: usoBraccia.value || null },
       usaQuelloScrittto ? { riferimento: scritto } : {},
     );
     const conPeso = profiloPerPesoCorporeo(profilo, peso);
@@ -7308,6 +7380,7 @@ const carrucola = el('select', { class: 'selettore' }, [
     el('label', { class: 'nota', testo: 'La macchina è a dischi veri o a stack?' }), attrezzatura,
     spiegazioneAttrezzatura,
     el('label', { class: 'nota', testo: "Muovi un braccio senza l'altro?" }), braccia,
+    el('label', { class: 'nota', testo: 'Usi un braccio o due durante la serie?' }), usoBraccia,
     // IL PUNTEGGIO PLATINUM È UN NUMERO DI CHILI, quindi per il cardio sparisce
     // insieme a tutto il resto: su un tapis non c'è un carico da confrontare con
     // gli altri. L'anteprima della scala viene nascosta insieme.
@@ -7458,6 +7531,7 @@ const carrucola = el('select', { class: 'selettore' }, [
               attrezzatura: eCardioNuovo ? null : (attrezzatura.value || null),
               carrucola: eCardioNuovo ? null : (carrucola.value || null),
               bracciaIndipendenti: !eCardioNuovo && braccia.value === 'si',
+              usoBraccia: eCardioNuovo ? null : (usoBraccia.value || null),
             },
             (Number.isFinite(scritto) && scritto > 0 && !eCardioNuovo) ? { riferimento: scritto } : {},
           );
@@ -7476,6 +7550,7 @@ const carrucola = el('select', { class: 'selettore' }, [
             ...(eCardioNuovo ? {} : (carrucola.value ? { carrucola: carrucola.value } : {})),
             ...(eCardioNuovo ? {} : (attrezzatura.value ? { attrezzatura: attrezzatura.value } : {})),
             ...(eCardioNuovo ? {} : (braccia.value === 'si' ? { bracciaIndipendenti: true } : {})),
+            ...(eCardioNuovo ? {} : (usoBraccia.value ? { usoBraccia: usoBraccia.value } : {})),
             // Il flag del cardio. Senza questo, un esercizio di cardio si riconosceva
             // solo dal nome ("tapis", "corsa") e ogni altro nome non contava.
             ...(eCardioNuovo ? { cardio: true } : {}),
