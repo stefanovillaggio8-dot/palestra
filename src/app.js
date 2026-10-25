@@ -132,10 +132,9 @@ async function risolviPersona() {
   let ricerca = (typeof window !== 'undefined' && window.location && window.location.search) || '';
   const memoria = await db.leggiMeta('persona', null);
 
-  // iOS può aprire l'icona Home senza la query ?p=1 e con un archivio locale
-  // separato da Safari. In quel caso non chiedere un nome né creare un profilo
-  // vuoto: se non c'è già un'identità salvata, questa è l'app di Stefano.
-  // I link espliciti (?p=2 oppure ?n=...&k=...) continuano ad avere la precedenza.
+  // Su iPhone l'icona Home può aprire una finestra senza parametri URL e con
+  // IndexedDB separato da Safari. Se è installata e non ha identità locale,
+  // apri il profilo di Stefano invece di chiedere un nome.
   let installata = false;
   try {
     installata = window.navigator.standalone === true ||
@@ -4169,7 +4168,12 @@ function vistaImpostazioni(zona) {
       ]));
     }
   }
-  zona.appendChild(accountBox);
+  // La configurazione tecnica resta disponibile, ma chiusa di default: non intralcia chi vuole solo allenarsi.
+  const accountDettagli = el('details', { class: 'blocco-chiuso' }, [
+    el('summary', { testo: 'Opzione avanzata: Account e database online' }),
+    accountBox,
+  ]);
+  zona.appendChild(accountDettagli);
 
   const backupBox = el('section', { class: 'blocco' });
   backupBox.appendChild(el('h2', { testo: 'Backup' }));
