@@ -129,8 +129,22 @@ function schedaAttivaId() { return personaAttiva().schedaId; }
  * condividere.
  */
 async function risolviPersona() {
-  const ricerca = (typeof window !== 'undefined' && window.location && window.location.search) || '';
+  let ricerca = (typeof window !== 'undefined' && window.location && window.location.search) || '';
   const memoria = await db.leggiMeta('persona', null);
+
+  // iOS può aprire l'icona Home senza la query ?p=1 e con un archivio locale
+  // separato da Safari. In quel caso non chiedere un nome né creare un profilo
+  // vuoto: se non c'è già un'identità salvata, questa è l'app di Stefano.
+  // I link espliciti (?p=2 oppure ?n=...&k=...) continuano ad avere la precedenza.
+  let installata = false;
+  try {
+    installata = window.navigator.standalone === true ||
+      (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
+  } catch { /* browser senza rilevamento modalità installata */ }
+  if (installata && !/[?&](?:p=\\d+|n=)/.test(ricerca) && !memoria) {
+    ricerca = '?p=1';
+  }
+
   const schede = (await db.tutti('schede')).map((s) => s && s.id).filter(Boolean);
   const esito = chiSei({ ricerca, memoria, schede });
   if (esito.persona) {
