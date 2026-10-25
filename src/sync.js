@@ -65,7 +65,24 @@ export async function stato() {
   if (errori > 0) {
     for (const tabella of TABELLE_SINCRONIZZATE) {
       const righe = await db.tutti(tabella, { includiEliminati: true });
-      const ultimo = righe.find((r) => r.sync === 'errore' && r.ultimo_errore);
+      // Gli esercizi del catalogo condiviso sono locali: non devono bloccare
+      // la sincronizzazione né continuare a mostrare un errore RLS ormai noto.
+      if (tabella === 'esercizi') {
+        for (const r of righe) {
+          if ((String(r.id || '').startsWith('ex-') || r.globale === true)
+              && (r.sync === 'errore' || r.sync === 'da_salvare' || r.sync === 'in_corso')) {
+            await db.aggiornaSe(
+              'esercizi',
+              r.id,
+              (attuale) => attuale && (attuale.sync === 'errore' || attuale.sync === 'da_salvare' || attuale.sync === 'in_corso'),
+              (attuale) => ({ ...attuale, sync: 'pulito', ultimo_errore: null, tentativi: 0, in_flight: false }),
+              { seguiErrore: true },
+            );
+          }
+        }
+      }
+      const ultimo = righe.find((r) => r.sync === 'errore' && r.ultimo_errore
+        && !(tabella === 'esercizi' && (String(r.id || '').startsWith('ex-') || r.globale === true)));
       if (ultimo) {
         stato.dettaglio = 'Ultimo errore (' + tabella + '): ' + ultimo.ultimo_errore;
         break;
