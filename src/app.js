@@ -295,6 +295,10 @@ async function avvia() {
     const sistematiZavorri = await sistemaZavorriComeZavorri();
     if (sistematiZavorri.length) await ricaricaTutto();
 
+    // Il One Arm Overhead Tricep Extension è un normale cavo, non assistenza.
+    const tricipiteCavoCorretto = await correggiOneArmTricepExtension();
+    if (tricipiteCavoCorretto) await ricaricaTutto();
+
     // Un esercizio ha cambiato nome (Ste, 21/10/2026). Solo il nome: l'id resta,
     // cosi le serie vecchie restano attaccate all'esercizio giusto.
     const convenzioni = await sistemaConvenzioniEsercizi();
@@ -574,6 +578,44 @@ async function sistemaZavorriComeZavorri() {
     avviso(`${cambiati.join(' e ')}: adesso l'app conta i kg come zavorri, non come assistenza. I tuoi numeri non sono cambiati.`, { tipo: 'ok' });
   }
   return cambiati;
+}
+
+/**
+ * CORREGGE ONE ARM OVERHEAD TRICEP EXTENSION.
+ *
+ * Era rimasto salvato come "assistenza" da una vecchia classificazione,
+ * anche se è un normale esercizio al cavo: così il motore mostrava un Rank
+ * ma non poteva valutare i kg. Riporta l'esercizio a cavo e recupera i carichi
+ * eventualmente salvati nel vecchio campo dell'assistenza. Non sovrascrive
+ * mai un peso già presente.
+ */
+async function correggiOneArmTricepExtension() {
+  const ID = 'ex-one-arm-overhead-tricep-extension';
+  const esercizio = (V.esercizi || []).find((e) => e && e.id === ID);
+  if (!esercizio) return false;
+
+  let cambiato = false;
+  const aggiornato = {
+    ...esercizio,
+    convenzione: CONVENZIONI.CAVO,
+    carrucola: esercizio.carrucola || CONVENZIONI.CARRUCOLA_DOPPIA,
+  };
+  if (esercizio.convenzione !== aggiornato.convenzione
+      || esercizio.carrucola !== aggiornato.carrucola) {
+    await db.salva('esercizi', aggiornato, { segna: false });
+    cambiato = true;
+  }
+
+  for (const serie of (V.serie || [])) {
+    if (!serie || serie.esercizio_id !== ID) continue;
+    const pesoVecchio = serie.peso_assistenza;
+    if ((serie.peso === null || serie.peso === undefined)
+        && pesoVecchio !== null && pesoVecchio !== undefined && pesoVecchio !== '') {
+      await db.salva('serie', { ...serie, peso: pesoVecchio, peso_assistenza: null });
+      cambiato = true;
+    }
+  }
+  return cambiato;
 }
 
 /**
