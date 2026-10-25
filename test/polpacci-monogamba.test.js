@@ -151,7 +151,7 @@ test('la macchina a dischi resta solo dove i dischi li metti davvero', () => {
     // il Smith Machine Bench Press e' una macchina a dischi come le altre: i dischi
     // li carichi tu (Ste, 21/10/2026: arriva dalla lista del telefono)
     ['Chest Press', 'Smith Machine Incline Bench Press', 'Iso-Lateral Row',
-      'Smith Machine Bench Press'],
+      'Smith Machine Bench Press', 'Smith Machine Bent Over Row', 'Smith Machine Shrug'],
   );
 });
 
