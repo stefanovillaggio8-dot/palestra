@@ -3,7 +3,7 @@
 // anche senza rete. I dati NON stanno qui: stanno in IndexedDB, quindi
 // cancellare la cache non cancella niente del tuo allenamento.
 
-const VERSIONE = 'palestra-v2';
+const VERSIONE = 'palestra-v3';
 
 const FILE = [
   './',
@@ -54,7 +54,7 @@ const FOTO = [
 self.addEventListener('install', (evento) => {
   evento.waitUntil(
     caches.open(VERSIONE)
-      .then((cache) => cache.addAll([...FILE, ...FOTO]))
+      .then((cache) => cache.addAll([...new Set([...FILE, ...FOTO])]))
       .then(() => self.skipWaiting()),
   );
 });
