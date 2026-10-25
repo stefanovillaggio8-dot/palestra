@@ -280,9 +280,9 @@ create index if not exists ricompense_account on public.ricompense (account_id, 
 -- il tetto alle ricompense: una sola riga per tipo e fonte, cosi' un utente
 -- non puo' gonfiare la propria Aura scrivendo la stessa ricompensa due volte
 create unique index if not exists ricompense_unica
-  on public.ricompense (account_id, tipo, coalesce(fonte, ''));
+  on public.ricompense (user_id, account_id, tipo, coalesce(fonte, ''));
 create unique index if not exists missioni_unica
-  on public.missioni (account_id, missione_id, categoria, coalesce(data::text, ''), coalesce(settimana, ''));
+  on public.missioni (user_id, account_id, missione_id, categoria, coalesce(data::text, ''), coalesce(settimana, ''));
 
 alter table public.amministratori enable row level security;
 alter table public.profili         enable row level security;
