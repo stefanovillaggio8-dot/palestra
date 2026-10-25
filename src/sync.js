@@ -53,13 +53,26 @@ export async function stato() {
   const cfg = sb.leggiConfig();
   const coda = sb.collegato() ? await db.codaDiInvio() : [];
   const errori = sb.collegato() ? await db.contaErrori() : 0;
-  return statoSalvataggio({
+  const stato = statoSalvataggio({
     online: typeof navigator !== 'undefined' ? navigator.onLine !== false : true,
     configurato: sb.collegato(),
     coda: coda.length,
     errori,
     inCorso,
   });
+  // Mostra la causa concreta dell'ultimo errore, invece di lasciare soltanto
+  // un contatore che non distingue rete, autorizzazioni e schema del database.
+  if (errori > 0) {
+    for (const tabella of TABELLE_SINCRONIZZATE) {
+      const righe = await db.tutti(tabella, { includiEliminati: true });
+      const ultimo = righe.find((r) => r.sync === 'errore' && r.ultimo_errore);
+      if (ultimo) {
+        stato.dettaglio = 'Ultimo errore (' + tabella + '): ' + ultimo.ultimo_errore;
+        break;
+      }
+    }
+  }
+  return stato;
 }
 
 /** Tasto "Riprova": azzera i tentativi e riparte subito. */
@@ -270,9 +283,10 @@ async function tira() {
       }
     }
     localStorage.setItem(CHIAVE_ULTIMO_PULL, adesso());
-  } catch {
-    // se il download fallisce si riprova dopo: niente viene perso
-    throw new Error('Non sono riuscito a scaricare gli aggiornamenti. Riprovo.');
+  } catch (e) {
+    // Conserva il messaggio reale del server: è fondamentale per distinguere
+    // una tabella/colonna mancante da una sessione scaduta o un problema di rete.
+    throw new Error('Download (' + (e && e.message ? e.message : String(e)) + ').');
   }
   return { ricevuti, conflitti };
 }
