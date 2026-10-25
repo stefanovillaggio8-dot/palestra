@@ -53,19 +53,63 @@ export async function stato() {
   const cfg = sb.leggiConfig();
   const coda = sb.collegato() ? await db.codaDiInvio() : [];
   const errori = sb.collegato() ? await db.contaErrori() : 0;
-  return statoSalvataggio({
+  const stato = statoSalvataggio({
     online: typeof navigator !== 'undefined' ? navigator.onLine !== false : true,
     configurato: sb.collegato(),
     coda: coda.length,
     errori,
     inCorso,
   });
+  // Mostra la causa concreta dell'ultimo errore, invece di lasciare soltanto
+  // un contatore che non distingue rete, autorizzazioni e schema del database.
+  if (errori > 0) {
+    for (const tabella of TABELLE_SINCRONIZZATE) {
+      const righe = await db.tutti(tabella, { includiEliminati: true });
+      // Gli esercizi del catalogo condiviso sono locali: non devono bloccare
+      // la sincronizzazione né continuare a mostrare un errore RLS ormai noto.
+      if (tabella === 'esercizi') {
+        for (const r of righe) {
+          if ((String(r.id || '').startsWith('ex-') || r.globale === true)
+              && (r.sync === 'errore' || r.sync === 'da_salvare' || r.sync === 'in_corso')) {
+            await db.aggiornaSe(
+              'esercizi',
+              r.id,
+              (attuale) => attuale && (attuale.sync === 'errore' || attuale.sync === 'da_salvare' || attuale.sync === 'in_corso'),
+              (attuale) => ({ ...attuale, sync: 'pulito', ultimo_errore: null, tentativi: 0, in_flight: false }),
+              { seguiErrore: true },
+            );
+          }
+        }
+      }
+      const ultimo = righe.find((r) => r.sync === 'errore' && r.ultimo_errore
+        && !(tabella === 'esercizi' && (String(r.id || '').startsWith('ex-') || r.globale === true)));
+      if (ultimo) {
+        stato.dettaglio = 'Ultimo errore (' + tabella + '): ' + ultimo.ultimo_errore;
+        break;
+      }
+    }
+  }
+  return stato;
 }
 
 /** Tasto "Riprova": azzera i tentativi e riparte subito. */
 export async function riprovaOra() {
   const coda = await db.codaDiInvio();
   for (const { tabella, riga } of coda) {
+    // Il catalogo iniziale usa ID condivisi (ex-...). Non va inserito nella tabella
+    // privata public.esercizi: se un altro account possiede già lo stesso ID,
+    // l'UPSERT viene respinto dalla policy RLS. Il catalogo resta locale; si sincronizzano
+    // soltanto esercizi personali con ID propri.
+    if (tabella === 'esercizi' && (String(riga.id || '').startsWith('ex-') || riga.globale === true)) {
+      await db.aggiornaSe(
+        tabella,
+        riga.id,
+        (attuale) => attuale && (attuale.sync === 'da_salvare' || attuale.sync === 'errore'),
+        (attuale) => ({ ...attuale, sync: 'pulito', ultimo_errore: null, tentativi: 0 }),
+        { seguiErrore: true },
+      );
+      continue;
+    }
     await db.salva(tabella, { ...riga, sync: 'da_salvare', tentativi: 0, ultimo_errore: null });
   }
   avvisa();
@@ -105,6 +149,18 @@ async function manda() {
   const esito = { inviati: 0, conflitti: 0, errori: 0 };
   const coda = await db.codaDiInvio();
   for (const { tabella, riga } of coda) {
+    // Gli esercizi del catalogo condiviso non appartengono alla tabella privata
+    // public.esercizi. Non inviarli: la policy RLS rifiuta gli ID condivisi.
+    if (tabella === 'esercizi' && (String(riga.id || '').startsWith('ex-') || riga.globale === true)) {
+      await db.aggiornaSe(
+        tabella,
+        riga.id,
+        (attuale) => attuale && (attuale.sync === 'da_salvare' || attuale.sync === 'errore'),
+        (attuale) => ({ ...attuale, sync: 'pulito', ultimo_errore: null, tentativi: 0, in_flight: false }),
+        { seguiErrore: true },
+      );
+      continue;
+    }
     // Il record potrebbe essere stato modificato dopo la lettura della coda.
     // La transazione condizionale evita di spedire una fotografia vecchia o di
     // rimettere in corso una modifica che un'altra scheda ha già aggiornato.
@@ -156,16 +212,23 @@ async function manda() {
         continue;
       }
       const nuovoRev = Number(riga.rev || 1);
+      // Le righe personali devono sempre appartenere all'utente autenticato su Supabase.
+      // Alcuni dati locali più vecchi possono contenere user_id dell'account interno
+      // dell'app (o nessun user_id): Postgres RLS li rifiuta. La coda è già locale
+      // a questo account autenticato, quindi assegniamo l'UUID verificato dalla sessione.
       const utenteVerificato = await sb.utenteCorrente();
       const utenteSupabase = utenteVerificato && utenteVerificato.id;
       if (!utenteSupabase) throw new Error('Supabase non ha confermato l’utente autenticato: accedi di nuovo e riprova.');
-      await sb.scrivi(tabella, { ...rigaPerInvio(riga), user_id: utenteSupabase, rev: nuovoRev });
+      await sb.scrivi(tabella, { ...rigaPerInvio(riga, tabella), user_id: utenteSupabase, rev: nuovoRev });
       // La coda si svuota solo dopo la conferma. Se nel frattempo la riga è
       // cambiata, la modifica più nuova resta in coda con la base aggiornata.
       await confermaInvio(tabella, riga, nuovoRev);
       esito.inviati++;
     } catch (e) {
-      const messaggio = e && e.message ? e.message : String(e);
+      const messaggioBase = e && e.message ? e.message : String(e);
+      // Aggiunge tabella e ID alla diagnosi: così si può distinguere un ID
+      // condiviso/duplicato da un problema di sessione o di policy RLS.
+      const messaggio = tabella + ' [' + String(riga.id || '(senza id)') + ']: ' + messaggioBase;
       await db.aggiornaSe(
         tabella,
         riga.id,
@@ -176,6 +239,11 @@ async function manda() {
         { seguiErrore: true },
       );
       esito.errori++;
+      // Se la rete o il database non rispondono, non provare subito tutte le
+      // altre righe in errore: possono essercene centinaia e ogni richiesta
+      // ha un timeout. Fermarsi qui evita che l'interfaccia resti in
+      // "Salvataggio..." per un tempo enorme; il prossimo giro ritenterà.
+      break;
     }
   }
   return esito;
@@ -268,9 +336,10 @@ async function tira() {
       }
     }
     localStorage.setItem(CHIAVE_ULTIMO_PULL, adesso());
-  } catch {
-    // se il download fallisce si riprova dopo: niente viene perso
-    throw new Error('Non sono riuscito a scaricare gli aggiornamenti. Riprovo.');
+  } catch (e) {
+    // Conserva il messaggio reale del server: è fondamentale per distinguere
+    // una tabella/colonna mancante da una sessione scaduta o un problema di rete.
+    throw new Error('Download (' + (e && e.message ? e.message : String(e)) + ').');
   }
   return { ricevuti, conflitti };
 }
