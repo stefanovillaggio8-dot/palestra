@@ -214,7 +214,7 @@ export const ESERCIZI = [
   { id: 'ex-seated-leg-curl', nome: 'Seated Leg Curl', gruppo: 'Leg Curl', attrezzatura: C.MACCHINA_STACK, convenzione: C.MACCHINA, foto: 'img/esercizi/seated-leg-curl.png', tipo: 'opzionale', nota_permanente: 'Opzionale.' },
 
   { id: 'ex-smith-incline-bench', nome: 'Smith Machine Incline Bench Press', gruppo: 'Bench Press', convenzione: C.PER_BRACCIO, attrezzatura: 'macchina_dischi', foto: 'img/esercizi/smith-machine-incline-bench-press.png', tipo: 'standard', nota_permanente: '30 gradi. Conto solo i dischi, il bilanciere no.' },
-  { id: 'ex-seated-cable-row', nome: 'Pulley Row Panatta SEC', gruppo: 'Row', convenzione: C.CAVO, carrucola: C.CARRUCOLA_MONO,
+  { id: 'ex-seated-cable-row', nome: 'Seated Cable Row', gruppo: 'Row', convenzione: C.CAVO, carrucola: C.CARRUCOLA_MONO,
     // Ste (10/10/2026): "il macchinario con i pesi che devo mettere io i dischi è solo
     // la chest press invece ne segna anche altri".
     //
@@ -225,7 +225,7 @@ export const ESERCIZI = [
     // che scrivi (i dischi stanno su entrambi i lati), "stack" lo dimezza (la spina
     // è già per entrambi). Sbagliandola, il Rank di questo esercizio era fuori di un
     // fattore due.
-    attrezzatura: C.MACCHINA_STACK, foto: 'img/esercizi/seated-cable-row.png', tipo: 'standard', nota_permanente: 'Panatta SEC Pulley Row 3: pacco pesi selezionato con la linguetta; il carico non si dimezza.' },
+    attrezzatura: C.MACCHINA_STACK, foto: 'img/esercizi/seated-cable-row.png', tipo: 'standard', nota_permanente: 'Panatta SEC Pulley Row 3 (1SC003): pacco pesi selezionato con pin magnetico. Il catalogo Panatta conferma la selezione dalla pila, ma non specifica il rapporto del cavo: non dimezzare automaticamente senza prova che sia 2:1.' },
   { id: 'ex-chest-supported-shrug', nome: 'Chest Supported Dumbbell Shrug', gruppo: 'Shrug', convenzione: C.PER_MANUBRIO, foto: 'img/esercizi/chest-supported-dumbbell-shrug.png', tipo: 'standard', nota_permanente: '54 gradi.' },
   // Ste (10/10/2026): "polpacci lo faccio monogamba e non li metto io i pesi".
 //
