@@ -34,6 +34,14 @@ export function rigaPerInvio(riga, tabella = '') {
     // Alcune righe locali legacy lo contengono per errore: inviarlo su esercizi
     // (o su qualunque tabella diversa da profili) fa fallire PostgREST.
     if (k === 'amministratore' && tabella !== 'profili') continue;
+    // La tabella Supabase public.esercizi contiene solo questi campi.
+    // Le impostazioni avanzate (carrucola, attrezzatura, ecc.) restano locali
+    // e vengono riallineate dal catalogo: inviarle qui fa fallire l'intera riga.
+    if (tabella === 'esercizi' && ![
+      'id', 'user_id', 'nome', 'gruppo', 'convenzione', 'foto',
+      'nota_permanente', 'tipo', 'eliminata', 'eliminata_il',
+      'rev', 'created_at', 'updated_at', 'device_id',
+    ].includes(k)) continue;
     if (riga[k] === undefined) continue;
     out[k] = riga[k];
   }
