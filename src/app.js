@@ -590,7 +590,7 @@ async function sistemaZavorriComeZavorri() {
  * mai un peso già presente.
  */
 async function correggiOneArmTricepExtension() {
-  const ID = 'ex-one-arm-overhead-tricep-extension';
+  const ID = 'ex-bodyweight-overhead-tricep';
   const esercizio = (V.esercizi || []).find((e) => e && e.id === ID);
   if (!esercizio) return false;
 
