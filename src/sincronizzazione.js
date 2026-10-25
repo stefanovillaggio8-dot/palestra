@@ -30,10 +30,10 @@ export function rigaPerInvio(riga, tabella = '') {
   const out = {};
   for (const k of Object.keys(riga)) {
     if (CAMPI_LOCALI.includes(k)) continue;
-    // Il flag amministratore appartiene al profilo, non a una riga esercizio.
-    // I vecchi esercizi globali locali lo portavano dentro per errore e
-    // PostgREST rifiutava l'intera sincronizzazione.
-    if (tabella === 'esercizi' && k === 'amministratore') continue;
+    // Il flag amministratore è un campo del profilo, non delle altre tabelle.
+    // Alcune righe locali legacy lo contengono per errore: inviarlo su esercizi
+    // (o su qualunque tabella diversa da profili) fa fallire PostgREST.
+    if (k === 'amministratore' && tabella !== 'profili') continue;
     if (riga[k] === undefined) continue;
     out[k] = riga[k];
   }
