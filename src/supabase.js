@@ -200,7 +200,7 @@ export async function leggiUno(tabella, id) {
  */
 export async function scrivi(tabella, riga) {
   const cfg = leggiConfig();
-  return richiesta(cfg, `/rest/v1/${tabella}?on_conflict=id`, {
+  return richiesta(cfg, `/rest/v1/${tabella}?on_conflict=user_id,id`, {
     method: 'POST',
     headers: intestazioni(cfg, {
       Prefer: 'resolution=merge-duplicates,return=representation',
