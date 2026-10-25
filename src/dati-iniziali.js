@@ -42,7 +42,8 @@ export const CONTATTI = [
   // lista". Il contatto si chiama Andrea e il gruppo in cui finisce è "altro",
   // quindi non viene trattato come un amico con cui confrontare i rank: è solo
   // una persona da aggiungere, con la sua scheda chiusa dietro il codice.
-  { username: 'Andrea', gruppo: 'altro', avatar: 'viola', stato: 'da collegare' },
+  // Andrea ha già un account separato (link ?p=2), quindi non va duplicato
+  // come contatto senza account.
   { username: 'Marco', gruppo: 'altro', avatar: 'verde', stato: 'da collegare' },
   { username: 'Luca', gruppo: 'altro', avatar: 'oro', stato: 'da collegare' },
 ];
