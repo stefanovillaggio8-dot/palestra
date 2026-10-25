@@ -132,6 +132,18 @@ async function manda() {
   const esito = { inviati: 0, conflitti: 0, errori: 0 };
   const coda = await db.codaDiInvio();
   for (const { tabella, riga } of coda) {
+    // Gli esercizi del catalogo condiviso non appartengono alla tabella privata
+    // public.esercizi. Non inviarli: la policy RLS rifiuta gli ID condivisi.
+    if (tabella === 'esercizi' && (String(riga.id || '').startsWith('ex-') || riga.globale === true)) {
+      await db.aggiornaSe(
+        tabella,
+        riga.id,
+        (attuale) => attuale && (attuale.sync === 'da_salvare' || attuale.sync === 'errore'),
+        (attuale) => ({ ...attuale, sync: 'pulito', ultimo_errore: null, tentativi: 0, in_flight: false }),
+        { seguiErrore: true },
+      );
+      continue;
+    }
     // Il record potrebbe essere stato modificato dopo la lettura della coda.
     // La transazione condizionale evita di spedire una fotografia vecchia o di
     // rimettere in corso una modifica che un'altra scheda ha già aggiornato.
