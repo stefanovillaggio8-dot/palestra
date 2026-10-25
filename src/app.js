@@ -4121,10 +4121,43 @@ function vistaImpostazioni(zona) {
       dentroAccount.appendChild(el('div', { class: 'riga-pulsanti' }, [
         bottone('Accedi', {
           onClick: async () => {
-            try { await sb.accedi(mail.value, pass.value); avviso('Accesso riuscito.', { tipo: 'ok' }); await ricaricaTutto(); disegna(); }
-            catch (e) { avviso('Accesso non riuscito: ' + e.message, { tipo: 'errore', durata: 8000 }); }
+            try {
+              await sb.accedi(mail.value.trim(), pass.value);
+              avviso('Accesso riuscito.', { tipo: 'ok' });
+              await ricaricaTutto();
+              disegna();
+            } catch (e) {
+              avviso('Accesso non riuscito: ' + e.message, { tipo: 'errore', durata: 8000 });
+            }
           },
           classe: 'principale',
+        }),
+        bottone('Crea account', {
+          onClick: async () => {
+            const email = String(mail.value || '').trim();
+            const password = String(pass.value || '');
+            if (!email || !password) {
+              avviso('Inserisci email e password per creare l\'account.', { tipo: 'errore' });
+              return;
+            }
+            if (password.length < 6) {
+              avviso('La password deve contenere almeno 6 caratteri.', { tipo: 'errore' });
+              return;
+            }
+            try {
+              const risultato = await sb.registrati(email, password);
+              if (risultato && risultato.access_token) {
+                avviso('Account creato e accesso effettuato.', { tipo: 'ok', durata: 7000 });
+                await ricaricaTutto();
+                disegna();
+              } else {
+                avviso('Registrazione inviata. Controlla la posta e conferma l\'email, poi torna qui e premi Accedi.', { tipo: 'ok', durata: 10000 });
+              }
+            } catch (e) {
+              avviso('Registrazione non riuscita: ' + e.message, { tipo: 'errore', durata: 10000 });
+            }
+          },
+          classe: 'fantasma',
         }),
       ]));
     } else {
