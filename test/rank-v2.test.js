@@ -150,6 +150,12 @@ test('V3. la meccanica sposta al massimo il 10%, e la carrucola dimezza', () => 
     'carrucola singola: il numero resta com\'e\'');
   assert.equal(curve.caricoReale(40, { convenzione: 'per_braccio' }), 40,
     'per braccio: il numero resta quello che ha scritto lui');
+  const mono = curve.scoreSerie({ peso: 40, ripetizioni: 8, esercizio: { carrucola: 'carrucola_mono' } });
+  const doppia = curve.scoreSerie({ peso: 40, ripetizioni: 8, esercizio: { carrucola: 'carrucola_doppia' } });
+  assert.equal(mono.carico, 40);
+  assert.equal(doppia.carico, 20);
+  assert.ok(mono.score > doppia.score,
+    'il Rank della stessa serie cambia quando scelgo il rapporto 1:1 o 2:1');
 });
 
 test('V4. lo score NON e\' il massimale stimato', () => {
