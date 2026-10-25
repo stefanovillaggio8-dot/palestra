@@ -173,6 +173,11 @@ export async function esci() {
   salvaSessione(null);
 }
 
+/* Il nome locale è più leggibile; nel database la tabella si chiama `versi`. */
+function nomeTabellaRemota(tabella) {
+  return tabella === 'versioni' ? 'versi' : tabella;
+}
+
 /* ---------------- REST ---------------- */
 
 export async function leggi(tabella, filtri = {}) {
@@ -180,14 +185,14 @@ export async function leggi(tabella, filtri = {}) {
   const q = new URLSearchParams();
   for (const [k, v] of Object.entries(filtri)) q.set(k, v);
   q.set('select', '*');
-  return richiesta(cfg, `/rest/v1/${tabella}?${q.toString()}`, { headers: intestazioni(cfg) }) || [];
+  return richiesta(cfg, `/rest/v1/${nomeTabellaRemota(tabella)}?${q.toString()}`, { headers: intestazioni(cfg) }) || [];
 }
 
 export async function leggiUno(tabella, id) {
   const cfg = leggiConfig();
   const righe = await richiesta(
     cfg,
-    `/rest/v1/${tabella}?id=eq.${encodeURIComponent(id)}&select=*`,
+    `/rest/v1/${nomeTabellaRemota(tabella)}?id=eq.${encodeURIComponent(id)}&select=*`,
     { headers: intestazioni(cfg) },
   );
   return (righe && righe[0]) || null;
@@ -200,7 +205,7 @@ export async function leggiUno(tabella, id) {
  */
 export async function scrivi(tabella, riga) {
   const cfg = leggiConfig();
-  return richiesta(cfg, `/rest/v1/${tabella}?on_conflict=user_id,id`, {
+  return richiesta(cfg, `/rest/v1/${nomeTabellaRemota(tabella)}?on_conflict=user_id,id`, {
     method: 'POST',
     headers: intestazioni(cfg, {
       Prefer: 'resolution=merge-duplicates,return=representation',
@@ -211,7 +216,7 @@ export async function scrivi(tabella, riga) {
 
 export async function rimuovi(definitivo, tabella, id) {
   const cfg = leggiConfig();
-  return richiesta(cfg, `/rest/v1/${tabella}?id=eq.${encodeURIComponent(id)}`, {
+  return richiesta(cfg, `/rest/v1/${nomeTabellaRemota(tabella)}?id=eq.${encodeURIComponent(id)}`, {
     method: 'DELETE',
     headers: intestazioni(cfg),
   });
@@ -226,7 +231,7 @@ export async function prendiModificate(tabelle, dopoIso, { limite = 500 } = {}) 
     q.set('order', 'updated_at.asc');
     q.set('limit', String(limite));
     if (dopoIso) q.set('updated_at', 'gt.' + dopoIso);
-    risultati[t] = await richiesta(leggiConfig(), `/rest/v1/${t}?${q.toString()}`, {
+    risultati[t] = await richiesta(leggiConfig(), `/rest/v1/${nomeTabellaRemota(t)}?${q.toString()}`, {
       headers: intestazioni(leggiConfig()),
     }) || [];
   }
