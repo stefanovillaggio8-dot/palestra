@@ -177,7 +177,7 @@ test('31. il catalogo rimette i tre campi a ogni avvio, anche se il database li 
   // restava `macchina` e la correzione non arrivava a nessuno.
   assert.deepEqual(
     [...CAMPI_CARICO].sort(),
-    ['attrezzatura', 'bracciaIndipendenti', 'carrucola', 'convenzione'],
+    ['attrezzatura', 'bracciaIndipendenti', 'carrucola', 'convenzione', 'usoBraccia'],
   );
 });
 
