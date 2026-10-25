@@ -224,8 +224,13 @@ test('V6. il volume fa salire gli LP dentro il Rank, ma non compra MAI il Rank',
   assert.equal(colVolume.indice, 1, '4 serie NON comprano il Rank: la prestazione e\' mediocre');
   assert.equal(colVolume.volumeBloccato, true, 'e l\'app deve poterlo dire');
   // ma i LP salgono: il lavoro delle serie non sparisce
-  assert.ok(colVolume.lp > scalata.rankDaScore(mediocre, soglie).lp,
-    'le serie spengono gli LP anche quando non cambiano il Rank');
+  const senzaVolume = scalata.rankDaScore(mediocre, soglie);
+  assert.ok(colVolume.lp > senzaVolume.lp,
+    'le serie danno un piccolo bonus LP anche quando non cambiano il Rank');
+  assert.ok(colVolume.lp <= senzaVolume.lp + 8,
+    'il volume non può aggiungere più di 8 LP');
+  assert.ok(colVolume.lp < 99,
+    'una prestazione mediocre non deve sembrare a un passo dal Rank dopo solo per il volume');
 
   // IL CASO CHE HA FATTO TROVARE LA CONTRADDIZIONE (15/10/2026).
   //
@@ -237,8 +242,8 @@ test('V6. il volume fa salire gli LP dentro il Rank, ma non compra MAI il Rank',
   // il Rank") e che il test S5 di bonus-serie.test.js segnalava gia' da prima,
   // passando solo per caso.
   //
-  // Quindi la finestra non esiste piu'. Anche al 99% della soglia il Rank non si
-  // muove: si muovono gli LP, che salgono fino a 99 e con loro la divisione.
+  // Quindi la finestra non esiste piu'. Anche vicino alla soglia il volume non
+  // cambia il Rank e può aggiungere soltanto il bonus LP limitato.
   const vicino = Math.round(soglie[2] * 0.99 * 100) / 100;
   const su = scalata.rankDaScore(vicino, soglie, { serieFatte: 4 });
   assert.equal(su.indice, scalata.rankDaScore(vicino, soglie).indice,
