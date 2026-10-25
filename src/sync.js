@@ -156,7 +156,10 @@ async function manda() {
         continue;
       }
       const nuovoRev = Number(riga.rev || 1);
-      await sb.scrivi(tabella, { ...rigaPerInvio(riga), rev: nuovoRev });
+      const utenteVerificato = await sb.utenteCorrente();
+      const utenteSupabase = utenteVerificato && utenteVerificato.id;
+      if (!utenteSupabase) throw new Error('Supabase non ha confermato l’utente autenticato: accedi di nuovo e riprova.');
+      await sb.scrivi(tabella, { ...rigaPerInvio(riga), user_id: utenteSupabase, rev: nuovoRev });
       // La coda si svuota solo dopo la conferma. Se nel frattempo la riga è
       // cambiata, la modifica più nuova resta in coda con la base aggiornata.
       await confermaInvio(tabella, riga, nuovoRev);
