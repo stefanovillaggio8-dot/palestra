@@ -169,7 +169,7 @@ async function manda() {
         continue;
       }
       const nuovoRev = Number(riga.rev || 1);
-      await sb.scrivi(tabella, { ...rigaPerInvio(riga), rev: nuovoRev });
+      await sb.scrivi(tabella, { ...rigaPerInvio(riga, tabella), rev: nuovoRev });
       // La coda si svuota solo dopo la conferma. Se nel frattempo la riga è
       // cambiata, la modifica più nuova resta in coda con la base aggiornata.
       await confermaInvio(tabella, riga, nuovoRev);
