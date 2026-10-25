@@ -612,10 +612,15 @@ async function riallineaCatalogo(gi) {
  * non si perde lo storico e non compare due volte nel catalogo.
  */
 async function unificaFacePullDoppia() {
-  const vecchio = await db.prendi('esercizi', 'ex-face-pull-doppia');
-  if (!vecchio || vecchio.eliminata) return false;
-  const unico = await db.prendi('esercizi', 'ex-face-pull');
+  let cambiato = false;
+  let unico = await db.prendi('esercizi', 'ex-face-pull');
   if (!unico) return false;
+  if (unico.nome !== 'Face Pull') {
+    unico = await db.salva('esercizi', { ...unico, nome: 'Face Pull', gruppo: 'Face Pull' });
+    cambiato = true;
+  }
+  const vecchio = await db.prendi('esercizi', 'ex-face-pull-doppia');
+  if (!vecchio || vecchio.eliminata) return cambiato;
 
   const serieVecchie = (await db.tutti('serie')).filter((r) => r.esercizio_id === vecchio.id);
   const noteVecchie = (await db.tutti('note')).filter((r) => r.esercizio_id === vecchio.id);
