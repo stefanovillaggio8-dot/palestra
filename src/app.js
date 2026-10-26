@@ -157,8 +157,27 @@ async function risolviPersona() {
   let ricerca = (typeof window !== 'undefined' && window.location && window.location.search) || '';
   // Il link d'invito sopravvive alla scelta iniziale del nome e all'eventuale
   // conferma email: non deve perdersi durante il cambio URL.
-  invitoPendente();
+  const invito = invitoPendente();
   const memoria = await db.leggiMeta('persona', null);
+
+  // Supabase usa l'URL di conferma già autorizzato (?p=1). Se la conferma
+  // arriva dopo la registrazione di un nuovo profilo, non deve sostituire
+  // l'identità salvata con quella di Stefano: ripristina la memoria locale
+  // e conserva anche l'invito, se presente.
+  if (memoria && /[?&]p=1(?:&|$)/.test(ricerca) && sb.collegato()) {
+    const qs = new URLSearchParams(ricerca.replace(/^\?/, ''));
+    if (memoria.p !== undefined && memoria.p !== null) {
+      qs.set('p', String(memoria.p));
+      qs.delete('n');
+      qs.delete('k');
+    } else if (memoria.n && memoria.k) {
+      qs.delete('p');
+      qs.set('n', memoria.n);
+      qs.set('k', memoria.k);
+    }
+    if (invito) qs.set('inv', invito);
+    ricerca = '?' + qs.toString();
+  }
 
   // Su iPhone l'icona Home può aprire una finestra senza parametri URL e con
   // IndexedDB separato da Safari. Se è installata e non ha identità locale,
