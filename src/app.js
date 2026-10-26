@@ -371,8 +371,10 @@ async function avvia() {
     // dopo un invito valido il server autorizza il download dei dati condivisi.
     if (sb.collegato()) {
       try {
-        if (invitoPendente()) await completaInvitoPendente();
-        else await preparaAccountOnline();
+        const pronto = invitoPendente()
+          ? await completaInvitoPendente()
+          : await preparaAccountOnline();
+        if (pronto === false) return;
         await ricaricaTutto();
       } catch (e) {
         avviso('Account online: ' + e.message, { tipo: 'errore', durata: 9000 });
@@ -909,11 +911,54 @@ async function seminaProfilo(p) {
   }, { segna: false });
 }
 
+/** Ripristina su un dispositivo nuovo il profilo già legato all'account online. */
+async function riapriProfiloOnline(profiloServer) {
+  const id = String((profiloServer && profiloServer.id) || '');
+  let memoria;
+  const url = new URL(window.location.href);
+  if (id === 'account-1' || id === 'account-2') {
+    const p = id === 'account-1' ? '1' : '2';
+    memoria = { p: Number(p) };
+    url.searchParams.set('p', p);
+    url.searchParams.delete('n');
+    url.searchParams.delete('k');
+  } else {
+    const chiave = id.replace(/^account-/, '');
+    if (!chiave || id === chiave || !profiloServer.scheda_id || profiloServer.scheda_id !== 'scheda-' + chiave) {
+      return false;
+    }
+    memoria = { n: profiloServer.username || 'Amico', k: chiave };
+    url.searchParams.delete('p');
+    url.searchParams.set('n', memoria.n);
+    url.searchParams.set('k', chiave);
+  }
+  await db.scriviMeta('persona', memoria);
+  // Conserva l'eventuale invito: dopo il cambio profilo lo stesso link viene
+  // accettato una volta sola con l'identità corretta.
+  url.hash = '#/profilo';
+  window.location.replace(url.pathname + url.search + url.hash);
+  return true;
+}
+
 /** Pubblica la scheda iniziale del nuovo account prima di accettare un invito. */
 async function preparaAccountOnline() {
   const utente = await sb.utenteCorrente();
   const idProfilo = accountAttivo();
   const idScheda = schedaAttivaId();
+
+  // Su un telefono nuovo può mancare la memoria locale del profilo, anche se
+  // l'utente ha già un account. Non creare un secondo profilo: riapri quello
+  // appartenente all'UUID autenticato e conserva il token d'invito nell'URL.
+  const profiliServer = await sb.leggi('profili');
+  const profiloServerCorrente = (profiliServer || []).find((p) => p && p.id === idProfilo);
+  if (!profiloServerCorrente && (profiliServer || []).length) {
+    const destinazione = profiliServer.find((p) => p && p.id === 'account-1')
+      || profiliServer.find((p) => p && p.id === 'account-2')
+      || profiliServer[0];
+    if (destinazione && destinazione.id !== idProfilo && await riapriProfiloOnline(destinazione)) {
+      return false; // la pagina ricarica sul profilo remoto corretto
+    }
+  }
   const profilo = await db.prendi('profili', idProfilo);
   const schedaLocale = await db.prendi('schede', idScheda);
   if (!profilo || !schedaLocale) {
@@ -1026,7 +1071,7 @@ async function completaInvitoPendente() {
 
   // Per il profilo storico di Andrea il database trasferisce i dati già online.
   // Quelli presenti solo sul telefono vengono aggiunti dopo il claim.
-  if (!trasferimentoAndrea) await preparaAccountOnline();
+  if (!trasferimentoAndrea && await preparaAccountOnline() === false) return false;
 
   const esito = await sb.accettaInvitoAmico(token, idProfilo);
   consumaInvitoPendente();
@@ -1107,7 +1152,8 @@ function bloccoAccountOnlineProfilo() {
       box.appendChild(bottone('Accetta invito in sospeso', {
         onClick: async () => {
           try {
-            await completaInvitoPendente();
+            const pronto = await completaInvitoPendente();
+            if (pronto === false) return;
             await ricaricaTutto();
             disegna();
           } catch (e) {
@@ -1141,8 +1187,10 @@ function bloccoAccountOnlineProfilo() {
         }
         try {
           await sb.accedi(mail.value.trim(), pass.value);
-          if (invitoPendente()) await completaInvitoPendente();
-          else await preparaAccountOnline();
+          const pronto = invitoPendente()
+            ? await completaInvitoPendente()
+            : await preparaAccountOnline();
+          if (pronto === false) return;
           await ricaricaTutto();
           avviso('Accesso riuscito e dati sincronizzati.', { tipo: 'ok' });
           disegna();
@@ -1167,8 +1215,10 @@ function bloccoAccountOnlineProfilo() {
         try {
           const risultato = await sb.registrati(email, password);
           if (risultato && risultato.access_token) {
-            if (invitoPendente()) await completaInvitoPendente();
-            else await preparaAccountOnline();
+            const pronto = invitoPendente()
+              ? await completaInvitoPendente()
+              : await preparaAccountOnline();
+            if (pronto === false) return;
             await ricaricaTutto();
             avviso('Account creato e dati sincronizzati.', { tipo: 'ok', durata: 7000 });
             disegna();
