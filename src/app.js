@@ -1409,7 +1409,7 @@ const OGGETTI_AURA = [
   {id:'titolo-panca',nome:'Panca e basta',tipo:'Titolo',rarita:'Raro',prezzo:2200,icona:'🏋️',descrizione:'Le gambe sono contenuto bonus.'},
   {id:'effetto-ambra',nome:'Scintille d’ambra',tipo:'Effetto',rarita:'Comune',prezzo:4500,icona:'✨',descrizione:'Particelle calde intorno al personaggio.'},
   {id:'effetto-ombra',nome:'Fumo d’ombra',tipo:'Effetto',rarita:'Raro',prezzo:5900,icona:'🌫️',descrizione:'Una scia scura, discreta e cattiva.'},
-  {id:'effetto-fulmine',nome:'Scarica viola',tipo:'Effetto',rarita:'Epico',prezzo:7200,icona:'⚡',descrizione:'Lamp i viola e scariche elettriche'.replace('Lamp i','Lamp i'.replace(' ',''))},
+  {id:'effetto-fulmine',nome:'Scarica viola',tipo:'Effetto',rarita:'Epico',prezzo:7200,icona:'⚡',descrizione:'Lamp i viola e scariche elettriche'.replace('Lamp i','Lampi')},
   {id:'effetto-nebula',nome:'Nebulosa cosmica',tipo:'Effetto',rarita:'Leggendario',prezzo:8900,icona:'🌌',descrizione:'Una piccola galassia personale.'},
   {id:'armatura-guerriero-braci',nome:'Custode delle Braci',tipo:'Armatura',rarita:'Epico',prezzo:9200,classe:'guerriero',icona:'🛡️',descrizione:'Piastre roventi e mantello da prima linea.'},
   {id:'armatura-guerriero-abisso',nome:'Re dell’Abisso',tipo:'Armatura',rarita:'Leggendario',prezzo:13500,classe:'guerriero',icona:'👑',descrizione:'Armatura pesante con dettagli abissali.'},
@@ -1509,7 +1509,9 @@ function vistaAuraShop(zona) {
             const account=accountAttivo();
             const fonte='shop:'+o.id+':'+Date.now();
             try{
-              await db.salva('ricompense',{id:'spesa-'+fonte,account_id:account,tipo:'spesa_aura',fonte,aura:-o.prezzo,xp:0,descrizione:'Aura Shop: '+o.nome,data:new Date().toISOString()});
+              const spesa={id:'spesa-'+fonte,account_id:account,tipo:'spesa_aura',fonte,aura:-o.prezzo,xp:0,descrizione:'Aura Shop: '+o.nome,data:new Date().toISOString()};
+              await db.salva('ricompense',spesa);
+              if (Array.isArray(V.ricompense)) V.ricompense.push(spesa);
               posseduti.push(o.id);
               localStorage.setItem(chiave,JSON.stringify(posseduti));
               avviso(o.nome+' acquistato! Aura spesa: '+formattaAura(o.prezzo),{tipo:'ok'});
