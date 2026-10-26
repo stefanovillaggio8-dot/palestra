@@ -3172,3 +3172,31 @@ html.animazioni-mai .linea-grafico,
 html.animazioni-mai .principale.grande { animation: none; }
 html.animazioni-mai .barra-piena,
 html.animazioni-mai .barra-piena::after { animation: none; }
+
+
+/* ================= AURA SHOP · RPG ================= */
+.aura-shop-hero{position:relative;overflow:hidden;padding:24px;border:1px solid #7c3aed66;border-radius:24px;background:radial-gradient(ellipse at 80% 0%,#9333ea42,transparent 48%),linear-gradient(145deg,#171426,#0b1019 72%);box-shadow:0 18px 50px #0005;margin:10px 0 18px}
+.aura-shop-hero:after{content:"✦  ·  ✧  ·  ✦";position:absolute;right:16px;top:16px;color:#c4b5fd88;letter-spacing:8px}
+.aura-shop-kicker{font-size:.68rem;letter-spacing:.16em;color:#c4b5fd;font-weight:850}
+.aura-shop-hero h1{font-size:clamp(2rem,7vw,3.2rem);margin:8px 0;background:linear-gradient(90deg,#fff,#c4b5fd,#f0abfc);color:transparent;background-clip:text}
+.aura-shop-wallet{display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:center;padding:14px 16px;margin-top:18px;border:1px solid #a78bfa44;border-radius:16px;background:#090b14aa}
+.aura-shop-wallet span{font-size:.7rem;letter-spacing:.1em;color:#c4b5fd}.aura-shop-wallet strong{grid-column:2;grid-row:1/3;font-size:1.65rem;color:#e9d5ff}.aura-shop-wallet small{color:#a1a1aa}
+.aura-shop-open{display:flex;align-items:center;gap:14px;padding:15px 17px;margin:14px 0;border:1px solid #8b5cf688;border-radius:17px;background:linear-gradient(110deg,#211538,#111522);color:inherit;text-decoration:none;box-shadow:0 8px 25px #0003}
+.aura-shop-open>span:first-child{font-size:1.8rem;color:#d8b4fe}.aura-shop-open>span:nth-child(2){display:grid;gap:3px;flex:1}.aura-shop-open strong{letter-spacing:.08em;color:#e9d5ff}.aura-shop-open small{color:#a1a1aa}
+.aura-streak-mitica{display:grid;grid-template-columns:78px 1fr;gap:15px;align-items:center;padding:20px;border-radius:22px;margin:16px 0 24px;border:1px solid #a855f755;background:radial-gradient(ellipse at 15% 50%,#7e22ce38,transparent 65%),linear-gradient(135deg,#151027,#090d16);position:relative;overflow:hidden}
+.aura-streak-mitica.sbloccata{border-color:#f0abfc;box-shadow:0 0 28px #c026d355,inset 0 0 35px #7e22ce25}
+.aura-mitica-sigil{display:grid;place-items:center;width:72px;height:72px;border-radius:50%;font-size:2.7rem;color:#f5d0fe;background:radial-gradient(circle,#9333ea66,#1c1235 65%);border:1px solid #e879f966;box-shadow:0 0 25px #c026d366;animation:aura-mitica-pulse 3s ease-in-out infinite}
+.aura-streak-mitica h2{margin:5px 0;color:#f5d0fe}.aura-streak-mitica p{margin:6px 0 12px;font-size:.9rem}.aura-streak-mitica strong{font-size:.85rem;color:#e9d5ff}.aura-streak-mitica small{display:block;color:#c4b5fd;margin-top:8px}
+.aura-shop-progress{height:7px;border-radius:20px;background:#ffffff18;overflow:hidden;margin-top:9px}.aura-shop-progress span{display:block;height:100%;border-radius:20px;background:linear-gradient(90deg,#7c3aed,#f0abfc);box-shadow:0 0 12px #d946ef}
+.aura-shop-section-head{display:flex;justify-content:space-between;align-items:center;margin:22px 0 12px}.aura-shop-section-head h2{margin:0}.aura-shop-section-head p{margin:4px 0 0}
+.aura-shop-inventory{padding:16px;border-radius:20px;border:1px solid #ffffff14;background:#ffffff04}
+.aura-shop-owned-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:9px}.aura-shop-owned{display:grid;gap:5px;padding:11px;border-radius:13px;background:#8b5cf615;border:1px solid #a78bfa2b}.aura-shop-owned>span{font-size:1.4rem}.aura-shop-owned strong{font-size:.83rem}.aura-shop-owned small{color:#a1a1aa}
+.aura-shop-filters{display:flex;gap:7px;overflow-x:auto;padding:3px 0 12px}.aura-shop-filter{white-space:nowrap;flex-shrink:0}.aura-shop-filter.attivo{border-color:#a78bfa;background:#8b5cf633;color:#e9d5ff}
+.aura-shop-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,225px),1fr));gap:13px}
+.aura-shop-card{position:relative;display:flex;flex-direction:column;gap:9px;padding:16px;border:1px solid #ffffff1c;border-radius:20px;background:linear-gradient(155deg,#171923,#0d1018);min-width:0;overflow:hidden}
+.aura-shop-card:before{content:"";position:absolute;inset:0 0 auto;height:2px;background:#a1a1aa66}.aura-shop-card.rarita-raro:before{background:#60a5fa}.aura-shop-card.rarita-epico:before{background:#c084fc}.aura-shop-card.rarita-leggendario:before{background:linear-gradient(90deg,#f59e0b,#f0abfc,#60a5fa)}.aura-shop-card.rarita-mitico:before{height:3px;background:linear-gradient(90deg,#a855f7,#f0abfc,#60a5fa)}
+.aura-shop-card-top{display:flex;justify-content:space-between;align-items:center}.aura-shop-item-icon{display:grid;place-items:center;width:54px;height:54px;font-size:1.8rem;border-radius:15px;background:radial-gradient(circle at 30% 20%,#8b5cf644,#11121d);border:1px solid #a78bfa33}.aura-shop-rarity{font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;color:#a1a1aa}.rarita-raro .aura-shop-rarity{color:#93c5fd}.rarita-epico .aura-shop-rarity{color:#d8b4fe}.rarita-leggendario .aura-shop-rarity{color:#fcd34d}.rarita-mitico .aura-shop-rarity{color:#f0abfc}
+.aura-shop-item-type{font-size:.68rem;text-transform:uppercase;letter-spacing:.12em;color:#a1a1aa}.aura-shop-card h3{margin:0;font-size:1.08rem}.aura-shop-card p{margin:0;min-height:44px;font-size:.85rem}.aura-shop-price{font-weight:850;color:#e9d5ff;margin-top:auto;padding-top:8px}.aura-shop-card button{width:100%}
+@keyframes aura-mitica-pulse{0%,100%{transform:scale(1);filter:drop-shadow(0 0 3px #d946ef)}50%{transform:scale(1.045);filter:drop-shadow(0 0 12px #d946ef)}}
+@media(max-width:480px){.aura-shop-hero{padding:20px}.aura-streak-mitica{grid-template-columns:1fr}.aura-mitica-sigil{width:62px;height:62px}.aura-shop-grid{grid-template-columns:1fr}.aura-shop-card p{min-height:0}}
+@media(prefers-reduced-motion:reduce){.aura-mitica-sigil{animation:none}}
