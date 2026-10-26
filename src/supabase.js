@@ -145,7 +145,7 @@ export async function accedi(email, password) {
   return corpo;
 }
 
-export async function registrati(email, password) {
+export async function registrati(email, password, redirectTo = null) {
   const cfg = leggiConfig();
   const corpo = await richiesta(cfg, '/auth/v1/signup', {
     method: 'POST',
@@ -154,7 +154,7 @@ export async function registrati(email, password) {
       email,
       password,
       options: {
-        emailRedirectTo: 'https://stefanovillaggio8-dot.github.io/palestra/index.html?p=1',
+        emailRedirectTo: redirectTo || 'https://stefanovillaggio8-dot.github.io/palestra/index.html?p=1',
       },
     }),
   });
@@ -249,6 +249,26 @@ export async function leggiUno(tabella, id) {
     { headers: intestazioni(cfg) },
   );
   return (righe && righe[0]) || null;
+}
+
+
+/** RPC sociali pubbliche, con sessione autenticata e lista chiusa di procedure. */
+export async function rpc(nome, argomenti = {}) {
+  const consentite = new Set(['profili_amici', 'crea_invito_amico', 'accetta_invito_amico']);
+  if (!consentite.has(nome)) throw new ErroreSupabase('Operazione online non consentita.', 400);
+  const cfg = leggiConfig();
+  if (!cfg.attivo) throw new ErroreSupabase('Configura prima il database online nelle Impostazioni.', 400);
+  let s = sessione();
+  if (!s || !s.access_token) {
+    await rinnovaSessione();
+    s = sessione();
+  }
+  if (!s || !s.access_token) throw new ErroreSupabase('Accedi dalla sezione Amici prima di usare questa funzione.', 401);
+  return richiesta(cfg, '/rest/v1/rpc/' + nome, {
+    method: 'POST',
+    headers: intestazioni(cfg),
+    body: JSON.stringify(argomenti || {}),
+  });
 }
 
 /**
