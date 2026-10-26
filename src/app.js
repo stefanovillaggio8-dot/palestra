@@ -367,6 +367,18 @@ async function avvia() {
         + 'I tuoi numeri non sono cambiati.', { tipo: 'ok' });
     }
 
+    // La prima sincronizzazione non deve partire prima della relazione d'amicizia:
+    // dopo un invito valido il server autorizza il download dei dati condivisi.
+    if (sb.collegato()) {
+      try {
+        if (invitoPendente()) await completaInvitoPendente();
+        else await preparaAccountOnline();
+        await ricaricaTutto();
+      } catch (e) {
+        avviso('Account online: ' + e.message, { tipo: 'errore', durata: 9000 });
+      }
+    }
+
     sync.iscriviti(() => { aggiornaStatoSalvataggio(); });
     // il peso corporeo serve al Rank: lo carico in memoria subito all'avvio
     await aggiornaPesoInMemoria();
