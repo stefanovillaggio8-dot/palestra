@@ -187,14 +187,20 @@ function paroleDelNome(nome) {
  * Ogni parola viene chiesto una volta sola.
  */
 export async function paroleDaChiedere(accountId, esercizi) {
-  const conosciute = paroleConosciute();
   const imparate = await paroleImparate(accountId);
   const out = [];
   for (const e of (esercizi || [])) {
     const parole = paroleDelNome(e.nome);
     const ignote = parole.filter((p) => !parolaConosciuta(p) && !imparate[p]);
     if (!ignote.length) continue;
+
+    // Non chiedere di classificare pezzi casuali di un nome ("high", "low",
+    // "zavorrati", "double"...). Chiedi aiuto SOLO se non riconosco proprio
+    // il movimento intero: il classificatore conosce già curl, row, fly,
+    // pulldown, dips e trazioni, anche quando qualche parola accessoria è nuova.
     const r = classificaEsercizio({ nome: e.nome, convenzione: e.convenzione });
+    if (r.movimento !== 'sconosciuto' && r.riconosciutoDa !== 'nessuna parola nota') continue;
+
     out.push({
       esercizio_id: e.id,
       nome: e.nome,
