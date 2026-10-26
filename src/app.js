@@ -991,15 +991,21 @@ async function datiLocaliAndreaDaTrasferire(schedaId) {
 async function accodaDatiAndreaMancanti(dati) {
   const ordine = ['profili', 'schede', 'versioni', 'esercizi', 'sedute', 'serie', 'note', 'missioni', 'ricompense', 'pesi'];
   let accodate = 0;
+  // Un solo download per tabella evita centinaia di richieste quando lo storico
+  // contiene molte serie. Le righe già presenti sul server restano intatte.
+  const presenti = new Map();
   for (const tabella of ordine) {
+    try {
+      const remote = await sb.leggi(tabella);
+      presenti.set(tabella, new Set((remote || []).map((r) => r && r.id).filter(Boolean)));
+    } catch (e) {
+      throw new Error('Non riesco a controllare la tabella ' + tabella + ': ' + e.message);
+    }
+  }
+  for (const tabella of ordine) {
+    const idsRemoti = presenti.get(tabella) || new Set();
     for (const riga of (dati[tabella] || [])) {
-      let remoto;
-      try {
-        remoto = await sb.leggiUno(tabella, riga.id);
-      } catch (e) {
-        throw new Error('Non riesco a controllare il dato storico ' + riga.id + ': ' + e.message);
-      }
-      if (remoto) continue; // Il database è già la copia ufficiale: non duplico né la sovrascrivo.
+      if (idsRemoti.has(riga.id)) continue;
       await db.salva(tabella, { ...riga, ...(tabella === 'profili' ? { scheda_id: schedaAttivaId() } : {}) }, { segna: true });
       accodate++;
     }
