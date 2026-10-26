@@ -897,6 +897,206 @@ async function seminaProfilo(p) {
   }, { segna: false });
 }
 
+/** Pubblica la scheda iniziale del nuovo account prima di accettare un invito. */
+async function preparaAccountOnline() {
+  const utente = await sb.utenteCorrente();
+  const idProfilo = accountAttivo();
+  const idScheda = schedaAttivaId();
+  const profilo = await db.prendi('profili', idProfilo);
+  const schedaLocale = await db.prendi('schede', idScheda);
+  if (!profilo || !schedaLocale) {
+    throw new Error('Non trovo il profilo o la scheda locale. Ricarica la pagina e riprova.');
+  }
+
+  const remotoProfilo = await sb.leggiUno('profili', idProfilo);
+  if (!remotoProfilo || remotoProfilo.scheda_id !== idScheda) {
+    await db.salva('profili', { ...profilo, scheda_id: idScheda }, { segna: true });
+  }
+
+  const remotoScheda = await sb.leggiUno('schede', idScheda);
+  if (!remotoScheda) await db.salva('schede', schedaLocale, { segna: true });
+
+  const versioneId = schedaLocale.versione_corrente;
+  const versioneLocale = versioneId ? await db.prendi('versioni', versioneId) : null;
+  if (versioneLocale && !(await sb.leggiUno('versioni', versioneId))) {
+    await db.salva('versioni', versioneLocale, { segna: true });
+  }
+
+  const risultato = await sync.sincronizza();
+  if (risultato && risultato.errori) {
+    throw new Error(risultato.messaggio || 'Non sono riuscito a sincronizzare la scheda iniziale.');
+  }
+  return utente;
+}
+
+/** Accetta il link una sola volta e ricarica i dati condivisi da entrambi. */
+async function completaInvitoPendente() {
+  const token = invitoPendente();
+  if (!token || !sb.collegato()) return false;
+
+  const idProfilo = accountAttivo();
+  const trasferimentoAndrea = idProfilo === 'account-2';
+
+  // Per il profilo storico di Andrea il database lo trasferisce prima che
+  // questo dispositivo provi a caricare le righe locali seminate da zero.
+  if (!trasferimentoAndrea) await preparaAccountOnline();
+
+  const esito = await sb.accettaInvitoAmico(token, idProfilo);
+  consumaInvitoPendente();
+
+  const mioProfilo = await sb.leggiUno('profili', idProfilo);
+  if (mioProfilo) {
+    await db.salva('profili', { ...mioProfilo, sync: 'pulito', base_rev: Number(mioProfilo.rev || 0) }, { segna: false });
+  }
+
+  if (trasferimentoAndrea) {
+    const miaScheda = await sb.leggiUno('schede', schedaAttivaId());
+    if (miaScheda) {
+      await db.salva('schede', { ...miaScheda, sync: 'pulito', base_rev: Number(miaScheda.rev || 0) }, { segna: false });
+      if (miaScheda.versione_corrente) {
+        const versione = await sb.leggiUno('versioni', miaScheda.versione_corrente);
+        if (versione) await db.salva('versioni', { ...versione, sync: 'pulito', base_rev: Number(versione.rev || 0) }, { segna: false });
+      }
+    }
+  }
+
+  const syncDopoInvito = await sync.sincronizza();
+  if (syncDopoInvito && syncDopoInvito.errori) {
+    throw new Error(syncDopoInvito.messaggio || 'Invito accettato, ma la sincronizzazione deve essere riprovata.');
+  }
+  await ricaricaTutto();
+  avviso(trasferimentoAndrea
+    ? 'Profilo storico di Andrea trasferito: ora appartiene al suo account personale.'
+    : 'Amicizia attivata. Ora potete vedere gli allenamenti che avete condiviso.', { tipo: 'ok', durata: 7000 });
+  return esito || true;
+}
+
+function urlInvito(token, trasferisciAndrea = false) {
+  const url = new URL(window.location.href);
+  url.search = '';
+  url.searchParams.set('inv', token);
+  if (trasferisciAndrea) url.searchParams.set('p', '2');
+  url.hash = '#/profilo';
+  return url.href;
+}
+
+async function creaECopiaInvito(trasferisciAndrea = false) {
+  if (!sb.collegato()) {
+    avviso('Prima accedi o crea il tuo account nella sezione qui sotto.', { tipo: 'errore' });
+    return;
+  }
+  try {
+    const risultato = await sb.creaInvitoAmico(accountAttivo(), trasferisciAndrea);
+    const link = urlInvito(risultato.token, trasferisciAndrea);
+    try {
+      await navigator.clipboard.writeText(link);
+      avviso(trasferisciAndrea
+        ? 'Link per trasferire la scheda di Andrea copiato.'
+        : 'Link invito copiato. Creane uno diverso per ogni amico.', { tipo: 'ok', durata: 6000 });
+    } catch {
+      window.prompt('Copia questo link da mandare al tuo amico:', link);
+    }
+  } catch (e) {
+    avviso('Non sono riuscito a creare l’invito: ' + e.message, { tipo: 'errore', durata: 9000 });
+  }
+}
+
+/** Accesso/registrazione visibili dal Profilo, senza configurare manualmente il database. */
+function bloccoAccountOnlineProfilo() {
+  const box = el('section', { class: 'blocco' });
+  box.appendChild(el('h2', { testo: 'Account online' }));
+  box.appendChild(el('p', {
+    class: 'nota',
+    testo: 'Accedi per sincronizzare gli allenamenti tra dispositivi e collegarti agli amici. Ogni persona usa il proprio account.',
+  }));
+
+  const s = sb.sessione();
+  if (s && s.access_token) {
+    const email = s.user && s.user.email ? s.user.email : 'account collegato';
+    box.appendChild(el('p', { class: 'nota', testo: 'Connesso come ' + email }));
+    const invito = invitoPendente();
+    if (invito) {
+      box.appendChild(bottone('Accetta invito in sospeso', {
+        onClick: async () => {
+          try {
+            await completaInvitoPendente();
+            await ricaricaTutto();
+            disegna();
+          } catch (e) {
+            avviso('Invito non completato: ' + e.message, { tipo: 'errore', durata: 10000 });
+          }
+        },
+        classe: 'principale',
+      }));
+    }
+    box.appendChild(bottone('Esci dall’account online', {
+      onClick: async () => {
+        await sb.esci();
+        avviso('Sei uscito dall’account online.');
+        disegna();
+      },
+      classe: 'fantasma',
+    }));
+    return box;
+  }
+
+  const mail = el('input', { type: 'email', class: 'campo-testo', placeholder: 'La tua email', autocomplete: 'email' });
+  const pass = el('input', { type: 'password', class: 'campo-testo', placeholder: 'Password (almeno 6 caratteri)', autocomplete: 'current-password' });
+  box.appendChild(el('div', { class: 'campi-account' }, [mail, pass]));
+
+  box.appendChild(el('div', { class: 'riga-pulsanti' }, [
+    bottone('Accedi', {
+      onClick: async () => {
+        if (!mail.value.trim() || !pass.value) {
+          avviso('Inserisci email e password.', { tipo: 'errore' });
+          return;
+        }
+        try {
+          await sb.accedi(mail.value.trim(), pass.value);
+          if (invitoPendente()) await completaInvitoPendente();
+          else await preparaAccountOnline();
+          await ricaricaTutto();
+          avviso('Accesso riuscito e dati sincronizzati.', { tipo: 'ok' });
+          disegna();
+        } catch (e) {
+          avviso('Accesso non completato: ' + e.message, { tipo: 'errore', durata: 10000 });
+        }
+      },
+      classe: 'principale',
+    }),
+    bottone('Crea account', {
+      onClick: async () => {
+        const email = String(mail.value || '').trim();
+        const password = String(pass.value || '');
+        if (!email || !password) {
+          avviso('Inserisci email e password per creare l’account.', { tipo: 'errore' });
+          return;
+        }
+        if (password.length < 6) {
+          avviso('La password deve contenere almeno 6 caratteri.', { tipo: 'errore' });
+          return;
+        }
+        try {
+          const risultato = await sb.registrati(email, password);
+          if (risultato && risultato.access_token) {
+            if (invitoPendente()) await completaInvitoPendente();
+            else await preparaAccountOnline();
+            await ricaricaTutto();
+            avviso('Account creato e dati sincronizzati.', { tipo: 'ok', durata: 7000 });
+            disegna();
+          } else {
+            avviso('Registrazione inviata. Conferma l’email dal messaggio ricevuto; poi torna al link e premi Accedi.', { tipo: 'ok', durata: 10000 });
+          }
+        } catch (e) {
+          avviso('Registrazione non completata: ' + e.message, { tipo: 'errore', durata: 10000 });
+        }
+      },
+      classe: 'fantasma',
+    }),
+  ]));
+  return box;
+}
+
 /**
  * Ste ha chiesto di chiamare l'app "Palestra". La scheda già installata aveva
  * dentro il nome vecchio ("gym 3"), quindi lo correggo una volta sola: se un
