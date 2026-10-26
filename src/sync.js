@@ -86,7 +86,12 @@ export async function stato() {
       const ultimo = righe.find((r) => r.sync === 'errore' && r.ultimo_errore
         && !(tabella === 'esercizi' && (String(r.id || '').startsWith('ex-') || r.globale === true)));
       if (ultimo) {
-        stato.dettaglio = 'Ultimo errore (' + tabella + '): ' + ultimo.ultimo_errore;
+        const testoErrore = String(ultimo.ultimo_errore || '').toLowerCase();
+        if (/invalid jwt|token is expired|token.{0,60}expired|expired.{0,60}token|invalid claims|token has invalid claims|unable to parse or verify signature|jwt expired|pgrst301/.test(testoErrore)) {
+          stato.dettaglio = 'La sessione online è scaduta o non è più valida. Apri Amici e accedi di nuovo; gli allenamenti locali restano salvati.';
+        } else {
+          stato.dettaglio = 'Ultimo errore (' + tabella + '): ' + ultimo.ultimo_errore;
+        }
         break;
       }
     }
