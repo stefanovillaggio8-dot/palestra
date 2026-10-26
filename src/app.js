@@ -20,7 +20,7 @@ import {
 import { testoProgresso, serieARipetizioniCostanti, riepilogoGenerale } from './progressi.js';
 import { prestazione, mediaPrestazioni, classificaGenerale } from './forza-generale.js';
 import { creaPacchetto, validaPacchetto, unisci, csvSerie, csvSedute, csvEsercizi, soloMiaScheda } from './backup.js';
-import { ESERCIZI, SCHEDA_ID, SCHEDA_NOME, PERSONE, CONTATTI, accountId, chiSei, personaDaMemoria, costruisciSnapshot, eserciziMancanti } from './dati-iniziali.js';
+import { ESERCIZI, SCHEDA_ID, SCHEDA_NOME, PERSONE, accountId, chiSei, personaDaMemoria, costruisciSnapshot, eserciziMancanti } from './dati-iniziali.js';
 import { nuovoId, adesso, TABELLE, riallineaEsercizi } from './sincronizzazione.js';
 // --- il gioco: rank, LP, streak, Aura, missioni, amici ---
 import { statoAccount, ricompenseAllenamento, gruppiDaSerie } from './gioco.js?v=287';
@@ -7175,18 +7175,11 @@ function vistaAmici(zona) {
     }
   }
 
-  // amici che ancora non hanno un account con una scheda
-  if (CONTATTI && CONTATTI.length) {
-    zona.appendChild(el('h2', { testo: 'Persone che puoi aggiungere' }));
-    for (const c of CONTATTI) {
-      zona.appendChild(el('div', { class: 'riga-amico' }, [
-        avatarNodo({ avatar_id: c.avatar, username: c.username }, { dimensione: 44 }),
-        el('div', { class: 'cresci' }, [
-          el('strong', { testo: c.username }),
-          el('span', { class: 'nota', testo: (c.gruppo ? 'Gruppo: ' + c.gruppo + ' · ' : '') + 'Non ha ancora un account con una scheda: appena ne crea uno lo vedrai qui e in classifica.' }),
-        ]),
-      ]));
-    }
+  if (!amici.length) {
+    zona.appendChild(el('p', {
+      class: 'nota',
+      testo: 'Per aggiungere qualcuno, vai in Profilo e crea un link invito. I contatti non sono più nomi finti: appariranno qui quando accettano il collegamento.',
+    }));
   }
 }
 
