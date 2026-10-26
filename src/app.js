@@ -23,7 +23,7 @@ import { creaPacchetto, validaPacchetto, unisci, csvSerie, csvSedute, csvEserciz
 import { ESERCIZI, SCHEDA_ID, SCHEDA_NOME, PERSONE, CONTATTI, accountId, chiSei, personaDaMemoria, costruisciSnapshot, eserciziMancanti } from './dati-iniziali.js';
 import { nuovoId, adesso, TABELLE, riallineaEsercizi } from './sincronizzazione.js';
 // --- il gioco: rank, LP, streak, Aura, missioni, amici ---
-import { statoAccount, ricompenseAllenamento, gruppiDaSerie } from './gioco.js';
+import { statoAccount, ricompenseAllenamento, gruppiDaSerie } from './gioco.js?v=285';
 import { calcolaAvatar, CLASSI, classeConsigliata, eCardio, minutiDiCardio, nomePremio, statoVisivo, percorsoStato, schedaProgressione, STATI_IMMAGINE } from './avatar-rpg.js';
 import { haSigillo, creaSigillo, verificaSigillo } from './sigillo-classe.js';
 import { isoGiorno } from './streak.js';
