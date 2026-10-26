@@ -346,13 +346,27 @@ async function avvia() {
   window.addEventListener('keydown', sbloccaAlPrimoTocco);
 
   svuota(radice);
-  radice.appendChild(el('div', { class: 'caricamento', testo: 'Carico i tuoi dati...' }));
+  const statoAvvio = el('div', { class: 'caricamento', testo: 'Carico i tuoi dati...' });
+  radice.appendChild(statoAvvio);
+  let faseAvvio = 'inizializzazione';
+  const aggiornaFaseAvvio = (testo) => {
+    faseAvvio = testo;
+    if (statoAvvio && statoAvvio.isConnected) statoAvvio.textContent = 'Carico i tuoi dati...\\n' + testo;
+  };
+  const controlloAvvio = setTimeout(() => {
+    if (statoAvvio && statoAvvio.isConnected) {
+      statoAvvio.textContent = 'Avvio bloccato durante: ' + faseAvvio +
+        '. Ricarica la pagina una volta con internet. I tuoi allenamenti salvati non sono stati cancellati.';
+    }
+  }, 12000);
 
   try {
+    aggiornaFaseAvvio('apertura database locale');
     await db.apriDb();
     // CHI SEI, prima di qualsiasi altra cosa. Se questo dispositivo non lo sa e il
     // link non lo dice, si chiede il nome: meglio una domanda che trovarsi dentro la
     // scheda di un altro.
+    aggiornaFaseAvvio('lettura del profilo su questo dispositivo');
     const chi = await risolviPersona();
     if (chi.daChiedere) {
       const risposto = await chiediNome();
@@ -363,12 +377,15 @@ async function avvia() {
       }
       return; // chiediNome sta rilegando la pagina col link giusto
     }
+    aggiornaFaseAvvio('preparazione della scheda');
     await seminaSeVuoto();
     bottoneSu();
     ascoltaScorrimento();
 
+    aggiornaFaseAvvio('lettura di esercizi e allenamenti salvati');
     await ricaricaTutto();
 
+    aggiornaFaseAvvio('controllo dei dati salvati');
     // Una volta sola: gli esercizi con i zavorri salvati come assistenza passano
     // a zavorri. Solo l'etichetta, nessun numero viene toccato. Vedi la funzione.
     const sistematiZavorri = await sistemaZavorriComeZavorri();
@@ -394,6 +411,7 @@ async function avvia() {
         + 'I tuoi numeri non sono cambiati.', { tipo: 'ok' });
     }
 
+    aggiornaFaseAvvio('preparazione della sincronizzazione online');
     // La prima sincronizzazione non deve partire prima della relazione d'amicizia:
     // dopo un invito valido il server autorizza il download dei dati condivisi.
     if (sb.collegato()) {
@@ -409,6 +427,7 @@ async function avvia() {
     }
 
     sync.iscriviti(() => { aggiornaStatoSalvataggio(); });
+    aggiornaFaseAvvio('caricamento delle statistiche');
     // il peso corporeo serve al Rank: lo carico in memoria subito all'avvio
     await aggiornaPesoInMemoria();
     // le correzioni che Ste ha fatto ai livelli: il Rank deve usarle subito,
@@ -453,6 +472,7 @@ if ('serviceWorker' in navigator) {
       });
     } catch { /* pazienza */ }
   }
+    clearTimeout(controlloAvvio);
     disegna();
 
     // Controllo se online cÈ già una versione più nuova: succede spesso
@@ -467,6 +487,7 @@ if ('serviceWorker' in navigator) {
       avviso('Attenzione: questo browser blocca il database veloce, sto usando la memoria del browser. Tutto funziona, ma esporta un backup ogni tanto.', { durata: 9000 });
     }
   } catch (errore) {
+    clearTimeout(controlloAvvio);
     mostraErrore(radice, errore);
   }
 }
