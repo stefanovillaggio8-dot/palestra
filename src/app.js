@@ -1464,7 +1464,7 @@ function vistaAuraShop(zona) {
       el('small',{testo:'Classe: '+nomeClasse}),
     ]),
   ]));
-  const mitica = el('section',{class:'aura-streak-mitica'+(streak>=80?' sbloccata':''},[
+  const mitica = el('section',{class:'aura-streak-mitica'+(streak>=80?' sbloccata':'' )},[
     el('div',{class:'aura-mitica-sigil',testo:'✹'}),
     el('div',{},[
       el('span',{class:'aura-shop-kicker',testo:'RICOMPENSA ESCLUSIVA · NON IN VENDITA'}),
