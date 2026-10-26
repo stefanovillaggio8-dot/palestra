@@ -131,6 +131,21 @@ function schedaAttivaId() { return personaAttiva().schedaId; }
 async function risolviPersona() {
   let ricerca = (typeof window !== 'undefined' && window.location && window.location.search) || '';
   const memoria = await db.leggiMeta('persona', null);
+  let memoriaPerRisoluzione = memoria;
+  let forzaNuovaIdentita = false;
+
+  // Un invito aperto senza identità personale deve creare un profilo unico, non
+  // usare la scheda predefinita del dispositivo.
+  const parametriIngresso = new URLSearchParams(ricerca);
+  const tokenIngresso = parametriIngresso.get('inv');
+  const haIdentitaNelLink = !!(parametriIngresso.get('p')
+    || (parametriIngresso.get('n') && parametriIngresso.get('k')));
+  const haIdentitaPersonale = !!(memoria && memoria.n && memoria.k);
+  if (tokenIngresso && !haIdentitaNelLink && !haIdentitaPersonale) {
+    memoriaPerRisoluzione = null;
+    forzaNuovaIdentita = true;
+    ricerca = '?inv=' + encodeURIComponent(tokenIngresso);
+  }
 
   // Su iPhone l'icona Home può aprire una finestra senza parametri URL e con
   // IndexedDB separato da Safari. Se è installata e non ha identità locale,
@@ -140,12 +155,14 @@ async function risolviPersona() {
     installata = window.navigator.standalone === true ||
       (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
   } catch { /* browser senza rilevamento modalità installata */ }
-  if (installata && !/[?&](?:p=\d+|n=)/.test(ricerca) && !memoria) {
+  if (installata && !/[?&](?:p=\d+|n=)/.test(ricerca) && !/[?&]inv=/.test(ricerca) && !memoriaPerRisoluzione) {
     ricerca = '?p=1';
   }
 
-  const schede = (await db.tutti('schede')).map((s) => s && s.id).filter(Boolean);
-  const esito = chiSei({ ricerca, memoria, schede });
+  const schede = forzaNuovaIdentita
+    ? []
+    : (await db.tutti('schede')).map((s) => s && s.id).filter(Boolean);
+  const esito = chiSei({ ricerca, memoria: memoriaPerRisoluzione, schede });
   if (esito.persona) {
     persona = esito.persona;
     if (esito.memoria) await db.scriviMeta('persona', esito.memoria);
@@ -168,14 +185,22 @@ async function chiediNome() {
     'Questa scheda e\' tua: quello che ci metti lo vedi solo tu.',
     { segnaposto: 'Il tuo nome' },
   );
-  if (!nome) {
-    // nessun nome: non si entra. Meglio una pagina vuota che una scheda chiamata
-    // "senza nome" che poi nessuno ricorda di aver creato.
-    return false;
-  }
+  if (!nome) return false;
   await db.scriviMeta('persona', { n: nome, k: chiave });
   try {
-    window.location.href = window.location.pathname + '?n=' + encodeURIComponent(nome) + '&k=' + chiave;
+    const parametri = new URLSearchParams();
+    parametri.set('n', nome);
+    parametri.set('k', chiave);
+    const invito = new URLSearchParams(window.location.search).get('inv');
+    if (invito) {
+      parametri.set('inv', invito);
+      try {
+        localStorage.setItem('palestra-invito-pendente', JSON.stringify({
+          token: invito, n: nome, k: chiave, creato_il: Date.now(),
+        }));
+      } catch { /* il link contiene comunque il token */ }
+    }
+    window.location.href = window.location.pathname + '?' + parametri.toString() + (invito ? '#/amici' : '');
   } catch {
     vai('/');
   }
@@ -522,6 +547,71 @@ function mostraErrore(radice, errore) {
   ]));
 }
 
+
+let ultimoAggiornamentoProfiliAmici = 0;
+let aggiornamentoProfiliAmiciInCorso = false;
+
+async function aggiornaProfiliAmici({ forza = false, ridisegna = false } = {}) {
+  if (!sb.leggiConfig().attivo || !sb.collegato()
+      || (typeof navigator !== 'undefined' && navigator.onLine === false)) {
+    V.profiliAmici = [];
+    return;
+  }
+  if (aggiornamentoProfiliAmiciInCorso) return;
+  const adesso = Date.now();
+  if (!forza && adesso - ultimoAggiornamentoProfiliAmici < 8000) return;
+  aggiornamentoProfiliAmiciInCorso = true;
+  ultimoAggiornamentoProfiliAmici = adesso;
+  const prima = JSON.stringify(V.profiliAmici || []);
+  try {
+    const ricevuti = await sb.rpc('profili_amici');
+    V.profiliAmici = Array.isArray(ricevuti) ? ricevuti : [];
+  } catch {
+    V.profiliAmici = [];
+  } finally {
+    aggiornamentoProfiliAmiciInCorso = false;
+  }
+  const dopo = JSON.stringify(V.profiliAmici || []);
+  if (ridisegna && prima !== dopo && String(window.location.hash || '').startsWith('#/amici')) disegna();
+}
+
+
+async function preparaProfiloOnline() {
+  await sb.utenteCorrente();
+  const idProfilo = accountAttivo();
+  const idScheda = schedaAttivaId();
+  const profiloLocale = await db.prendi('profili', idProfilo);
+  if (!profiloLocale) throw new Error('Non trovo il tuo profilo locale. Ricarica l’app e riprova.');
+
+  const profiloRemoto = await sb.leggiUno('profili', idProfilo);
+  if (!profiloRemoto) await db.salva('profili', profiloLocale);
+
+  const schedaLocale = await db.prendi('schede', idScheda);
+  if (!schedaLocale) throw new Error('Non trovo la tua scheda locale. Apri la scheda e riprova.');
+  const schedaRemota = await sb.leggiUno('schede', idScheda);
+  if (!schedaRemota) await db.salva('schede', schedaLocale);
+
+  const versioniLocali = (await db.tutti('versioni')).filter((v) => v && v.scheda_id === idScheda);
+  const versioniRemote = await sb.leggi('versioni', { scheda_id: 'eq.' + idScheda });
+  const versioniRemoteId = new Set((versioniRemote || []).map((v) => v.id));
+  for (const versione of versioniLocali) {
+    if (!versioniRemoteId.has(versione.id)) await db.salva('versioni', versione);
+  }
+
+  const risultatoSync = await sync.sincronizza();
+  const profiloConfermato = await sb.leggiUno('profili', idProfilo);
+  const schedaConfermata = await sb.leggiUno('schede', idScheda);
+  if (!profiloConfermato || !schedaConfermata) {
+    const dettaglio = risultatoSync && risultatoSync.messaggio ? ' ' + risultatoSync.messaggio : '';
+    throw new Error('Il tuo profilo non è ancora arrivato al database online. Controlla la sincronizzazione e riprova.' + dettaglio);
+  }
+  const versioniConfermate = await sb.leggi('versioni', { scheda_id: 'eq.' + idScheda });
+  if (schedaConfermata.versione_corrente
+      && !(versioniConfermate || []).some((v) => v.id === schedaConfermata.versione_corrente)) {
+    throw new Error('La versione della tua scheda non è ancora sincronizzata. Riprova tra poco.');
+  }
+}
+
 /** Ricarica tutto quello che serve per la vista corrente. */
 async function ricaricaTutto() {
   V.esercizi = await db.tutti('esercizi');
@@ -531,6 +621,8 @@ async function ricaricaTutto() {
   V.serie = await db.tutti('serie');
   V.note = await db.tutti('note');
   V.profili = await db.tutti('profili');
+  V.profiliAmici = [];
+  await aggiornaProfiliAmici({ forza: true });
   V.missioni = await db.tutti('missioni');
   V.ricompense = await db.tutti('ricompense');
   V.conflitti = await sync.conflittiDaScegliere();
@@ -4405,7 +4497,9 @@ function accountAttivo() { return accountId(personaAttiva().id); }
 function profili() { return V.profili || []; }
 
 function profiloDi(idAccount) {
-  return profili().find((p) => p && p.id === idAccount) || null;
+  return profili().find((p) => p && p.id === idAccount)
+    || (V.profiliAmici || []).find((p) => p && p.id === idAccount)
+    || null;
 }
 
 function profiloAttivo() {
@@ -4479,7 +4573,7 @@ function statoMio(oggi = null) {
 /** I record di ogni account che ha allenato qualcosa su questo dispositivo. */
 function vociPerClassifica() {
   const voci = [];
-  for (const p of PERSONE) {
+  for (const p of personeDiQuestaApp()) {
     const id = accountId(p.id);
     const profilo = profiloDi(id) || { id, username: p.username || p.nome, avatar_id: p.avatar || 'vuoto', amici: (p.amici || []).map((n) => accountId(n)), privacy: PRIVACY_PREDEFINITE };
     const miei = seduteDellaPersonaPer(p);
@@ -4494,6 +4588,31 @@ function vociPerClassifica() {
       privacy: privacyDi(profilo),
       record,
       sedute: completate,
+      serie: mie,
+      profilo,
+    });
+  }
+
+  for (const profilo of (V.profiliAmici || [])) {
+    if (!profilo || !profilo.id || voci.some((v) => v.account === profilo.id)) continue;
+    const schedaId = profilo.scheda_id;
+    if (!schedaId) continue;
+    const versioni = (V.versi || []).filter((v) => v && v.scheda_id === schedaId);
+    const idVersioni = new Set(versioni.map((v) => v.id));
+    const completate = (V.sedute || []).filter((s) =>
+      s && idVersioni.has(s.versione_id) && !s.eliminata && s.stato === 'completata');
+    const idSedute = new Set(completate.map((s) => s.id));
+    const serie = (V.serie || []).filter((s) =>
+      s && idSedute.has(s.seduta_id) && !s.eliminata);
+    const record = recordAccount(V.esercizi, gruppiDaSerie(completate, serie, V.esercizi));
+    voci.push({
+      account: profilo.id,
+      username: profilo.username || 'Amico',
+      avatar_id: profilo.avatar_id || 'vuoto',
+      privacy: privacyDi(profilo),
+      record,
+      sedute: completate,
+      serie,
       profilo,
     });
   }
@@ -6415,7 +6534,7 @@ function vistaRank(zona) {
 
   function sezioneConfronto(stato) {
     contenitore.appendChild(el('p', { class: 'nota', testo: 'Il tuo conto con quello degli amici, esercizio per esercizio.' }));
-    const amici = amiciDi(profiloAttivo(), vociPerClassifica().map((v) => ({ ...v.profilo, id: v.account })));
+    const amici = amiciDisponibili(profiloAttivo(), vociPerClassifica());
     if (!amici.length) {
       contenitore.appendChild(el('p', { class: 'nota', testo: 'Non hai ancora amici. Vai su Amici per aggiungerne.' }));
       return;
@@ -6736,7 +6855,7 @@ async function vistaEsercizio(zona, esercizioId) {
   ]));
 
   // confronto con gli amici su questo esercizio
-  const amici = amiciDi(profiloAttivo(), vociPerClassifica().map((v) => ({ ...v.profilo, id: v.account })));
+  const amici = amiciDisponibili(profiloAttivo(), vociPerClassifica());
   if (amici.length) {
     const box = el('section', { class: 'blocco' }, [el('h2', { testo: 'Con gli amici' })]);
     for (const a of amici) {
@@ -6873,7 +6992,19 @@ function pannelloAccountOnlineAmici() {
           return;
         }
         try {
-          const risultato = await sb.registrati(email, password);
+          const token = tokenInvitoCorrente();
+          let redirectTo = null;
+          if (token) {
+            const url = new URL(window.location.href);
+            redirectTo = url.origin + url.pathname + url.search;
+            try {
+              const params = new URLSearchParams(url.search);
+              localStorage.setItem('palestra-invito-pendente', JSON.stringify({
+                token, n: params.get('n') || null, k: params.get('k') || null, creato_il: Date.now(),
+              }));
+            } catch { /* l'invito è già nel link */ }
+          }
+          const risultato = await sb.registrati(email, password, redirectTo);
           if (risultato && risultato.access_token) {
             await ricaricaTutto();
             avviso('Account creato e accesso effettuato.', { tipo: 'ok', durata: 7000 });
@@ -6916,13 +7047,180 @@ function pannelloLinkPersonaleAmici() {
   return box;
 }
 
+
+function amiciDisponibili(profilo, voci = vociPerClassifica()) {
+  const unici = new Map();
+  const online = sb.collegato()
+    && !(typeof navigator !== 'undefined' && navigator.onLine === false)
+    && Array.isArray(V.profiliAmici);
+  if (!online) {
+    for (const a of amiciDi(profilo, voci.map((v) => ({ ...v.profilo, id: v.account })))) {
+      unici.set(a.id, a);
+    }
+  }
+  for (const remoto of (V.profiliAmici || [])) {
+    if (!remoto || !remoto.id || remoto.id === (profilo && profilo.id)) continue;
+    const voce = voci.find((v) => v.account === remoto.id);
+    if (!voce) continue;
+    unici.set(remoto.id, { ...(voce.profilo || {}), ...remoto, id: remoto.id });
+  }
+  return [...unici.values()].sort((a, b) => String(a.username || '').localeCompare(String(b.username || '')));
+}
+
+function tokenInvitoCorrente() {
+  try {
+    const dallUrl = new URLSearchParams(window.location.search).get('inv');
+    if (dallUrl) return dallUrl;
+    const salvato = JSON.parse(localStorage.getItem('palestra-invito-pendente') || 'null');
+    return salvato && salvato.token ? String(salvato.token) : null;
+  } catch { return null; }
+}
+
+function ultimoInvitoCreato() {
+  try {
+    const dato = JSON.parse(localStorage.getItem('palestra-ultimo-invito-amici') || 'null');
+    if (!dato || !dato.token || !dato.expires_at || Date.parse(dato.expires_at) <= Date.now()) return null;
+    return dato;
+  } catch { return null; }
+}
+
+function urlInvitoAmico(token) {
+  const url = new URL(window.location.href);
+  url.search = '';
+  url.searchParams.set('inv', token);
+  url.hash = '#/amici';
+  return url.href;
+}
+
+function copiaTesto(texto, etichetta) {
+  return async () => {
+    try {
+      await navigator.clipboard.writeText(texto);
+      avviso(etichetta + ' copiato.', { tipo: 'ok' });
+    } catch {
+      window.prompt('Copia il link:', texto);
+    }
+  };
+}
+
+function pannelloInvitiAmici() {
+  const box = el('section', { class: 'blocco' });
+  const cfg = sb.leggiConfig();
+  const sessione = sb.sessione();
+  const autenticato = !!(sessione && sessione.access_token);
+  const tokenRicevuto = tokenInvitoCorrente();
+
+  if (tokenRicevuto) {
+    box.appendChild(el('h2', { testo: 'Hai ricevuto un invito' }));
+    box.appendChild(el('p', {
+      class: 'nota',
+      testo: autenticato
+        ? 'L’invito è pronto. Accettalo per aggiungere il profilo alla tua lista amici.'
+        : 'Per accettarlo, accedi o crea il tuo account nel riquadro qui sopra. Se devi confermare l’email, riapri questo stesso link dopo la conferma.',
+    }));
+    if (autenticato && cfg.attivo) {
+      box.appendChild(bottone('Accetta invito', {
+        onClick: async () => {
+          try {
+            await preparaProfiloOnline();
+            const risposta = await sb.rpc('accetta_invito_amico', {
+              p_token: tokenRicevuto,
+              p_profilo_id: accountAttivo(),
+            });
+            const esito = Array.isArray(risposta) ? risposta[0] : risposta;
+            if (!esito || esito.ok !== true) throw new Error('Il database non ha confermato l’accettazione.');
+            try {
+              localStorage.removeItem('palestra-invito-pendente');
+              localStorage.removeItem('palestra-ultimo-pull');
+              localStorage.removeItem('palestra-ultimo-pull-completo-v1');
+            } catch { /* il successivo pull completo resta disponibile */ }
+            try { await sync.sincronizza(); } catch { /* il collegamento è già stato salvato sul server */ }
+            await ricaricaTutto();
+            try {
+              const url = new URL(window.location.href);
+              url.searchParams.delete('inv');
+              url.hash = '#/amici';
+              window.history.replaceState({}, '', url.href);
+            } catch { /* l'invito è comunque monouso */ }
+            avviso(esito.trasferito
+              ? 'Invito accettato: la scheda storica è stata trasferita.'
+              : 'Invito accettato! Il tuo amico è stato aggiunto.', { tipo: 'ok', durata: 8000 });
+            disegna();
+          } catch (e) {
+            avviso('Non sono riuscito ad accettare l’invito: ' + (e.message || String(e)), { tipo: 'errore', durata: 10000 });
+          }
+        },
+        classe: 'principale',
+      }));
+    }
+    box.appendChild(el('hr'));
+  }
+
+  box.appendChild(el('h2', { testo: 'Invita un amico' }));
+  box.appendChild(el('p', {
+    class: 'nota',
+    testo: 'Crea un link per una sola persona. L’invito scade dopo 14 giorni e si usa una volta sola.',
+  }));
+
+  if (!cfg.attivo || !autenticato) {
+    box.appendChild(el('p', {
+      class: 'nota',
+      testo: 'Per creare un invito devi prima configurare il database ed entrare nel tuo account online.',
+    }));
+    return box;
+  }
+
+  box.appendChild(bottone('Crea link d’invito', {
+    onClick: async () => {
+      try {
+        await preparaProfiloOnline();
+        const risposta = await sb.rpc('crea_invito_amico', {
+          p_profilo_id: accountAttivo(),
+          p_trasferisci_andrea: false,
+        });
+        const invito = Array.isArray(risposta) ? risposta[0] : risposta;
+        if (!invito || !invito.token) throw new Error('Il database non ha restituito il link d’invito.');
+        localStorage.setItem('palestra-ultimo-invito-amici', JSON.stringify({
+          token: invito.token,
+          expires_at: invito.expires_at,
+        }));
+        avviso('Invito creato. Copia il link e mandalo al tuo amico.', { tipo: 'ok', durata: 7000 });
+        disegna();
+      } catch (e) {
+        avviso('Non sono riuscito a creare l’invito: ' + (e.message || String(e)), { tipo: 'errore', durata: 10000 });
+      }
+    },
+    classe: 'principale',
+  }));
+
+  const creato = ultimoInvitoCreato();
+  if (creato) {
+    const link = urlInvitoAmico(creato.token);
+    box.appendChild(el('p', { class: 'nota', testo: 'Link da inviare al tuo amico:' }));
+    box.appendChild(el('p', { class: 'nota nota-piccola', testo: link }));
+    box.appendChild(bottone('Copia link d’invito', {
+      onClick: copiaTesto(link, 'Link d’invito'),
+      classe: 'fantasma',
+    }));
+    box.appendChild(el('p', {
+      class: 'nota',
+      testo: 'Scade il ' + new Date(creato.expires_at).toLocaleDateString('it-IT') + '. Per un altro amico, crea un invito nuovo.',
+    }));
+  }
+  return box;
+}
+
 function vistaAmici(zona) {
   zona.appendChild(el('h1', { testo: 'Amici' }));
   zona.appendChild(pannelloAccountOnlineAmici());
-  zona.appendChild(pannelloLinkPersonaleAmici());
+  zona.appendChild(pannelloInvitiAmici());
+  zona.appendChild(el('details', { class: 'blocco-chiuso' }, [
+    el('summary', { testo: 'Link personale per i tuoi dispositivi' }),
+    pannelloLinkPersonaleAmici(),
+  ]));
   const profilo = profiloAttivo();
   const voci = vociPerClassifica();
-  const amici = amiciDi(profilo, voci.map((v) => ({ ...v.profilo, id: v.account })));
+  const amici = amiciDisponibili(profilo, voci);
 
   zona.appendChild(el('p', { class: 'nota', testo: 'Vedi solo gli account che hai autorizzato. Ognuno vede solo quello che ha deciso di mostrare.' }));
 
@@ -6958,19 +7256,7 @@ function vistaAmici(zona) {
     }
   }
 
-  // amici che ancora non hanno un account con una scheda
-  if (CONTATTI && CONTATTI.length) {
-    zona.appendChild(el('h2', { testo: 'Persone che puoi aggiungere' }));
-    for (const c of CONTATTI) {
-      zona.appendChild(el('div', { class: 'riga-amico' }, [
-        avatarNodo({ avatar_id: c.avatar, username: c.username }, { dimensione: 44 }),
-        el('div', { class: 'cresci' }, [
-          el('strong', { testo: c.username }),
-          el('span', { class: 'nota', testo: (c.gruppo ? 'Gruppo: ' + c.gruppo + ' · ' : '') + 'Non ha ancora un account con una scheda: appena ne crea uno lo vedrai qui e in classifica.' }),
-        ]),
-      ]));
-    }
-  }
+
 }
 
 function vistaAmico(zona, idAmico) {
