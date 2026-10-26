@@ -4978,6 +4978,11 @@ function vociPerClassifica() {
 }
 
 /** Le sedute di una persona precisa (non solo di quella attiva). */
+function vociConClassificaPubblica() {
+  return vociPerClassifica().filter((v) =>
+    v.account === accountAttivo() || privacyDi(v.profilo).leaderboard === 'pubblico');
+}
+
 function seduteDellaPersonaPer(p) {
   const idScheda = p.schedaId || (profiloDi(p.accountId || accountId(p.id)) || {}).scheda_id;
   const versioni = (V.versi || []).filter((v) => v.scheda_id === idScheda);
@@ -6846,7 +6851,7 @@ function vistaRank(zona) {
 
   function sezioneClassifica(stato) {
     contenitore.appendChild(el('p', { class: 'nota', testo: 'Una classifica per esercizio: si confrontano SOLO numeri dello stesso esercizio, mai pesi di muscoli diversi.' }));
-    const classifiche = classifichePerEsercizio(vociPerClassifica(), V.esercizi);
+    const classifiche = classifichePerEsercizio(vociConClassificaPubblica(), V.esercizi);
     if (!classifiche.length) {
       contenitore.appendChild(el('p', { class: 'nota', testo: 'Nessuna classifica ancora: servono almeno due account con un record sullo stesso esercizio.' }));
       return;
@@ -7186,7 +7191,7 @@ async function vistaEsercizio(zona, esercizioId) {
   ]));
 
   // posizione nella classifica di questo esercizio
-  const classifiche = classifichePerEsercizio(vociPerClassifica(), V.esercizi);
+  const classifiche = classifichePerEsercizio(vociConClassificaPubblica(), V.esercizi);
   const mia = classifiche.find((c) => c.esercizio_id === e.id);
   if (mia) {
     const profiloPrivacy = privacyDi(profiloAttivo());
@@ -7582,7 +7587,7 @@ async function vistaProfilo(zona) {
   // privacy
   const boxPrivacy = el('section', { class: 'blocco' }, [
     el('h2', { testo: 'Privacy' }),
-    el('p', { class: 'nota', testo: 'Scegli cosa gli altri possono vedere. Quando chiudi una cosa, non la vedono piu\': non viene solo nascosta.' }),
+    el('p', { class: 'nota', testo: 'Scegli cosa condividere con gli amici collegati. Quando rendi privato un dato, l\'app smette di mostrarlo e il database blocca i nuovi accessi.' }),
   ]);
   const scelte = el('div', { class: 'chip-scelte' });
   // Due stati, come prima: o si vede da tutti o da nessuno. Il codice 030226
@@ -7590,8 +7595,8 @@ async function vistaProfilo(zona) {
   // aveva il codice): resta la privacy normale.
   const DOPO_CLIC = { privato: 'pubblico', pubblico: 'privato' };
   const SPIEGA = {
-    privato: 'privato: non lo vede nessuno',
-    pubblico: 'pubblico: lo vede tutto il mondo',
+    privato: 'privato: gli amici non lo vedono',
+    pubblico: 'pubblico: lo vedono gli amici collegati',
   };
   for (const campo of campiVisibili) {
     const attuale = privacyDi(profiloDi(accountAttivo()))[campo.id];
