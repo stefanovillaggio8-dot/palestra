@@ -569,7 +569,24 @@ async function ricaricaTutto() {
   V.sedute = await db.tutti('sedute');
   V.serie = await db.tutti('serie');
   V.note = await db.tutti('note');
-  V.profili = await db.tutti('profili');
+
+  // Il database locale contiene il profilo attivo; i profili degli amici
+  // arrivano da una RPC limitata e non entrano mai nella coda di sincronizzazione.
+  const idMio = accountAttivo();
+  V.profili = (await db.tutti('profili')).filter((p) => p && p.id === idMio);
+  if (sb.collegato()) {
+    try {
+      const amiciOnline = await sb.profiliAmici();
+      const visti = new Set(V.profili.map((p) => p.id));
+      for (const p of amiciOnline || []) {
+        if (!p || !p.id || visti.has(p.id) || !p.scheda_id) continue;
+        V.profili.push(p);
+        visti.add(p.id);
+      }
+    } catch (e) {
+      console.warn('Non ho potuto aggiornare l’elenco amici:', e && e.message);
+    }
+  }
   V.missioni = await db.tutti('missioni');
   V.ricompense = await db.tutti('ricompense');
   V.conflitti = await sync.conflittiDaScegliere();
@@ -779,9 +796,31 @@ async function risistemaCampiCarico(righe) {
  * e lascerebbe l'impressione di poter passare a una scheda che non esiste.
  */
 function personeDiQuestaApp() {
-  const persone = PERSONE.slice();
+  const persone = [];
+  const presenti = new Set();
+  for (const profilo of (V.profili || [])) {
+    if (!profilo || !profilo.id || !profilo.scheda_id) continue;
+    const id = String(profilo.id).replace(/^account-/, '');
+    const statica = PERSONE.find((p) => accountId(p.id) === profilo.id);
+    persone.push({
+      ...(statica || {}),
+      id,
+      accountId: profilo.id,
+      nome: profilo.username || (statica && statica.nome) || 'Amico',
+      username: profilo.username || (statica && statica.username) || 'Amico',
+      nomeScheda: (statica && statica.nomeScheda) || ('Palestra di ' + (profilo.username || 'Amico')),
+      schedaId: profilo.scheda_id,
+      amministratore: !!profilo.amministratore,
+      avatar: profilo.avatar_id || (statica && statica.avatar) || 'vuoto',
+      amici: Array.isArray(profilo.amici) ? profilo.amici : [],
+      colore: profilo.colore || '#7c5cff',
+      creata: !statica,
+    });
+    presenti.add(profilo.id);
+  }
   const io = personaAttiva();
-  if (io && io.creata && !persone.some((p) => p.id === io.id)) persone.push(io);
+  const mioId = accountAttivo();
+  if (!presenti.has(mioId)) persone.push({ ...io, accountId: mioId });
   return persone;
 }
 
@@ -840,22 +879,19 @@ async function seminaPersona() {
 async function seminaProfilo(p) {
   const id = accountId(p.id);
   const gia = await db.prendi('profili', id);
-  if (gia) return;
+  if (gia) {
+    if (gia.scheda_id !== p.schedaId) {
+      await db.salva('profili', { ...gia, scheda_id: p.schedaId }, { segna: false });
+    }
+    return;
+  }
   await db.salva('profili', {
     id,
+    scheda_id: p.schedaId,
     username: p.username || p.nome,
     avatar_id: p.avatar || 'vuoto',
     amministratore: !!p.amministratore,
     amici: Array.isArray(p.amici) ? p.amici.map((n) => accountId(n)) : [],
-    // I giorni in cui allena: sono SCELTI, quindi qui non viene scritto nulla.
-    //
-    // Il campo resta assente di proposito. Se mettessi un valore qui, sarebbe il
-    // "giorno 1 = ?, giorno 2 = ?" della scheda, cioe' i MIE giorni, e finirebbero
-    // nel profilo di tutti gli altri. È esattamente il buco che Ste ha segnalato:
-    // "devo darla pure a dei miei compagni, non tutti fanno i miei stessi giorni".
-    //
-    // Finche' il campo manca, `calcolaStreak` usa la regola semplice (l'ultimo
-    // allenamento deve essere oggi o ieri), che non azzera nessuno per sbaglio.
     privacy: { ...PRIVACY_PREDEFINITE },
     colore: p.colore || '#7c5cff',
   }, { segna: false });
@@ -4570,9 +4606,16 @@ function statoMio(oggi = null) {
 /** I record di ogni account che ha allenato qualcosa su questo dispositivo. */
 function vociPerClassifica() {
   const voci = [];
-  for (const p of PERSONE) {
-    const id = accountId(p.id);
-    const profilo = profiloDi(id) || { id, username: p.username || p.nome, avatar_id: p.avatar || 'vuoto', amici: (p.amici || []).map((n) => accountId(n)), privacy: PRIVACY_PREDEFINITE };
+  for (const p of personeDiQuestaApp()) {
+    const id = p.accountId || accountId(p.id);
+    const profilo = profiloDi(id) || {
+      id,
+      username: p.username || p.nome,
+      avatar_id: p.avatar || 'vuoto',
+      amici: Array.isArray(p.amici) ? p.amici : [],
+      privacy: PRIVACY_PREDEFINITE,
+      scheda_id: p.schedaId,
+    };
     const miei = seduteDellaPersonaPer(p);
     const completate = miei.filter((s) => s && !s.eliminata && s.stato === 'completata');
     const mieiId = new Set(completate.map((s) => s.id));
@@ -4585,6 +4628,7 @@ function vociPerClassifica() {
       privacy: privacyDi(profilo),
       record,
       sedute: completate,
+      serie: mie,
       profilo,
     });
   }
@@ -4593,10 +4637,12 @@ function vociPerClassifica() {
 
 /** Le sedute di una persona precisa (non solo di quella attiva). */
 function seduteDellaPersonaPer(p) {
-  const idScheda = p.schedaId;
+  const idScheda = p.schedaId || (profiloDi(p.accountId || accountId(p.id)) || {}).scheda_id;
   const versioni = (V.versi || []).filter((v) => v.scheda_id === idScheda);
   const miei = new Set(versioni.map((v) => v.id));
-  return (V.sedute || []).filter((s) => miei.has(s.versione_id));
+  return (V.sedute || []).filter((s) => s && (
+    s.scheda_id === idScheda || (!s.scheda_id && miei.has(s.versione_id))
+  ));
 }
 
 /* ---------- mattoni visivi del gioco ---------- */
