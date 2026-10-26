@@ -190,8 +190,15 @@ function versioniDellaPersona() {
 
 /** Le sedute della persona che sta usando l'app (le altre non le vede). */
 function seduteDellaPersona() {
+  const id = schedaAttivaId();
   const miei = new Set(versioniDellaPersona().map((v) => v.id));
-  return V.sedute.filter((s) => miei.has(s.versione_id));
+  // Le sedute hanno già scheda_id: non dipendere dalla presenza della versione
+  // collegata, perché alcune versioni storiche possono mancare nel database.
+  // Altrimenti allenamenti validi spariscono dalla streak e dal calendario.
+  return V.sedute.filter((s) => s && (
+    s.scheda_id === id ||
+    (!s.scheda_id && miei.has(s.versione_id))
+  ));
 }
 
 /** Le serie della persona che sta usando l'app. */
