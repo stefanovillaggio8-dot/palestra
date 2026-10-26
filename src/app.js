@@ -941,6 +941,72 @@ async function preparaAccountOnline() {
   return utente;
 }
 
+/** Raccoglie i dati locali legati alla vecchia scheda di Andrea prima del claim. */
+async function datiLocaliAndreaDaTrasferire(schedaId) {
+  const versioni = (await db.tutti('versioni', { includiEliminati: true }))
+    .filter((r) => r && r.scheda_id === schedaId);
+  const versioniId = new Set(versioni.map((r) => r.id));
+  const sedute = (await db.tutti('sedute', { includiEliminati: true }))
+    .filter((r) => r && (r.scheda_id === schedaId || versioniId.has(r.versione_id)));
+  const seduteId = new Set(sedute.map((r) => r.id));
+  const serie = (await db.tutti('serie', { includiEliminati: true }))
+    .filter((r) => r && seduteId.has(r.seduta_id));
+  const serieId = new Set(serie.map((r) => r.id));
+  const note = (await db.tutti('note', { includiEliminati: true }))
+    .filter((r) => r && (seduteId.has(r.seduta_id) || serieId.has(r.serie_id)));
+  const profilo = await db.prendi('profili', 'account-2');
+  const schedaLocale = await db.prendi('schede', schedaId);
+
+  const eserciziUsati = new Set(serie.map((r) => r.esercizio_id).filter(Boolean));
+  for (const versione of versioni) {
+    for (const giorno of (versione.snapshot && versione.snapshot.giorni) || []) {
+      for (const esercizio of giorno.esercizi || []) {
+        const id = esercizio.esercizio_id || esercizio.esercizioId || esercizio.id;
+        if (id) eserciziUsati.add(id);
+      }
+    }
+  }
+  const esercizi = (await db.tutti('esercizi', { includiEliminati: true }))
+    .filter((r) => r && eserciziUsati.has(r.id)
+      && !String(r.id).startsWith('ex-') && r.globale !== true);
+  const missioni = (await db.tutti('missioni', { includiEliminati: true }))
+    .filter((r) => r && r.account_id === 'account-2');
+  const ricompense = (await db.tutti('ricompense', { includiEliminati: true }))
+    .filter((r) => r && r.account_id === 'account-2');
+  const pesi = (await db.tutti('pesi', { includiEliminati: true }))
+    .filter((r) => r && r.account_id === 'account-2');
+
+  return {
+    profilo: profilo ? [{ ...profilo, scheda_id: schedaId }] : [],
+    schede: schedaLocale ? [schedaLocale] : [],
+    versioni, esercizi, sedute, serie, note, missioni, ricompense, pesi,
+  };
+}
+
+/**
+ * Il claim sposta sul server la vecchia scheda se esiste già. Se Andrea aveva
+ * allenamenti solo in IndexedDB (mai sincronizzati), li carico ora senza
+ * sovrascrivere quelli che il server ha già trasferito.
+ */
+async function accodaDatiAndreaMancanti(dati) {
+  const ordine = ['profili', 'schede', 'versioni', 'esercizi', 'sedute', 'serie', 'note', 'missioni', 'ricompense', 'pesi'];
+  let accodate = 0;
+  for (const tabella of ordine) {
+    for (const riga of (dati[tabella] || [])) {
+      let remoto;
+      try {
+        remoto = await sb.leggiUno(tabella, riga.id);
+      } catch (e) {
+        throw new Error('Non riesco a controllare il dato storico ' + riga.id + ': ' + e.message);
+      }
+      if (remoto) continue; // Il database è già la copia ufficiale: non duplico né la sovrascrivo.
+      await db.salva(tabella, { ...riga, ...(tabella === 'profili' ? { scheda_id: schedaAttivaId() } : {}) }, { segna: true });
+      accodate++;
+    }
+  }
+  return accodate;
+}
+
 /** Accetta il link una sola volta e ricarica i dati condivisi da entrambi. */
 async function completaInvitoPendente() {
   const token = invitoPendente();
@@ -948,13 +1014,17 @@ async function completaInvitoPendente() {
 
   const idProfilo = accountAttivo();
   const trasferimentoAndrea = idProfilo === 'account-2';
+  const datiAndrea = trasferimentoAndrea
+    ? await datiLocaliAndreaDaTrasferire(schedaAttivaId())
+    : null;
 
-  // Per il profilo storico di Andrea il database lo trasferisce prima che
-  // questo dispositivo provi a caricare le righe locali seminate da zero.
+  // Per il profilo storico di Andrea il database trasferisce i dati già online.
+  // Quelli presenti solo sul telefono vengono aggiunti dopo il claim.
   if (!trasferimentoAndrea) await preparaAccountOnline();
 
   const esito = await sb.accettaInvitoAmico(token, idProfilo);
   consumaInvitoPendente();
+  if (datiAndrea) await accodaDatiAndreaMancanti(datiAndrea);
 
   const mioProfilo = await sb.leggiUno('profili', idProfilo);
   if (mioProfilo) {
