@@ -93,6 +93,31 @@ function capitalizza(t) {
 
 const V = {}; // stato dell'app
 const GIRI_DROPSET = 3; // i 3 posti in più che ha chiesto Ste
+const CHIAVE_INVITO_PENDENTE = 'palestra-invito-pendente';
+
+function invitoDallaUrl() {
+  try {
+    return new URL(window.location.href).searchParams.get('inv') || '';
+  } catch { return ''; }
+}
+
+function invitoPendente() {
+  const url = invitoDallaUrl();
+  if (url) {
+    try { localStorage.setItem(CHIAVE_INVITO_PENDENTE, url); } catch { /* memoria non disponibile */ }
+    return url;
+  }
+  try { return localStorage.getItem(CHIAVE_INVITO_PENDENTE) || ''; } catch { return ''; }
+}
+
+function consumaInvitoPendente() {
+  try { localStorage.removeItem(CHIAVE_INVITO_PENDENTE); } catch { /* memoria non disponibile */ }
+  try {
+    const url = new URL(window.location.href);
+    url.searchParams.delete('inv');
+    window.history.replaceState({}, '', url.pathname + (url.search ? url.search : '') + '#/profilo');
+  } catch { /* vecchio browser */ }
+}
 
 /* ===================== chi sta usando l'app ===================== */
 
@@ -130,6 +155,9 @@ function schedaAttivaId() { return personaAttiva().schedaId; }
  */
 async function risolviPersona() {
   let ricerca = (typeof window !== 'undefined' && window.location && window.location.search) || '';
+  // Il link d'invito sopravvive alla scelta iniziale del nome e all'eventuale
+  // conferma email: non deve perdersi durante il cambio URL.
+  invitoPendente();
   const memoria = await db.leggiMeta('persona', null);
 
   // Su iPhone l'icona Home può aprire una finestra senza parametri URL e con
@@ -175,7 +203,9 @@ async function chiediNome() {
   }
   await db.scriviMeta('persona', { n: nome, k: chiave });
   try {
-    window.location.href = window.location.pathname + '?n=' + encodeURIComponent(nome) + '&k=' + chiave;
+    const invito = invitoPendente();
+    const qs = '?n=' + encodeURIComponent(nome) + '&k=' + chiave + (invito ? '&inv=' + encodeURIComponent(invito) : '');
+    window.location.href = window.location.pathname + qs + (invito ? '#/profilo' : '');
   } catch {
     vai('/');
   }
@@ -259,6 +289,8 @@ function ascoltaScorrimento() {
 async function avvia() {
   const radice = document.getElementById('app');
   installaSpiaErrori();
+  // Una conferma email può restituire i token nel frammento dell'URL.
+  sb.ripristinaSessioneDaUrl();
 
   // LE ANIMAZIONI, PRIMA DI DISEGNARE.
   //
