@@ -7308,14 +7308,42 @@ async function vistaEsercizio(zona, esercizioId) {
 
 function vistaAmici(zona) {
   zona.appendChild(el('h1', { testo: 'Amici' }));
+
+  // Tutto ciò che riguarda inviti, condivisione e accesso online sta qui,
+  // non in cima al Profilo: il Profilo deve aprirsi sui dati personali.
   const profilo = profiloAttivo();
+  const boxLink = el('section', { class: 'blocco' }, [
+    el('h2', { testo: 'Amici e condivisione' }),
+    el('p', {
+      class: 'nota',
+      testo: 'Crea un link diverso per ogni amico. Quando lo apre, crea il suo account e accetta l’invito; poi potete vedere i vostri allenamenti condivisi. Non mandare mai a nessuno la tua password.',
+    }),
+    bottone('Crea link invito per un amico', {
+      onClick: () => creaECopiaInvito(false),
+      classe: 'principale',
+    }),
+    el('p', {
+      class: 'nota nota-piccola',
+      testo: 'Accettando l’invito, profilo e allenamenti diventano visibili tra voi. Puoi cambiare la visibilità in qualsiasi momento nella sezione Privacy.',
+    }),
+  ]);
+  if (accountAttivo() === 'account-1' && profilo.amministratore) {
+    boxLink.appendChild(bottone('Invita Andrea e trasferisci la sua vecchia scheda', {
+      onClick: () => creaECopiaInvito(true),
+      classe: 'fantasma',
+      titolo: 'Invito speciale: trasferisce una sola volta la scheda storica Palestra A al suo account personale.',
+    }));
+  }
+  zona.appendChild(boxLink);
+  zona.appendChild(bloccoAccountOnlineProfilo());
+
   const voci = vociPerClassifica();
   const amici = amiciDi(profilo, voci.map((v) => ({ ...v.profilo, id: v.account })));
 
   zona.appendChild(el('p', { class: 'nota', testo: 'Vedi solo gli account che hai autorizzato. Ognuno vede solo quello che ha deciso di mostrare.' }));
 
   if (!amici.length) {
-    zona.appendChild(el('p', { class: 'nota', testo: 'Non hai ancora amici. Per aggiungerne uno, vai in Profilo e crea un link invito.' }));
+    zona.appendChild(el('p', { class: 'nota', testo: 'Non hai ancora amici. Crea un link invito qui sopra e mandalo alla persona che vuoi aggiungere.' }));
   } else {
     for (const a of amici) {
       const voce = voci.find((v) => v.account === a.id);
@@ -7432,33 +7460,6 @@ async function vistaProfilo(zona) {
   const st = statoMio();
   const profilo = profiloAttivo();
   zona.appendChild(el('h1', { testo: 'Profilo' }));
-
-  // Gli inviti sono legati agli account Supabase: ogni link si usa una volta,
-  // scade dopo 14 giorni e crea una relazione reciproca senza condividere password.
-  const boxLink = el('section', { class: 'blocco' }, [
-    el('h2', { testo: 'Amici e condivisione' }),
-    el('p', {
-      class: 'nota',
-      testo: 'Crea un link diverso per ogni amico. Quando lo apre, crea il suo account e accetta l’invito; poi potete vedere i vostri allenamenti condivisi. Non mandare mai a nessuno la tua password.',
-    }),
-    bottone('Crea link invito per un amico', {
-      onClick: () => creaECopiaInvito(false),
-      classe: 'principale',
-    }),
-    el('p', {
-      class: 'nota nota-piccola',
-      testo: 'Accettando l’invito, profilo e allenamenti diventano visibili tra voi. Puoi cambiare la visibilità in qualsiasi momento nella sezione Privacy.',
-    }),
-  ]);
-  if (accountAttivo() === 'account-1' && profilo.amministratore) {
-    boxLink.appendChild(bottone('Invita Andrea e trasferisci la sua vecchia scheda', {
-      onClick: () => creaECopiaInvito(true),
-      classe: 'fantasma',
-      titolo: 'Invito speciale: trasferisce una sola volta la scheda storica Palestra A al suo account personale.',
-    }));
-  }
-  zona.appendChild(boxLink);
-  zona.appendChild(bloccoAccountOnlineProfilo());
 
   // l'avatar grande e centrale, come nei giochi
   const testa = el('div', { class: 'testa-profilo' }, [
