@@ -1027,7 +1027,7 @@ async function datiLocaliSchedaDaTrasferire(schedaId, idProfilo) {
   const missioni = (await db.tutti('missioni', { includiEliminati: true }))
     .filter((r) => r && r.account_id === idProfilo);
   const ricompense = (await db.tutti('ricompense', { includiEliminati: true }))
-    .filter((r) => r && r.account_id === 'account-2');
+    .filter((r) => r && r.account_id === idProfilo);
   const pesi = (await db.tutti('pesi', { includiEliminati: true }))
     .filter((r) => r && r.account_id === idProfilo);
 
