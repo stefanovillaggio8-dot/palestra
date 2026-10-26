@@ -353,14 +353,31 @@ async function avvia() {
         + 'I tuoi numeri non sono cambiati.', { tipo: 'ok' });
     }
 
-    sync.iscriviti(() => { aggiornaStatoSalvataggio(); });
+    let timerRicaricaDatiAmici = null;
+    sync.iscriviti(() => {
+      aggiornaStatoSalvataggio();
+      if (!String(window.location.hash || '').startsWith('#/amici')) return;
+      if (timerRicaricaDatiAmici !== null) clearTimeout(timerRicaricaDatiAmici);
+      timerRicaricaDatiAmici = setTimeout(async () => {
+        timerRicaricaDatiAmici = null;
+        try {
+          await ricaricaTutto();
+          if (String(window.location.hash || '').startsWith('#/amici')) disegna();
+        } catch { /* la lista locale resta utilizzabile */ }
+      }, 1100);
+    });
     // il peso corporeo serve al Rank: lo carico in memoria subito all'avvio
     await aggiornaPesoInMemoria();
     // le correzioni che Ste ha fatto ai livelli: il Rank deve usarle subito,
     // altrimenti per qualche secondo mostrerebbe il livello vecchio
     await caricaLivelliImparati();
     sync.avvia();
-    window.addEventListener('hashchange', () => disegna());
+    window.addEventListener('hashchange', () => {
+      disegna();
+      if (String(window.location.hash || '').startsWith('#/amici')) {
+        sync.sincronizza().catch(() => { /* l'app resta utilizzabile anche se non c'è rete */ });
+      }
+    });
 
     // LE SEZIONI CHE ENTRANO A CASCATA (22/10/2026).
     //
