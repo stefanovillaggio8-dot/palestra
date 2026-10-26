@@ -4828,7 +4828,11 @@ function vociPerClassifica() {
       privacy: PRIVACY_PREDEFINITE,
       scheda_id: p.schedaId,
     };
-    const miei = seduteDellaPersonaPer(p);
+    // I dati che erano stati scaricati restano nascosti anche se questo
+    // dispositivo li conserva in cache: la privacy viene controllata a ogni vista.
+    const puoLeggerePerformance = id === accountAttivo()
+      || privacyDi(profilo).performance === 'pubblico';
+    const miei = puoLeggerePerformance ? seduteDellaPersonaPer(p) : [];
     const completate = miei.filter((s) => s && !s.eliminata && s.stato === 'completata');
     const mieiId = new Set(completate.map((s) => s.id));
     const mie = (V.serie || []).filter((x) => x && !x.eliminata && mieiId.has(x.seduta_id));
@@ -7193,6 +7197,15 @@ function vistaAmico(zona, idAmico) {
   const amico = { ...voce.profilo, id: voce.account };
 
   zona.appendChild(el('a', { href: '#/amici', class: 'indietro', testo: 'Torna agli amici' }));
+  if (!puoVedereAmico(profiloAttivo(), amico)) {
+    zona.appendChild(el('p', { class: 'nota', testo: 'Questo amico ha reso privato il proprio profilo.' }));
+    return;
+  }
+  if (privacyDi(amico).performance !== 'pubblico') {
+    zona.appendChild(el('h1', { testo: amico.username }));
+    zona.appendChild(el('p', { class: 'nota', testo: 'Gli allenamenti di questa persona sono privati. Non mostro dati salvati in precedenza su questo dispositivo.' }));
+    return;
+  }
 
   // Ste (04/10/2026): "elimina il codice 030226, quel codice serve solo per
   // modificare la scheda che non è propria, ma non penso servi".
