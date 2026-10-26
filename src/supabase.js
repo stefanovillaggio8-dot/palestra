@@ -62,7 +62,23 @@ export class ErroreSupabase extends Error {
   }
 }
 
-async function richiesta(cfg, percorso, opzioni) {
+function intestazioniPubbliche(cfg, extra = {}) {
+  return {
+    apikey: cfg.anonKey,
+    'Content-Type': 'application/json',
+    Accept: 'application/json',
+    ...extra,
+  };
+}
+
+function jwtScaduto(errore) {
+  const d = errore && errore.dettaglio && typeof errore.dettaglio === 'object' ? errore.dettaglio : {};
+  const testo = [errore && errore.message, d.message, d.msg, d.error_description, d.code]
+    .filter(Boolean).join(' ').toLowerCase();
+  return /invalid jwt|token is expired|token.{0,30}expired|expired.{0,30}token|invalid claims|unable to parse or verify signature/.test(testo);
+}
+
+async function richiesta(cfg, percorso, opzioni, { rinnovaSeScaduto = true } = {}) {
   let res;
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 15000);
@@ -71,7 +87,38 @@ async function richiesta(cfg, percorso, opzioni) {
     const corpo = await json(res);
     if (!res.ok) {
       const msg = (corpo && (corpo.msg || corpo.error_description || corpo.message)) || ('Errore ' + res.status);
-      throw new ErroreSupabase(msg, res.status, corpo);
+      const errore = new ErroreSupabase(msg, res.status, corpo);
+      const endpointToken = /\/auth\/v1\/token(?:\?|$)/.test(percorso);
+      const endpointLogout = /\/auth\/v1\/logout(?:\?|$)/.test(percorso);
+
+      if (rinnovaSeScaduto && !endpointToken && !endpointLogout && jwtScaduto(errore)) {
+        const s = sessione();
+        if (!s || !s.refresh_token) {
+          salvaSessione(null);
+          throw new ErroreSupabase('La sessione online è scaduta. Accedi di nuovo dalla sezione Amici.', 401, corpo);
+        }
+
+        try {
+          await rinnovaSessione();
+        } catch (eRinnovo) {
+          const testoRinnovo = String((eRinnovo && eRinnovo.message) || '').toLowerCase();
+          if ([400, 401, 403].includes(eRinnovo && eRinnovo.stato)
+              || /invalid refresh token|refresh token.*(invalid|expired|not found|revoked)/.test(testoRinnovo)) {
+            salvaSessione(null);
+            throw new ErroreSupabase('La sessione online è scaduta o non è più valida. Accedi di nuovo dalla sezione Amici.', 401, eRinnovo.dettaglio || eRinnovo.message);
+          }
+          throw eRinnovo;
+        }
+
+        // Riusa metodo e preferenze originali, ma non il vecchio Authorization ormai scaduto.
+        const opzioniAggiornate = {
+          ...opzioni,
+          headers: { ...(opzioni.headers || {}), ...intestazioni(cfg) },
+        };
+        return richiesta(cfg, percorso, opzioniAggiornate, { rinnovaSeScaduto: false });
+      }
+
+      throw errore;
     }
     return corpo;
   } catch (e) {
@@ -91,7 +138,7 @@ export async function accedi(email, password) {
   const cfg = leggiConfig();
   const corpo = await richiesta(cfg, '/auth/v1/token?grant_type=password', {
     method: 'POST',
-    headers: intestazioni(cfg),
+    headers: intestazioniPubbliche(cfg),
     body: JSON.stringify({ email, password }),
   });
   salvaSessione(corpo);
@@ -102,7 +149,7 @@ export async function registrati(email, password) {
   const cfg = leggiConfig();
   const corpo = await richiesta(cfg, '/auth/v1/signup', {
     method: 'POST',
-    headers: intestazioni(cfg),
+    headers: intestazioniPubbliche(cfg),
     body: JSON.stringify({
       email,
       password,
@@ -117,17 +164,37 @@ export async function registrati(email, password) {
 
 export async function rinnovaSessione() {
   const cfg = leggiConfig();
-  const s = sessione();
-  if (!s || !s.refresh_token) throw new ErroreSupabase('Sessione scaduta.', 401);
-  const corpo = await richiesta(cfg, '/auth/v1/token?grant_type=refresh_token', {
-    method: 'POST',
-    headers: intestazioni(cfg),
-    body: JSON.stringify({ refresh_token: s.refresh_token }),
-  });
-  salvaSessione(corpo);
-  return corpo;
-}
+  const precedente = sessione();
+  if (!precedente || !precedente.refresh_token) {
+    salvaSessione(null);
+    throw new ErroreSupabase('La sessione online è scaduta. Accedi di nuovo dalla sezione Amici.', 401);
+  }
 
+  let corpo;
+  try {
+    corpo = await richiesta(cfg, '/auth/v1/token?grant_type=refresh_token', {
+      method: 'POST',
+      headers: intestazioniPubbliche(cfg),
+      body: JSON.stringify({ refresh_token: precedente.refresh_token }),
+    }, { rinnovaSeScaduto: false });
+  } catch (e) {
+    const testo = String((e && e.message) || '').toLowerCase();
+    if ([400, 401, 403].includes(e && e.stato)
+        || /invalid refresh token|refresh token.*(invalid|expired|not found|revoked)/.test(testo)) {
+      salvaSessione(null);
+      throw new ErroreSupabase('La sessione online è scaduta o non è più valida. Accedi di nuovo dalla sezione Amici.', 401, e.dettaglio || e.message);
+    }
+    throw e;
+  }
+
+  if (!corpo || !corpo.access_token || !corpo.refresh_token) {
+    salvaSessione(null);
+    throw new ErroreSupabase('Supabase non ha restituito una sessione valida. Accedi di nuovo dalla sezione Amici.', 401, corpo);
+  }
+  const aggiornata = { ...precedente, ...corpo, user: corpo.user || precedente.user };
+  salvaSessione(aggiornata);
+  return aggiornata;
+}
 
 /** Verifica l'identità effettiva del token presso Supabase Auth.
  * Non fidarsi soltanto dell'oggetto user salvato nel localStorage.
@@ -144,17 +211,8 @@ export async function utenteCorrente() {
     headers: intestazioni(cfg),
   });
 
-  let utente;
-  try {
-    utente = await verifica();
-  } catch (e) {
-    if (e && e.stato === 401 && s.refresh_token) {
-      s = await rinnovaSessione();
-      utente = await verifica();
-    } else {
-      throw e;
-    }
-  }
+  const utente = await verifica();
+  s = sessione() || s;
 
   if (!utente || !utente.id) {
     throw new ErroreSupabase('Supabase non ha restituito un utente valido. Accedi di nuovo.', 401);
@@ -235,5 +293,6 @@ export async function prendiModificate(tabelle, dopoIso, { limite = 500 } = {}) 
 
 export function collegato() {
   const cfg = leggiConfig();
-  return cfg.attivo && !!sessione();
+  const s = sessione();
+  return cfg.attivo && !!(s && (s.access_token || s.refresh_token));
 }
