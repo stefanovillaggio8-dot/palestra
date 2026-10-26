@@ -219,7 +219,14 @@ export function ricompenseAllenamento({
 
   // 3) i traguardi di streak
   const streak = calcolaStreak(completate, giorno, profilo);
-  const giaStreak = ricompense.filter((r) => r.tipo === 'traguardo').map((r) => Number(String(r.fonte).split(':')[1]));
+  // Le vecchie righe salvavano la fonte come "data:traguardo"; leggere
+  // split(':')[1] prendeva la DATA, non il numero di giorni. NaN faceva quindi
+  // sembrare ogni traguardo ancora da assegnare e regalava Aura/XP di nuovo.
+  // Prendo l'ultimo pezzo, compatibile sia con le righe vecchie sia con quelle nuove.
+  const giaStreak = ricompense
+    .filter((r) => r.tipo === 'traguardo')
+    .map((r) => Number(String(r.fonte || '').split(':').pop()))
+    .filter(Number.isFinite);
   for (const t of traguardiNuovi(streak.giorni, giaStreak)) {
     const ric = ricompensaTraguardo(t);
     aggiungi('traguardo', `${giorno}:${t}`, ric.aura, ric.xp, `${t} giorni di fila`);
