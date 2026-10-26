@@ -13,6 +13,8 @@ import {
 } from './sincronizzazione.js';
 
 const CHIAVE_ULTIMO_PULL = 'palestra-ultimo-pull';
+const CHIAVE_ULTIMO_PULL_COMPLETO = 'palestra-ultimo-pull-completo-v1';
+const INTERVALLO_PULL_COMPLETO = 24 * 60 * 60 * 1000;
 // LE TABELLE SCENDONO E SALGONO DA QUI.
 //
 // `pesi` È STATA AGGIUNTA IL 08/10/2026, e fino ad allora mancava. La tabella
@@ -308,7 +310,16 @@ async function tira() {
   let ricevuti = 0;
   let conflitti = 0;
   try {
-    const modificati = await sb.prendiModificate(TABELLE_SINCRONIZZATE, dopo);
+    // Ripara anche le righe remote più vecchie che questo dispositivo non ha mai
+    // scaricato (per esempio una seduta del 14 ottobre assente in locale). Il pull
+    // incrementale da solo non le recupera se updated_at è precedente al cursore.
+    // Al primo avvio dopo questa correzione, e poi una volta ogni 24 ore, facciamo
+    // un pull completo. applicaRemote protegge le modifiche locali e i conflitti.
+    const ultimoCompleto = localStorage.getItem(CHIAVE_ULTIMO_PULL_COMPLETO);
+    const dataUltimoCompleto = ultimoCompleto ? Date.parse(ultimoCompleto) : 0;
+    const pullCompleto = !dataUltimoCompleto
+      || Date.now() - dataUltimoCompleto >= INTERVALLO_PULL_COMPLETO;
+    const modificati = await sb.prendiModificate(TABELLE_SINCRONIZZATE, pullCompleto ? null : dopo);
     for (const t of TABELLE_SINCRONIZZATE) {
       for (const remoto of modificati[t] || []) {
         const locale = await db.prendi(t, remoto.id);
@@ -336,6 +347,7 @@ async function tira() {
       }
     }
     localStorage.setItem(CHIAVE_ULTIMO_PULL, adesso());
+    if (pullCompleto) localStorage.setItem(CHIAVE_ULTIMO_PULL_COMPLETO, adesso());
   } catch (e) {
     // Conserva il messaggio reale del server: è fondamentale per distinguere
     // una tabella/colonna mancante da una sessione scaduta o un problema di rete.
