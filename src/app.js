@@ -7144,7 +7144,7 @@ function vistaAmici(zona) {
   zona.appendChild(el('p', { class: 'nota', testo: 'Vedi solo gli account che hai autorizzato. Ognuno vede solo quello che ha deciso di mostrare.' }));
 
   if (!amici.length) {
-    zona.appendChild(el('p', { class: 'nota', testo: 'Non hai ancora amici.' }));
+    zona.appendChild(el('p', { class: 'nota', testo: 'Non hai ancora amici. Per aggiungerne uno, vai in Profilo e crea un link invito.' }));
   } else {
     for (const a of amici) {
       const voce = voci.find((v) => v.account === a.id);
@@ -7175,12 +7175,7 @@ function vistaAmici(zona) {
     }
   }
 
-  if (!amici.length) {
-    zona.appendChild(el('p', {
-      class: 'nota',
-      testo: 'Per aggiungere qualcuno, vai in Profilo e crea un link invito. I contatti non sono più nomi finti: appariranno qui quando accettano il collegamento.',
-    }));
-  }
+
 }
 
 function vistaAmico(zona, idAmico) {
