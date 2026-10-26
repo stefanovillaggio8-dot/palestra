@@ -177,6 +177,14 @@ async function risolviPersona() {
     }
     if (invito) qs.set('inv', invito);
     ricerca = '?' + qs.toString();
+    try {
+      window.history.replaceState({}, '', window.location.pathname + ricerca + (window.location.hash || ''));
+      const manifesto = document.querySelector('link[rel="manifest"]');
+      if (manifesto) {
+        const tipoManifesto = memoria.n && memoria.k ? 'nuovo' : (Number(memoria.p) === 2 ? 'p2' : 'p1');
+        manifesto.setAttribute('href', './manifest-' + tipoManifesto + '.webmanifest');
+      }
+    } catch { /* browser senza History API */ }
   }
 
   // Su iPhone l'icona Home può aprire una finestra senza parametri URL e con
