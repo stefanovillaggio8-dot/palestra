@@ -241,7 +241,7 @@ self.addEventListener('install', (evento) => {
       // worker ? nuova e vuota: ma quella sotto, quella del browser, ? la stessa
       // per tutte le versioni, e il nome del file non cambia. Serve dirlo qui.
       .then((cache) => cache.addAll(
-        [...FILE, ...FOTO].map((percorso) => new Request(percorso, { cache: 'reload' })),
+        [...new Set([...FILE, ...FOTO])].map((percorso) => new Request(percorso, { cache: 'reload' })),
       ))
       .then(() => self.skipWaiting()),
   );
