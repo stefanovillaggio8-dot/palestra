@@ -174,7 +174,9 @@ export async function registrati(email, password) {
       email,
       password,
       options: {
-        emailRedirectTo: (typeof window !== 'undefined' ? window.location.href : 'https://stefanovillaggio8-dot.github.io/palestra/'),
+        // Usa l'URL di conferma già configurato su Supabase. La memoria locale
+        // dell'identità e l'eventuale invito ripristinano il profilo corretto dopo il click.
+        emailRedirectTo: 'https://stefanovillaggio8-dot.github.io/palestra/index.html?p=1',
       },
     }),
   });
