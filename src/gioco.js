@@ -8,7 +8,7 @@
 
 import { recordAccount, rankPrincipale, distribuzioneRank, recordEsercizio, calcolaRank } from './rank.js';
 import { profiloEsercizio } from './rank-config.js';
-import { calcolaStreak, aspettoStreak, traguardiNuovi, ricompensaTraguardo, giorniAllenati, isoGiorno } from './streak.js?v=279';
+import { calcolaStreak, aspettoStreak, traguardiNuovi, ricompensaTraguardo, giorniAllenati, isoGiorno } from './streak.js?v=282';
 import { idSettimana, quadroMissioni, contaCompletate, storicoMissioni } from './missioni.js';
 import { totaliDaRicompense, statoLivello, medaglie, ricompensaRecord, ricompensaPromozione, RICOMPENSE } from './aura.js';
 
