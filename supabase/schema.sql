@@ -190,6 +190,8 @@ create table if not exists public.profili (
   amici         jsonb not null default '[]'::jsonb,
   privacy       jsonb not null default '{"profilo":"pubblico","performance":"pubblico","leaderboard":"pubblico","statistiche":"pubblico"}'::jsonb,
   colore        text default '#7c5cff',
+  -- Collega il profilo alla scheda posseduta; usato per amicizie e policy RLS.
+  scheda_id      text,
   peso_corporeo numeric(5,2),
   rev           integer not null default 1,
   created_at    timestamptz not null default now(),
