@@ -9,11 +9,11 @@
 // e il test I3 che sia quello dell'ultimo commit, altrimenti si alza la cache e si
 // lascia scritto il numero vecchio. E' successo due volte: nella v54 avevo alzato
 // solo questo file, e dopo la v55 avevo smesso di alzarlo del tutto.
-const VERSIONE = 'palestra-v281';
+const VERSIONE = 'palestra-v282';
 
 // LE 18 FOTO DEI PERSONAGGI, CON LA VERSIONE DENTRO.
 //
-// Il numero viene preso da `palestra-v281` invece di essere scritto due volte: e'
+// Il numero viene preso da `palestra-v282` invece di essere scritto due volte: e'
 // l'unico posto in cui il numero compare, quindi la lista non pu? restare
 // indietro. Prima le 18 righe erano scritte a mano ed e' esattamente li' che il
 // numero era rimasto indietro due volte.
