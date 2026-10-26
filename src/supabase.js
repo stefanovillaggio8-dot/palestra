@@ -46,6 +46,32 @@ export function salvaSessione(s) {
   else localStorage.removeItem('palestra-sessione');
 }
 
+/** Recupera la sessione restituita dalla conferma email Supabase. */
+export function ripristinaSessioneDaUrl() {
+  if (typeof window === 'undefined' || !window.location) return false;
+  const hash = String(window.location.hash || '').replace(/^#/, '');
+  if (!hash || !/(^|&)access_token=/.test(hash)) return false;
+  const parametri = new URLSearchParams(hash);
+  const accessToken = parametri.get('access_token');
+  const refreshToken = parametri.get('refresh_token');
+  if (!accessToken || !refreshToken) return false;
+  const expiresIn = Number(parametri.get('expires_in') || 3600);
+  salvaSessione({
+    access_token: accessToken,
+    refresh_token: refreshToken,
+    token_type: parametri.get('token_type') || 'bearer',
+    expires_in: expiresIn,
+    expires_at: Math.floor(Date.now() / 1000) + expiresIn,
+    user: null,
+  });
+  // Rimuove i token dalla barra del browser, conserva ?inv=... e riporta
+  // l'utente alla schermata profilo senza esporre la sessione nell'URL.
+  try {
+    window.history.replaceState({}, '', window.location.pathname + window.location.search + '#/profilo');
+  } catch { /* browser senza History API */ }
+  return true;
+}
+
 function intestazioni(cfg, extra = {}) {
   const h = {
     apikey: cfg.anonKey,
@@ -286,6 +312,20 @@ export async function profiliAmici() {
   if (!collegato()) return [];
   const dati = await rpc('profili_amici', {});
   return Array.isArray(dati) ? dati : [];
+}
+
+export async function creaInvitoAmico(profiloId, trasferisciAndrea = false) {
+  return rpc('crea_invito_amico', {
+    p_profilo_id: profiloId,
+    p_trasferisci_andrea: !!trasferisciAndrea,
+  });
+}
+
+export async function accettaInvitoAmico(token, profiloId) {
+  return rpc('accetta_invito_amico', {
+    p_token: token,
+    p_profilo_id: profiloId,
+  });
 }
 
 /** Righe cambiate dall'ultima sincronizzazione riuscita. */
