@@ -9,14 +9,24 @@
 
 const CHIAVE_CONFIG = 'palestra-config';
 
+// Configurazione pubblica dell'app: la publishable key è progettata per stare
+// nel browser. I dati restano protetti dalle policy RLS del database.
+const CONFIG_PREDEFINITA = {
+  url: 'https://adnteitlhopehllutlua.supabase.co',
+  anonKey: 'sb_publishable_Rho_5i5fruFZBbN_iNjN3w_ksQ2OUEI',
+};
+
 export function leggiConfig() {
   try {
     const grezzo = localStorage.getItem(CHIAVE_CONFIG);
-    if (!grezzo) return { attivo: false };
+    if (!grezzo) return { ...CONFIG_PREDEFINITA, attivo: true };
     const c = JSON.parse(grezzo);
-    return { attivo: !!(c.url && c.anonKey), url: c.url || '', anonKey: c.anonKey || '' };
+    if (c && c.url && c.anonKey) {
+      return { attivo: true, url: c.url, anonKey: c.anonKey };
+    }
+    return { ...CONFIG_PREDEFINITA, attivo: true };
   } catch {
-    return { attivo: false };
+    return { ...CONFIG_PREDEFINITA, attivo: true };
   }
 }
 
@@ -138,7 +148,7 @@ export async function registrati(email, password) {
       email,
       password,
       options: {
-        emailRedirectTo: 'https://stefanovillaggio8-dot.github.io/palestra/index.html?p=1',
+        emailRedirectTo: (typeof window !== 'undefined' ? window.location.href : 'https://stefanovillaggio8-dot.github.io/palestra/'),
       },
     }),
   });
@@ -252,6 +262,30 @@ export async function rimuovi(definitivo, tabella, id) {
     method: 'DELETE',
     headers: intestazioni(cfg),
   });
+}
+
+/** Chiamata RPC a funzioni Postgres autorizzate tramite Supabase Auth. */
+export async function rpc(nome, argomenti = {}) {
+  if (!/^[a-z_][a-z0-9_]*$/i.test(String(nome || ''))) {
+    throw new Error('Nome della funzione non valido.');
+  }
+  const cfg = leggiConfig();
+  if (!cfg.attivo) throw new ErroreSupabase('Database non configurato.', 0);
+  if (!sessione() || !sessione().access_token) {
+    throw new ErroreSupabase('Accedi prima di usare questa funzione.', 401);
+  }
+  return richiesta(cfg, '/rest/v1/rpc/' + nome, {
+    method: 'POST',
+    headers: intestazioni(cfg),
+    body: JSON.stringify(argomenti || {}),
+  });
+}
+
+/** Solo i profili degli amici che hanno autorizzato la condivisione. */
+export async function profiliAmici() {
+  if (!collegato()) return [];
+  const dati = await rpc('profili_amici', {});
+  return Array.isArray(dati) ? dati : [];
 }
 
 /** Righe cambiate dall'ultima sincronizzazione riuscita. */
