@@ -979,15 +979,25 @@ async function preparaAccountOnline() {
     await db.salva('versioni', versioneLocale, { segna: true });
   }
 
+  // Il vecchio profilo di Andrea può avere allenamenti solo nell'IndexedDB
+  // del suo dispositivo. Dopo il claim controllo una volta se mancano sul server.
+  const chiaveStoricoAndrea = 'account-2-storico-caricato-v1';
+  const controllaStoricoAndrea = idProfilo === 'account-2'
+    && !(await db.leggiMeta(chiaveStoricoAndrea, false));
+  if (controllaStoricoAndrea) {
+    await accodaDatiAndreaMancanti(await datiLocaliSchedaDaTrasferire(idScheda, idProfilo));
+  }
+
   const risultato = await sync.sincronizza();
   if (risultato && risultato.errori) {
     throw new Error(risultato.messaggio || 'Non sono riuscito a sincronizzare la scheda iniziale.');
   }
+  if (controllaStoricoAndrea) await db.scriviMeta(chiaveStoricoAndrea, true);
   return utente;
 }
 
 /** Raccoglie i dati locali legati alla vecchia scheda di Andrea prima del claim. */
-async function datiLocaliAndreaDaTrasferire(schedaId) {
+async function datiLocaliSchedaDaTrasferire(schedaId, idProfilo) {
   const versioni = (await db.tutti('versioni', { includiEliminati: true }))
     .filter((r) => r && r.scheda_id === schedaId);
   const versioniId = new Set(versioni.map((r) => r.id));
@@ -999,7 +1009,7 @@ async function datiLocaliAndreaDaTrasferire(schedaId) {
   const serieId = new Set(serie.map((r) => r.id));
   const note = (await db.tutti('note', { includiEliminati: true }))
     .filter((r) => r && (seduteId.has(r.seduta_id) || serieId.has(r.serie_id)));
-  const profilo = await db.prendi('profili', 'account-2');
+  const profilo = await db.prendi('profili', idProfilo);
   const schedaLocale = await db.prendi('schede', schedaId);
 
   const eserciziUsati = new Set(serie.map((r) => r.esercizio_id).filter(Boolean));
@@ -1015,11 +1025,11 @@ async function datiLocaliAndreaDaTrasferire(schedaId) {
     .filter((r) => r && eserciziUsati.has(r.id)
       && !String(r.id).startsWith('ex-') && r.globale !== true);
   const missioni = (await db.tutti('missioni', { includiEliminati: true }))
-    .filter((r) => r && r.account_id === 'account-2');
+    .filter((r) => r && r.account_id === idProfilo);
   const ricompense = (await db.tutti('ricompense', { includiEliminati: true }))
     .filter((r) => r && r.account_id === 'account-2');
   const pesi = (await db.tutti('pesi', { includiEliminati: true }))
-    .filter((r) => r && r.account_id === 'account-2');
+    .filter((r) => r && r.account_id === idProfilo);
 
   return {
     profilo: profilo ? [{ ...profilo, scheda_id: schedaId }] : [],
@@ -1051,6 +1061,8 @@ async function accodaDatiAndreaMancanti(dati) {
     const idsRemoti = presenti.get(tabella) || new Set();
     for (const riga of (dati[tabella] || [])) {
       if (idsRemoti.has(riga.id)) continue;
+      const locale = await db.prendi(tabella, riga.id);
+      if (locale && ['da_salvare', 'in_corso', 'errore', 'conflitto'].includes(locale.sync)) continue;
       await db.salva(tabella, { ...riga, ...(tabella === 'profili' ? { scheda_id: schedaAttivaId() } : {}) }, { segna: true });
       accodate++;
     }
@@ -1066,7 +1078,7 @@ async function completaInvitoPendente() {
   const idProfilo = accountAttivo();
   const trasferimentoAndrea = idProfilo === 'account-2';
   const datiAndrea = trasferimentoAndrea
-    ? await datiLocaliAndreaDaTrasferire(schedaAttivaId())
+    ? await datiLocaliSchedaDaTrasferire(schedaAttivaId(), idProfilo)
     : null;
 
   // Per il profilo storico di Andrea il database trasferisce i dati già online.
@@ -1097,6 +1109,7 @@ async function completaInvitoPendente() {
   if (syncDopoInvito && syncDopoInvito.errori) {
     throw new Error(syncDopoInvito.messaggio || 'Invito accettato, ma la sincronizzazione deve essere riprovata.');
   }
+  if (trasferimentoAndrea) await db.scriviMeta('account-2-storico-caricato-v1', true);
   await ricaricaTutto();
   avviso(trasferimentoAndrea
     ? 'Profilo storico di Andrea trasferito: ora appartiene al suo account personale.'
