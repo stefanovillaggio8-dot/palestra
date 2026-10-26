@@ -5355,6 +5355,7 @@ async function assegnaRicompense(sedutaId) {
   try {
     const nuove = ricompenseAllenamento({
       account: accountAttivo(),
+      sedutaCorrenteId: sedutaId,
       sedute: seduteMie(),
       serie: serieMie(),
       esercizi: V.esercizi,
