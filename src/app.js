@@ -4084,93 +4084,41 @@ function vistaImpostazioni(zona) {
   versioneBox.appendChild(esitoDiagnostica);
   zona.appendChild(versioneBox);
 
-  // La parte tecnica (database online) sta in una sezione CHIUSA: Ste l'ha
-  // vista e non ha capito a che cosa serviva, con dentro pure un indirizzo
-  // finto. Non serve a niente per usarlo, quindi non la metto in primo piano.
+  // Qui resta soltanto la configurazione tecnica: accesso e account sono nella sezione Amici.
   const accountBox = el('section', { class: 'blocco' });
-  accountBox.appendChild(el('h2', { testo: 'Account e database online' }));
-  const dentroAccount = el('div');
-  accountBox.appendChild(dentroAccount);
+  accountBox.appendChild(el('h2', { testo: 'Configurazione tecnica del database' }));
   const cfg = sb.leggiConfig();
-  if (!cfg.attivo) {
-    dentroAccount.appendChild(el('p', { class: 'nota', testo: 'Questa parte serve solo se vuoi gli stessi allenamenti su due dispositivi. Non ti serve: cosi\' com\'e, l\'app funziona tutto e i tuoi dati restano su questo telefono, anche senza rete. Se un giorno la vuoi attivare, si fa con un account Supabase (gratis).' }));
-    const url = el('input', { type: 'url', class: 'campo-testo', placeholder: 'indirizzo del database' });
-    const chiave = el('input', { type: 'text', class: 'campo-testo', placeholder: 'chiave pubblica' });
-    const mail = el('input', { type: 'email', class: 'campo-testo', placeholder: 'la tua email' });
-    const pass = el('input', { type: 'password', class: 'campo-testo', placeholder: 'password' });
-    dentroAccount.appendChild(el('div', { class: 'campi-account' }, [url, chiave, mail, pass]));
-    dentroAccount.appendChild(el('div', { class: 'riga-pulsanti' }, [
-      bottone('Collega il database', {
-        onClick: () => {
-          if (!url.value || !chiave.value) { avviso('Mancano l\'indirizzo del database o la chiave.', { tipo: 'errore' }); return; }
-          sb.scriviConfig({ url: url.value.replace(/\/$/, ''), anonKey: chiave.value });
-          avviso('Database collegato. Ora accedi.', { tipo: 'ok' });
-          disegna();
-        },
-        classe: 'principale',
-      }),
-    ]));
-  } else {
-    const s = sb.sessione();
-    dentroAccount.appendChild(el('p', { class: 'nota', testo: s ? `Collegato come ${s.user && s.user.email ? s.user.email : 'account tuo'}.` : 'Database collegato ma non hai ancora fatto l\'accesso.' }));
-    if (!s) {
-      const mail = el('input', { type: 'email', class: 'campo-testo', placeholder: 'la tua email' });
-      const pass = el('input', { type: 'password', class: 'campo-testo', placeholder: 'password' });
-      dentroAccount.appendChild(el('div', { class: 'campi-account' }, [mail, pass]));
-      dentroAccount.appendChild(el('div', { class: 'riga-pulsanti' }, [
-        bottone('Accedi', {
-          onClick: async () => {
-            try {
-              await sb.accedi(mail.value.trim(), pass.value);
-              avviso('Accesso riuscito.', { tipo: 'ok' });
-              await ricaricaTutto();
-              disegna();
-            } catch (e) {
-              avviso('Accesso non riuscito: ' + e.message, { tipo: 'errore', durata: 8000 });
-            }
-          },
-          classe: 'principale',
-        }),
-        bottone('Crea account', {
-          onClick: async () => {
-            const email = String(mail.value || '').trim();
-            const password = String(pass.value || '');
-            if (!email || !password) {
-              avviso('Inserisci email e password per creare l\'account.', { tipo: 'errore' });
-              return;
-            }
-            if (password.length < 6) {
-              avviso('La password deve contenere almeno 6 caratteri.', { tipo: 'errore' });
-              return;
-            }
-            try {
-              const risultato = await sb.registrati(email, password);
-              if (risultato && risultato.access_token) {
-                avviso('Account creato e accesso effettuato.', { tipo: 'ok', durata: 7000 });
-                await ricaricaTutto();
-                disegna();
-              } else {
-                avviso('Registrazione inviata. Controlla la posta e conferma l\'email, poi torna qui e premi Accedi.', { tipo: 'ok', durata: 10000 });
-              }
-            } catch (e) {
-              avviso('Registrazione non riuscita: ' + e.message, { tipo: 'errore', durata: 10000 });
-            }
-          },
-          classe: 'fantasma',
-        }),
-      ]));
-    } else {
-      dentroAccount.appendChild(el('div', { class: 'riga-pulsanti' }, [
-        bottone('Esci', {
-          onClick: async () => { await sb.esci(); avviso('Sei uscito.'); disegna(); },
-          classe: 'fantasma',
-        }),
-      ]));
-    }
-  }
-  // La configurazione tecnica resta disponibile, ma chiusa di default: non intralcia chi vuole solo allenarsi.
+  accountBox.appendChild(el('p', {
+    class: 'nota',
+    testo: cfg.attivo
+      ? 'Database configurato. Accedi, registrati ed esci dalla sezione Amici.'
+      : 'Questa configurazione serve solo per usare l’account online e sincronizzare i tuoi dati tra dispositivi. I dati locali non vengono cancellati.',
+  }));
+  const url = el('input', { type: 'url', class: 'campo-testo', placeholder: 'indirizzo del database' });
+  const chiave = el('input', { type: 'text', class: 'campo-testo', placeholder: 'chiave pubblica' });
+  url.value = cfg.url || '';
+  chiave.value = cfg.anonKey || '';
+  accountBox.appendChild(el('div', { class: 'campi-account' }, [url, chiave]));
+  accountBox.appendChild(el('div', { class: 'riga-pulsanti' }, [
+    bottone('Salva configurazione', {
+      onClick: () => {
+        const urlPulito = String(url.value || '').trim().replace(/\/+$/, '');
+        const chiavePulita = String(chiave.value || '').trim();
+        if (!/^https?:\/\//i.test(urlPulito) || !chiavePulita) {
+          avviso('Inserisci un indirizzo valido e la chiave pubblica.', { tipo: 'errore' });
+          return;
+        }
+        const vecchia = sb.leggiConfig();
+        if (vecchia.url !== urlPulito || vecchia.anonKey !== chiavePulita) sb.salvaSessione(null);
+        sb.scriviConfig({ url: urlPulito, anonKey: chiavePulita });
+        avviso('Configurazione salvata. Ora gestisci l’accesso dalla sezione Amici.', { tipo: 'ok' });
+        disegna();
+      },
+      classe: 'principale',
+    }),
+  ]));
   const accountDettagli = el('details', { class: 'blocco-chiuso' }, [
-    el('summary', { testo: 'Opzione avanzata: Account e database online' }),
+    el('summary', { testo: 'Configurazione tecnica del database (avanzato)' }),
     accountBox,
   ]);
   zona.appendChild(accountDettagli);
@@ -6834,8 +6782,144 @@ async function vistaEsercizio(zona, esercizioId) {
   }));
 }
 
+
+function pannelloAccountOnlineAmici() {
+  const box = el('section', { class: 'blocco' });
+  box.appendChild(el('h2', { testo: 'Account online' }));
+  const cfg = sb.leggiConfig();
+
+  if (!cfg.attivo) {
+    box.appendChild(el('p', {
+      class: 'nota',
+      testo: 'Per usare l’account online e sincronizzare i tuoi dati tra dispositivi, configura prima il database nelle Impostazioni. I tuoi allenamenti locali restano salvati.',
+    }));
+    box.appendChild(bottone('Configura database', {
+      onClick: () => { vai('/impostazioni'); disegna(); },
+      classe: 'principale',
+    }));
+    return box;
+  }
+
+  const s = sb.sessione();
+  if (s && s.access_token) {
+    box.appendChild(el('p', {
+      class: 'nota',
+      testo: 'Accesso salvato per ' + ((s.user && s.user.email) || 'il tuo account') + '. Se il token scade, l’app prova a rinnovare la sessione automaticamente.',
+    }));
+    box.appendChild(el('div', { class: 'riga-pulsanti' }, [
+      bottone('Verifica e rinnova accesso', {
+        onClick: async () => {
+          try {
+            await sb.utenteCorrente();
+            await ricaricaTutto();
+            avviso('Account online verificato.', { tipo: 'ok' });
+            disegna();
+          } catch (e) {
+            avviso(e.message || 'Accesso online da verificare. Accedi di nuovo.', { tipo: 'errore', durata: 8000 });
+            disegna();
+          }
+        },
+        classe: 'principale',
+      }),
+      bottone('Esci', {
+        onClick: async () => {
+          await sb.esci();
+          avviso('Sei uscito dall’account online.');
+          disegna();
+        },
+        classe: 'fantasma',
+      }),
+    ]));
+    return box;
+  }
+
+  box.appendChild(el('p', {
+    class: 'nota',
+    testo: 'Accedi o crea un account per sincronizzare i tuoi dati personali tra dispositivi. L’accesso non rende automaticamente visibili i tuoi allenamenti agli altri.',
+  }));
+  const mail = el('input', { type: 'email', class: 'campo-testo', placeholder: 'la tua email', autocomplete: 'email' });
+  const pass = el('input', { type: 'password', class: 'campo-testo', placeholder: 'password', autocomplete: 'current-password' });
+  box.appendChild(el('div', { class: 'campi-account' }, [mail, pass]));
+  box.appendChild(el('div', { class: 'riga-pulsanti' }, [
+    bottone('Accedi', {
+      onClick: async () => {
+        const email = String(mail.value || '').trim();
+        const password = String(pass.value || '');
+        if (!email || !password) {
+          avviso('Inserisci email e password.', { tipo: 'errore' });
+          return;
+        }
+        try {
+          await sb.accedi(email, password);
+          await ricaricaTutto();
+          avviso('Accesso riuscito.', { tipo: 'ok' });
+          disegna();
+        } catch (e) {
+          avviso('Accesso non riuscito: ' + e.message, { tipo: 'errore', durata: 8000 });
+        }
+      },
+      classe: 'principale',
+    }),
+    bottone('Crea account', {
+      onClick: async () => {
+        const email = String(mail.value || '').trim();
+        const password = String(pass.value || '');
+        if (!email || !password) {
+          avviso('Inserisci email e password per creare l’account.', { tipo: 'errore' });
+          return;
+        }
+        if (password.length < 6) {
+          avviso('La password deve contenere almeno 6 caratteri.', { tipo: 'errore' });
+          return;
+        }
+        try {
+          const risultato = await sb.registrati(email, password);
+          if (risultato && risultato.access_token) {
+            await ricaricaTutto();
+            avviso('Account creato e accesso effettuato.', { tipo: 'ok', durata: 7000 });
+            disegna();
+          } else {
+            avviso('Registrazione inviata. Controlla la posta e conferma l’email, poi torna qui e premi Accedi.', { tipo: 'ok', durata: 10000 });
+          }
+        } catch (e) {
+          avviso('Registrazione non riuscita: ' + e.message, { tipo: 'errore', durata: 10000 });
+        }
+      },
+      classe: 'fantasma',
+    }),
+  ]));
+  return box;
+}
+
+function pannelloLinkPersonaleAmici() {
+  const mioLink = linkPersona(personaAttiva());
+  const box = el('section', { class: 'blocco' }, [
+    el('h2', { testo: 'Link personale della scheda' }),
+    el('p', {
+      class: 'nota',
+      testo: 'Questo link riapre la stessa identità su un altro tuo dispositivo. Non è un invito per collegare un amico: non inviarlo a un’altra persona.',
+    }),
+    el('p', { class: 'nota nota-piccola', testo: mioLink }),
+    bottone('Copia link personale', {
+      onClick: async () => {
+        const url = new URL(mioLink, window.location.href).href;
+        try {
+          await navigator.clipboard.writeText(url);
+          avviso('Link personale copiato.', { tipo: 'ok' });
+        } catch {
+          window.prompt('Copia il link personale:', url);
+        }
+      },
+      classe: 'fantasma',
+    }),
+  ]);
+  return box;
+}
+
 function vistaAmici(zona) {
   zona.appendChild(el('h1', { testo: 'Amici' }));
+  zona.appendChild(pannelloAccountOnlineAmici());
+  zona.appendChild(pannelloLinkPersonaleAmici());
   const profilo = profiloAttivo();
   const voci = vociPerClassifica();
   const amici = amiciDi(profilo, voci.map((v) => ({ ...v.profilo, id: v.account })));
@@ -6963,27 +7047,6 @@ async function vistaProfilo(zona) {
   const st = statoMio();
   const profilo = profiloAttivo();
   zona.appendChild(el('h1', { testo: 'Profilo' }));
-
-  // Ogni persona condivide solo il proprio link: Andrea ha il suo link separato,
-  // Stefano il suo. Il collegamento fra i due si gestisce dalla scheda Amici.
-  const mioLink = linkPersona(personaAttiva());
-  const boxLink = el('section', { class: 'blocco' }, [
-    el('h2', { testo: 'Il tuo link personale' }),
-    el('p', { class: 'nota', testo: 'Condividi questo link per far aprire la tua scheda. I tuoi allenamenti restano separati da quelli degli amici.' }),
-    el('p', { class: 'nota nota-piccola', testo: mioLink }),
-    bottone('Copia il mio link', {
-      onClick: async () => {
-        try {
-          await navigator.clipboard.writeText(new URL(mioLink, window.location.href).href);
-          avviso('Link personale copiato.', { tipo: 'ok' });
-        } catch {
-          window.prompt('Copia il tuo link personale:', new URL(mioLink, window.location.href).href);
-        }
-      },
-      classe: 'principale',
-    }),
-  ]);
-  zona.appendChild(boxLink);
 
   // l'avatar grande e centrale, come nei giochi
   const testa = el('div', { class: 'testa-profilo' }, [
