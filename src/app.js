@@ -5955,7 +5955,11 @@ function bloccoPersonaggio(profilo, st) {
     grafica.classList.add('con-foto');
     // L'AURA è il sesto premio: non ha un'immagine tutta sua (l'ultima riga è
     // già "tutto addosso"), quindi è una luce che si accende sopra la foto.
-    if (viso.aura) {
+    // L'Aura Divina degli 80 giorni ha un'identità visiva distinta: non deve
+    // sembrare la normale aura dorata, ma un alone celestiale con anello e raggi.
+    const auraDivinaAttiva = Number(st && st.fuoco && st.fuoco.giorni || 0) >= 80;
+    if (auraDivinaAttiva) grafica.classList.add('personaggio-aura-divina');
+    if (viso.aura || auraDivinaAttiva) {
       grafica.classList.add('personaggio-aura');
       // LE SCINTILLE. La luce, i fazzi, l'anello e il contorno li fa il CSS; le
       // scintille sono elementi veri perché ognuna ha una posizione, una grandezza,
