@@ -3200,3 +3200,69 @@ html.animazioni-mai .barra-piena::after { animation: none; }
 @keyframes aura-mitica-pulse{0%,100%{transform:scale(1);filter:drop-shadow(0 0 3px #d946ef)}50%{transform:scale(1.045);filter:drop-shadow(0 0 12px #d946ef)}}
 @media(max-width:480px){.aura-shop-hero{padding:20px}.aura-streak-mitica{grid-template-columns:1fr}.aura-mitica-sigil{width:62px;height:62px}.aura-shop-grid{grid-template-columns:1fr}.aura-shop-card p{min-height:0}}
 @media(prefers-reduced-motion:reduce){.aura-mitica-sigil{animation:none}}
+
+
+/* Aura Divina: resa diversa dalla normale aura anche nell'anteprima RPG. */
+.personaggio-scena-grafica.personaggio-aura-divina {
+  --aura-divina-oro: #fff4b0;
+  --aura-divina-luce: #a5f3fc;
+  isolation: isolate;
+  filter: drop-shadow(0 0 9px #fef3a766) drop-shadow(0 0 22px #67e8f955);
+}
+.personaggio-scena-grafica.personaggio-aura-divina::before {
+  content: "";
+  position: absolute;
+  z-index: 4;
+  left: 50%;
+  top: 7%;
+  width: 76%;
+  aspect-ratio: 1;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  border: 2px solid #fff7c2;
+  box-shadow: 0 0 8px #fff7c2, 0 0 20px #67e8f9aa, inset 0 0 15px #fff7c255;
+  background: conic-gradient(from 0deg, transparent 0 8%, #fff8c455 10%, transparent 13% 22%, #a5f3fc55 25%, transparent 28% 45%, #fff8c455 48%, transparent 51% 70%, #a5f3fc55 73%, transparent 76%);
+  opacity: .9;
+  pointer-events: none;
+  animation: aura-divina-anello 12s linear infinite;
+  mix-blend-mode: screen;
+}
+.personaggio-scena-grafica.personaggio-aura-divina::after {
+  content: "✦";
+  position: absolute;
+  z-index: 5;
+  top: 1%;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #fffbe5;
+  font-size: clamp(20px, 4vw, 34px);
+  line-height: 1;
+  text-shadow: 0 0 7px #fff, 0 0 18px #67e8f9, 0 0 32px #fef08a;
+  pointer-events: none;
+  animation: aura-divina-stella 2.4s ease-in-out infinite;
+}
+.personaggio-scena-grafica.personaggio-aura-divina .aura-colonna {
+  background: linear-gradient(0deg, transparent, #67e8f988 24%, #fff7c2 50%, #a5f3fc88 76%, transparent);
+  opacity: .85;
+  filter: blur(5px);
+}
+.personaggio-scena-grafica.personaggio-aura-divina .aura-scie i {
+  background: #e0fcff;
+  box-shadow: 0 0 7px #fff, 0 0 15px #67e8f9, 0 0 24px #fef08a;
+}
+.personaggio-scena-grafica.personaggio-aura-divina .aura-stelle i {
+  color: #fff8c9;
+  filter: drop-shadow(0 0 6px #67e8f9);
+}
+@keyframes aura-divina-anello {
+  from { rotate: 0deg; }
+  to { rotate: 360deg; }
+}
+@keyframes aura-divina-stella {
+  0%,100% { opacity: .75; scale: .9; }
+  50% { opacity: 1; scale: 1.18; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .personaggio-scena-grafica.personaggio-aura-divina::before,
+  .personaggio-scena-grafica.personaggio-aura-divina::after { animation: none; }
+}
