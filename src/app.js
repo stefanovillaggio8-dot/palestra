@@ -7261,26 +7261,32 @@ async function vistaProfilo(zona) {
   const profilo = profiloAttivo();
   zona.appendChild(el('h1', { testo: 'Profilo' }));
 
-  // Ogni persona condivide solo il proprio link: Andrea ha il suo link separato,
-  // Stefano il suo. Il collegamento fra i due si gestisce dalla scheda Amici.
-  const mioLink = linkPersona(personaAttiva());
+  // Gli inviti sono legati agli account Supabase: ogni link si usa una volta,
+  // scade dopo 14 giorni e crea una relazione reciproca senza condividere password.
   const boxLink = el('section', { class: 'blocco' }, [
-    el('h2', { testo: 'Il tuo link personale' }),
-    el('p', { class: 'nota', testo: 'Condividi questo link per far aprire la tua scheda. I tuoi allenamenti restano separati da quelli degli amici.' }),
-    el('p', { class: 'nota nota-piccola', testo: mioLink }),
-    bottone('Copia il mio link', {
-      onClick: async () => {
-        try {
-          await navigator.clipboard.writeText(new URL(mioLink, window.location.href).href);
-          avviso('Link personale copiato.', { tipo: 'ok' });
-        } catch {
-          window.prompt('Copia il tuo link personale:', new URL(mioLink, window.location.href).href);
-        }
-      },
+    el('h2', { testo: 'Amici e condivisione' }),
+    el('p', {
+      class: 'nota',
+      testo: 'Crea un link diverso per ogni amico. Quando lo apre, crea il suo account e accetta l’invito; poi potete vedere i vostri allenamenti condivisi. Non mandare mai a nessuno la tua password.',
+    }),
+    bottone('Crea link invito per un amico', {
+      onClick: () => creaECopiaInvito(false),
       classe: 'principale',
     }),
+    el('p', {
+      class: 'nota nota-piccola',
+      testo: 'Accettando l’invito, profilo e allenamenti diventano visibili tra voi. Puoi cambiare la visibilità in qualsiasi momento nella sezione Privacy.',
+    }),
   ]);
+  if (accountAttivo() === 'account-1' && profilo.amministratore) {
+    boxLink.appendChild(bottone('Invita Andrea e trasferisci la sua vecchia scheda', {
+      onClick: () => creaECopiaInvito(true),
+      classe: 'fantasma',
+      titolo: 'Invito speciale: trasferisce una sola volta la scheda storica Palestra A al suo account personale.',
+    }));
+  }
   zona.appendChild(boxLink);
+  zona.appendChild(bloccoAccountOnlineProfilo());
 
   // l'avatar grande e centrale, come nei giochi
   const testa = el('div', { class: 'testa-profilo' }, [
