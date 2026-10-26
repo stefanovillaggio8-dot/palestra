@@ -9,7 +9,7 @@
 // e il test I3 che sia quello dell'ultimo commit, altrimenti si alza la cache e si
 // lascia scritto il numero vecchio. E' successo due volte: nella v54 avevo alzato
 // solo questo file, e dopo la v55 avevo smesso di alzarlo del tutto.
-const VERSIONE = 'palestra-v283';
+const VERSIONE = 'palestra-v284';
 
 // LE 18 FOTO DEI PERSONAGGI, CON LA VERSIONE DENTRO.
 //
@@ -241,7 +241,7 @@ self.addEventListener('install', (evento) => {
       // worker ? nuova e vuota: ma quella sotto, quella del browser, ? la stessa
       // per tutte le versioni, e il nome del file non cambia. Serve dirlo qui.
       .then((cache) => cache.addAll(
-        [...FILE, ...FOTO].map((percorso) => new Request(percorso, { cache: 'reload' })),
+        [...new Set([...FILE, ...FOTO])].map((percorso) => new Request(percorso, { cache: 'reload' })),
       ))
       .then(() => self.skipWaiting()),
   );
