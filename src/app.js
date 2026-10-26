@@ -1425,10 +1425,13 @@ function vistaAuraShop(zona) {
   const profilo = profiloAttivo();
   const classe = String(profilo.classe_rpg || '').toLowerCase();
   const nomeClasse = CLASSE_AURA[classe] || 'Scegli una classe';
-  const chiave = 'palestra-aura-shop:' + String(profilo.username || accountAttivo() || 'locale');
-  let posseduti = [];
-  try { posseduti = JSON.parse(localStorage.getItem(chiave) || '[]'); } catch { posseduti = []; }
-  if (!Array.isArray(posseduti)) posseduti = [];
+  // Inventario ricavato dalle spese registrate nel database ricompense:
+  // così segue l'account e non resta legato soltanto al browser del telefono.
+  const idAccountShop = accountAttivo();
+  const posseduti = [...new Set((V.ricompense || [])
+    .filter(r => r && r.account_id === idAccountShop && r.tipo === 'spesa_aura')
+    .map(r => String(r.fonte || '').split(':')[1])
+    .filter(Boolean))];
   const streak = Math.max(0, Number(st.fuoco && st.fuoco.giorni) || 0);
   zona.appendChild(el('section',{class:'aura-shop-hero'},[
     el('div',{class:'aura-shop-kicker',testo:'✦ FORGE / COSMETICI ✦'}),
@@ -1513,7 +1516,6 @@ function vistaAuraShop(zona) {
               await db.salva('ricompense',spesa);
               if (Array.isArray(V.ricompense)) V.ricompense.push(spesa);
               posseduti.push(o.id);
-              localStorage.setItem(chiave,JSON.stringify(posseduti));
               avviso(o.nome+' acquistato! Aura spesa: '+formattaAura(o.prezzo),{tipo:'ok'});
               disegna();
             }catch(e){console.error(e);avviso('Acquisto non salvato: riprova quando la connessione è stabile.',{tipo:'errore'});}
