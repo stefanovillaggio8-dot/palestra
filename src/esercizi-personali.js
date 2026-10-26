@@ -199,7 +199,7 @@ export async function paroleDaChiedere(accountId, esercizi) {
     // il movimento intero: il classificatore conosce già curl, row, fly,
     // pulldown, dips e trazioni, anche quando qualche parola accessoria è nuova.
     const r = classificaEsercizio({ nome: e.nome, convenzione: e.convenzione });
-    if (r.movimento !== 'sconosciuto' && r.riconosciutoDa !== 'nessuna parola nota') continue;
+    if (r.movimento !== 'sconosciuto' || r.riconosciutoDa !== 'nessuna parola nota') continue;
 
     out.push({
       esercizio_id: e.id,
