@@ -49,6 +49,7 @@ perEsercizio.get(x.esercizio_id).push(copia);
  */
 export function statoAccount({
   account,
+  sedutaCorrenteId = null,
   sedute = [],
   serie = [],
   esercizi = [],
@@ -178,9 +179,13 @@ export function ricompenseAllenamento({
     });
   };
 
-  // 1) l'allenamento in se'
-  aggiungi('allenamento', null, RICOMPENSE.allenamento.aura, RICOMPENSE.allenamento.xp,
-    `Allenamento del ${giorno}`);
+  // 1) l'allenamento in sé: la fonte è l'ID della seduta, non null.
+  // Con fonte null, il controllo tipo:fonte bloccava per sempre tutti gli
+  // allenamenti successivi al primo. L'ID rende il premio unico per seduta.
+  if (sedutaCorrenteId && completate.some((s) => s.id === sedutaCorrenteId)) {
+    aggiungi('allenamento', sedutaCorrenteId, RICOMPENSE.allenamento.aura, RICOMPENSE.allenamento.xp,
+      `Allenamento del ${giorno}`);
+  }
 
   // 2) i record nuovi e le promozioni di rank
   const record = recordAccount(
