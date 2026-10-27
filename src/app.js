@@ -1612,7 +1612,7 @@ function vistaAuraShop(zona) {
   zona.appendChild(inventario);
   const filtri=el('div',{class:'aura-shop-filters'});
   const catalogo=el('section',{class:'aura-shop-catalogo'});
-  zona.appendChild(el('div',{class:'aura-shop-section-head'},[
+  zona.appendChild(el('div',{class:'aura-shop-section-head',id:'aura-shop-catalogo'},[
     el('div',{},[el('h2',{testo:'La collezione'}),el('p',{class:'nota',testo:'Prezzi alti il giusto: risparmia per i pezzi leggendari.'})])
   ]));
   const griglia=el('div',{class:'aura-shop-grid'});
@@ -1668,17 +1668,6 @@ function vistaAuraShop(zona) {
     }
   }
   disegnaOggetti();
-  // Scorciatoia in fondo allo shop: porta alla sezione inventario senza cambiare rotta.
-  zona.appendChild(el('button',{type:'button',class:'aura-shop-inventory-cta',onClick:()=>{
-    document.getElementById('mio-inventario')?.scrollIntoView({behavior:'smooth',block:'start'});
-  }},[
-    el('span',{class:'aura-shop-inventory-cta-icon',testo:'▣'}),
-    el('span',{},[
-      el('strong',{testo:'MIO INVENTARIO'}),
-      el('small',{testo:'Apri l’armadietto · equipaggia o disequipaggia senza perdere gli oggetti'}),
-    ]),
-    el('span',{class:'aura-shop-inventory-cta-arrow',testo:'↓'}),
-  ]));
 }
 
 function disegnaDentro(zona) {
@@ -1759,7 +1748,29 @@ function cornice() {
 //
 // L'ordine è per quanto si usa: allenarsi, vedere quanto sei forte, rivedere
 // cosa hai fatto, il gioco, e il tuo profilo.
-const resto = el('div', { class: 'basso' }, [
+if (rotta === '/aura-shop') {
+    const voceShop = el('a', {
+      href: '#/aura-shop',
+      class: 'voce-menu attiva',
+      onClick: () => document.getElementById('aura-shop-catalogo')?.scrollIntoView({behavior:'smooth', block:'start'}),
+    }, [
+      el('span', { class: 'icona-menu', html: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h18l-2 13H5L3 7Z"/><path d="M8 7a4 4 0 0 1 8 0"/></svg>' }),
+      el('span', { class: 'parola-menu', testo: 'Shop' }),
+    ]);
+    const voceInventario = el('a', {
+      href: '#/aura-shop',
+      class: 'voce-menu',
+      onClick: () => document.getElementById('mio-inventario')?.scrollIntoView({behavior:'smooth', block:'start'}),
+    }, [
+      el('span', { class: 'icona-menu', html: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h13A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18.5v-13Z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>' }),
+      el('span', { class: 'parola-menu', testo: 'Inventario' }),
+    ]);
+    return el('div', { class: 'basso' }, [
+      el('nav', { class: 'menu-basso menu-aura-shop', 'aria-label': 'Navigazione Aura Shop' }, [voceShop, voceInventario]),
+    ]);
+  }
+
+  const resto = el('div', { class: 'basso' }, [
     el('nav', { class: 'menu-basso' }, [
       voce('/', 'Allenamento', '/'),
       voce('/rank', 'Rank', '/rank'),
