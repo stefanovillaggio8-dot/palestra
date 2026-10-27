@@ -8,7 +8,7 @@
 
 import { recordAccount, rankPrincipale, distribuzioneRank, recordEsercizio, calcolaRank } from './rank.js';
 import { profiloEsercizio } from './rank-config.js';
-import { calcolaStreak, aspettoStreak, traguardiNuovi, ricompensaTraguardo, giorniAllenati, isoGiorno } from './streak.js?v=287';
+import { calcolaStreak, aspettoStreak, traguardiNuovi, ricompensaTraguardo, giorniAllenati, isoGiorno } from './streak.js';
 import { idSettimana, quadroMissioni, contaCompletate, storicoMissioni } from './missioni.js';
 import { totaliDaRicompense, statoLivello, medaglie, ricompensaRecord, ricompensaPromozione, RICOMPENSE } from './aura.js';
 
@@ -154,6 +154,8 @@ export function ricompenseAllenamento({
   ricompense = [],
   oggi = null,
   pesoCorporeo = null,
+  // ID della seduta appena conclusa: assegna il premio una sola volta a quella seduta.
+  sedutaCorrenteId = null,
   // I giorni in cui questa persona allena. Prima non arrivavano qui e la streak
   // contava i giorni di calendario: chi allena 4 volte su 7 non poteva superare 4.
   // Vedi streak.js per il caso vero.
