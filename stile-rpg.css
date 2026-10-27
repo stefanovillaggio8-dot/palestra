@@ -621,3 +621,14 @@ select:focus-visible {
 @media (prefers-reduced-motion: reduce) {
   .personaggio-scena-grafica[class*="shop-"]::before { animation: none; }
 }
+
+/* Titolo equipaggiato: visibile anche sotto il nome nel profilo. */
+.titolo-profilo-equipaggiato {
+  display: inline-flex; align-items: center; justify-content: center;
+  margin: 4px auto 8px; padding: 6px 12px; max-width: 100%;
+  border: 1px solid rgba(190, 155, 255, .55); border-radius: 999px;
+  background: linear-gradient(135deg, rgba(100, 62, 170, .28), rgba(20, 18, 34, .9));
+  color: #e5d4ff; font-weight: 800; font-size: .9rem; text-align: center;
+  box-shadow: 0 0 18px rgba(151, 96, 255, .15);
+}
+.personaggio-scena .personaggio-titolo-equipaggiato { z-index: 5; position: relative; }
