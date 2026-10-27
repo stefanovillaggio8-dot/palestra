@@ -3344,8 +3344,13 @@ html.animazioni-mai .barra-piena::after { animation: none; }
 .personaggio-cosmetici-svg .shop-fx-fulmine { animation: cosmetico-fulmine 2.8s steps(2, end) infinite; }
 .personaggio-cosmetici-svg .shop-fx-nebula { animation: cosmetico-nebula 6s ease-in-out infinite; }
 .personaggio-cosmetici-svg .shop-skin-astrale { animation: cosmetico-nebula 7s ease-in-out infinite; }
-.personaggio-scena-grafica.shop-skin-mitica .personaggio-ritratto {
+.personaggio-scena-grafica.shop-skin-mitica:not(.personaggio-aura) .personaggio-ritratto {
   filter: contrast(1.06) saturate(1.2) hue-rotate(9deg) brightness(1.04);
+}
+.personaggio-scena-grafica.shop-skin-mitica.personaggio-aura .personaggio-ritratto {
+  filter: contrast(1.06) saturate(1.2) hue-rotate(9deg) brightness(1.04)
+    drop-shadow(0 0 3px color-mix(in srgb, var(--aura) 70%, transparent))
+    drop-shadow(0 0 12px color-mix(in srgb, var(--aura) 36%, transparent));
 }
 .personaggio-titolo-equipaggiato {
   display: inline-flex;
@@ -3395,4 +3400,26 @@ html.animazioni-mai .barra-piena::after { animation: none; }
   .personaggio-cosmetici-svg .shop-fx-fulmine,
   .personaggio-cosmetici-svg .shop-fx-nebula,
   .personaggio-cosmetici-svg .shop-skin-astrale { animation:none; }
+}
+
+
+/* L'anteprima nello shop è interattiva e compatta: si aggiorna subito quando equipaggi. */
+.aura-shop-character-preview {
+  margin: 18px 0 24px;
+  padding: clamp(12px, 2.5vw, 18px);
+  border: 1px solid #a78bfa38;
+  border-radius: 22px;
+  background: radial-gradient(ellipse at 50% 0%, #8b5cf615, transparent 58%), #0d1018;
+}
+.aura-shop-character-preview > .aura-shop-section-head { margin: 0 0 12px; }
+.aura-shop-character-preview > .blocco { margin: 0; background: transparent; border-color: #ffffff10; }
+.aura-shop-character-preview > .blocco > h2,
+.aura-shop-character-preview > .blocco > button,
+.aura-shop-character-preview .riga-pezzi,
+.aura-shop-character-preview .rpg-spiegazione { display: none; }
+.aura-shop-character-preview .personaggio-scena { justify-content: center; }
+.aura-shop-character-preview .personaggio-equipaggiamento { justify-content: center; }
+@media (max-width: 520px) {
+  .aura-shop-character-preview { padding: 10px; }
+  .aura-shop-character-preview .personaggio-scena-grafica.con-foto { flex-basis: 100%; }
 }
