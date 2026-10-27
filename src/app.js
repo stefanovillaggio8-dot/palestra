@@ -2543,6 +2543,8 @@ async function vistaSeduta(zona, sedutaId) {
     el('div', {}, [
       el('div', { class: 'etichetta-crono', testo: 'Allenamento iniziato alle ' + oraLocale(s.ora_inizio) }),
       cronometro,
+      // Recupero sempre visibile nella banda sticky mentre scorri gli esercizi.
+      el('div', { class: 'timer-recupero recupero-in-alto', id: 'cronometro-recupero-alto', testo: 'Recupero 00:00' }),
       avanzamento,
       el('div', { class: 'nota', id: 'totale-sedute', testo: '' }),
     ]),
@@ -2573,9 +2575,10 @@ async function vistaSeduta(zona, sedutaId) {
     if (c) c.textContent = formattaCronometro(secondi);
     const t = document.getElementById('totale-sedute');
     if (t) t.textContent = `Durata totale: ${formattaDurata(secondi)} · non si azzera cambiando esercizio`;
-    const recupero = document.getElementById('cronometro-fine');
-    if (recupero) {
-      const passati = inizioRecuperoSerie ? Math.max(0, Math.floor((Date.now() - inizioRecuperoSerie) / 1000)) : 0;
+    const passati = inizioRecuperoSerie ? Math.max(0, Math.floor((Date.now() - inizioRecuperoSerie) / 1000)) : 0;
+    // Aggiorna sia il timer sticky in alto sia quello della barra in fondo.
+    for (const recupero of [document.getElementById('cronometro-recupero-alto'), document.getElementById('cronometro-fine')]) {
+      if (!recupero) continue;
       recupero.textContent = 'Recupero ' + formattaCronometro(passati);
       recupero.classList.toggle('recupero-attivo', !!inizioRecuperoSerie);
     }
