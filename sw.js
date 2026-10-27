@@ -52,8 +52,8 @@ const FILE = [
   // Il numero deve essere uguale a quello di `stile.css?v=` in index.html e a
   // `window.PALESTRA_VERSIONE`: se i tre non coincidono, l'app carica un foglio di
   // stile e dice un altro numero.
-  './stile.css?v=313',
-  './stile-rpg.css?v=313',
+  './stile.css?v=315',
+  './stile-rpg.css?v=315',
 './manifest.webmanifest',
   './manifest-p1.webmanifest',
   './manifest-p2.webmanifest',
@@ -61,7 +61,7 @@ const FILE = [
   // installata di un amico prenderebbe quello di Ste, con lo stesso id e con
   // start_url che punta a ?p=1
   './manifest-nuovo.webmanifest',
-  './src/app.js?v=313',
+  './src/app.js?v=315',
   './src/numeri.js',
   './src/confronto.js',
   './src/confronto-mensile.js',
