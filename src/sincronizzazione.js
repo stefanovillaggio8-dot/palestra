@@ -42,8 +42,25 @@ export function rigaPerInvio(riga, tabella = '') {
       'nota_permanente', 'tipo', 'eliminata', 'eliminata_il',
       'rev', 'created_at', 'updated_at', 'device_id',
     ].includes(k)) continue;
+    // Le ricompense locali storiche usano descrizione/data; Supabase richiede
+    // dettaglio/quando (DATE). Inviare i nomi locali causa PGRST204.
+    if (tabella === 'ricompense' && (k === 'descrizione' || k === 'data')) continue;
     if (riga[k] === undefined) continue;
     out[k] = riga[k];
+  }
+  if (tabella === 'ricompense') {
+    if (out.dettaglio === undefined && riga.descrizione !== undefined) {
+      out.dettaglio = riga.descrizione;
+    }
+    const haQuando = riga.quando !== undefined || riga.data !== undefined;
+    if (haQuando) {
+      const raw = riga.quando !== undefined ? riga.quando : riga.data;
+      if (raw === null || raw === '') out.quando = null;
+      else {
+        const giorno = String(raw);
+        out.quando = /^\\d{4}-\\d{2}-\\d{2}$/.test(giorno) ? giorno : giorno.slice(0, 10);
+      }
+    }
   }
   return out;
 }
