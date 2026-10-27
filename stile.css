@@ -3435,3 +3435,7 @@ html.animazioni-mai .barra-piena::after { animation: none; }
 }
 .recupero-crono-alto.recupero-attivo { color: #91d5a7; border-color: rgba(145,213,167,.35); }
 @media (max-width: 420px) { .recupero-crono-alto { font-size: .78rem; padding: 4px 8px; } }
+
+.recupero-in-alto { display:inline-flex; align-items:center; width:fit-content; margin-top:5px; padding:5px 10px; border-radius:999px; border:1px solid rgba(255,255,255,.12); background:rgba(10,18,15,.72); color:#aebbb4; font-size:.9rem; font-weight:800; font-variant-numeric:tabular-nums; white-space:nowrap; }
+.recupero-in-alto.recupero-attivo { color:#91d5a7; border-color:rgba(145,213,167,.35); }
+@media (max-width:420px) { .recupero-in-alto { font-size:.78rem; padding:4px 8px; } }
