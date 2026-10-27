@@ -1484,10 +1484,31 @@ function vistaAuraShop(zona) {
   ]);
   const ownedGrid=inventario.querySelector('.aura-shop-owned-grid');
   const oggettiPosseduti=OGGETTI_AURA.filter(o=>posseduti.includes(o.id));
+  // Equipaggiamento persistente sul profilo: equipaggiare non consuma né elimina l'oggetto.
+  const equipaggiamento = { ...(profilo.equipaggiamento_aura || {}) };
+  const slotOggetto = (o) => o.tipo === 'Armatura' ? 'Armatura' : o.tipo;
+  const salvaEquipaggiamento = async (slot, id) => {
+    const prossimo = { ...(profiloAttivo().equipaggiamento_aura || {}) };
+    if (id) prossimo[slot] = id; else delete prossimo[slot];
+    await db.salva('profili', { ...profiloAttivo(), equipaggiamento_aura: prossimo });
+    await ricaricaTutto();
+    disegna();
+  };
   if(!oggettiPosseduti.length) ownedGrid.appendChild(el('p',{class:'nota',testo:'Ancora vuoto. Scegli un oggetto qui sotto per iniziare la collezione.'}));
-  for(const o of oggettiPosseduti) ownedGrid.appendChild(el('div',{class:'aura-shop-owned',},[
-    el('span',{testo:o.icona}),el('strong',{testo:o.nome}),el('small',{testo:o.tipo+(o.classe?' · '+CLASSE_AURA[o.classe]:'')})
-  ]));
+  for(const o of oggettiPosseduti) {
+    const slot = slotOggetto(o);
+    const indossato = equipaggiamento[slot] === o.id;
+    const riga = el('div',{class:'aura-shop-owned'+(indossato?' equipaggiato':'' )},[
+      el('span',{testo:o.icona}),el('strong',{testo:o.nome}),
+      el('small',{testo:o.tipo+(o.classe?' · '+CLASSE_AURA[o.classe]:'')}),
+      el('small',{class:'equip-status',testo:indossato?'✓ Equipaggiato':'Nella collezione'}),
+      bottone(indossato?'Disequipaggia':'Equipaggia',{
+        classe:indossato?'fantasma':'principale',
+        onClick:async()=>{try{await salvaEquipaggiamento(slot,indossato?null:o.id);}catch(err){avviso('Non sono riuscito a salvare l’equipaggiamento. Riprova con internet attivo.',{tipo:'errore'});}}
+      })
+    ]);
+    ownedGrid.appendChild(riga);
+  }
   zona.appendChild(inventario);
   const filtri=el('div',{class:'aura-shop-filters'});
   const catalogo=el('section',{class:'aura-shop-catalogo'});
