@@ -1551,6 +1551,19 @@ function vistaAuraShop(zona) {
       el('small',{testo:'Classe: '+nomeClasse}),
     ]),
   ]));
+  // L'anteprima è la stessa figura del Profilo: cambiare equipaggiamento qui
+  // ridisegna subito anche l'aspetto, senza dover uscire dal negozio.
+  const anteprimaShop = el('section', { class: 'aura-shop-character-preview' }, [
+    el('div', { class: 'aura-shop-section-head' }, [
+      el('div', {}, [
+        el('h2', { testo: 'Anteprima del personaggio' }),
+        el('p', { class: 'nota', testo: 'Equipaggia o togli un oggetto e guarda subito il risultato.' }),
+      ]),
+    ]),
+  ]);
+  anteprimaShop.appendChild(bloccoPersonaggio(profilo, st));
+  zona.appendChild(anteprimaShop);
+
   const mitica = el('section',{class:'aura-streak-mitica'+(streak>=80?' sbloccata':'' )},[
     el('div',{class:'aura-mitica-sigil',testo:'✹'}),
     el('div',{},[
