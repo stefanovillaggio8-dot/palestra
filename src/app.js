@@ -6205,7 +6205,7 @@ scena.appendChild(grafica);
     box.appendChild(el('div', { class: 'personaggio-equipaggiamento' }, [
       el('strong', { testo: 'Equipaggiato' }),
       ...oggettiEquipaggiati.map((o) => el('span', { class: 'personaggio-equip-tag', testo: o.icona + ' ' + o.nome })),
-      el('a', { href: '#/aura', class: 'bottone-guarda', testo: 'Gestisci equipaggiamento' }),
+      el('a', { href: '#/aura-shop', class: 'bottone-guarda', testo: 'Gestisci equipaggiamento' }),
     ]));
   }
 
@@ -6718,7 +6718,7 @@ function vistaCasa(zona) {
     d.setHours(0, 0, 0, 0);
     const giorno = d.getDay() || 7;
     d.setDate(d.getDate() - giorno + 1);
-    return d.toISOString().slice(0, 10);
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
   })();
   const recordDellaSettimana = ricompenseMie().filter((r) => {
     if (!r || r.tipo !== 'record') return false;
