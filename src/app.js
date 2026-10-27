@@ -2201,6 +2201,8 @@ function vistaGiorno(zona, giornoId) {
 /* ===================== vista: seduta in corso ===================== */
 
 let timerSeduta = null;
+// Timer di recupero tra le serie: parte quando segni una serie e si azzera alla successiva.
+let inizioRecuperoSerie = null;
 
 
 /**
@@ -2309,7 +2311,7 @@ async function vistaSeduta(zona, sedutaId) {
   // Ora è in fondo, compatto, e la banda in alto ha solo il cronometro.
   const barraFine = el('div', { class: 'barra-fine' }, [
     el('div', { class: 'barra-fine-contatori' }, [
-      el('span', { class: 'barra-fine-crono', id: 'cronometro-fine', testo: '00:00' }),
+      el('span', { class: 'barra-fine-crono timer-recupero', id: 'cronometro-fine', testo: 'Recupero 00:00' }),
       el('span', { class: 'barra-fine-serie', id: 'avanzamento-fine', testo: '' }),
     ]),
     bottone('Allenamento finito', { onClick: () => finisceAllenamento(s), classe: 'pericolo' }),
@@ -2322,6 +2324,12 @@ async function vistaSeduta(zona, sedutaId) {
     if (c) c.textContent = formattaCronometro(secondi);
     const t = document.getElementById('totale-sedute');
     if (t) t.textContent = `Durata totale: ${formattaDurata(secondi)} · non si azzera cambiando esercizio`;
+    const recupero = document.getElementById('cronometro-fine');
+    if (recupero) {
+      const passati = inizioRecuperoSerie ? Math.max(0, Math.floor((Date.now() - inizioRecuperoSerie) / 1000)) : 0;
+      recupero.textContent = 'Recupero ' + formattaCronometro(passati);
+      recupero.classList.toggle('recupero-attivo', !!inizioRecuperoSerie);
+    }
     scriviAvanzamento();
   };
   // Quante serie hai spuntato sul totale di questa seduta. Resta fermo nella
@@ -2537,6 +2545,10 @@ function rigaSerie(serie, numero, confronto, seduta, pesoRigaSorella = null) {
     onClick: (ev) => {
       registra({ cosa: 'spunta premuta', serie: serie.id, ordine: numero, esercizio: e && e.nome });
       const fatta = !eFatta(serie);
+      // Ogni nuova serie segnata fa ripartire il timer di recupero da zero.
+      inizioRecuperoSerie = fatta ? Date.now() : null;
+      const timerRecupero = document.getElementById('cronometro-fine');
+      if (timerRecupero) timerRecupero.textContent = 'Recupero 00:00';
       segnaAspettoFatto(riga, spunta, fatta, etichettaFatta);
       if (fatta) pulsa();
       // IL SUONO DELLA SERIA FATTA.
