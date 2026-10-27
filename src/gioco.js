@@ -184,8 +184,14 @@ export function ricompenseAllenamento({
   // 1) l'allenamento in sé: la fonte è l'ID della seduta, non null.
   // Con fonte null, il controllo tipo:fonte bloccava per sempre tutti gli
   // allenamenti successivi al primo. L'ID rende il premio unico per seduta.
-  if (sedutaCorrenteId && completate.some((s) => s.id === sedutaCorrenteId)) {
-    aggiungi('allenamento', sedutaCorrenteId, RICOMPENSE.allenamento.aura, RICOMPENSE.allenamento.xp,
+  // Quando l'interfaccia passa l'ID premiamo quella seduta precisa. I chiamanti
+  // generici possono non passarlo: in quel caso scegliamo una seduta completata
+  // senza premio, evitando doppi guadagni perché gia contiene i premi assegnati.
+  const sedutaDaPremiare = sedutaCorrenteId
+    ? completate.find((s) => s.id === sedutaCorrenteId)
+    : completate.find((s) => !gia.has('allenamento:' + s.id));
+  if (sedutaDaPremiare) {
+    aggiungi('allenamento', sedutaDaPremiare.id, RICOMPENSE.allenamento.aura, RICOMPENSE.allenamento.xp,
       `Allenamento del ${giorno}`);
   }
 
