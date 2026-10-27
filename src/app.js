@@ -1576,9 +1576,9 @@ function vistaAuraShop(zona) {
     ]),
   ]);
   zona.appendChild(mitica);
-  const inventario=el('section',{class:'aura-shop-inventory'},[
+  const inventario=el('section',{class:'aura-shop-inventory',id:'mio-inventario'},[
     el('div',{class:'aura-shop-section-head'},[
-      el('div',{},[el('h2',{testo:'Il tuo inventario'}),el('p',{class:'nota',testo:posseduti.length+' oggetti acquistati'})]),
+      el('div',{},[el('h2',{testo:'Mio Inventario'}),el('p',{class:'nota',testo:posseduti.length+' oggetti acquistati'})]),
     ]),
     el('div',{class:'aura-shop-owned-grid'}),
   ]);
@@ -1623,6 +1623,18 @@ function vistaAuraShop(zona) {
       filtro=f;
       for(const b of filtri.querySelectorAll('button')) b.classList.toggle('attivo',b.textContent===f);
       disegnaOggetti();
+  // Accesso sempre visibile all'armadietto, come scorciatoia in fondo alla pagina.
+  zona.appendChild(el('a',{href:'#mio-inventario',class:'aura-shop-inventory-cta'},[
+    el('span',{class:'aura-shop-inventory-cta-icon',testo:'▣'}),
+    el('span',{},[
+      el('strong',{testo:'MIO INVENTARIO'}),
+      el('small',{testo:'Apri l’armadietto · equipaggia o disequipaggia senza perdere gli oggetti'}),
+    ]),
+    el('span',{class:'aura-shop-inventory-cta-arrow',testo:'↓'}),
+  ]));
+  zona.querySelector('.aura-shop-inventory-cta').addEventListener('click',()=>{
+    setTimeout(()=>document.getElementById('mio-inventario')?.scrollIntoView({behavior:'smooth',block:'start'}),0);
+  });
     }}));
   }
   zona.appendChild(filtri); zona.appendChild(catalogo);
