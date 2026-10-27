@@ -1681,7 +1681,17 @@ function vistaAuraShop(zona, soloInventario = false) {
         }),
         bottone(indossato?'Disequipaggia':'Equipaggia',{
           classe:indossato?'fantasma':'principale',
-          onClick:async()=>{try{await salvaEquipaggiamento(slot,indossato?null:o.id);}catch(err){avviso('Non sono riuscito a salvare l’equipaggiamento. Riprova con internet attivo.',{tipo:'errore'});}}
+          onClick:async()=>{
+            const nuovoStato = equipaggiamento[slot] !== o.id;
+            const pulsante = riga.querySelector('button:last-child');
+            if (pulsante) { pulsante.textContent = nuovoStato ? 'Disequipaggia' : 'Equipaggia'; pulsante.classList.toggle('principale', nuovoStato); pulsante.classList.toggle('fantasma', !nuovoStato); }
+            const status = riga.querySelector('.equip-status');
+            if (status) status.textContent = nuovoStato ? '✓ Equipaggiato' : 'Nella collezione';
+            riga.classList.toggle('equipaggiato', nuovoStato);
+            if (nuovoStato) equipaggiamento[slot] = o.id; else delete equipaggiamento[slot];
+            try { await salvaEquipaggiamento(slot, nuovoStato ? o.id : null); }
+            catch(err) { avviso('Non sono riuscito a salvare l’equipaggiamento. Riprova con internet attivo.',{tipo:'errore'}); }
+          }
         })
       ])
     ]);
@@ -7973,6 +7983,7 @@ async function vistaProfilo(zona) {
   const testa = el('div', { class: 'testa-profilo' }, [
     avatarNodo(profilo, { grande: true, dimensione: 120 }),
     el('h2', { testo: profilo.username }),
+    ...(OGGETTI_AURA.find(o => o.tipo === 'Titolo' && o.id === (profilo.equipaggiamento_aura || {}).Titolo) ? [el('span', { class: 'titolo-profilo-equipaggiato', testo: (() => { const t = OGGETTI_AURA.find(o => o.tipo === 'Titolo' && o.id === (profilo.equipaggiamento_aura || {}).Titolo); return t.icona + ' ' + t.nome; })() })] : []),
     el('p', { class: 'nota', testo: `Livello account ${st.livello.livello} · ${formattaAura(st.aura)} Aura` }),
     el('div', { class: 'riga-teschio piccolo' }, [teschioStreak(st)]),
   ]);
