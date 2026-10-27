@@ -547,3 +547,77 @@ select:focus-visible {
   .menu-aura-shop .parola-menu { font-size:.61rem; }
   .aura-preview-panel { padding:13px; }
 }
+
+
+/* Aura Shop — rifinitura armature ed effetti: profondità, materiali e luce
+   senza coprire la figura con un semplice adesivo piatto. */
+.personaggio-scena-grafica[class*="shop-"] {
+  isolation: isolate;
+  overflow: hidden;
+  background-color: #080b13;
+  background-image:
+    radial-gradient(ellipse at 50% 22%, rgba(115, 77, 255, .22), transparent 42%),
+    radial-gradient(ellipse at 50% 90%, rgba(20, 120, 255, .16), transparent 48%),
+    linear-gradient(180deg, #101626 0%, #090d17 62%, #05070d 100%);
+  box-shadow: inset 0 0 0 1px rgba(176, 156, 255, .22), 0 18px 48px rgba(0,0,0,.42);
+}
+.personaggio-scena-grafica[class*="shop-"]::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: -18%;
+  pointer-events: none;
+  opacity: .85;
+  background: conic-gradient(from 0deg at 50% 48%,
+    transparent 0 8%, rgba(112, 74, 255, .12) 13%, transparent 19%,
+    rgba(34, 163, 255, .12) 25%, transparent 34%, rgba(255, 175, 55, .1) 42%, transparent 52%);
+  filter: blur(16px);
+  animation: aura-cosmetica-rotazione 18s linear infinite;
+}
+.personaggio-scena-grafica[class*="shop-"] .personaggio-cosmetici-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,.75));
+}
+.personaggio-scena-grafica[class*="shop-"] .personaggio-cosmetici-overlay [data-parte],
+.personaggio-scena-grafica[class*="shop-"] .personaggio-cosmetici-overlay path {
+  vector-effect: non-scaling-stroke;
+}
+.personaggio-scena-grafica[class*="shop-"]::after {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(115deg, transparent 22%, rgba(255,255,255,.07) 38%, transparent 52%);
+  mix-blend-mode: screen;
+}
+.aura-shop-card, .aura-shop-owned {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(132, 154, 255, .2);
+  background: linear-gradient(145deg, rgba(19, 27, 47, .98), rgba(8, 13, 25, .98));
+  box-shadow: inset 0 1px rgba(255,255,255,.04), 0 12px 26px rgba(0,0,0,.2);
+}
+.aura-shop-card::before, .aura-shop-owned.equipaggiato::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 12%; right: 12%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(164,144,255,.85), transparent);
+}
+.aura-shop-owned.equipaggiato {
+  border-color: rgba(65, 225, 174, .58);
+  box-shadow: 0 0 0 1px rgba(65,225,174,.08), 0 0 22px rgba(32,208,157,.1);
+}
+.aura-shop-owned .equip-status { color: #9af0ce; font-weight: 700; }
+.aura-shop-card-actions button { min-height: 38px; }
+@keyframes aura-cosmetica-rotazione { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .personaggio-scena-grafica[class*="shop-"]::before { animation: none; }
+}
