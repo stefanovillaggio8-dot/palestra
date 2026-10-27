@@ -2110,8 +2110,8 @@ async function iniziaAllenamento(giorno) {
 const MUSCOLO_ETICHETTA = {
   petto: 'petto',
   dorsale: 'dorso',
-  // La BASSA SCHIENA (i lombari): il nome che usa Ste (21/10/2026)
-  romboidi: 'bassa schiena',
+  // I romboidi sono centro schiena, non lombari.
+  romboidi: 'centro schiena',
   trapezio: 'trapezi',
   deltoide_fronte: 'deltoide',
   deltoide_posteriore: 'deltoide dietro',
