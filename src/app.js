@@ -1650,10 +1650,20 @@ function vistaAuraShop(zona, soloInventario = false) {
   const equipaggiamento = { ...(profilo.equipaggiamento_aura || {}) };
   const slotOggetto = (o) => o.tipo === 'Armatura' ? 'Armatura' : o.tipo;
   const salvaEquipaggiamento = async (slot, id) => {
-    const prossimo = { ...(profiloAttivo().equipaggiamento_aura || {}) };
+    const profiloCorrente = profiloAttivo();
+    const prossimo = { ...(profiloCorrente.equipaggiamento_aura || {}) };
     if (id) prossimo[slot] = id; else delete prossimo[slot];
-    await db.salva('profili', { ...profiloAttivo(), equipaggiamento_aura: prossimo });
+
+    // Aggiorna subito il profilo in memoria e IndexedDB: il testo del pulsante
+    // non deve dipendere da una sincronizzazione remota o da un vecchio render.
+    profiloCorrente.equipaggiamento_aura = prossimo;
+    await db.salva('profili', { ...profiloCorrente, equipaggiamento_aura: prossimo });
     await ricaricaTutto();
+
+    // Alcuni pull remoti possono restituire per un istante il profilo precedente.
+    // Ripristina la scelta appena salvata nella vista locale e ridisegna la scheda.
+    const profiloAggiornato = profiloAttivo();
+    if (profiloAggiornato) profiloAggiornato.equipaggiamento_aura = prossimo;
     disegna();
   };
   if(!oggettiPosseduti.length) ownedGrid.appendChild(el('p',{class:'nota',testo:'Ancora vuoto. Scegli un oggetto qui sotto per iniziare la collezione.'}));
