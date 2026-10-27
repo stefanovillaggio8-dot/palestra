@@ -6825,11 +6825,30 @@ function vistaCasa(zona) {
     d.setDate(d.getDate() - giorno + 1);
     return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
   })();
-  const recordDellaSettimana = ricompenseMie().filter((r) => {
-    if (!r || r.tipo !== 'record') return false;
-    const giorno = String(r.quando || r.data || r.updated_at || '').slice(0, 10);
-    return giorno >= inizioSettimanaRecord;
-  });
+  // Verifica il record confrontando la miglior serie valida di questa settimana
+  // con tutte quelle precedenti. Non dipende dal premio "record" storico, che per
+  // design viene registrato una sola volta per esercizio.
+  const seduteCompletatePerRecord = seduteMie().filter((s) => s && !s.eliminata && s.stato === 'completata');
+  const giornoSedutaRecord = new Map(seduteCompletatePerRecord.map((s) => [s.id, String(s.data || '').slice(0, 10)]));
+  const serieCompletatePerRecord = serieMie().filter((s) => s && !s.eliminata && eFatta(s) && giornoSedutaRecord.has(s.seduta_id));
+  const eserciziAllenatiQuestaSettimana = new Set(serieCompletatePerRecord
+    .filter((s) => (giornoSedutaRecord.get(s.seduta_id) || '') >= inizioSettimanaRecord)
+    .map((s) => s.esercizio_id));
+  const recordDellaSettimana = [];
+  for (const esercizioId of eserciziAllenatiQuestaSettimana) {
+    const esercizio = esercizioPerId(esercizioId);
+    if (!esercizio) continue;
+    const tutteSerieEsercizio = serieCompletatePerRecord.filter((s) => s.esercizio_id === esercizioId);
+    const serieQuestaSettimana = tutteSerieEsercizio.filter((s) => (giornoSedutaRecord.get(s.seduta_id) || '') >= inizioSettimanaRecord);
+    const seriePrecedenti = tutteSerieEsercizio.filter((s) => (giornoSedutaRecord.get(s.seduta_id) || '') < inizioSettimanaRecord);
+    const migliorSettimana = recordEsercizio(serieQuestaSettimana, esercizio, null, pesoCorporeoOra());
+    const migliorPrecedente = recordEsercizio(seriePrecedenti, esercizio, null, pesoCorporeoOra());
+    if (migliorSettimana && migliorSettimana.valido
+      && (!migliorPrecedente || !migliorPrecedente.valido
+        || Number(migliorSettimana.punteggio) > Number(migliorPrecedente.punteggio))) {
+      recordDellaSettimana.push({ esercizioId, nome: esercizio.nome, punteggio: migliorSettimana.punteggio });
+    }
+  }
   const chiaveRiscattoRecord = 'record-settimanale:' + accountAttivo() + ':' + st.settimana;
   const premioRecordGiaRiscattato = ricompenseMie().some((r) => r && r.id === chiaveRiscattoRecord);
   const sfidaRecord = el('section', { class: 'blocco sfida-record-settimanale' }, [
