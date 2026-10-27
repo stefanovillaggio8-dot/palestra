@@ -3299,3 +3299,17 @@ html.animazioni-mai .barra-piena::after { animation: none; }
   .grafico { padding: 10px; border-radius: 14px; }
   .grafico .asse-txt { font-size: 10px; }
 }
+
+
+/* Missione settimanale record e cosmetici visibili sul personaggio. */
+.sfida-record-settimanale {
+  border-color: #a78bfa55;
+  background: radial-gradient(ellipse at 100% 0%, #8b5cf625, transparent 58%), linear-gradient(145deg,#171522,#0e1119);
+}
+.sfida-record-kicker { color:#c4b5fd; font-size:.72rem; font-weight:900; letter-spacing:.14em; }
+.sfida-record-settimanale h2 { margin:7px 0; }
+.sfida-record-premio { display:flex; flex-wrap:wrap; gap:8px; margin:12px 0 16px; }
+.sfida-record-premio span { padding:8px 12px; border-radius:999px; border:1px solid #a78bfa44; background:#8b5cf61c; color:#e9d5ff; font-weight:850; font-size:.86rem; }
+.personaggio-equipaggiamento { display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding:12px; margin-top:12px; border:1px solid #a78bfa30; border-radius:14px; background:#8b5cf610; }
+.personaggio-equipaggiamento>strong { width:100%; font-size:.8rem; color:#c4b5fd; }
+.personaggio-equip-tag { padding:6px 9px; border-radius:999px; background:#ffffff0b; border:1px solid #ffffff18; font-size:.78rem; }
