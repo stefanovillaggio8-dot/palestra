@@ -341,3 +341,36 @@ test('ogni tabella che SALVA deve anche SCENDERE e SALIRE', async () => {
   assert.deepEqual(soloInPull, [],
     `scaricano e salgono tabelle diverse: ${soloInPull.join(', ')}`);
 });
+
+test('le spese Aura Shop usano i nomi di colonna reali di Supabase', () => {
+  const inviata = rigaPerInvio({
+    id: 'spesa-shop:titolo-test:123',
+    user_id: '00000000-0000-4000-8000-000000000001',
+    account_id: 'account-1',
+    tipo: 'spesa_aura',
+    fonte: 'shop:titolo-test:123',
+    aura: -1600,
+    xp: 0,
+    descrizione: 'Aura Shop: Titolo di prova',
+    data: '2026-10-27T01:40:00.000Z',
+    rev: 1,
+  }, 'ricompense');
+
+  assert.equal(inviata.dettaglio, 'Aura Shop: Titolo di prova');
+  assert.equal(inviata.quando, '2026-10-27');
+  assert.equal(inviata.descrizione, undefined);
+  assert.equal(inviata.data, undefined);
+});
+
+test('l’equipaggiamento Aura resta nella riga profilo inviata al server', () => {
+  const inviata = rigaPerInvio({
+    id: 'account-1',
+    username: 'Ste',
+    equipaggiamento_aura: { Armatura: 'armatura-guerriero-braci', Effetto: 'effetto-ambra' },
+  }, 'profili');
+
+  assert.deepEqual(inviata.equipaggiamento_aura, {
+    Armatura: 'armatura-guerriero-braci',
+    Effetto: 'effetto-ambra',
+  });
+});
