@@ -512,3 +512,9 @@ select:focus-visible {
 .aura-shop-inventory-cta small{color:var(--testo-2,#b5c0b7);font-size:.8rem;line-height:1.4}
 .aura-shop-inventory-cta-arrow{font-size:1.3rem;color:var(--viola,#a58cff)}
 .aura-shop-inventory{scroll-margin-top:90px}
+
+/* Obiettivi della barra inferiore dell'Aura Shop. */
+#aura-shop-catalogo { scroll-margin-top: 82px; }
+#mio-inventario { scroll-margin-top: 82px; scroll-margin-bottom: 90px; }
+.menu-aura-shop { justify-content: space-around; }
+.menu-aura-shop .voce-menu { min-height: 50px; }
