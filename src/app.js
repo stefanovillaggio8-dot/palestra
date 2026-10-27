@@ -6003,6 +6003,11 @@ function bloccoPersonaggio(profilo, st) {
   const rpg = calcolaAvatar(profilo.classe_rpg, serieMie(), seduteMie(), esercizioPerId, {
     profilo,
   });
+  const equipaggiamentoRpg = profilo.equipaggiamento_aura || {};
+  const armaturaEquipaggiata = OGGETTI_AURA.find((o) => o.id === equipaggiamentoRpg.Armatura && o.tipo === 'Armatura' && o.classe === (rpg.classe && rpg.classe.id));
+  const effettoEquipaggiato = OGGETTI_AURA.find((o) => o.id === equipaggiamentoRpg.Effetto && o.tipo === 'Effetto');
+  const skinEquipaggiata = OGGETTI_AURA.find((o) => o.id === equipaggiamentoRpg.Skin && o.tipo === 'Skin');
+  const titoloEquipaggiato = OGGETTI_AURA.find((o) => o.id === equipaggiamentoRpg.Titolo && o.tipo === 'Titolo');
 
   const box = el('section', { class: 'blocco' });
   box.appendChild(el('h2', { testo: 'Il tuo personaggio' }));
@@ -6073,6 +6078,10 @@ function bloccoPersonaggio(profilo, st) {
     // flusso e l'altezza la decide lei. Senza scatola il browser non può
     // decidere come infilarla e la taglia.
     grafica.classList.add('con-foto');
+    // I cosmetici comprati si sovrappongono alla foto senza sostituire la progressione.
+    if (armaturaEquipaggiata) grafica.classList.add('shop-' + armaturaEquipaggiata.id);
+    if (effettoEquipaggiato) grafica.classList.add('shop-' + effettoEquipaggiato.id);
+    if (skinEquipaggiata) grafica.classList.add('shop-' + skinEquipaggiata.id);
     // L'AURA è il sesto premio: non ha un'immagine tutta sua (l'ultima riga è
     // già "tutto addosso"), quindi è una luce che si accende sopra la foto.
     // L'Aura Divina degli 80 giorni ha un'identità visiva distinta: non deve
@@ -6184,6 +6193,12 @@ function bloccoPersonaggio(profilo, st) {
         loading: 'lazy',
         decoding: 'async',
       }));
+    const overlayCosmetici = svgCosmeticiRpg(
+      armaturaEquipaggiata && armaturaEquipaggiata.id,
+      effettoEquipaggiato && effettoEquipaggiato.id,
+      skinEquipaggiata && skinEquipaggiata.id,
+    );
+    if (overlayCosmetici) grafica.appendChild(overlayCosmetici);
 
     // LA FILMSTRIP: sei miniature, una per stato.
     //
@@ -6278,6 +6293,10 @@ scena.appendChild(grafica);
         ? `Livello ${rpg.livello} · ${viso.stato.riga} · ${indosano.length} di ${rpg.premi.length} armature`
 : `Livello ${rpg.livello} · ${indosano.length} di ${rpg.premi.length} armature`,
     }),
+    ...(titoloEquipaggiato ? [el('span', {
+      class: 'personaggio-titolo-equipaggiato',
+      testo: titoloEquipaggiato.icona + ' ' + titoloEquipaggiato.nome,
+    })] : []),
   ]));
   // E SOLO ADESSO la progressione, sotto tutto il resto. Ste: "deve esserci il mio
   // attuale più grande": la foto grande viene per prima, e la fila degli stati
@@ -6286,8 +6305,7 @@ scena.appendChild(grafica);
   box.appendChild(scena);
   // Mostra sul personaggio quali cosmetici del negozio sono equipaggiati.
   // La collezione resta intatta anche quando si cambia aspetto.
-  const equipaggiatiProfilo = profilo.equipaggiamento_aura || {};
-  const oggettiEquipaggiati = OGGETTI_AURA.filter((o) => equipaggiatiProfilo[o.tipo === 'Armatura' ? 'Armatura' : o.tipo] === o.id);
+  const oggettiEquipaggiati = OGGETTI_AURA.filter((o) => equipaggiamentoRpg[o.tipo === 'Armatura' ? 'Armatura' : o.tipo] === o.id);
   if (oggettiEquipaggiati.length) {
     box.appendChild(el('div', { class: 'personaggio-equipaggiamento' }, [
       el('strong', { testo: 'Equipaggiato' }),
