@@ -6197,6 +6197,17 @@ scena.appendChild(grafica);
   // è quello che le sta sotto, non davanti.
   if (rigaStati) scena.appendChild(rigaStati);
   box.appendChild(scena);
+  // Mostra sul personaggio quali cosmetici del negozio sono equipaggiati.
+  // La collezione resta intatta anche quando si cambia aspetto.
+  const equipaggiatiProfilo = profilo.equipaggiamento_aura || {};
+  const oggettiEquipaggiati = OGGETTI_AURA.filter((o) => equipaggiatiProfilo[o.tipo === 'Armatura' ? 'Armatura' : o.tipo] === o.id);
+  if (oggettiEquipaggiati.length) {
+    box.appendChild(el('div', { class: 'personaggio-equipaggiamento' }, [
+      el('strong', { testo: 'Equipaggiato' }),
+      ...oggettiEquipaggiati.map((o) => el('span', { class: 'personaggio-equip-tag', testo: o.icona + ' ' + o.nome })),
+      el('a', { href: '#/aura', class: 'bottone-guarda', testo: 'Gestisci equipaggiamento' }),
+    ]));
+  }
 
 // IL PULSANTE CHE SPIEGA. Ste: "metti pure un pulsante che ti spiega come funziona
   // questo rpg". Non un help che ti manda a un altro schermo: un riquadro che si
