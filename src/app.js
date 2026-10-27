@@ -1441,6 +1441,93 @@ const OGGETTI_AURA = [
   {id:'skin-mitica',nome:'Astrale — forma mitica',tipo:'Skin',rarita:'Mitico',prezzo:22000,icona:'🌠',descrizione:'Aspetto cosmico raro, solo estetico.'},
 ];
 const CLASSE_AURA = {guerriero:'Guerriero',assassino:'Assassino',berserker:'Berserker'};
+
+/**
+ * Livello grafico dei cosmetici dello shop: si sovrappone all'illustrazione
+ * originale, così l'armatura acquistata cambia davvero l'aspetto senza
+ * sostituire o rovinare gli stati di progressione. Nessuna ala: le sagome sono
+ * armature, mantelli, piastre e particelle attorno al personaggio.
+ */
+function svgCosmeticiRpg(armaturaId, effettoId, skinId) {
+  const armature = {
+    'armatura-guerriero-braci':
+      '<g class="shop-armor-braci">' +
+      '<path d="M275 354 L335 323 L407 350 L450 386 L493 350 L565 323 L625 354 L590 426 L535 410 L520 575 L478 620 L422 620 L380 575 L365 410 L310 426 Z" fill="#6b2417" fill-opacity=".76" stroke="#fb923c" stroke-width="13" stroke-linejoin="round"/>' +
+      '<path d="M335 353 L394 373 L408 440 L370 421 Z M565 353 L506 373 L492 440 L530 421 Z" fill="#f97316" fill-opacity=".58" stroke="#fed7aa" stroke-width="7"/>' +
+      '<path d="M410 388 L450 414 L490 388 L482 480 L450 513 L418 480 Z" fill="#7c2d12" stroke="#fbbf24" stroke-width="9"/>' +
+      '<path d="M450 423 L460 449 L485 453 L466 470 L471 494 L450 481 L429 494 L434 470 L415 453 L440 449 Z" fill="#fde68a" stroke="#fff7ed" stroke-width="4"/>' +
+      '<path d="M392 532 L420 560 L410 640 L374 628 Z M508 532 L480 560 L490 640 L526 628 Z" fill="#9a3412" fill-opacity=".78" stroke="#fb923c" stroke-width="8"/>' +
+      '<path d="M300 385 L350 407 M600 385 L550 407 M420 535 L450 552 L480 535" fill="none" stroke="#fed7aa" stroke-width="8"/>' +
+      '</g>',
+    'armatura-guerriero-abisso':
+      '<g class="shop-armor-abisso">' +
+      '<path d="M270 357 L337 315 L405 348 L450 380 L495 348 L563 315 L630 357 L592 433 L535 413 L522 588 L480 630 L420 630 L378 588 L365 413 L308 433 Z" fill="#17142c" fill-opacity=".88" stroke="#a78bfa" stroke-width="13" stroke-linejoin="round"/>' +
+      '<path d="M300 359 L348 340 L398 372 L375 423 L319 415 Z M600 359 L552 340 L502 372 L525 423 L581 415 Z" fill="#312e81" stroke="#c4b5fd" stroke-width="8"/>' +
+      '<path d="M400 386 L450 408 L500 386 L486 499 L450 526 L414 499 Z" fill="#0f172a" stroke="#818cf8" stroke-width="10"/>' +
+      '<path d="M450 425 L463 450 L491 453 L470 473 L476 501 L450 486 L424 501 L430 473 L409 453 L437 450 Z" fill="#c4b5fd"/>' +
+      '<path d="M385 522 L420 550 L407 643 L369 625 Z M515 522 L480 550 L493 643 L531 625 Z" fill="#1e1b4b" stroke="#818cf8" stroke-width="8"/>' +
+      '<path d="M359 334 L380 285 L400 348 M541 334 L520 285 L500 348 M415 362 L450 337 L485 362" fill="none" stroke="#ddd6fe" stroke-width="9" stroke-linejoin="round"/>' +
+      '</g>',
+    'armatura-assassino-notte':
+      '<g class="shop-armor-velo">' +
+      '<path d="M340 155 Q450 65 560 155 L535 295 L500 335 L400 335 L365 295 Z" fill="#11101d" fill-opacity=".84" stroke="#a78bfa" stroke-width="11"/>' +
+      '<path d="M365 335 L418 320 L450 353 L482 320 L535 335 L510 474 L490 552 L450 583 L410 552 L390 474 Z" fill="#211b39" fill-opacity=".85" stroke="#8b5cf6" stroke-width="12"/>' +
+      '<path d="M322 365 L380 342 L412 408 L390 488 L330 448 Z M578 365 L520 342 L488 408 L510 488 L570 448 Z" fill="#181426" fill-opacity=".82" stroke="#7c3aed" stroke-width="9"/>' +
+      '<path d="M450 365 L474 410 L450 466 L426 410 Z" fill="#6d28d9" fill-opacity=".72" stroke="#ddd6fe" stroke-width="7"/>' +
+      '<path d="M400 498 L423 535 L405 670 L378 630 Z M500 498 L477 535 L495 670 L522 630 Z" fill="#161323" stroke="#7c3aed" stroke-width="8"/>' +
+      '<path d="M373 220 L410 250 M527 220 L490 250 M395 310 L450 330 L505 310" fill="none" stroke="#c4b5fd" stroke-width="7"/>' +
+      '</g>',
+    'armatura-assassino-spettro':
+      '<g class="shop-armor-spettro">' +
+      '<path d="M330 155 Q450 45 570 155 L537 293 L500 335 L400 335 L363 293 Z" fill="#350e1c" fill-opacity=".9" stroke="#f43f5e" stroke-width="13"/>' +
+      '<path d="M365 337 L414 316 L450 355 L486 316 L535 337 L512 478 L490 558 L450 590 L410 558 L388 478 Z" fill="#4c1023" fill-opacity=".88" stroke="#fb7185" stroke-width="12"/>' +
+      '<path d="M320 360 L378 335 L414 406 L386 495 L324 450 Z M580 360 L522 335 L486 406 L514 495 L576 450 Z" fill="#7f1d32" stroke="#fda4af" stroke-width="9"/>' +
+      '<path d="M450 365 L482 425 L450 485 L418 425 Z" fill="#991b1b" stroke="#fecdd3" stroke-width="8"/>' +
+      '<path d="M386 495 L420 535 L399 688 L370 638 Z M514 495 L480 535 L501 688 L530 638 Z" fill="#260813" stroke="#f43f5e" stroke-width="9"/>' +
+      '<path d="M380 183 L412 220 M520 183 L488 220 M350 435 L386 465 M550 435 L514 465" stroke="#fecdd3" stroke-width="8" fill="none"/>' +
+      '</g>',
+    'armatura-berserker-rabbia':
+      '<g class="shop-armor-rabbia">' +
+      '<path d="M260 360 L324 300 L403 337 L450 380 L497 337 L576 300 L640 360 L598 438 L535 410 L522 585 L480 630 L420 630 L378 585 L365 410 L302 438 Z" fill="#29241a" fill-opacity=".86" stroke="#d6a84f" stroke-width="14" stroke-linejoin="round"/>' +
+      '<path d="M306 352 L347 325 L402 364 L382 432 L318 421 Z M594 352 L553 325 L498 364 L518 432 L582 421 Z" fill="#66502b" stroke="#f5d078" stroke-width="9"/>' +
+      '<path d="M310 335 L275 282 L340 315 M590 335 L625 282 L560 315" fill="#4b3a22" stroke="#f5d078" stroke-width="12" stroke-linejoin="round"/>' +
+      '<path d="M404 382 L450 408 L496 382 L487 500 L450 530 L413 500 Z" fill="#44351f" stroke="#eabf5d" stroke-width="11"/>' +
+      '<path d="M450 428 L464 455 L490 458 L470 477 L475 503 L450 488 L425 503 L430 477 L410 458 L436 455 Z" fill="#f5d078"/>' +
+      '<path d="M385 520 L420 548 L408 644 L370 625 Z M515 520 L480 548 L492 644 L530 625 Z" fill="#282319" stroke="#d6a84f" stroke-width="9"/>' +
+      '<path d="M359 405 L385 428 M541 405 L515 428 M409 563 L450 585 L491 563" fill="none" stroke="#fef3c7" stroke-width="7"/>' +
+      '</g>',
+    'armatura-berserker-apocalisse':
+      '<g class="shop-armor-apocalisse">' +
+      '<path d="M250 358 L322 292 L406 338 L450 377 L494 338 L578 292 L650 358 L603 445 L535 410 L524 594 L480 638 L420 638 L376 594 L365 410 L297 445 Z" fill="#160d0b" fill-opacity=".93" stroke="#f97316" stroke-width="14" stroke-linejoin="round"/>' +
+      '<path d="M302 350 L345 318 L405 365 L381 433 L315 424 Z M598 350 L555 318 L495 365 L519 433 L585 424 Z" fill="#431407" stroke="#fb923c" stroke-width="10"/>' +
+      '<path d="M315 328 L272 255 L343 306 M585 328 L628 255 L557 306 M373 330 L400 285 L420 348 M527 330 L500 285 L480 348" fill="#29100b" stroke="#fdba74" stroke-width="12" stroke-linejoin="round"/>' +
+      '<path d="M402 381 L450 404 L498 381 L486 508 L450 537 L414 508 Z" fill="#2b100c" stroke="#f97316" stroke-width="11"/>' +
+      '<path d="M450 410 L434 451 L458 465 L438 496 M474 432 L458 465 L480 488" fill="none" stroke="#fb923c" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>' +
+      '<path d="M383 520 L420 550 L404 650 L368 628 Z M517 520 L480 550 L496 650 L532 628 Z" fill="#1c0c09" stroke="#ea580c" stroke-width="10"/>' +
+      '</g>',
+  };
+  const effetti = {
+    'effetto-ambra':
+      '<g class="shop-fx-ambra" fill="#fdba74" stroke="#fb923c" stroke-width="5">' +
+      '<path d="M164 270 l10 22 l22 10 l-22 10 l-10 22 l-10 -22 l-22 -10 l22 -10 Z"/><path d="M720 390 l8 18 l18 8 l-18 8 l-8 18 l-8 -18 l-18 -8 l18 -8 Z"/><path d="M205 660 l7 15 l15 7 l-15 7 l-7 15 l-7 -15 l-15 -7 l15 -7 Z"/><path d="M690 735 l7 15 l15 7 l-15 7 l-7 15 l-7 -15 l-15 -7 l15 -7 Z"/>' +
+      '</g>',
+    'effetto-ombra':
+      '<g class="shop-fx-ombra" fill="#17142e" fill-opacity=".6"><path d="M110 450 Q180 390 220 470 T185 570 Q130 545 110 450Z"/><path d="M790 520 Q720 455 690 540 T725 640 Q775 615 790 520Z"/><path d="M120 810 Q190 760 220 835 T170 920 Q130 885 120 810Z"/><path d="M780 840 Q710 770 680 850 T730 930 Q770 900 780 840Z"/></g>',
+    'effetto-fulmine':
+      '<g class="shop-fx-fulmine" fill="none" stroke="#c4b5fd" stroke-width="13" stroke-linejoin="round" stroke-linecap="round"><path d="M185 250 L150 350 L195 340 L160 435"/><path d="M720 455 L680 545 L725 535 L690 625"/><path d="M220 800 L190 865 L225 860 L195 930"/><path d="M690 225 L660 292 L695 287 L670 360"/></g>',
+    'effetto-nebula':
+      '<g class="shop-fx-nebula" fill="#e9d5ff"><circle cx="178" cy="210" r="8"/><circle cx="720" cy="265" r="6"/><circle cx="150" cy="520" r="5"/><circle cx="745" cy="640" r="9"/><circle cx="190" cy="850" r="6"/><circle cx="700" cy="930" r="5"/><path d="M252 300 l9 20 l20 9 l-20 9 l-9 20 l-9 -20 l-20 -9 l20 -9 Z"/><path d="M650 790 l7 16 l16 7 l-16 7 l-7 16 l-7 -16 l-16 -7 l16 -7 Z"/></g>',
+  };
+  const skin = skinId === 'skin-mitica'
+    ? '<g class="shop-skin-astrale" fill="none" stroke="#c4b5fd" stroke-width="6"><circle cx="450" cy="515" r="245" stroke-opacity=".34" stroke-dasharray="14 22"/><circle cx="450" cy="515" r="285" stroke-opacity=".19" stroke-dasharray="3 26"/><path d="M450 245 L465 282 L505 285 L475 310 L485 350 L450 328 L415 350 L425 310 L395 285 L435 282 Z" fill="#c4b5fd" fill-opacity=".5"/><path d="M280 480 l9 20 l20 9 l-20 9 l-9 20 l-9 -20 l-20 -9 l20 -9 Z M620 590 l8 17 l17 8 l-17 8 l-8 17 l-8 -17 l-17 -8 l17 -8 Z" fill="#e9d5ff"/></g>'
+    : '';
+  const contenuto = (armature[armaturaId] || '') + (effetti[effettoId] || '') + skin;
+  if (!contenuto) return null;
+  const div = el('div', { class: 'personaggio-cosmetici-overlay', aria: { hidden: 'true' } });
+  div.innerHTML = '<svg class="personaggio-cosmetici-svg" viewBox="0 0 900 1350" preserveAspectRatio="none" aria-hidden="true" focusable="false">' + contenuto + '</svg>';
+  return div;
+}
+
 function vistaAuraShop(zona) {
   const st = statoMio();
   const profilo = profiloAttivo();
