@@ -3266,3 +3266,36 @@ html.animazioni-mai .barra-piena::after { animation: none; }
   .personaggio-scena-grafica.personaggio-aura-divina::before,
   .personaggio-scena-grafica.personaggio-aura-divina::after { animation: none; }
 }
+
+
+/* Progressi: grafici più leggibili, con card moderne e contrasto migliore. */
+.grafico {
+  background: radial-gradient(ellipse at 12% 0%, #7c3aed16, transparent 55%), linear-gradient(145deg, #151622, #0d1018);
+  border: 1px solid #a78bfa30;
+  border-radius: 18px;
+  padding: clamp(12px, 2.5vw, 20px);
+  margin: 14px 0;
+  box-shadow: 0 12px 28px #00000020;
+  overflow: hidden;
+}
+.grafico-svg { width: 100%; height: auto; display: block; overflow: visible; }
+.grafico .griglia { stroke: #ffffff12; stroke-dasharray: 4 5; }
+.grafico .asse-txt { fill: #a9abc0; font-size: 11px; font-weight: 600; }
+.grafico .asse-titolo { fill: #e8e8f3; font-size: 12px; font-weight: 800; }
+.grafico .linea-grafico { stroke-width: 3.5; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 0 4px #a78bfa55); }
+.grafico .punto-grafico { stroke: #171622; stroke-width: 3; }
+.grafico .valore-punto { fill: #f4f2ff; font-size: 11px; font-weight: 850; paint-order: stroke; stroke: #11121a; stroke-width: 3px; stroke-linejoin: round; }
+.grafico .barra-grafico { fill: url(#gradiente-barre); }
+.grafico .barra-spotter { fill: #fb923c; }
+.grafico-dati-txt { color: #a9abc0; line-height: 1.6; }
+.aura-shop-owned { transition: border-color .18s, transform .18s, background .18s; }
+.aura-shop-owned.equipaggiato { border-color: #a78bfa99; background: linear-gradient(140deg,#8b5cf626,#22c55e0b); box-shadow: inset 0 0 0 1px #a78bfa18; }
+.aura-shop-owned .equip-status { color: #a9abc0; }
+.aura-shop-owned.equipaggiato .equip-status { color: #c4b5fd; font-weight: 800; }
+.aura-shop-owned button { margin-top: 5px; min-height: 38px; }
+.timer-recupero { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.timer-recupero.recupero-attivo { color: #c4b5fd; }
+@media (max-width: 420px) {
+  .grafico { padding: 10px; border-radius: 14px; }
+  .grafico .asse-txt { font-size: 10px; }
+}
