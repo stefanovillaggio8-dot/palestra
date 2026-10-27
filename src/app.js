@@ -5345,6 +5345,10 @@ function profiloAttivo() {
     // la classe RPG scelta (guerriero / assassino / berserker). Anche questa È per
     // account, quindi i compagni di Ste non vengono misurati con la sua.
     classe_rpg: (salvato && salvato.classe_rpg) || null,
+    // I cosmetici equipaggiati devono sopravvivere a ogni ricostruzione del profilo.
+    // Senza questo campo, profiloAttivo() restituiva un oggetto nuovo senza
+    // equipaggiamento_aura e il render successivo mostrava subito "Equipaggia".
+    equipaggiamento_aura: { ...((salvato && salvato.equipaggiamento_aura) || {}) },
     // Il flag che dice "il personaggio esiste già". Sta SEPARATO da `classe_rpg` per
     // un motivo preciso: se `classe_rpg` tornasse vuoto per un errore di lettura,
     // questo flag continua a dire che la scelta c'è stata e l'app non te la fa
