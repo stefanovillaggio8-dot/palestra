@@ -1558,6 +1558,9 @@ function apriAnteprimaAura(oggetto, profilo, st) {
       testo: oggetto.icona + ' ' + oggetto.nome,
     }));
   } else if (grafica) {
+    // La scheda del personaggio ha già il cosmetico attualmente equipaggiato:
+    // rimuoviamo il vecchio SVG prima di disegnare la combinazione d'anteprima.
+    grafica.querySelector('.personaggio-cosmetici-overlay')?.remove();
     if (oggetto.tipo === 'Armatura') {
       if (oggetto.classe === profilo.classe_rpg) grafica.classList.add('shop-' + oggetto.id);
       else pannello.appendChild(el('p', { class: 'aura-preview-warning', testo: 'Questa armatura è per ' + CLASSE_AURA[oggetto.classe] + '. Cambia classe per indossarla.' }));
@@ -1661,10 +1664,16 @@ function vistaAuraShop(zona, soloInventario = false) {
       el('span',{testo:o.icona}),el('strong',{testo:o.nome}),
       el('small',{testo:o.tipo+(o.classe?' · '+CLASSE_AURA[o.classe]:'')}),
       el('small',{class:'equip-status',testo:indossato?'✓ Equipaggiato':'Nella collezione'}),
-      bottone(indossato?'Disequipaggia':'Equipaggia',{
-        classe:indossato?'fantasma':'principale',
-        onClick:async()=>{try{await salvaEquipaggiamento(slot,indossato?null:o.id);}catch(err){avviso('Non sono riuscito a salvare l’equipaggiamento. Riprova con internet attivo.',{tipo:'errore'});}}
-      })
+      el('div',{class:'aura-shop-card-actions'},[
+        bottone('Anteprima',{
+          classe:'fantasma aura-shop-preview-btn',
+          onClick:()=>apriAnteprimaAura(o, profiloAttivo(), statoMio()),
+        }),
+        bottone(indossato?'Disequipaggia':'Equipaggia',{
+          classe:indossato?'fantasma':'principale',
+          onClick:async()=>{try{await salvaEquipaggiamento(slot,indossato?null:o.id);}catch(err){avviso('Non sono riuscito a salvare l’equipaggiamento. Riprova con internet attivo.',{tipo:'errore'});}}
+        })
+      ])
     ]);
     ownedGrid.appendChild(riga);
   }
