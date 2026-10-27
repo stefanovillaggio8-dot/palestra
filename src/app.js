@@ -6837,8 +6837,8 @@ function vistaCasa(zona) {
     el('h2', { testo: 'Supera un tuo record' }),
     el('p', { class: 'nota', testo: 'Migliora il tuo record personale in almeno un esercizio questa settimana. Quando il nuovo record viene registrato, puoi riscattare il premio una sola volta.' }),
     el('div', { class: 'sfida-record-premio' }, [
-      el('span', { testo: '✦ +25 Aura' }),
-      el('span', { testo: '⚡ +50 XP' }),
+      el('span', { testo: '✦ +250 Aura' }),
+      el('span', { testo: '⚡ +150 XP' }),
     ]),
   ]);
   if (premioRecordGiaRiscattato) {
@@ -6847,11 +6847,11 @@ function vistaCasa(zona) {
     sfidaRecord.appendChild(el('p', { class: 'nota', testo: 'Record nuovi registrati: ' + recordDellaSettimana.length }));
     sfidaRecord.appendChild(bottone('Riscatta premio settimanale', { classe: 'principale', onClick: async () => {
       if (ricompenseMie().some((r) => r && r.id === chiaveRiscattoRecord)) return;
-      const premio = { id: chiaveRiscattoRecord, account_id: accountAttivo(), tipo: 'record_settimanale_riscattato', fonte: st.settimana, aura: 25, xp: 50, descrizione: 'Sfida settimanale: record personale', quando: adesso() };
+      const premio = { id: chiaveRiscattoRecord, account_id: accountAttivo(), tipo: 'record_settimanale_riscattato', fonte: st.settimana, aura: 250, xp: 150, descrizione: 'Sfida settimanale: record personale', quando: adesso() };
       try {
         await db.salva('ricompense', premio);
         await ricaricaTutto();
-        avviso('Premio riscattato: +25 Aura e +50 XP!', { tipo: 'ok', durata: 6000 });
+        avviso('Premio riscattato: +250 Aura e +150 XP!', { tipo: 'ok', durata: 6000 });
         disegna();
       } catch (err) {
         avviso('Non sono riuscito a riscattare il premio. Riprova con internet attivo.', { tipo: 'errore' });
@@ -7357,6 +7357,12 @@ async function vistaEsercizio(zona, esercizioId) {
     zona.appendChild(el('div', { class: 'riga-omino' }, [
       el('div', { class: 'omino' }, [
         el('div', { class: 'omino-immagine', html: disegnoOmino(parte.parte, parte.livelli, parte.anatomia) }),
+        el('div', { class: 'omino-comandi' }, [
+          bottone('⤢ Ingrandisci fronte e retro', {
+            classe: 'fantasma',
+            onClick: () => apriOminoZoom(parte.parte, parte.livelli, parte.anatomia),
+          }),
+        ]),
         el('div', { class: 'omino-legenda', 'aria-label': 'Legenda dei muscoli evidenziati' }, [
           el('span', {}, [el('i', { class: 'omino-punto principale', 'aria-hidden': 'true' }), 'Principale']),
           el('span', {}, [el('i', { class: 'omino-punto supporto', 'aria-hidden': 'true' }), 'Muscolo di supporto']),
@@ -8136,6 +8142,23 @@ function disegnoOmino(parteId, livelli, anatomia) {
   return '<svg class="omino-svg" viewBox="0 0 ' + FOTO_L + ' ' + FOTO_A
     + '" role="img" aria-label="Il corpo di fronte e di dietro, con il muscolo allenato colorato di viola">'
     + figurinoMuscolo(parteId, livelli, anatomia) + etichette + '</svg>';
+}
+
+/** Ingrandisce la stessa mappa frontale/posteriore, senza cambiare l'omino originale. */
+function apriOminoZoom(parteId, livelli, anatomia) {
+  const sfondo = el('div', { class: 'sfondo-dialogo omino-zoom-sfondo', role: 'dialog', aria: { label: 'Mappa muscolare ingrandita' } });
+  const dialogo = el('div', { class: 'dialogo omino-zoom-dialogo' });
+  dialogo.appendChild(el('div', { class: 'omino-zoom-intestazione' }, [
+    el('div', {}, [
+      el('h2', { testo: 'Mappa muscolare' }),
+      el('p', { class: 'nota', testo: 'Fronte e retro · Viola intenso: muscolo principale · Viola chiaro: supporto' }),
+    ]),
+    bottone('Chiudi', { classe: 'fantasma', onClick: () => sfondo.remove() }),
+  ]));
+  dialogo.appendChild(el('div', { class: 'omino-zoom-immagine', html: disegnoOmino(parteId, livelli, anatomia) }));
+  sfondo.appendChild(dialogo);
+  sfondo.addEventListener('click', (ev) => { if (ev.target === sfondo) sfondo.remove(); });
+  document.body.appendChild(sfondo);
 }
 
 /** Il pezzo di muscolo da accendere, o null se l'app non lo conosce. */
