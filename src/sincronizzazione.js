@@ -58,7 +58,7 @@ export function rigaPerInvio(riga, tabella = '') {
       if (raw === null || raw === '') out.quando = null;
       else {
         const giorno = String(raw);
-        out.quando = /^\\d{4}-\\d{2}-\\d{2}$/.test(giorno) ? giorno : giorno.slice(0, 10);
+        out.quando = /^\d{4}-\d{2}-\d{2}$/.test(giorno) ? giorno : giorno.slice(0, 10);
       }
     }
   }
