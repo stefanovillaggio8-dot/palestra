@@ -939,7 +939,11 @@ export function zoneAtlante(id) {
   // accende con il livello del centro schiena, e i dorsali larghi restano chiari.
   // i LOMBARI: l'erector spinae, il path dedicato del kit
   if (/^erector_spinae/.test(id)) return ['dorso_basso'];
-  if (/^trapezius_lower_/.test(id)) return ['dorso_centrale'];
+  // Il centro schiena comprende la fascia del trapezio medio e inferiore,
+  // tra le scapole e lungo la colonna. Solo il trapezio superiore resta nella
+  // zona alta vicino al collo: prima il trapezio medio veniva erroneamente
+  // classificato come alto e la tirata prona sembrava accendere le spalle.
+  if (/^trapezius_(middle|lower)_/.test(id)) return ['dorso_centrale'];
   if (/^trapezius_/.test(id)) return ['dorso_alto'];
   if (/^latissimus_dorsi_/.test(id)) return ['dorso_lati'];
   if (/^gluteus_/.test(id)) return ['glutei'];
