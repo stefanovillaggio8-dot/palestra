@@ -1752,7 +1752,12 @@ if (rotta === '/aura-shop') {
     const voceShop = el('a', {
       href: '#/aura-shop',
       class: 'voce-menu attiva',
-      onClick: () => document.getElementById('aura-shop-catalogo')?.scrollIntoView({behavior:'smooth', block:'start'}),
+      onClick: (e) => {
+        e.preventDefault();
+        document.querySelector('.menu-aura-shop .voce-menu')?.classList.add('attiva');
+        document.querySelector('.menu-aura-shop .voce-menu:last-child')?.classList.remove('attiva');
+        document.getElementById('aura-shop-catalogo')?.scrollIntoView({behavior:'smooth', block:'start'});
+      },
     }, [
       el('span', { class: 'icona-menu', html: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h18l-2 13H5L3 7Z"/><path d="M8 7a4 4 0 0 1 8 0"/></svg>' }),
       el('span', { class: 'parola-menu', testo: 'Shop' }),
@@ -1760,7 +1765,12 @@ if (rotta === '/aura-shop') {
     const voceInventario = el('a', {
       href: '#/aura-shop',
       class: 'voce-menu',
-      onClick: () => document.getElementById('mio-inventario')?.scrollIntoView({behavior:'smooth', block:'start'}),
+      onClick: (e) => {
+        e.preventDefault();
+        document.querySelector('.menu-aura-shop .voce-menu')?.classList.remove('attiva');
+        document.querySelector('.menu-aura-shop .voce-menu:last-child')?.classList.add('attiva');
+        document.getElementById('mio-inventario')?.scrollIntoView({behavior:'smooth', block:'start'});
+      },
     }, [
       el('span', { class: 'icona-menu', html: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h13A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18.5v-13Z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>' }),
       el('span', { class: 'parola-menu', testo: 'Inventario' }),
