@@ -192,6 +192,7 @@ create table if not exists public.profili (
   colore        text default '#7c5cff',
   -- Collega il profilo alla scheda posseduta; usato per amicizie e policy RLS.
   scheda_id      text,
+  equipaggiamento_aura jsonb not null default '{}'::jsonb,
   peso_corporeo numeric(5,2),
   rev           integer not null default 1,
   created_at    timestamptz not null default now(),
