@@ -6701,6 +6701,51 @@ function vistaCasa(zona) {
   zona.appendChild(el('p', { class: 'nota', testo: 'Diverse per ciascuno, e cambiano ogni settimana. Nessuna sfida ti viene riproposta.' }));
   for (const voce of st.missioni.weekly) zona.appendChild(tesseraMissione(voce));
 
+  // --- record settimanale riscattabile: un solo premio per settimana ---
+  const inizioSettimanaRecord = (() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    const giorno = d.getDay() || 7;
+    d.setDate(d.getDate() - giorno + 1);
+    return d.toISOString().slice(0, 10);
+  })();
+  const recordDellaSettimana = ricompenseMie().filter((r) => {
+    if (!r || r.tipo !== 'record') return false;
+    const giorno = String(r.quando || r.data || r.updated_at || '').slice(0, 10);
+    return giorno >= inizioSettimanaRecord;
+  });
+  const chiaveRiscattoRecord = 'record-settimanale:' + accountAttivo() + ':' + st.settimana;
+  const premioRecordGiaRiscattato = ricompenseMie().some((r) => r && r.id === chiaveRiscattoRecord);
+  const sfidaRecord = el('section', { class: 'blocco sfida-record-settimanale' }, [
+    el('div', { class: 'sfida-record-kicker', testo: 'SFIDA SETTIMANALE' }),
+    el('h2', { testo: 'Supera un tuo record' }),
+    el('p', { class: 'nota', testo: 'Migliora il tuo record personale in almeno un esercizio questa settimana. Quando il nuovo record viene registrato, puoi riscattare il premio una sola volta.' }),
+    el('div', { class: 'sfida-record-premio' }, [
+      el('span', { testo: '✦ +25 Aura' }),
+      el('span', { testo: '⚡ +50 XP' }),
+    ]),
+  ]);
+  if (premioRecordGiaRiscattato) {
+    sfidaRecord.appendChild(el('span', { class: 'tag-fatto', testo: 'PREMIO RISCATTATO QUESTA SETTIMANA' }));
+  } else if (recordDellaSettimana.length) {
+    sfidaRecord.appendChild(el('p', { class: 'nota', testo: 'Record nuovi registrati: ' + recordDellaSettimana.length }));
+    sfidaRecord.appendChild(bottone('Riscatta premio settimanale', { classe: 'principale', onClick: async () => {
+      if (ricompenseMie().some((r) => r && r.id === chiaveRiscattoRecord)) return;
+      const premio = { id: chiaveRiscattoRecord, account_id: accountAttivo(), tipo: 'record_settimanale_riscattato', fonte: st.settimana, aura: 25, xp: 50, descrizione: 'Sfida settimanale: record personale', quando: adesso() };
+      try {
+        await db.salva('ricompense', premio);
+        await ricaricaTutto();
+        avviso('Premio riscattato: +25 Aura e +50 XP!', { tipo: 'ok', durata: 6000 });
+        disegna();
+      } catch (err) {
+        avviso('Non sono riuscito a riscattare il premio. Riprova con internet attivo.', { tipo: 'errore' });
+      }
+    }}));
+  } else {
+    sfidaRecord.appendChild(el('p', { class: 'nota', testo: 'Non hai ancora battuto un record questa settimana. Il premio si sblocca quando registri un nuovo record.' }));
+  }
+  zona.appendChild(sfidaRecord);
+
   // --- secret ---
   zona.appendChild(el('h2', { testo: 'Secret Missions' }));
   zona.appendChild(el('p', { class: 'nota', testo: 'Coperti finche\' non li riveli. Valgono di piu\'.' }));
