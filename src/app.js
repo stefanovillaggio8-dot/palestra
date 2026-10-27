@@ -1528,6 +1528,64 @@ function svgCosmeticiRpg(armaturaId, effettoId, skinId) {
   return div;
 }
 
+function apriAnteprimaAura(oggetto, profilo, st) {
+  const overlay = el('div', { class: 'aura-preview-overlay', role: 'dialog', aria: { modal: 'true', label: 'Anteprima ' + oggetto.nome } });
+  const pannello = el('section', { class: 'aura-preview-panel' }, [
+    el('div', { class: 'aura-preview-heading' }, [
+      el('div', {}, [
+        el('span', { class: 'aura-shop-kicker', testo: 'ANTEPRIMA · ' + oggetto.rarita.toUpperCase() }),
+        el('h2', { testo: oggetto.nome }),
+      ]),
+      bottone('✕', { classe: 'fantasma aura-preview-close', titolo: 'Chiudi anteprima', onClick: () => overlay.remove() }),
+    ]),
+    el('p', { class: 'nota', testo: oggetto.descrizione }),
+    el('div', { class: 'aura-preview-showcase' }, [
+      el('span', { class: 'aura-preview-icon', testo: oggetto.icona }),
+      el('strong', { testo: oggetto.tipo }),
+      el('small', { testo: oggetto.classe ? CLASSE_AURA[oggetto.classe] : 'Cosmetico per il tuo personaggio' }),
+    ]),
+  ]);
+  const personaggio = bloccoPersonaggio(profilo, st);
+  personaggio.classList.add('aura-preview-character');
+  const grafica = personaggio.querySelector('.personaggio-scena-grafica');
+  const eq = { ...(profilo.equipaggiamento_aura || {}) };
+  const slot = oggetto.tipo === 'Armatura' ? 'Armatura' : oggetto.tipo;
+  if (oggetto.tipo === 'Titolo') {
+    const titolo = personaggio.querySelector('.personaggio-titolo-equipaggiato');
+    if (titolo) titolo.textContent = oggetto.icona + ' ' + oggetto.nome;
+    else personaggio.querySelector('.personaggio-scena')?.appendChild(el('span', {
+      class: 'personaggio-titolo-equipaggiato',
+      testo: oggetto.icona + ' ' + oggetto.nome,
+    }));
+  } else if (grafica) {
+    if (oggetto.tipo === 'Armatura') {
+      if (oggetto.classe === profilo.classe_rpg) grafica.classList.add('shop-' + oggetto.id);
+      else pannello.appendChild(el('p', { class: 'aura-preview-warning', testo: 'Questa armatura è per ' + CLASSE_AURA[oggetto.classe] + '. Cambia classe per indossarla.' }));
+    } else if (oggetto.tipo === 'Effetto' || oggetto.tipo === 'Skin') {
+      grafica.classList.add('shop-' + oggetto.id);
+    }
+    const armatura = oggetto.tipo === 'Armatura' ? oggetto.id : eq.Armatura;
+    const effetto = oggetto.tipo === 'Effetto' ? oggetto.id : eq.Effetto;
+    const skin = oggetto.tipo === 'Skin' ? oggetto.id : eq.Skin;
+    const overlaySvg = svgCosmeticiRpg(armatura, effetto, skin);
+    if (overlaySvg) grafica.appendChild(overlaySvg);
+  }
+  pannello.appendChild(personaggio);
+  pannello.appendChild(el('div', { class: 'aura-preview-footer' }, [
+    el('span', { class: 'aura-shop-price', testo: '✧ ' + formattaAura(oggetto.prezzo) + ' Aura' }),
+    bottone('Chiudi', { classe: 'fantasma', onClick: () => overlay.remove() }),
+  ]));
+  overlay.appendChild(pannello);
+  overlay.addEventListener('click', (event) => { if (event.target === overlay) overlay.remove(); });
+  document.addEventListener('keydown', function chiudiAnteprima(event) {
+    if (event.key === 'Escape') {
+      overlay.remove();
+      document.removeEventListener('keydown', chiudiAnteprima);
+    }
+  }, { once: true });
+  document.body.appendChild(overlay);
+}
+
 function vistaAuraShop(zona, soloInventario = false) {
   const st = statoMio();
   const profilo = profiloAttivo();
@@ -1645,7 +1703,12 @@ function vistaAuraShop(zona, soloInventario = false) {
         el('h3',{testo:o.nome}),
         el('p',{class:'nota',testo:o.descrizione}),
         el('div',{class:'aura-shop-price',testo:'✧ '+formattaAura(o.prezzo)+' Aura'}),
-        bottone(owned?'✓ Già acquistato':(Number(st.aura)<o.prezzo?'Aura insufficienti':'Acquista'),{
+        el('div',{class:'aura-shop-card-actions'},[
+          bottone('Anteprima',{
+            classe:'fantasma aura-shop-preview-btn',
+            onClick:()=>apriAnteprimaAura(o, profiloAttivo(), statoMio()),
+          }),
+          bottone(owned?'✓ Già acquistato':(Number(st.aura)<o.prezzo?'Aura insufficienti':'Acquista'),{
           classe:owned?'fantasma':'principale',
           disabled:owned||Number(st.aura)<o.prezzo,
           onClick:async()=>{
@@ -1666,7 +1729,8 @@ function vistaAuraShop(zona, soloInventario = false) {
               disegna();
             }catch(e){console.error(e);avviso('Acquisto non salvato: riprova quando la connessione è stabile.',{tipo:'errore'});}
           },
-        }),
+          }),
+        ]),
       ]);
       griglia.appendChild(card);
     }
@@ -1755,6 +1819,15 @@ function cornice() {
 // cosa hai fatto, il gioco, e il tuo profilo.
 if (rotta === '/aura-shop' || rotta === '/aura-shop/inventario') {
     const isInventario = rotta === '/aura-shop/inventario';
+    const voceIndietro = el('a', {
+      href: '#/profilo',
+      class: 'voce-menu voce-menu-indietro',
+      'aria-label': 'Torna al profilo',
+      title: 'Torna al profilo',
+    }, [
+      el('span', { class: 'icona-menu', html: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>' }),
+      el('span', { class: 'parola-menu', testo: 'Indietro' }),
+    ]);
     const voceShop = el('a', {
       href: '#/aura-shop',
       class: 'voce-menu' + (!isInventario ? ' attiva' : ''),
@@ -1766,11 +1839,11 @@ if (rotta === '/aura-shop' || rotta === '/aura-shop/inventario') {
       href: '#/aura-shop/inventario',
       class: 'voce-menu' + (isInventario ? ' attiva' : ''),
     }, [
-      el('span', { class: 'icona-menu', html: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h13A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18.5v-13Z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>' }),
+      el('span', { class: 'icona-menu', html: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h13A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5h-13a1.5 1.5 0 0 1-1.5-1.5v-13Z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>' }),
       el('span', { class: 'parola-menu', testo: 'Inventario' }),
     ]);
     return el('div', { class: 'basso' }, [
-      el('nav', { class: 'menu-basso menu-aura-shop', 'aria-label': 'Navigazione Aura Shop' }, [voceShop, voceInventario]),
+      el('nav', { class: 'menu-basso menu-aura-shop', 'aria-label': 'Navigazione Aura Shop' }, [voceIndietro, voceShop, voceInventario]),
     ]);
   }
 
