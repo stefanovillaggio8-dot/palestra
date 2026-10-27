@@ -494,3 +494,56 @@ select:focus-visible {
 #mio-inventario { scroll-margin-top: 82px; }
 .menu-aura-shop { justify-content: space-around; }
 .menu-aura-shop .voce-menu { min-height: 50px; }
+
+/* Aura Shop v320: barra più bassa e anteprime dei cosmetici. */
+.menu-aura-shop {
+  display: grid;
+  grid-template-columns: .82fr 1fr 1fr;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px calc(3px + env(safe-area-inset-bottom));
+}
+.menu-aura-shop .voce-menu {
+  min-height: 40px;
+  padding: 3px 2px;
+  gap: 2px;
+}
+.menu-aura-shop .icona-menu { width: 18px; height: 18px; }
+.menu-aura-shop .parola-menu { font-size: .66rem; line-height: 1; }
+.menu-aura-shop .voce-menu-indietro { opacity: .82; }
+.aura-shop-card-actions { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: 7px; margin-top: 8px; }
+.aura-shop-card-actions > * { min-width: 0; width: 100%; }
+.aura-shop-preview-btn { border: 1px solid rgba(167,139,250,.4); }
+.aura-preview-overlay {
+  position: fixed; inset: 0; z-index: 9999;
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px; background: rgba(5,7,12,.82); backdrop-filter: blur(9px);
+}
+.aura-preview-panel {
+  width: min(100%, 520px); max-height: min(88dvh, 820px); overflow: auto;
+  padding: 18px; border: 1px solid rgba(167,139,250,.32); border-radius: 22px;
+  background: linear-gradient(155deg, #171727, #10131b 72%);
+  box-shadow: 0 24px 90px rgba(0,0,0,.55);
+}
+.aura-preview-heading { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+.aura-preview-heading h2 { margin: 5px 0 8px; }
+.aura-preview-close { flex: 0 0 40px; min-height:40px; }
+.aura-preview-showcase {
+  display:flex; align-items:center; gap:12px; margin: 14px 0; padding: 13px;
+  border:1px solid rgba(167,139,250,.2); border-radius:15px;
+  background:rgba(139,92,246,.08);
+}
+.aura-preview-icon { font-size: 2.2rem; }
+.aura-preview-showcase strong { display:block; }
+.aura-preview-showcase small { margin-left:auto; text-align:right; color:var(--testo-secondario,#aaa); }
+.aura-preview-character { margin: 10px 0 0; }
+.aura-preview-character > h2 { display:none; }
+.aura-preview-character .personaggio-scena-grafica { max-width:100%; }
+.aura-preview-warning { padding:10px; border-radius:10px; background:rgba(251,191,36,.1); color:#fcd34d; }
+.aura-preview-footer { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:12px; }
+.aura-preview-footer .bot, .aura-preview-footer button { min-height:40px; }
+@media (max-width:380px) {
+  .menu-aura-shop { padding-left:3px; padding-right:3px; gap:2px; }
+  .menu-aura-shop .parola-menu { font-size:.61rem; }
+  .aura-preview-panel { padding:13px; }
+}
