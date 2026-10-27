@@ -1528,7 +1528,7 @@ function svgCosmeticiRpg(armaturaId, effettoId, skinId) {
   return div;
 }
 
-function vistaAuraShop(zona) {
+function vistaAuraShop(zona, soloInventario = false) {
   const st = statoMio();
   const profilo = profiloAttivo();
   const classe = String(profilo.classe_rpg || '').toLowerCase();
@@ -1541,7 +1541,7 @@ function vistaAuraShop(zona) {
     .map(r => String(r.fonte || '').split(':')[1])
     .filter(Boolean))];
   const streak = Math.max(0, Number(st.fuoco && st.fuoco.giorni) || 0);
-  zona.appendChild(el('section',{class:'aura-shop-hero'},[
+  if (!soloInventario) zona.appendChild(el('section',{class:'aura-shop-hero'},[
     el('div',{class:'aura-shop-kicker',testo:'✦ FORGE / COSMETICI ✦'}),
     el('h1',{testo:'Aura Shop'}),
     el('p',{class:'nota',testo:'La tua Aura, il tuo stile. Solo estetica: nessun vantaggio ai Rank.'}),
@@ -1551,18 +1551,19 @@ function vistaAuraShop(zona) {
       el('small',{testo:'Classe: '+nomeClasse}),
     ]),
   ]));
-  // L'anteprima è la stessa figura del Profilo: cambiare equipaggiamento qui
-  // ridisegna subito anche l'aspetto, senza dover uscire dal negozio.
-  const anteprimaShop = el('section', { class: 'aura-shop-character-preview' }, [
-    el('div', { class: 'aura-shop-section-head' }, [
-      el('div', {}, [
-        el('h2', { testo: 'Anteprima del personaggio' }),
-        el('p', { class: 'nota', testo: 'Equipaggia o togli un oggetto e guarda subito il risultato.' }),
+  if (!soloInventario) {
+    // L'anteprima usa la stessa figura del Profilo e aggiorna l'aspetto equipaggiato.
+    const anteprimaShop = el('section', { class: 'aura-shop-character-preview' }, [
+      el('div', { class: 'aura-shop-section-head' }, [
+        el('div', {}, [
+          el('h2', { testo: 'Anteprima del personaggio' }),
+          el('p', { class: 'nota', testo: 'Equipaggia o togli un oggetto e guarda subito il risultato.' }),
+        ]),
       ]),
-    ]),
-  ]);
-  anteprimaShop.appendChild(bloccoPersonaggio(profilo, st));
-  zona.appendChild(anteprimaShop);
+    ]);
+    anteprimaShop.appendChild(bloccoPersonaggio(profilo, st));
+    zona.appendChild(anteprimaShop);
+  }
 
   const mitica = el('section',{class:'aura-streak-mitica'+(streak>=80?' sbloccata':'' )},[
     el('div',{class:'aura-mitica-sigil',testo:'✹'}),
@@ -1575,7 +1576,7 @@ function vistaAuraShop(zona) {
       el('small',{testo:streak>=80?'Questa ricompensa resta tua: non serve comprarla.':'Allenati con costanza per sbloccare la più bella aura del gioco.'}),
     ]),
   ]);
-  zona.appendChild(mitica);
+  if (!soloInventario) zona.appendChild(mitica);
   const inventario=el('section',{class:'aura-shop-inventory',id:'mio-inventario'},[
     el('div',{class:'aura-shop-section-head'},[
       el('div',{},[el('h2',{testo:'Mio Inventario'}),el('p',{class:'nota',testo:posseduti.length+' oggetti acquistati'})]),
@@ -1609,7 +1610,10 @@ function vistaAuraShop(zona) {
     ]);
     ownedGrid.appendChild(riga);
   }
-  zona.appendChild(inventario);
+  if (soloInventario) {
+    zona.appendChild(inventario);
+    return;
+  }
   const filtri=el('div',{class:'aura-shop-filters'});
   const catalogo=el('section',{class:'aura-shop-catalogo'});
   zona.appendChild(el('div',{class:'aura-shop-section-head',id:'aura-shop-catalogo'},[
@@ -1682,7 +1686,8 @@ function disegnaDentro(zona) {
   else if (rotta === '/rank' || rotta === '/ranki') vistaRank(contenuto);
   else if (rotta.startsWith('/esercizio/')) vistaEsercizio(contenuto, rotta.split('/')[2]);
   else if (rotta === '/amici') vistaAmici(contenuto);
-  else if (rotta === '/aura-shop') vistaAuraShop(contenuto);
+  else if (rotta === '/aura-shop') vistaAuraShop(contenuto, false);
+  else if (rotta === '/aura-shop/inventario') vistaAuraShop(contenuto, true);
   else if (rotta.startsWith('/amico/')) vistaAmico(contenuto, rotta.split('/')[2]);
   else if (rotta === '/profilo') vistaProfilo(contenuto);
   else if (rotta.startsWith('/giorno/')) vistaGiorno(contenuto, rotta.split('/')[2]);
@@ -1748,29 +1753,18 @@ function cornice() {
 //
 // L'ordine è per quanto si usa: allenarsi, vedere quanto sei forte, rivedere
 // cosa hai fatto, il gioco, e il tuo profilo.
-if (rotta === '/aura-shop') {
+if (rotta === '/aura-shop' || rotta === '/aura-shop/inventario') {
+    const isInventario = rotta === '/aura-shop/inventario';
     const voceShop = el('a', {
       href: '#/aura-shop',
-      class: 'voce-menu attiva',
-      onClick: (e) => {
-        e.preventDefault();
-        document.querySelector('.menu-aura-shop .voce-menu')?.classList.add('attiva');
-        document.querySelector('.menu-aura-shop .voce-menu:last-child')?.classList.remove('attiva');
-        document.getElementById('aura-shop-catalogo')?.scrollIntoView({behavior:'smooth', block:'start'});
-      },
+      class: 'voce-menu' + (!isInventario ? ' attiva' : ''),
     }, [
       el('span', { class: 'icona-menu', html: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h18l-2 13H5L3 7Z"/><path d="M8 7a4 4 0 0 1 8 0"/></svg>' }),
       el('span', { class: 'parola-menu', testo: 'Shop' }),
     ]);
     const voceInventario = el('a', {
-      href: '#/aura-shop',
-      class: 'voce-menu',
-      onClick: (e) => {
-        e.preventDefault();
-        document.querySelector('.menu-aura-shop .voce-menu')?.classList.remove('attiva');
-        document.querySelector('.menu-aura-shop .voce-menu:last-child')?.classList.add('attiva');
-        document.getElementById('mio-inventario')?.scrollIntoView({behavior:'smooth', block:'start'});
-      },
+      href: '#/aura-shop/inventario',
+      class: 'voce-menu' + (isInventario ? ' attiva' : ''),
     }, [
       el('span', { class: 'icona-menu', html: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h13A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18.5v-13Z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>' }),
       el('span', { class: 'parola-menu', testo: 'Inventario' }),
