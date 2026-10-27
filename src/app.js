@@ -1227,13 +1227,35 @@ function vistaHome(zona) {
   }
   const giorni = (v.snapshot && v.snapshot.giorni) || [];
 
-  // La scheda ha un ordine: mostra quale giorno viene dopo l'ultima seduta
-  // completata nella versione attuale, senza cambiare l'ordine o avviare nulla.
+  // Il giro deve tenere conto delle sedute finite in TUTTE le versioni della
+  // scheda corrente: al termine di un allenamento può essere creata una nuova
+  // versione per aggiornare kg/ripetizioni, ma questo non deve riportare il giro
+  // al Giorno 1. seduteDellaPersona() esclude già gli allenamenti degli altri profili.
   const seduteCompletate = seduteDellaPersona()
-    .filter((s) => s && !s.eliminata && s.stato === 'completata' && s.versione_id === v.id)
-    .sort((a, b) => String(b.ora_fine || b.data || '').localeCompare(String(a.ora_fine || a.data || '')));
-  const ultimaGiornataId = seduteCompletate[0] && seduteCompletate[0].giorno_id;
-  const indiceUltimaGiornata = giorni.findIndex((g) => g.id === ultimaGiornataId);
+    .filter((s) => s && !s.eliminata && s.stato === 'completata')
+    .sort((a, b) => {
+      const tempo = (s) => {
+        const t = new Date(s.ora_fine || s.ora_inizio || s.data || 0).getTime();
+        return Number.isFinite(t) ? t : 0;
+      };
+      return tempo(b) - tempo(a);
+    });
+  const nomeGiornoSeduta = (s) => String(s && (s.nome_giorno || s.giorno_nome) || '')
+    .trim().toLocaleLowerCase('it');
+  // Preferisce l'ID stabile; se un giorno è stato ricreato in una versione
+  // successiva, usa il nome salvato nella seduta come ripiego.
+  let indiceUltimaGiornata = -1;
+  for (const s of seduteCompletate) {
+    let indice = giorni.findIndex((g) => g.id === s.giorno_id);
+    if (indice < 0) {
+      const nome = nomeGiornoSeduta(s);
+      if (nome) indice = giorni.findIndex((g) => String(g.nome || '').trim().toLocaleLowerCase('it') === nome);
+    }
+    if (indice >= 0) {
+      indiceUltimaGiornata = indice;
+      break;
+    }
+  }
   const indiceProssimaGiornata = giorni.length
     ? (indiceUltimaGiornata < 0 ? 0 : (indiceUltimaGiornata + 1) % giorni.length)
     : -1;
