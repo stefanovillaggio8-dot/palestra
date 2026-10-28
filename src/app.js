@@ -6517,6 +6517,18 @@ function bloccoPersonaggio(profilo, st, { coronaAnteprima = false } = {}) {
         }),
       ]));
     }
+    const recordCorona = Math.max(0, Number(rpg.recordStreak)||0, Number(st?.streak?.record)||0);
+    const coronaSbloccata = recordCorona >= 80;
+    striscia.appendChild(el('div',{
+      class:'pezzo pezzo-corona-infinito' + (coronaSbloccata?' acceso':' spento'),
+      title:'Corona dell’Infinito — 80 giorni',
+    },[
+      el('span',{class:'pezzo-spunta',testo:coronaSbloccata?'✓':'·'}),
+      el('span',{class:'corona-streak-icon',testo:'♛'}),
+      el('span',{class:'pezzo-nome',testo:'Corona dell’Infinito'}),
+      el('span',{class:'pezzo-quando',testo:coronaSbloccata?'sbloccata · 80 giorni':'mancano '+(80-recordCorona)+' giorni'}),
+      bottone('Anteprima',{classe:'fantasma corona-streak-preview',onClick:()=>apriAnteprimaCoronaRpg(profilo,st)}),
+    ]));
     rigaStati.appendChild(striscia);
     // La striscia NON viene aggiunta qui: si mette DOPO la foto e dopo il nome.
     // Ste (11/10/2026): "deve esserci il mio attuale più grande". Prima la striscia
