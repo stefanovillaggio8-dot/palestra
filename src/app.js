@@ -40,7 +40,7 @@ import { soglieLegibiliNuove } from './rank-v3/valutazione.js';
 import { confrontoGiorno, confrontiMensili, GIORNI_UN_MESE } from './confronto-mensile.js';
 import { profiloEsercizio, profiloPerPesoCorporeo, RANK, ETICHETTE_MISURA, descriviPunteggio, descrizioneLivello, livelloEsercizio, impostaLivelliImparati, livelliImparati, rapportoDifficolta, MOLTIPLICATORI_SOGLIA, passoCaricabile } from './rank-config.js';
 import { formattaAura } from './aura.js';
-import { montaEffettiRpg } from './effetti-rpg-canvas.js';
+import { montaEffettiRpg, smontaEffettiRpg } from './effetti-rpg-canvas.js';
 import { applicaSkinRpg } from './skin-rpg-fedele.js';
 import { elencoAvatar, avatarPerId, gradienteAvatar, iniziali } from './avatar.js';
 import { amiciDi, confronta, classifichePerEsercizio, privacyDi, campiVisibili, PRIVACY_PREDEFINITE } from './sociale.js';
@@ -1592,6 +1592,8 @@ function apriAnteprimaAura(oggetto, profilo, st) {
     for (const nodo of personaggio.querySelectorAll('.riga-pezzi, .personaggio-equipaggiamento, button')) nodo.remove();
     const nota = personaggio.querySelector('.personaggio-dati .nota');
     if (nota) nota.textContent = 'Anteprima · ' + oggetto.nome;
+    // Interrompi la precedente animazione prima di sostituire l'avatar.
+    for (const precedente of contenitore.querySelectorAll('.personaggio-scena-grafica')) smontaEffettiRpg(precedente);
     contenitore.replaceChildren(personaggio);
   };
   if (oggetto.id === 'skin-mitica') {
