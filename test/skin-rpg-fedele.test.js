@@ -33,7 +33,7 @@ test('Le armature originali rimangono le immagini di progressione Streak',async(
  assert.match(app,/applicaSkinRpg\(grafica, fotoRpg, classeId/);
  assert.match(app,/percorsoStato\(classeId, viso\.indice\)/);
  assert.doesNotMatch(app,/const overlayCosmetici = svgCosmeticiRpg\(/);
- assert.match(app,/coronaAnteprima: true/);
+ assert.match(app,/__anteprimaCorona:true/);
  assert.match(app,/classeAnteprima = oggetto\.classe/);
  assert.match(app,/id === 'skin-mitica'/);
 });
@@ -51,7 +51,7 @@ test('Fallback sicuro quando il browser non ha canvas o non ci sono skin',()=>{
  assert.equal(applicaSkinRpg({}, {},'guerriero','invalida'),null);
 });
 
-test('Il rivestimento e' ancorato alla foto e prepara un overlay trasparente',t=>{
+test('Il rivestimento e\' ancorato alla foto e prepara un overlay trasparente',t=>{
  const restore={document:globalThis.document};
  t.after(()=>{ if(restore.document===undefined)delete globalThis.document;else globalThis.document=restore.document; });
  let pixels=0,draws=0;
