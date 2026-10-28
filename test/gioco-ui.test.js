@@ -16,7 +16,7 @@ delete globalThis.indexedDB;
 
 const { montaDom, pulsante, pulsanti, perClasse, trova } = await import('./dom-minimo.js');
 const { app, body } = montaDom();
-const { avvia: rilanciaAvvio } = await import('../src/app.js');
+const { avvia: rilanciaAvvio, V } = await import('../src/app.js');
 globalThis.setInterval = () => 0;
 globalThis.clearInterval = () => {};
 
@@ -242,11 +242,19 @@ test('9. il dettaglio di un esercizio senza dati non inventa un rank', async () 
 });
 
 test('10. gli Amici si vedono e si aprono', async () => {
+  // Gli account non sono più amici preinstallati: simuliamo un invito accettato.
+  const io = await db.prendi('profili', accountId('1'));
+  await db.salva('profili', { ...io, id: accountId('1'), amici: [accountId('2')] });
+  await db.salva('profili', { id: accountId('2'), username: 'Andrea', scheda_id: 'scheda-amico-test',
+    amici: [accountId('1')], privacy: { profilo: 'pubblico', performance: 'pubblico', leaderboard: 'pubblico' } });
+  await rilanciaAvvio();
+  // Fixture equivalente al profilo restituito dalla RPC profili_amici; non dalla cache locale.
+  V.profili.push(await db.prendi('profili', accountId('2')));
   await vai('#/amici', () => app.textContent.includes('Amici'));
   assert.match(app.textContent, /Amici/);
   const righe = perClasse(app, 'riga-amico');
   assert.ok(righe.length >= 1, 'c\'e\' almeno un amico');
-  assert.match(app.textContent, /Persone che puoi aggiungere/);
+  assert.match(app.textContent, /Crea link invito per un amico/);
   const link = trova(app, (n) => n.attributi && n.attributi.href === '#/amico/account-2');
   assert.ok(link, 'il link al profilo dell\'amico c\'e\'');
 });

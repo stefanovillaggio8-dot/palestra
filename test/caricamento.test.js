@@ -56,7 +56,10 @@ test('il client del database online si carica e non ha richiesto la chiave', asy
   const m = await import('../src/supabase.js');
   assert.equal(typeof m.accedi, 'function');
   assert.equal(typeof m.scrivi, 'function');
-  assert.equal(m.leggiConfig().attivo, false, 'senza configurazione non si fa nessuna chiamata');
+  assert.equal(m.leggiConfig().attivo, true, 'la configurazione pubblica è inclusa nella PWA');
+  assert.match(m.leggiConfig().url, /^https:\/\/[a-z0-9]+\.supabase\.co$/);
+  assert.match(m.leggiConfig().anonKey, /^sb_publishable_/);
+  assert.equal(m.sessione(), null, 'la configurazione non autentica nessuno');
   assert.equal(m.collegato(), false);
 });
 

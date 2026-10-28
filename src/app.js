@@ -12,7 +12,7 @@ import {
   ETICHETTE_CONVENZIONE, CONVENZIONI, convenzioneMisuraCarico, convenzioneConCorpo, etichettaUnita, campoCarico,
 } from './numeri.js';
 import { confrontaEsercizio, riassuntoEsercizio, NON_DISPONIBILE } from './confronto.js';
-import { prossimoOrdine, apriSeduta, nuovaSerie, seduteFinite, eFatta, commutaFatta, pulsa, segnaAspettoFatto, registra, REGISTRO, cambiaSerie, etichettaSpotterSerie, aspettaSalvataggi, cambiaGiro, sovrapponiGiri } from './sedute.js';
+import { indiceProssimoGiorno, prossimoOrdine, apriSeduta, nuovaSerie, seduteFinite, eFatta, commutaFatta, pulsa, segnaAspettoFatto, registra, REGISTRO, cambiaSerie, etichettaSpotterSerie, aspettaSalvataggi, cambiaGiro, sovrapponiGiri } from './sedute.js';
 import {
   MODALITA, raccogliPerEsercizio, proposta as propostaAggiornamento, notaSulNumeroSerie,
   riassuntoSpotter,
@@ -38,7 +38,7 @@ import { recordEsercizio, recordAccount, classificaEsercizio, storicoMiglioramen
 import { soglieLegibiliNuove } from './rank-v3/valutazione.js';
 import { confrontoGiorno, confrontiMensili, GIORNI_UN_MESE } from './confronto-mensile.js';
 import { profiloEsercizio, profiloPerPesoCorporeo, RANK, ETICHETTE_MISURA, descriviPunteggio, descrizioneLivello, livelloEsercizio, impostaLivelliImparati, livelliImparati, rapportoDifficolta, MOLTIPLICATORI_SOGLIA, passoCaricabile } from './rank-config.js';
-import { formattaAura } from './aura.js';
+import { formattaAura, acquistaOggettoAura } from './aura.js';
 import { elencoAvatar, avatarPerId, gradienteAvatar, iniziali } from './avatar.js';
 import { amiciDi, confronta, classifichePerEsercizio, privacyDi, campiVisibili, PRIVACY_PREDEFINITE } from './sociale.js';
 import { classificaEsercizio as riconosciEsercizio } from './esercizi-classificatore.js';
@@ -1530,13 +1530,15 @@ function svgCosmeticiRpg(armaturaId, effettoId, skinId) {
 
 function apriAnteprimaAura(oggetto, profilo, st) {
   const overlay = el('div', { class: 'aura-preview-overlay', role: 'dialog', aria: { modal: 'true', label: 'Anteprima ' + oggetto.nome } });
+  const chiudi = () => { overlay.remove(); document.removeEventListener('keydown', sullaTastiera); };
+  const sullaTastiera = event => { if (event.key === 'Escape') chiudi(); };
   const pannello = el('section', { class: 'aura-preview-panel' }, [
     el('div', { class: 'aura-preview-heading' }, [
       el('div', {}, [
         el('span', { class: 'aura-shop-kicker', testo: 'ANTEPRIMA · ' + oggetto.rarita.toUpperCase() }),
         el('h2', { testo: oggetto.nome }),
       ]),
-      bottone('✕', { classe: 'fantasma aura-preview-close', titolo: 'Chiudi anteprima', onClick: () => overlay.remove() }),
+      bottone('✕', { classe: 'fantasma aura-preview-close', titolo: 'Chiudi anteprima', onClick: chiudi }),
     ]),
     el('p', { class: 'nota', testo: oggetto.descrizione }),
     el('div', { class: 'aura-preview-showcase' }, [
@@ -1576,16 +1578,11 @@ function apriAnteprimaAura(oggetto, profilo, st) {
   pannello.appendChild(personaggio);
   pannello.appendChild(el('div', { class: 'aura-preview-footer' }, [
     el('span', { class: 'aura-shop-price', testo: '✧ ' + formattaAura(oggetto.prezzo) + ' Aura' }),
-    bottone('Chiudi', { classe: 'fantasma', onClick: () => overlay.remove() }),
+    bottone('Chiudi', { classe: 'fantasma', onClick: chiudi }),
   ]));
   overlay.appendChild(pannello);
-  overlay.addEventListener('click', (event) => { if (event.target === overlay) overlay.remove(); });
-  document.addEventListener('keydown', function chiudiAnteprima(event) {
-    if (event.key === 'Escape') {
-      overlay.remove();
-      document.removeEventListener('keydown', chiudiAnteprima);
-    }
-  }, { once: true });
+  overlay.addEventListener('click', event => { if (event.target === overlay) chiudi(); });
+  document.addEventListener('keydown', sullaTastiera);
   document.body.appendChild(overlay);
 }
 
@@ -1723,6 +1720,7 @@ function vistaAuraShop(zona, soloInventario = false) {
     if(!elenco.length) griglia.appendChild(el('p',{class:'nota',testo:'Per vedere le armature di questa classe, selezionala nella sezione personaggio del Profilo.'}));
     for(const o of elenco){
       const owned=posseduti.includes(o.id);
+      const equipped = owned && equipaggiamento[slotOggetto(o)] === o.id;
       const card=el('article',{class:'aura-shop-card rarita-'+o.rarita.toLowerCase()},[
         el('div',{class:'aura-shop-card-top'},[
           el('span',{class:'aura-shop-item-icon',testo:o.icona}),
@@ -1737,7 +1735,7 @@ function vistaAuraShop(zona, soloInventario = false) {
             classe:'fantasma aura-shop-preview-btn',
             onClick:()=>apriAnteprimaAura(o, profiloAttivo(), statoMio()),
           }),
-          bottone(owned?'✓ Già acquistato':(Number(st.aura)<o.prezzo?'Aura insufficienti':'Acquista'),{
+          bottone(equipped?'✓ Equipaggiato':owned?'✓ Già acquistato':(Number(st.aura)<o.prezzo?'Aura insufficienti':'Acquista'),{
           classe:owned?'fantasma':'principale',
           disabled:owned||Number(st.aura)<o.prezzo,
           onClick:async()=>{
@@ -1748,15 +1746,14 @@ function vistaAuraShop(zona, soloInventario = false) {
             // Le spese sono registrate come righe negative nella tabella ricompense:
             // il saldo mostrato dall'app resta la fonte di verità, senza inventare Aura.
             const account=accountAttivo();
-            const fonte='shop:'+o.id+':'+Date.now();
-            try{
-              const spesa={id:'spesa-'+fonte,account_id:account,tipo:'spesa_aura',fonte,aura:-o.prezzo,xp:0,descrizione:'Aura Shop: '+o.nome,data:new Date().toISOString()};
-              await db.salva('ricompense',spesa);
-              if (Array.isArray(V.ricompense)) V.ricompense.push(spesa);
-              posseduti.push(o.id);
-              avviso(o.nome+' acquistato! Aura spesa: '+formattaAura(o.prezzo),{tipo:'ok'});
+            if (account !== idAccountShop) return;
+            try {
+              const risultato = await acquistaOggettoAura({ account, oggetto: o,
+                leggi: () => db.tutti('ricompense'), salva: spesa => db.salva('ricompense', spesa) });
+              await ricaricaTutto();
+              avviso(risultato.acquistato ? o.nome + ' acquistato!' : 'Questo oggetto è già nel tuo inventario.', { tipo: 'ok' });
               disegna();
-            }catch(e){console.error(e);avviso('Acquisto non salvato: riprova quando la connessione è stabile.',{tipo:'errore'});}
+            } catch (e) { avviso(e.message || 'Acquisto non salvato.', { tipo: 'errore' }); }
           },
           }),
         ]),
@@ -1972,38 +1969,7 @@ function vistaHome(zona) {
   }
   const giorni = (v.snapshot && v.snapshot.giorni) || [];
 
-  // Il giro considera le sedute completate in TUTTE le versioni della scheda
-  // corrente: aggiornare kg/ripetizioni può creare una versione nuova, ma non
-  // deve riportare la rotazione al Giorno 1. seduteDellaPersona() esclude già
-  // gli allenamenti degli altri profili.
-  const seduteCompletate = seduteDellaPersona()
-    .filter((s) => s && !s.eliminata && s.stato === 'completata')
-    .sort((a, b) => {
-      const tempo = (s) => {
-        const t = new Date(s.ora_fine || s.ora_inizio || s.data || 0).getTime();
-        return Number.isFinite(t) ? t : 0;
-      };
-      return tempo(b) - tempo(a);
-    });
-  const nomeGiornoSeduta = (s) => String(s && (s.nome_giorno || s.giorno_nome) || '')
-    .trim().toLocaleLowerCase('it');
-  // Preferisce l'ID stabile; se un giorno è stato ricreato in una versione
-  // successiva, usa il nome salvato nella seduta come ripiego.
-  let indiceUltimaGiornata = -1;
-  for (const s of seduteCompletate) {
-    let indice = giorni.findIndex((g) => g.id === s.giorno_id);
-    if (indice < 0) {
-      const nome = nomeGiornoSeduta(s);
-      if (nome) indice = giorni.findIndex((g) => String(g.nome || '').trim().toLocaleLowerCase('it') === nome);
-    }
-    if (indice >= 0) {
-      indiceUltimaGiornata = indice;
-      break;
-    }
-  }
-  const indiceProssimaGiornata = giorni.length
-    ? (indiceUltimaGiornata < 0 ? 0 : (indiceUltimaGiornata + 1) % giorni.length)
-    : -1;
+  const indiceProssimaGiornata = indiceProssimoGiorno(v, seduteDellaPersona(), versioniDellaPersona());
 
   zona.appendChild(el('div', { id: 'zona-avviso' }));
 
@@ -5062,6 +5028,7 @@ function vistaImpostazioni(zona) {
   // La configurazione tecnica resta disponibile, ma chiusa di default: non intralcia chi vuole solo allenarsi.
   const accountDettagli = el('details', { class: 'blocco-chiuso' }, [
     el('summary', { testo: 'Opzione avanzata: Account e database online' }),
+    el('p', { class: 'nota', testo: 'Non ti serve accedere per allenarti offline. Accedi per sincronizzare i dati tra dispositivi e usare gli amici.' }),
     accountBox,
   ]);
   zona.appendChild(accountDettagli);

@@ -27,7 +27,7 @@ function assi(svg, { larghezza, altezza, margine, punti, chiaveY, titoloY, forma
   const range = max - min;
   min -= range * 0.15;
   max += range * 0.15;
-  const px = (v) => larghezza - margine + ((v - min) / (max - min)) * margine;
+  const px = (v) => margine + v * (larghezza - 2 * margine);
   const py = (v) => altezza - 28 - ((v - min) / (max - min)) * (altezza - 28 - 14);
 
   for (let i = 0; i <= 3; i++) {
@@ -55,12 +55,12 @@ export function graficoLinea(punti, { chiaveY, titoloY, etichette = [], larghezz
     scatola.appendChild(el('p', { class: 'grafico-vuoto', testo: 'Dati non disponibili per questo grafico.' }));
     return scatola;
   }
-  const svg = svgTag('svg', { viewBox: `0 0 ${larghezza} ${altezza}`, class: 'grafico-svg', role: 'img' });
+  const svg = svgTag('svg', { viewBox: `0 0 ${larghezza} ${altezza}`, class: 'grafico-svg', role: 'img', 'aria-label': titoloY || 'Andamento allenamenti' });
   const a = assi(svg, { larghezza, altezza, margine: 46, punti: buoni, chiaveY, titoloY, formatoY: (v) => formattaNumero(v) });
 
   const n = buoni.length;
   const puntiXY = buoni.map((p, i) => {
-    const x = a.px(n === 1 ? 0 : i / (n - 1));
+    const x = a.px(n === 1 ? 0.5 : i / (n - 1));
     const y = a.py(Number(p[chiaveY]));
     return { x, y, p };
   });
@@ -72,7 +72,15 @@ export function graficoLinea(punti, { chiaveY, titoloY, etichette = [], larghezz
     }));
   }
   puntiXY.forEach((q, i) => {
-    svg.appendChild(svgTag('circle', { cx: q.x, cy: q.y, r: 5, class: 'punto-grafico punto-' + colore }));
+    const punto = svgTag('circle', { cx: q.x, cy: q.y, r: 5, tabindex: 0, class: 'punto-grafico punto-' + colore });
+    const descrizione = `${q.p.etichetta || ''}: ${formattaNumero(q.p[chiaveY])} ${titoloY || ''}`;
+    punto.setAttribute('aria-label', descrizione);
+    const titolo = svgTag('title'); titolo.textContent = descrizione; punto.appendChild(titolo);
+    svg.appendChild(punto);
+    if (i === 0 || i === n - 1 || i === Math.floor(n / 2)) {
+      const data = svgTag('text', { x: q.x, y: altezza - 8, 'text-anchor': 'middle', class: 'asse-txt' });
+      data.textContent = q.p.etichetta || ''; svg.appendChild(data);
+    }
     if (etichette[i] !== undefined) {
       const t = svgTag('text', { x: q.x, y: q.y - 11, 'text-anchor': 'middle', class: 'valore-punto' });
       t.textContent = formattaNumero(q.p[chiaveY]);

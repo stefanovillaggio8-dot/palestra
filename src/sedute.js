@@ -409,3 +409,35 @@ function isoGiorno(data) {
 }
 
 export { isoGiorno, adesso };
+/** Ricostruisce il giro dai dati persistenti, senza contatori locali da sincronizzare. */
+export function indiceProssimoGiorno(versione, sedute = [], versioni = []) {
+  const giorni = versione?.snapshot?.giorni || [];
+  if (!giorni.length) return -1;
+  const nome = (v) => String(v || '').trim().toLocaleLowerCase('it');
+  const delleVersioni = new Map(versioni.map(v => [v.id, v]));
+  delleVersioni.set(versione.id, versione);
+  const data = (s) => {
+    // La data dell'allenamento prevale sulla data di inserimento/importazione.
+    const giorno = String(s.data || '').slice(0, 10);
+    const t = Date.parse(giorno || s.ora_inizio || s.ora_fine || '');
+    return Number.isFinite(t) ? t : -Infinity;
+  };
+  const valide = sedute.filter(s => s && !s.eliminata && s.stato === 'completata'
+    && (s.scheda_id ? s.scheda_id === versione.scheda_id
+      : delleVersioni.get(s.versione_id)?.scheda_id === versione.scheda_id)
+    && Number.isFinite(data(s)))
+    .sort((a, b) => data(b) - data(a)
+      || String(b.ora_inizio || '').localeCompare(String(a.ora_inizio || ''))
+      || String(b.id || '').localeCompare(String(a.id || '')));
+  for (const s of valide) {
+    let indice = giorni.findIndex(g => g.id && g.id === s.giorno_id);
+    if (indice < 0) {
+      const originale = delleVersioni.get(s.versione_id)?.snapshot?.giorni?.find(g => g.id === s.giorno_id);
+      const etichetta = nome(s.nome_giorno || s.giorno_nome || originale?.nome);
+      const corrispondenze = giorni.map((g, i) => nome(g.nome) === etichetta && etichetta ? i : -1).filter(i => i >= 0);
+      if (corrispondenze.length === 1) indice = corrispondenze[0];
+    }
+    if (indice >= 0) return (indice + 1) % giorni.length;
+  }
+  return 0;
+}

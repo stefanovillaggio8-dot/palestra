@@ -80,6 +80,32 @@ export function totaliDaRicompense(ricompense) {
   return { aura, xp, numero: (ricompense || []).length };
 }
 
+let codaAcquisti = Promise.resolve();
+
+/** Serializza le conferme e rilegge saldo/inventario prima di addebitare. */
+export function acquistaOggettoAura({ account, oggetto, leggi, salva }) {
+  const esegui = async () => {
+    if (!account || !oggetto?.id || !Number.isFinite(oggetto.prezzo) || oggetto.prezzo <= 0) {
+      throw new Error('Oggetto non valido.');
+    }
+    const righe = (await leggi()).filter(r => r && !r.eliminata && r.account_id === account);
+    const posseduto = righe.find(r => r.tipo === 'spesa_aura' && String(r.fonte || '').split(':')[1] === oggetto.id);
+    if (posseduto) return { acquistato: false, spesa: posseduto };
+    if (totaliDaRicompense(righe).aura < oggetto.prezzo) throw new Error('Non hai abbastanza Aura.');
+    // Stesso acquisto su dispositivi diversi converge sullo stesso identificativo.
+    // Le vecchie spese restano immutate e sono riconosciute dal controllo sopra.
+    const fonte = `shop:${oggetto.id}:${account}`;
+    const spesa = await salva({ id: 'spesa-' + fonte, account_id: account, tipo: 'spesa_aura',
+      fonte, aura: -oggetto.prezzo, xp: 0, descrizione: 'Aura Shop: ' + oggetto.nome, data: new Date().toISOString() });
+    return { acquistato: true, spesa };
+  };
+  const protetto = () => globalThis.navigator?.locks?.request
+    ? navigator.locks.request('palestra-shop-' + account, esegui) : esegui();
+  const risultato = codaAcquisti.then(protetto, protetto);
+  codaAcquisti = risultato.catch(() => {});
+  return risultato;
+}
+
 /** 1250 -> "1.250" (punto come mille, come nell'esempio). */
 export function formattaAura(n) {
   const v = Math.round(Number(n) || 0);

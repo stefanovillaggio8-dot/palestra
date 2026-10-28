@@ -3153,16 +3153,7 @@ html.animazioni-mai .aura-colonna { animation: none; }
   .omino-svg { width: 100%; }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  html:not(.animazioni-sempre) *,
-  html:not(.animazioni-sempre) *::before,
-  html:not(.animazioni-sempre) *::after {
-    animation-duration: .001ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: .001ms !important;
-    scroll-behavior: auto !important;
-  }
-}
+
 
 
 /* Tutte le animazioni di sopra si spengono con l'impostazione "mai". */
@@ -3199,7 +3190,7 @@ html.animazioni-mai .barra-piena::after { animation: none; }
 .aura-shop-item-type{font-size:.68rem;text-transform:uppercase;letter-spacing:.12em;color:#a1a1aa}.aura-shop-card h3{margin:0;font-size:1.08rem}.aura-shop-card p{margin:0;min-height:44px;font-size:.85rem}.aura-shop-price{font-weight:850;color:#e9d5ff;margin-top:auto;padding-top:8px}.aura-shop-card button{width:100%}
 @keyframes aura-mitica-pulse{0%,100%{transform:scale(1);filter:drop-shadow(0 0 3px #d946ef)}50%{transform:scale(1.045);filter:drop-shadow(0 0 12px #d946ef)}}
 @media(max-width:480px){.aura-shop-hero{padding:20px}.aura-streak-mitica{grid-template-columns:1fr}.aura-mitica-sigil{width:62px;height:62px}.aura-shop-grid{grid-template-columns:1fr}.aura-shop-card p{min-height:0}}
-@media(prefers-reduced-motion:reduce){.aura-mitica-sigil{animation:none}}
+
 
 
 /* Aura Divina: resa diversa dalla normale aura anche nell'anteprima RPG. */
@@ -3262,10 +3253,7 @@ html.animazioni-mai .barra-piena::after { animation: none; }
   0%,100% { opacity: .75; scale: .9; }
   50% { opacity: 1; scale: 1.18; }
 }
-@media (prefers-reduced-motion: reduce) {
-  .personaggio-scena-grafica.personaggio-aura-divina::before,
-  .personaggio-scena-grafica.personaggio-aura-divina::after { animation: none; }
-}
+
 
 
 /* Progressi: grafici più leggibili, con card moderne e contrasto migliore. */
@@ -3388,19 +3376,7 @@ html.animazioni-mai .barra-piena::after { animation: none; }
   background:radial-gradient(ellipse at 50% 38%,#8b5cf61a,transparent 66%),#0b0e13;
 }
 .omino-zoom-immagine .omino-svg { width:min(100%, 760px); max-width:760px; max-height:66vh; }
-@media (prefers-reduced-motion: reduce) {
-  .personaggio-cosmetici-svg .shop-armor-braci,
-  .personaggio-cosmetici-svg .shop-armor-abisso,
-  .personaggio-cosmetici-svg .shop-armor-velo,
-  .personaggio-cosmetici-svg .shop-armor-spettro,
-  .personaggio-cosmetici-svg .shop-armor-rabbia,
-  .personaggio-cosmetici-svg .shop-armor-apocalisse,
-  .personaggio-cosmetici-svg .shop-fx-ambra,
-  .personaggio-cosmetici-svg .shop-fx-ombra,
-  .personaggio-cosmetici-svg .shop-fx-fulmine,
-  .personaggio-cosmetici-svg .shop-fx-nebula,
-  .personaggio-cosmetici-svg .shop-skin-astrale { animation:none; }
-}
+
 
 
 /* L'anteprima nello shop è interattiva e compatta: si aggiorna subito quando equipaggi. */
@@ -3439,3 +3415,29 @@ html.animazioni-mai .barra-piena::after { animation: none; }
 .recupero-in-alto { display:inline-flex; align-items:center; width:fit-content; margin-top:5px; padding:5px 10px; border-radius:999px; border:1px solid rgba(255,255,255,.12); background:rgba(10,18,15,.72); color:#aebbb4; font-size:.9rem; font-weight:800; font-variant-numeric:tabular-nums; white-space:nowrap; }
 .recupero-in-alto.recupero-attivo { color:#91d5a7; border-color:rgba(145,213,167,.35); }
 @media (max-width:420px) { .recupero-in-alto { font-size:.78rem; padding:4px 8px; } }
+
+/* Lettura e interazione: il colore distingue i dati, il bordo il controllo attivo. */
+.grafico .punto-grafico:focus { outline: none; stroke: #f5cf81; stroke-width: 5; }
+.aura-shop-card-actions button { min-height: 44px; }
+.aura-shop-filter:focus-visible, .aura-shop-owned button:focus-visible,
+.aura-shop-card-actions button:focus-visible { outline: 2px solid #f5cf81; outline-offset: 3px; }
+.aura-shop-card { display: flex; flex-direction: column; }
+.aura-shop-card > .nota { flex: 1; }
+.aura-shop-card .aura-shop-price { font-variant-numeric: tabular-nums; }
+@media (max-width: 520px) {
+  .grafico-svg { min-width: 360px; }
+  .grafico { overflow-x: auto; overscroll-behavior-x: contain; }
+  .aura-shop-card-actions { flex-wrap: wrap; }
+}
+
+/* Ultima regola: include anche effetti e armature aggiunti dopo il tema base. */
+@media (prefers-reduced-motion: reduce) {
+  html:not(.animazioni-sempre) *,
+  html:not(.animazioni-sempre) *::before,
+  html:not(.animazioni-sempre) *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
