@@ -1594,7 +1594,8 @@ function apriAnteprimaAura(oggetto, profilo, st) {
     if (nota) nota.textContent = 'Anteprima · ' + oggetto.nome;
     // Interrompi la precedente animazione prima di sostituire l'avatar.
     for (const precedente of contenitore.querySelectorAll('.personaggio-scena-grafica')) smontaEffettiRpg(precedente);
-    contenitore.replaceChildren(personaggio);
+    svuota(contenitore);
+    contenitore.appendChild(personaggio);
   };
   if (oggetto.id === 'skin-mitica') {
     const selettore = el('div', { class:'aura-preview-classi', role:'group',
