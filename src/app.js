@@ -1647,7 +1647,7 @@ function apriAnteprimaCoronaRpg(profilo, st) {
     ]),
     el('p',{class:'nota',testo:'Anteprima temporanea sul tuo personaggio. Non modifica gli sblocchi.'}),
   ]);
-  const avatar=bloccoPersonaggio(profilo,st,{coronaAnteprima:true});
+  const avatar=bloccoPersonaggio({ ...profilo, __anteprimaCorona:true },st);
   avatar.classList.add('aura-preview-character');
   for(const nodo of avatar.querySelectorAll('.riga-pezzi, .personaggio-equipaggiamento, button')) nodo.remove();
   pannello.appendChild(avatar);
@@ -6242,7 +6242,8 @@ function prossimoGiornoPrevisto(previsti, daIso) {
  * è la foto, la lista è la spiegazione. Il personaggio serve a sentirti come un
  * personaggio, la lista serve a sapere cosa ti manca.
  */
-function bloccoPersonaggio(profilo, st, { coronaAnteprima = false } = {}) {
+function bloccoPersonaggio(profilo, st) {
+  const coronaAnteprima = Boolean(profilo?.__anteprimaCorona);
   const rpg = calcolaAvatar(profilo.classe_rpg, serieMie(), seduteMie(), esercizioPerId, {
     profilo,
   });
