@@ -1688,17 +1688,8 @@ function vistaAuraShop(zona, soloInventario = false) {
     ]),
   ]));
   if (!soloInventario) {
-    // L'anteprima usa la stessa figura del Profilo e aggiorna l'aspetto equipaggiato.
-    const anteprimaShop = el('section', { class: 'aura-shop-character-preview' }, [
-      el('div', { class: 'aura-shop-section-head' }, [
-        el('div', {}, [
-          el('h2', { testo: 'Anteprima del personaggio' }),
-          el('p', { class: 'nota', testo: 'Equipaggia o togli un oggetto e guarda subito il risultato.' }),
-        ]),
-      ]),
-    ]);
-    anteprimaShop.appendChild(bloccoPersonaggio(profilo, st));
-    zona.appendChild(anteprimaShop);
+    zona.appendChild(el('p',{class:'nota aura-shop-preview-hint',
+      testo:'Le immagini e le animazioni dei cosmetici si vedono soltanto premendo Anteprima sul singolo oggetto.'}));
   }
 
   const mitica = el('section',{class:'aura-streak-mitica'+(streak>=80?' sbloccata':'' )},[
@@ -1746,7 +1737,7 @@ function vistaAuraShop(zona, soloInventario = false) {
     const slot = slotOggetto(o);
     const indossato = equipaggiamento[slot] === o.id;
     const riga = el('div',{class:'aura-shop-owned'+(indossato?' equipaggiato':'' )},[
-      el('span',{testo:o.icona}),el('strong',{testo:o.nome}),
+      el('strong',{testo:o.nome}),
       el('small',{testo:o.tipo+(o.classe?' · '+CLASSE_AURA[o.classe]:'')}),
       el('small',{class:'equip-status',testo:indossato?'✓ Equipaggiato':'Nella collezione'}),
       el('div',{class:'aura-shop-card-actions'},[
@@ -1803,11 +1794,9 @@ function vistaAuraShop(zona, soloInventario = false) {
       const accesso = accessoSkin(o, st, classe, owned);
       const card=el('article',{class:'aura-shop-card rarita-'+o.rarita.toLowerCase()},[
         el('div',{class:'aura-shop-card-top'},[
-          el('span',{class:'aura-shop-item-icon',testo:o.icona}),
+          el('span',{class:'aura-shop-item-symbol',testo:'✦',aria:{hidden:'true'}}),
           el('span',{class:'aura-shop-rarity',testo:o.rarita}),
         ]),
-        ...(o.immagine ? [el('img',{class:'aura-shop-card-art',src:o.immagine,
-          alt:'Illustrazione completa di '+o.nome,loading:'lazy',decoding:'async'})] : []),
         el('span',{class:'aura-shop-item-type',testo:o.tipo+(o.classe?' · '+CLASSE_AURA[o.classe]:'')}),
         el('h3',{testo:o.nome}),
         el('p',{class:'nota',testo:o.descrizione}),
@@ -1848,12 +1837,6 @@ function vistaAuraShop(zona, soloInventario = false) {
           }),
         ]),
       ]);
-      if (o.id === 'skin-mitica' && CLASSE_AURA[classe]) {
-        const anteprima = bloccoPersonaggio({ ...profilo, equipaggiamento_aura: { ...profilo.equipaggiamento_aura, Skin: o.id } }, st);
-        const figura = anteprima.querySelector('.personaggio-scena-grafica');
-        if (figura) { figura.classList.add('aura-skin-miniatura'); card.insertBefore(figura, card.firstChild); }
-      }
-      if (o.miniatura) card.insertBefore(el('img', { class: 'aura-armor-card', src: o.miniatura, alt: o.nome, loading: 'lazy', width: 300, height: 450 }), card.firstChild);
       if (requisitoSkin(o.id)) card.insertBefore(bloccoRequisitoSkin(o, st, owned), card.querySelector('.aura-shop-card-actions'));
       griglia.appendChild(card);
     }
@@ -6323,7 +6306,7 @@ function bloccoPersonaggio(profilo, st) {
     // flusso e l'altezza la decide lei. Senza scatola il browser non può
     // decidere come infilarla e la taglia.
     grafica.classList.add('con-foto');
-    // I cosmetici comprati si sovrappongono alla foto senza sostituire la progressione.
+    // I cosmetici equipaggiati restano visibili nel Profilo; nello Shop solo premendo Anteprima.
     if (armaturaEquipaggiata) grafica.classList.add('shop-' + armaturaEquipaggiata.id);
     if (effettoEquipaggiato) grafica.classList.add('shop-' + effettoEquipaggiato.id);
     if (skinEquipaggiata) grafica.classList.add('shop-' + skinEquipaggiata.id);
@@ -6445,6 +6428,7 @@ function bloccoPersonaggio(profilo, st) {
     montaEffettiRpg(grafica, effettoEquipaggiato?.id || (skinEquipaggiata?.id === 'skin-mitica' ? 'effetto-nebula' : null), {
       divina: viso.aura && !auraDivinaAttiva && !coronaAnteprima,
       corona: auraDivinaAttiva || coronaAnteprima,
+      classe: classeId, // Sagoma di occlusione specifica per Guerriero, Assassino o Berserker.
     });
 
     // LA FILMSTRIP: sei miniature, una per stato.

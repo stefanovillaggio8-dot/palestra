@@ -26,7 +26,11 @@ test('Shop bloccato e anteprima non cambiano profilo, saldo o inventario', async
   assert.ok(braci,app.textContent);
   assert.match(braci.textContent,/Record richiesto: 15 giorni/);
   assert.match(braci.textContent,/Il tuo record: 0 giorni · Mancano 15 giorni/);
-  assert.equal(perClasse(braci,'aura-armor-card').length,1);
+  // Le immagini e l'avatar NON devono caricarsi prima di aprire Anteprima.
+  assert.equal(perClasse(braci,'aura-armor-card').length,0);
+  assert.equal(perClasse(app,'aura-shop-card-art').length,0);
+  assert.equal(perClasse(app,'aura-shop-character-preview').length,0);
+  assert.equal(perClasse(app,'personaggio-ritratto').length,0);
   assert.notEqual(pulsante(braci,'Record di Streak insufficiente').getAttribute('disabled'),null);
   assert.ok(!cards.some(c=>c.textContent.includes('Velo della Notte')));
   const prima = {profili:await db.tutti('profili'),ricompense:await db.tutti('ricompense')};
@@ -36,6 +40,7 @@ test('Shop bloccato e anteprima non cambiano profilo, saldo o inventario', async
   assert.ok(overlay);
   assert.equal(perClasse(overlay,'aura-preview-environment')[0].getAttribute('src'),'./img/scenari/braci.svg');
   assert.match(perClasse(overlay,'personaggio-ritratto')[0].getAttribute('src'),/personaggi\/stati\/guerriero-/);
+  assert.equal(perClasse(overlay,'aura-armor-card').length,1);
   await pulsante(overlay,'Chiudi').click();
   assert.equal(perClasse(body,'aura-preview-overlay').length,0);
   assert.equal(body.className,sfondo);

@@ -822,3 +822,65 @@ button:active:not(:disabled) { transform:translateY(1px); }
   margin-top:4px;
   width:100%;
 }
+
+
+/* v331 — immagini e personaggi mostrati solo su richiesta di Anteprima.
+   Le schede restano testuali, ordinate e leggere anche sugli smartphone. */
+.aura-shop-preview-hint {
+  margin:12px 0 17px;
+  padding:11px 14px;
+  border:1px solid rgba(163,139,212,.22);
+  background:rgba(66,52,91,.12);
+  border-radius:12px;
+}
+.aura-shop-item-symbol {
+  display:grid;
+  place-items:center;
+  width:34px;
+  height:34px;
+  border:1px solid rgba(179,150,225,.29);
+  color:rgba(210,187,248,.66);
+  border-radius:10px;
+  font-size:1rem;
+  background:rgba(37,31,55,.44);
+}
+.aura-shop-card .aura-shop-card-actions {
+  margin-top:auto;
+  padding-top:7px;
+}
+.aura-shop-card .aura-shop-price { margin-top:auto; }
+.aura-shop-card .aura-shop-card-top { margin-bottom:8px; }
+
+/* I vecchi effetti CSS sopra l'avatar sono spenti SOLTANTO quando c'e'
+   il nuovo motore Canvas: evita piu' strati che attraversano il torso. */
+.personaggio-scena-grafica.rpg-fx-attiva > .aura-colonna,
+.personaggio-scena-grafica.rpg-fx-attiva > .aura-scie,
+.personaggio-scena-grafica.rpg-fx-attiva > .aura-stelle,
+.personaggio-scena-grafica.rpg-fx-attiva > .aura-onde,
+.personaggio-scena-grafica.rpg-fx-attiva > .aura-corona,
+.personaggio-scena-grafica.rpg-fx-attiva > .aura-lustro { display:none !important; }
+.personaggio-scena-grafica.rpg-fx-attiva.personaggio-aura-divina::before,
+.personaggio-scena-grafica.rpg-fx-attiva.personaggio-aura-divina::after {
+  content:none !important;
+}
+.personaggio-scena-grafica.rpg-fx-attiva .rpg-effetti-canvas {
+  position:absolute;
+  z-index:5;
+  inset:0;
+  width:100%;
+  height:100%;
+  pointer-events:none;
+  mix-blend-mode:screen;
+}
+/* Il fumo scuro usa source-over: screen lo renderebbe quasi invisibile. */
+.personaggio-scena-grafica.rpg-fx-attiva.shop-effetto-ombra .rpg-effetti-canvas {
+  mix-blend-mode:normal;
+}
+.aura-preview-scene .aura-preview-environment {
+  filter:contrast(1.12) brightness(.8) saturate(.9);
+}
+@media(prefers-reduced-motion:reduce) {
+  .personaggio-scena-grafica.rpg-fx-attiva .rpg-effetti-canvas {
+    animation:none;
+  }
+}
