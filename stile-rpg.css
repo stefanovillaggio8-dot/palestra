@@ -733,3 +733,59 @@ button:active:not(:disabled) { transform:translateY(1px); }
 @media(prefers-reduced-motion:reduce) {
   .rpg-effetti-canvas { opacity:.6; }
 }
+
+
+/* v330 — la skin ricolora i materiali dell'illustrazione Streak effettiva;
+   volto e corporatura non vengono sostituiti o coperti da sagome di plastica. */
+.personaggio-scena-grafica.rpg-skin-attiva {
+  isolation:isolate;
+  --rpg-skin-glow:#a3b8f5;
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--rpg-skin-glow) 35%,transparent),
+             0 15px 36px rgba(0,0,0,.4);
+}
+.personaggio-scena-grafica .rpg-skin-fedele {
+  display:block;
+  position:absolute;
+  z-index:2;
+  inset:0;
+  width:100%;
+  height:100%;
+  pointer-events:none;
+  mix-blend-mode:color;
+  border-radius:inherit;
+}
+.aura-preview-classi {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:6px;
+  margin:12px 0;
+}
+.aura-preview-classi .aura-classe-btn {
+  padding:9px 4px;
+  min-width:0;
+  min-height:43px;
+  font-size:.77rem;
+  white-space:normal;
+  border:1px solid rgba(160,147,194,.3);
+}
+.aura-preview-classi .aura-classe-btn.attiva {
+  border-color:#d8b4fe;
+  color:#f5e7ff;
+  background:linear-gradient(120deg,rgba(123,75,201,.42),rgba(63,39,111,.27));
+  box-shadow:inset 0 0 0 1px rgba(216,180,254,.24);
+}
+.aura-preview-avatar-container {
+  position:relative;
+  display:flex;
+  justify-content:center;
+  min-width:0;
+}
+.aura-preview-avatar-container .aura-preview-character {
+  max-width:100%;
+}
+.aura-preview-avatar-container .personaggio-scena-grafica {
+  max-width:min(100%,300px);
+}
+@media (max-width:360px) {
+  .aura-preview-classi .aura-classe-btn {font-size:.69rem;padding:8px 2px;}
+}
