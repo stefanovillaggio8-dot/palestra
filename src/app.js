@@ -1837,12 +1837,6 @@ function vistaAuraShop(zona, soloInventario = false) {
           }),
         ]),
       ]);
-      if (o.id === 'skin-mitica' && CLASSE_AURA[classe]) {
-        const anteprima = bloccoPersonaggio({ ...profilo, equipaggiamento_aura: { ...profilo.equipaggiamento_aura, Skin: o.id } }, st);
-        const figura = anteprima.querySelector('.personaggio-scena-grafica');
-        if (figura) { figura.classList.add('aura-skin-miniatura'); card.insertBefore(figura, card.firstChild); }
-      }
-      if (o.miniatura) card.insertBefore(el('img', { class: 'aura-armor-card', src: o.miniatura, alt: o.nome, loading: 'lazy', width: 300, height: 450 }), card.firstChild);
       if (requisitoSkin(o.id)) card.insertBefore(bloccoRequisitoSkin(o, st, owned), card.querySelector('.aura-shop-card-actions'));
       griglia.appendChild(card);
     }
