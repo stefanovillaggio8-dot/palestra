@@ -1,198 +1,337 @@
-// Effetti RPG procedurali v329. Canvas trasparente sopra l'avatar originale.
-// Mantiene intatte le immagini dei livelli Streak e non anticipa armi o armature.
-// Nessun timer permanente: l'animazione si arresta quando il nodo viene rimosso.
+// Aura Shop v331 — effetti particellari con occlusione reale davanti all'avatar.
+// Le particelle vengono renderizzate nell'ambiente fotografico e poi cancellate
+// dove si trova la sagoma del personaggio: non attraversano faccia o armatura.
+// Nessun file immagine esterno, nessuna modifica alla progressione Streak.
 const MASSIMO_DPR = 1.5;
 const EFFETTI_ATTIVI = new WeakMap();
-export function smontaEffettiRpg(elemento) { EFFETTI_ATTIVI.get(elemento)?.(); }
 const TIPI = new Set(['effetto-ambra','effetto-ombra','effetto-fulmine','effetto-nebula']);
-const casuale = (a, b) => a + Math.random() * (b - a);
+const TAU = Math.PI * 2;
+const casuale = (a,b) => a + Math.random() * (b-a);
+const limita = (v,a,b) => Math.max(a,Math.min(b,v));
+const smooth = (a,b,v) => { const t=limita((v-a)/(b-a),0,1);return t*t*(3-2*t); };
 
-export function montaEffettiRpg(elemento, tipo, { corona = false, divina = false } = {}) {
-  if (!elemento || (!TIPI.has(tipo) && !corona && !divina)) return () => {};
-  if (typeof document === 'undefined' || typeof requestAnimationFrame !== 'function') return () => {};
-  const canvas = document.createElement('canvas');
+// Contorni volutamente conservativi: includono armi, scudi e mantelli dei sei
+// stati. Si preferisce nascondere una scintilla in più piuttosto che farla
+// passare ATTRAVERSO il personaggio. Coordinate normalizzate [0,1].
+// I contorni rimangono inalterati al cambio di skin, come gli avatar originali.
+export const CONTORNI_RPG = Object.freeze({
+  guerriero: [
+    [0.00,.47,.53],[.025,.43,.57],[.075,.39,.61],[.15,.36,.64],
+    [.205,.29,.73],[.29,.23,.82],[.40,.21,.89],[.54,.20,.90],
+    [.63,.22,.85],[.74,.23,.75],[.85,.26,.74],[.965,.28,.73],[1,.34,.68],
+  ],
+  assassino: [
+    [0,.46,.54],[.035,.40,.59],[.12,.365,.635],[.205,.32,.685],
+    [.29,.27,.73],[.42,.25,.76],[.59,.23,.77],[.72,.26,.74],
+    [.84,.285,.705],[.96,.32,.69],[1,.35,.65],
+  ],
+  berserker: [
+    [0,.08,.61],[.055,.025,.64],[.14,.02,.68],[.225,.07,.77],
+    [.33,.085,.87],[.48,.09,.93],[.62,.10,.94],[.75,.135,.87],
+    [.87,.18,.79],[.98,.22,.74],[1,.24,.73],
+  ],
+});
+export function bordoSagomaRpg(classe,y) {
+  const righe=CONTORNI_RPG[classe] || CONTORNI_RPG.guerriero;
+  const h=limita(y,0,1);
+  for(let i=1;i<righe.length;i++){
+    const r=righe[i],p=righe[i-1];
+    if(h<=r[0]){
+      const t=(h-p[0])/(r[0]-p[0]);
+      return [p[1]+t*(r[1]-p[1]),p[2]+t*(r[2]-p[2])];
+    }
+  }
+  return righe[righe.length-1].slice(1);
+}
+export function smontaEffettiRpg(elemento) {
+  EFFETTI_ATTIVI.get(elemento)?.();
+}
+function coloriEffetto(tipo) {
+  return ({
+    'effetto-ambra':['#ffb24b','#ffc66d','#ffeac4'],
+    'effetto-ombra':['#67517d','#a78bc4','#292139'],
+    'effetto-fulmine':['#9869ff','#bfaaff','#f6ebff'],
+    'effetto-nebula':['#57c3e7','#b28ae6','#f0dcff'],
+  })[tipo] || ['#bca7ff','#f6e7ff','#fff'];
+}
+
+// Due fasce laterali e una linea di suolo, per riflettersi sul paesaggio.
+// La coordinata e' sempre esterna al corpo, anche per armi e mantelli.
+function puntoLaterale(classe,y,lato,distanza) {
+  const [sx,dx]=bordoSagomaRpg(classe,y);
+  return limita((lato<0?sx:dx)+lato*distanza,.012,.988);
+}
+
+export function montaEffettiRpg(elemento,tipo,{corona=false,divina=false,classe=null}={}) {
+  if(!elemento || (!TIPI.has(tipo)&&!corona&&!divina))return ()=>{};
+  if(typeof document==='undefined'||typeof requestAnimationFrame!=='function')return ()=>{};
   smontaEffettiRpg(elemento);
-  canvas.className = 'rpg-effetti-canvas';
-  canvas.setAttribute('aria-hidden', 'true');
-  canvas.setAttribute('role', 'presentation');
-  const ctx = canvas.getContext('2d', { alpha: true });
-  if (!ctx) return () => {};
+  const canvas=document.createElement('canvas');
+  if(typeof canvas.getContext!=='function')return ()=>{};
+  const ctx=canvas.getContext('2d',{alpha:true});
+  if(!ctx)return ()=>{};
+  canvas.className='rpg-effetti-canvas';
+  canvas.setAttribute('aria-hidden','true');
+  canvas.setAttribute('role','presentation');
   elemento.appendChild(canvas);
-
-  const menoMovimento = typeof matchMedia === 'function'
+  const riduci=typeof matchMedia==='function'
     && matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const quanti = tipo === 'effetto-ambra' ? 30 : tipo === 'effetto-ombra' ? 18 : 26;
-  const particelle = Array.from({ length: quanti }, () => ({
-    x: Math.random(), y: Math.random(), fase: casuale(0, Math.PI * 2),
-    v: casuale(.06, .24), r: casuale(.7, 2.3),
+  const personaggio=classe||(['guerriero','assassino','berserker'].find(c=>
+    elemento.classList?.contains?.('personaggio-'+c)) ||'guerriero');
+  const palette=coloriEffetto(tipo);
+  const scintille=Array.from({length:tipo==='effetto-ombra'?22:42},(_,i)=>({
+    y:casuale(0,1),lato:i%2?1:-1,dist:casuale(.025,.145),fase:casuale(0,TAU),
+    r:casuale(.45,1.9),vel:casuale(.055,.20),giro:casuale(.4,1.6),
+    bagliore:casuale(.4,1),colore:i%palette.length,
   }));
-  let larghezza = 0, altezza = 0, dpr = 1, visibile = true;
-  let frameId = 0, ultima = 0, vistoConnesso = false, attese = 0, terminato = false;
-  let osservatore = null, dimensioni = null;
+  const vapori=Array.from({length:tipo==='effetto-ombra'?22:14},(_,i)=>({
+    y:casuale(0,1),lato:i%2?1:-1,dist:casuale(.015,.13),
+    fase:casuale(0,TAU),vel:casuale(.017,.056),scala:casuale(.052,.14),
+    tonalita:i%3,
+  }));
+  // Impulsi elettrici discreti, non una sola sinusoide che fa pulsare tutto.
+  const fulmini=Array.from({length:5},(_,i)=>({
+    lato:i%2?1:-1,fase:i*.41+.2,
+    velocita:casuale(.65,1.18),durata:casuale(.045,.12),
+    y:casuale(.19,.65),lunghezza:casuale(.14,.29),
+    seed:casuale(12,500),
+  }));
+  let w=0,h=0,dpr=1,frameId=0,last=0,visible=true,ended=false;
+  let wasAttached=false,tries=0,observer=null,resizeObs=null;
+  let motionFirstFrame=true;
 
-  function ridimensiona() {
-    const rett = elemento.getBoundingClientRect();
-    const w = Math.max(1, Math.round(rett.width));
-    const h = Math.max(1, Math.round(rett.height));
-    const rapporto = Math.min(MASSIMO_DPR, window.devicePixelRatio || 1);
-    if (w === larghezza && h === altezza && rapporto === dpr) return;
-    larghezza = w; altezza = h; dpr = rapporto;
-    canvas.width = Math.round(w * dpr);
-    canvas.height = Math.round(h * dpr);
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  function size(){
+    const rect=elemento.getBoundingClientRect();
+    const width=Math.max(1,Math.round(rect.width)),height=Math.max(1,Math.round(rect.height));
+    const ratio=Math.min(MASSIMO_DPR,window.devicePixelRatio||1);
+    if(width===w&&height===h&&ratio===dpr)return;
+    w=width;h=height;dpr=ratio;
+    canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);
+    ctx.setTransform(dpr,0,0,dpr,0,0);
   }
-  function luce(x, y, r, colore, intensita = 1) {
-    if (r <= 0) return;
+  function haze(x,y,rx,ry,color,opacity=1){
     ctx.save();
-    ctx.globalAlpha = intensita;
-    const g = ctx.createRadialGradient(x, y, 0, x, y, r);
-    g.addColorStop(0, colore);
-    g.addColorStop(.25, colore);
-    g.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = g;
-    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+    ctx.globalAlpha=opacity;
+    ctx.translate(x,y);ctx.scale(1,Math.max(.1,ry/rx));
+    const grad=ctx.createRadialGradient(0,0,0,0,0,rx);
+    grad.addColorStop(0,color);
+    grad.addColorStop(.38,color);
+    grad.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=grad;ctx.beginPath();ctx.arc(0,0,rx,0,TAU);ctx.fill();
     ctx.restore();
   }
-  function scintilla(x,y,r,colore) {
-    luce(x,y,r*6,colore,.28);
+  function dot(x,y,r,c,glow=.3){
     ctx.save();
-    ctx.strokeStyle = colore; ctx.lineWidth = Math.max(.7,r*.7);
-    ctx.beginPath();ctx.moveTo(x-r*2,y);ctx.lineTo(x+r*2,y);
-    ctx.moveTo(x,y-r*2);ctx.lineTo(x,y+r*2);ctx.stroke();
+    ctx.fillStyle=c;ctx.shadowColor=c;
+    ctx.shadowBlur=Math.max(2,r*5);
+    ctx.globalAlpha=glow;
+    ctx.beginPath();ctx.arc(x,y,Math.max(.4,r),0,TAU);ctx.fill();
     ctx.restore();
   }
-  function orbita(x,y,rx,ry,tempo,colore) {
+  function trail(x,y,dx,dy,r,c,alpha){
     ctx.save();
-    ctx.globalCompositeOperation = 'screen';
-    ctx.translate(x,y);ctx.rotate(-.2 + Math.sin(tempo*.37)*.07);
-    ctx.strokeStyle = colore;ctx.lineWidth = Math.max(1,larghezza*.009);
-    ctx.shadowColor = colore;ctx.shadowBlur = 12;
-    ctx.beginPath();ctx.ellipse(0,0,rx,ry,0,0,Math.PI*2);ctx.stroke();
-    const a = tempo*.65;
-    scintilla(Math.cos(a)*rx,Math.sin(a)*ry,Math.max(1,larghezza*.009),'#fff3cf');
+    ctx.globalAlpha=alpha;
+    ctx.strokeStyle=c;ctx.lineWidth=Math.max(.55,r*.8);
+    ctx.lineCap='round';ctx.shadowColor=c;ctx.shadowBlur=Math.max(2,r*4);
+    ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+dx,y+dy);ctx.stroke();
+    dot(x,y,r,c,.8);
     ctx.restore();
   }
-  function ambra(t) {
-    for(const p of particelle) {
-      const y=((p.y - t*p.v)%1+1)%1;
-      const x=p.x*.83+.085 + Math.sin(t*1.2+p.fase)*.035;
-      const px=x*larghezza, py=y*altezza;
-      const colore=p.r>1.6?'#fff2ac':'#ff9f31';
-      luce(px,py,p.r*6,colore,.22);
-      ctx.fillStyle=colore;ctx.globalAlpha=.42+Math.sin(t*2+p.fase)*.22;
-      ctx.beginPath();ctx.arc(px,py,p.r,0,7);ctx.fill();
+  function ambient(t){
+    // Luce diegetica dall'ambiente, non un overlay colorato sul torso.
+    const tone=tipo==='effetto-ombra'?'rgba(71,55,98,.40)':
+      tipo==='effetto-fulmine'?'rgba(101,68,180,.40)':
+      tipo==='effetto-ambra'?'rgba(221,109,31,.30)':'rgba(70,126,188,.34)';
+    const breathe=.93+.07*Math.sin(t*.8);
+    haze(w*.06,h*.52,w*.27,h*.46,tone,.40*breathe);
+    haze(w*.94,h*.51,w*.27,h*.46,tone,.40*breathe);
+    // Riflesso sul suolo, fuori dal corpo e sotto i piedi.
+    haze(w*.5,h*.965,w*.43,h*.10,tone,.36);
+  }
+  function amber(t){
+    ambient(t);
+    for(const p of scintille){
+      const yy=((p.y-t*p.vel)%1+1)%1;
+      const x=puntoLaterale(personaggio,yy,p.lato,p.dist+Math.sin(t*p.giro+p.fase)*.018)*w;
+      const y=yy*h;
+      const fading=smooth(.015,.13,yy)*(1-smooth(.82,.995,yy));
+      if(fading<=.01)continue;
+      const c=palette[p.colore];
+      const flicker=.75+.25*Math.sin(t*6+p.fase);
+      trail(x,y,Math.cos(p.fase+t)*p.r*1.8,p.r*(3+p.vel*16),p.r,c,p.bagliore*fading*flicker);
     }
-    ctx.globalAlpha=1;
-  }
-  function ombra(t) {
-    for(const p of particelle) {
-      const y=((p.y-t*p.v*.36)%1+1)%1;
-      const px=(p.x*.75+.125+Math.sin(t*.55+p.fase)*.09)*larghezza;
-      const py=y*altezza;
-      const r=larghezza*(.12+p.r*.026);
-      ctx.save();ctx.globalAlpha=.1+.04*Math.sin(t+p.fase);
-      const g=ctx.createRadialGradient(px,py,0,px,py,r);
-      g.addColorStop(0,'rgba(134,104,177,.58)');
-      g.addColorStop(.42,'rgba(44,29,66,.42)');
-      g.addColorStop(1,'rgba(12,7,22,0)');
-      ctx.fillStyle=g;ctx.beginPath();ctx.arc(px,py,r,0,7);ctx.fill();ctx.restore();
+    for(let i=0;i<6;i++){
+      const l=i%2?-1:1,yy=.65+i*.043;
+      const x=puntoLaterale(personaggio,yy,l,.015)*w;
+      haze(x,yy*h,w*.055,h*.045,'rgba(255,129,32,.16)',.22);
     }
   }
-  function scarica(t) {
-    const periodo=Math.floor(t*2.1);
-    for(let i=0;i<4;i++){
-      const k=periodo*9+i*17;
-      const bagliore=Math.sin(t*8+i*3.15);
-      if(bagliore<.72) continue;
-      const lato=i%2 ? .81 : .19;
-      const inizioY=altezza*(.16+i*.16);
-      const fineY=altezza*(.38+i*.13);
-      const dx=Math.sin(k*2.3)*larghezza*.11;
-      ctx.save();ctx.globalAlpha=(bagliore-.72)*3.1;
-      ctx.lineWidth=larghezza*.009;ctx.strokeStyle='#b38cff';
-      ctx.shadowBlur=13;ctx.shadowColor='#8d57ff';
-      ctx.beginPath();ctx.moveTo(larghezza*lato,inizioY);
-      for(let j=1;j<=7;j++){
-        const f=j/7;
-        ctx.lineTo(larghezza*lato+Math.sin(k+j*4.4)*larghezza*.07+dx*f,inizioY+(fineY-inizioY)*f);
+  function smoke(t){
+    ambient(t);
+    for(const p of vapori){
+      const yy=((p.y-t*p.vel)%1+1)%1;
+      const x=puntoLaterale(personaggio,yy,p.lato,p.dist+Math.sin(p.fase+t*.42)*.028)*w;
+      const y=yy*h;
+      const r=w*p.scala;
+      const alpha=.18*smooth(.05,.22,yy)*(1-smooth(.68,.99,yy));
+      if(alpha<=.004)continue;
+      haze(x-r*.22,y,r*1.3,r*.7,'rgba(18,14,29,.60)',alpha);
+      haze(x+r*.24,y-r*.35,r*.9,r*1.25,
+        p.tonalita===0?'rgba(101,85,132,.43)':'rgba(65,53,90,.45)',alpha*.7);
+      haze(x-r*.08,y-r*.58,r*.75,r*.95,'rgba(135,118,159,.23)',alpha*.55);
+    }
+  }
+  const rnd=v=>{const x=Math.sin(v*128.11+49.17)*43758.5453;return x-Math.floor(x);};
+  function arc(t){
+    ambient(t);
+    for(const ray of fulmini){
+      const pos=t*ray.velocita+ray.fase,cycle=pos%1;
+      if(cycle>ray.durata)continue;
+      const flash=(1-cycle/ray.durata)*(.7+.3*rnd(ray.seed+Math.floor(pos)));
+      const from=ray.y, end=Math.min(.86,from+ray.lunghezza);
+      const knots=[];
+      for(let j=0;j<=11;j++){
+        const yy=from+(end-from)*j/11;
+        const outside=puntoLaterale(personaggio,yy,ray.lato,
+          .027 + rnd(ray.seed+j*2+Math.floor(pos)*29)*.075);
+        knots.push([w*outside,h*yy]);
       }
-      ctx.stroke();ctx.strokeStyle='#fff2ff';ctx.lineWidth=1;ctx.stroke();ctx.restore();
+      ctx.save();ctx.globalAlpha=flash;ctx.lineCap='round';ctx.lineJoin='round';
+      ctx.strokeStyle='#8757e9';ctx.shadowColor='#7b46ff';ctx.shadowBlur=18;
+      ctx.lineWidth=Math.max(2,w*.018);ctx.beginPath();
+      knots.forEach(([x,y],j)=>j?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.stroke();
+      ctx.strokeStyle='#f4eaff';ctx.shadowBlur=7;ctx.lineWidth=Math.max(.9,w*.0045);
+      ctx.stroke();
+      // Rami: diretti verso l'esterno, con una piccola ramificazione in punta.
+      for(const pivot of [3,7]){
+        const [x,y]=knots[pivot],bend=ray.lato*w*.065;
+        ctx.beginPath();ctx.moveTo(x,y);
+        ctx.lineTo(x+bend*.48,y-h*.018);
+        ctx.lineTo(x+bend,y-h*.041);
+        ctx.stroke();
+      }
+      ctx.restore();
     }
-    for(const p of particelle.slice(0,14)){
-      const x=(.16+.68*p.x)*larghezza;
-      const y=(.12+.78*p.y)*altezza;
-      luce(x,y,3.3,'#d7adff',.13+.1*Math.sin(t*4+p.fase));
-    }
-  }
-  function nebulosa(t) {
-    const cx=larghezza*.5,cy=altezza*.49;
-    orbita(cx,cy,larghezza*.38,altezza*.17,t,'rgba(102,194,255,.42)');
-    for(let i=0;i<particelle.length;i++){
-      const p=particelle[i];
-      const a=p.fase+t*(.07+p.v*.6), rad=larghezza*(.18+p.x*.23);
-      const x=cx+Math.cos(a)*rad, y=cy+Math.sin(a)*rad*.8;
-      const col=i%3?'#8fcaff':'#f4b5ff';
-      luce(x,y,p.r*5,col,.18);
-      if(i%5===0)scintilla(x,y,1.2,col);
-    }
-  }
-  function aureola(t, prestigio) {
-    const x=larghezza*.5,y=altezza*.135;
-    const rx=larghezza*(prestigio?.20:.16),ry=altezza*.035;
-    orbita(x,y,rx,ry,t,prestigio?'rgba(255,213,99,.68)':'rgba(154,231,255,.48)');
-    if(prestigio){
-      ctx.save();ctx.lineJoin='round';ctx.lineWidth=Math.max(1.4,larghezza*.008);
-      ctx.strokeStyle='#ffe2a0';ctx.fillStyle='rgba(207,153,63,.35)';
-      ctx.shadowColor='#ffc966';ctx.shadowBlur=11;
-      const top=y-altezza*.057,bot=y+altezza*.015;
-      const lx=x-larghezza*.115,rx2=x+larghezza*.115;
-      ctx.beginPath();ctx.moveTo(lx,bot);ctx.lineTo(lx,top+12);
-      ctx.lineTo(x-larghezza*.072,top+20);ctx.lineTo(x-larghezza*.04,top-3);
-      ctx.lineTo(x,top+15);ctx.lineTo(x+larghezza*.04,top-3);
-      ctx.lineTo(x+larghezza*.072,top+20);ctx.lineTo(rx2,top+12);
-      ctx.lineTo(rx2,bot);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore();
-      luce(x,top+altezza*.013,larghezza*.08,'#a4ebff',.42);
+    for(const p of scintille.slice(0,14)){
+      const yy=((p.y-t*p.vel*.55)%1+1)%1;
+      dot(puntoLaterale(personaggio,yy,p.lato,p.dist)*w,yy*h,p.r*.7,'#a889ff',.22);
     }
   }
-  function disegna(t) {
-    if(larghezza<16||altezza<20) return;
-    ctx.clearRect(0,0,larghezza,altezza);
-    if(tipo==='effetto-ambra')ambra(t);
-    if(tipo==='effetto-ombra')ombra(t);
-    if(tipo==='effetto-fulmine')scarica(t);
-    if(tipo==='effetto-nebula')nebulosa(t);
-    if(divina||corona)aureola(t,corona);
+  function nebula(t){
+    ambient(t);
+    for(const p of vapori){
+      const yy=((p.y-t*p.vel*.65)%1+1)%1;
+      const x=puntoLaterale(personaggio,yy,p.lato,p.dist+Math.sin(t*.36+p.fase)*.028)*w;
+      const r=w*p.scala*1.1;
+      const c=['rgba(77,151,203,.40)','rgba(137,91,186,.39)','rgba(75,172,169,.35)'][p.tonalita];
+      haze(x,h*yy,r*1.45,r*1.15,c,.25);
+    }
+    for(const p of scintille){
+      const yy=((p.y-t*p.vel*.22)%1+1)%1;
+      const x=puntoLaterale(personaggio,yy,p.lato,p.dist+Math.sin(t*.45+p.fase)*.023)*w;
+      const twinkle=.15+.37*(.5+.5*Math.sin(t*(.7+p.giro)+p.fase));
+      dot(x,h*yy,Math.max(.5,p.r*.8),palette[p.colore],twinkle);
+    }
+    for(const side of [-1,1]){
+      ctx.save();
+      ctx.globalAlpha=.18;
+      ctx.strokeStyle=side<0?'#75b9ef':'#cc92ff';
+      ctx.lineWidth=Math.max(.7,w*.003);
+      ctx.beginPath();
+      for(let i=0;i<=32;i++){
+        const yy=.22+i/32*.63;
+        const x=puntoLaterale(personaggio,yy,side,.07+.025*Math.sin(yy*9+t*.42+side))*w;
+        if(i===0)ctx.moveTo(x,yy*h);else ctx.lineTo(x,yy*h);
+      }
+      ctx.stroke();ctx.restore();
+    }
   }
-  function fermati() {
-    if(terminato)return;
-    terminato=true;
-    cancelAnimationFrame(frameId);
-    if(osservatore)osservatore.disconnect();
-    if(dimensioni)dimensioni.disconnect();
+  function aura(t){
+    if(!divina&&!corona)return;
+    const cx=w*.5,y=h*.055;
+    const span=corona?w*.13:w*.11;
+    // Il sigillo vive NELLO SPAZIO SOPRA il capo: niente cerchi sul viso.
+    ctx.save();
+    ctx.strokeStyle=corona?'#ffe2aa':'#b3eaff';
+    ctx.lineWidth=Math.max(1,w*.007);
+    ctx.shadowColor=corona?'#e7c175':'#76ccff';ctx.shadowBlur=10;
+    const wave=1+Math.sin(t*.85)*.035;
+    ctx.beginPath();ctx.ellipse(cx,y,span*wave,h*.014,0,0,TAU);ctx.stroke();
+    if(corona){
+      ctx.fillStyle='rgba(225,180,78,.5)';
+      ctx.beginPath();ctx.moveTo(cx-span,y);
+      ctx.lineTo(cx-span,y-h*.033);ctx.lineTo(cx-span*.56,y-h*.01);
+      ctx.lineTo(cx-span*.33,y-h*.057);ctx.lineTo(cx,y-h*.02);
+      ctx.lineTo(cx+span*.33,y-h*.057);ctx.lineTo(cx+span*.56,y-h*.01);
+      ctx.lineTo(cx+span,y-h*.033);ctx.lineTo(cx+span,y);
+      ctx.closePath();ctx.fill();ctx.stroke();
+      dot(cx,y-h*.023,Math.max(1,w*.01),'#e5f6ff',.8);
+    }else{
+      dot(cx,y,Math.max(1,w*.012),'#e0ffff',.6);
+    }
+    ctx.restore();
+  }
+  function cancellaCorpo(){
+    // La sagoma include armi e mantelli; destinazione-out elimina tutti i pixel
+    // delle animazioni sul corpo, anche le sfumature dei gradienti.
+    ctx.save();ctx.globalCompositeOperation='destination-out';
+    const shape=CONTORNI_RPG[personaggio]||CONTORNI_RPG.guerriero;
+    ctx.fillStyle='#000';
+    ctx.beginPath();
+    for(let i=0;i<shape.length;i++){
+      const [y,x1]=shape[i];
+      const x=limita(x1-.009,0,1)*w;
+      if(i===0)ctx.moveTo(x,y*h);else ctx.lineTo(x,y*h);
+    }
+    for(let i=shape.length-1;i>=0;i--){
+      const [y,,x2]=shape[i];
+      ctx.lineTo(limita(x2+.009,0,1)*w,y*h);
+    }
+    ctx.closePath();ctx.fill();
+    ctx.restore();
+  }
+  function render(t){
+    if(w<16||h<20)return;
+    ctx.clearRect(0,0,w,h);
+    if(tipo==='effetto-ambra')amber(t);
+    else if(tipo==='effetto-ombra')smoke(t);
+    else if(tipo==='effetto-fulmine')arc(t);
+    else if(tipo==='effetto-nebula')nebula(t);
+    else if(divina||corona)ambient(t);
+    // Tutto cio' che tocca il personaggio viene cancellato, senza eccezioni.
+    cancellaCorpo();
+    aura(t);
+  }
+  function cleanup(){
+    if(ended)return;
+    ended=true;cancelAnimationFrame(frameId);
+    observer?.disconnect();resizeObs?.disconnect();
     canvas.remove();
-    if(EFFETTI_ATTIVI.get(elemento)===fermati)EFFETTI_ATTIVI.delete(elemento);
+    if(EFFETTI_ATTIVI.get(elemento)===cleanup)EFFETTI_ATTIVI.delete(elemento);
+    elemento.classList?.remove?.('rpg-fx-attiva');
   }
-  function ciclo(ms) {
-    if(terminato)return;
-    if(!elemento.isConnected) {
-      if(vistoConnesso||++attese>180){fermati();return;}
-      frameId=requestAnimationFrame(ciclo);return;
+  function tick(ms){
+    if(ended)return;
+    if(!elemento.isConnected){
+      if(wasAttached||++tries>180){cleanup();return;}
+      frameId=requestAnimationFrame(tick);return;
     }
-    vistoConnesso=true;
-    if(visibile && (ms-ultima>=33 || !ultima)) {
-      ultima=ms;ridimensiona();disegna(ms/1000);
+    wasAttached=true;
+    if(visible && (ms-last>=33||!last)){
+      last=ms;size();render(riduci?0:ms/1000);
     }
-    if(!menoMovimento)frameId=requestAnimationFrame(ciclo);
-    else { osservatore?.disconnect(); dimensioni?.disconnect(); }
+    if(!riduci)frameId=requestAnimationFrame(tick);
+    else {observer?.disconnect();resizeObs?.disconnect();}
   }
   if(typeof IntersectionObserver==='function'){
-    osservatore=new IntersectionObserver(es=>{visibile=es.some(e=>e.isIntersecting);},{threshold:0});
-    osservatore.observe(elemento);
+    observer=new IntersectionObserver(entries=>{visible=entries.some(e=>e.isIntersecting);},{threshold:0});
+    observer.observe(elemento);
   }
   if(typeof ResizeObserver==='function'){
-    dimensioni=new ResizeObserver(ridimensiona);dimensioni.observe(elemento);
+    resizeObs=new ResizeObserver(size);resizeObs.observe(elemento);
   }
-  EFFETTI_ATTIVI.set(elemento,fermati);
-  frameId=requestAnimationFrame(ciclo);
-  return fermati;
+  elemento.classList?.add?.('rpg-fx-attiva');
+  EFFETTI_ATTIVI.set(elemento,cleanup);
+  frameId=requestAnimationFrame(tick);
+  return cleanup;
 }
