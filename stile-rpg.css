@@ -789,3 +789,6 @@ button:active:not(:disabled) { transform:translateY(1px); }
 @media (max-width:360px) {
   .aura-preview-classi .aura-classe-btn {font-size:.69rem;padding:8px 2px;}
 }
+
+/* Il fumo scuro NON deve utilizzare screen: screen renderebbe i neri invisibili. */
+.personaggio-scena-grafica.shop-effetto-ombra .rpg-effetti-canvas { mix-blend-mode:normal; }
