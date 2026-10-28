@@ -12,7 +12,7 @@ export function montaEffettiRpg(elemento, tipo, { corona = false, divina = false
   if (typeof document === 'undefined' || typeof requestAnimationFrame !== 'function') return () => {};
   const canvas = document.createElement('canvas');
   smontaEffettiRpg(elemento);
-  canvas.className = 'rpg-effetti-canvas rpg-effetti-' + (TIPI.has(tipo) ? tipo : 'aura');
+  canvas.className = 'rpg-effetti-canvas';
   canvas.setAttribute('aria-hidden', 'true');
   canvas.setAttribute('role', 'presentation');
   const ctx = canvas.getContext('2d', { alpha: true });
