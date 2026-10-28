@@ -168,7 +168,7 @@ export function medaglie(valori) {
       const id = campo.slice(5);
       const trovato = Object.keys(r).find((k) => {
         const ordine = ['bronze', 'silver', 'gold', 'platinum', 'diamond', 'titan', 'olympian'];
-        return ordine.indexOf(k) >= 0 && ordine.indexOf(k) >= ordine.indexOf(id);
+        return Number(r[k]) > 0 && ordine.indexOf(k) >= 0 && ordine.indexOf(k) >= ordine.indexOf(id);
       });
       return trovato ? 1 : 0;
     }

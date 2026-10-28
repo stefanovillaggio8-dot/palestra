@@ -103,6 +103,14 @@ function creaNodo(tag, ns) {
     if (i >= 0) { nodo.figli.splice(i, 1); if (figlio) figlio.padre = null; }
     return figlio;
   };
+  nodo.insertBefore = (figlio, riferimento) => {
+    if (!riferimento) return nodo.appendChild(figlio);
+    if (!nodo.figli.includes(riferimento)) throw new Error('Riferimento estraneo');
+    if (figlio.padre) figlio.padre.removeChild(figlio);
+    nodo.figli.splice(nodo.figli.indexOf(riferimento), 0, figlio);
+    figlio.padre = nodo;
+    return figlio;
+  };
   nodo.remove = () => { if (nodo.padre) nodo.padre.removeChild(nodo); };
 
   nodo.addEventListener = (tipo, fn) => {

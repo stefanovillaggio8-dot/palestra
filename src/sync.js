@@ -311,6 +311,7 @@ async function registraConflitto(tabella, locale, remoto) {
 
 /** Scarica quello che e\' cambiato altrove. */
 async function tira() {
+  const inizioPull = adesso();
   const dopo = localStorage.getItem(CHIAVE_ULTIMO_PULL) || null;
   let ricevuti = 0;
   let conflitti = 0;
@@ -322,7 +323,7 @@ async function tira() {
     // un pull completo. applicaRemote protegge le modifiche locali e i conflitti.
     const ultimoCompleto = localStorage.getItem(CHIAVE_ULTIMO_PULL_COMPLETO);
     const dataUltimoCompleto = ultimoCompleto ? Date.parse(ultimoCompleto) : 0;
-    const pullCompleto = !dataUltimoCompleto
+    const pullCompleto = !dopo || !dataUltimoCompleto
       || Date.now() - dataUltimoCompleto >= INTERVALLO_PULL_COMPLETO;
     const modificati = await sb.prendiModificate(TABELLE_SINCRONIZZATE, pullCompleto ? null : dopo);
     for (const t of TABELLE_SINCRONIZZATE) {
@@ -351,7 +352,7 @@ async function tira() {
         }
       }
     }
-    localStorage.setItem(CHIAVE_ULTIMO_PULL, adesso());
+    localStorage.setItem(CHIAVE_ULTIMO_PULL, inizioPull);
     if (pullCompleto) localStorage.setItem(CHIAVE_ULTIMO_PULL_COMPLETO, adesso());
   } catch (e) {
     // Conserva il messaggio reale del server: è fondamentale per distinguere

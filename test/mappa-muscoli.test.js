@@ -1028,7 +1028,7 @@ test('Z21: il classificatore non inventa frasi attaccando nome e descrizione', (
 // capito al contrario che il centro schiena dovesse passare sul pulley, e l'avevo
 // aggiunto. Il centro schiena resta al bench pull prono e al reverse fly, che
 // li lavorano davvero.
-test('Z20: rematore e tirata in basso sui dorsali, niente centro schiena', () => {
+test('Z20: dorsali primari nelle tirate, retrazione scapolare nei rematori', () => {
   const righeDi = (nome) => {
     const r = parteDiMuscolo({ nome });
     assert.ok(r.trovata, nome + ': non ha riconosciuto nessun muscolo');
@@ -1044,10 +1044,11 @@ test('Z20: rematore e tirata in basso sui dorsali, niente centro schiena', () =>
     const righe = righeDi(nome);
     assert.equal(pieno(righe)?.gruppo, 'dorsale',
       `${nome}: il muscolo pieno è "${pieno(righe)?.gruppo}", e deve essere il dorso largo`);
-    assert.ok(!gruppi(righe).has('romboidi'),
-      `${nome}: il centro schiena non deve accendersi. `
-      + 'Ste: "il seated cable row non fa proprio il centro schiena" e '
-      + '"il pull up e lat pulldown fanno dorsali"');
+    // Revisione anatomica v328: la retrazione scapolare del rematore coinvolge
+    // il trapezio medio e i romboidi; non cambia il dorsale primario né i Rank.
+    assert.equal(gruppi(righe).has('romboidi'), nome.includes('Row'), nome);
+    if (nome.includes('Row')) assert.ok(righe.find(r => r.gruppo === 'romboidi').opacita < 1);
+
   }
 
   // il bicipite resta su tutte le tirate: e' una tirata, il gomito si piega

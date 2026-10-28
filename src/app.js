@@ -2,6 +2,7 @@
 // Tutto in italiano, tema scuro, pulsanti grandi, fatto per essere usato
 // in palestra con le mani occupate.
 
+import { requisitoSkin, accessoSkin, scenarioSkin } from './aura-skin.js';
 import * as db from './db.js';
 import * as sb from './supabase.js';
 import * as sync from './sync.js';
@@ -38,7 +39,7 @@ import { recordEsercizio, recordAccount, classificaEsercizio, storicoMiglioramen
 import { soglieLegibiliNuove } from './rank-v3/valutazione.js';
 import { confrontoGiorno, confrontiMensili, GIORNI_UN_MESE } from './confronto-mensile.js';
 import { profiloEsercizio, profiloPerPesoCorporeo, RANK, ETICHETTE_MISURA, descriviPunteggio, descrizioneLivello, livelloEsercizio, impostaLivelliImparati, livelliImparati, rapportoDifficolta, MOLTIPLICATORI_SOGLIA, passoCaricabile } from './rank-config.js';
-import { formattaAura, acquistaOggettoAura } from './aura.js';
+import { formattaAura } from './aura.js';
 import { elencoAvatar, avatarPerId, gradienteAvatar, iniziali } from './avatar.js';
 import { amiciDi, confronta, classifichePerEsercizio, privacyDi, campiVisibili, PRIVACY_PREDEFINITE } from './sociale.js';
 import { classificaEsercizio as riconosciEsercizio } from './esercizi-classificatore.js';
@@ -1432,12 +1433,12 @@ const OGGETTI_AURA = [
   {id:'effetto-ombra',nome:'Fumo d’ombra',tipo:'Effetto',rarita:'Raro',prezzo:5900,icona:'🌫️',descrizione:'Una scia scura, discreta e cattiva.'},
   {id:'effetto-fulmine',nome:'Scarica viola',tipo:'Effetto',rarita:'Epico',prezzo:7200,icona:'⚡',descrizione:'Lamp i viola e scariche elettriche'.replace('Lamp i','Lampi')},
   {id:'effetto-nebula',nome:'Nebulosa cosmica',tipo:'Effetto',rarita:'Leggendario',prezzo:8900,icona:'🌌',descrizione:'Una piccola galassia personale.'},
-  {id:'armatura-guerriero-braci',nome:'Custode delle Braci',tipo:'Armatura',rarita:'Epico',prezzo:9200,classe:'guerriero',icona:'🛡️',descrizione:'Piastre roventi e mantello da prima linea.'},
-  {id:'armatura-guerriero-abisso',nome:'Re dell’Abisso',tipo:'Armatura',rarita:'Leggendario',prezzo:13500,classe:'guerriero',icona:'👑',descrizione:'Armatura pesante con dettagli abissali.'},
-  {id:'armatura-assassino-notte',nome:'Velo della Notte',tipo:'Armatura',rarita:'Epico',prezzo:9400,classe:'assassino',icona:'🥷',descrizione:'Corazza leggera, lame e cappuccio.'},
-  {id:'armatura-assassino-spettro',nome:'Spettro Cremisi',tipo:'Armatura',rarita:'Leggendario',prezzo:13800,classe:'assassino',icona:'🩸',descrizione:'Silhouette furtiva con bagliori rossi.'},
-  {id:'armatura-berserker-rabbia',nome:'Rabbia Antica',tipo:'Armatura',rarita:'Epico',prezzo:9800,classe:'berserker',icona:'🪓',descrizione:'Corna, metallo grezzo e furia pura.'},
-  {id:'armatura-berserker-apocalisse',nome:'Ultimo Giorno',tipo:'Armatura',rarita:'Leggendario',prezzo:14500,classe:'berserker',icona:'🔥',descrizione:'Un set enorme che sembra uscito dalla fine del mondo.'},
+  {id:'armatura-guerriero-braci',immagine:'./img/personaggi/armature/guerriero-braci.webp',miniatura:'./img/personaggi/armature/guerriero-braci-mini.webp',nome:'Custode delle Braci',tipo:'Armatura',rarita:'Epico',prezzo:9200,classe:'guerriero',icona:'🛡️',descrizione:'Piastre roventi e mantello da prima linea.'},
+  {id:'armatura-guerriero-abisso',immagine:'./img/personaggi/armature/guerriero-abisso.webp',miniatura:'./img/personaggi/armature/guerriero-abisso-mini.webp',nome:'Re dell’Abisso',tipo:'Armatura',rarita:'Leggendario',prezzo:13500,classe:'guerriero',icona:'👑',descrizione:'Armatura pesante con dettagli abissali.'},
+  {id:'armatura-assassino-notte',immagine:'./img/personaggi/armature/assassino-notte.webp',miniatura:'./img/personaggi/armature/assassino-notte-mini.webp',nome:'Velo della Notte',tipo:'Armatura',rarita:'Epico',prezzo:9400,classe:'assassino',icona:'🥷',descrizione:'Corazza leggera, lame e cappuccio.'},
+  {id:'armatura-assassino-spettro',immagine:'./img/personaggi/armature/assassino-spettro.webp',miniatura:'./img/personaggi/armature/assassino-spettro-mini.webp',nome:'Spettro Cremisi',tipo:'Armatura',rarita:'Leggendario',prezzo:13800,classe:'assassino',icona:'🩸',descrizione:'Silhouette furtiva con bagliori rossi.'},
+  {id:'armatura-berserker-rabbia',immagine:'./img/personaggi/armature/berserker-rabbia.webp',miniatura:'./img/personaggi/armature/berserker-rabbia-mini.webp',nome:'Rabbia Antica',tipo:'Armatura',rarita:'Epico',prezzo:9800,classe:'berserker',icona:'🪓',descrizione:'Corna, metallo grezzo e furia pura.'},
+  {id:'armatura-berserker-apocalisse',immagine:'./img/personaggi/armature/berserker-apocalisse.webp',miniatura:'./img/personaggi/armature/berserker-apocalisse-mini.webp',nome:'Ultimo Giorno',tipo:'Armatura',rarita:'Leggendario',prezzo:14500,classe:'berserker',icona:'🔥',descrizione:'Un set enorme che sembra uscito dalla fine del mondo.'},
   {id:'skin-mitica',nome:'Astrale — forma mitica',tipo:'Skin',rarita:'Mitico',prezzo:22000,icona:'🌠',descrizione:'Aspetto cosmico raro, solo estetico.'},
 ];
 const CLASSE_AURA = {guerriero:'Guerriero',assassino:'Assassino',berserker:'Berserker'};
@@ -1528,10 +1529,29 @@ function svgCosmeticiRpg(armaturaId, effettoId, skinId) {
   return div;
 }
 
+function bloccoRequisitoSkin(oggetto, st, posseduto = false) {
+  const a = accessoSkin(oggetto, st, oggetto.classe, posseduto);
+  return el('div', { class: 'aura-skin-requisito' }, [
+    el('strong', { testo: 'Record richiesto: ' + a.richiesto + ' giorni' }),
+    el('span', { testo: 'Il tuo record: ' + a.record + (a.record === 1 ? ' giorno' : ' giorni') + ' · ' + (a.mancanti === 1 ? 'Manca 1 giorno' : 'Mancano ' + a.mancanti + ' giorni') }),
+    el('progress', { max: a.richiesto, value: Math.min(a.record, a.richiesto), aria: { label: 'Progressione del record di Streak' } }),
+    el('small', { testo: posseduto ? 'Già tuo: i nuovi requisiti non cambiano la proprietà.' : 'Vale il record storico, anche dopo una Streak interrotta.' }),
+  ]);
+}
+
 function apriAnteprimaAura(oggetto, profilo, st) {
   const overlay = el('div', { class: 'aura-preview-overlay', role: 'dialog', aria: { modal: 'true', label: 'Anteprima ' + oggetto.nome } });
-  const chiudi = () => { overlay.remove(); document.removeEventListener('keydown', sullaTastiera); };
-  const sullaTastiera = event => { if (event.key === 'Escape') chiudi(); };
+  const primaDelDialogo = document.activeElement;
+  const chiudi = () => { overlay.remove(); document.removeEventListener('keydown', sullaTastiera); primaDelDialogo?.focus?.(); };
+  const sullaTastiera = event => {
+    if (event.key === 'Escape') chiudi();
+    if (event.key === 'Tab') {
+      const pulsanti = [...overlay.querySelectorAll('button:not([disabled])')];
+      const primo = pulsanti[0], ultimo = pulsanti.at(-1);
+      if (event.shiftKey && document.activeElement === primo) { event.preventDefault(); ultimo?.focus(); }
+      else if (!event.shiftKey && document.activeElement === ultimo) { event.preventDefault(); primo?.focus(); }
+    }
+  };
   const pannello = el('section', { class: 'aura-preview-panel' }, [
     el('div', { class: 'aura-preview-heading' }, [
       el('div', {}, [
@@ -1547,35 +1567,29 @@ function apriAnteprimaAura(oggetto, profilo, st) {
       el('small', { testo: oggetto.classe ? CLASSE_AURA[oggetto.classe] : 'Cosmetico per il tuo personaggio' }),
     ]),
   ]);
-  const personaggio = bloccoPersonaggio(profilo, st);
+  const profiloAnteprima = { ...profilo,
+    classe_rpg: oggetto.classe || profilo.classe_rpg,
+    equipaggiamento_aura: { ...(profilo.equipaggiamento_aura || {}), [oggetto.tipo]: oggetto.id },
+  };
+  const personaggio = bloccoPersonaggio(profiloAnteprima, st);
   personaggio.classList.add('aura-preview-character');
-  const grafica = personaggio.querySelector('.personaggio-scena-grafica');
-  const eq = { ...(profilo.equipaggiamento_aura || {}) };
-  const slot = oggetto.tipo === 'Armatura' ? 'Armatura' : oggetto.tipo;
-  if (oggetto.tipo === 'Titolo') {
-    const titolo = personaggio.querySelector('.personaggio-titolo-equipaggiato');
-    if (titolo) titolo.textContent = oggetto.icona + ' ' + oggetto.nome;
-    else personaggio.querySelector('.personaggio-scena')?.appendChild(el('span', {
-      class: 'personaggio-titolo-equipaggiato',
-      testo: oggetto.icona + ' ' + oggetto.nome,
-    }));
-  } else if (grafica) {
-    // La scheda del personaggio ha già il cosmetico attualmente equipaggiato:
-    // rimuoviamo il vecchio SVG prima di disegnare la combinazione d'anteprima.
-    grafica.querySelector('.personaggio-cosmetici-overlay')?.remove();
-    if (oggetto.tipo === 'Armatura') {
-      if (oggetto.classe === profilo.classe_rpg) grafica.classList.add('shop-' + oggetto.id);
-      else pannello.appendChild(el('p', { class: 'aura-preview-warning', testo: 'Questa armatura è per ' + CLASSE_AURA[oggetto.classe] + '. Cambia classe per indossarla.' }));
-    } else if (oggetto.tipo === 'Effetto' || oggetto.tipo === 'Skin') {
-      grafica.classList.add('shop-' + oggetto.id);
-    }
-    const armatura = oggetto.tipo === 'Armatura' ? oggetto.id : eq.Armatura;
-    const effetto = oggetto.tipo === 'Effetto' ? oggetto.id : eq.Effetto;
-    const skin = oggetto.tipo === 'Skin' ? oggetto.id : eq.Skin;
-    const overlaySvg = svgCosmeticiRpg(armatura, effetto, skin);
-    if (overlaySvg) grafica.appendChild(overlaySvg);
+  for (const nodo of personaggio.querySelectorAll('.riga-pezzi, .personaggio-equipaggiamento, button')) nodo.remove();
+  const notaAnteprima = personaggio.querySelector('.personaggio-dati .nota');
+  if (notaAnteprima) notaAnteprima.textContent = 'Anteprima · ' + oggetto.nome;
+
+  if (oggetto.classe && oggetto.classe !== profilo.classe_rpg) {
+    pannello.appendChild(el('p', { class: 'aura-preview-warning', testo: 'Anteprima della classe ' + CLASSE_AURA[oggetto.classe] + '. La tua classe non viene cambiata.' }));
   }
-  pannello.appendChild(personaggio);
+  const scenario = scenarioSkin(oggetto.id);
+  if (scenario) {
+    const scena = el('div', { class: 'aura-preview-scene' });
+    scena.appendChild(el('img', { class: 'aura-preview-environment', src: scenario, alt: '', aria: { hidden: 'true' } }));
+    scena.appendChild(personaggio);
+    pannello.appendChild(scena);
+  } else pannello.appendChild(personaggio);
+  if (oggetto.immagine) pannello.appendChild(el('img', { class: 'aura-armor-card', src: oggetto.immagine, alt: 'Illustrazione di ' + oggetto.nome }));
+  if (oggetto.tipo === 'Armatura') pannello.appendChild(el('p', { class: 'nota', testo: 'Illustrazione del set. Adattamento definitivo ai sei stati dell’avatar ancora in lavorazione.' }));
+  if (requisitoSkin(oggetto.id)) pannello.appendChild(bloccoRequisitoSkin(oggetto, st));
   pannello.appendChild(el('div', { class: 'aura-preview-footer' }, [
     el('span', { class: 'aura-shop-price', testo: '✧ ' + formattaAura(oggetto.prezzo) + ' Aura' }),
     bottone('Chiudi', { classe: 'fantasma', onClick: chiudi }),
@@ -1584,6 +1598,7 @@ function apriAnteprimaAura(oggetto, profilo, st) {
   overlay.addEventListener('click', event => { if (event.target === overlay) chiudi(); });
   document.addEventListener('keydown', sullaTastiera);
   document.body.appendChild(overlay);
+  overlay.querySelector('button')?.focus?.();
 }
 
 function vistaAuraShop(zona, soloInventario = false) {
@@ -1598,7 +1613,7 @@ function vistaAuraShop(zona, soloInventario = false) {
     .filter(r => r && r.account_id === idAccountShop && r.tipo === 'spesa_aura')
     .map(r => String(r.fonte || '').split(':')[1])
     .filter(Boolean))];
-  const streak = Math.max(0, Number(st.fuoco && st.fuoco.giorni) || 0);
+  const streak = Math.max(0, Number(st.streak?.record) || 0);
   if (!soloInventario) zona.appendChild(el('section',{class:'aura-shop-hero'},[
     el('div',{class:'aura-shop-kicker',testo:'✦ FORGE / COSMETICI ✦'}),
     el('h1',{testo:'Aura Shop'}),
@@ -1634,7 +1649,10 @@ function vistaAuraShop(zona, soloInventario = false) {
       el('small',{testo:streak>=80?'Questa ricompensa resta tua: non serve comprarla.':'Allenati con costanza per sbloccare la più bella aura del gioco.'}),
     ]),
   ]);
-  if (!soloInventario) zona.appendChild(mitica);
+  if (!soloInventario) {
+    zona.appendChild(mitica);
+    zona.appendChild(el('p', { class: 'nota shop-connessione', testo: sb.collegato() ? 'Acquisti protetti online. Equipaggia la tua collezione anche offline.' : 'Accedi dal Profilo per acquistare. La tua collezione resta disponibile anche offline.' }));
+  }
   const inventario=el('section',{class:'aura-shop-inventory',id:'mio-inventario'},[
     el('div',{class:'aura-shop-section-head'},[
       el('div',{},[el('h2',{testo:'Mio Inventario'}),el('p',{class:'nota',testo:posseduti.length+' oggetti acquistati'})]),
@@ -1642,7 +1660,7 @@ function vistaAuraShop(zona, soloInventario = false) {
     el('div',{class:'aura-shop-owned-grid'}),
   ]);
   const ownedGrid=inventario.querySelector('.aura-shop-owned-grid');
-  const oggettiPosseduti=OGGETTI_AURA.filter(o=>posseduti.includes(o.id));
+  const oggettiPosseduti=OGGETTI_AURA.filter(o=>posseduti.includes(o.id)&&(!o.classe||o.classe===classe));
   // Equipaggiamento persistente sul profilo: equipaggiare non consuma né elimina l'oggetto.
   const equipaggiamento = { ...(profilo.equipaggiamento_aura || {}) };
   const slotOggetto = (o) => o.tipo === 'Armatura' ? 'Armatura' : o.tipo;
@@ -1653,14 +1671,9 @@ function vistaAuraShop(zona, soloInventario = false) {
 
     // Aggiorna subito il profilo in memoria e IndexedDB: il testo del pulsante
     // non deve dipendere da una sincronizzazione remota o da un vecchio render.
-    profiloCorrente.equipaggiamento_aura = prossimo;
     await db.salva('profili', { ...profiloCorrente, equipaggiamento_aura: prossimo });
     await ricaricaTutto();
 
-    // Alcuni pull remoti possono restituire per un istante il profilo precedente.
-    // Ripristina la scelta appena salvata nella vista locale e ridisegna la scheda.
-    const profiloAggiornato = profiloAttivo();
-    if (profiloAggiornato) profiloAggiornato.equipaggiamento_aura = prossimo;
     disegna();
   };
   if(!oggettiPosseduti.length) ownedGrid.appendChild(el('p',{class:'nota',testo:'Ancora vuoto. Scegli un oggetto qui sotto per iniziare la collezione.'}));
@@ -1678,6 +1691,7 @@ function vistaAuraShop(zona, soloInventario = false) {
         }),
         bottone(indossato?'Disequipaggia':'Equipaggia',{
           classe:indossato?'fantasma':'principale',
+          disabilitato: !indossato && !!o.classe && o.classe !== classe,
           onClick:async()=>{
             const nuovoStato = equipaggiamento[slot] !== o.id;
             const pulsante = riga.querySelector('button:last-child');
@@ -1687,7 +1701,7 @@ function vistaAuraShop(zona, soloInventario = false) {
             riga.classList.toggle('equipaggiato', nuovoStato);
             if (nuovoStato) equipaggiamento[slot] = o.id; else delete equipaggiamento[slot];
             try { await salvaEquipaggiamento(slot, nuovoStato ? o.id : null); }
-            catch(err) { avviso('Non sono riuscito a salvare l’equipaggiamento. Riprova con internet attivo.',{tipo:'errore'}); }
+            catch(err) { await ricaricaTutto(); disegna(); avviso('Non sono riuscito a salvare l’equipaggiamento. Riprova.',{tipo:'errore'}); }
           }
         })
       ])
@@ -1721,6 +1735,7 @@ function vistaAuraShop(zona, soloInventario = false) {
     for(const o of elenco){
       const owned=posseduti.includes(o.id);
       const equipped = owned && equipaggiamento[slotOggetto(o)] === o.id;
+      const accesso = accessoSkin(o, st, classe, owned);
       const card=el('article',{class:'aura-shop-card rarita-'+o.rarita.toLowerCase()},[
         el('div',{class:'aura-shop-card-top'},[
           el('span',{class:'aura-shop-item-icon',testo:o.icona}),
@@ -1735,11 +1750,12 @@ function vistaAuraShop(zona, soloInventario = false) {
             classe:'fantasma aura-shop-preview-btn',
             onClick:()=>apriAnteprimaAura(o, profiloAttivo(), statoMio()),
           }),
-          bottone(equipped?'✓ Equipaggiato':owned?'✓ Già acquistato':(Number(st.aura)<o.prezzo?'Aura insufficienti':'Acquista'),{
+          bottone(equipped?'✓ Equipaggiato':owned?'✓ Già acquistato':(!accesso.streakRaggiunta?'Record di Streak insufficiente':Number(st.aura)<o.prezzo?'Aura insufficienti':'Acquista'),{
           classe:owned?'fantasma':'principale',
-          disabled:owned||Number(st.aura)<o.prezzo,
+          disabilitato:owned||!accesso.acquistabile,
           onClick:async()=>{
             if(posseduti.includes(o.id)) return;
+            if (!accessoSkin(o, statoMio(), profiloAttivo().classe_rpg).acquistabile) { avviso('Controlla record di Streak, classe e Aura.', { tipo: 'errore' }); return; }
             if(Number(st.aura)<o.prezzo){avviso('Non hai abbastanza Aura.',{tipo:'errore'});return;}
             const conferma=await chiediConferma('Comprare '+o.nome+'?','Spenderai '+formattaAura(o.prezzo)+' Aura. L’acquisto non si ripete e l’oggetto resta nell’inventario.');
             if(!conferma) return;
@@ -1748,8 +1764,15 @@ function vistaAuraShop(zona, soloInventario = false) {
             const account=accountAttivo();
             if (account !== idAccountShop) return;
             try {
-              const risultato = await acquistaOggettoAura({ account, oggetto: o,
-                leggi: () => db.tutti('ricompense'), salva: spesa => db.salva('ricompense', spesa) });
+              if (!sb.collegato()) throw new Error('Accedi per acquistare. Gli oggetti già posseduti restano disponibili offline.');
+              const sincronizzato = await sync.sincronizza();
+              if (sincronizzato.errori || sincronizzato.conflitti || sincronizzato.fatto === false) {
+                throw new Error('Completa la sincronizzazione prima di acquistare: il saldo deve essere aggiornato.');
+              }
+              if (accountAttivo() !== account) return;
+              const risultato = await sb.acquistaAura(account, o.id);
+              if (!risultato?.spesa?.id || risultato.spesa.account_id !== account) throw new Error('Risposta di acquisto non valida.');
+              await db.salva('ricompense', risultato.spesa, { segna: false });
               await ricaricaTutto();
               avviso(risultato.acquistato ? o.nome + ' acquistato!' : 'Questo oggetto è già nel tuo inventario.', { tipo: 'ok' });
               disegna();
@@ -1758,6 +1781,13 @@ function vistaAuraShop(zona, soloInventario = false) {
           }),
         ]),
       ]);
+      if (o.id === 'skin-mitica' && CLASSE_AURA[classe]) {
+        const anteprima = bloccoPersonaggio({ ...profilo, equipaggiamento_aura: { ...profilo.equipaggiamento_aura, Skin: o.id } }, st);
+        const figura = anteprima.querySelector('.personaggio-scena-grafica');
+        if (figura) { figura.classList.add('aura-skin-miniatura'); card.insertBefore(figura, card.firstChild); }
+      }
+      if (o.miniatura) card.insertBefore(el('img', { class: 'aura-armor-card', src: o.miniatura, alt: o.nome, loading: 'lazy', width: 300, height: 450 }), card.firstChild);
+      if (requisitoSkin(o.id)) card.insertBefore(bloccoRequisitoSkin(o, st, owned), card.querySelector('.aura-shop-card-actions'));
       griglia.appendChild(card);
     }
   }
@@ -1891,7 +1921,7 @@ if (rotta === '/aura-shop' || rotta === '/aura-shop/inventario') {
     // È un numero piccolo e spento nell'angolo, sopra la barra: non distrae e basta
     // guardarlo. Se dice 105 e tu vedi il personaggio di prima, il problema è la copia
     // vecchia e lo dice subito.
-    el('div', { class: 'versione-app', testo: 'v' + (window.PALESTRA_VERSIONE || '?') }),
+    el('div', { class: 'versione-app', testo: String(window.PALESTRA_VERSIONE || 'v?').replace(/^palestra-/, '') }),
   ]);
   return resto;
 }
@@ -1934,7 +1964,7 @@ function disegnaStatoSalvataggio() {
     contenitore.appendChild(el('span', { class: 'pallino-stato pallino-' + s.colore }));
     contenitore.appendChild(el('span', { class: 'testo-stato', testo: s.testo }));
     // la versione sempre in vista: se non cambia, il telefono ha la copia vecchia
-    contenitore.appendChild(el('span', { class: 'versione-app', testo: 'v' + (window.PALESTRA_VERSIONE || '?'), title: 'Se la spunta non ti parte, chiudi l\'app e la riapri' }));
+    contenitore.appendChild(el('span', { class: 'versione-app', testo: String(window.PALESTRA_VERSIONE || 'v?').replace(/^palestra-/, ''), title: 'Se la spunta non ti parte, chiudi l\'app e la riapri' }));
     contenitore.title = s.dettaglio;
     disegnaBarraGioco(contenitore);
     misuraBarraInAlto(contenitore);
@@ -2515,6 +2545,10 @@ async function vistaSeduta(zona, sedutaId) {
     return;
   }
   if (s.stato !== 'in_corso') { vai('/storico/' + s.id); return; }
+  try {
+    const salvato = Number(localStorage.getItem('palestra-recupero:' + s.id));
+    inizioRecuperoSerie = salvato > 0 && salvato <= Date.now() ? salvato : null;
+  } catch { inizioRecuperoSerie = null; }
 
   // Se non ho ancora in memoria le serie di questa seduta (per esempio se la
   // schermata viene aperta dopo un salvataggio fatto altrove), le carico:
@@ -2787,6 +2821,11 @@ function rigaSerie(serie, numero, confronto, seduta, pesoRigaSorella = null) {
       const fatta = !eFatta(serie);
       // Ogni nuova serie segnata fa ripartire il timer di recupero da zero.
       inizioRecuperoSerie = fatta ? Date.now() : null;
+      try {
+        const chiave = 'palestra-recupero:' + serie.seduta_id;
+        if (inizioRecuperoSerie) localStorage.setItem(chiave, String(inizioRecuperoSerie));
+        else localStorage.removeItem(chiave);
+      } catch { /* Il timer continua anche se lo storage non è disponibile. */ }
       const timerRecupero = document.getElementById('cronometro-fine');
       if (timerRecupero) timerRecupero.textContent = 'Recupero 00:00';
       segnaAspettoFatto(riga, spunta, fatta, etichettaFatta);
@@ -4324,7 +4363,8 @@ function vistaProgressi(zona) {
   }
   // solo le serie di questa persona: altrimenti i progressi mescolerebbero
   const mieSerie = serieDellaPersona();
-  const conDati = eserciziNellaScheda.filter((id) => mieSerie.some((x) => x.esercizio_id === id && !x.eliminata));
+  const conDati = [...new Set([...eserciziNellaScheda, ...mieSerie.map(x => x.esercizio_id)])]
+    .filter((id) => mieSerie.some((x) => x.esercizio_id === id && !x.eliminata));
   if (!conDati.length) {
     zona.appendChild(el('p', { class: 'nota', testo: 'Nessun dato registrato. Chiudi un allenamento e qui compaiono i tuoi progressi.' }));
     return;
@@ -4919,7 +4959,7 @@ function vistaImpostazioni(zona) {
 
   const versioneBox = el('section', { class: 'blocco' });
   versioneBox.appendChild(el('h2', { testo: 'Versione dell\'app' }));
-  versioneBox.appendChild(el('p', { class: 'nota', testo: `Stai usando la versione v${window.PALESTRA_VERSIONE || '?'}. Se una cosa non ti funziona, prova a scaricare la versione nuova: cancella i file salvati dal browser e ricarica tutto. I tuoi allenamenti NON vengono toccati.` }));
+  versioneBox.appendChild(el('p', { class: 'nota', testo: `Stai usando la versione ${String(window.PALESTRA_VERSIONE || 'v?').replace(/^palestra-/, '')}. Se una cosa non ti funziona, prova a scaricare la versione nuova: cancella i file salvati dal browser e ricarica tutto. I tuoi allenamenti NON vengono toccati.` }));
   versioneBox.appendChild(el('div', { class: 'riga-pulsanti' }, [
     bottone('Aggiorna adesso', {
       onClick: async () => {
@@ -5484,7 +5524,7 @@ function badgeRank(rankId, lp, divisione) {
  * manca così poco", È "non lo so ancora". Questa frase È quella risposta.
  */
 const AVVERTIMENTO_STIMA_SOGLIA = 'Numero stimato: il massimale e\' calcolato, non '
-  + 'misurato, e il peso corporee muove la soglia. Non fidarti di decimali.';
+  + 'misurato, e il peso corporeo muove la soglia. Non fidarti di decimali.';
 
 /** La distanza alla prossima soglia, in percentuale. Vedi distanzaAllaSoglia. */
 function distanzaObiettivo(record) {
@@ -6223,7 +6263,7 @@ function bloccoPersonaggio(profilo, st) {
     // già "tutto addosso"), quindi è una luce che si accende sopra la foto.
     // L'Aura Divina degli 80 giorni ha un'identità visiva distinta: non deve
     // sembrare la normale aura dorata, ma un alone celestiale con anello e raggi.
-    const auraDivinaAttiva = Number(st && st.fuoco && st.fuoco.giorni || 0) >= 80;
+    const auraDivinaAttiva = Math.max(Number(st?.fuoco?.giorni) || 0, Number(st?.streak?.record) || 0) >= 80;
     if (auraDivinaAttiva) grafica.classList.add('personaggio-aura-divina');
     if (viso.aura || auraDivinaAttiva) {
       grafica.classList.add('personaggio-aura');
@@ -6326,12 +6366,12 @@ function bloccoPersonaggio(profilo, st) {
     grafica.appendChild(el('img', {
         class: 'personaggio-ritratto',
         src: percorsoStato(classeId, viso.indice),
-        alt: `${rpg.classe.nome}: ${viso.stato.riga}`,
+        alt: `${rpg.classe.nome}: ${armaturaEquipaggiata?.nome || viso.stato.riga}`,
         loading: 'lazy',
         decoding: 'async',
       }));
     const overlayCosmetici = svgCosmeticiRpg(
-      armaturaEquipaggiata && armaturaEquipaggiata.id,
+      armaturaEquipaggiata?.id, // Livello cosmetico separato dalla progressione originale.
       effettoEquipaggiato && effettoEquipaggiato.id,
       skinEquipaggiata && skinEquipaggiata.id,
     );
@@ -6427,7 +6467,7 @@ scena.appendChild(grafica);
       // Con la classe scelta si dice anche COME SEI VESTITO, non solo quanti pezzi
       // hai: è la cosa che cambia da sola quando la streak cresce.
       testo: classeScelta
-        ? `Livello ${rpg.livello} · ${viso.stato.riga} · ${indosano.length} di ${rpg.premi.length} armature`
+        ? `Livello ${rpg.livello} · ${armaturaEquipaggiata?.nome || viso.stato.riga} · ${indosano.length} di ${rpg.premi.length} premi di progressione`
 : `Livello ${rpg.livello} · ${indosano.length} di ${rpg.premi.length} armature`,
     }),
     ...(titoloEquipaggiato ? [el('span', {

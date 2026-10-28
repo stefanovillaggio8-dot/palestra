@@ -9,7 +9,7 @@
 // e il test I3 che sia quello dell'ultimo commit, altrimenti si alza la cache e si
 // lascia scritto il numero vecchio. E' successo due volte: nella v54 avevo alzato
 // solo questo file, e dopo la v55 avevo smesso di alzarlo del tutto.
-const VERSIONE = 'palestra-v327';
+const VERSIONE = 'palestra-v328';
 
 // LE 18 FOTO DEI PERSONAGGI, CON LA VERSIONE DENTRO.
 //
@@ -32,6 +32,21 @@ function immaginiPersonaggi() {
 
 
 const FILE = [
+  './src/aura-skin.js',
+  ...['braci','abisso','notte','cremisi','rabbia','apocalisse','astrale'].map(n => './img/scenari/' + n + '.svg'),
+  './img/personaggi/armature/guerriero-braci.webp',
+  './img/personaggi/armature/guerriero-braci-mini.webp',
+  './img/personaggi/armature/guerriero-abisso.webp',
+  './img/personaggi/armature/guerriero-abisso-mini.webp',
+  './img/personaggi/armature/assassino-notte.webp',
+  './img/personaggi/armature/assassino-notte-mini.webp',
+  './img/personaggi/armature/assassino-spettro.webp',
+  './img/personaggi/armature/assassino-spettro-mini.webp',
+  './img/personaggi/armature/berserker-rabbia.webp',
+  './img/personaggi/armature/berserker-rabbia-mini.webp',
+  './img/personaggi/armature/berserker-apocalisse.webp',
+  './img/personaggi/armature/berserker-apocalisse-mini.webp',
+
   './',
   './index.html',
   './ATTRIBUZIONE-ILLUSTRAZIONI.md',
@@ -52,8 +67,8 @@ const FILE = [
   // Il numero deve essere uguale a quello di `stile.css?v=` in index.html e a
   // `window.PALESTRA_VERSIONE`: se i tre non coincidono, l'app carica un foglio di
   // stile e dice un altro numero.
-  './stile.css?v=327',
-  './stile-rpg.css?v=327',
+  './stile.css?v=328',
+  './stile-rpg.css?v=328',
 './manifest.webmanifest',
   './manifest-p1.webmanifest',
   './manifest-p2.webmanifest',
@@ -61,7 +76,7 @@ const FILE = [
   // installata di un amico prenderebbe quello di Ste, con lo stesso id e con
   // start_url che punta a ?p=1
   './manifest-nuovo.webmanifest',
-  './src/app.js?v=327',
+  './src/app.js?v=328',
   './src/numeri.js',
   './src/confronto.js',
   './src/confronto-mensile.js',
@@ -250,7 +265,7 @@ self.addEventListener('install', (evento) => {
 self.addEventListener('activate', (evento) => {
   evento.waitUntil(
     caches.keys()
-      .then((chiavi) => Promise.all(chiavi.filter((k) => k !== VERSIONE).map((k) => caches.delete(k))))
+      .then((chiavi) => Promise.all(chiavi.filter((k) => k.startsWith('palestra-v') && k !== VERSIONE).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
       .then(() => self.clients.matchAll())
       .then((clienti) => {
@@ -277,37 +292,27 @@ self.addEventListener('message', (evento) => {
   }
 });
 
-// PRIMA LA RETE, poi la cache.
-// Prima facevo il contrario (prima la cache) e il telefono continuava a usare
-// i file vecchi anche dopo che avevo pubblicato quelli nuovi: la spunta non
-// spuntava perch? quella versione proprio non c'era.
-// Se non c'e' rete si usa la cache: l'app funziona lo stesso offline.
+// Una release usa i file precaricati insieme: niente JS vecchio con CSS nuovo.
+// Il browser controlla separatamente sw.js; install completa prima di activate.
 self.addEventListener('fetch', (evento) => {
   const richiesta = evento.request;
   if (richiesta.method !== 'GET') return;
   const url = new URL(richiesta.url);
-  if (url.origin !== self.location.origin) return; // il database lo gestisce a parte
-
-  evento.respondWith(
-    fetch(richiesta)
-      .then((risposta) => {
-        if (risposta && risposta.status === 204 && risposta.type === 'basic') {
-          const copia = risposta.clone();
-          caches.open(VERSIONE).then((c) => c.put(richiesta, copia));
-        }
-        return risposta;
-      })
-      .catch(async () => {
-        const inCache = await caches.match(richiesta);
-        if (inCache) return inCache;
-        if (richiesta.mode === 'navigate') return caches.match('./index.html');
-        return new Response('Offline', { status: 503, statusText: 'Offline' });
-      }),
-  );
+  if (url.origin !== self.location.origin) return;
+  evento.respondWith((async () => {
+    const cache = await caches.open(VERSIONE);
+    const salvata = await cache.match(richiesta);
+    if (salvata) return salvata;
+    // Gli URL di avvio con query aprono la stessa app, preservando la query.
+    const indice = new URL('./index.html', self.location.href);
+    const radice = new URL('./', self.location.href);
+    if (richiesta.mode === 'navigate' && [indice.pathname, radice.pathname].includes(url.pathname)) {
+      const app = await cache.match('./index.html');
+      if (app) return app;
+    }
+    try { return await fetch(richiesta); }
+    catch {
+      return new Response('Risorsa non disponibile offline', { status: 503, statusText: 'Offline' });
+    }
+  })());
 });
-
-
-
-
-
-

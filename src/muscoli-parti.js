@@ -219,7 +219,7 @@ export const PARTI = [
     // Ste: "no il contrario, i lombari principali". Stesa a 45 gradi, l'iperextensione
     // carica la bassa schiena pieno, e i glutei aiutano ma più piano.
     parole: ['hyperextension', 'iperextensione', 'back extension', 'lombare', 'lombari'],
-    nota: 'La bassa schiena, cioè i muscoli che stanno lungo la colonna (l’erector spinae). Nell’iperextensione lavorano insieme ai glutei, ma più piano: per questo si vedono meno chiari. Se ti fa male la schiena, questo esercizio non è per te.',
+    nota: 'La bassa schiena, cioè i muscoli che stanno lungo la colonna (l’erector spinae). Nell’iperestensione lavorano insieme ai glutei; il contributo relativo dipende dal movimento del bacino e della colonna.',
   },
   {
     id: 'dorso_centrale', muscolo: 'dorso', parte: 'dorso centrale (fra le scapole)',
@@ -232,7 +232,7 @@ export const PARTI = [
       // manubri, quindi dorso centrale. Stava fra le parole del PETTO e la
       // scheda gli diceva "il petto lavora in modo abbastanza uniforme".
       'bench pull', 'dumbbell bench pull'],
-    nota: 'Tira verso il corpo: lavora la parte centrale della schiena, quella fra le scapole. I romboidi e gli erettori della colonna sono profondi e questa tavola superficiale non li disegna: l’omino accende il trapezio inferiore, la striscia che sta lungo la spina dorsale, e lascia i dorsali larghi più chiari, perché sono un supporto.',
+    nota: 'Tira verso il corpo: lavora la parte centrale della schiena, quella fra le scapole. La retrazione delle scapole coinvolge romboidi e trapezio medio; la tavola superficiale evidenzia il trapezio medio e inferiore, lasciando i romboidi profondi sotto il trapezio. I dorsali e il deltoide posteriore partecipano alla tirata. La panca sostiene il busto: la sua inclinazione da sola non determina la traiettoria dei gomiti.',
   },
 
   // ---- spalle ----
@@ -556,7 +556,7 @@ export const MOVIMENTI = [
     // un curl, una panca Scott e un rematore quanto un peso. Qui contano le
     // frasi che dicono che stai SPINGENDO il petto ("panca piana", "panca
     // inclinata"), non il posto dove stai sdraiato.
-    parole: ['bench press', 'chest press', 'pecorino', 'pressione petto',
+    parole: ['bench press', 'bench pin press', 'chest press', 'pecorino', 'pressione petto',
       'panca piana', 'panca inclinata', 'panca declinata', 'panca con bilanciere',
       'horizontal press', 'floor press', 'spinta petto',
       // la posizione dentro la frase, non la parola "press" da sola: un
@@ -588,7 +588,7 @@ export const MOVIMENTI = [
   },
   {
     id: 'spinta_verticale',
-    parole: ['shoulder press', 'military', 'militare', 'overhead press',
+    parole: ['shoulder press', 'shoulder pin press', 'military', 'militare', 'overhead press',
       'spinte in alto', 'presse in alto', 'press a spalle', 'press militare',
       'front raise', 'alzata frontale', 'alzate frontali'],
     // Spingere in alto stende il gomito (tricipite) e tira le spalle su (trapezi).
@@ -642,7 +642,7 @@ export const MOVIMENTI = [
     // dorsale largo, deltoide dietro (che è quello che si vede quando apri le
     // braccia) e bicipiti. Il bicipite è l'ultimo dei tre: tiene il gomito piegato
     // ma non è lui a tirare il peso.
-    secondari: { dorso_lati: 0.6, spalle_posteriori: 0.5, braccio_basso: 0.4 },
+    secondari: { dorso_lati: 0.6, dorso_centrale: 0.5, spalle_posteriori: 0.5, braccio_basso: 0.4 },
   },
   {
     id: 'shrug',
@@ -657,8 +657,15 @@ export const MOVIMENTI = [
     secondari: {},
   },
   {
+    id: 'stacco',
+    parole: ['deadlift', 'stacco'],
+    // NASM: estensione di anca e ginocchio, erettori spinali stabilizzatori.
+    // Intensità qualitative: nessuna variazione alle formule dei Rank.
+    secondari: { glutei: 0.66, quadricipite: 0.5, dorso_basso: 0.4 },
+  },
+  {
     id: 'curl_gambe',
-    parole: ['leg curl', 'curl gambe', 'prone curl', 'stacco'],
+    parole: ['leg curl', 'curl gambe', 'prone curl'],
     secondari: {},
   },
   {

@@ -42,6 +42,12 @@ export function sessione() {
 }
 
 export function salvaSessione(s) {
+  const precedente = sessione();
+  // Una nuova identità deve scaricare anche le righe anteriori al vecchio cursore.
+  if (s?.user?.id && s.user.id !== precedente?.user?.id) {
+    localStorage.removeItem('palestra-ultimo-pull');
+    localStorage.removeItem('palestra-ultimo-pull-completo-v1');
+  }
   if (s) localStorage.setItem('palestra-sessione', JSON.stringify(s));
   else localStorage.removeItem('palestra-sessione');
 }
@@ -401,14 +407,31 @@ export async function accettaInvitoAmico(token, profiloId) {
 export async function prendiModificate(tabelle, dopoIso, { limite = 500 } = {}) {
   const risultati = {};
   for (const t of tabelle) {
-    const q = new URLSearchParams();
-    q.set('select', '*');
-    q.set('order', 'updated_at.asc');
-    q.set('limit', String(limite));
-    if (dopoIso) q.set('updated_at', 'gt.' + dopoIso);
-    risultati[t] = await richiesta(leggiConfig(), `/rest/v1/${t}?${q.toString()}`, {
-      headers: intestazioni(leggiConfig()),
-    }) || [];
+    risultati[t] = [];
+    let ultimo = null;
+    const pagina = Math.max(1, Math.min(500, Number(limite) || 500));
+    for (;;) {
+      const q = new URLSearchParams();
+      q.set('select', '*');
+      q.set('order', 'updated_at.asc,id.asc');
+      q.set('limit', String(pagina));
+      if (dopoIso) q.set('updated_at', 'gte.' + dopoIso);
+      if (ultimo) {
+        // I valori sono quotati secondo la sintassi PostgREST, anche per ID importati.
+        const quota = v => '"' + String(v).replaceAll('\\', '\\\\').replaceAll('"', '\\"') + '"';
+        q.set('or', `(updated_at.gt.${quota(ultimo.updated_at)},and(updated_at.eq.${quota(ultimo.updated_at)},id.gt.${quota(ultimo.id)}))`);
+      }
+      const righe = await richiesta(leggiConfig(), `/rest/v1/${t}?${q.toString()}`, {
+        headers: intestazioni(leggiConfig()),
+      }) || [];
+      risultati[t].push(...righe);
+      if (righe.length < pagina) break;
+      const prossimo = righe.at(-1);
+      if (!prossimo?.updated_at || !prossimo?.id || (ultimo && prossimo.id === ultimo.id && prossimo.updated_at === ultimo.updated_at)) {
+        throw new Error('Pagina di sincronizzazione incompleta. Riprova.');
+      }
+      ultimo = prossimo;
+    }
   }
   return risultati;
 }
@@ -417,4 +440,11 @@ export function collegato() {
   const cfg = leggiConfig();
   const s = sessione();
   return cfg.attivo && !!(s && (s.access_token || s.refresh_token));
+}
+
+/** Il server verifica prezzo, proprietà e saldo nella stessa transazione. */
+export async function acquistaAura(account, oggetto) {
+  if (!collegato()) throw new Error('Accedi per acquistare e conservare gli oggetti su tutti i dispositivi.');
+  if (globalThis.navigator?.onLine === false) throw new Error('Per acquistare serve una connessione. Il tuo inventario resta disponibile offline.');
+  return rpc('acquista_oggetto_aura', { p_account: account, p_oggetto: oggetto });
 }

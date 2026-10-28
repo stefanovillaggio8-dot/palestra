@@ -926,20 +926,11 @@ export function zoneAtlante(id) {
   if (/^(flexor_|extensor_|pronator_|palmaris_)/.test(id)) return ['avambraccio'];
   if (/^(rectus_abdominis_|external_oblique_)/.test(id)) return ['addome'];
   if (/^(vastus_lateralis_|vastus_medialis_|rectus_femoris_)/.test(id)) return ['quadricipite'];
-  // IL CENTRO SCHIENA (Ste, 18/10/2026).
-  //
-  // "l'esercizio fa il centro schiena quindi dovresti evidenziare più forte la linea
-  // centrale della schiena". Il centro schiena sono i romboidi e gli erettori della
-  // colonna: sono profondi, e in questa tavola superficiale non hanno un contorno
-  // proprio. Prima, sul rematore con bilanciere la figura accendeva i DORSALI LARGHI
-  // (le "ali"), che sono un supporto: la figura contraddiceva il testo.
-  //
-  // Il TRAPEZIO INFERIORE è la striscia che sta lungo la spina dorsale, quindi è la
-  // cosa più vicina al centro schiena che questa tavola riusciva a disegnare. Si
-  // accende con il livello del centro schiena, e i dorsali larghi restano chiari.
-  // i LOMBARI: l'erector spinae, il path dedicato del kit
+  // v328: il kit distingue trapezio superiore, medio e inferiore.
+  // Il medio appartiene alla regione interscapolare, non alla zona collo/spalle.
+  // I romboidi sono profondi: non si inventano nuove sagome sopra il trapezio.
   if (/^erector_spinae/.test(id)) return ['dorso_basso'];
-  if (/^trapezius_lower_/.test(id)) return ['dorso_centrale'];
+  if (/^trapezius_(?:middle|lower)_/.test(id)) return ['dorso_centrale'];
   if (/^trapezius_/.test(id)) return ['dorso_alto'];
   if (/^latissimus_dorsi_/.test(id)) return ['dorso_lati'];
   if (/^gluteus_/.test(id)) return ['glutei'];

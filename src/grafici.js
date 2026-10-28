@@ -18,7 +18,7 @@ function svgTag(tag, attributi = {}) {
 }
 
 /** Asse con etichette leggibili anche sul telefono. */
-function assi(svg, { larghezza, altezza, margine, punti, chiaveY, titoloY, formatoY }) {
+function assi(svg, { larghezza, altezza, margine, punti, chiaveY, titoloY, formatoY, daZero = false }) {
   const valori = punti.map((p) => p[chiaveY]).filter((v) => v !== null && v !== undefined && Number.isFinite(Number(v)));
   if (!valori.length) return { min: 0, max: 1 };
   let min = Math.min(...valori);
@@ -27,6 +27,7 @@ function assi(svg, { larghezza, altezza, margine, punti, chiaveY, titoloY, forma
   const range = max - min;
   min -= range * 0.15;
   max += range * 0.15;
+  if (daZero) { min = Math.min(0, ...valori); max = Math.max(1, ...valori) * 1.15; }
   const px = (v) => margine + v * (larghezza - 2 * margine);
   const py = (v) => altezza - 28 - ((v - min) / (max - min)) * (altezza - 28 - 14);
 
@@ -58,6 +59,7 @@ export function graficoLinea(punti, { chiaveY, titoloY, etichette = [], larghezz
   const svg = svgTag('svg', { viewBox: `0 0 ${larghezza} ${altezza}`, class: 'grafico-svg', role: 'img', 'aria-label': titoloY || 'Andamento allenamenti' });
   const a = assi(svg, { larghezza, altezza, margine: 46, punti: buoni, chiaveY, titoloY, formatoY: (v) => formattaNumero(v) });
 
+  const dettaglio = el('p', { class: 'grafico-selezione', role: 'status', testo: 'Tocca un punto per leggere il valore.' });
   const n = buoni.length;
   const puntiXY = buoni.map((p, i) => {
     const x = a.px(n === 1 ? 0.5 : i / (n - 1));
@@ -76,6 +78,8 @@ export function graficoLinea(punti, { chiaveY, titoloY, etichette = [], larghezz
     const descrizione = `${q.p.etichetta || ''}: ${formattaNumero(q.p[chiaveY])} ${titoloY || ''}`;
     punto.setAttribute('aria-label', descrizione);
     const titolo = svgTag('title'); titolo.textContent = descrizione; punto.appendChild(titolo);
+    punto.addEventListener('click', () => { dettaglio.textContent = descrizione; });
+    punto.addEventListener('focus', () => { dettaglio.textContent = descrizione; });
     svg.appendChild(punto);
     if (i === 0 || i === n - 1 || i === Math.floor(n / 2)) {
       const data = svgTag('text', { x: q.x, y: altezza - 8, 'text-anchor': 'middle', class: 'asse-txt' });
@@ -88,6 +92,7 @@ export function graficoLinea(punti, { chiaveY, titoloY, etichette = [], larghezz
     }
   });
   scatola.appendChild(svg);
+  scatola.appendChild(dettaglio);
 
   const tabella = el('div', { class: 'grafico-dati' });
   const voci = buoni.map((q) => `${q.etichetta || ''}: ${formattaNumero(q[chiaveY])}`);
@@ -105,26 +110,29 @@ export function graficoBarre(punti, { chiaveY, titoloY, etichette = [], larghezz
     scatola.appendChild(el('p', { class: 'grafico-vuoto', testo: 'Dati non disponibili per questo grafico.' }));
     return scatola;
   }
-  const svg = svgTag('svg', { viewBox: `0 0 ${larghezza} ${altezza}`, class: 'grafico-svg' });
-  const a = assi(svg, { larghezza, altezza, margine: 46, punti: buoni, chiaveY, titoloY, formatoY: (v) => formattaNumero(v) });
+  const svg = svgTag('svg', { viewBox: `0 0 ${larghezza} ${altezza}`, class: 'grafico-svg', role: 'img', 'aria-label': titoloY || 'Volume allenamenti' });
+  const a = assi(svg, { larghezza, altezza, margine: 46, punti: buoni, chiaveY, titoloY, daZero: true, formatoY: (v) => formattaNumero(v) });
   const n = buoni.length;
-  const larghezzaBarra = Math.max(6, (larghezza - 46 - 46) / n * 0.55);
+  const larghezzaBarra = (larghezza - 46 - 46) / n * 0.65;
   buoni.forEach((p, i) => {
     const centro = 46 + ((i + 0.5) * (larghezza - 46 - 46)) / n;
     const y = a.py(Number(p[chiaveY]));
     const y0 = a.py(Math.max(a.min, 0));
     const haSpotter = Number(p.spotter) > 0;
-    svg.appendChild(svgTag('rect', {
+    const barra = svgTag('rect', {
       x: centro - larghezzaBarra / 2, y: Math.min(y, y0),
       width: larghezzaBarra, height: Math.max(2, Math.abs(y0 - y)),
       class: 'barra-grafico' + (haSpotter ? ' barra-spotter' : ''),
-    }));
+      tabindex: 0, 'aria-label': `${p.etichetta || ''}: ${formattaNumero(p[chiaveY])} ${titoloY || ''}`,
+    });
+    const titolo = svgTag('title'); titolo.textContent = barra.getAttribute('aria-label'); barra.appendChild(titolo);
+    svg.appendChild(barra);
     const t = svgTag('text', { x: centro, y: altezza - 8, 'text-anchor': 'middle', class: 'asse-txt' });
     t.textContent = String(p.etichetta || '');
-    svg.appendChild(t);
+    if (n <= 6 || i === 0 || i === n - 1 || i === Math.floor(n / 2)) svg.appendChild(t);
     const v = svgTag('text', { x: centro, y: Math.min(y, y0) - 5, 'text-anchor': 'middle', class: 'valore-punto' });
     v.textContent = formattaNumero(p[chiaveY]);
-    svg.appendChild(v);
+    if (n <= 8) svg.appendChild(v);
   });
   scatola.appendChild(svg);
   const tabella = el('div', { class: 'grafico-dati' });

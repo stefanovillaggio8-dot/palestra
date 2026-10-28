@@ -632,3 +632,52 @@ select:focus-visible {
   box-shadow: 0 0 18px rgba(151, 96, 255, .15);
 }
 .personaggio-scena .personaggio-titolo-equipaggiato { z-index: 5; position: relative; }
+/* Rifinitura v328: equipaggiamento illustrato e gerarchia delle sezioni. */
+.aura-armor-card { display:block; width:100%; height:280px; object-fit:contain; background:#100f13; border-radius:12px; }
+.aura-shop-grid { grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr)); gap:18px; }
+.aura-shop-card { padding:18px; border-radius:18px; }
+.aura-shop-card-actions { display:flex; flex-wrap:wrap; gap:8px; }
+.aura-shop-card-actions button { min-height:44px; flex:1; }
+.aura-shop-filters { display:flex; overflow-x:auto; gap:8px; padding:8px 0 14px; scrollbar-width:thin; }
+.aura-shop-filter { flex:none; min-height:44px; }
+.aura-shop-filter.attivo { background:var(--viola-scuro); border-color:var(--viola); color:var(--testo); }
+.aura-preview-panel { max-height:90dvh; overflow-y:auto; overscroll-behavior:contain; }
+.aura-preview-character .personaggio-scena { max-width:360px; margin-inline:auto; }
+.aura-preview-character .personaggio-stati { display:none; }
+.grafico { padding:18px 12px; border:1px solid var(--bordo); border-radius:16px; background:linear-gradient(145deg,#1b2521,#111916); }
+.grafico .asse-txt { fill:var(--testo-2); font-size:11px; font-variant-numeric:tabular-nums; }
+.grafico .asse-titolo { fill:var(--testo); font-size:12px; font-weight:650; }
+.grafico-selezione { min-height:24px; color:var(--testo); font-size:.9rem; font-variant-numeric:tabular-nums; }
+.grafico .punto-grafico { cursor:pointer; stroke-width:8px; stroke:transparent; paint-order:stroke; }
+.grafico .punto-grafico:focus { stroke:var(--giallo); stroke-width:3px; outline:none; }
+.grafico-dati-txt { line-height:1.7; overflow-wrap:anywhere; }
+.contenuto > .blocco, .scheda-giorno, .card-rank { border-radius:18px; }
+.contenuto > .blocco { margin-block:18px; }
+.contenuto > h1 { margin-bottom:24px; }
+.chip-scelte { display:flex; flex-wrap:wrap; gap:8px; margin-block:12px 20px; }
+.chip-scelte .chip { min-height:44px; }
+.timer-recupero { font-variant-numeric:tabular-nums; letter-spacing:.035em; }
+.recupero-attivo { color:var(--verde); }
+button { transition:background-color .16s,border-color .16s,transform .16s; }
+button:active:not(:disabled) { transform:translateY(1px); }
+@media(max-width:480px) {
+  .aura-shop-grid { gap:12px; }
+  .aura-armor-card { height:300px; }
+  .aura-preview-panel { width:calc(100vw - 24px); padding:16px; }
+  .contenuto > .blocco { padding:16px; }
+  .grafico { padding:12px 6px; }
+  input,select,textarea { font-size:16px; }
+}
+@media(prefers-reduced-motion:reduce) {
+  *,*::before,*::after { animation:none!important; transition:none!important; scroll-behavior:auto!important; }
+}
+
+/* Scenari locali alle anteprime: nessuna modifica dello sfondo principale. */
+.aura-preview-scene { position:relative; isolation:isolate; overflow:hidden; border-radius:18px; }
+.aura-preview-environment { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:-1; pointer-events:none; }
+.aura-preview-scene .aura-preview-character { background:transparent; }
+.aura-skin-requisito { display:grid; gap:6px; padding:12px 0; font-size:.85rem; }
+.aura-skin-requisito progress { width:100%; accent-color:#b793ef; }
+
+.aura-shop-card .aura-skin-miniatura { max-height:280px; overflow:hidden; }
+.aura-shop-card .aura-skin-miniatura .personaggio-ritratto { max-height:280px; object-fit:contain; }
