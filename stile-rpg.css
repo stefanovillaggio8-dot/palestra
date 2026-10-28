@@ -792,3 +792,33 @@ button:active:not(:disabled) { transform:translateY(1px); }
 
 /* Il fumo scuro NON deve utilizzare screen: screen renderebbe i neri invisibili. */
 .personaggio-scena-grafica.shop-effetto-ombra .rpg-effetti-canvas { mix-blend-mode:normal; }
+
+
+/* La ricompensa degli 80 giorni e' separata dai sei premi di armatura. */
+.pezzo-corona-infinito {
+  border:1px solid rgba(209,173,255,.5);
+  background:linear-gradient(160deg,rgba(67,38,116,.45),rgba(35,23,56,.72));
+  min-width:116px;
+}
+.pezzo-corona-infinito.acceso {
+  border-color:rgba(255,218,128,.83);
+  box-shadow:0 0 18px rgba(195,140,255,.22),inset 0 0 22px rgba(122,75,225,.15);
+}
+.corona-streak-icon {
+  display:block;
+  font-size:2.6rem;
+  text-align:center;
+  line-height:1.5;
+  color:#edcb8b;
+  text-shadow:0 0 14px rgba(234,191,105,.62);
+}
+.pezzo-corona-infinito.spento .corona-streak-icon {
+  color:#8e839d;
+  text-shadow:none;
+}
+.corona-streak-preview {
+  font-size:.72rem;
+  min-height:35px;
+  margin-top:4px;
+  width:100%;
+}
