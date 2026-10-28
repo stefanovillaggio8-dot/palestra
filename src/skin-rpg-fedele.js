@@ -58,7 +58,7 @@ export function applicaSkinRpg(grafica,foto,classe,armaturaId,skinId) {
   const canvas=document.createElement('canvas');
   canvas.className='rpg-skin-fedele';
   canvas.setAttribute('aria-hidden','true');
-  const ctx=canvas.getContext('2d',{willReadFrequently:true,alpha:true});
+  const ctx=typeof canvas.getContext==='function' ? canvas.getContext('2d',{willReadFrequently:true,alpha:true}) : null;
   if(!ctx)return null;
   grafica.appendChild(canvas);
   grafica.classList.add('rpg-skin-attiva');
