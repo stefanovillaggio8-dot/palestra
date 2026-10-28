@@ -2,6 +2,8 @@
 // Mantiene intatte le immagini dei livelli Streak e non anticipa armi o armature.
 // Nessun timer permanente: l'animazione si arresta quando il nodo viene rimosso.
 const MASSIMO_DPR = 1.5;
+const EFFETTI_ATTIVI = new WeakMap();
+export function smontaEffettiRpg(elemento) { EFFETTI_ATTIVI.get(elemento)?.(); }
 const TIPI = new Set(['effetto-ambra','effetto-ombra','effetto-fulmine','effetto-nebula']);
 const casuale = (a, b) => a + Math.random() * (b - a);
 
@@ -9,6 +11,7 @@ export function montaEffettiRpg(elemento, tipo, { corona = false, divina = false
   if (!elemento || (!TIPI.has(tipo) && !corona && !divina)) return () => {};
   if (typeof document === 'undefined' || typeof requestAnimationFrame !== 'function') return () => {};
   const canvas = document.createElement('canvas');
+  smontaEffettiRpg(elemento);
   canvas.className = 'rpg-effetti-canvas';
   canvas.setAttribute('aria-hidden', 'true');
   canvas.setAttribute('role', 'presentation');
@@ -167,6 +170,7 @@ export function montaEffettiRpg(elemento, tipo, { corona = false, divina = false
     if(osservatore)osservatore.disconnect();
     if(dimensioni)dimensioni.disconnect();
     canvas.remove();
+    if(EFFETTI_ATTIVI.get(elemento)===fermati)EFFETTI_ATTIVI.delete(elemento);
   }
   function ciclo(ms) {
     if(terminato)return;
@@ -179,6 +183,7 @@ export function montaEffettiRpg(elemento, tipo, { corona = false, divina = false
       ultima=ms;ridimensiona();disegna(ms/1000);
     }
     if(!menoMovimento)frameId=requestAnimationFrame(ciclo);
+    else { osservatore?.disconnect(); dimensioni?.disconnect(); }
   }
   if(typeof IntersectionObserver==='function'){
     osservatore=new IntersectionObserver(es=>{visibile=es.some(e=>e.isIntersecting);},{threshold:0});
@@ -187,6 +192,7 @@ export function montaEffettiRpg(elemento, tipo, { corona = false, divina = false
   if(typeof ResizeObserver==='function'){
     dimensioni=new ResizeObserver(ridimensiona);dimensioni.observe(elemento);
   }
+  EFFETTI_ATTIVI.set(elemento,fermati);
   frameId=requestAnimationFrame(ciclo);
   return fermati;
 }

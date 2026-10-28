@@ -40,7 +40,8 @@ import { soglieLegibiliNuove } from './rank-v3/valutazione.js';
 import { confrontoGiorno, confrontiMensili, GIORNI_UN_MESE } from './confronto-mensile.js';
 import { profiloEsercizio, profiloPerPesoCorporeo, RANK, ETICHETTE_MISURA, descriviPunteggio, descrizioneLivello, livelloEsercizio, impostaLivelliImparati, livelliImparati, rapportoDifficolta, MOLTIPLICATORI_SOGLIA, passoCaricabile } from './rank-config.js';
 import { formattaAura } from './aura.js';
-import { montaEffettiRpg } from './effetti-rpg-canvas.js';
+import { montaEffettiRpg, smontaEffettiRpg } from './effetti-rpg-canvas.js';
+import { applicaSkinRpg } from './skin-rpg-fedele.js';
 import { elencoAvatar, avatarPerId, gradienteAvatar, iniziali } from './avatar.js';
 import { amiciDi, confronta, classifichePerEsercizio, privacyDi, campiVisibili, PRIVACY_PREDEFINITE } from './sociale.js';
 import { classificaEsercizio as riconosciEsercizio } from './esercizi-classificatore.js';
@@ -1571,28 +1572,53 @@ function apriAnteprimaAura(oggetto, profilo, st) {
       el('small', { testo: oggetto.classe ? CLASSE_AURA[oggetto.classe] : 'Cosmetico per il tuo personaggio' }),
     ]),
   ]);
-  const profiloAnteprima = { ...profilo,
-    classe_rpg: oggetto.classe || profilo.classe_rpg,
-    equipaggiamento_aura: { ...(profilo.equipaggiamento_aura || {}), [oggetto.tipo]: oggetto.id },
-  };
-  const personaggio = bloccoPersonaggio(profiloAnteprima, st);
-  personaggio.classList.add('aura-preview-character');
-  for (const nodo of personaggio.querySelectorAll('.riga-pezzi, .personaggio-equipaggiamento, button')) nodo.remove();
-  const notaAnteprima = personaggio.querySelector('.personaggio-dati .nota');
-  if (notaAnteprima) notaAnteprima.textContent = 'Anteprima · ' + oggetto.nome;
-
-  if (oggetto.classe && oggetto.classe !== profilo.classe_rpg) {
-    pannello.appendChild(el('p', { class: 'aura-preview-warning', testo: 'Anteprima della classe ' + CLASSE_AURA[oggetto.classe] + '. La tua classe non viene cambiata.' }));
-  }
+  // La skin Astrale e' un solo acquisto, con tre vere anteprime di classe.
+  // Il selettore e' SOLO VISIVO e non cambia la classe o gli oggetti del profilo.
+  let classeAnteprima = oggetto.classe || profilo.classe_rpg || 'guerriero';
+  const scena = el('div', { class: 'aura-preview-scene' });
   const scenario = scenarioSkin(oggetto.id);
-  if (scenario) {
-    const scena = el('div', { class: 'aura-preview-scene' });
-    scena.appendChild(el('img', { class: 'aura-preview-environment', src: scenario, alt: '', aria: { hidden: 'true' } }));
-    scena.appendChild(personaggio);
-    pannello.appendChild(scena);
-  } else pannello.appendChild(personaggio);
+  if (scenario) scena.appendChild(el('img', {
+    class:'aura-preview-environment', src:scenario,alt:'', aria:{hidden:'true'},
+  }));
+  const contenitore = el('div',{class:'aura-preview-avatar-container'});
+  scena.appendChild(contenitore);
+  const disegnaAnteprima = () => {
+    const profiloAnteprima = {
+      ...profilo, classe_rpg: classeAnteprima,
+      equipaggiamento_aura: { ...(profilo.equipaggiamento_aura || {}), [oggetto.tipo]: oggetto.id },
+    };
+    const personaggio = bloccoPersonaggio(profiloAnteprima, st);
+    personaggio.classList.add('aura-preview-character');
+    for (const nodo of personaggio.querySelectorAll('.riga-pezzi, .personaggio-equipaggiamento, button')) nodo.remove();
+    const nota = personaggio.querySelector('.personaggio-dati .nota');
+    if (nota) nota.textContent = 'Anteprima · ' + oggetto.nome;
+    // Interrompi la precedente animazione prima di sostituire l'avatar.
+    for (const precedente of contenitore.querySelectorAll('.personaggio-scena-grafica')) smontaEffettiRpg(precedente);
+    svuota(contenitore);
+    contenitore.appendChild(personaggio);
+  };
+  if (oggetto.id === 'skin-mitica') {
+    const selettore = el('div', { class:'aura-preview-classi', role:'group',
+      aria:{label:'Classe per anteprima Astrale'} });
+    for (const id of ['guerriero','assassino','berserker']) {
+      selettore.appendChild(bottone(CLASSE_AURA[id], {
+        classe:'fantasma aura-classe-btn'+(id===classeAnteprima?' attiva':''),
+        onClick:()=> {
+          classeAnteprima=id;
+          for (const b of selettore.querySelectorAll('button')) b.classList.toggle('attiva', b.textContent===CLASSE_AURA[id]);
+          disegnaAnteprima();
+        },
+      }));
+    }
+    pannello.appendChild(selettore);
+  } else if (oggetto.classe && oggetto.classe !== profilo.classe_rpg) {
+    pannello.appendChild(el('p', { class:'aura-preview-warning', testo:
+      'Anteprima della classe '+CLASSE_AURA[oggetto.classe]+'. La tua classe non viene cambiata.' }));
+  }
+  pannello.appendChild(scena);
+  disegnaAnteprima();
   if (oggetto.immagine) pannello.appendChild(el('img', { class: 'aura-armor-card', src: oggetto.immagine, alt: 'Illustrazione di ' + oggetto.nome }));
-  if (oggetto.tipo === 'Armatura') pannello.appendChild(el('p', { class: 'nota', testo: 'Illustrazione del set. Adattamento definitivo ai sei stati dell’avatar ancora in lavorazione.' }));
+  if (oggetto.tipo === 'Armatura') pannello.appendChild(el('p', { class: 'nota', testo: 'Sopra: risultato reale sul tuo personaggio e sullo stato Streak sbloccato. Sotto: illustrazione promozionale del set completo.' }));
   if (requisitoSkin(oggetto.id)) pannello.appendChild(bloccoRequisitoSkin(oggetto, st));
   pannello.appendChild(el('div', { class: 'aura-preview-footer' }, [
     el('span', { class: 'aura-shop-price', testo: '✧ ' + formattaAura(oggetto.prezzo) + ' Aura' }),
@@ -1622,11 +1648,9 @@ function apriAnteprimaCoronaRpg(profilo, st) {
     ]),
     el('p',{class:'nota',testo:'Anteprima temporanea sul tuo personaggio. Non modifica gli sblocchi.'}),
   ]);
-  const avatar=bloccoPersonaggio(profilo,st);
+  const avatar=bloccoPersonaggio({ ...profilo, __anteprimaCorona:true },st);
   avatar.classList.add('aura-preview-character');
   for(const nodo of avatar.querySelectorAll('.riga-pezzi, .personaggio-equipaggiamento, button')) nodo.remove();
-  const grafica=avatar.querySelector('.personaggio-scena-grafica');
-  if(grafica) montaEffettiRpg(grafica,'effetto-nebula',{corona:true});
   pannello.appendChild(avatar);
   const record=Math.max(0,Number(st?.streak?.record)||0);
   pannello.appendChild(el('p',{class:'nota',testo:record>=80
@@ -6220,6 +6244,7 @@ function prossimoGiornoPrevisto(previsti, daIso) {
  * personaggio, la lista serve a sapere cosa ti manca.
  */
 function bloccoPersonaggio(profilo, st) {
+  const coronaAnteprima = Boolean(profilo?.__anteprimaCorona);
   const rpg = calcolaAvatar(profilo.classe_rpg, serieMie(), seduteMie(), esercizioPerId, {
     profilo,
   });
@@ -6406,22 +6431,20 @@ function bloccoPersonaggio(profilo, st) {
       // ci passa sopra, davvero, e non è un colore fermo.
       grafica.appendChild(el('div', { class: 'aura-lustro', aria: { hidden: 'true' } }));
     }
-    grafica.appendChild(el('img', {
-        class: 'personaggio-ritratto',
-        src: percorsoStato(classeId, viso.indice),
-        alt: `${rpg.classe.nome}: ${armaturaEquipaggiata?.nome || viso.stato.riga}`,
-        loading: 'lazy',
-        decoding: 'async',
-      }));
-    const overlayCosmetici = svgCosmeticiRpg(
-      armaturaEquipaggiata?.id, // Livello cosmetico separato dalla progressione originale.
-      effettoEquipaggiato && effettoEquipaggiato.id,
-      skinEquipaggiata && skinEquipaggiata.id,
-    );
-    if (overlayCosmetici) grafica.appendChild(overlayCosmetici);
+    const fotoRpg = el('img', {
+      class: 'personaggio-ritratto',
+      src: percorsoStato(classeId, viso.indice),
+      alt: `${rpg.classe.nome}: ${armaturaEquipaggiata?.nome || skinEquipaggiata?.nome || viso.stato.riga}`,
+      loading: 'lazy',
+      decoding: 'async',
+    });
+    grafica.appendChild(fotoRpg);
+    // Un rivestimento fotografico selettivo usa i pixel dello stato STREAK attuale:
+    // volto, corporatura, sfondo e armi originali restano immutati.
+    applicaSkinRpg(grafica, fotoRpg, classeId, armaturaEquipaggiata?.id, skinEquipaggiata?.id);
     montaEffettiRpg(grafica, effettoEquipaggiato?.id || (skinEquipaggiata?.id === 'skin-mitica' ? 'effetto-nebula' : null), {
-      divina: viso.aura && !auraDivinaAttiva,
-      corona: auraDivinaAttiva,
+      divina: viso.aura && !auraDivinaAttiva && !coronaAnteprima,
+      corona: auraDivinaAttiva || coronaAnteprima,
     });
 
     // LA FILMSTRIP: sei miniature, una per stato.
@@ -6496,6 +6519,18 @@ function bloccoPersonaggio(profilo, st) {
         }),
       ]));
     }
+    const recordCorona = Math.max(0, Number(rpg.recordStreak)||0, Number(st?.streak?.record)||0);
+    const coronaSbloccata = recordCorona >= 80;
+    striscia.appendChild(el('div',{
+      class:'pezzo pezzo-corona-infinito' + (coronaSbloccata?' acceso':' spento'),
+      title:'Corona dell’Infinito — 80 giorni',
+    },[
+      el('span',{class:'pezzo-spunta',testo:coronaSbloccata?'✓':'·'}),
+      el('span',{class:'corona-streak-icon',testo:'♛'}),
+      el('span',{class:'pezzo-nome',testo:'Corona dell’Infinito'}),
+      el('span',{class:'pezzo-quando',testo:coronaSbloccata?'sbloccata · 80 giorni':'mancano '+(80-recordCorona)+' giorni'}),
+      bottone('Anteprima',{classe:'fantasma corona-streak-preview',onClick:()=>apriAnteprimaCoronaRpg(profilo,st)}),
+    ]));
     rigaStati.appendChild(striscia);
     // La striscia NON viene aggiunta qui: si mette DOPO la foto e dopo il nome.
     // Ste (11/10/2026): "deve esserci il mio attuale più grande". Prima la striscia
