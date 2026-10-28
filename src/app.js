@@ -40,6 +40,7 @@ import { soglieLegibiliNuove } from './rank-v3/valutazione.js';
 import { confrontoGiorno, confrontiMensili, GIORNI_UN_MESE } from './confronto-mensile.js';
 import { profiloEsercizio, profiloPerPesoCorporeo, RANK, ETICHETTE_MISURA, descriviPunteggio, descrizioneLivello, livelloEsercizio, impostaLivelliImparati, livelliImparati, rapportoDifficolta, MOLTIPLICATORI_SOGLIA, passoCaricabile } from './rank-config.js';
 import { formattaAura } from './aura.js';
+import { montaEffettiRpg } from './effetti-rpg-canvas.js';
 import { elencoAvatar, avatarPerId, gradienteAvatar, iniziali } from './avatar.js';
 import { amiciDi, confronta, classifichePerEsercizio, privacyDi, campiVisibili, PRIVACY_PREDEFINITE } from './sociale.js';
 import { classificaEsercizio as riconosciEsercizio } from './esercizi-classificatore.js';
@@ -1522,7 +1523,10 @@ function svgCosmeticiRpg(armaturaId, effettoId, skinId) {
   const skin = skinId === 'skin-mitica'
     ? '<g class="shop-skin-astrale" fill="none" stroke="#c4b5fd" stroke-width="6"><circle cx="450" cy="515" r="245" stroke-opacity=".34" stroke-dasharray="14 22"/><circle cx="450" cy="515" r="285" stroke-opacity=".19" stroke-dasharray="3 26"/><path d="M450 245 L465 282 L505 285 L475 310 L485 350 L450 328 L415 350 L425 310 L395 285 L435 282 Z" fill="#c4b5fd" fill-opacity=".5"/><path d="M280 480 l9 20 l20 9 l-20 9 l-9 20 l-9 -20 l-20 -9 l20 -9 Z M620 590 l8 17 l17 8 l-17 8 l-8 17 l-8 -17 l-17 -8 l17 -8 Z" fill="#e9d5ff"/></g>'
     : '';
-  const contenuto = (armature[armaturaId] || '') + (effetti[effettoId] || '') + skin;
+  // Gli effetti sono resi in Canvas, non con sagome statiche.
+  // Le armature SVG esistenti restano provvisorie finche' non sono disponibili
+  // illustrazioni fedeli agli avatar originali e ai sei stati di Streak.
+  const contenuto = (armature[armaturaId] || '') + skin;
   if (!contenuto) return null;
   const div = el('div', { class: 'personaggio-cosmetici-overlay', aria: { hidden: 'true' } });
   div.innerHTML = '<svg class="personaggio-cosmetici-svg" viewBox="0 0 900 1350" preserveAspectRatio="none" aria-hidden="true" focusable="false">' + contenuto + '</svg>';
@@ -1601,6 +1605,41 @@ function apriAnteprimaAura(oggetto, profilo, st) {
   overlay.querySelector('button')?.focus?.();
 }
 
+
+function apriAnteprimaCoronaRpg(profilo, st) {
+  const overlay = el('div', { class:'aura-preview-overlay', role:'dialog',
+    aria:{modal:'true',label:'Anteprima Corona dell’Infinito'} });
+  const precedente = document.activeElement;
+  const chiudi=()=>{ overlay.remove(); document.removeEventListener('keydown',tastiera); precedente?.focus?.(); };
+  const tastiera=e=>{ if(e.key==='Escape') chiudi(); };
+  const pannello=el('section',{class:'aura-preview-panel aura-corona-preview'},[
+    el('div',{class:'aura-preview-heading'},[
+      el('div',{},[
+        el('span',{class:'aura-shop-kicker',testo:'RICOMPENSA GRATUITA · 80 GIORNI'}),
+        el('h2',{testo:'Corona dell’Infinito'}),
+      ]),
+      bottone('✕',{classe:'fantasma aura-preview-close',titolo:'Chiudi anteprima',onClick:chiudi}),
+    ]),
+    el('p',{class:'nota',testo:'Anteprima temporanea sul tuo personaggio. Non modifica gli sblocchi.'}),
+  ]);
+  const avatar=bloccoPersonaggio(profilo,st);
+  avatar.classList.add('aura-preview-character');
+  for(const nodo of avatar.querySelectorAll('.riga-pezzi, .personaggio-equipaggiamento, button')) nodo.remove();
+  const grafica=avatar.querySelector('.personaggio-scena-grafica');
+  if(grafica) montaEffettiRpg(grafica,'effetto-nebula',{corona:true});
+  pannello.appendChild(avatar);
+  const record=Math.max(0,Number(st?.streak?.record)||0);
+  pannello.appendChild(el('p',{class:'nota',testo:record>=80
+    ? 'Ricompensa sbloccata: resta tua per sempre.'
+    : 'Ti mancano '+(80-record)+' giorni di record Streak per sbloccarla.'}));
+  pannello.appendChild(bottone('Chiudi anteprima',{classe:'fantasma',onClick:chiudi}));
+  overlay.appendChild(pannello);
+  overlay.addEventListener('click',e=>{if(e.target===overlay)chiudi();});
+  document.addEventListener('keydown',tastiera);
+  document.body.appendChild(overlay);
+  overlay.querySelector('button')?.focus?.();
+}
+
 function vistaAuraShop(zona, soloInventario = false) {
   const st = statoMio();
   const profilo = profiloAttivo();
@@ -1647,6 +1686,8 @@ function vistaAuraShop(zona, soloInventario = false) {
       el('strong',{testo:streak>=80?'✦ SBLOCCATA · 80 giorni raggiunti':Math.min(80,streak)+' / 80 giorni di streak'}),
       el('div',{class:'aura-shop-progress'},[el('span',{style:'width:'+Math.min(100,streak/80*100)+'%'})]),
       el('small',{testo:streak>=80?'Questa ricompensa resta tua: non serve comprarla.':'Allenati con costanza per sbloccare la più bella aura del gioco.'}),
+      bottone('Guarda la Corona animata',{classe:'fantasma aura-corona-preview-btn',
+        onClick:()=>apriAnteprimaCoronaRpg(profiloAttivo(),statoMio())}),
     ]),
   ]);
   if (!soloInventario) {
@@ -1741,6 +1782,8 @@ function vistaAuraShop(zona, soloInventario = false) {
           el('span',{class:'aura-shop-item-icon',testo:o.icona}),
           el('span',{class:'aura-shop-rarity',testo:o.rarita}),
         ]),
+        ...(o.immagine ? [el('img',{class:'aura-shop-card-art',src:o.immagine,
+          alt:'Illustrazione completa di '+o.nome,loading:'lazy',decoding:'async'})] : []),
         el('span',{class:'aura-shop-item-type',testo:o.tipo+(o.classe?' · '+CLASSE_AURA[o.classe]:'')}),
         el('h3',{testo:o.nome}),
         el('p',{class:'nota',testo:o.descrizione}),
@@ -6376,6 +6419,10 @@ function bloccoPersonaggio(profilo, st) {
       skinEquipaggiata && skinEquipaggiata.id,
     );
     if (overlayCosmetici) grafica.appendChild(overlayCosmetici);
+    montaEffettiRpg(grafica, effettoEquipaggiato?.id || (skinEquipaggiata?.id === 'skin-mitica' ? 'effetto-nebula' : null), {
+      divina: viso.aura && !auraDivinaAttiva,
+      corona: auraDivinaAttiva,
+    });
 
     // LA FILMSTRIP: sei miniature, una per stato.
     //
