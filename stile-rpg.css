@@ -1236,3 +1236,37 @@ button:focus-visible,.chip:focus-visible {outline:2px solid #c9a4ff;outline-offs
 
 /* v335 — anche l'inventario riporta l'icona piccola, senza grandi anteprime. */
 .aura-shop-owned-symbol {display:inline-grid;place-items:center;width:37px;height:37px;font-size:1.16rem;border:1px solid rgba(198,169,247,.32);border-radius:11px;background:rgba(99,66,161,.16);color:#eddfff;vertical-align:middle;margin-right:9px;}
+
+
+/* v335 — la preview e' leggibile su iPhone senza ritagliare testa o piedi.
+   Non si applica alla foto originale del Profilo. */
+.aura-preview-panel:not(.rpg-atelier-panel) .aura-preview-character {
+  width:min(100%,390px);
+  margin-inline:auto;
+}
+.aura-preview-panel:not(.rpg-atelier-panel) .personaggio-scena-grafica {
+  width:min(100%,350px);
+  margin-inline:auto;
+}
+.aura-preview-panel:not(.rpg-atelier-panel) .personaggio-ritratto {
+  display:block;
+  max-height:min(52dvh,430px);
+  width:100%;
+  height:auto;
+  object-fit:contain;
+  object-position:center;
+}
+.aura-preview-panel .aura-armor-card {
+  display:block;
+  max-width:100%;
+  margin:12px auto;
+  height:auto;
+  max-height:320px;
+  object-fit:contain;
+  border-radius:14px;
+}
+@media(max-width:480px) {
+  .aura-preview-panel:not(.rpg-atelier-panel) .personaggio-ritratto {
+    max-height:min(49dvh,375px);
+  }
+}
