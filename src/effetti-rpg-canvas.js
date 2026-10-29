@@ -279,22 +279,22 @@ export function montaEffettiRpg(elemento,tipo,{corona=false,divina=false,mitica=
     ctx.restore();
   }
   function cancellaCorpo(){
-    // La sagoma include armi e mantelli; destinazione-out elimina tutti i pixel
-    // delle animazioni sul corpo, anche le sfumature dei gradienti.
-    ctx.save();ctx.globalCompositeOperation='destination-out';
-    const shape=CONTORNI_RPG[personaggio]||CONTORNI_RPG.guerriero;
-    ctx.fillStyle='#000';
-    ctx.beginPath();
-    for(let i=0;i<shape.length;i++){
-      const [y,x1]=shape[i];
-      const x=limita(x1-.009,0,1)*w;
-      if(i===0)ctx.moveTo(x,y*h);else ctx.lineTo(x,y*h);
-    }
-    for(let i=shape.length-1;i>=0;i--){
-      const [y,,x2]=shape[i];
-      ctx.lineTo(limita(x2+.009,0,1)*w,y*h);
-    }
-    ctx.closePath();ctx.fill();
+    // Stesso bordo fotografico del compositore principale, senza poligoni
+    // secchi che creavano un ritaglio evidente davanti al Fumo d'Ombra.
+    if(typeof ctx.createRadialGradient!=='function')return;
+    ctx.save();
+    ctx.globalCompositeOperation='destination-out';
+    ctx.translate(w*.5,h*.49);
+    const rx=personaggio==='berserker'?.67:personaggio==='guerriero'?.62:.56;
+    ctx.scale(w*rx,h*.66);
+    const fade=ctx.createRadialGradient(0,0,.28,0,0,1.13);
+    fade.addColorStop(0,'rgba(0,0,0,1)');
+    fade.addColorStop(.52,'rgba(0,0,0,.99)');
+    fade.addColorStop(.74,'rgba(0,0,0,.85)');
+    fade.addColorStop(.90,'rgba(0,0,0,.38)');
+    fade.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=fade;
+    ctx.fillRect(-1.2,-1.2,2.4,2.4);
     ctx.restore();
   }
   function render(t){
