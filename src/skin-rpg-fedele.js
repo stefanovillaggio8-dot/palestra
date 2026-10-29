@@ -109,7 +109,10 @@ export function applicaSkinRpg(grafica,foto,classe,armaturaId,skinId) {
       // Armature riconoscibili come capi differenti, sulle stesse fotografie.
       // Astrale si aggiunge alla corazza, invece di rimpiazzarla.
       disegnaMaterialiArmaturaRpg(ctx,w,h,classe,armaturaId,skinId);
-      // Un piccolo sigillo nel petto differenzia le rarita' senza coprire il volto.
+      // Astrale non disegna più sigilli/triangoli artificiali sul petto:
+      // la pelle fotografica è preservata e la nuova luce è nell'ambiente.
+      if(skin.simbolo!=='astrale') {
+      // I dettagli delle altre armature sono immutati.
       const cx=w*.5,cy=h*(classe==='assassino'?.41:.405),radius=w*.023;
       ctx.save();
       ctx.globalAlpha=skin.simbolo==='astrale'?.68:.5;
@@ -127,6 +130,7 @@ export function applicaSkinRpg(grafica,foto,classe,armaturaId,skinId) {
         ctx.arc(cx,cy,radius,0,Math.PI*2);
       }
       ctx.stroke();ctx.restore();
+      }
       disegnato=true;
     }catch{
       // Vecchi Safari/browser non abilitati alla lettura dei pixel: la foto resta
