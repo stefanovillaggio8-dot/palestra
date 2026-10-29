@@ -1010,3 +1010,305 @@ button:active:not(:disabled) { transform:translateY(1px); }
     animation:none!important;transform:none!important;will-change:auto;
   }
 }
+
+
+/* ──────────────────────────────────────────────────────────────────
+   v335 — Riprogettazione estetica Aura Shop / Avatar, solo CSS.
+   Tutte le regole funzionali (rank, acquisti, Streak) rimangono in app.js.
+   ────────────────────────────────────────────────────────────────── */
+:root {
+  --rpg-inchiostro:#0b0e19;
+  --rpg-viola:#a891ff;
+  --rpg-oro:#e7bd71;
+  --rpg-vetro:rgba(20,19,38,.92);
+  --rpg-bordo:rgba(170,146,232,.25);
+}
+body {
+  background:
+    radial-gradient(ellipse 90% 26% at 50% -7%,rgba(112,73,170,.17),transparent 82%),
+    radial-gradient(ellipse 78% 30% at 100% 46%,rgba(105,88,162,.075),transparent 78%),
+    radial-gradient(ellipse 70% 28% at 0 90%,rgba(183,137,59,.06),transparent 78%),
+    linear-gradient(180deg,#0b1113,#101618 44%,#0b1015 100%);
+}
+#app {padding-inline:clamp(12px,3vw,24px);}
+.contenuto>h1,.contenuto>h2 {
+  letter-spacing:-.035em;
+  text-wrap:balance;
+}
+.blocco,.scheda-giorno,.tessera-missione,.riga-seduta {
+  border-color:rgba(155,145,184,.2);
+  box-shadow:0 12px 36px rgba(0,0,0,.15),inset 0 1px rgba(255,255,255,.035);
+}
+.blocco {background:linear-gradient(145deg,rgba(25,30,32,.94),rgba(18,23,29,.94));}
+button,.voce-menu,.aura-shop-owned {
+  -webkit-tap-highlight-color:transparent;
+}
+button:focus-visible,.aura-shop-filter:focus-visible,.voce-menu:focus-visible {
+  outline:2px solid #c8b4ff;outline-offset:3px;
+}
+
+/* Aura Shop: carte più compatte, visibili su mobile senza immagini enormi. */
+.aura-shop-hero {
+  position:relative;
+  overflow:hidden;
+  isolation:isolate;
+  border:1px solid rgba(191,160,255,.31);
+  border-radius:22px;
+  background:
+    radial-gradient(ellipse 95% 100% at 110% -20%,rgba(158,113,238,.26),transparent 62%),
+    radial-gradient(ellipse 80% 80% at -10% 125%,rgba(216,169,84,.11),transparent 66%),
+    linear-gradient(145deg,#19172b,#111321 70%);
+  box-shadow:0 16px 45px rgba(0,0,0,.24),inset 0 1px rgba(255,255,255,.09);
+  padding:clamp(19px,4vw,30px);
+}
+.aura-shop-hero::before {
+  content:'';
+  position:absolute;inset:10px;
+  border:1px solid rgba(255,222,164,.07);
+  border-radius:16px;z-index:-1;pointer-events:none;
+}
+.aura-shop-hero h1 {
+  font-size:clamp(2rem,5vw,2.85rem);
+  letter-spacing:-.045em;
+  color:#f4ecff;
+}
+.aura-shop-hero .aura-shop-kicker {
+  color:#d7c6ff;
+  letter-spacing:.18em;
+  font-size:.72rem;
+}
+.aura-shop-wallet {
+  border:1px solid rgba(228,186,98,.22);
+  border-radius:15px;
+  background:linear-gradient(110deg,rgba(71,53,103,.3),rgba(25,26,48,.64));
+  box-shadow:inset 0 1px rgba(255,255,255,.055);
+}
+.aura-shop-wallet strong {
+  color:#f1d697;
+  font-variant-numeric:tabular-nums;
+  text-shadow:0 0 22px rgba(240,186,104,.13);
+}
+.aura-shop-filters {
+  gap:9px;
+  padding:12px 1px 18px;
+  scrollbar-width:none;
+}
+.aura-shop-filters::-webkit-scrollbar {display:none;}
+.aura-shop-filter {
+  background:#1a1b30;
+  border:1px solid rgba(189,170,239,.24);
+  border-radius:13px;
+  padding:10px 15px;
+  color:#d8d3e9;
+  font-weight:600;
+}
+.aura-shop-filter.attivo {
+  background:linear-gradient(125deg,#6639b5,#452979);
+  border-color:#ac85ef;
+  color:white;
+  box-shadow:0 0 0 1px rgba(187,141,255,.25),0 5px 24px rgba(116,63,195,.20);
+}
+.aura-shop-card {
+  display:flex;
+  flex-direction:column;
+  gap:7px;
+  border:1px solid var(--rpg-bordo);
+  border-radius:19px;
+  background:
+    radial-gradient(85% 70% at 97% 2%,rgba(133,89,192,.14),transparent 85%),
+    linear-gradient(150deg,#18182d,#101522);
+  box-shadow:0 10px 30px rgba(0,0,0,.2),inset 0 1px rgba(255,255,255,.04);
+  padding:clamp(15px,3vw,21px);
+}
+.aura-shop-card.rarita-leggendario,
+.aura-shop-card.rarita-mitico {
+  border-color:rgba(231,184,101,.5);
+  background:
+    radial-gradient(80% 72% at 95% 0%,rgba(201,156,70,.14),transparent 78%),
+    linear-gradient(155deg,#201d2b,#121521);
+}
+.aura-shop-card-top {display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.aura-shop-item-symbol {
+  display:grid;
+  place-items:center;
+  flex:0 0 47px;
+  width:47px;height:47px;
+  font-size:1.45rem;
+  border-radius:13px;
+  color:#f3e5ff;
+  background:radial-gradient(circle at 40% 26%,rgba(167,121,236,.35),rgba(67,45,105,.45));
+  border:1px solid rgba(198,162,240,.4);
+  box-shadow:0 4px 15px rgba(71,39,119,.2);
+}
+.aura-shop-card h3 {font-size:clamp(1.15rem,2.8vw,1.37rem);line-height:1.23;margin:3px 0 0;}
+.aura-shop-card .nota {line-height:1.42;min-height:0;max-width:58ch;}
+.aura-shop-rarity {
+  border:1px solid rgba(197,170,238,.24);
+  background:rgba(95,63,131,.17);
+  color:#ddc6fc;
+  border-radius:999px;padding:5px 10px;
+  font-size:.74rem;text-transform:uppercase;letter-spacing:.07em;
+}
+.aura-shop-card.rarita-mitico .aura-shop-rarity,
+.aura-shop-card.rarita-leggendario .aura-shop-rarity {
+  color:#f0d59f;background:rgba(171,124,49,.16);border-color:rgba(232,179,103,.34);
+}
+.aura-shop-item-type {text-transform:uppercase;letter-spacing:.08em;font-size:.72rem;color:#baaed4;}
+.aura-shop-price {color:#ebd3ff;font-weight:750;font-variant-numeric:tabular-nums;letter-spacing:.015em;}
+.aura-shop-card-actions {
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  margin-top:auto;
+  gap:9px;
+}
+.aura-shop-card-actions button {
+  min-height:45px;
+  margin:0;
+  border-radius:12px;
+  font-size:.92rem;
+  overflow-wrap:anywhere;
+}
+.aura-shop-card-actions .aura-shop-preview-btn {
+  background:rgba(21,22,39,.88);
+  border:1px solid rgba(199,174,238,.3);
+  color:#f0e7fc;
+}
+.aura-shop-card-actions button:not(.aura-shop-preview-btn):not([disabled]) {
+  background:linear-gradient(130deg,#8d5de0,#6d41bb);
+  color:#fff;
+  border:1px solid rgba(208,173,255,.7);
+  box-shadow:0 3px 17px rgba(128,72,223,.18);
+}
+.aura-shop-owned-grid .aura-shop-owned {
+  border-radius:15px;
+  border-color:rgba(186,160,242,.2);
+  background:linear-gradient(125deg,rgba(33,30,52,.95),rgba(19,23,33,.94));
+}
+.aura-streak-mitica,.aura-streak-divina {
+  border-radius:20px;
+  border-color:rgba(225,182,94,.33);
+  background:
+    radial-gradient(ellipse 80% 80% at 100% 0%,rgba(187,147,72,.17),transparent 85%),
+    linear-gradient(140deg,rgba(31,30,49,.95),rgba(18,22,33,.95));
+}
+
+/* Anteprima fotografica: mai tagliare il personaggio su smartphone. */
+.aura-preview-overlay {
+  align-items:safe center;
+  overflow-y:auto;
+  padding:max(14px,env(safe-area-inset-top)) 12px max(16px,env(safe-area-inset-bottom));
+  background:rgba(4,5,15,.89);
+  -webkit-backdrop-filter:blur(16px);
+  backdrop-filter:blur(16px);
+}
+.aura-preview-panel {
+  width:min(100%,580px);
+  max-height:calc(100dvh - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  border:1px solid rgba(174,137,243,.44);
+  border-radius:23px;
+  background:
+    radial-gradient(ellipse 85% 40% at 90% 0,rgba(120,80,190,.16),transparent 85%),
+    linear-gradient(158deg,#1a182b,#0f1220);
+  box-shadow:0 20px 70px rgba(0,0,0,.65),inset 0 1px rgba(255,255,255,.06);
+  padding:clamp(13px,3.5vw,20px);
+  scrollbar-width:thin;
+}
+.aura-preview-heading {align-items:flex-start;position:relative;gap:10px;}
+.aura-preview-heading h2 {font-size:clamp(1.42rem,4.1vw,1.9rem);}
+.aura-preview-close {
+  min-width:43px;min-height:43px;
+  border:1px solid rgba(195,173,237,.29);
+  border-radius:13px;
+  background:#242136;
+}
+.aura-preview-scene {
+  border-radius:20px;
+  padding:clamp(8px,2.4vw,15px);
+  border:1px solid rgba(178,141,238,.2);
+  background:
+    radial-gradient(circle at 50% 36%,rgba(89,56,133,.18),transparent 72%),
+    #0c0f1b;
+  overflow:hidden;
+}
+.aura-preview-panel .aura-preview-character {
+  width:100%;
+  max-width:min(100%,420px);
+  margin:auto;
+}
+.aura-preview-panel .personaggio-scena {
+  max-width:100%;min-width:0;margin:0 auto;
+}
+.aura-preview-panel .personaggio-scena-grafica {
+  max-width:100%;
+  margin:0 auto;
+  overflow:hidden;
+  isolation:isolate;
+  background:#0d1016;
+  border:1px solid rgba(215,179,123,.18);
+  box-shadow:0 10px 33px rgba(0,0,0,.34);
+}
+.aura-preview-classi {
+  gap:8px;position:sticky;top:0;z-index:3;
+  background:rgba(20,19,37,.92);
+  padding:7px 0;
+  backdrop-filter:blur(10px);
+}
+.aura-preview-classi .aura-classe-btn.attiva {
+  background:linear-gradient(140deg,#6540a0,#38235e);
+  border-color:#be9cff;
+  box-shadow:inset 0 0 0 1px rgba(205,168,255,.34),0 3px 17px rgba(137,92,221,.2);
+}
+.aura-preview-panel .aura-armor-card {
+  width:100%;height:auto;max-height:540px;object-fit:contain;
+  border-radius:16px;border:1px solid rgba(190,161,222,.2);
+}
+.aura-save-photo {
+  width:100%;
+  min-height:44px;
+  margin:12px auto;
+  border:1px solid rgba(234,195,117,.48);
+  color:#f5dfb3;
+  background:linear-gradient(135deg,rgba(104,74,153,.23),rgba(115,82,41,.17));
+  border-radius:13px;
+}
+
+/* Un'unica immagine composita per tutti gli oggetti, generata per combinazione.
+   Gli effetti vecchi restano esclusivamente come fallback senza Canvas. */
+.personaggio-scena-grafica .rpg-foto-combinata {
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  z-index:8;
+  pointer-events:none;
+  object-fit:fill;
+  border-radius:inherit;
+  contain:layout paint;
+}
+.personaggio-scena-grafica.rpg-composite-active>.aura-foto-fx,
+.personaggio-scena-grafica.rpg-composite-active>.rpg-effetti-canvas {
+  display:none!important;
+}
+.personaggio-scena-grafica.rpg-composite-active>.aura-onde,
+.personaggio-scena-grafica.rpg-composite-active>.aura-colonna,
+.personaggio-scena-grafica.rpg-composite-active>.aura-scie,
+.personaggio-scena-grafica.rpg-composite-active>.aura-stelle,
+.personaggio-scena-grafica.rpg-composite-active>.aura-lustro,
+.personaggio-scena-grafica.rpg-composite-active>.aura-corona {
+  display:none!important;
+}
+.personaggio-scena-grafica.rpg-composite-active::before,
+.personaggio-scena-grafica.rpg-composite-active::after {content:none!important;}
+@media(max-width:480px) {
+  #app {padding-inline:12px;}
+  .aura-shop-card {padding:15px;border-radius:17px;}
+  .aura-shop-card-actions {gap:7px;}
+  .aura-shop-card-actions button {font-size:.86rem;padding-inline:8px;}
+  .aura-preview-overlay {padding-inline:7px;}
+  .aura-preview-panel {border-radius:18px;}
+  .aura-shop-filters {margin-inline:-2px;}
+}
+@media(prefers-reduced-motion:reduce) {
+  .aura-shop-card,.aura-shop-item-symbol,.aura-shop-filter,
+  .aura-preview-panel,.rpg-foto-combinata {animation:none!important;transition:none!important;}
+}
