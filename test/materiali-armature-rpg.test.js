@@ -71,8 +71,14 @@ test('Vista e foto PNG mantengono gli strati della corazza e sfumano gli effetti
  assert.match(shop,/disegnaMaterialiArmaturaRpg\(ctx,w,h,classe,armaturaId,skinId\)/);
  assert.match(shop,/\.20\*maschera\*morbido/);
  assert.match(css,/mix-blend-mode:normal;\s*border-radius:inherit/);
- assert.match(photo,/ctx\.filter='blur\('/);
+ assert.match(photo,/createRadialGradient/);
+ assert.match(photo,/ctx\.filter=c\.effetto/);
  assert.match(exportPng,/fx\.filter='blur\('/);
  assert.match(exportPng,/globalCompositeOperation='source-over'/);
- assert.match(photo,/disegnaCoronaEnergetica\(ctx,width,height\)/);
+ assert.doesNotMatch(photo,/disegnaSprite\(ctx,atlas,'corona'/);
+ assert.match(photo,/querySelector\('\.rpg-corona-premium'\)/);
+ const svg=await readFile(new URL('../img/effetti/corona-infinito-v345.svg',import.meta.url),'utf8');
+ assert.match(svg,/viewBox="0 0 640 890"/);
+ assert.match(svg,/id="rune"/);
+ assert.match(svg,/id="star"/);
 });

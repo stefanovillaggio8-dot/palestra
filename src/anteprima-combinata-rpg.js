@@ -89,23 +89,23 @@ function disegnaSprite(ctx,img,id,x,y,w,h) {
   ctx.drawImage(img,cell[0]*iw,cell[1]*ih,iw,ih,x,y,w,h);
 }
 function ritagliaPersona(ctx,classe,w,h) {
-  const contour=SAGOME[classe]||SAGOME.guerriero;
+  // Stop ai ritagli triangolari/ovali netti: il fumo o la nebulosa devono
+  // dissolversi GRADUALMENTE dietro l'intero corpo. La foto originale, con
+  // volto, mantello e armi, non viene mai cancellata o ridipinta.
+  if(typeof ctx.createRadialGradient!=='function')return;
+  const larghezza=classe==='berserker'?.67:classe==='guerriero'?.62:.56;
   ctx.save();
   ctx.globalCompositeOperation='destination-out';
-  // Sfumatura ampia, senza l'ovale netto che sembrava una foto ritagliata.
-  // Se Safari non supporta filter, la scena resta comunque leggibile.
-  ctx.filter='blur('+Math.max(18,Math.round(w*.05))+'px)';
-  ctx.beginPath();
-  contour.forEach(([y,left],i)=>{
-    if(i===0)ctx.moveTo(w*left,y*h);
-    else ctx.lineTo(w*left,y*h);
-  });
-  for(let i=contour.length-1;i>=0;i--) {
-    const [y,,right]=contour[i];
-    ctx.lineTo(w*right,y*h);
-  }
-  ctx.closePath();
-  ctx.fillStyle='#000';ctx.fill();
+  ctx.translate(w*.5,h*.49);
+  ctx.scale(w*larghezza,h*.66);
+  const bordo=ctx.createRadialGradient(0,0,.28,0,0,1.13);
+  bordo.addColorStop(0,'rgba(0,0,0,1)');
+  bordo.addColorStop(.52,'rgba(0,0,0,.99)');
+  bordo.addColorStop(.74,'rgba(0,0,0,.85)');
+  bordo.addColorStop(.90,'rgba(0,0,0,.38)');
+  bordo.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=bordo;
+  ctx.fillRect(-1.2,-1.2,2.4,2.4);
   ctx.restore();
 }
 // Corona magica integrata: doppio anello, rune, scintille e bagliore riflesso.
@@ -154,6 +154,10 @@ function generaLivello(c,atlas,width,height) {
   }
   if(c.effetto) {
     ctx.save();ctx.globalAlpha=alpha;
+    // Morbidezza fotografica sulle texture invece di bordi incollati.
+    if('filter' in ctx)ctx.filter=c.effetto==='effetto-nebula'
+      ? 'blur('+Math.max(4,Math.round(width*.015))+'px) saturate(1.12)'
+      : 'blur('+Math.max(2,Math.round(width*.009))+'px)';
     disegnaSprite(ctx,atlas,c.effetto,0,0,width,height);
     ctx.restore();
   }
@@ -165,14 +169,10 @@ function generaLivello(c,atlas,width,height) {
   // Prima mascheriamo corpo e faccia: nessun fulmine, fumo o nebula
   // può attraversare il protagonista.
   ritagliaPersona(ctx,c.classe,width,height);
-  if(c.corona) {
-    // La Corona e' un dettaglio autonomo SOPRA la testa.
-    // Non viene applicata a schermo intero sul petto.
-    ctx.save();ctx.globalAlpha=.92;
-    disegnaSprite(ctx,atlas,'corona',width*.31,height*.015,width*.38,height*.16);
-    disegnaCoronaEnergetica(ctx,width,height);
-    ctx.restore();
-  }
+  // La Corona 80 giorni è renderizzata da un unico SVG vettoriale sopra la
+  // fotografia; non duplicarla disegnando di nuovo la vecchia texture.
+  // disegnaCoronaEnergetica resta disponibile per il fallback dell'Atelier.
+
   return layer;
 }
 function getCachedLayer(c,atlas,w,h) {
@@ -249,6 +249,9 @@ export async function scaricaFotoCombinataRpg(grafica,classe='rpg') {
   }
   const effects=grafica.querySelector('.rpg-foto-combinata');
   if(!integrata && effects?.width)ctx.drawImage(effects,0,0,out.width,out.height);
+  const crown=grafica.querySelector('.rpg-corona-premium');
+  if(crown?.complete && crown.naturalWidth>0)
+    ctx.drawImage(crown,0,0,out.width,out.height);
   const data=out.toDataURL('image/png');
   const anchor=document.createElement('a');
   anchor.href=data;

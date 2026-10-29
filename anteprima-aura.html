@@ -8,11 +8,11 @@
      Per tre versioni di fila Ste ha guardato questa anteprima e ha detto "non e'
      cambiato nulla" mentre io stavo cambiando l'aura. Il motivo era questo: qui il
      CSS era richiesto come `./stile.css`, senza numero, mentre l'app lo chiede come
-     `./stile.css?v=344`. Sono DUE indirizzi diversi per lo stesso file, e il browser
+     `./stile.css?v=345`. Sono DUE indirizzi diversi per lo stesso file, e il browser
      tiene in cache quello senza numero per sempre.
      Ogni volta che si alza la versione, va alzata anche qui, e c'e' un test che lo
      controlla (test/anteprima-cache.test.js). -->
-<link rel="stylesheet" href="./stile.css?v=344">
+<link rel="stylesheet" href="./stile.css?v=345">
 <style>
   /* Questa pagina esiste solo per mostrare l'Aura divina nelle tre classi.
      Usa il CSS vero dell'app (quello che c'? in stile.css), non una copia: se

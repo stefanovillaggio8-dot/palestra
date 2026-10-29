@@ -6445,6 +6445,20 @@ function bloccoPersonaggio(profilo, st) {
     const recordCorona = Math.max(Number(rpg.recordStreak)||0, Number(st?.streak?.record)||0);
     const coronaAttiva = statoCoronaInfinito(equipaggiamentoRpg, recordCorona, coronaAnteprima).visibile;
     if (coronaAttiva) grafica.classList.add('personaggio-aura-divina');
+    if(coronaAttiva) {
+      // Premio di 80 giorni: un unico livello illustrato premium, niente
+      // due corone incollate tra il vecchio atlante e il nuovo Canvas.
+      const premioCorona=el('img',{
+        class:'rpg-corona-premium',
+        src:'./img/effetti/corona-infinito-v345.svg',
+        alt:'',aria:{hidden:'true'},
+        loading:'eager',decoding:'async',
+      });
+      premioCorona.setAttribute('role','presentation');
+      grafica.appendChild(premioCorona);
+      grafica.classList.add('rpg-corona-premium-attiva');
+    }
+
     if (viso.aura || coronaAttiva || auraDivinaAnteprima) {
       grafica.classList.add('personaggio-aura');
       // LE SCINTILLE. La luce, i fazzi, l'anello e il contorno li fa il CSS; le
@@ -6671,44 +6685,38 @@ function bloccoPersonaggio(profilo, st) {
     }));
     const striscia = el('div', { class: 'striscia-pezzi' });
     for (const c of caselle) {
-      striscia.appendChild(el('div', {
-        class: 'pezzo' + (c.sbloccato ? ' acceso' : ' spento') + (c.inCorso ? ' adesso' : ''),
-        title: c.nome,
-      }, [
-        // LA SPUNTA. Dice "questo l'hai preso" senza dover leggere la riga sotto, e
-        // sta solo dove il premio è davvero sbloccato: è un segno, non una
-        // decorazione. Sulle caselle ancora chiuse c’è un puntino, così la fila si
-        // legge tutta di un colpo.
-        el('span', {
-          class: 'pezzo-spunta' + (c.sbloccato ? ' acceso' : ''),
-          testo: c.sbloccato ? '\u2713' : '\u00b7',
-          aria: { hidden: 'true' },
+      // Aura divina è GIÀ il sesto premio di schedaProgressione:
+      // niente seconda tessera separata. Aggiungiamo Anteprima a quella esistente.
+      const tessera=el('div',{
+        class:'pezzo' + (c.sbloccato ? ' acceso' : ' spento') +
+          (c.inCorso ? ' adesso' : '') + (c.aura ? ' pezzo-aura-divina' : ''),
+        title:c.nome,
+      },[
+        el('span',{
+          class:'pezzo-spunta' + (c.sbloccato ? ' acceso' : ''),
+          testo:c.sbloccato ? '✓' : '·',
+          aria:{hidden:'true'},
         }),
-        el('img', {
-          class: 'pezzo-img' + (c.aura ? ' con-aura' : ''),
-          src: percorsoStato(classeId, c.immagine),
-          alt: c.sbloccato ? c.nome : `Non ancora sbloccato: ${c.nome}`,
-          loading: 'lazy',
-          decoding: 'async',
+        el('img',{
+          class:'pezzo-img' + (c.aura ? ' con-aura' : ''),
+          src:percorsoStato(classeId,c.immagine),
+          alt:c.sbloccato ? c.nome : 'Non ancora sbloccato: ' + c.nome,
+          loading:'lazy',decoding:'async',
         }),
-        el('span', { class: 'pezzo-nome', testo: c.nome }),
-        el('span', {
-          class: 'pezzo-quando',
-          testo: c.sbloccato
+        el('span',{class:'pezzo-nome',testo:c.nome}),
+        el('span',{class:'pezzo-quando',
+          testo:c.sbloccato
             ? (c.inCorso ? 'questo sei tu' : 'sbloccato')
-            : (c.chiave === 'niente'
-              ? 'da cui parti'
-              : `ti mancano ${c.mancano} ${c.mancano === 1 ? 'giorno' : 'giorni'}`),
+            : (c.chiave==='niente' ? 'da cui parti' :
+              'ti mancano '+c.mancano+' '+(c.mancano===1?'giorno':'giorni')),
         }),
-      ]));
+      ]);
+      if(c.aura) tessera.appendChild(bottone('Anteprima',{
+        classe:'fantasma aura-divina-preview-btn premio-preview-btn',
+        onClick:()=>apriAnteprimaAuraDivinaRpg(profilo,st),
+      }));
+      striscia.appendChild(tessera);
     }
-    // Anteprima della ricompensa gratuita dei 75 giorni direttamente nel Profilo.
-    striscia.appendChild(el('div',{class:'pezzo pezzo-aura-divina'},[
-      el('span',{class:'pezzo-nome',testo:'Aura divina'}),
-      el('span',{class:'pezzo-quando',testo:recordCorona>=75?'sbloccata · 75 giorni':'mancano '+(75-recordCorona)+' giorni'}),
-      bottone('Anteprima',{classe:'fantasma aura-divina-preview-btn',
-        onClick:()=>apriAnteprimaAuraDivinaRpg(profilo,st)}),
-    ]));
     const coronaSbloccata = recordCorona >= 80;
     const coronaIndossata = statoCoronaInfinito(equipaggiamentoRpg, recordCorona).equipaggiata;
     striscia.appendChild(el('div',{
@@ -6716,10 +6724,20 @@ function bloccoPersonaggio(profilo, st) {
       title:'Corona dell’Infinito — 80 giorni',
     },[
       el('span',{class:'pezzo-spunta',testo:coronaSbloccata?'✓':'·'}),
-      el('span',{class:'corona-streak-icon',testo:'♛'}),
+      // Stessa immagine e stesso formato delle altre ricompense di Streak.
+      // La Corona si vede per intero nell'anteprima, non come un'emoji isolata.
+      el('div',{class:'pezzo-corona-ritratto'},[
+        el('img',{
+          class:'pezzo-img',
+          src:percorsoStato(classeId,5),
+          alt:'Personaggio con armatura completa, anteprima Corona dell’Infinito',
+          loading:'lazy',decoding:'async',
+        }),
+        el('span',{class:'pezzo-corona-sigillo',testo:'✧',aria:{hidden:'true'}}),
+      ]),
       el('span',{class:'pezzo-nome',testo:'Corona dell’Infinito'}),
       el('span',{class:'pezzo-quando',testo:coronaSbloccata?(coronaIndossata?'equipaggiata · 80 giorni':'sbloccata, non equipaggiata'):'mancano '+(80-recordCorona)+' giorni'}),
-      bottone('Anteprima',{classe:'fantasma corona-streak-preview',onClick:()=>apriAnteprimaCoronaRpg(profilo,st)}),
+      bottone('Anteprima',{classe:'fantasma corona-streak-preview premio-preview-btn',onClick:()=>apriAnteprimaCoronaRpg(profilo,st)}),
     ]));
     rigaStati.appendChild(striscia);
     // La striscia NON viene aggiunta qui: si mette DOPO la foto e dopo il nome.
