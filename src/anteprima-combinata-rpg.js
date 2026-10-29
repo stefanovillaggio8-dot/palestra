@@ -241,13 +241,14 @@ export async function scaricaFotoCombinataRpg(grafica,classe='rpg') {
   out.height=Math.round(out.width*original.naturalHeight/original.naturalWidth);
   const ctx=out.getContext?.('2d');if(!ctx)return false;
   ctx.drawImage(original,0,0,out.width,out.height);
+  const integrata=Boolean(original.dataset?.scenaCinematografica);
   const skin=grafica.querySelector('.rpg-skin-fedele');
-  if(skin?.width) {
+  if(!integrata && skin?.width) {
     ctx.save();ctx.globalCompositeOperation='source-over';
     ctx.drawImage(skin,0,0,out.width,out.height);ctx.restore();
   }
   const effects=grafica.querySelector('.rpg-foto-combinata');
-  if(effects?.width)ctx.drawImage(effects,0,0,out.width,out.height);
+  if(!integrata && effects?.width)ctx.drawImage(effects,0,0,out.width,out.height);
   const data=out.toDataURL('image/png');
   const anchor=document.createElement('a');
   anchor.href=data;
