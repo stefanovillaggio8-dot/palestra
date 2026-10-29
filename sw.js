@@ -9,7 +9,7 @@
 // e il test I3 che sia quello dell'ultimo commit, altrimenti si alza la cache e si
 // lascia scritto il numero vecchio. E' successo due volte: nella v54 avevo alzato
 // solo questo file, e dopo la v55 avevo smesso di alzarlo del tutto.
-const VERSIONE = 'palestra-v351';
+const VERSIONE = 'palestra-v352';
 
 // LE 18 FOTO DEI PERSONAGGI, CON LA VERSIONE DENTRO.
 //
@@ -43,18 +43,18 @@ const FILE = [
   // Full-resolution photographic effect renders for all three RPG classes.
   ...['assassino','guerriero','berserker'].flatMap(classe =>
     ['ambra','fulmine','astrale'].map(effect =>
-      './img/personaggi/effetti/'+classe+'-'+effect+'.webp?v=351')),
+      './img/personaggi/effetti/'+classe+'-'+effect+'.webp?v=352')),
   './img/personaggi/catalogo/effetti-3-classi-v350.webp',
-  './img/personaggi/scene/guerriero-nove-scene.webp?v=351',
-  './img/personaggi/scene/guerriero-base.webp?v=351',
-  './img/personaggi/scene/guerriero-base-corona.webp?v=351',
-  './img/personaggi/scene/guerriero-base-fumo.webp?v=351',
-  './img/personaggi/scene/guerriero-base-corona-fumo.webp?v=351',
-  './img/personaggi/scene/guerriero-epica.webp?v=351',
-  './img/personaggi/scene/guerriero-epica-corona.webp?v=351',
-  './img/personaggi/scene/guerriero-epica-fumo.webp?v=351',
-  './img/personaggi/scene/guerriero-epica-corona-fumo.webp?v=351',
-  './img/personaggi/scene/guerriero-epica-divina-corona-fumo.webp?v=351',
+  './img/personaggi/scene/guerriero-nove-scene.webp?v=352',
+  './img/personaggi/scene/guerriero-base.webp?v=352',
+  './img/personaggi/scene/guerriero-base-corona.webp?v=352',
+  './img/personaggi/scene/guerriero-base-fumo.webp?v=352',
+  './img/personaggi/scene/guerriero-base-corona-fumo.webp?v=352',
+  './img/personaggi/scene/guerriero-epica.webp?v=352',
+  './img/personaggi/scene/guerriero-epica-corona.webp?v=352',
+  './img/personaggi/scene/guerriero-epica-fumo.webp?v=352',
+  './img/personaggi/scene/guerriero-epica-corona-fumo.webp?v=352',
+  './img/personaggi/scene/guerriero-epica-divina-corona-fumo.webp?v=352',
   './img/personaggi/scene/assassino-nove-scene.webp?v=346',
   './img/personaggi/scene/berserker-nove-scene.webp?v=346',
   './img/personaggi/scene/assassino-fumo.webp?v=346',
@@ -98,8 +98,8 @@ const FILE = [
   // Il numero deve essere uguale a quello di `stile.css?v=` in index.html e a
   // `window.PALESTRA_VERSIONE`: se i tre non coincidono, l'app carica un foglio di
   // stile e dice un altro numero.
-  './stile.css?v=351',
-  './stile-rpg.css?v=351',
+  './stile.css?v=352',
+  './stile-rpg.css?v=352',
 './manifest.webmanifest',
   './manifest-p1.webmanifest',
   './manifest-p2.webmanifest',
@@ -107,7 +107,7 @@ const FILE = [
   // installata di un amico prenderebbe quello di Ste, con lo stesso id e con
   // start_url che punta a ?p=1
   './manifest-nuovo.webmanifest',
-  './src/app.js?v=351',
+  './src/app.js?v=352',
   './src/numeri.js',
   './src/confronto.js',
   './src/confronto-mensile.js',
