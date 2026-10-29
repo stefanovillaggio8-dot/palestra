@@ -9,7 +9,7 @@
 // e il test I3 che sia quello dell'ultimo commit, altrimenti si alza la cache e si
 // lascia scritto il numero vecchio. E' successo due volte: nella v54 avevo alzato
 // solo questo file, e dopo la v55 avevo smesso di alzarlo del tutto.
-const VERSIONE = 'palestra-v348';
+const VERSIONE = 'palestra-v349';
 
 // LE 18 FOTO DEI PERSONAGGI, CON LA VERSIONE DENTRO.
 //
@@ -40,16 +40,16 @@ const FILE = [
   './img/effetti/corona-infinito-v345.svg',
   './src/rpg-atelier.js',
   './src/foto-cinematica-rpg.js',
-  './img/personaggi/scene/guerriero-nove-scene.webp?v=348',
-  './img/personaggi/scene/guerriero-base.webp?v=348',
-  './img/personaggi/scene/guerriero-base-corona.webp?v=348',
-  './img/personaggi/scene/guerriero-base-fumo.webp?v=348',
-  './img/personaggi/scene/guerriero-base-corona-fumo.webp?v=348',
-  './img/personaggi/scene/guerriero-epica.webp?v=348',
-  './img/personaggi/scene/guerriero-epica-corona.webp?v=348',
-  './img/personaggi/scene/guerriero-epica-fumo.webp?v=348',
-  './img/personaggi/scene/guerriero-epica-corona-fumo.webp?v=348',
-  './img/personaggi/scene/guerriero-epica-divina-corona-fumo.webp?v=348',
+  './img/personaggi/scene/guerriero-nove-scene.webp?v=349',
+  './img/personaggi/scene/guerriero-base.webp?v=349',
+  './img/personaggi/scene/guerriero-base-corona.webp?v=349',
+  './img/personaggi/scene/guerriero-base-fumo.webp?v=349',
+  './img/personaggi/scene/guerriero-base-corona-fumo.webp?v=349',
+  './img/personaggi/scene/guerriero-epica.webp?v=349',
+  './img/personaggi/scene/guerriero-epica-corona.webp?v=349',
+  './img/personaggi/scene/guerriero-epica-fumo.webp?v=349',
+  './img/personaggi/scene/guerriero-epica-corona-fumo.webp?v=349',
+  './img/personaggi/scene/guerriero-epica-divina-corona-fumo.webp?v=349',
   './img/personaggi/scene/assassino-nove-scene.webp?v=346',
   './img/personaggi/scene/berserker-nove-scene.webp?v=346',
   './img/personaggi/scene/assassino-fumo.webp?v=346',
@@ -93,8 +93,8 @@ const FILE = [
   // Il numero deve essere uguale a quello di `stile.css?v=` in index.html e a
   // `window.PALESTRA_VERSIONE`: se i tre non coincidono, l'app carica un foglio di
   // stile e dice un altro numero.
-  './stile.css?v=348',
-  './stile-rpg.css?v=348',
+  './stile.css?v=349',
+  './stile-rpg.css?v=349',
 './manifest.webmanifest',
   './manifest-p1.webmanifest',
   './manifest-p2.webmanifest',
@@ -102,7 +102,7 @@ const FILE = [
   // installata di un amico prenderebbe quello di Ste, con lo stesso id e con
   // start_url che punta a ?p=1
   './manifest-nuovo.webmanifest',
-  './src/app.js?v=348',
+  './src/app.js?v=349',
   './src/numeri.js',
   './src/confronto.js',
   './src/confronto-mensile.js',
