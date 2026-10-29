@@ -2171,3 +2171,34 @@ body {
 .personaggio-scena-grafica.rpg-scena-cinematografica.rpg-scena-foto-speciale .rpg-effetti-canvas {
   display:none!important;
 }
+
+/* v349 — Effetti reali: non nascondere il Canvas con l'atlante AVIF.
+   Le scintille e i fulmini stanno davanti allo sfondo fotografico,
+   ma i loro punti sono calcolati FUORI dalla sagoma del personaggio. */
+.personaggio-scena-grafica.rpg-render-live.rpg-fx-attiva .rpg-effetti-canvas {
+  position:absolute;
+  display:block!important;
+  inset:0;
+  width:100%;
+  height:100%;
+  z-index:11;
+  opacity:1;
+  mix-blend-mode:normal;
+  filter:none;
+  pointer-events:none;
+}
+.personaggio-scena-grafica.rpg-render-live.rpg-fx-attiva.shop-effetto-ambra .rpg-effetti-canvas,
+.personaggio-scena-grafica.rpg-render-live.rpg-fx-attiva.shop-effetto-fulmine .rpg-effetti-canvas {
+  mix-blend-mode:screen;
+}
+/* Astrale è un vero cielo luminoso, non un segno geometrico.
+   Una rifrazione delicata sulle spalle accompagna le stelle vive. */
+.personaggio-scena-grafica.rpg-render-live.shop-skin-mitica {
+  border-color:rgba(148,185,255,.42);
+  box-shadow:0 0 23px rgba(112,130,247,.18),inset 0 0 27px rgba(102,147,226,.12);
+}
+@media(prefers-reduced-motion:reduce) {
+  .personaggio-scena-grafica.rpg-render-live .rpg-effetti-canvas {
+    animation:none!important;
+  }
+}
