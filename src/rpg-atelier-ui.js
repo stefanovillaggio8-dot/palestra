@@ -115,7 +115,7 @@ export function apriAtelierRpg({profilo,st,oggetto=null,stadioAttuale=0,renderPe
   download.type='button';download.addEventListener('click',async()=>{
     download.disabled=true;
     try{
-      const nome=await salvaFotoAtelier(avatar,cfg);
+      const nome=await salvaFotoAtelier(avatar,{...cfg,titolo});
       feedback.textContent='Foto generata: '+nome+'. Il tuo profilo è rimasto invariato.';
     }catch(err){feedback.textContent='Non sono riuscito a salvare la foto. Attendi il caricamento del personaggio e riprova.';}
     finally{download.disabled=false;}
