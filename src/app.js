@@ -45,6 +45,7 @@ import { montaFotoRpg } from './aura-foto-rpg.js';
 import { montaFotoCombinataRpg, scaricaFotoCombinataRpg } from './anteprima-combinata-rpg.js';
 import { apriAtelierRpg as mostraAtelierRpg } from './rpg-atelier-ui.js';
 import { applicaSkinRpg } from './skin-rpg-fedele.js';
+import { montaScenaCinematograficaRpg } from './foto-cinematica-rpg.js';
 import { elencoAvatar, avatarPerId, gradienteAvatar, iniziali } from './avatar.js';
 import { amiciDi, confronta, classifichePerEsercizio, privacyDi, campiVisibili, PRIVACY_PREDEFINITE } from './sociale.js';
 import { classificaEsercizio as riconosciEsercizio } from './esercizi-classificatore.js';
@@ -6585,6 +6586,17 @@ function bloccoPersonaggio(profilo, st) {
       effetto: effettoEquipaggiato?.id || null,
       divina: Boolean(viso.aura) || auraDivinaAnteprima,
       corona: coronaAttiva,
+    });
+    // Le tre griglie APPROVATE vengono utilizzate come fotografie integrate
+    // senza alterare i ritratti Streak e gli altri cosmetici non rappresentati.
+    // Se non sono ancora installate su GitHub, resta il fallback precedente.
+    montaScenaCinematograficaRpg(grafica,fotoRpg,{
+      classe:classeId,
+      armatura:armaturaEquipaggiata?.id || null,
+      skin:skinEquipaggiata?.id || null,
+      effetto:effettoEquipaggiato?.id || null,
+      corona:coronaAttiva,
+      divina:Boolean(viso.aura) || auraDivinaAnteprima,
     });
     // La classe rpg-composite-active viene attivata dal renderer, SOLO
     // quando la fotografia è pronta: nessun avatar senza effetti su Safari.
