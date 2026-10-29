@@ -13,9 +13,10 @@ export const ARMATURE_ATELIER = Object.freeze({
   assassino: ['','armatura-assassino-notte','armatura-assassino-spettro'],
   berserker: ['','armatura-berserker-rabbia','armatura-berserker-apocalisse'],
 });
+export const TITOLI_ATELIER = Object.freeze(['', 'titolo-cardio','titolo-tecnica','titolo-ego','titolo-riposo','titolo-specchio','titolo-panca']);
 export const STADI_ATELIER = 6;
 export const NUMERO_COMBINAZIONI_ATELIER =
-  CLASSI_ATELIER.length * STADI_ATELIER * 3 * 2 * EFFETTI_ATELIER.length * 2 * 2; // 1080
+  CLASSI_ATELIER.length * STADI_ATELIER * 3 * 2 * EFFETTI_ATELIER.length * 2 * 2 * TITOLI_ATELIER.length; // 7560
 
 export function opzioniAtelier(valori={}) {
   const classe=CLASSI_ATELIER.includes(valori.classe)?valori.classe:'guerriero';
@@ -27,6 +28,7 @@ export function opzioniAtelier(valori={}) {
     skin:valori.skin==='skin-mitica'?'skin-mitica':'',
     effetto:EFFETTI_ATELIER.includes(valori.effetto)?valori.effetto:'',
     divina:Boolean(valori.divina),corona:Boolean(valori.corona),
+    titolo:TITOLI_ATELIER.includes(valori.titolo)?valori.titolo:'',
   };
 }
 export function* combinazioniRpg() {
@@ -37,13 +39,14 @@ export function* combinazioniRpg() {
           for(const effetto of EFFETTI_ATELIER)
             for(const divina of [false,true])
               for(const corona of [false,true])
-                yield {classe,stadio,armatura,skin,effetto,divina,corona};
+                for(const titolo of TITOLI_ATELIER)
+                  yield {classe,stadio,armatura,skin,effetto,divina,corona,titolo};
 }
 export function nomeFileAtelier(opzioni) {
   const c=opzioniAtelier(opzioni);
   return ['rpg',c.classe,'stato'+c.stadio,
     c.armatura||'standard',c.skin||'base',c.effetto||'senza-effetto',
-    c.divina?'divina':'no-divina',c.corona?'corona':'no-corona'].join('_')+'.png';
+    c.divina?'divina':'no-divina',c.corona?'corona':'no-corona',c.titolo||'senza-titolo'].join('_')+'.png';
 }
 const attesaImmagine = (url) => new Promise((resolve,reject)=>{
   const im=new Image();
@@ -98,6 +101,12 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
       ctx.drawImage(atlas,posX[pos[0]]*sw,posY[pos[1]]*sh,sw,sh,dx,dy,dw,dh);
       ctx.restore();
     }
+  }
+  if(c.titolo) {
+    const titolo= c.titolo.replace(/^titolo-/,'').replaceAll('-',' ').toUpperCase();
+    ctx.save();ctx.fillStyle='rgba(7,9,19,.80)';ctx.fillRect(0,altezza-94,larghezza,94);
+    ctx.fillStyle='#edddff';ctx.font='bold 29px system-ui, sans-serif';ctx.textAlign='center';
+    ctx.fillText(titolo,larghezza/2,altezza-35,larghezza-45);ctx.restore();
   }
   return canvas;
 }
