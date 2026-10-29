@@ -3,7 +3,7 @@
 // Nessun acquisto/record viene modificato dalle anteprime o dal download.
 import { AURA_FOTO_ATLAS } from './aura-foto-atlas.js';
 import { FOTO_RPG_RIQUADRI, livelliFotoRpg } from './aura-foto-rpg.js';
-import { fasciaSagoma } from './anteprima-combinata-rpg.js';
+import { fasciaSagoma, disegnaCoronaEnergetica } from './anteprima-combinata-rpg.js';
 
 export const CLASSI_ATELIER = Object.freeze(['guerriero','assassino','berserker']);
 export const EFFETTI_ATELIER = Object.freeze([
@@ -131,6 +131,9 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
       ctx.save();ctx.globalCompositeOperation='screen';
       ctx.drawImage(atlas,posX[pos[0]]*sw,posY[pos[1]]*sh,sw,sh,
         dx+dw*.30,dy+dh*.005,dw*.40,dh*.145);
+      ctx.restore();
+      ctx.save();ctx.translate(dx,dy);
+      disegnaCoronaEnergetica(ctx,dw,dh);
       ctx.restore();
     }
   }
