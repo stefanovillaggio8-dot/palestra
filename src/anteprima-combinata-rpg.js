@@ -20,7 +20,7 @@ const TESSERE = Object.freeze({
 });
 const LOADED=new Map();
 const MAX_CACHE=48;
-let sprite=null;
+let atlasPromise=null;
 
 export function configurazioneFotoRpg({classe,stato,armatura=null,skin=null,effetto=null,divina=false,corona=false}={}) {
   const c=CLASSI_FOTO_RPG.includes(classe)?classe:'guerriero';
@@ -71,15 +71,15 @@ export function fasciaSagoma(classe,y) {
 
 function getAtlas() {
   if(typeof Image!=='function')return Promise.resolve(null);
-  if(!sprite) sprite=new Image();
-  if(!sprite.src) sprite.src=AURA_FOTO_ATLAS;
-  if(sprite.complete && sprite.naturalWidth)return Promise.resolve(sprite);
-  return new Promise(resolve=>{
-    const onLoad=()=>{sprite.removeEventListener('error',onFail);resolve(sprite);};
-    const onFail=()=>{sprite.removeEventListener('load',onLoad);resolve(null);};
-    sprite.addEventListener('load',onLoad,{once:true});
-    sprite.addEventListener('error',onFail,{once:true});
-  });
+  if(!atlasPromise) {
+    atlasPromise=new Promise(resolve=>{
+      const image=new Image();
+      image.onload=()=>resolve(image.naturalWidth?image:null);
+      image.onerror=()=>resolve(null);
+      image.src=AURA_FOTO_ATLAS;
+    });
+  }
+  return atlasPromise;
 }
 
 function disegnaSprite(ctx,img,id,x,y,w,h) {
@@ -175,10 +175,15 @@ export function montaFotoCombinataRpg(grafica,foto,options={}) {
     const dims=size();
     if(!dims)return;
     const atlas=await getAtlas();
-    if(disposed||!canvas.isConnected||!atlas)return;
+    if(disposed||!canvas.isConnected)return;
+    // Se Safari non supporta l'AVIF o l'immagine e' danneggiata, non
+    // nascondere gli effetti preesistenti: il fallback resta visibile.
+    if(!atlas) { canvas.remove();return; }
     const layer=getCachedLayer(c,atlas,...dims);
     ctx.clearRect(0,0,...dims);
     ctx.drawImage(layer,0,0,...dims);
+    // Nascondi i vecchi livelli solo dopo il primo frame fotografico pronto.
+    grafica.classList.add('rpg-composite-active');
   };
   if(foto.complete&&foto.naturalWidth)void render();
   else foto.addEventListener('load',()=>{void render();},{once:true});
