@@ -45,14 +45,14 @@ jobs:
           for name in ('index.html','sw.js','anteprima-aura.html','src/foto-cinematica-rpg.js'):
               p=Path(name)
               t=p.read_text(encoding='utf-8-sig')
-              t=t.replace('palestra-v342','palestra-v343').replace('?v=342','?v=343')
+              t=t.replace('palestra-v343','palestra-v344').replace('?v=343','?v=344')
               p.write_text(t,encoding='utf-8')
           p=Path('sw.js')
           t=p.read_text(encoding='utf-8')
           marker="  './src/foto-cinematica-rpg.js',"
           if marker not in t:
               raise SystemExit('Modulo foto v342 non installato: blocco precache non trovato')
-          photos="\n".join("  './img/personaggi/scene/"+c+"-nove-scene.webp?v=343'," for c in ('guerriero','assassino','berserker'))
+          photos="\n".join("  './img/personaggi/scene/"+c+"-nove-scene.webp?v=344'," for c in ('guerriero','assassino','berserker'))
           t=t.replace(marker,marker+'\n'+photos)
           p.write_text(t,encoding='utf-8')
           PY
