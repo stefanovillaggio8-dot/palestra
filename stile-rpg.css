@@ -2156,3 +2156,18 @@ body {
 @media(prefers-reduced-motion:reduce){
   .personaggio-scena-grafica .rpg-corona-premium {animation:none;}
 }
+
+/* v346: fotografie originali senza filtri sovrapposti né proporzioni deformate. */
+.personaggio-scena-grafica.rpg-scena-cinematografica.rpg-scena-foto-speciale .personaggio-ritratto {
+  width:100%;
+  height:auto;
+  aspect-ratio:auto;
+  object-fit:contain;
+  filter:none;
+}
+.personaggio-scena-grafica.rpg-scena-cinematografica.rpg-scena-foto-speciale .rpg-corona-premium,
+.personaggio-scena-grafica.rpg-scena-cinematografica.rpg-scena-foto-speciale .rpg-foto-combinata,
+.personaggio-scena-grafica.rpg-scena-cinematografica.rpg-scena-foto-speciale .aura-foto-fx,
+.personaggio-scena-grafica.rpg-scena-cinematografica.rpg-scena-foto-speciale .rpg-effetti-canvas {
+  display:none!important;
+}
