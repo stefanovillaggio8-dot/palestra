@@ -2016,3 +2016,33 @@ body {
 .personaggio-scena-grafica.rpg-armor-photo-integrale .rpg-skin-fedele {
   pointer-events:none;
 }
+
+/* v342 — solo fotografie reali ritagliate dai TRE collage approvati.
+   Il personaggio/armatura/corona/fumo sono gia' un'immagine unica.
+   Rimuovere ogni finta composizione sopra lo scatto: niente effetto ovale,
+   sprite applicati al volto, armatura da cartone o doppia corona. */
+.personaggio-scena-grafica.rpg-scena-cinematografica {
+  isolation:isolate;
+  background:#111016;
+}
+.personaggio-scena-grafica.rpg-scena-cinematografica .personaggio-ritratto {
+  display:block;
+  position:relative;
+  width:100%;
+  height:auto;
+  max-height:none!important;
+  filter:none!important;
+  object-fit:contain;
+  aspect-ratio:8/9;
+  z-index:10;
+}
+.personaggio-scena-grafica.rpg-scena-cinematografica
+  :is(.rpg-skin-fedele,.rpg-foto-combinata,.rpg-effetti-canvas,
+      .aura-foto-fx,.aura-colonna,.aura-scie,.aura-stelle,.aura-onde,
+      .aura-corona,.aura-lustro,.aura-foto-divina) {
+  display:none!important;
+}
+.personaggio-scena-grafica.rpg-scena-cinematografica::before,
+.personaggio-scena-grafica.rpg-scena-cinematografica::after {
+  content:none!important;
+}
