@@ -2,7 +2,7 @@
 // Tutto in italiano, tema scuro, pulsanti grandi, fatto per essere usato
 // in palestra con le mani occupate.
 
-import { requisitoSkin, accessoSkin, scenarioSkin, statoCoronaInfinito, cambiaCoronaInfinito, CORONA_INFINITO_ID } from './aura-skin.js';
+import { requisitoSkin, accessoSkin, scenarioSkin, statoCoronaInfinito, cambiaCoronaInfinito, CORONA_INFINITO_ID, ordinaPerRaritaAura } from './aura-skin.js';
 import * as db from './db.js';
 import * as sb from './supabase.js';
 import * as sync from './sync.js';
@@ -1817,7 +1817,7 @@ function vistaAuraShop(zona, soloInventario = false) {
     el('div',{class:'aura-shop-owned-grid'}),
   ]);
   const ownedGrid=inventario.querySelector('.aura-shop-owned-grid');
-  const oggettiPosseduti=OGGETTI_AURA.filter(o=>posseduti.includes(o.id)&&(!o.classe||o.classe===classe));
+  const oggettiPosseduti=ordinaPerRaritaAura(OGGETTI_AURA.filter(o=>posseduti.includes(o.id)&&(!o.classe||o.classe===classe)));
   // Equipaggiamento persistente sul profilo: equipaggiare non consuma né elimina l'oggetto.
   const equipaggiamento = { ...(profilo.equipaggiamento_aura || {}) };
   const slotOggetto = (o) => o.tipo === 'Armatura' ? 'Armatura' : o.tipo;
@@ -1881,7 +1881,7 @@ function vistaAuraShop(zona, soloInventario = false) {
     el('div',{},[
       el('span',{class:'aura-shop-kicker',testo:'OGGETTI ACQUISTABILI'}),
       el('h2',{testo:'Scopri la collezione'}),
-      el('p',{class:'nota',testo:'Ogni elemento è solo estetico. Tocca Anteprima per vederlo sul tuo personaggio.'}),
+      el('p',{class:'nota',testo:'Dal Comune al Mitico, in ordine di rarità. Tocca Anteprima per vedere ogni oggetto sul tuo personaggio.'}),
     ]),
     el('span',{class:'aura-shop-count',testo:OGGETTI_AURA.filter(o=>!o.classe||o.classe===classe).length+' oggetti'}),
   ]));
@@ -1917,9 +1917,12 @@ function vistaAuraShop(zona, soloInventario = false) {
     :'Accedi dal Profilo per acquistare · La collezione resta disponibile offline.'}));
   function disegnaOggetti(){
     svuota(griglia);
-    const ordineTipi={Armatura:0,Effetto:1,Skin:2,Titolo:3};
-    const elenco=OGGETTI_AURA.filter(o=>(filtro==='Tutti'||o.tipo===filtro)&&(!o.classe||o.classe===classe))
-      .sort((a,b)=>(ordineTipi[a.tipo]??9)-(ordineTipi[b.tipo]??9));
+    // Dalla rarità più bassa alla più alta, in ogni filtro:
+    // Comune → Raro → Epico → Leggendario → Mitico.
+    // A parità di rarità i prezzi salgono gradualmente.
+    const elenco=ordinaPerRaritaAura(OGGETTI_AURA.filter(
+      o=>(filtro==='Tutti'||o.tipo===filtro)&&(!o.classe||o.classe===classe)
+    ));
     if(!elenco.length) griglia.appendChild(el('p',{class:'nota',testo:'Per vedere le armature di questa classe, selezionala nella sezione personaggio del Profilo.'}));
     for(const o of elenco){
       const owned=posseduti.includes(o.id);
