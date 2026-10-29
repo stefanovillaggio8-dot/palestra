@@ -16,7 +16,7 @@ test('Profilo: Aura divina una volta, Corona tra le ricompense con ritratto e An
   assert.match(corpo,/if\(c\.aura\) tessera\.appendChild\(bottone\('Anteprima'/);
   assert.match(corpo,/class:'pezzo-corona-ritratto'/);
   assert.match(corpo,/src:percorsoStato\(classeId,5\)/);
-  assert.match(corpo,/class:'fantasma corona-streak-preview premio-preview-btn'/);
+  assert.match(corpo,/classe:'fantasma corona-streak-preview premio-preview-btn'/);
   assert.match(app.slice(end,end+80),/rigaStati\.appendChild\(striscia\)/);
 });
 
