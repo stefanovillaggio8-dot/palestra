@@ -43,6 +43,16 @@ export function bordoSagomaRpg(classe,y) {
   }
   return righe[righe.length-1].slice(1);
 }
+/** I filtri statici coprivano completamente questi tre effetti in Safari.
+ * Quando sono equipaggiati, il renderer live è la fonte visiva principale. */
+export function usaEffettiViviRpg(tipo,{mitica=false}={}) {
+  // Su browser legacy e nei test DOM minimali lasciamo il vecchio renderer.
+  // Il canvas visibile viene selezionato solo dove l'animazione e' supportata.
+  return Boolean((mitica || tipo==='effetto-ambra' || tipo==='effetto-fulmine') &&
+    typeof document!=='undefined' &&
+    typeof requestAnimationFrame==='function' &&
+    typeof document.createElement==='function');
+}
 export function smontaEffettiRpg(elemento) {
   EFFETTI_ATTIVI.get(elemento)?.();
 }
@@ -79,9 +89,9 @@ export function montaEffettiRpg(elemento,tipo,{corona=false,divina=false,mitica=
   const personaggio=classe||(['guerriero','assassino','berserker'].find(c=>
     elemento.classList?.contains?.('personaggio-'+c)) ||'guerriero');
   const palette=coloriEffetto(tipo);
-  const scintille=Array.from({length:tipo==='effetto-ombra'?22:42},(_,i)=>({
+  const scintille=Array.from({length:tipo==='effetto-ombra'?22:66},(_,i)=>({
     y:casuale(0,1),lato:i%2?1:-1,dist:casuale(.025,.145),fase:casuale(0,TAU),
-    r:casuale(.45,1.9),vel:casuale(.055,.20),giro:casuale(.4,1.6),
+    r:casuale(1.1,2.9),vel:casuale(.055,.20),giro:casuale(.4,1.6),
     bagliore:casuale(.4,1),colore:i%palette.length,
   }));
   const vapori=Array.from({length:tipo==='effetto-ombra'?22:14},(_,i)=>({
@@ -90,10 +100,10 @@ export function montaEffettiRpg(elemento,tipo,{corona=false,divina=false,mitica=
     tonalita:i%3,
   }));
   // Impulsi elettrici discreti, non una sola sinusoide che fa pulsare tutto.
-  const fulmini=Array.from({length:5},(_,i)=>({
+  const fulmini=Array.from({length:8},(_,i)=>({
     lato:i%2?1:-1,fase:i*.41+.2,
-    velocita:casuale(.65,1.18),durata:casuale(.045,.12),
-    y:casuale(.19,.65),lunghezza:casuale(.14,.29),
+    velocita:casuale(.65,1.18),durata:casuale(.32,.52),
+    y:casuale(.14,.61),lunghezza:casuale(.20,.40),
     seed:casuale(12,500),
   }));
   let w=0,h=0,dpr=1,frameId=0,last=0,visible=true,ended=false;
@@ -157,8 +167,10 @@ export function montaEffettiRpg(elemento,tipo,{corona=false,divina=false,mitica=
       const fading=smooth(.015,.13,yy)*(1-smooth(.82,.995,yy));
       if(fading<=.01)continue;
       const c=palette[p.colore];
-      const flicker=.75+.25*Math.sin(t*6+p.fase);
-      trail(x,y,Math.cos(p.fase+t)*p.r*1.8,p.r*(3+p.vel*16),p.r,c,p.bagliore*fading*flicker);
+      const flicker=.79+.21*Math.sin(t*6+p.fase);
+      trail(x,y,Math.cos(p.fase+t)*p.r*2.8,p.r*(4+p.vel*17),p.r*1.2,c,
+        Math.min(1,p.bagliore*fading*flicker*1.55));
+      if(p.colore===2)dot(x,y,p.r*.7,'#fff8dc',.8*fading);
     }
     for(let i=0;i<6;i++){
       const l=i%2?-1:1,yy=.65+i*.043;
@@ -187,7 +199,7 @@ export function montaEffettiRpg(elemento,tipo,{corona=false,divina=false,mitica=
     for(const ray of fulmini){
       const pos=t*ray.velocita+ray.fase,cycle=pos%1;
       if(cycle>ray.durata)continue;
-      const flash=(1-cycle/ray.durata)*(.7+.3*rnd(ray.seed+Math.floor(pos)));
+      const flash=(.55+.45*Math.sin(Math.PI*cycle/ray.durata))*(.77+.23*rnd(ray.seed+Math.floor(pos)));
       const from=ray.y, end=Math.min(.86,from+ray.lunghezza);
       const knots=[];
       for(let j=0;j<=11;j++){
@@ -197,10 +209,10 @@ export function montaEffettiRpg(elemento,tipo,{corona=false,divina=false,mitica=
         knots.push([w*outside,h*yy]);
       }
       ctx.save();ctx.globalAlpha=flash;ctx.lineCap='round';ctx.lineJoin='round';
-      ctx.strokeStyle='#8757e9';ctx.shadowColor='#7b46ff';ctx.shadowBlur=18;
+      ctx.strokeStyle='#9f59ff';ctx.shadowColor='#ae70ff';ctx.shadowBlur=Math.max(15,w*.055);
       ctx.lineWidth=Math.max(2,w*.018);ctx.beginPath();
       knots.forEach(([x,y],j)=>j?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.stroke();
-      ctx.strokeStyle='#f4eaff';ctx.shadowBlur=7;ctx.lineWidth=Math.max(.9,w*.0045);
+      ctx.strokeStyle='#faf1ff';ctx.shadowBlur=9;ctx.lineWidth=Math.max(1,w*.0055);
       ctx.stroke();
       // Rami: diretti verso l'esterno, con una piccola ramificazione in punta.
       for(const pivot of [3,7]){
@@ -212,9 +224,9 @@ export function montaEffettiRpg(elemento,tipo,{corona=false,divina=false,mitica=
       }
       ctx.restore();
     }
-    for(const p of scintille.slice(0,14)){
+    for(const p of scintille.slice(0,24)){
       const yy=((p.y-t*p.vel*.55)%1+1)%1;
-      dot(puntoLaterale(personaggio,yy,p.lato,p.dist)*w,yy*h,p.r*.7,'#a889ff',.22);
+      dot(puntoLaterale(personaggio,yy,p.lato,p.dist)*w,yy*h,p.r,'#c4a8ff',.56);
     }
   }
   function nebula(t){
@@ -301,17 +313,20 @@ export function montaEffettiRpg(elemento,tipo,{corona=false,divina=false,mitica=
     if(w<16||h<20)return;
     ctx.clearRect(0,0,w,h);
     if(mitica && tipo!=='effetto-nebula') {
-      // La nebulosa di Astrale resta presente anche quando si equipaggia
-      // un secondo effetto, ma e' discreta per lasciare risalto all'effetto comprato.
-      ctx.save();ctx.globalAlpha=.32;nebula(t);ctx.restore();
+      // Astrale è un cielo di stelle e luce dietro l'eroe, non un rombo sul petto.
+      // Se un altro effetto è equipaggiato, non ne nasconde le scintille.
+      ctx.save();ctx.globalAlpha=tipo?.55:1;nebula(t);ctx.restore();
     }
     if(tipo==='effetto-ambra')amber(t);
     else if(tipo==='effetto-ombra')smoke(t);
     else if(tipo==='effetto-fulmine')arc(t);
     else if(tipo==='effetto-nebula')nebula(t);
     else if(divina||corona)ambient(t);
-    // Tutto cio' che tocca il personaggio viene cancellato, senza eccezioni.
-    cancellaCorpo();
+    // Le scintille e gli archi sono già posizionati fuori dal bordo corporeo.
+    // La vecchia grande maschera ovale li eliminava quasi tutti su iPhone!
+    // La cancellazione sfumata rimane SOLO per i vapori più diffusi.
+    if(tipo==='effetto-ombra'||tipo==='effetto-nebula' ||
+       (mitica&&!tipo)) cancellaCorpo();
     aura(t);
   }
   function cleanup(){
