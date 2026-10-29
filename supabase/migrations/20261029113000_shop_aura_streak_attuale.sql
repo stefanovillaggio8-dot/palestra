@@ -30,9 +30,9 @@ begin
   else
     -- OGGI non è un giorno perso, anche quando è un giorno previsto.
     -- Basta un solo giorno previsto mancato tra ultimo allenamento e ieri.
-    for g in select t::date from pg_catalog.generate_series(
+    for g in select dates.d::date from pg_catalog.generate_series(
       ultimo+1, p_oggi-1, interval '1 day'
-    ) as t loop
+    ) as dates(d) loop
       if extract(dow from g)::integer = any(p_previsti)
         and not (g = any(allenamenti)) then
         return 0;
