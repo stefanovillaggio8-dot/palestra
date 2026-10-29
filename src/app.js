@@ -45,6 +45,7 @@ import { montaFotoRpg } from './aura-foto-rpg.js';
 import { montaFotoCombinataRpg, scaricaFotoCombinataRpg } from './anteprima-combinata-rpg.js';
 import { apriAtelierRpg as mostraAtelierRpg } from './rpg-atelier-ui.js';
 import { applicaSkinRpg } from './skin-rpg-fedele.js';
+import { sostituisciFotoQuandoProntaRpg } from './foto-rpg-premium.js';
 import { elencoAvatar, avatarPerId, gradienteAvatar, iniziali } from './avatar.js';
 import { amiciDi, confronta, classifichePerEsercizio, privacyDi, campiVisibili, PRIVACY_PREDEFINITE } from './sociale.js';
 import { classificaEsercizio as riconosciEsercizio } from './esercizi-classificatore.js';
@@ -6561,6 +6562,10 @@ function bloccoPersonaggio(profilo, st) {
       applicaSkinRpg(grafica,fotoRpg,classeId,armaturaEquipaggiata?.id,skinEquipaggiata?.id);
     },{once:true});
     grafica.appendChild(fotoRpg);
+    // La foto generata viene mostrata SOLO se il relativo file WebP e' davvero
+    // disponibile. In assenza del file, il set fotografico v341 resta visibile.
+    sostituisciFotoQuandoProntaRpg(fotoRpg,armaturaEquipaggiata?.id,
+      effettoEquipaggiato?.id,'?v='+encodeURIComponent(String(window.PALESTRA_VERSIONE || 'v342')));
     if (fotoArmaturaRpg) grafica.classList.add('rpg-armor-photo-integrale');
     // Il rivestimento geometrico era la causa delle piastre piatte da videogioco:
     // lo conserviamo SOLO come fallback quando manca una foto vera.
