@@ -24,14 +24,14 @@ test('Shop bloccato e anteprima non cambiano profilo, saldo o inventario', async
   const cards=perClasse(app,'aura-shop-card');
   const braci=cards.find(c=>c.textContent.includes('Custode delle Braci'));
   assert.ok(braci,app.textContent);
-  assert.match(braci.textContent,/Record richiesto: 15 giorni/);
-  assert.match(braci.textContent,/Il tuo record: 0 giorni · Mancano 15 giorni/);
+  assert.match(braci.textContent,/Streak attuale richiesta: 15 giorni/);
+  assert.match(braci.textContent,/La tua Streak: 0 giorni · Mancano 15 giorni/);
   // Le immagini e l'avatar NON devono caricarsi prima di aprire Anteprima.
   assert.equal(perClasse(braci,'aura-armor-card').length,0);
   assert.equal(perClasse(app,'aura-shop-card-art').length,0);
   assert.equal(perClasse(app,'aura-shop-character-preview').length,0);
   assert.equal(perClasse(app,'personaggio-ritratto').length,0);
-  assert.notEqual(pulsante(braci,'Record di Streak insufficiente').getAttribute('disabled'),null);
+  assert.notEqual(pulsante(braci,'Streak attuale insufficiente').getAttribute('disabled'),null);
   assert.ok(!cards.some(c=>c.textContent.includes('Velo della Notte')));
   // Aura divina è un premio GRATUITO a 75 giorni: anteprima permessa
   // anche a Streak zero e compatibile con l'effetto acquistato già equipaggiato.
