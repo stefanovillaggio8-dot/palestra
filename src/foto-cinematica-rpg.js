@@ -39,12 +39,43 @@ export const FOTO_RPG_SPECIALI = Object.freeze({
   divina:'img/personaggi/scene/assassino-divina.webp?v=346',
   corona:'img/personaggi/scene/assassino-corona.webp?v=346',
 });
+// Combinazioni generate offline dalle foto REALI della classe e delle armature.
+// Sono un'unica fotografia in cui la luce è già integrata: nessun adesivo,
+// screenshot sgranato o triangolo sul petto. I titoli restano un testo separato.
+export const EFFETTI_FOTOGRAFICI_RPG = Object.freeze({
+ 'effetto-ambra':'ambra',
+ 'effetto-ombra':'ombra',
+ 'effetto-fulmine':'fulmine',
+ 'effetto-nebula':'nebula',
+});
+export function percorsoCombinazioneFotoRpg({classe,armatura=null,effetto=null,
+ skin=null,corona=false,divina=false,stato=null,stadio=null,armaSbloccata=false}={}) {
+ if(!Object.hasOwn(SCENE_ATLANTI_RPG,classe) || corona || divina)return null;
+ if(skin && skin!=='skin-mitica')return null;
+ const fx=EFFETTI_FOTOGRAFICI_RPG[effetto];
+ if(effetto && !fx)return null;
+ if(!fx && skin!=='skin-mitica')return null;
+ const livello=stadio??stato??0;
+ const n=Number(livello);
+ if(!Number.isInteger(n)||n<0||n>5)return null;
+ const validi={
+   assassino:['armatura-assassino-notte','armatura-assassino-spettro'],
+   guerriero:['armatura-guerriero-braci','armatura-guerriero-abisso'],
+   berserker:['armatura-berserker-rabbia','armatura-berserker-apocalisse'],
+ };
+ if(armatura && !validi[classe].includes(armatura))return null;
+ // Se un'arma della progressione è stata guadagnata, scegliere SEMPRE la foto
+ // ufficiale di stato con arma, anche se in inventario esiste un'armatura.
+ const usaStato=!armatura || armaSbloccata || n>=4;
+ const base=usaStato?'stato-'+n:armatura;
+ const variante=fx
+   ? fx + (skin==='skin-mitica'?'-astrale':'')
+   : 'astrale';
+ return 'img/personaggi/combinazioni/'+classe+'/'+base+'/'+variante+'.webp?v=351';
+}
 export function percorsoScenaSpecialeRpg({classe,armatura=null,effetto=null,skin=null,
   corona=false,divina=false,stato=null,stadio=null,armaSbloccata=false}={}) {
   const raw=stadio??stato;
-  // Scatti premium v350: senza armi o accessori non rappresentati nella foto.
-  // Quando la combinazione richiede armature, corona o Aura divina, ritorniamo
-  // al renderer composito che mantiene tutti gli oggetti equipaggiati.
   if(!armatura&&!armaSbloccata&&!corona&&!divina &&
     (raw===null||raw===undefined||Number(raw)<4)) {
     const photos=FOTO_EFFETTI_PREMIUM_RPG[classe];
@@ -54,13 +85,16 @@ export function percorsoScenaSpecialeRpg({classe,armatura=null,effetto=null,skin
         return photos[effetto];
     }
   }
-  if(classe!=='assassino'||armatura||skin||armaSbloccata||
-    (raw!==null&&raw!==undefined&&Number(raw)>=4)) return null;
-  if(!effetto&&corona)return FOTO_RPG_SPECIALI.corona;
-  if(!effetto&&divina)return FOTO_RPG_SPECIALI.divina;
-  if(effetto==='effetto-ombra'&&!corona&&!divina)return FOTO_RPG_SPECIALI.ombra;
-  if(effetto==='effetto-nebula'&&!corona&&!divina)return FOTO_RPG_SPECIALI.nebulosa;
-  return null;
+  if(classe==='assassino'&&!armatura&&!skin&&!armaSbloccata &&
+    (raw===null||raw===undefined||Number(raw)<4)) {
+    if(!effetto&&corona)return FOTO_RPG_SPECIALI.corona;
+    if(!effetto&&divina)return FOTO_RPG_SPECIALI.divina;
+    if(effetto==='effetto-ombra'&&!corona&&!divina)return FOTO_RPG_SPECIALI.ombra;
+    if(effetto==='effetto-nebula'&&!corona&&!divina)return FOTO_RPG_SPECIALI.nebulosa;
+  }
+  return percorsoCombinazioneFotoRpg({
+    classe,armatura,effetto,skin,corona,divina,stato,stadio,armaSbloccata
+  });
 }
 const FOTO_INTEGRALI=new Map();
 async function caricaScenaSpeciale(src) {
