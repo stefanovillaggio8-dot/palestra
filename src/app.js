@@ -6519,7 +6519,8 @@ function bloccoPersonaggio(profilo, st) {
       divina: Boolean(viso.aura) || auraDivinaAnteprima,
       corona: coronaAttiva,
     });
-    if (combinata) grafica.classList.add('rpg-composite-active');
+    // La classe rpg-composite-active viene attivata dal renderer, SOLO
+    // quando la fotografia è pronta: nessun avatar senza effetti su Safari.
     if (!scenaFotografica && !combinata) {
       montaEffettiRpg(grafica, null, {
         divina: Boolean(viso.aura) || auraDivinaAnteprima,
