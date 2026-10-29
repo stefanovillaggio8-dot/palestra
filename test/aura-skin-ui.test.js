@@ -49,7 +49,7 @@ test('Shop bloccato e anteprima non cambiano profilo, saldo o inventario', async
   const overlay=perClasse(body,'aura-preview-overlay')[0];
   assert.ok(overlay);
   assert.equal(perClasse(overlay,'aura-preview-environment')[0].getAttribute('src'),'./img/scenari/braci.svg');
-  assert.match(perClasse(overlay,'personaggio-ritratto')[0].getAttribute('src'),/personaggi\/stati\/guerriero-/);
+  assert.match(perClasse(overlay,'personaggio-ritratto')[0].getAttribute('src'),/personaggi\/armature\/guerriero-braci\.webp/);
   assert.equal(perClasse(overlay,'aura-armor-card').length,1);
   await pulsante(overlay,'Chiudi').click();
   assert.equal(perClasse(body,'aura-preview-overlay').length,0);
