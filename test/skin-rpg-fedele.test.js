@@ -31,7 +31,7 @@ test('La testa e il volto originali non vengono modificati',()=>{
 test('Le armature originali rimangono le immagini di progressione Streak',async()=>{
  const app=await readFile(new URL('../src/app.js',import.meta.url),'utf8');
  assert.match(app,/applicaSkinRpg\(grafica, fotoRpg, classeId/);
- assert.match(app,/percorsoStato\(classeId, viso\.indice\)/);
+ assert.match(app,/percorsoStato\(classeId, statoFotoConsentito\)/);
  assert.doesNotMatch(app,/const overlayCosmetici = svgCosmeticiRpg\(/);
  assert.match(app,/__anteprimaCorona:true/);
  assert.match(app,/classeAnteprima = oggetto\.classe/);
