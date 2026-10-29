@@ -1,12 +1,12 @@
-// v342 — i tre collage fotografici APPROVATI sono la fonte delle scene RPG.
+// v343 — i tre collage fotografici APPROVATI sono la fonte delle scene RPG.
 // Ogni atlante contiene 3 colonne x 3 righe, ritagliate SENZA didascalie.
 // Niente pennellate sul torso, maschere, ovali, corona adesiva o fondali sovrapposti.
 // Le scene sono usate solo quando rappresentano ESATTAMENTE la configurazione;
 // per gli altri cosmetici resta il normale renderer precedente.
 export const SCENE_ATLANTI_RPG = Object.freeze({
-  assassino:'img/personaggi/scene/assassino-nove-scene.webp?v=342',
-  guerriero:'img/personaggi/scene/guerriero-nove-scene.webp?v=342',
-  berserker:'img/personaggi/scene/berserker-nove-scene.webp?v=342',
+  assassino:'img/personaggi/scene/assassino-nove-scene.webp?v=343',
+  guerriero:'img/personaggi/scene/guerriero-nove-scene.webp?v=343',
+  berserker:'img/personaggi/scene/berserker-nove-scene.webp?v=343',
 });
 export const ARMATURE_EPICHE_SCENE = Object.freeze({
   assassino:'armatura-assassino-notte',
