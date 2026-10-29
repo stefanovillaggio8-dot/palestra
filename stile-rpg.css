@@ -1990,3 +1990,29 @@ body {
 @media(prefers-reduced-motion:reduce) {
   .aura-shop-card,.menu-aura-shop .voce-menu,.aura-shop-back {transition:none;}
 }
+
+/* v341 — Ritorna il verde dei giorni selezionati.
+ * La regola e' piu' specifica del restyling globale .bot.fantasma,
+ * che aveva trasformato i pulsanti attivi in quasi nero. */
+.contenuto .bot.giorno-settimana.attivo,
+.contenuto .riga-pulsanti .bot.fantasma.attivo {
+  background:linear-gradient(140deg,#5be7a4,#2ebc79)!important;
+  border-color:#86f6bc!important;
+  color:#071c12!important;
+  box-shadow:0 0 0 2px rgba(78,220,144,.27),inset 0 1px rgba(255,255,255,.32)!important;
+  font-weight:850;
+}
+.contenuto .bot.giorno-settimana.attivo::after {
+  content:' ✓';
+  color:#083e23;
+  font-weight:900;
+}
+/* Vero set fotografico: l'armatura e' gia' nella foto, niente sagome
+ * geometriche sul petto, braccia o gambe del personaggio. */
+.personaggio-scena-grafica.rpg-armor-photo-integrale .personaggio-ritratto {
+  object-fit:contain;
+  display:block;
+}
+.personaggio-scena-grafica.rpg-armor-photo-integrale .rpg-skin-fedele {
+  pointer-events:none;
+}
