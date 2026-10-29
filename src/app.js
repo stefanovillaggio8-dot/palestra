@@ -1813,6 +1813,7 @@ function vistaAuraShop(zona, soloInventario = false) {
     const slot = slotOggetto(o);
     const indossato = equipaggiamento[slot] === o.id;
     const riga = el('div',{class:'aura-shop-owned'+(indossato?' equipaggiato':'' )},[
+      el('span',{class:'aura-shop-owned-symbol',testo:o.icona||'✦',aria:{hidden:'true'}}),
       el('strong',{testo:o.nome}),
       el('small',{testo:o.tipo+(o.classe?' · '+CLASSE_AURA[o.classe]:'')}),
       el('small',{class:'equip-status',testo:indossato?'✓ Equipaggiato':'Nella collezione'}),
