@@ -6541,17 +6541,31 @@ function bloccoPersonaggio(profilo, st) {
       // ci passa sopra, davvero, e non è un colore fermo.
       grafica.appendChild(el('div', { class: 'aura-lustro', aria: { hidden: 'true' } }));
     }
+    // v341: le armature hanno gia' fotografie complete, non sono sticker
+    // da disegnare sul torace della foto Streak. Con un'armatura equipaggiata
+    // usa la sua immagine integrale; per la progressione standard resta intatta
+    // una delle 18 foto canoniche. Gli slot e gli acquisti sono invariati.
+    const fotoProgressioneRpg = percorsoStato(classeId, viso.indice);
+    const fotoArmaturaRpg = armaturaEquipaggiata?.immagine || null;
     const fotoRpg = el('img', {
       class: 'personaggio-ritratto',
-      src: percorsoStato(classeId, viso.indice),
+      src: fotoArmaturaRpg || fotoProgressioneRpg,
       alt: `${rpg.classe.nome}: ${armaturaEquipaggiata?.nome || skinEquipaggiata?.nome || viso.stato.riga}`,
       loading: 'lazy',
       decoding: 'async',
     });
+    // Per qualunque problema di cache/mancata foto, mostra il personaggio base
+    // e non un rettangolo vuoto. Non cambia l'equipaggiamento salvato.
+    if (fotoArmaturaRpg) fotoRpg.addEventListener('error',()=>{
+      fotoRpg.src=fotoProgressioneRpg;
+      applicaSkinRpg(grafica,fotoRpg,classeId,armaturaEquipaggiata?.id,skinEquipaggiata?.id);
+    },{once:true});
     grafica.appendChild(fotoRpg);
-    // Un rivestimento fotografico selettivo usa i pixel dello stato STREAK attuale:
-    // volto, corporatura, sfondo e armi originali restano immutati.
-    applicaSkinRpg(grafica, fotoRpg, classeId, armaturaEquipaggiata?.id, skinEquipaggiata?.id);
+    if (fotoArmaturaRpg) grafica.classList.add('rpg-armor-photo-integrale');
+    // Il rivestimento geometrico era la causa delle piastre piatte da videogioco:
+    // lo conserviamo SOLO come fallback quando manca una foto vera.
+    if (!fotoArmaturaRpg) applicaSkinRpg(grafica, fotoRpg, classeId, armaturaEquipaggiata?.id, skinEquipaggiata?.id);
+    else if (skinEquipaggiata?.id==='skin-mitica') applicaSkinRpg(grafica,fotoRpg,classeId,null,skinEquipaggiata.id);
     // Le foto degli effetti formano uno strato trasparente ATTORNO all'avatar:
     // volto, armatura, titolo e skin rimangono esattamente come equipaggiati.
     const scenaFotografica = montaFotoRpg(grafica, effettoEquipaggiato?.id || null, {
