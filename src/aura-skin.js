@@ -1,3 +1,16 @@
+/** Ordine ufficiale dell'Aura Shop: dall'oggetto più comune al più raro.
+ * Non modifica l'elenco originale, i prezzi, le proprietà o gli sblocchi.
+ */
+export const ORDINE_RARITA_AURA = Object.freeze(['Comune','Raro','Epico','Leggendario','Mitico']);
+export function ordinaPerRaritaAura(oggetti=[]) {
+  const rango=Object.fromEntries(ORDINE_RARITA_AURA.map((r,i)=>[r,i]));
+  return [...oggetti].sort((a,b)=>
+    (rango[a.rarita]??99)-(rango[b.rarita]??99) ||
+    (Number(a.prezzo)||0)-(Number(b.prezzo)||0) ||
+    String(a.nome||'').localeCompare(String(b.nome||''),'it')
+  );
+}
+
 // Cosmetici aggiuntivi: nessuna scrittura di progressi, inventario o saldo.
 const REQUISITI = Object.freeze({
   'armatura-guerriero-braci': [15, 'braci'],
