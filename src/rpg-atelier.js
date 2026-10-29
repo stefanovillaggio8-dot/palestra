@@ -3,7 +3,7 @@
 // Nessun acquisto/record viene modificato dalle anteprime o dal download.
 import { AURA_FOTO_ATLAS } from './aura-foto-atlas.js';
 import { FOTO_RPG_RIQUADRI, livelliFotoRpg } from './aura-foto-rpg.js';
-import { fasciaSagoma } from './anteprima-combinata-rpg.js';
+import { fasciaSagoma, disegnaCoronaEnergetica } from './anteprima-combinata-rpg.js';
 
 export const CLASSI_ATELIER = Object.freeze(['guerriero','assassino','berserker']);
 export const EFFETTI_ATELIER = Object.freeze([
@@ -84,7 +84,7 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
   // Il rivestimento della skin in CSS e' un canvas separato dalla foto.
   const pelle=grafica.querySelector?.('.rpg-skin-fedele');
   if(pelle?.width&&pelle?.height) {
-    try {ctx.save();ctx.globalCompositeOperation='color';ctx.drawImage(pelle,dx,dy,dw,dh);ctx.restore();}
+    try {ctx.save();ctx.globalCompositeOperation='source-over';ctx.drawImage(pelle,dx,dy,dw,dh);ctx.restore();}
     catch {ctx.restore();}
   }
   const livelli=livelliFotoRpg(c.effetto,{mitica:!!c.skin,corona:c.corona,divina:c.divina});
@@ -106,6 +106,7 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
         fx.restore();
       }
       fx.save();fx.globalCompositeOperation='destination-out';
+      fx.filter='blur('+Math.max(18,Math.round(dw*.05))+'px)';
       fx.beginPath();
       // Per la testa allarghiamo la sagoma protetta, così neppure i
       // gradienti o i fulmini possono rendere il volto illeggibile.
@@ -131,6 +132,13 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
       ctx.drawImage(atlas,posX[pos[0]]*sw,posY[pos[1]]*sh,sw,sh,
         dx+dw*.30,dy+dh*.005,dw*.40,dh*.145);
       ctx.restore();
+      // Nei canvas ridotti (test/browser legacy) il dettaglio fotografico
+      // resta disponibile anche se translate non e' implementato.
+      if(typeof ctx.translate==='function') {
+        ctx.save();ctx.translate(dx,dy);
+        disegnaCoronaEnergetica(ctx,dw,dh);
+        ctx.restore();
+      }
     }
   }
   if(c.titolo) {
