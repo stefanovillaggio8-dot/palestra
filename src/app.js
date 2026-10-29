@@ -45,7 +45,7 @@ import { montaFotoRpg } from './aura-foto-rpg.js';
 import { montaFotoCombinataRpg, scaricaFotoCombinataRpg } from './anteprima-combinata-rpg.js';
 import { apriAtelierRpg as mostraAtelierRpg } from './rpg-atelier-ui.js';
 import { applicaSkinRpg } from './skin-rpg-fedele.js';
-import { montaScenaCinematograficaRpg, armaSbloccataRpg } from './foto-cinematica-rpg.js';
+import { montaScenaCinematograficaRpg, armaSbloccataRpg, percorsoScenaSpecialeRpg } from './foto-cinematica-rpg.js';
 import { elencoAvatar, avatarPerId, gradienteAvatar, iniziali } from './avatar.js';
 import { amiciDi, confronta, classifichePerEsercizio, privacyDi, campiVisibili, PRIVACY_PREDEFINITE } from './sociale.js';
 import { classificaEsercizio as riconosciEsercizio } from './esercizi-classificatore.js';
@@ -1758,6 +1758,10 @@ function vistaAuraShop(zona, soloInventario = false) {
       el('span',{class:'aura-shop-meta',testo:'Streak attuale per gli acquisti: '+streakShop+' giorni'}),
       el('span',{class:'aura-shop-meta',testo:posseduti.length+' oggetti nella collezione'}),
       bottone('Atelier · combina e salva foto',{classe:'fantasma rpg-atelier-open',onClick:()=>apriAtelierConDatiRpg(profiloAttivo(),statoMio())}),
+      el('a',{class:'fantasma aura-shop-galleria-foto',
+        href:'./img/personaggi/catalogo/effetti-3-classi-v350.webp',
+        target:'_blank',rel:'noopener noreferrer',
+        testo:'✦ Galleria delle nuove immagini'}),
     ]),
   ]));
 
@@ -6596,9 +6600,22 @@ function bloccoPersonaggio(profilo, st) {
       applicaSkinRpg(grafica,fotoRpg,classeId,null,skinEquipaggiata.id);
     // Le foto degli effetti formano uno strato trasparente ATTORNO all'avatar:
     // volto, armatura, titolo e skin rimangono esattamente come equipaggiati.
+    // Le foto integrate sono prioritarie quando rappresentano esattamente
+    // classe, stato arma, armatura, Corona, Aura e skin correnti. Non mostrare
+    // un pugnale già sbloccato come inesistente solo per usare una bella foto.
+    const fotoEffettoPremium=percorsoScenaSpecialeRpg({
+      classe:classeId,
+      stato:statoFotoConsentito,
+      armaSbloccata,
+      armatura:armaturaEquipaggiata?.id || null,
+      skin:skinEquipaggiata?.id || null,
+      effetto:effettoEquipaggiato?.id || null,
+      corona:coronaAttiva,
+      divina:Boolean(viso.aura) || auraDivinaAnteprima,
+    });
     const effettoVivo=usaEffettiViviRpg(effettoEquipaggiato?.id || null,{
       mitica:skinEquipaggiata?.id==='skin-mitica',
-    });
+    }) && !fotoEffettoPremium;
     // Ambra, Fulmine e Astrale usano UN solo renderer Canvas. Prima il
     // compositore fotografico li nascondeva tramite rpg-composite-active.
     if (effettoVivo) grafica.classList.add('rpg-render-live');
