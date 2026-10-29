@@ -15,6 +15,24 @@ export const ARMATURE_EPICHE_SCENE = Object.freeze({
 });
 // Scatti nuovi integrali dell'Assassino: scena e particelle sono una sola fotografia.
 // Si usano esclusivamente con la configurazione che rappresentano.
+// v350: fotografie complete ad alta definizione, tre classi × tre effetti.
+export const FOTO_EFFETTI_PREMIUM_RPG = Object.freeze({
+  assassino:Object.freeze({
+    'effetto-ambra':'img/personaggi/effetti/assassino-ambra.webp?v=350',
+    'effetto-fulmine':'img/personaggi/effetti/assassino-fulmine.webp?v=350',
+    'skin-mitica':'img/personaggi/effetti/assassino-astrale.webp?v=350',
+  }),
+  guerriero:Object.freeze({
+    'effetto-ambra':'img/personaggi/effetti/guerriero-ambra.webp?v=350',
+    'effetto-fulmine':'img/personaggi/effetti/guerriero-fulmine.webp?v=350',
+    'skin-mitica':'img/personaggi/effetti/guerriero-astrale.webp?v=350',
+  }),
+  berserker:Object.freeze({
+    'effetto-ambra':'img/personaggi/effetti/berserker-ambra.webp?v=350',
+    'effetto-fulmine':'img/personaggi/effetti/berserker-fulmine.webp?v=350',
+    'skin-mitica':'img/personaggi/effetti/berserker-astrale.webp?v=350',
+  }),
+});
 export const FOTO_RPG_SPECIALI = Object.freeze({
   ombra:'img/personaggi/scene/assassino-fumo.webp?v=346',
   nebulosa:'img/personaggi/scene/assassino-nebulosa.webp?v=346',
@@ -24,6 +42,18 @@ export const FOTO_RPG_SPECIALI = Object.freeze({
 export function percorsoScenaSpecialeRpg({classe,armatura=null,effetto=null,skin=null,
   corona=false,divina=false,stato=null,stadio=null,armaSbloccata=false}={}) {
   const raw=stadio??stato;
+  // Scatti premium v350: senza armi o accessori non rappresentati nella foto.
+  // Quando la combinazione richiede armature, corona o Aura divina, ritorniamo
+  // al renderer composito che mantiene tutti gli oggetti equipaggiati.
+  if(!armatura&&!armaSbloccata&&!corona&&!divina &&
+    (raw===null||raw===undefined||Number(raw)<4)) {
+    const photos=FOTO_EFFETTI_PREMIUM_RPG[classe];
+    if(photos) {
+      if(skin==='skin-mitica' && !effetto)return photos['skin-mitica'];
+      if(!skin && (effetto==='effetto-ambra'||effetto==='effetto-fulmine'))
+        return photos[effetto];
+    }
+  }
   if(classe!=='assassino'||armatura||skin||armaSbloccata||
     (raw!==null&&raw!==undefined&&Number(raw)>=4)) return null;
   if(!effetto&&corona)return FOTO_RPG_SPECIALI.corona;
