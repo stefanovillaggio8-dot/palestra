@@ -40,8 +40,9 @@ test('Fumo, Nebulosa e Aura: dissolvenza fotografica senza sagoma rigida',async(
     const s=await read(file);
     const a=s.indexOf('function '+(file.includes('anteprima')?'ritagliaPersona':'cancellaCorpo')+'(');
     assert.ok(a>0,file);
-    const b=s.indexOf('\n}',a);
-    const mask=s.slice(a,b+2);
+    const b=s.indexOf(file.includes('anteprima')?'// Corona magica integrata':'  function render(t){',a);
+    assert.ok(b>a,file+' fine maschera');
+    const mask=s.slice(a,b);
     assert.match(mask,/createRadialGradient/);
     assert.match(mask,/addColorStop\(\.90/);
     assert.match(mask,/fillRect\(-1\.2,-1\.2,2\.4,2\.4\)/);
