@@ -4,7 +4,7 @@ import {readFile} from 'node:fs/promises';
 import {
   SCENE_ATLANTI_RPG,ARMATURE_EPICHE_SCENE,
   indiceScenaCinematograficaRpg,percorsoAtlanteScenaRpg,
-  fotoCinematograficaRpg,montaScenaCinematograficaRpg
+  fotoCinematograficaRpg,montaScenaCinematograficaRpg,armaSbloccataRpg
 } from '../src/foto-cinematica-rpg.js';
 
 test('Le tre griglie originali prevedono nove foto ciascuna, senza inventarne altre',()=>{
@@ -51,4 +51,50 @@ test('Anteprima, Atelier e download usano le foto reali evitando sovrapposizioni
   assert.match(css,/rpg-scena-cinematografica/);
   assert.match(css,/\.rpg-foto-combinata/);
   assert.match(css,/content:none!important/);
+});
+
+test('Le armi sono sbloccate solo dal premio elmo, non dal livello o dalla streak odierna',async()=>{
+  const {PREMI,nomePremio}=await import('../src/avatar-rpg.js');
+  const premio=PREMI.find(p=>p.id==='elmo');
+  assert.ok(premio);
+  assert.equal(premio.giorni,30);
+  assert.equal(nomePremio('elmo','assassino'),'Pugnale');
+  assert.equal(nomePremio('elmo','guerriero'),'Spada');
+  assert.equal(nomePremio('elmo','berserker'),'Ascia da guerra');
+  assert.equal(armaSbloccataRpg([]),false);
+  assert.equal(armaSbloccataRpg([{id:'elmo',sbloccato:false}]),false);
+  assert.equal(armaSbloccataRpg([{id:'runica',sbloccato:true}]),false);
+  assert.equal(armaSbloccataRpg([{id:'elmo',sbloccato:true}]),true);
+  // Se la streak attuale si interrompe, il record mantiene il premio.
+  assert.equal(armaSbloccataRpg([{id:'elmo',sbloccato:true,streakAttuale:0}]),true);
+});
+test('Le foto a 9 pannelli non nascondono il pugnale, la spada o la ascia a 30 giorni',()=>{
+ for(const classe of ['assassino','guerriero','berserker']){
+   const armatura=ARMATURE_EPICHE_SCENE[classe];
+   for(const stato of [0,1,2,3]){
+     assert.equal(indiceScenaCinematograficaRpg({
+       classe,stato,armatura,corona:true,effetto:'effetto-ombra',armaSbloccata:false
+     }),7);
+   }
+   for(const stato of [4,5]){
+     for(const armaturaVal of [null,armatura])
+       assert.equal(indiceScenaCinematograficaRpg({
+         classe,stato,armatura:armaturaVal,corona:true,effetto:'effetto-ombra'
+       }),null,'foto di livello '+stato+' senza arma: '+classe);
+   }
+   assert.equal(indiceScenaCinematograficaRpg({
+     classe,stato:2,armaSbloccata:true,armatura
+   }),null);
+   assert.equal(indiceScenaCinematograficaRpg({
+     classe,stadio:4,armaSbloccata:false,armatura
+   }),null);
+ }
+});
+test('La scheda usa il premio vero e le fotografie canoniche se lo sblocco richiede arma',async()=>{
+ const app=await readFile(new URL('../src/app.js',import.meta.url),'utf8');
+ assert.match(app,/armaSbloccataRpg\(rpg\.premi\)/);
+ assert.match(app,/armaSbloccata \? viso\.indice : Math\.min\(viso\.indice,3\)/);
+ assert.match(app,/mostraFotoConArma \? null : armaturaEquipaggiata\?\.immagine/);
+ assert.match(app,/fotoProgressioneRpg = percorsoStato\(classeId, statoFotoConsentito\)/);
+ assert.match(app,/armaSbloccata:armaSbloccata/);
 });
