@@ -165,14 +165,10 @@ function generaLivello(c,atlas,width,height) {
   // Prima mascheriamo corpo e faccia: nessun fulmine, fumo o nebula
   // può attraversare il protagonista.
   ritagliaPersona(ctx,c.classe,width,height);
-  if(c.corona) {
-    // La Corona e' un dettaglio autonomo SOPRA la testa.
-    // Non viene applicata a schermo intero sul petto.
-    ctx.save();ctx.globalAlpha=.92;
-    disegnaSprite(ctx,atlas,'corona',width*.31,height*.015,width*.38,height*.16);
-    disegnaCoronaEnergetica(ctx,width,height);
-    ctx.restore();
-  }
+  // La Corona 80 giorni è renderizzata da un unico SVG vettoriale sopra la
+  // fotografia; non duplicarla disegnando di nuovo la vecchia texture.
+  // disegnaCoronaEnergetica resta disponibile per il fallback dell'Atelier.
+
   return layer;
 }
 function getCachedLayer(c,atlas,w,h) {
@@ -249,6 +245,9 @@ export async function scaricaFotoCombinataRpg(grafica,classe='rpg') {
   }
   const effects=grafica.querySelector('.rpg-foto-combinata');
   if(!integrata && effects?.width)ctx.drawImage(effects,0,0,out.width,out.height);
+  const crown=grafica.querySelector('.rpg-corona-premium');
+  if(crown?.complete && crown.naturalWidth>0)
+    ctx.drawImage(crown,0,0,out.width,out.height);
   const data=out.toDataURL('image/png');
   const anchor=document.createElement('a');
   anchor.href=data;
