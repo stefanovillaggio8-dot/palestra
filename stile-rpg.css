@@ -1603,7 +1603,7 @@ body {
     radial-gradient(75vw 44vw at 0% -9%,rgba(90,65,157,.19),transparent 72%),
     radial-gradient(70vw 48vw at 100% 12%,rgba(30,78,108,.15),transparent 70%),
     linear-gradient(180deg,#0d0d18,#0b0d15 65%);
-  background-attachment:fixed;
+  /* Nessun background-attachment fixed: evita scatti su Safari/iPhone. */
 }
 #app {max-width:800px;}
 .contenuto {min-width:0;}
@@ -1800,7 +1800,7 @@ body {
   text-decoration:none;white-space:nowrap;
 }
 .aura-shop-filters {
-  position:sticky;top:calc(var(--alto-barra-stato,0px) + 4px);
+  position:sticky;top:calc(var(--altezza-barra-in-alto,36px) + 4px);
   z-index:7;display:flex;gap:7px;overflow-x:auto;
   padding:9px 5px 12px;margin:0 0 9px;
   border:1px solid rgba(169,139,213,.13);
