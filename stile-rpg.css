@@ -1572,3 +1572,421 @@ button:focus-visible,.chip:focus-visible {outline:2px solid #c9a4ff;outline-offs
     max-height:min(49dvh,375px);
   }
 }
+
+
+/* ===================================================================
+   v340 · DESIGN SYSTEM
+   Un solo linguaggio visivo per Allenamento, Rank, Storico, Casa,
+   Progressi, Profilo e Aura Shop. Interventi estetici, nessun layout
+   strutturale delle serie o delle tabelle modificato.
+   =================================================================== */
+:root {
+  --nero:#0b0d16;
+  --nero-2:#121522;
+  --card:#191d2b;
+  --card-2:#24283a;
+  --viola:#9b79f5;
+  --viola-scuro:#332451;
+  --blu:#8cafff;
+  --blu-scuro:#1d2e52;
+  --testo:#f5f3fb;
+  --testo-2:#bcb9ce;
+  --testo-3:#9493ad;
+  --bordo:#393a55;
+  --r:16px;
+  --ui-rimlight:rgba(203,181,255,.11);
+  --ui-shadow:0 10px 32px rgba(0,0,0,.19);
+}
+html {color-scheme:dark;}
+body {
+  background:
+    radial-gradient(75vw 44vw at 0% -9%,rgba(90,65,157,.19),transparent 72%),
+    radial-gradient(70vw 48vw at 100% 12%,rgba(30,78,108,.15),transparent 70%),
+    linear-gradient(180deg,#0d0d18,#0b0d15 65%);
+  background-attachment:fixed;
+}
+#app {max-width:800px;}
+.contenuto {min-width:0;}
+.contenuto h1,.contenuto h2,.contenuto h3 {
+  text-wrap:balance;
+  letter-spacing:-.024em;
+}
+.contenuto h1 {font-weight:850;}
+.contenuto h2 {font-weight:790;}
+.contenuto .nota {line-height:1.53;}
+.contenuto > .blocco,
+.contenuto .scheda-giorno,
+.contenuto .card-rank,
+.contenuto .grafico,
+.contenuto .riga-omino {
+  border-radius:19px;
+  border-color:rgba(171,159,212,.21);
+  background-image:
+    linear-gradient(140deg,rgba(30,34,49,.95),rgba(17,22,32,.96));
+  box-shadow:var(--ui-shadow),inset 0 1px var(--ui-rimlight);
+}
+.contenuto > .blocco {padding:clamp(14px,2.9vw,22px);}
+.contenuto > .blocco + .blocco {margin-top:13px;}
+.contenuto .card-rank {overflow:hidden;}
+.contenuto .card-rank h3 {letter-spacing:-.025em;}
+.contenuto .riga-omino {background:
+  radial-gradient(ellipse at 30% 0%,rgba(108,80,174,.11),transparent 66%),
+  linear-gradient(140deg,#1d2031,#121926);}
+.contenuto .grafico {
+  background:radial-gradient(ellipse at 90% 0%,rgba(146,105,231,.11),transparent 63%),
+    linear-gradient(145deg,#1c2030,#111824);
+  border-color:rgba(172,148,223,.24);
+}
+.contenuto .grafico .asse-txt {fill:#b2bbd1;}
+.contenuto .grafico .linea-grafico {stroke-linejoin:round;}
+.contenuto .bot:not(.piccolo-b):not(.bottone-spunta) {
+  border-radius:13px;
+}
+.contenuto .bot.principale:not(:disabled) {
+  background:linear-gradient(130deg,#956de8,#7049c9);
+  box-shadow:0 4px 18px rgba(106,61,187,.19),inset 0 1px rgba(255,255,255,.18);
+}
+.contenuto .bot.fantasma:not(:disabled) {
+  border-color:rgba(177,158,217,.29);
+  background:rgba(51,48,80,.19);
+}
+.contenuto .bot.fantasma:not(:disabled):active {
+  background:rgba(117,88,175,.28);
+}
+.contenuto input:not([type=checkbox]):not([type=radio]),
+.contenuto select,.contenuto textarea {
+  border-radius:12px;
+  border-color:rgba(172,164,198,.27);
+  background-color:rgba(15,19,30,.85);
+  color:var(--testo);
+  max-width:100%;
+}
+.contenuto :is(input,select,textarea):focus-visible {
+  outline:2px solid #d4bbff;
+  outline-offset:2px;
+}
+.menu-basso {
+  background:rgba(14,15,27,.95);
+  border-top-color:rgba(175,157,219,.27);
+  box-shadow:0 -10px 28px rgba(2,2,9,.23);
+  backdrop-filter:blur(18px) saturate(140%);
+  -webkit-backdrop-filter:blur(18px) saturate(140%);
+}
+.menu-basso .voce-menu {
+  color:#a4a0ba;
+  border:1px solid transparent;
+  transition:background .2s,border-color .2s,color .2s;
+}
+.menu-basso .voce-menu.attiva {
+  color:#f3eaff;
+  background:linear-gradient(145deg,rgba(123,81,212,.27),rgba(71,47,121,.18));
+  border-color:rgba(177,140,243,.29);
+}
+.menu-basso .voce-menu.attiva::before {
+  width:24px;height:2px;
+  background:#d0b4ff;
+}
+.stato-save {background:rgba(13,15,25,.95);border-bottom-color:rgba(186,161,232,.21);}
+.stato-save .pallino-stato {flex-shrink:0;}
+/* L'app resta confortevole sui telefoni piccoli e con il testo ingrandito. */
+@media (max-width:430px) {
+  #app {padding-inline:11px;}
+  .contenuto > .blocco {padding:14px;}
+  .menu-basso {gap:3px;padding-inline:6px;}
+}
+@media (prefers-reduced-motion:reduce) {
+  .menu-basso .voce-menu {transition:none;}
+}
+
+/* ===================================================================
+   v340 · AURA SHOP / INVENTARIO: acquisti visibili e gerarchia compatta
+   =================================================================== */
+.aura-shop-topline {
+  display:flex;align-items:center;justify-content:space-between;
+  gap:10px;margin:4px 0 11px;
+}
+.aura-shop-back {
+  display:inline-flex;align-items:center;justify-content:center;
+  min-height:42px;padding:9px 13px;
+  color:#e9dbff;text-decoration:none;
+  background:rgba(40,36,66,.52);
+  border:1px solid rgba(174,148,225,.3);
+  border-radius:12px;font-size:.84rem;font-weight:750;
+}
+.aura-shop-back:focus-visible,.aura-shop-inline-link:focus-visible {
+  outline:2px solid #e9d1ff;outline-offset:3px;
+}
+.aura-shop-topline-label {
+  font-size:.67rem;letter-spacing:.16em;font-weight:850;
+  color:#aaa1c8;white-space:nowrap;
+}
+.aura-shop-hero {
+  margin:0 0 19px;
+  padding:clamp(19px,3.5vw,28px);
+  border-radius:24px;
+  background:
+    radial-gradient(ellipse at 100% 0%,rgba(166,102,244,.18),transparent 55%),
+    radial-gradient(ellipse at -5% 108%,rgba(97,130,219,.09),transparent 52%),
+    linear-gradient(135deg,#211c33,#111723);
+  box-shadow:0 17px 38px rgba(0,0,0,.25),inset 0 1px rgba(236,214,255,.13);
+}
+.aura-shop-hero:before {border-color:rgba(204,177,253,.055);}
+.aura-shop-hero-main {
+  display:grid;grid-template-columns:minmax(0,1.2fr) minmax(165px,.8fr);
+  align-items:stretch;gap:18px;
+}
+.aura-shop-hero-copy {display:flex;flex-direction:column;justify-content:center;min-width:0;}
+.aura-shop-hero .aura-shop-kicker {font-size:.65rem;letter-spacing:.16em;}
+.aura-shop-hero h1 {
+  margin:7px 0 9px;font-size:clamp(2.05rem,5.6vw,3.1rem);
+  color:#faf5ff;letter-spacing:-.045em;line-height:1.05;
+}
+.aura-shop-hero .nota {max-width:33ch;line-height:1.5;color:#c5c0d7;}
+.aura-shop-hero .aura-shop-wallet {
+  display:flex;flex-direction:column;justify-content:center;gap:4px;
+  min-width:0;margin:0;padding:17px;
+  border-radius:17px;
+  background:linear-gradient(145deg,rgba(52,39,83,.65),rgba(16,19,34,.75));
+  border:1px solid rgba(217,184,252,.23);
+  box-shadow:inset 0 1px rgba(255,255,255,.055);
+}
+.aura-shop-hero .aura-shop-wallet strong {
+  grid-row:auto;grid-column:auto;
+  font-size:clamp(1.85rem,4vw,2.45rem);
+  line-height:1.1;letter-spacing:-.05em;color:#f9d898;
+  text-shadow:0 0 22px rgba(233,180,84,.13);
+}
+.aura-shop-hero .aura-shop-wallet small {font-size:.74rem;color:#c7c0d8;}
+.aura-shop-hero-footer {
+  display:flex;align-items:center;flex-wrap:wrap;gap:9px;
+  margin-top:17px;padding-top:15px;
+  border-top:1px solid rgba(205,178,251,.15);
+}
+.aura-shop-meta {
+  font-size:.76rem;color:#d4cce8;
+  background:rgba(9,12,23,.36);
+  border:1px solid rgba(189,170,222,.18);
+  border-radius:999px;padding:6px 10px;
+}
+.aura-shop-hero .rpg-atelier-open {
+  min-height:42px;
+  flex:1 1 210px;
+  margin:0 0 0 auto;padding:8px 13px;
+  border-color:rgba(225,186,255,.38);
+  background:rgba(100,65,166,.23);color:#fff4ff;
+  font-size:.85rem;
+}
+.aura-shop-section-head {
+  gap:12px;align-items:flex-end;
+  padding:3px 1px;margin:24px 0 13px;
+}
+.aura-shop-section-head h2,.aura-shop-section-head h1 {
+  margin:4px 0 0;color:#f8f3ff;
+  font-size:clamp(1.3rem,3.5vw,1.7rem);line-height:1.17;
+}
+.aura-shop-section-head .nota {
+  margin-top:7px;max-width:53ch;font-size:.83rem;
+}
+.aura-shop-count {
+  flex-shrink:0;padding:7px 11px;
+  color:#cdbde9;background:rgba(109,86,151,.13);
+  border:1px solid rgba(176,145,220,.24);
+  border-radius:999px;font-size:.73rem;font-weight:750;
+}
+.aura-shop-inline-link {
+  color:#dacaff;font-size:.8rem;font-weight:800;
+  border:1px solid rgba(177,149,223,.3);
+  border-radius:10px;padding:8px 10px;
+  text-decoration:none;white-space:nowrap;
+}
+.aura-shop-filters {
+  position:sticky;top:calc(var(--alto-barra-stato,0px) + 4px);
+  z-index:7;display:flex;gap:7px;overflow-x:auto;
+  padding:9px 5px 12px;margin:0 0 9px;
+  border:1px solid rgba(169,139,213,.13);
+  border-radius:16px;
+  background:rgba(14,17,29,.96);
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+  scrollbar-width:none;
+}
+.aura-shop-filter {
+  min-height:43px;flex-shrink:0;
+  border-radius:11px;letter-spacing:.015em;
+  background:rgba(48,45,70,.28);
+  border:1px solid rgba(170,148,204,.19);
+  font-weight:740;font-size:.81rem;
+  padding:9px 13px;
+}
+.aura-shop-filter.attivo,.aura-shop-filter[aria-pressed="true"] {
+  background:linear-gradient(130deg,#6846ad,#47336f);
+  color:#fff;border-color:#b493f0;
+  box-shadow:inset 0 1px rgba(255,255,255,.13);
+}
+.aura-shop-grid {
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:13px;align-items:stretch;
+}
+.aura-shop-card {
+  min-width:0;min-height:0;
+  padding:17px;gap:7px;
+  border-radius:18px;
+  border:1px solid rgba(165,145,202,.24);
+  box-shadow:0 8px 24px rgba(0,0,0,.17),inset 0 1px rgba(255,255,255,.045);
+  background:linear-gradient(160deg,#1d1e31,#131a26);
+}
+.aura-shop-card::before {height:2px;}
+.aura-shop-card .aura-shop-card-top {margin-bottom:1px;}
+.aura-shop-card .aura-shop-item-symbol {
+  width:45px;height:45px;flex-basis:45px;
+  border-radius:13px;font-size:1.3rem;
+}
+.aura-shop-card h3 {
+  margin:3px 0 2px;font-size:clamp(1.04rem,2.5vw,1.21rem);
+  line-height:1.25;min-height:0;
+  letter-spacing:-.024em;
+}
+.aura-shop-card .aura-shop-item-type {font-size:.69rem;}
+.aura-shop-card .nota {font-size:.8rem;line-height:1.45;min-height:0;flex:1;}
+.aura-shop-card .aura-shop-price {
+  display:flex;align-items:center;
+  margin:8px 0 0!important;padding-top:10px;
+  border-top:1px solid rgba(175,151,217,.12);
+  font-size:1.05rem;font-weight:850;letter-spacing:-.015em;
+  color:#f3d19c;
+}
+.aura-shop-item-owned {
+  display:inline-block;width:fit-content;
+  font-size:.72rem;font-weight:750;color:#a3e2c5;
+  border-radius:9px;border:1px solid rgba(99,188,142,.26);
+  padding:4px 7px;background:rgba(43,126,86,.10);
+}
+.aura-shop-card.acquistato {border-color:rgba(111,195,155,.35);}
+.aura-shop-card.bloccato {border-color:rgba(166,148,189,.17);}
+.aura-shop-card.bloccato .aura-shop-rarity {opacity:.76;}
+.aura-shop-card .aura-shop-card-actions {
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:8px;margin-top:9px;
+}
+.aura-shop-card .aura-shop-card-actions .bot {
+  min-width:0;min-height:44px;
+  padding:10px 7px;font-size:.79rem;
+  line-height:1.2;overflow-wrap:anywhere;
+}
+.aura-shop-card .aura-shop-card-actions button:disabled {
+  opacity:.66;color:#b9b5c8;
+}
+.aura-shop-inventory {
+  margin:8px 0;padding:clamp(14px,2.8vw,22px);
+  border-radius:22px;
+  background:linear-gradient(145deg,#1c1c2d,#101824);
+  border:1px solid rgba(172,150,214,.27);
+}
+.aura-shop-inventory>.aura-shop-section-head {
+  margin:0 0 17px;align-items:center;
+}
+.aura-shop-owned-grid {
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
+}
+.aura-shop-owned-grid>.aura-shop-owned {
+  display:grid;
+  grid-template-columns:42px minmax(0,1fr);
+  align-items:start;gap:4px 12px;
+  min-width:0;padding:15px;
+  border-radius:17px;
+  border:1px solid rgba(172,145,218,.26);
+  background:linear-gradient(150deg,rgba(40,37,63,.83),rgba(21,26,38,.96));
+}
+.aura-shop-owned .aura-shop-owned-symbol {
+  width:42px;height:42px;grid-column:1;grid-row:1 / span 3;
+  margin:0;font-size:1.25rem;
+}
+.aura-shop-owned strong {
+  grid-column:2;grid-row:1;
+  font-size:.99rem;line-height:1.3;overflow-wrap:anywhere;
+}
+.aura-shop-owned .aura-shop-owned-type {grid-column:2;grid-row:2;font-size:.74rem;}
+.aura-shop-owned .equip-status {grid-column:2;grid-row:3;font-size:.75rem;font-weight:750;}
+.aura-shop-owned .aura-shop-card-actions {grid-column:1 / -1;grid-row:4;margin-top:10px;}
+.aura-shop-owned .aura-shop-card-actions .bot {padding:10px 7px;font-size:.81rem;}
+.aura-shop-owned.equipaggiato {
+  border-color:rgba(104,215,168,.5);
+  background:linear-gradient(155deg,rgba(29,63,59,.47),rgba(28,30,47,.96));
+}
+.aura-shop-empty {
+  grid-column:1 / -1;
+  display:flex;flex-direction:column;align-items:center;
+  padding:28px 16px;text-align:center;gap:9px;
+  border:1px dashed rgba(171,146,216,.3);
+  border-radius:16px;background:rgba(65,48,96,.08);
+}
+.aura-shop-empty-icon {
+  width:52px;height:52px;display:grid;place-items:center;
+  font-size:1.7rem;color:#d3b5ff;
+  border-radius:16px;border:1px solid rgba(187,155,235,.24);
+  background:rgba(87,56,142,.16);
+}
+.aura-shop-rewards-head {margin-top:26px;}
+.aura-shop-rewards {display:grid;grid-template-columns:1fr 1fr;gap:13px;}
+.aura-shop-rewards .aura-streak-divina,
+.aura-shop-rewards .aura-streak-mitica {
+  margin:0;min-width:0;
+  padding:17px;border-radius:18px;
+  border-color:rgba(210,176,119,.27);
+}
+.aura-shop-rewards .aura-streak-mitica {
+  grid-template-columns:1fr;align-content:start;gap:8px;
+}
+.aura-shop-rewards .aura-mitica-sigil {
+  width:50px;height:50px;font-size:1.65rem;
+}
+.aura-shop-rewards h2 {font-size:1.08rem;}
+.aura-shop-rewards p {font-size:.83rem;line-height:1.5;}
+.aura-shop-rewards .bot {max-width:100%;font-size:.82rem;}
+.shop-connessione {text-align:center;padding:13px 6px;font-size:.75rem;}
+/* Due percorsi principali: Shop sempre a sinistra, Inventario a destra;
+   la freccia Indietro e' in alto e non schiaccia i due pulsanti principali. */
+.menu-aura-shop {justify-content:stretch;gap:10px;padding:8px 12px calc(9px + env(safe-area-inset-bottom));}
+.menu-aura-shop .voce-menu {
+  flex:1 1 50%;min-width:0;
+  min-height:52px;display:flex;flex-direction:row;
+  align-items:center;justify-content:center;gap:9px;
+  padding:10px;border-radius:14px;
+  border:1px solid rgba(164,142,203,.17);
+}
+.menu-aura-shop .voce-menu.attiva {border-color:rgba(184,151,239,.5);}
+.menu-aura-shop .voce-menu.attiva::before {display:none;}
+.menu-aura-shop .icona-menu {width:21px;height:21px;flex-shrink:0;}
+.menu-aura-shop .parola-menu {font-size:.9rem;font-weight:800;}
+@media(max-width:600px) {
+  .aura-shop-hero-main {grid-template-columns:1fr;gap:15px;}
+  .aura-shop-hero .aura-shop-wallet {
+    display:grid;grid-template-columns:minmax(0,1fr) auto;
+    gap:4px 12px;align-items:center;
+  }
+  .aura-shop-hero .aura-shop-wallet strong {grid-column:2;grid-row:1 / span 2;}
+  .aura-shop-hero .aura-shop-wallet small {grid-column:1;grid-row:2;}
+  .aura-shop-hero .rpg-atelier-open {margin:0;width:100%;}
+  .aura-shop-rewards {grid-template-columns:1fr;}
+}
+@media(max-width:530px) {
+  .aura-shop-grid,.aura-shop-owned-grid {grid-template-columns:1fr;}
+  .aura-shop-card {padding:17px;}
+  .aura-shop-card .aura-shop-card-actions {grid-template-columns:minmax(0,.88fr) minmax(0,1.12fr);}
+  .aura-shop-card .aura-shop-card-actions .bot {font-size:.83rem;}
+  .aura-shop-section-head {align-items:flex-start;}
+  .aura-shop-section-head .aura-shop-count {margin-top:8px;}
+  .aura-shop-inventory>.aura-shop-section-head {align-items:flex-start;}
+}
+@media(max-width:360px) {
+  .aura-shop-topline-label {font-size:.6rem;letter-spacing:.09em;}
+  .aura-shop-back {padding-inline:9px;font-size:.78rem;}
+  .aura-shop-hero {padding:16px;}
+  .aura-shop-hero-footer {gap:6px;}
+  .aura-shop-meta {font-size:.7rem;}
+  .aura-shop-card .aura-shop-card-actions .bot {font-size:.76rem;}
+}
+@media(prefers-reduced-motion:reduce) {
+  .aura-shop-card,.menu-aura-shop .voce-menu,.aura-shop-back {transition:none;}
+}
