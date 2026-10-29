@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#100d20">
+<title>Galleria combinazioni · Aura Shop</title>
+<link rel="stylesheet" href="./stile-galleria-rpg.css?v=352">
+</head>
+<body>
+<main class="gallery-shell">
+  <header class="gallery-header">
+    <a class="back" href="./index.html#/aura-shop" aria-label="Torna all'Aura Shop">‹</a>
+    <div class="brand"><span>Aura Shop</span><small>✦ GALLERIA FOTO RPG ✦</small></div>
+    <span class="brand-emblem" aria-hidden="true">✧</span>
+  </header>
+  <section class="gallery-card">
+    <div class="gallery-intro">
+      <p class="kicker">LA TUA COLLEZIONE RPG</p>
+      <h1>Galleria combinazioni</h1>
+      <p>Stessi effetti, stessa cornice e stesso inquadramento per tutte e tre le classi.</p>
+    </div>
+    <nav class="gallery-classes" aria-label="Scegli classe" id="classi"></nav>
+    <p class="gallery-context" id="avviso-classe" aria-live="polite"></p>
+    <div class="gallery-grid" id="foto"></div>
+    <p class="gallery-disclaimer">Questa galleria è una vetrina illustrativa: non anticipa gli sblocchi e non equipaggia oggetti. Le ricompense restano regolate dalla Streak e dall'inventario dell'app.</p>
+  </section>
+</main>
+<dialog class="gallery-dialog" id="ingrandisci" aria-label="Ingrandisci la fotografia">
+  <button class="close" type="button" id="chiudi" aria-label="Chiudi anteprima">×</button>
+  <img id="grande" alt="">
+  <div class="dialog-bottom"><strong id="nome-foto"></strong><span id="nota-foto"></span></div>
+</dialog>
+<script type="module" src="./src/galleria-foto-rpg.js?v=352"></script>
+</body>
+</html>
