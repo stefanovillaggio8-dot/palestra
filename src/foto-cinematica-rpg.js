@@ -70,7 +70,7 @@ export function montaScenaCinematograficaRpg(grafica,foto,opzioni={}) {
     if(!src || !grafica.isConnected || !foto.isConnected)return;
     const chiave=opzioni.classe+':'+indice;
     if(foto.dataset)foto.dataset.scenaCinematografica=chiave;
-    // Una fotografia completa, gia' con armatura, fumo, luce e corona integrati.
+    // Una fotografia completa, già con armatura, fumo, luce e corona integrati.
     // L'eventuale renderer precedente resta nel DOM solo come fallback.
     foto.src=src;
     grafica.classList.add('rpg-scena-cinematografica');
