@@ -82,7 +82,7 @@ test('L Atelier e lo Shop sono componenti solo UI senza cambiare lo stato accoun
  const app=await readFile(new URL('../src/app.js',import.meta.url),'utf8');
  const ui=await readFile(new URL('../src/rpg-atelier-ui.js',import.meta.url),'utf8');
  assert.match(app,/Atelier · combina e salva foto/);
- assert.match(app,/testo:o\.icona\|\|'✦'/);
+ assert.match(app,/testo:o\.icona\s*\|\|\s*'✦'/);
  assert.match(ui,/renderPersonaggio\(profile,st\)/);
  assert.match(ui,/Salva questa foto PNG/);
  assert.doesNotMatch(ui,/db\.salva|sb\.|aura -|spesa_aura|ricompense\.push/);
