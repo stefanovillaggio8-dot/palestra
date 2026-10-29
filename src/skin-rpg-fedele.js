@@ -1,4 +1,6 @@
-// Skin RPG v330: la fotografia sbloccata dalla Streak e' sempre la sorgente.
+import { disegnaMaterialiArmaturaRpg } from './materiali-armature-rpg.js';
+
+// Skin RPG v339: la fotografia sbloccata dalla Streak e' sempre la sorgente.
 // Il rivestimento ritocca SOLO le zone degli abiti/protezioni: volto, postura,
 // anatomia, equipaggiamento e sfondo rimangono quelli dello stato originale.
 // Nessuna sagoma inventata, nessuna arma aggiunta prima dei giorni richiesti.
@@ -98,10 +100,15 @@ export function applicaSkinRpg(grafica,foto,classe,armaturaId,skinId) {
           out[i]=Math.round(clamp(col[0]*trama,0,255));
           out[i+1]=Math.round(clamp(col[1]*trama,0,255));
           out[i+2]=Math.round(clamp(col[2]*trama,0,255));
-          out[i+3]=Math.round(255*skin.intensita*maschera*morbido);
+          // La tinta e' una velatura, non l'intera armatura: niente evidenziatore.
+          // Le superfici, i cinturoni e le piastre vengono costruiti separatamente.
+          out[i+3]=Math.round(255*skin.intensita*.20*maschera*morbido);
         }
       }
       ctx.putImageData(overlay,0,0);
+      // Armature riconoscibili come capi differenti, sulle stesse fotografie.
+      // Astrale si aggiunge alla corazza, invece di rimpiazzarla.
+      disegnaMaterialiArmaturaRpg(ctx,w,h,classe,armaturaId,skinId);
       // Un piccolo sigillo nel petto differenzia le rarita' senza coprire il volto.
       const cx=w*.5,cy=h*(classe==='assassino'?.41:.405),radius=w*.023;
       ctx.save();
