@@ -62,8 +62,8 @@ function puntoLaterale(classe,y,lato,distanza) {
   return limita((lato<0?sx:dx)+lato*distanza,.012,.988);
 }
 
-export function montaEffettiRpg(elemento,tipo,{corona=false,divina=false,classe=null}={}) {
-  if(!elemento || (!TIPI.has(tipo)&&!corona&&!divina))return ()=>{};
+export function montaEffettiRpg(elemento,tipo,{corona=false,divina=false,mitica=false,classe=null}={}) {
+  if(!elemento || (!TIPI.has(tipo)&&!corona&&!divina&&!mitica))return ()=>{};
   if(typeof document==='undefined'||typeof requestAnimationFrame!=='function')return ()=>{};
   smontaEffettiRpg(elemento);
   const canvas=document.createElement('canvas');
@@ -257,6 +257,13 @@ export function montaEffettiRpg(elemento,tipo,{corona=false,divina=false,classe=
     ctx.shadowColor=corona?'#e7c175':'#76ccff';ctx.shadowBlur=10;
     const wave=1+Math.sin(t*.85)*.035;
     ctx.beginPath();ctx.ellipse(cx,y,span*wave,h*.014,0,0,TAU);ctx.stroke();
+    if(divina && corona) {
+      // Aura divina da 75 giorni e Corona da 80 giorni convivono:
+      // il cerchio azzurro e' un livello distinto sotto la corona dorata.
+      ctx.beginPath();ctx.ellipse(cx,y+h*.032,span*.88,h*.012,0,0,TAU);
+      ctx.strokeStyle='rgba(154,229,255,.7)';ctx.shadowColor='#82d2ff';ctx.stroke();
+      ctx.strokeStyle='#ffe2aa';ctx.shadowColor='#e7c175';
+    }
     if(corona){
       ctx.fillStyle='rgba(225,180,78,.5)';
       ctx.beginPath();ctx.moveTo(cx-span,y);
@@ -293,6 +300,11 @@ export function montaEffettiRpg(elemento,tipo,{corona=false,divina=false,classe=
   function render(t){
     if(w<16||h<20)return;
     ctx.clearRect(0,0,w,h);
+    if(mitica && tipo!=='effetto-nebula') {
+      // La nebulosa di Astrale resta presente anche quando si equipaggia
+      // un secondo effetto, ma e' discreta per lasciare risalto all'effetto comprato.
+      ctx.save();ctx.globalAlpha=.32;nebula(t);ctx.restore();
+    }
     if(tipo==='effetto-ambra')amber(t);
     else if(tipo==='effetto-ombra')smoke(t);
     else if(tipo==='effetto-fulmine')arc(t);

@@ -26,3 +26,25 @@ export function accessoSkin(oggetto, stato, classe, posseduto = false) {
     acquistabile: !posseduto && compatibile && streakRaggiunta && Number(stato?.aura) >= oggetto.prezzo,
   };
 }
+
+
+// La Corona è una ricompensa gratuita, distinta da Skin, Armatura, Effetto
+// e Titolo. Il valore 'nessuna' conserva la scelta di disequipaggiarla,
+// anche dopo che si sono raggiunti gli 80 giorni.
+export const CORONA_INFINITO_ID = 'corona-infinito';
+export function statoCoronaInfinito(equipaggiamento, record, anteprima = false) {
+  const giorni = Math.max(0, Number(record) || 0);
+  const sbloccata = giorni >= 80;
+  const scelta = equipaggiamento?.Corona;
+  return {
+    giorni, sbloccata,
+    equipaggiata: sbloccata && (scelta === undefined || scelta === CORONA_INFINITO_ID),
+    visibile: Boolean(anteprima || (sbloccata && (scelta === undefined || scelta === CORONA_INFINITO_ID))),
+  };
+}
+export function cambiaCoronaInfinito(equipaggiamento, equipaggia, record) {
+  if (equipaggia && Math.max(0, Number(record) || 0) < 80) {
+    throw new Error('La Corona dell’Infinito richiede 80 giorni di record Streak.');
+  }
+  return { ...(equipaggiamento || {}), Corona: equipaggia ? CORONA_INFINITO_ID : 'nessuna' };
+}
