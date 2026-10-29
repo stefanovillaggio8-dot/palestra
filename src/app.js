@@ -6541,7 +6541,7 @@ function bloccoPersonaggio(profilo, st) {
       // ci passa sopra, davvero, e non è un colore fermo.
       grafica.appendChild(el('div', { class: 'aura-lustro', aria: { hidden: 'true' } }));
     }
-    // v341: le armature hanno gia' fotografie complete, non sono sticker
+    // v341: le armature hanno già fotografie complete, non sono sticker
     // da disegnare sul torace della foto Streak. Con un'armatura equipaggiata
     // usa la sua immagine integrale; per la progressione standard resta intatta
     // una delle 18 foto canoniche. Gli slot e gli acquisti sono invariati.
