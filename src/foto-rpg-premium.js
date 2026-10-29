@@ -21,7 +21,7 @@ export function sostituisciFotoQuandoProntaRpg(foto,armatura,effetto,versione=''
     // Non cambiare sorgente se il personaggio e' stato smontato nel frattempo.
     if(foto.isConnected!==false)foto.src=url;
   };
-  // Fallback sul ritratto fotorealistico gia' visibile.
+  // Fallback sul ritratto fotorealistico già visibile.
   carica.onerror=()=>{};
   carica.src=url;
   return carica;
