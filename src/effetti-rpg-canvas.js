@@ -46,7 +46,12 @@ export function bordoSagomaRpg(classe,y) {
 /** I filtri statici coprivano completamente questi tre effetti in Safari.
  * Quando sono equipaggiati, il renderer live è la fonte visiva principale. */
 export function usaEffettiViviRpg(tipo,{mitica=false}={}) {
-  return Boolean(mitica || tipo==='effetto-ambra' || tipo==='effetto-fulmine');
+  // Su browser legacy e nei test DOM minimali lasciamo il vecchio renderer.
+  // Il canvas visibile viene selezionato solo dove l'animazione e' supportata.
+  return Boolean((mitica || tipo==='effetto-ambra' || tipo==='effetto-fulmine') &&
+    typeof document!=='undefined' &&
+    typeof requestAnimationFrame==='function' &&
+    typeof document.createElement==='function');
 }
 export function smontaEffettiRpg(elemento) {
   EFFETTI_ATTIVI.get(elemento)?.();
