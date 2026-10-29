@@ -1,0 +1,75 @@
+name: Installa le 27 foto RPG approvate
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'foto_3_classi_27_scene_originali.zip'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+
+jobs:
+  installa:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Scarica repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Estrai esclusivamente i 3 atlanti fotografici approvati
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          archive=Path('foto_3_classi_27_scene_originali.zip')
+          if not archive.is_file():
+              raise SystemExit('Carica lo ZIP nella cartella principale del repository')
+          target=Path('img/personaggi/scene')
+          target.mkdir(parents=True,exist_ok=True)
+          with ZipFile(archive) as z:
+              for cls in ('assassino','guerriero','berserker'):
+                  name=f'img/personaggi/scene/{cls}-nove-scene.webp'
+                  b=z.read(name)
+                  if len(b)>4_000_000 or not(b[:4]==b'RIFF' and b[8:12]==b'WEBP'):
+                      raise SystemExit(f'Atlante WebP non valido: {name}')
+                  (target/f'{cls}-nove-scene.webp').write_bytes(b)
+          print('Installati 3 atlanti con 9 scene ciascuno = 27 fotografie')
+          PY
+      - name: Aggiorna cache PWA e numero versione senza toccare i dati
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          for name in ('index.html','sw.js','anteprima-aura.html','src/foto-cinematica-rpg.js'):
+              p=Path(name)
+              t=p.read_text(encoding='utf-8-sig')
+              t=t.replace('palestra-v342','palestra-v343').replace('?v=342','?v=343')
+              p.write_text(t,encoding='utf-8')
+          p=Path('sw.js')
+          t=p.read_text(encoding='utf-8')
+          marker="  './src/foto-cinematica-rpg.js',"
+          if marker not in t:
+              raise SystemExit('Modulo foto v342 non installato: blocco precache non trovato')
+          photos="\n".join("  './img/personaggi/scene/"+c+"-nove-scene.webp?v=343'," for c in ('guerriero','assassino','berserker'))
+          t=t.replace(marker,marker+'\n'+photos)
+          p.write_text(t,encoding='utf-8')
+          PY
+      - name: Verifica codice e combinazioni RPG
+        run: |
+          node --test test/foto-cinematica-rpg.test.js
+      - name: Pubblica immagini sul branch main
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add img/personaggi/scene index.html sw.js anteprima-aura.html src/foto-cinematica-rpg.js
+          git rm -f -- foto_3_classi_27_scene_originali.zip
+          git commit -m "assets: installa 27 foto esatte approvate e aggiorna PWA v343"
+          git push origin HEAD:main
+      - name: Richiedi build GitHub Pages (se usa pubblicazione da branch)
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api --method POST "repos/${GITHUB_REPOSITORY}/pages/builds"
