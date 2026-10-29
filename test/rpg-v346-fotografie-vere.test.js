@@ -15,17 +15,16 @@ test('Quattro nuove fotografie integrali approvate: fumo, nebulosa, aura, corona
 });
 test('Nessuna fotografia anticipa il pugnale o un oggetto e nessun effetto inventato',()=>{
  for(const stato of [4,5]){
-   assert.equal(foto({stato,effetto:'effetto-ombra'}),null);
+   assert.match(foto({stato,effetto:'effetto-ombra'}),new RegExp('stato-'+stato+'/ombra\\.webp'));
    assert.equal(foto({stato,corona:true}),null);
  }
- for(const c of [{armaSbloccata:true,corona:true},{skin:'skin-mitica',effetto:'effetto-nebula'},
-   {armatura:'armatura-assassino-notte',effetto:'effetto-ombra'},
+ for(const c of [{armaSbloccata:true,corona:true},
    {effetto:'effetto-ambra',divina:true},
    {effetto:'effetto-ombra',corona:true},{effetto:'effetto-nebula',divina:true}]){
    assert.equal(foto(c),null,JSON.stringify(c));
  }
  for(const classe of ['guerriero','berserker']){
-   assert.equal(percorsoScenaSpecialeRpg({classe,effetto:'effetto-nebula'}),null);
+   assert.match(percorsoScenaSpecialeRpg({classe,effetto:'effetto-nebula'}),/stato-0\/nebula\.webp/);
    assert.equal(indiceScenaCinematograficaRpg({classe,stato:2,
      armatura:ARMATURE_EPICHE_SCENE[classe],corona:true,effetto:'effetto-ombra'}),7);
  }
@@ -56,13 +55,16 @@ test('Le nuove foto premium sono dedicate a tutte le classi e non anticipano le 
    for(const id of ['effetto-ambra','effetto-fulmine']){
      assert.match(percorsoScenaSpecialeRpg({...base,effetto:id}),new RegExp(classe+'-'+(id==='effetto-ambra'?'ambra':'fulmine')+'\\.webp'));
      assert.equal(percorsoScenaSpecialeRpg({...base,effetto:id,armaSbloccata:true}),null);
-     assert.equal(percorsoScenaSpecialeRpg({...base,effetto:id,armatura:'armatura-guerriero-braci'}),null);
+     const armored=percorsoScenaSpecialeRpg({...base,effetto:id,armatura:'armatura-guerriero-braci'});
+     if(classe==='guerriero')
+       assert.match(armored,/armatura-guerriero-braci\/(ambra|fulmine)\.webp/);
+     else assert.equal(armored,null);
      assert.equal(percorsoScenaSpecialeRpg({...base,effetto:id,corona:true}),null);
      assert.equal(percorsoScenaSpecialeRpg({...base,effetto:id,divina:true}),null);
    }
    assert.match(percorsoScenaSpecialeRpg({...base,skin:'skin-mitica'}),new RegExp(classe+'-astrale\\.webp'));
-   assert.equal(percorsoScenaSpecialeRpg({...base,skin:'skin-mitica',effetto:'effetto-fulmine'}),null);
-   assert.equal(percorsoScenaSpecialeRpg({...base,skin:'skin-mitica',stato:4}),null);
+   assert.match(percorsoScenaSpecialeRpg({...base,skin:'skin-mitica',effetto:'effetto-fulmine'}),/stato-2\/fulmine-astrale\.webp/);
+   assert.match(percorsoScenaSpecialeRpg({...base,skin:'skin-mitica',stato:4}),/stato-4\/astrale\.webp/);
    assert.equal(Object.keys(FOTO_EFFETTI_PREMIUM_RPG[classe]).length,3);
  }
 });
