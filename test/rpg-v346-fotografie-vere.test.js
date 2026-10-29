@@ -20,7 +20,7 @@ test('Nessuna fotografia anticipa il pugnale o un oggetto e nessun effetto inven
  }
  for(const c of [{armaSbloccata:true,corona:true},{skin:'skin-mitica',effetto:'effetto-nebula'},
    {armatura:'armatura-assassino-notte',effetto:'effetto-ombra'},
-   {effetto:'effetto-fulmine'},{effetto:'effetto-ambra',divina:true},
+   {effetto:'effetto-ambra',divina:true},
    {effetto:'effetto-ombra',corona:true},{effetto:'effetto-nebula',divina:true}]){
    assert.equal(foto(c),null,JSON.stringify(c));
  }
@@ -47,4 +47,22 @@ test('I link temporanei sono usati solo dal workflow di importazione',async()=>{
  assert.match(flow,/public/i.test(flow)?/public/:/RPG-Publisher|RPG-Publisher|Palestra-RPG-Publisher/);
  assert.match(flow,/original/i);
  assert.match(flow,/node --test test\/\*\.test\.js/);
+});
+
+test('Le nuove foto premium sono dedicate a tutte le classi e non anticipano le armi',async()=>{
+ const {FOTO_EFFETTI_PREMIUM_RPG}=await import('../src/foto-cinematica-rpg.js');
+ for(const classe of ['assassino','guerriero','berserker']){
+   const base={classe,stato:2};
+   for(const id of ['effetto-ambra','effetto-fulmine']){
+     assert.match(percorsoScenaSpecialeRpg({...base,effetto:id}),new RegExp(classe+'-'+(id==='effetto-ambra'?'ambra':'fulmine')+'\\.webp'));
+     assert.equal(percorsoScenaSpecialeRpg({...base,effetto:id,armaSbloccata:true}),null);
+     assert.equal(percorsoScenaSpecialeRpg({...base,effetto:id,armatura:'armatura-guerriero-braci'}),null);
+     assert.equal(percorsoScenaSpecialeRpg({...base,effetto:id,corona:true}),null);
+     assert.equal(percorsoScenaSpecialeRpg({...base,effetto:id,divina:true}),null);
+   }
+   assert.match(percorsoScenaSpecialeRpg({...base,skin:'skin-mitica'}),new RegExp(classe+'-astrale\\.webp'));
+   assert.equal(percorsoScenaSpecialeRpg({...base,skin:'skin-mitica',effetto:'effetto-fulmine'}),null);
+   assert.equal(percorsoScenaSpecialeRpg({...base,skin:'skin-mitica',stato:4}),null);
+   assert.equal(Object.keys(FOTO_EFFETTI_PREMIUM_RPG[classe]).length,3);
+ }
 });
