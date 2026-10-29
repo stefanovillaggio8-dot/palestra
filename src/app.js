@@ -43,6 +43,7 @@ import { formattaAura } from './aura.js';
 import { montaEffettiRpg, smontaEffettiRpg } from './effetti-rpg-canvas.js';
 import { montaFotoRpg } from './aura-foto-rpg.js';
 import { montaFotoCombinataRpg, scaricaFotoCombinataRpg } from './anteprima-combinata-rpg.js';
+import { apriAtelierRpg as mostraAtelierRpg } from './rpg-atelier-ui.js';
 import { applicaSkinRpg } from './skin-rpg-fedele.js';
 import { elencoAvatar, avatarPerId, gradienteAvatar, iniziali } from './avatar.js';
 import { amiciDi, confronta, classifichePerEsercizio, privacyDi, campiVisibili, PRIVACY_PREDEFINITE } from './sociale.js';
@@ -1546,6 +1547,15 @@ function bloccoRequisitoSkin(oggetto, st, posseduto = false) {
   ]);
 }
 
+function apriAtelierConDatiRpg(profilo, st, oggetto = null) {
+  const classe=profilo?.classe_rpg || 'guerriero';
+  const premi=calcolaAvatar(classe,serieMie(),seduteMie(),esercizioPerId,{profilo}).premi;
+  return mostraAtelierRpg({profilo,st,oggetto,
+    stadioAttuale:statoVisivo(premi).indice,
+    renderPersonaggio:bloccoPersonaggio,
+    oggetti:OGGETTI_AURA});
+}
+
 function apriAnteprimaAura(oggetto, profilo, st) {
   const overlay = el('div', { class: 'aura-preview-overlay', role: 'dialog', aria: { modal: 'true', label: 'Anteprima ' + oggetto.nome } });
   const primaDelDialogo = document.activeElement;
@@ -1568,6 +1578,9 @@ function apriAnteprimaAura(oggetto, profilo, st) {
       bottone('✕', { classe: 'fantasma aura-preview-close', titolo: 'Chiudi anteprima', onClick: chiudi }),
     ]),
     el('p', { class: 'nota', testo: oggetto.descrizione }),
+    bottone('Combina oggetti e salva foto',{classe:'fantasma rpg-atelier-link',onClick:()=>{
+      chiudi();apriAtelierConDatiRpg(profiloAttivo(),statoMio(),oggetto);
+    }}),
     el('div', { class: 'aura-preview-showcase' }, [
       el('span', { class: 'aura-preview-icon', testo: oggetto.icona }),
       el('strong', { testo: oggetto.tipo }),
@@ -1725,6 +1738,7 @@ function vistaAuraShop(zona, soloInventario = false) {
     el('div',{class:'aura-shop-kicker',testo:'✦ FORGE / COSMETICI ✦'}),
     el('h1',{testo:'Aura Shop'}),
     el('p',{class:'nota',testo:'La tua Aura, il tuo stile. Solo estetica: nessun vantaggio ai Rank.'}),
+    bottone('Atelier · combina e salva foto',{classe:'fantasma rpg-atelier-open',onClick:()=>apriAtelierConDatiRpg(profiloAttivo(),statoMio())}),
     el('div',{class:'aura-shop-wallet'},[
       el('span',{testo:'✧ AURA DISPONIBILE'}),
       el('strong',{testo:formattaAura(st.aura)}),
@@ -1809,6 +1823,7 @@ function vistaAuraShop(zona, soloInventario = false) {
     const slot = slotOggetto(o);
     const indossato = equipaggiamento[slot] === o.id;
     const riga = el('div',{class:'aura-shop-owned'+(indossato?' equipaggiato':'' )},[
+      el('span',{class:'aura-shop-owned-symbol',testo:o.icona||'✦',aria:{hidden:'true'}}),
       el('strong',{testo:o.nome}),
       el('small',{testo:o.tipo+(o.classe?' · '+CLASSE_AURA[o.classe]:'')}),
       el('small',{class:'equip-status',testo:indossato?'✓ Equipaggiato':'Nella collezione'}),
@@ -6360,6 +6375,12 @@ function bloccoPersonaggio(profilo, st) {
   // vive solo lì dentro: fuori è come se non esistesse, e la pagina si fermava con
   // "Can't find variable: viso".
   const viso = statoVisivo(rpg.premi);
+  // Simulazione SOLO nell'Atelier, senza salvare modifiche agli stati Streak.
+  if(Number.isInteger(profilo?.__anteprimaStato)&&profilo.__anteprimaStato>=0&&profilo.__anteprimaStato<=5){
+    viso.indice=profilo.__anteprimaStato;
+    viso.stato=STATI_IMMAGINE[viso.indice];
+    viso.aura=Boolean(profilo.__anteprimaDivina);
+  }
   // Dichiarata qui fuori perché la riga sotto il personaggio la usa, e quella sta
   // fuori dal blocco `if`. Vedi il commento sopra.
   let rigaStati = null;
