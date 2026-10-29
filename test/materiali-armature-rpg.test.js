@@ -71,7 +71,8 @@ test('Vista e foto PNG mantengono gli strati della corazza e sfumano gli effetti
  assert.match(shop,/disegnaMaterialiArmaturaRpg\(ctx,w,h,classe,armaturaId,skinId\)/);
  assert.match(shop,/\.20\*maschera\*morbido/);
  assert.match(css,/mix-blend-mode:normal;\s*border-radius:inherit/);
- assert.match(photo,/ctx\.filter='blur\('/);
+ assert.match(photo,/createRadialGradient/);
+ assert.match(photo,/ctx\.filter=c\.effetto/);
  assert.match(exportPng,/fx\.filter='blur\('/);
  assert.match(exportPng,/globalCompositeOperation='source-over'/);
  assert.doesNotMatch(photo,/disegnaSprite\(ctx,atlas,'corona'/);
