@@ -6601,6 +6601,7 @@ function bloccoPersonaggio(profilo, st) {
     });
     // Ambra, Fulmine e Astrale usano UN solo renderer Canvas. Prima il
     // compositore fotografico li nascondeva tramite rpg-composite-active.
+    if (effettoVivo) grafica.classList.add('rpg-render-live');
     const scenaFotografica = !effettoVivo && montaFotoRpg(grafica, effettoEquipaggiato?.id || null, {
       corona: coronaAttiva,
       divina: Boolean(viso.aura) || auraDivinaAnteprima,
