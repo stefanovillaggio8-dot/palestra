@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
+import {createHash} from 'node:crypto';
 import {livelliFotoRpg,montaFotoRpg} from '../src/aura-foto-rpg.js';
 import {AURA_FOTO_ATLAS} from '../src/aura-foto-atlas.js';
 
@@ -9,6 +10,9 @@ test('Le cinque immagini fotografiche dell\'Aura Shop sono incluse nel pacchetto
   const bytes = AURA_FOTO_ATLAS.split(',')[1];
   assert.ok(bytes.length>4000 && bytes.length<15000);
   assert.equal(bytes.length % 4,0);
+  assert.equal(createHash('sha256').update(Buffer.from(bytes,'base64')).digest('hex'),
+    'b557d004c7cfd5574b3015ffc4273d775cdd3a3d4f5dc6dc8e6a161e52acd040',
+    'foto AVIF identiche al file generato, non corrotte');
   assert.match(bytes,/^[a-zA-Z0-9+/]+=*$/);
 });
 
