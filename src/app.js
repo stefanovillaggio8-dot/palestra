@@ -6522,7 +6522,6 @@ function bloccoPersonaggio(profilo, st) {
         }),
       ]));
     }
-    const recordCorona = Math.max(0, Number(rpg.recordStreak)||0, Number(st?.streak?.record)||0);
     const coronaSbloccata = recordCorona >= 80;
     const coronaIndossata = statoCoronaInfinito(equipaggiamentoRpg, recordCorona).equipaggiata;
     striscia.appendChild(el('div',{
