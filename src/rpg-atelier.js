@@ -132,9 +132,13 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
       ctx.drawImage(atlas,posX[pos[0]]*sw,posY[pos[1]]*sh,sw,sh,
         dx+dw*.30,dy+dh*.005,dw*.40,dh*.145);
       ctx.restore();
-      ctx.save();ctx.translate(dx,dy);
-      disegnaCoronaEnergetica(ctx,dw,dh);
-      ctx.restore();
+      // Nei canvas ridotti (test/browser legacy) il dettaglio fotografico
+      // resta disponibile anche se translate non e' implementato.
+      if(typeof ctx.translate==='function') {
+        ctx.save();ctx.translate(dx,dy);
+        disegnaCoronaEnergetica(ctx,dw,dh);
+        ctx.restore();
+      }
     }
   }
   if(c.titolo) {
