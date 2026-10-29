@@ -1,0 +1,74 @@
+name: Installa galleria Aura approvata (27 foto)
+on:
+  push:
+    branches: [main]
+    paths: ['aura-gallery-approved-v352.zip']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  installa:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Verifica ed estrai esattamente le 27 immagini approvate
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import struct
+          zip_path=Path('aura-gallery-approved-v352.zip')
+          if not zip_path.is_file():
+              raise SystemExit('Manca aura-gallery-approved-v352.zip nella root di main')
+          target=Path('img/personaggi/galleria-v352')
+          classes=('assassino','guerriero','berserker')
+          expected={f'img/personaggi/galleria-v352/{c}-{i:02d}.webp' for c in classes for i in range(1,10)}
+          with ZipFile(zip_path) as z:
+              present=set(z.namelist())
+              if present!=expected:
+                  raise SystemExit(f'Foto mancanti: {sorted(expected-present)}; extra: {sorted(present-expected)}')
+              target.mkdir(parents=True,exist_ok=True)
+              for name in sorted(expected):
+                  data=z.read(name)
+                  if not (data[:4]==b'RIFF' and data[8:12]==b'WEBP' and len(data)>8000):
+                      raise SystemExit(f'Immagine mancante o non valida: {name}')
+                  (target/Path(name).name).write_bytes(data)
+          print('27/27 foto WebP originali estratte con successo')
+          PY
+      - name: Allinea versioni e inserisci tutti gli asset nella cache offline
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          for path in ['index.html','sw.js','anteprima-aura.html','galleria-aura.html']:
+              p=Path(path)
+              s=p.read_text('utf-8').replace('palestra-v353','palestra-v354').replace('?v=353','?v=354')
+              p.write_text(s,'utf-8')
+          sw=Path('sw.js')
+          s=sw.read_text('utf-8')
+          marker="'./galleria-aura.html',"
+          if marker not in s: raise SystemExit('La galleria non è installata: marker PWA mancante')
+          new="\n".join(f"  './img/personaggi/galleria-v352/{classe}-{i:02d}.webp?v=354'," 
+             for classe in ('assassino','guerriero','berserker') for i in range(1,10))
+          s=s.replace(marker,marker+'\n'+new)
+          sw.write_text(s,'utf-8')
+          PY
+      - name: Verifica elenco e dimensioni foto + test Node
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          files=list(Path('img/personaggi/galleria-v352').glob('*.webp'))
+          assert len(files)==27, f'Ci sono solo {len(files)} foto'
+          assert all(f.stat().st_size>8000 for f in files)
+          print('27 foto reali verificate')
+          PY
+          node --test test/galleria-rpg-v352.test.js test/galleria-rpg-v353.test.js
+      - name: Pubblica le foto su main e rimuovi l'archivio originale
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add img/personaggi/galleria-v352 index.html sw.js anteprima-aura.html galleria-aura.html
+          git rm aura-gallery-approved-v352.zip
+          git commit -m 'assets(v354): installa 27 foto originali approvate con cache offline'
+          git push origin HEAD:main

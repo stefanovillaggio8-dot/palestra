@@ -47,8 +47,10 @@ test('Lo Shop apre la galleria vera della classe; Streak, inventario e acquisti 
  assert.match(app,/href:'\.\/galleria-aura\.html\?classe='\+classe/);
  assert.match(app,/await sb\.acquistaAura\(account, o\.id\)/);
  assert.match(app,/await db\.salva\('profili'/);
- for(const path of ["'./galleria-aura.html'","'./stile-galleria-rpg.css?v=352'","'./src/galleria-foto-rpg.js?v=352'"])
+ const version=sw.match(/palestra-v(\d+)/)?.[1];
+ assert.ok(version);
+ for(const path of ["'./galleria-aura.html'",`'./stile-galleria-rpg.css?v=${version}'`,
+   `'./src/galleria-foto-rpg.js?v=${version}'`])
   assert.ok(sw.includes(path),path);
- assert.match(sw,/palestra-v352/);
- assert.match(index,/palestra-v352/);
+ assert.match(index,new RegExp('palestra-v'+version));
 });
