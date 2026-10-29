@@ -1733,21 +1733,31 @@ function vistaAuraShop(zona, soloInventario = false) {
     .filter(Boolean))];
   const streak = Math.max(0, Number(st.streak?.record) || 0);
   const statoCorona = statoCoronaInfinito(profilo.equipaggiamento_aura, streak);
+  // Navigazione primaria dello shop: il bottone Indietro sta sopra i contenuti
+  // e le due tab principali rimangono Shop a sinistra / Inventario a destra.
+  zona.appendChild(el('div',{class:'aura-shop-topline'},[
+    el('a',{href:'#/profilo',class:'aura-shop-back',testo:'← Profilo','aria-label':'Torna al profilo'}),
+    el('span',{class:'aura-shop-topline-label',testo:'✦ AREA COSMETICI'}),
+  ]));
   if (!soloInventario) zona.appendChild(el('section',{class:'aura-shop-hero'},[
-    el('div',{class:'aura-shop-kicker',testo:'✦ FORGE / COSMETICI ✦'}),
-    el('h1',{testo:'Aura Shop'}),
-    el('p',{class:'nota',testo:'La tua Aura, il tuo stile. Solo estetica: nessun vantaggio ai Rank.'}),
-    bottone('Atelier · combina e salva foto',{classe:'fantasma rpg-atelier-open',onClick:()=>apriAtelierConDatiRpg(profiloAttivo(),statoMio())}),
-    el('div',{class:'aura-shop-wallet'},[
-      el('span',{testo:'✧ AURA DISPONIBILE'}),
-      el('strong',{testo:formattaAura(st.aura)}),
-      el('small',{testo:'Classe: '+nomeClasse}),
+    el('div',{class:'aura-shop-hero-main'},[
+      el('div',{class:'aura-shop-hero-copy'},[
+        el('div',{class:'aura-shop-kicker',testo:'PERSONALIZZA IL TUO EROE'}),
+        el('h1',{testo:'Aura Shop'}),
+        el('p',{class:'nota',testo:'Armature, effetti e titoli. Cambia l’aspetto, non i tuoi Rank.'}),
+      ]),
+      el('div',{class:'aura-shop-wallet'},[
+        el('span',{testo:'✧ AURA DISPONIBILE'}),
+        el('strong',{testo:formattaAura(st.aura)}),
+        el('small',{testo:nomeClasse}),
+      ]),
+    ]),
+    el('div',{class:'aura-shop-hero-footer'},[
+      el('span',{class:'aura-shop-meta',testo:'Record Streak: '+streak+' giorni'}),
+      el('span',{class:'aura-shop-meta',testo:posseduti.length+' oggetti nella collezione'}),
+      bottone('Atelier · combina e salva foto',{classe:'fantasma rpg-atelier-open',onClick:()=>apriAtelierConDatiRpg(profiloAttivo(),statoMio())}),
     ]),
   ]));
-  if (!soloInventario) {
-    zona.appendChild(el('p',{class:'nota aura-shop-preview-hint',
-      testo:'Le immagini e le animazioni dei cosmetici si vedono soltanto premendo Anteprima sul singolo oggetto.'}));
-  }
 
 
   // Premio gratuito della Streak: non esiste come acquisto e non usa slot dello shop.
@@ -1789,14 +1799,14 @@ function vistaAuraShop(zona, soloInventario = false) {
       }),
     ]),
   ]);
-  if (!soloInventario) {
-    zona.appendChild(premioDivino);
-    zona.appendChild(mitica);
-    zona.appendChild(el('p', { class: 'nota shop-connessione', testo: sb.collegato() ? 'Acquisti protetti online. Equipaggia la tua collezione anche offline.' : 'Accedi dal Profilo per acquistare. La tua collezione resta disponibile anche offline.' }));
-  }
   const inventario=el('section',{class:'aura-shop-inventory',id:'mio-inventario'},[
     el('div',{class:'aura-shop-section-head'},[
-      el('div',{},[el('h2',{testo:'Mio Inventario'}),el('p',{class:'nota',testo:posseduti.length+' oggetti acquistati'})]),
+      el('div',{},[
+        el('span',{class:'aura-shop-kicker',testo:'LA TUA COLLEZIONE'}),
+        el('h1',{testo:'Inventario'}),
+        el('p',{class:'nota',testo:posseduti.length+' oggetti acquistati · Equipaggia o rimuovi senza perderli.'}),
+      ]),
+      el('a',{href:'#/aura-shop',class:'aura-shop-inline-link',testo:'Vai al negozio →'}),
     ]),
     el('div',{class:'aura-shop-owned-grid'}),
   ]);
@@ -1817,14 +1827,19 @@ function vistaAuraShop(zona, soloInventario = false) {
 
     disegna();
   };
-  if(!oggettiPosseduti.length) ownedGrid.appendChild(el('p',{class:'nota',testo:'Ancora vuoto. Scegli un oggetto qui sotto per iniziare la collezione.'}));
+  if(!oggettiPosseduti.length) ownedGrid.appendChild(el('div',{class:'aura-shop-empty'},[
+    el('span',{class:'aura-shop-empty-icon',testo:'✦',aria:{hidden:'true'}}),
+    el('strong',{testo:'La tua collezione ti aspetta'}),
+    el('p',{class:'nota',testo:'Nessun oggetto acquistato per questa classe. Esplora il negozio per iniziare.'}),
+    el('a',{href:'#/aura-shop',class:'aura-shop-inline-link',testo:'Esplora lo Shop →'}),
+  ]));
   for(const o of oggettiPosseduti) {
     const slot = slotOggetto(o);
     const indossato = equipaggiamento[slot] === o.id;
     const riga = el('div',{class:'aura-shop-owned'+(indossato?' equipaggiato':'' )},[
       el('span',{class:'aura-shop-owned-symbol',testo:o.icona||'✦',aria:{hidden:'true'}}),
       el('strong',{testo:o.nome}),
-      el('small',{testo:o.tipo+(o.classe?' · '+CLASSE_AURA[o.classe]:'')}),
+      el('small',{class:'aura-shop-owned-type',testo:o.tipo+(o.classe?' · '+CLASSE_AURA[o.classe]:'')}),
       el('small',{class:'equip-status',testo:indossato?'✓ Equipaggiato':'Nella collezione'}),
       el('div',{class:'aura-shop-card-actions'},[
         bottone('Anteprima',{
@@ -1854,37 +1869,65 @@ function vistaAuraShop(zona, soloInventario = false) {
     zona.appendChild(inventario);
     return;
   }
-  const filtri=el('div',{class:'aura-shop-filters'});
+  const filtri=el('div',{class:'aura-shop-filters',role:'group','aria-label':'Filtra il catalogo per tipo'});
   const catalogo=el('section',{class:'aura-shop-catalogo'});
   zona.appendChild(el('div',{class:'aura-shop-section-head',id:'aura-shop-catalogo'},[
-    el('div',{},[el('h2',{testo:'La collezione'}),el('p',{class:'nota',testo:'Prezzi alti il giusto: risparmia per i pezzi leggendari.'})])
+    el('div',{},[
+      el('span',{class:'aura-shop-kicker',testo:'OGGETTI ACQUISTABILI'}),
+      el('h2',{testo:'Scopri la collezione'}),
+      el('p',{class:'nota',testo:'Ogni elemento è solo estetico. Tocca Anteprima per vederlo sul tuo personaggio.'}),
+    ]),
+    el('span',{class:'aura-shop-count',testo:OGGETTI_AURA.filter(o=>!o.classe||o.classe===classe).length+' oggetti'}),
   ]));
   const griglia=el('div',{class:'aura-shop-grid'});
   catalogo.appendChild(griglia);
   let filtro='Tutti';
-  for(const f of ['Tutti','Titolo','Effetto','Armatura','Skin']){
-    filtri.appendChild(bottone(f,{classe:'fantasma aura-shop-filter'+(filtro===f?' attivo':''),onClick:()=>{
+  for(const f of ['Tutti','Armatura','Effetto','Skin','Titolo']){
+    const tastoFiltro=bottone(f,{classe:'fantasma aura-shop-filter'+(filtro===f?' attivo':''),onClick:()=>{
       filtro=f;
-      for(const b of filtri.querySelectorAll('button')) b.classList.toggle('attivo',b.textContent===f);
+      for(const b of filtri.querySelectorAll('button')) {
+        const selezionato=b.textContent===f;
+        b.classList.toggle('attivo',selezionato);
+        b.setAttribute('aria-pressed',String(selezionato));
+      }
       disegnaOggetti();
-    }}));
+    }});
+    tastoFiltro.setAttribute('aria-pressed',String(filtro===f));
+    filtri.appendChild(tastoFiltro);
   }
   zona.appendChild(filtri); zona.appendChild(catalogo);
+  // Le ricompense di Streak restano accessibili, ma non interrompono
+  // la navigazione tra categorie e oggetti dello Shop.
+  zona.appendChild(el('div',{class:'aura-shop-section-head aura-shop-rewards-head'},[
+    el('div',{},[
+      el('span',{class:'aura-shop-kicker',testo:'PREMI GRATUITI'}),
+      el('h2',{testo:'Ricompense della Streak'}),
+      el('p',{class:'nota',testo:'Si sbloccano con il record e si combinano con gli oggetti acquistati.'}),
+    ]),
+  ]));
+  zona.appendChild(el('div',{class:'aura-shop-rewards'},[premioDivino,mitica]));
+  zona.appendChild(el('p',{class:'nota shop-connessione',testo:sb.collegato()
+    ?'Acquisti protetti online · La collezione resta disponibile anche offline.'
+    :'Accedi dal Profilo per acquistare · La collezione resta disponibile offline.'}));
   function disegnaOggetti(){
     svuota(griglia);
-    const elenco=OGGETTI_AURA.filter(o=>(filtro==='Tutti'||o.tipo===filtro)&&(!o.classe||o.classe===classe));
+    const ordineTipi={Armatura:0,Effetto:1,Skin:2,Titolo:3};
+    const elenco=OGGETTI_AURA.filter(o=>(filtro==='Tutti'||o.tipo===filtro)&&(!o.classe||o.classe===classe))
+      .sort((a,b)=>(ordineTipi[a.tipo]??9)-(ordineTipi[b.tipo]??9));
     if(!elenco.length) griglia.appendChild(el('p',{class:'nota',testo:'Per vedere le armature di questa classe, selezionala nella sezione personaggio del Profilo.'}));
     for(const o of elenco){
       const owned=posseduti.includes(o.id);
       const equipped = owned && equipaggiamento[slotOggetto(o)] === o.id;
       const accesso = accessoSkin(o, st, classe, owned);
-      const card=el('article',{class:'aura-shop-card rarita-'+o.rarita.toLowerCase()},[
+      const statoCard=owned?' acquistato':!accesso.streakRaggiunta?' bloccato':'';
+      const card=el('article',{class:'aura-shop-card rarita-'+o.rarita.toLowerCase()+statoCard},[
         el('div',{class:'aura-shop-card-top'},[
           el('span',{class:'aura-shop-item-symbol',testo:o.icona || '✦',aria:{hidden:'true'}}),
           el('span',{class:'aura-shop-rarity',testo:o.rarita}),
         ]),
         el('span',{class:'aura-shop-item-type',testo:o.tipo+(o.classe?' · '+CLASSE_AURA[o.classe]:'')}),
         el('h3',{testo:o.nome}),
+        ...(owned?[el('span',{class:'aura-shop-item-owned',testo:equipped?'✓ Equipaggiato':'✓ Nel tuo inventario'})]:[]),
         el('p',{class:'nota',testo:o.descrizione}),
         el('div',{class:'aura-shop-price',testo:'✧ '+formattaAura(o.prezzo)+' Aura'}),
         el('div',{class:'aura-shop-card-actions'},[
@@ -2011,15 +2054,6 @@ function cornice() {
 // cosa hai fatto, il gioco, e il tuo profilo.
 if (rotta === '/aura-shop' || rotta === '/aura-shop/inventario') {
     const isInventario = rotta === '/aura-shop/inventario';
-    const voceIndietro = el('a', {
-      href: '#/profilo',
-      class: 'voce-menu voce-menu-indietro',
-      'aria-label': 'Torna al profilo',
-      title: 'Torna al profilo',
-    }, [
-      el('span', { class: 'icona-menu', html: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>' }),
-      el('span', { class: 'parola-menu', testo: 'Indietro' }),
-    ]);
     const voceShop = el('a', {
       href: '#/aura-shop',
       class: 'voce-menu' + (!isInventario ? ' attiva' : ''),
@@ -2035,7 +2069,7 @@ if (rotta === '/aura-shop' || rotta === '/aura-shop/inventario') {
       el('span', { class: 'parola-menu', testo: 'Inventario' }),
     ]);
     return el('div', { class: 'basso' }, [
-      el('nav', { class: 'menu-basso menu-aura-shop', 'aria-label': 'Navigazione Aura Shop' }, [voceIndietro, voceShop, voceInventario]),
+      el('nav', { class: 'menu-basso menu-aura-shop', 'aria-label': 'Navigazione Aura Shop' }, [voceShop, voceInventario]),
     ]);
   }
 
