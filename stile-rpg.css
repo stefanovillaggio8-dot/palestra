@@ -2202,3 +2202,13 @@ body {
     animation:none!important;
   }
 }
+
+/* v350: galleria di nuovi scatti fotografici. Non modifica i controlli dello Shop. */
+.aura-shop-galleria-foto {
+  display:inline-flex;align-items:center;justify-content:center;
+  min-height:42px;flex:1 1 210px;padding:9px 13px;
+  color:#f5e6ff;text-decoration:none;font-weight:750;font-size:.84rem;
+  border:1px solid rgba(187,152,235,.32);border-radius:12px;
+  background:linear-gradient(140deg,rgba(83,52,133,.27),rgba(38,47,78,.3));
+}
+.aura-shop-galleria-foto:focus-visible {outline:2px solid #e0beff;outline-offset:3px;}
