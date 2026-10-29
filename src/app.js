@@ -1866,7 +1866,7 @@ function vistaAuraShop(zona, soloInventario = false) {
       const accesso = accessoSkin(o, st, classe, owned);
       const card=el('article',{class:'aura-shop-card rarita-'+o.rarita.toLowerCase()},[
         el('div',{class:'aura-shop-card-top'},[
-          el('span',{class:'aura-shop-item-symbol',testo:'✦',aria:{hidden:'true'}}),
+          el('span',{class:'aura-shop-item-symbol',testo:o.icona || '✦',aria:{hidden:'true'}}),
           el('span',{class:'aura-shop-rarity',testo:o.rarita}),
         ]),
         el('span',{class:'aura-shop-item-type',testo:o.tipo+(o.classe?' · '+CLASSE_AURA[o.classe]:'')}),
