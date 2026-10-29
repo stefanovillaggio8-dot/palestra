@@ -84,7 +84,7 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
   // Il rivestimento della skin in CSS e' un canvas separato dalla foto.
   const pelle=grafica.querySelector?.('.rpg-skin-fedele');
   if(pelle?.width&&pelle?.height) {
-    try {ctx.save();ctx.globalCompositeOperation='color';ctx.drawImage(pelle,dx,dy,dw,dh);ctx.restore();}
+    try {ctx.save();ctx.globalCompositeOperation='source-over';ctx.drawImage(pelle,dx,dy,dw,dh);ctx.restore();}
     catch {ctx.restore();}
   }
   const livelli=livelliFotoRpg(c.effetto,{mitica:!!c.skin,corona:c.corona,divina:c.divina});
@@ -106,6 +106,7 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
         fx.restore();
       }
       fx.save();fx.globalCompositeOperation='destination-out';
+      fx.filter='blur('+Math.max(18,Math.round(dw*.05))+'px)';
       fx.beginPath();
       // Per la testa allarghiamo la sagoma protetta, così neppure i
       // gradienti o i fulmini possono rendere il volto illeggibile.
