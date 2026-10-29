@@ -1233,3 +1233,6 @@ button:focus-visible,.chip:focus-visible {outline:2px solid #c9a4ff;outline-offs
 @media(prefers-reduced-motion:reduce) {
   .aura-shop-card,.aura-shop-card:hover {transition:none;transform:none;}
 }
+
+/* v335 — anche l'inventario riporta l'icona piccola, senza grandi anteprime. */
+.aura-shop-owned-symbol {display:inline-grid;place-items:center;width:37px;height:37px;font-size:1.16rem;border:1px solid rgba(198,169,247,.32);border-radius:11px;background:rgba(99,66,161,.16);color:#eddfff;vertical-align:middle;margin-right:9px;}
