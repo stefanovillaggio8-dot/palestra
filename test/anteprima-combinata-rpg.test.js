@@ -64,3 +64,14 @@ test('Effetti e Corona sono combinazioni indipendenti, senza cancellare gli ogge
   assert.equal(spenta.divina,true);
   assert.notEqual(chiaveFotoRpg(finale),chiaveFotoRpg(spenta));
 });
+
+test('Fallback iPhone: i vecchi effetti restano finche il nuovo AVIF non viene disegnato',async()=>{
+  const module=await readFile(new URL('../src/anteprima-combinata-rpg.js',import.meta.url),'utf8');
+  const app=await readFile(new URL('../src/app.js',import.meta.url),'utf8');
+  assert.match(module,/image\.onload=\(\)=>resolve/);
+  assert.match(module,/image\.onerror=\(\)=>resolve\(null\)/);
+  assert.match(module,/if\(!atlas\) \{ canvas\.remove\(\);return; \}/);
+  assert.match(module,/ctx\.drawImage\(layer,0,0,\.\.\.dims\)/);
+  assert.match(module,/grafica\.classList\.add\('rpg-composite-active'\)/);
+  assert.doesNotMatch(app,/if \(combinata\) grafica\.classList\.add\('rpg-composite-active'\)/);
+});
