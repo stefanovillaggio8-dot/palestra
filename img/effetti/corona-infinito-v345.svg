@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 640 890" role="img" aria-label="Corona dell'Infinito, sigilli e spirali dorate" preserveAspectRatio="none">
+<defs>
+ <radialGradient id="halo"><stop stop-color="#fff8d4" stop-opacity=".65"/><stop offset=".28" stop-color="#ffe4a2" stop-opacity=".30"/><stop offset=".72" stop-color="#b87a26" stop-opacity=".09"/><stop offset="1" stop-color="#b87a26" stop-opacity="0"/></radialGradient>
+ <linearGradient id="gold"><stop stop-color="#9c521a"/><stop offset=".18" stop-color="#f5bf5f"/><stop offset=".40" stop-color="#fff9cf"/><stop offset=".68" stop-color="#f4b64c"/><stop offset=".89" stop-color="#ffe7a0"/><stop offset="1" stop-color="#ad6c20"/></linearGradient>
+ <linearGradient id="fade" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#ffefac" stop-opacity=".8"/><stop offset="1" stop-color="#ffc75b" stop-opacity="0"/></linearGradient>
+ <filter id="glow" x="-150%" y="-150%" width="400%" height="400%"><feGaussianBlur stdDeviation="8"/></filter>
+ <filter id="soft" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="17"/></filter>
+ <filter id="shine" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="1.5"/></filter>
+ <g id="star"><path d="M0-17 L2.4-2.4 L17 0 L2.4 2.4 L0 17 L-2.4 2.4 L-17 0 L-2.4-2.4Z" fill="#fff9d2"/><circle r="2" fill="white"/></g>
+ <g id="rune"><path d="M0-11 L6-3 L0 11 L-6-3Z M0-7 L0 6 M-3-2 L3-2" stroke="url(#gold)" stroke-width="1.6" fill="none"/></g>
+</defs>
+<!-- light from the crown wraps behind the shoulders; leave center face clear -->
+<ellipse cx="320" cy="154" rx="228" ry="178" fill="url(#halo)" opacity=".45"/>
+<ellipse cx="320" cy="480" rx="251" ry="330" fill="url(#halo)" opacity=".16"/>
+<g opacity=".65" filter="url(#soft)" fill="none" stroke="#f8c977" stroke-width="12">
+ <ellipse cx="320" cy="170" rx="131" ry="26"/>
+ <path d="M74 414 C 205 245, 457 592, 571 387"/>
+ <path d="M95 701 C 252 555, 414 787, 558 609"/>
+</g>
+<!-- floating twin helixes with warm glow; no solid layers over face -->
+<g fill="none" stroke="url(#gold)" stroke-linecap="round">
+ <path d="M82 462 C 166 356, 464 356, 552 432 C 598 486, 451 534, 278 520 C 137 508, 80 479, 102 438" stroke-width="3.4" opacity=".78"/>
+ <path d="M525 345 C 443 291, 211 327, 91 390 C 24 425, 29 477, 122 503" stroke-width="2" opacity=".68"/>
+ <path d="M119 614 C 236 530, 444 588, 544 661 C 596 707, 487 762, 329 768 C 194 774, 81 746, 111 697" stroke-width="3" opacity=".85"/>
+ <path d="M475 558 C 578 593, 604 665, 523 714 C 387 783, 164 739, 76 695" stroke-width="1.8" opacity=".75"/>
+ <path d="M97 787 C 189 853, 459 847, 555 790" stroke-width="3.7" opacity=".77"/>
+</g>
+<!-- radiant crowned ring. Crown hovers at top, not pasted over the forehead. -->
+<g>
+ <ellipse cx="320" cy="99" rx="134" ry="31" fill="none" stroke="#edb14a" stroke-width="12" opacity=".26" filter="url(#glow)"/>
+ <ellipse cx="320" cy="99" rx="134" ry="31" fill="none" stroke="url(#gold)" stroke-width="3.4"/>
+ <ellipse cx="320" cy="108" rx="158" ry="39" fill="none" stroke="#fff8cb" stroke-width="1.7" stroke-dasharray="6 13" opacity=".87"/>
+ <ellipse cx="320" cy="83" rx="97" ry="19" fill="none" stroke="#ffe2a0" stroke-width="1.8" opacity=".72"/>
+ <path d="M204 89 L211 65 L231 84 L245 55 L260 82 L276 58 L294 78 L320 42 L344 78 L363 55 L382 81 L397 54 L412 83 L428 64 L438 88" fill="none" stroke="#e79d33" stroke-width="9" opacity=".22" filter="url(#glow)"/>
+ <path d="M204 89 L211 65 L231 84 L245 55 L260 82 L276 58 L294 78 L320 42 L344 78 L363 55 L382 81 L397 54 L412 83 L428 64 L438 88" fill="none" stroke="url(#gold)" stroke-width="3" stroke-linejoin="round"/>
+ <path d="M207 93 Q 320 124 435 93" fill="none" stroke="#fff1b7" stroke-width="2.5"/>
+ <use xlink:href="#star" transform="translate(320 42) scale(.9)"/>
+ <use xlink:href="#star" transform="translate(245 54) scale(.45)"/>
+ <use xlink:href="#star" transform="translate(395 54) scale(.45)"/>
+</g>
+<g opacity=".85">
+ <use xlink:href="#rune" transform="translate(164 95) rotate(-20)"/>
+ <use xlink:href="#rune" transform="translate(476 95) rotate(20)"/>
+ <use xlink:href="#rune" transform="translate(207 159) rotate(-24)"/>
+ <use xlink:href="#rune" transform="translate(439 168) rotate(14)"/>
+ <use xlink:href="#rune" transform="translate(90 448) rotate(-10)"/>
+ <use xlink:href="#rune" transform="translate(549 421) rotate(12)"/>
+ <use xlink:href="#rune" transform="translate(103 697) rotate(-12)"/>
+ <use xlink:href="#rune" transform="translate(555 678) rotate(12)"/>
+</g>
+<!-- moving golden flecks and occasional starbursts: glow confined to scene -->
+<g>
+ <use xlink:href="#star" transform="translate(166 222) scale(.27)"/><use xlink:href="#star" transform="translate(477 237) scale(.33)"/>
+ <use xlink:href="#star" transform="translate(76 371) scale(.20)"/><use xlink:href="#star" transform="translate(559 332) scale(.30)"/>
+ <use xlink:href="#star" transform="translate(87 574) scale(.41)"/><use xlink:href="#star" transform="translate(547 582) scale(.32)"/>
+ <use xlink:href="#star" transform="translate(172 745) scale(.34)"/><use xlink:href="#star" transform="translate(471 805) scale(.34)"/>
+ <use xlink:href="#star" transform="translate(320 842) scale(.40)"/>
+</g>
+<!-- Ground seal; golden engraved ellipses float beneath the boots -->
+<g fill="none" stroke="url(#gold)">
+ <ellipse cx="320" cy="852" rx="239" ry="23" stroke-width="4" opacity=".72"/>
+ <ellipse cx="320" cy="852" rx="204" ry="15" stroke-width="1.8" stroke-dasharray="7 7" opacity=".92"/>
+ <ellipse cx="320" cy="852" rx="263" ry="31" stroke-width="1.5" opacity=".4"/>
+</g>
+<g stroke="url(#fade)" stroke-width="1.4" opacity=".38">
+ <path d="M150 130 V280 M480 132 V284 M75 417 V587 M565 418 V588 M145 616 V781 M486 620 V784"/>
+</g>
+<style>
+ @media (prefers-reduced-motion:no-preference){
+   g:nth-last-of-type(2) {animation:light-pulse 5.6s ease-in-out infinite alternate;transform-origin:320px 850px;}
+   #star {animation:light-pulse 2.8s ease-in-out infinite alternate;}
+   @keyframes light-pulse {0%{opacity:.67}100%{opacity:1}}
+ }
+</style>
+</svg>
