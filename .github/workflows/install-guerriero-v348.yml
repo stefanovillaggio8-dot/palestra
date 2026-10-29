@@ -1,0 +1,118 @@
+name: Complete approved Guerriero RPG photography v348
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/install-guerriero-v348.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  install-scenes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install image verification tools
+        run: python -m pip install Pillow==11.3.0
+      - name: Fetch exact approved 9-scene Guerriero atlas
+        env:
+          PHOTO_SOURCE_URL: 'https://adnteitlhopehllutlua.supabase.co/functions/v1/rpg-guerriero-v348-source'
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          import io, os, urllib.request, hashlib, time
+          expected='9774aa860d440d26380a299a6eae8ad177f07c33281cf40013bada00ae1ad6b3'
+          payload=None
+          for attempt in range(3):
+              try:
+                  request=urllib.request.Request(os.environ['PHOTO_SOURCE_URL'],
+                    headers={'User-Agent':'Palestra-GitHub-Approved-Photo-Publisher/1.0'})
+                  with urllib.request.urlopen(request,timeout=90) as response:
+                      if response.status!=200:raise RuntimeError('Photo source unavailable')
+                      payload=response.read(600000)
+                  break
+              except Exception:
+                  if attempt==2:raise
+                  time.sleep(3)
+          digest=hashlib.sha256(payload).hexdigest()
+          if digest!=expected:raise RuntimeError('Photo checksum mismatch: '+digest)
+          if not (payload[:4]==b'RIFF' and payload[8:12]==b'WEBP'):
+              raise RuntimeError('Expected genuine WebP photograph')
+          source=Image.open(io.BytesIO(payload)).convert('RGB')
+          if source.size!=(960,1080):raise RuntimeError('Photo dimension mismatch')
+          root=Path('img/personaggi/scene')
+          root.mkdir(parents=True,exist_ok=True)
+          (root/'guerriero-nove-scene.webp').write_bytes(payload)
+          labels=('base','base-corona','base-fumo','base-corona-fumo',
+                  'epica','epica-corona','epica-fumo','epica-corona-fumo',
+                  'epica-divina-corona-fumo')
+          for i,label in enumerate(labels):
+              x=(i%3)*320;y=(i//3)*360
+              tile=source.crop((x,y,x+320,y+360))
+              path=root/('guerriero-'+label+'.webp')
+              tile.save(path,'WEBP',quality=83,method=6)
+              with Image.open(path) as saved:
+                  if saved.size!=(320,360):
+                      raise RuntimeError('Photo crop invalid: '+label)
+          print('Guerriero: all 9 original photos installed, checksum correct')
+          PY
+      - name: Publish a single coherent PWA version 348
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          for fn in ('index.html','sw.js','anteprima-aura.html','src/foto-cinematica-rpg.js'):
+              p=Path(fn);s=p.read_text(encoding='utf-8')
+              s=s.replace('palestra-v347','palestra-v348').replace('?v=347','?v=348')
+              if fn=='src/foto-cinematica-rpg.js':
+                  s=s.replace('guerriero-nove-scene.webp?v=346','guerriero-nove-scene.webp?v=348')
+              if fn=='sw.js':
+                  marker="  './src/foto-cinematica-rpg.js',"
+                  assert marker in s
+                  names=['guerriero-nove-scene','guerriero-base',
+                      'guerriero-base-corona','guerriero-base-fumo',
+                      'guerriero-base-corona-fumo','guerriero-epica',
+                      'guerriero-epica-corona','guerriero-epica-fumo',
+                      'guerriero-epica-corona-fumo','guerriero-epica-divina-corona-fumo']
+                  precache='\n'.join("  './img/personaggi/scene/"+n+".webp?v=348'," for n in names)
+                  s=s.replace(marker,marker+'\n'+precache,1)
+              p.write_text(s,encoding='utf-8')
+          PY
+      - name: Validate all 3 classes, photos, weapons and existing app
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          root=Path('img/personaggi/scene')
+          for cls in ('assassino','guerriero','berserker'):
+              atlas=root/f'{cls}-nove-scene.webp'
+              if not atlas.is_file():
+                  raise RuntimeError('Missing photo atlas: '+str(atlas))
+              with Image.open(atlas) as im:
+                  assert im.size==(960,1080),str(atlas)
+          assert len(list(root.glob('guerriero-*.webp')))==10
+          assert "palestra-v348" in Path('index.html').read_text()
+          assert "palestra-v348" in Path('sw.js').read_text()
+          assert 'guerriero-nove-scene.webp?v=348' in Path('src/foto-cinematica-rpg.js').read_text()
+          PY
+          node --test test/*.test.js
+      - name: Commit 9 verified photos to main without touching user data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add img/personaggi/scene index.html sw.js anteprima-aura.html src/foto-cinematica-rpg.js
+          git commit -m "assets(v348): add 9 original Guerriero photos and update app cache"
+          git push origin HEAD:main
+      - name: Request GitHub Pages rebuild for new photographs
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api --method POST "repos/${GITHUB_REPOSITORY}/pages/builds"
