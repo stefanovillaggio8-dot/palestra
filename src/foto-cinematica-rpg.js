@@ -13,6 +13,36 @@ export const ARMATURE_EPICHE_SCENE = Object.freeze({
   guerriero:'armatura-guerriero-braci',
   berserker:'armatura-berserker-rabbia',
 });
+// Scatti nuovi integrali dell'Assassino: scena e particelle sono una sola fotografia.
+// Si usano esclusivamente con la configurazione che rappresentano.
+export const FOTO_RPG_SPECIALI = Object.freeze({
+  ombra:'img/personaggi/scene/assassino-fumo.webp?v=346',
+  nebulosa:'img/personaggi/scene/assassino-nebulosa.webp?v=346',
+  divina:'img/personaggi/scene/assassino-divina.webp?v=346',
+  corona:'img/personaggi/scene/assassino-corona.webp?v=346',
+});
+export function percorsoScenaSpecialeRpg({classe,armatura=null,effetto=null,skin=null,
+  corona=false,divina=false,stato=null,stadio=null,armaSbloccata=false}={}) {
+  const raw=stadio??stato;
+  if(classe!=='assassino'||armatura||skin||armaSbloccata||
+    (raw!==null&&raw!==undefined&&Number(raw)>=4)) return null;
+  if(!effetto&&corona)return FOTO_RPG_SPECIALI.corona;
+  if(!effetto&&divina)return FOTO_RPG_SPECIALI.divina;
+  if(effetto==='effetto-ombra'&&!corona&&!divina)return FOTO_RPG_SPECIALI.ombra;
+  if(effetto==='effetto-nebula'&&!corona&&!divina)return FOTO_RPG_SPECIALI.nebulosa;
+  return null;
+}
+const FOTO_INTEGRALI=new Map();
+async function caricaScenaSpeciale(src) {
+  if(!src||typeof Image!=='function')return null;
+  if(!FOTO_INTEGRALI.has(src))FOTO_INTEGRALI.set(src,new Promise(resolve=>{
+    const img=new Image();
+    img.onload=()=>resolve(img.naturalWidth>100&&img.naturalHeight>100?src:null);
+    img.onerror=()=>resolve(null);
+    img.src=src;
+  }));
+  return FOTO_INTEGRALI.get(src);
+}
 const PROMISES = new Map();
 const CACHE = new Map();
 /** La quarta ricompensa di classe (id elmo) è pugnale, spada o ascia.
@@ -61,6 +91,8 @@ function caricaAtlante(classe) {
   return PROMISES.get(classe);
 }
 export async function fotoCinematograficaRpg(opzioni={}) {
+  const speciale=percorsoScenaSpecialeRpg(opzioni);
+  if(speciale)return await caricaScenaSpeciale(speciale);
   const indice=indiceScenaCinematograficaRpg(opzioni);
   if(indice===null || typeof document==='undefined')return null;
   const key=opzioni.classe+':'+indice;
@@ -82,8 +114,9 @@ export async function fotoCinematograficaRpg(opzioni={}) {
  * Le immagini mancanti su GitHub lasciano intatta la v341.
  */
 export function montaScenaCinematograficaRpg(grafica,foto,opzioni={}) {
+  const speciale=percorsoScenaSpecialeRpg(opzioni);
   const indice=indiceScenaCinematograficaRpg(opzioni);
-  if(indice===null || !grafica || !foto)return false;
+  if((indice===null&&!speciale) || !grafica || !foto)return false;
   void fotoCinematograficaRpg(opzioni).then(src=>{
     if(!src || !grafica.isConnected || !foto.isConnected)return;
     const chiave=opzioni.classe+':'+indice;
