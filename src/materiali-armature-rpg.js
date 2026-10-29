@@ -140,18 +140,6 @@ function corazzaBerserker(ctx,mat) {
  pannello(ctx,POLIGONI.berserker.cintura,mat);
  rivetto(ctx,.5,.537,mat,.014);
 }
-function decoraAstrale(ctx,classe,mat){
- const area=POLIGONI[classe]||POLIGONI.guerriero;
- ctx.save();ctx.globalAlpha=.8;ctx.strokeStyle=mat.accento;ctx.lineWidth=.0028;
- ctx.shadowColor=mat.accento;ctx.shadowBlur=.007;ctx.beginPath();
- ctx.moveTo(.5,.317);ctx.lineTo(.523,.39);ctx.lineTo(.5,.444);ctx.lineTo(.477,.39);ctx.closePath();ctx.stroke();
- for(let k=0;k<6;k++){
-   const y=.35+k*.026,x=.5+Math.sin(k*1.7)*.092;
-   rivetto(ctx,x,y,mat,.003);
- }
- cucitura(ctx,[[.38,.517],[.5,.541],[.625,.518]],mat,.7);
- ctx.restore();
-}
 /** Rafforza il rivestimento con vere forme e materiali, non solo tinta.
  * Le coordinate sono in proporzione alla foto della classe, non alterano il DOM.
  */
@@ -167,7 +155,8 @@ export function disegnaMaterialiArmaturaRpg(ctx,w,h,classe,armaturaId,skinId=nul
   if(classe==='guerriero')corazzaGuerriero(ctx,materiale);
   if(classe==='berserker')corazzaBerserker(ctx,materiale);
  }
- if(mitica)decoraAstrale(ctx,classe,MATERIALI_ARMATURA_RPG['skin-mitica']);
+ // Astrale ora riceve stelle/nebula ambientali dal renderer live, non
+ // un rombo geometrico e linee disegnate sul torace.
  ctx.restore();
  return true;
 }
