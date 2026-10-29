@@ -41,6 +41,7 @@ import { confrontoGiorno, confrontiMensili, GIORNI_UN_MESE } from './confronto-m
 import { profiloEsercizio, profiloPerPesoCorporeo, RANK, ETICHETTE_MISURA, descriviPunteggio, descrizioneLivello, livelloEsercizio, impostaLivelliImparati, livelliImparati, rapportoDifficolta, MOLTIPLICATORI_SOGLIA, passoCaricabile } from './rank-config.js';
 import { formattaAura } from './aura.js';
 import { montaEffettiRpg, smontaEffettiRpg } from './effetti-rpg-canvas.js';
+import { montaFotoRpg } from './aura-foto-rpg.js';
 import { applicaSkinRpg } from './skin-rpg-fedele.js';
 import { elencoAvatar, avatarPerId, gradienteAvatar, iniziali } from './avatar.js';
 import { amiciDi, confronta, classifichePerEsercizio, privacyDi, campiVisibili, PRIVACY_PREDEFINITE } from './sociale.js';
@@ -6443,12 +6444,22 @@ function bloccoPersonaggio(profilo, st) {
     // Un rivestimento fotografico selettivo usa i pixel dello stato STREAK attuale:
     // volto, corporatura, sfondo e armi originali restano immutati.
     applicaSkinRpg(grafica, fotoRpg, classeId, armaturaEquipaggiata?.id, skinEquipaggiata?.id);
-    montaEffettiRpg(grafica, effettoEquipaggiato?.id || null, {
-      divina: Boolean(viso.aura),
+    // Le foto degli effetti formano uno strato trasparente ATTORNO all'avatar:
+    // volto, armatura, titolo e skin rimangono esattamente come equipaggiati.
+    const scenaFotografica = montaFotoRpg(grafica, effettoEquipaggiato?.id || null, {
       corona: coronaAttiva,
       mitica: skinEquipaggiata?.id === 'skin-mitica',
-      classe: classeId, // Ogni effetto e' indipendente da skin, Aura divina e Corona.
+      classe: classeId,
     });
+    // Fallback per avatar senza effetto fotografico: Aura divina storica.
+    if (!scenaFotografica) {
+      montaEffettiRpg(grafica, null, {
+        divina: Boolean(viso.aura),
+        corona: coronaAttiva,
+        mitica: skinEquipaggiata?.id === 'skin-mitica',
+        classe: classeId,
+      });
+    }
 
     // LA FILMSTRIP: sei miniature, una per stato.
     //

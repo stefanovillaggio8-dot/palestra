@@ -9,7 +9,7 @@
 // e il test I3 che sia quello dell'ultimo commit, altrimenti si alza la cache e si
 // lascia scritto il numero vecchio. E' successo due volte: nella v54 avevo alzato
 // solo questo file, e dopo la v55 avevo smesso di alzarlo del tutto.
-const VERSIONE = 'palestra-v332';
+const VERSIONE = 'palestra-v333';
 
 // LE 18 FOTO DEI PERSONAGGI, CON LA VERSIONE DENTRO.
 //
@@ -34,6 +34,8 @@ function immaginiPersonaggi() {
 const FILE = [
   './src/aura-skin.js',
   './src/effetti-rpg-canvas.js',
+  './src/aura-foto-atlas.js',
+  './src/aura-foto-rpg.js',
   './src/skin-rpg-fedele.js',
   ...['braci','abisso','notte','cremisi','rabbia','apocalisse','astrale'].map(n => './img/scenari/' + n + '.svg'),
   './img/personaggi/armature/guerriero-braci.webp',
@@ -69,8 +71,8 @@ const FILE = [
   // Il numero deve essere uguale a quello di `stile.css?v=` in index.html e a
   // `window.PALESTRA_VERSIONE`: se i tre non coincidono, l'app carica un foglio di
   // stile e dice un altro numero.
-  './stile.css?v=332',
-  './stile-rpg.css?v=332',
+  './stile.css?v=333',
+  './stile-rpg.css?v=333',
 './manifest.webmanifest',
   './manifest-p1.webmanifest',
   './manifest-p2.webmanifest',
@@ -78,7 +80,7 @@ const FILE = [
   // installata di un amico prenderebbe quello di Ste, con lo stesso id e con
   // start_url che punta a ?p=1
   './manifest-nuovo.webmanifest',
-  './src/app.js?v=332',
+  './src/app.js?v=333',
   './src/numeri.js',
   './src/confronto.js',
   './src/confronto-mensile.js',
