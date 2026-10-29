@@ -5,7 +5,7 @@
 // per gli altri cosmetici resta il normale renderer precedente.
 export const SCENE_ATLANTI_RPG = Object.freeze({
   assassino:'img/personaggi/scene/assassino-nove-scene.webp?v=346',
-  guerriero:'img/personaggi/scene/guerriero-nove-scene.webp?v=346',
+  guerriero:'img/personaggi/scene/guerriero-nove-scene.webp?v=348',
   berserker:'img/personaggi/scene/berserker-nove-scene.webp?v=346',
 });
 export const ARMATURE_EPICHE_SCENE = Object.freeze({
