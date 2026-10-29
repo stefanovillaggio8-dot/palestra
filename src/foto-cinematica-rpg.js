@@ -1,12 +1,12 @@
-// v342 — i tre collage fotografici APPROVATI sono la fonte delle scene RPG.
+// v343 — i tre collage fotografici APPROVATI sono la fonte delle scene RPG.
 // Ogni atlante contiene 3 colonne x 3 righe, ritagliate SENZA didascalie.
 // Niente pennellate sul torso, maschere, ovali, corona adesiva o fondali sovrapposti.
 // Le scene sono usate solo quando rappresentano ESATTAMENTE la configurazione;
 // per gli altri cosmetici resta il normale renderer precedente.
 export const SCENE_ATLANTI_RPG = Object.freeze({
-  assassino:'img/personaggi/scene/assassino-nove-scene.webp?v=342',
-  guerriero:'img/personaggi/scene/guerriero-nove-scene.webp?v=342',
-  berserker:'img/personaggi/scene/berserker-nove-scene.webp?v=342',
+  assassino:'img/personaggi/scene/assassino-nove-scene.webp?v=343',
+  guerriero:'img/personaggi/scene/guerriero-nove-scene.webp?v=343',
+  berserker:'img/personaggi/scene/berserker-nove-scene.webp?v=343',
 });
 export const ARMATURE_EPICHE_SCENE = Object.freeze({
   assassino:'armatura-assassino-notte',
@@ -15,8 +15,26 @@ export const ARMATURE_EPICHE_SCENE = Object.freeze({
 });
 const PROMISES = new Map();
 const CACHE = new Map();
-export function indiceScenaCinematograficaRpg({classe,armatura=null,effetto=null,skin=null,corona=false,divina=false}={}) {
+/** La quarta ricompensa di classe (id elmo) è pugnale, spada o ascia.
+ * Nessuna immagine o foto dell'Atelier può anticipare quell'arma.
+ * Il record è già stato valutato da calcolaAvatar, quindi non usiamo giorni
+ * fissi, il livello XP o la streak attuale per decidere lo sblocco.
+ */
+export function armaSbloccataRpg(premi=[]) {
+  return Array.isArray(premi) && premi.some(p=>p?.id==='elmo' && p.sbloccato===true);
+}
+export function indiceScenaCinematograficaRpg({
+  classe,armatura=null,effetto=null,skin=null,
+  corona=false,divina=false,stato=null,stadio=null,armaSbloccata=false
+}={}) {
   if(!Object.hasOwn(SCENE_ATLANTI_RPG,classe))return null;
+  // I 27 scatti approvati NON mostrano le armi delle ricompense: vietato
+  // usarli quando il personaggio ha sbloccato il pugnale/la spada/l'ascia.
+  // In quel caso resta la vera foto Streak 4/5, dove l'arma è presente.
+  // In Atelier un livello alto è un'anteprima, MA non deve cancellare l'arma.
+  const t=stadio??stato;
+  const livello=Number(t);
+  if(armaSbloccata || (t!==null && t!==undefined && Number.isFinite(livello) && livello>=4))return null;
   if(skin)return null; // La forma Astrale non compare in questi nove scatti.
   if(armatura && armatura!==ARMATURE_EPICHE_SCENE[classe])return null;
   if(effetto && effetto!=='effetto-ombra')return null; // Niente effetti inventati.

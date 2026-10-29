@@ -45,7 +45,7 @@ import { montaFotoRpg } from './aura-foto-rpg.js';
 import { montaFotoCombinataRpg, scaricaFotoCombinataRpg } from './anteprima-combinata-rpg.js';
 import { apriAtelierRpg as mostraAtelierRpg } from './rpg-atelier-ui.js';
 import { applicaSkinRpg } from './skin-rpg-fedele.js';
-import { montaScenaCinematograficaRpg } from './foto-cinematica-rpg.js';
+import { montaScenaCinematograficaRpg, armaSbloccataRpg } from './foto-cinematica-rpg.js';
 import { elencoAvatar, avatarPerId, gradienteAvatar, iniziali } from './avatar.js';
 import { amiciDi, confronta, classifichePerEsercizio, privacyDi, campiVisibili, PRIVACY_PREDEFINITE } from './sociale.js';
 import { classificaEsercizio as riconosciEsercizio } from './esercizi-classificatore.js';
@@ -6546,8 +6546,18 @@ function bloccoPersonaggio(profilo, st) {
     // da disegnare sul torace della foto Streak. Con un'armatura equipaggiata
     // usa la sua immagine integrale; per la progressione standard resta intatta
     // una delle 18 foto canoniche. Gli slot e gli acquisti sono invariati.
-    const fotoProgressioneRpg = percorsoStato(classeId, viso.indice);
-    const fotoArmaturaRpg = armaturaEquipaggiata?.immagine || null;
+    // Il pugnale dell'Assassino, la spada del Guerriero e l'ascia del
+    // Berserker corrispondono al premio 'elmo' (30 giorni di RECORD Streak).
+    // Il valore arriva dai premi reali, non dallo stadio visualizzato.
+    const armaSbloccata=armaSbloccataRpg(rpg.premi);
+    // Anche un'anteprima di uno stadio futuro NON deve anticipare un'arma.
+    const statoFotoConsentito=armaSbloccata ? viso.indice : Math.min(viso.indice,3);
+    const fotoProgressioneRpg = percorsoStato(classeId, statoFotoConsentito);
+    // I collage e le immagini di armatura dello shop non hanno varianti
+    // con la stessa arma. Dopo lo sblocco preferiamo l'originale canonico
+    // con l'arma VERA, senza incollarne una sopra.
+    const mostraFotoConArma=armaSbloccata && statoFotoConsentito>=4;
+    const fotoArmaturaRpg = mostraFotoConArma ? null : armaturaEquipaggiata?.immagine || null;
     const fotoRpg = el('img', {
       class: 'personaggio-ritratto',
       src: fotoArmaturaRpg || fotoProgressioneRpg,
@@ -6565,8 +6575,10 @@ function bloccoPersonaggio(profilo, st) {
     if (fotoArmaturaRpg) grafica.classList.add('rpg-armor-photo-integrale');
     // Il rivestimento geometrico era la causa delle piastre piatte da videogioco:
     // lo conserviamo SOLO come fallback quando manca una foto vera.
-    if (!fotoArmaturaRpg) applicaSkinRpg(grafica, fotoRpg, classeId, armaturaEquipaggiata?.id, skinEquipaggiata?.id);
-    else if (skinEquipaggiata?.id==='skin-mitica') applicaSkinRpg(grafica,fotoRpg,classeId,null,skinEquipaggiata.id);
+    if (!fotoArmaturaRpg && !mostraFotoConArma)
+      applicaSkinRpg(grafica, fotoRpg, classeId, armaturaEquipaggiata?.id, skinEquipaggiata?.id);
+    else if (skinEquipaggiata?.id==='skin-mitica')
+      applicaSkinRpg(grafica,fotoRpg,classeId,null,skinEquipaggiata.id);
     // Le foto degli effetti formano uno strato trasparente ATTORNO all'avatar:
     // volto, armatura, titolo e skin rimangono esattamente come equipaggiati.
     const scenaFotografica = montaFotoRpg(grafica, effettoEquipaggiato?.id || null, {
@@ -6598,6 +6610,8 @@ function bloccoPersonaggio(profilo, st) {
       Boolean(armaturaEquipaggiata || effettoEquipaggiato || skinEquipaggiata || coronaAttiva);
     if(scenaRichiesta) montaScenaCinematograficaRpg(grafica,fotoRpg,{
       classe:classeId,
+      stato:statoFotoConsentito,
+      armaSbloccata:armaSbloccata,
       armatura:armaturaEquipaggiata?.id || null,
       skin:skinEquipaggiata?.id || null,
       effetto:effettoEquipaggiato?.id || null,

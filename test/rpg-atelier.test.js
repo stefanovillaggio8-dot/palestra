@@ -36,7 +36,7 @@ test('Le armature delle altre classi non possono sovrapporsi',()=>{
 test('Ritratto e volto base non vengono rigenerati: viene usata la foto canonica',async()=>{
  const app=await readFile(new URL('../src/app.js',import.meta.url),'utf8');
  const source=await readFile(new URL('../src/rpg-atelier.js',import.meta.url),'utf8');
- assert.match(app,/percorsoStato\(classeId, viso\.indice\)/);
+ assert.match(app,/percorsoStato\(classeId, statoFotoConsentito\)/);
  assert.match(app,/__anteprimaStato/);
  assert.match(app,/viso\.indice=profilo\.__anteprimaStato/);
  assert.match(source,/grafica\?\.querySelector\?\.\('\.personaggio-ritratto'\)/);

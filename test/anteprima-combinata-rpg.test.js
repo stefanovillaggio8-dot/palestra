@@ -44,7 +44,7 @@ test('Il renderer fotografico non cambia foto, profilo o dati degli utenti',asyn
   assert.match(source,/canvas\.className='rpg-foto-combinata'/);
   assert.match(source,/const contour=SAGOME\[classe\]/);
   assert.match(source,/chiaveFotoRpg\(c\)/);
-  assert.match(app,/percorsoStato\(classeId, viso\.indice\)/);
+  assert.match(app,/percorsoStato\(classeId, statoFotoConsentito\)/);
   assert.match(app,/applicaSkinRpg\(grafica, fotoRpg, classeId/);
   assert.match(app,/montaFotoCombinataRpg\(grafica, fotoRpg/);
   assert.match(app,/scaricaFotoCombinataRpg\(/);
