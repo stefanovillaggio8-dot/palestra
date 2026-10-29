@@ -927,3 +927,86 @@ button:active:not(:disabled) { transform:translateY(1px); }
 @media (prefers-reduced-motion:reduce) {
   .personaggio-scena-grafica .aura-foto-fx { animation:none!important;will-change:auto; }
 }
+
+
+/* v334: immagini degli effetti generate con centro trasparente. Non serve più
+   mascherare il volto: l'avatar e i cosmetici restano visibili al centro. */
+.aura-streak-divina {
+  display:grid;
+  gap:9px;
+  margin:14px 0;
+  padding:17px;
+  border:1px solid rgba(237,203,130,.36);
+  border-radius:16px;
+  background:linear-gradient(135deg,rgba(113,79,43,.19),rgba(57,80,101,.15));
+}
+.aura-streak-divina h2 { margin:0; }
+.aura-streak-divina .aura-divina-preview-btn { min-height:44px; }
+.pezzo-aura-divina { border:1px solid rgba(240,199,132,.44); }
+.aura-divina-preview .aura-preview-character { margin:auto; max-width:100%; }
+.aura-divina-preview .personaggio-scena-grafica { max-width:min(100%,310px); }
+
+/* Disattiva i vecchi componenti disegnati dell'aura quando si usano le
+   foto trasparenti. Evita tre aure sovrapposte, soprattutto sul telefono. */
+.personaggio-scena-grafica.aura-foto-fx-attiva > .aura-colonna,
+.personaggio-scena-grafica.aura-foto-fx-attiva > .aura-scie,
+.personaggio-scena-grafica.aura-foto-fx-attiva > .aura-stelle,
+.personaggio-scena-grafica.aura-foto-fx-attiva > .aura-onde,
+.personaggio-scena-grafica.aura-foto-fx-attiva > .aura-corona,
+.personaggio-scena-grafica.aura-foto-fx-attiva > .aura-lustro {
+  display:none!important;
+}
+.personaggio-scena-grafica.aura-foto-fx-attiva.personaggio-aura-divina::before,
+.personaggio-scena-grafica.aura-foto-fx-attiva.personaggio-aura-divina::after {
+  content:none!important;
+}
+.personaggio-scena-grafica .aura-foto-fx {
+  -webkit-mask-image:none!important;
+  mask-image:none!important;
+  background-repeat:no-repeat;
+  background-size:300% 200%;
+  pointer-events:none;
+  overflow:hidden;
+  animation:aura-fx-respiro-334 7s ease-in-out infinite alternate;
+  filter:none;
+  will-change:transform,opacity;
+  opacity:.92;
+  z-index:5;
+}
+.personaggio-scena-grafica .aura-foto-ombra {
+  opacity:.88;
+  mix-blend-mode:normal;
+  animation-duration:10s;
+}
+.personaggio-scena-grafica .aura-foto-ambra {opacity:.84; animation-duration:6.6s;}
+.personaggio-scena-grafica .aura-foto-fulmine {opacity:.92;animation-duration:4.5s;}
+.personaggio-scena-grafica .aura-foto-nebula {opacity:.87;animation-duration:12s;}
+.personaggio-scena-grafica .aura-foto-mitica {z-index:4;opacity:.38;animation-duration:14s;}
+.personaggio-scena-grafica .aura-foto-divina {
+  z-index:6;opacity:.76;mix-blend-mode:screen;
+  animation:aura-fx-divina-334 11s ease-in-out infinite alternate;
+}
+.personaggio-scena-grafica .aura-foto-corona {
+  z-index:7;opacity:1;
+  -webkit-mask-image:none!important;
+  mask-image:none!important;
+  animation:aura-fx-corona-334 9s ease-in-out infinite alternate;
+  filter:none;
+}
+@keyframes aura-fx-respiro-334 {
+  from {transform:translate3d(0,2px,0);opacity:.75;}
+  to {transform:translate3d(0,-3px,0);opacity:.94;}
+}
+@keyframes aura-fx-divina-334 {
+  from {transform:translate3d(0,2px,0);opacity:.65;}
+  to {transform:translate3d(0,-4px,0);opacity:.87;}
+}
+@keyframes aura-fx-corona-334 {
+  from {transform:translate3d(0,-17%,0);opacity:.86;}
+  to {transform:translate3d(0,-20%,0);opacity:1;}
+}
+@media(prefers-reduced-motion:reduce) {
+  .personaggio-scena-grafica .aura-foto-fx {
+    animation:none!important;transform:none!important;will-change:auto;
+  }
+}
