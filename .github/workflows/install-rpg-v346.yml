@@ -1,0 +1,96 @@
+name: Install approved RPG photo assets v346
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/install-rpg-v346.yml"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install imaging dependencies
+        run: python -m pip install Pillow==11.3.0
+      - name: Import real approved scenes
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image, ImageOps
+          import urllib.request
+          sources=Path('rpg-sources-v346')
+          target=Path('img/personaggi/scene')
+          target.mkdir(parents=True,exist_ok=True)
+          cols=((9,346),(362,700),(717,1057))
+          rows=((8,367),(438,792),(874,1249))
+          labels=('base','base-corona','base-fumo','base-corona-fumo','epica','epica-corona','epica-fumo','epica-corona-fumo','epica-divina-corona-fumo')
+          expected=('assassino','berserker','assassino-fumo','assassino-nebulosa','assassino-divina','assassino-corona')
+          if not all((sources/f'{name}.txt').is_file() for name in expected):
+              raise RuntimeError('Missing staged image source')
+          for name in expected:
+              url=(sources/f'{name}.txt').read_text(encoding='utf-8').strip()
+              if not url.startswith('https://d2jqrm6oza8nb6.cloudfront.net/datasets/'):
+                  raise RuntimeError(f'Unexpected image host for {name}')
+              req=urllib.request.Request(url,headers={'User-Agent':'Palestra-RPG-Publisher/1.0'})
+              with urllib.request.urlopen(req,timeout=120) as response:
+                  data=response.read(13_000_000)
+              path=Path('/tmp')/f'{name}.png'
+              path.write_bytes(data)
+              im=Image.open(path).convert('RGB')
+              if im.width<900 or im.height<1200:
+                  raise RuntimeError(f'Wrong original dimensions: {name} {im.size}')
+              if name in ('assassino','berserker'):
+                  atlas=Image.new('RGB',(960,1080),'#10121a')
+                  for row,(y0,y1) in enumerate(rows):
+                      for col,(x0,x1) in enumerate(cols):
+                          n=row*3+col
+                          crop=ImageOps.fit(im.crop((x0,y0,x1,y1)),(320,360),
+                              method=Image.Resampling.LANCZOS)
+                          atlas.paste(crop,(col*320,row*360))
+                          crop.save(target/f'{name}-{labels[n]}.webp','WEBP',quality=76,method=6)
+                  atlas.save(target/f'{name}-nove-scene.webp','WEBP',quality=72,method=6)
+              else:
+                  im.thumbnail((800,1067),Image.Resampling.LANCZOS)
+                  im.save(target/f'{name}.webp','WEBP',quality=80,method=6)
+          if len(list(target.glob('*.webp')))<24:
+              raise RuntimeError('Insufficient photograph outputs')
+          print('Original photographs installed:',len(list(target.glob('*.webp'))))
+          PY
+      - name: Update cache to new photography assets
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          for filename in ('index.html','sw.js','anteprima-aura.html'):
+              path=Path(filename);s=path.read_text(encoding='utf-8')
+              s=s.replace('palestra-v346','palestra-v347').replace('?v=346','?v=347')
+              if filename=='sw.js':
+                  marker="  './src/foto-cinematica-rpg.js',"
+                  assert marker in s
+                  images=['assassino-nove-scene','berserker-nove-scene',
+                      'assassino-fumo','assassino-nebulosa','assassino-divina','assassino-corona']
+                  precache="\n".join("  './img/personaggi/scene/"+n+".webp?v=346'," for n in images)
+                  s=s.replace(marker,marker+'\n'+precache)
+              path.write_text(s,encoding='utf-8')
+          PY
+      - name: Regression tests with real images installed
+        run: node --test test/*.test.js
+      - name: Publish photographs and remove temporary transfer links
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add img/personaggi/scene index.html sw.js anteprima-aura.html
+          git rm -r rpg-sources-v346
+          git commit -m "assets(v347): install approved original cinematic RPG photographs"
+          git push origin HEAD:main
+      - name: Request GitHub Pages rebuild
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api --method POST "repos/${GITHUB_REPOSITORY}/pages/builds"
