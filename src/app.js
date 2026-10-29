@@ -40,7 +40,7 @@ import { soglieLegibiliNuove } from './rank-v3/valutazione.js';
 import { confrontoGiorno, confrontiMensili, GIORNI_UN_MESE } from './confronto-mensile.js';
 import { profiloEsercizio, profiloPerPesoCorporeo, RANK, ETICHETTE_MISURA, descriviPunteggio, descrizioneLivello, livelloEsercizio, impostaLivelliImparati, livelliImparati, rapportoDifficolta, MOLTIPLICATORI_SOGLIA, passoCaricabile } from './rank-config.js';
 import { formattaAura } from './aura.js';
-import { montaEffettiRpg, smontaEffettiRpg } from './effetti-rpg-canvas.js';
+import { montaEffettiRpg, smontaEffettiRpg, usaEffettiViviRpg } from './effetti-rpg-canvas.js';
 import { montaFotoRpg } from './aura-foto-rpg.js';
 import { montaFotoCombinataRpg, scaricaFotoCombinataRpg } from './anteprima-combinata-rpg.js';
 import { apriAtelierRpg as mostraAtelierRpg } from './rpg-atelier-ui.js';
@@ -6596,7 +6596,12 @@ function bloccoPersonaggio(profilo, st) {
       applicaSkinRpg(grafica,fotoRpg,classeId,null,skinEquipaggiata.id);
     // Le foto degli effetti formano uno strato trasparente ATTORNO all'avatar:
     // volto, armatura, titolo e skin rimangono esattamente come equipaggiati.
-    const scenaFotografica = montaFotoRpg(grafica, effettoEquipaggiato?.id || null, {
+    const effettoVivo=usaEffettiViviRpg(effettoEquipaggiato?.id || null,{
+      mitica:skinEquipaggiata?.id==='skin-mitica',
+    });
+    // Ambra, Fulmine e Astrale usano UN solo renderer Canvas. Prima il
+    // compositore fotografico li nascondeva tramite rpg-composite-active.
+    const scenaFotografica = !effettoVivo && montaFotoRpg(grafica, effettoEquipaggiato?.id || null, {
       corona: coronaAttiva,
       divina: Boolean(viso.aura) || auraDivinaAnteprima,
       mitica: skinEquipaggiata?.id === 'skin-mitica',
@@ -6606,7 +6611,7 @@ function bloccoPersonaggio(profilo, st) {
     // Per ogni combinazione possibile costruisci una FOTO reale da avatar e
     // texture (stessa faccia, stesso corpo, stesso stato, nessun duplicato).
     // I layer precedenti restano fallback in caso di Safari senza Canvas.
-    const combinata = montaFotoCombinataRpg(grafica, fotoRpg, {
+    const combinata = !effettoVivo && montaFotoCombinataRpg(grafica, fotoRpg, {
       classe: classeId, stato: viso.indice,
       armatura: armaturaEquipaggiata?.id || null,
       skin: skinEquipaggiata?.id || null,
@@ -6623,7 +6628,7 @@ function bloccoPersonaggio(profilo, st) {
     const scenaRichiesta=Number.isInteger(profilo?.__anteprimaStato) ||
       coronaAnteprima || auraDivinaAnteprima ||
       Boolean(armaturaEquipaggiata || effettoEquipaggiato || skinEquipaggiata || coronaAttiva);
-    if(scenaRichiesta) montaScenaCinematograficaRpg(grafica,fotoRpg,{
+    if(scenaRichiesta && !effettoVivo) montaScenaCinematograficaRpg(grafica,fotoRpg,{
       classe:classeId,
       stato:statoFotoConsentito,
       armaSbloccata:armaSbloccata,
@@ -6635,8 +6640,8 @@ function bloccoPersonaggio(profilo, st) {
     });
     // La classe rpg-composite-active viene attivata dal renderer, SOLO
     // quando la fotografia è pronta: nessun avatar senza effetti su Safari.
-    if (!scenaFotografica && !combinata) {
-      montaEffettiRpg(grafica, null, {
+    if (effettoVivo || (!scenaFotografica && !combinata)) {
+      montaEffettiRpg(grafica, effettoVivo ? effettoEquipaggiato?.id || null : null, {
         divina: Boolean(viso.aura) || auraDivinaAnteprima,
         corona: coronaAttiva,
         mitica: skinEquipaggiata?.id === 'skin-mitica',
