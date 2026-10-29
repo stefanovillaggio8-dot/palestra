@@ -32,6 +32,14 @@ export function fotoGalleriaRpg(classe,id){
  if(id==='corona')return scene+'base-corona.webp';
  return null;
 }
+// Esattamente le 27 fotografie ritagliate dai tre collage approvati.
+ // Numerazione 01–09 uguale per ogni classe, con inquadratura uniformata.
+export function fotoGalleriaApprovataRpg(classe,id){
+ if(!CLASSI_GALLERIA.includes(classe))return null;
+ const index=EFFETTI_GALLERIA.findIndex(effect=>effect.id===id);
+ if(index<0)return null;
+ return 'img/personaggi/galleria-v352/'+classe+'-'+String(index+1).padStart(2,'0')+'.webp';
+}
 export function nomeGalleriaRpg(classe,id){
  return id==='armatura'?ARMATURE[classe]?.name:
    EFFETTI_GALLERIA.find(x=>x.id===id)?.nome||null;
@@ -71,13 +79,19 @@ function init(){
    button.className='gallery-item';button.type='button';
    button.setAttribute('aria-label','Ingrandisci '+nomeGalleriaRpg(classe,eff.id)+' · '+NOMI_GALLERIA[classe]);
    const wrap=document.createElement('span');wrap.className='gallery-photo';
-   const img=document.createElement('img');img.src='./'+fotoGalleriaRpg(classe,eff.id);
+   const img=document.createElement('img');
+   const esatta=fotoGalleriaApprovataRpg(classe,eff.id);
+   const precedente=fotoGalleriaRpg(classe,eff.id);
+   img.src='./'+(esatta||precedente);
+   img.dataset.fotoApprovata=String(Boolean(esatta));
    img.alt=NOMI_GALLERIA[classe]+' · '+nomeGalleriaRpg(classe,eff.id);
    img.loading='lazy';img.decoding='async';
-   let fallback=false;
+   let fallbacks=0;
    img.addEventListener('error',()=>{
-    if(fallback)return;fallback=true;
-    img.src='./img/personaggi/stati/'+classe+'-0.webp';
+    // Il codice può precedere l'installazione dei file binari:
+    // nessun riquadro vuoto, nessun errore bloccante durante il deploy.
+    if(fallbacks++===0 && esatta){img.dataset.fotoApprovata='false';img.src='./'+precedente;}
+    else if(fallbacks<=2)img.src='./img/personaggi/stati/'+classe+'-0.webp';
    });
    wrap.append(img);
    const label=document.createElement('span');label.className='gallery-name';label.textContent=nomeGalleriaRpg(classe,eff.id);
