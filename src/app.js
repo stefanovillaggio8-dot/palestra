@@ -6445,6 +6445,20 @@ function bloccoPersonaggio(profilo, st) {
     const recordCorona = Math.max(Number(rpg.recordStreak)||0, Number(st?.streak?.record)||0);
     const coronaAttiva = statoCoronaInfinito(equipaggiamentoRpg, recordCorona, coronaAnteprima).visibile;
     if (coronaAttiva) grafica.classList.add('personaggio-aura-divina');
+    if(coronaAttiva) {
+      // Premio di 80 giorni: un unico livello illustrato premium, niente
+      // due corone incollate tra il vecchio atlante e il nuovo Canvas.
+      const premioCorona=el('img',{
+        class:'rpg-corona-premium',
+        src:'./img/effetti/corona-infinito-v345.svg',
+        alt:'',aria:{hidden:'true'},
+        loading:'eager',decoding:'async',
+      });
+      premioCorona.setAttribute('role','presentation');
+      grafica.appendChild(premioCorona);
+      grafica.classList.add('rpg-corona-premium-attiva');
+    }
+
     if (viso.aura || coronaAttiva || auraDivinaAnteprima) {
       grafica.classList.add('personaggio-aura');
       // LE SCINTILLE. La luce, i fazzi, l'anello e il contorno li fa il CSS; le
