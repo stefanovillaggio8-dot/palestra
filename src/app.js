@@ -2,7 +2,7 @@
 // Tutto in italiano, tema scuro, pulsanti grandi, fatto per essere usato
 // in palestra con le mani occupate.
 
-import { requisitoSkin, accessoSkin, scenarioSkin } from './aura-skin.js';
+import { requisitoSkin, accessoSkin, scenarioSkin, statoCoronaInfinito, cambiaCoronaInfinito, CORONA_INFINITO_ID } from './aura-skin.js';
 import * as db from './db.js';
 import * as sb from './supabase.js';
 import * as sync from './sync.js';
@@ -1677,6 +1677,7 @@ function vistaAuraShop(zona, soloInventario = false) {
     .map(r => String(r.fonte || '').split(':')[1])
     .filter(Boolean))];
   const streak = Math.max(0, Number(st.streak?.record) || 0);
+  const statoCorona = statoCoronaInfinito(profilo.equipaggiamento_aura, streak);
   if (!soloInventario) zona.appendChild(el('section',{class:'aura-shop-hero'},[
     el('div',{class:'aura-shop-kicker',testo:'✦ FORGE / COSMETICI ✦'}),
     el('h1',{testo:'Aura Shop'}),
@@ -1703,6 +1704,22 @@ function vistaAuraShop(zona, soloInventario = false) {
       el('small',{testo:streak>=80?'Questa ricompensa resta tua: non serve comprarla.':'Allenati con costanza per sbloccare la più bella aura del gioco.'}),
       bottone('Guarda la Corona animata',{classe:'fantasma aura-corona-preview-btn',
         onClick:()=>apriAnteprimaCoronaRpg(profiloAttivo(),statoMio())}),
+      bottone(streak < 80 ? 'Si sblocca a 80 giorni' : statoCorona.equipaggiata ? 'Disequipaggia Corona' : 'Equipaggia Corona', {
+        classe:statoCorona.equipaggiata?'fantasma aura-corona-equip-btn':'principale aura-corona-equip-btn',
+        disabilitato:streak < 80,
+        onClick:async()=>{
+          const profiloCorrente=profiloAttivo();
+          const record=Math.max(0,Number(statoMio().streak?.record)||0);
+          const attuale=statoCoronaInfinito(profiloCorrente.equipaggiamento_aura,record);
+          if (!attuale.sbloccata) return;
+          try {
+            const prossimo=cambiaCoronaInfinito(profiloCorrente.equipaggiamento_aura,!attuale.equipaggiata,record);
+            await db.salva('profili',{...profiloCorrente,equipaggiamento_aura:prossimo});
+            await ricaricaTutto();
+            disegna();
+          } catch(err) { avviso('Non sono riuscito a salvare la Corona. Riprova.',{tipo:'errore'}); }
+        },
+      }),
     ]),
   ]);
   if (!soloInventario) {
@@ -6314,9 +6331,10 @@ function bloccoPersonaggio(profilo, st) {
     // già "tutto addosso"), quindi è una luce che si accende sopra la foto.
     // L'Aura Divina degli 80 giorni ha un'identità visiva distinta: non deve
     // sembrare la normale aura dorata, ma un alone celestiale con anello e raggi.
-    const auraDivinaAttiva = Math.max(Number(st?.fuoco?.giorni) || 0, Number(st?.streak?.record) || 0) >= 80;
-    if (auraDivinaAttiva) grafica.classList.add('personaggio-aura-divina');
-    if (viso.aura || auraDivinaAttiva) {
+    const recordCorona = Math.max(Number(rpg.recordStreak)||0, Number(st?.streak?.record)||0);
+    const coronaAttiva = statoCoronaInfinito(equipaggiamentoRpg, recordCorona, coronaAnteprima).visibile;
+    if (coronaAttiva) grafica.classList.add('personaggio-aura-divina');
+    if (viso.aura || coronaAttiva) {
       grafica.classList.add('personaggio-aura');
       // LE SCINTILLE. La luce, i fazzi, l'anello e il contorno li fa il CSS; le
       // scintille sono elementi veri perché ognuna ha una posizione, una grandezza,
@@ -6425,10 +6443,11 @@ function bloccoPersonaggio(profilo, st) {
     // Un rivestimento fotografico selettivo usa i pixel dello stato STREAK attuale:
     // volto, corporatura, sfondo e armi originali restano immutati.
     applicaSkinRpg(grafica, fotoRpg, classeId, armaturaEquipaggiata?.id, skinEquipaggiata?.id);
-    montaEffettiRpg(grafica, effettoEquipaggiato?.id || (skinEquipaggiata?.id === 'skin-mitica' ? 'effetto-nebula' : null), {
-      divina: viso.aura && !auraDivinaAttiva && !coronaAnteprima,
-      corona: auraDivinaAttiva || coronaAnteprima,
-      classe: classeId, // Sagoma di occlusione specifica per Guerriero, Assassino o Berserker.
+    montaEffettiRpg(grafica, effettoEquipaggiato?.id || null, {
+      divina: Boolean(viso.aura),
+      corona: coronaAttiva,
+      mitica: skinEquipaggiata?.id === 'skin-mitica',
+      classe: classeId, // Ogni effetto e' indipendente da skin, Aura divina e Corona.
     });
 
     // LA FILMSTRIP: sei miniature, una per stato.
@@ -6505,6 +6524,7 @@ function bloccoPersonaggio(profilo, st) {
     }
     const recordCorona = Math.max(0, Number(rpg.recordStreak)||0, Number(st?.streak?.record)||0);
     const coronaSbloccata = recordCorona >= 80;
+    const coronaIndossata = statoCoronaInfinito(equipaggiamentoRpg, recordCorona).equipaggiata;
     striscia.appendChild(el('div',{
       class:'pezzo pezzo-corona-infinito' + (coronaSbloccata?' acceso':' spento'),
       title:'Corona dell’Infinito — 80 giorni',
@@ -6512,7 +6532,7 @@ function bloccoPersonaggio(profilo, st) {
       el('span',{class:'pezzo-spunta',testo:coronaSbloccata?'✓':'·'}),
       el('span',{class:'corona-streak-icon',testo:'♛'}),
       el('span',{class:'pezzo-nome',testo:'Corona dell’Infinito'}),
-      el('span',{class:'pezzo-quando',testo:coronaSbloccata?'sbloccata · 80 giorni':'mancano '+(80-recordCorona)+' giorni'}),
+      el('span',{class:'pezzo-quando',testo:coronaSbloccata?(coronaIndossata?'equipaggiata · 80 giorni':'sbloccata, non equipaggiata'):'mancano '+(80-recordCorona)+' giorni'}),
       bottone('Anteprima',{classe:'fantasma corona-streak-preview',onClick:()=>apriAnteprimaCoronaRpg(profilo,st)}),
     ]));
     rigaStati.appendChild(striscia);
@@ -6549,10 +6569,12 @@ scena.appendChild(grafica);
   // Mostra sul personaggio quali cosmetici del negozio sono equipaggiati.
   // La collezione resta intatta anche quando si cambia aspetto.
   const oggettiEquipaggiati = OGGETTI_AURA.filter((o) => equipaggiamentoRpg[o.tipo === 'Armatura' ? 'Armatura' : o.tipo] === o.id);
-  if (oggettiEquipaggiati.length) {
+  const coronaIndossata = statoCoronaInfinito(equipaggiamentoRpg, Math.max(Number(rpg.recordStreak)||0,Number(st?.streak?.record)||0)).equipaggiata;
+  if (oggettiEquipaggiati.length || coronaIndossata) {
     box.appendChild(el('div', { class: 'personaggio-equipaggiamento' }, [
       el('strong', { testo: 'Equipaggiato' }),
       ...oggettiEquipaggiati.map((o) => el('span', { class: 'personaggio-equip-tag', testo: o.icona + ' ' + o.nome })),
+      ...(coronaIndossata ? [el('span',{class:'personaggio-equip-tag',testo:'♛ Corona dell’Infinito'})] : []),
       el('a', { href: '#/aura-shop', class: 'bottone-guarda', testo: 'Gestisci equipaggiamento' }),
     ]));
   }
