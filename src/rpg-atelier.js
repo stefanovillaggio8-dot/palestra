@@ -16,7 +16,7 @@ export const ARMATURE_ATELIER = Object.freeze({
 export const TITOLI_ATELIER = Object.freeze(['', 'titolo-cardio','titolo-tecnica','titolo-ego','titolo-riposo','titolo-specchio','titolo-panca']);
 export const STADI_ATELIER = 6;
 export const NUMERO_COMBINAZIONI_ATELIER =
-  CLASSI_ATELIER.length * STADI_ATELIER * 3 * 2 * EFFETTI_ATELIER.length * 2 * 2 * TITOLI_ATELIER.length; // 7560
+  CLASSI_ATELIER.length * STADI_ATELIER * 3 * 2 * EFFETTI_ATELIER.length * 2 * 2 * TITOLI_ATELIER.length; // 15120
 
 export function opzioniAtelier(valori={}) {
   const classe=CLASSI_ATELIER.includes(valori.classe)?valori.classe:'guerriero';
