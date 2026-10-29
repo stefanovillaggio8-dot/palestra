@@ -42,6 +42,7 @@ import { profiloEsercizio, profiloPerPesoCorporeo, RANK, ETICHETTE_MISURA, descr
 import { formattaAura } from './aura.js';
 import { montaEffettiRpg, smontaEffettiRpg } from './effetti-rpg-canvas.js';
 import { montaFotoRpg } from './aura-foto-rpg.js';
+import { montaFotoCombinataRpg, scaricaFotoCombinataRpg } from './anteprima-combinata-rpg.js';
 import { applicaSkinRpg } from './skin-rpg-fedele.js';
 import { elencoAvatar, avatarPerId, gradienteAvatar, iniziali } from './avatar.js';
 import { amiciDi, confronta, classifichePerEsercizio, privacyDi, campiVisibili, PRIVACY_PREDEFINITE } from './sociale.js';
@@ -1618,6 +1619,9 @@ function apriAnteprimaAura(oggetto, profilo, st) {
   }
   pannello.appendChild(scena);
   disegnaAnteprima();
+  pannello.appendChild(bottone('Salva foto della combinazione', { classe: 'fantasma aura-save-photo',
+    onClick:()=>scaricaFotoCombinataRpg(contenitore.querySelector('.personaggio-scena-grafica'),classeAnteprima),
+  }));
   if (oggetto.immagine) pannello.appendChild(el('img', { class: 'aura-armor-card', src: oggetto.immagine, alt: 'Illustrazione di ' + oggetto.nome }));
   if (oggetto.tipo === 'Armatura') pannello.appendChild(el('p', { class: 'nota', testo: 'Sopra: risultato reale sul tuo personaggio e sullo stato Streak sbloccato. Sotto: illustrazione promozionale del set completo.' }));
   if (requisitoSkin(oggetto.id)) pannello.appendChild(bloccoRequisitoSkin(oggetto, st));
@@ -1657,6 +1661,9 @@ function apriAnteprimaAuraDivinaRpg(profilo, st) {
   pannello.appendChild(el('p',{class:'nota',testo:record>=75
     ? 'Aura divina sbloccata: rimane tua e si combina con la Corona e gli effetti acquistati.'
     : 'Ti mancano '+(75-record)+' giorni di record Streak per ottenerla gratuitamente.'}));
+  pannello.appendChild(bottone('Salva foto con gli oggetti attuali', { classe:'fantasma aura-save-photo',
+    onClick:()=>scaricaFotoCombinataRpg(pannello.querySelector('.personaggio-scena-grafica'),profilo.classe_rpg),
+  }));
   pannello.appendChild(bottone('Chiudi anteprima',{classe:'fantasma',onClick:chiudi}));
   overlay.appendChild(pannello);
   overlay.addEventListener('click',e=>{if(e.target===overlay)chiudi();});
@@ -1689,6 +1696,9 @@ function apriAnteprimaCoronaRpg(profilo, st) {
   pannello.appendChild(el('p',{class:'nota',testo:record>=80
     ? 'Ricompensa sbloccata: resta tua per sempre.'
     : 'Ti mancano '+(80-record)+' giorni di record Streak per sbloccarla.'}));
+  pannello.appendChild(bottone('Salva foto con gli oggetti attuali', { classe:'fantasma aura-save-photo',
+    onClick:()=>scaricaFotoCombinataRpg(pannello.querySelector('.personaggio-scena-grafica'),profilo.classe_rpg),
+  }));
   pannello.appendChild(bottone('Chiudi anteprima',{classe:'fantasma',onClick:chiudi}));
   overlay.appendChild(pannello);
   overlay.addEventListener('click',e=>{if(e.target===overlay)chiudi();});
@@ -1856,7 +1866,7 @@ function vistaAuraShop(zona, soloInventario = false) {
       const accesso = accessoSkin(o, st, classe, owned);
       const card=el('article',{class:'aura-shop-card rarita-'+o.rarita.toLowerCase()},[
         el('div',{class:'aura-shop-card-top'},[
-          el('span',{class:'aura-shop-item-symbol',testo:'✦',aria:{hidden:'true'}}),
+          el('span',{class:'aura-shop-item-symbol',testo:o.icona || '✦',aria:{hidden:'true'}}),
           el('span',{class:'aura-shop-rarity',testo:o.rarita}),
         ]),
         el('span',{class:'aura-shop-item-type',testo:o.tipo+(o.classe?' · '+CLASSE_AURA[o.classe]:'')}),
@@ -6498,7 +6508,19 @@ function bloccoPersonaggio(profilo, st) {
       classe: classeId,
     });
     // Fallback per avatar senza effetto fotografico: Aura divina storica.
-    if (!scenaFotografica) {
+    // Per ogni combinazione possibile costruisci una FOTO reale da avatar e
+    // texture (stessa faccia, stesso corpo, stesso stato, nessun duplicato).
+    // I layer precedenti restano fallback in caso di Safari senza Canvas.
+    const combinata = montaFotoCombinataRpg(grafica, fotoRpg, {
+      classe: classeId, stato: viso.indice,
+      armatura: armaturaEquipaggiata?.id || null,
+      skin: skinEquipaggiata?.id || null,
+      effetto: effettoEquipaggiato?.id || null,
+      divina: Boolean(viso.aura) || auraDivinaAnteprima,
+      corona: coronaAttiva,
+    });
+    if (combinata) grafica.classList.add('rpg-composite-active');
+    if (!scenaFotografica && !combinata) {
       montaEffettiRpg(grafica, null, {
         divina: Boolean(viso.aura) || auraDivinaAnteprima,
         corona: coronaAttiva,
