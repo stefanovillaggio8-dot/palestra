@@ -6,7 +6,7 @@ import {
  TITOLI_ATELIER,combinazioniRpg,opzioniAtelier,nomeFileAtelier,renderFotoAtelier,
 } from '../src/rpg-atelier.js';
 
-test('Copertura completa delle 7560 combinazioni RPG senza duplicati',()=>{
+test('Copertura completa delle 15120 combinazioni RPG senza duplicati',()=>{
  const keys=new Set();
  const perClasse={guerriero:0,assassino:0,berserker:0};
  for(const cfg of combinazioniRpg()) {
@@ -18,9 +18,9 @@ test('Copertura completa delle 7560 combinazioni RPG senza duplicati',()=>{
    assert.ok(TITOLI_ATELIER.includes(cfg.titolo));
    perClasse[cfg.classe]++;
  }
- assert.equal(NUMERO_COMBINAZIONI_ATELIER,7560);
+ assert.equal(NUMERO_COMBINAZIONI_ATELIER,15120);
  assert.equal(keys.size,NUMERO_COMBINAZIONI_ATELIER);
- for(const classe of CLASSI_ATELIER)assert.equal(perClasse[classe],2520);
+ for(const classe of CLASSI_ATELIER)assert.equal(perClasse[classe],5040);
 });
 
 test('Le armature delle altre classi non possono sovrapporsi',()=>{
