@@ -3,6 +3,7 @@
 // Nessun acquisto/record viene modificato dalle anteprime o dal download.
 import { AURA_FOTO_ATLAS } from './aura-foto-atlas.js';
 import { FOTO_RPG_RIQUADRI, livelliFotoRpg } from './aura-foto-rpg.js';
+import { fasciaSagoma } from './anteprima-combinata-rpg.js';
 
 export const CLASSI_ATELIER = Object.freeze(['guerriero','assassino','berserker']);
 export const EFFETTI_ATELIER = Object.freeze([
@@ -91,14 +92,44 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
     const atlas=await attesaImmagine(AURA_FOTO_ATLAS);
     const sw=atlas.naturalWidth/3,sh=atlas.naturalHeight/2;
     const posX={'0%':0,'50%':1,'100%':2},posY={'0%':0,'100%':1};
-    for(const layer of livelli) {
-      const pos=FOTO_RPG_RIQUADRI[layer.id];
-      if(!pos)continue;
-      ctx.save();
-      // Le texture originali hanno la parte centrale trasparente: avatar invariato.
-      ctx.globalAlpha=layer.ruolo==='mitica'?.42:1;
-      ctx.globalCompositeOperation='screen';
-      ctx.drawImage(atlas,posX[pos[0]]*sw,posY[pos[1]]*sh,sw,sh,dx,dy,dw,dh);
+    // Gli effetti si disegnano in una tela SEPARATA dalla fotografia,
+    // poi cancelliamo ogni pixel sopra faccia, cappuccio, torso e gambe.
+    const fxCanvas=document.createElement('canvas');
+    fxCanvas.width=dw;fxCanvas.height=dh;
+    const fx=fxCanvas.getContext('2d',{alpha:true});
+    if(fx) {
+      for(const layer of livelli.filter(l=>l.id!=='corona')) {
+        const pos=FOTO_RPG_RIQUADRI[layer.id];
+        if(!pos)continue;
+        fx.save();fx.globalAlpha=layer.ruolo==='mitica'?.42:1;
+        fx.drawImage(atlas,posX[pos[0]]*sw,posY[pos[1]]*sh,sw,sh,0,0,dw,dh);
+        fx.restore();
+      }
+      fx.save();fx.globalCompositeOperation='destination-out';
+      fx.beginPath();
+      // Per la testa allarghiamo la sagoma protetta, così neppure i
+      // gradienti o i fulmini possono rendere il volto illeggibile.
+      for(let i=0;i<=100;i++){
+        const y=i/100;let [left]=fasciaSagoma(c.classe,y);
+        if(y<.23)left=Math.min(left,.34);
+        if(i===0)fx.moveTo(left*dw,y*dh);
+        else fx.lineTo(left*dw,y*dh);
+      }
+      for(let i=100;i>=0;i--){
+        const y=i/100;let [,right]=fasciaSagoma(c.classe,y);
+        if(y<.23)right=Math.max(right,.66);
+        fx.lineTo(right*dw,y*dh);
+      }
+      fx.closePath();fx.fillStyle='#000';fx.fill();fx.restore();
+      ctx.save();ctx.globalCompositeOperation='screen';
+      ctx.drawImage(fxCanvas,dx,dy,dw,dh);ctx.restore();
+    }
+    if(c.corona) {
+      // La Corona si trova SOPRA il capo; mai come adesivo sul petto.
+      const pos=FOTO_RPG_RIQUADRI.corona;
+      ctx.save();ctx.globalCompositeOperation='screen';
+      ctx.drawImage(atlas,posX[pos[0]]*sw,posY[pos[1]]*sh,sw,sh,
+        dx+dw*.30,dy+dh*.005,dw*.40,dh*.145);
       ctx.restore();
     }
   }
