@@ -7,7 +7,7 @@ import {
   immagineOriginalePreservata, fasciaSagoma, montaFotoCombinataRpg,
 } from '../src/anteprima-combinata-rpg.js';
 
-test('Tutte le 1080 combinazioni distinte sono gestibili senza foto duplicate', () => {
+test('Tutte le 2160 combinazioni distinte sono gestibili senza foto duplicate', () => {
   const keys=new Set();
   for(const classe of CLASSI_FOTO_RPG)
     for(let stato=0;stato<STATI_FOTO_RPG;stato++)
@@ -23,8 +23,8 @@ test('Tutte le 1080 combinazioni distinte sono gestibili senza foto duplicate', 
                 assert.deepEqual(immagineOriginalePreservata(combo),{classe,stato},
                   'nessuna combinazione deve alterare il volto o la Streak');
               }
-  assert.equal(keys.size,1080);
-  assert.equal(contaCombinazioniFotoRpg({armaturePerClasse:3,skin:2,effetti:5}),1080);
+  assert.equal(keys.size,2160);
+  assert.equal(contaCombinazioniFotoRpg({armaturePerClasse:3,skin:2,effetti:5}),2160);
 });
 
 test('Ogni classe usa un contorno di protezione proprio, senza coprire i volti', () => {
