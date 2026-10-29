@@ -53,6 +53,7 @@ test('Esporta realmente la foto combinata con le texture separabili',async(t)=>{
  const draws=[],texts=[];
  const ctx={
    save(){},restore(){},fillRect(){},fillText(x){texts.push(x)},
+   beginPath(){},moveTo(){},lineTo(){},closePath(){},fill(){},
    drawImage(...args){draws.push(args)},
    get globalCompositeOperation(){return this._mode;},set globalCompositeOperation(mode){this._mode=mode;},
  };
@@ -86,4 +87,13 @@ test('L Atelier e lo Shop sono componenti solo UI senza cambiare lo stato accoun
  assert.match(ui,/renderPersonaggio\(profile,st\)/);
  assert.match(ui,/Salva questa foto PNG/);
  assert.doesNotMatch(ui,/db\.salva|sb\.|aura -|spesa_aura|ricompense\.push/);
+});
+
+test('PNG esportato: gli effetti vengono mascherati prima di coprire il volto',async()=>{
+  const source=await readFile(new URL('../src/rpg-atelier.js',import.meta.url),'utf8');
+  assert.match(source,/globalCompositeOperation='destination-out'/);
+  assert.match(source,/fasciaSagoma\(c\.classe,y\)/);
+  assert.match(source,/left=Math\.min\(left,\.34\)/);
+  assert.match(source,/right=Math\.max\(right,\.66\)/);
+  assert.match(source,/if\(c\.corona\)/);
 });
