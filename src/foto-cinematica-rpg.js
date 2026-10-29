@@ -57,7 +57,7 @@ export function percorsoCombinazioneFotoRpg({classe,armatura=null,effetto=null,
  if(!fx && skin!=='skin-mitica')return null;
  const livello=stadio??stato??0;
  const n=Number(livello);
- if(!Number.isInteger(n)||n<0||n>5)return null;
+ if(!Number.isInteger(n)||n<0||n>5 || (armaSbloccata&&n<4))return null;
  const validi={
    assassino:['armatura-assassino-notte','armatura-assassino-spettro'],
    guerriero:['armatura-guerriero-braci','armatura-guerriero-abisso'],
