@@ -5,13 +5,13 @@ import {createHash} from 'node:crypto';
 import {livelliFotoRpg,montaFotoRpg} from '../src/aura-foto-rpg.js';
 import {AURA_FOTO_ATLAS} from '../src/aura-foto-atlas.js';
 
-test('Le cinque immagini fotografiche dell\'Aura Shop sono incluse nel pacchetto offline',()=>{
+test('Le sei immagini fotografiche dell\'Aura Shop sono incluse nel pacchetto offline',()=>{
   assert.match(AURA_FOTO_ATLAS,/^data:image\/avif;base64,AAAAIGZ0eXBhdmlm/);
   const bytes = AURA_FOTO_ATLAS.split(',')[1];
-  assert.ok(bytes.length>4000 && bytes.length<15000);
+  assert.ok(bytes.length>20000 && bytes.length<30000);
   assert.equal(bytes.length % 4,0);
   assert.equal(createHash('sha256').update(Buffer.from(bytes,'base64')).digest('hex'),
-    'b557d004c7cfd5574b3015ffc4273d775cdd3a3d4f5dc6dc8e6a161e52acd040',
+    '3710fd8165952996e50ea4bb9f0b73e32ba4d306f4aded3b4829b3752e8ad2a6',
     'foto AVIF identiche al file generato, non corrotte');
   assert.match(bytes,/^[a-zA-Z0-9+/]+=*$/);
 });
@@ -30,6 +30,13 @@ test('Skin, armatura, Corona ed effetto sono livelli indipendenti',()=>{
     {id:'effetto-nebula',ruolo:'mitica'}, {id:'corona',ruolo:'corona'}
   ]);
   assert.deepEqual(livelliFotoRpg(null),[]);
+  assert.deepEqual(livelliFotoRpg(null,{divina:true}),[{id:'divina',ruolo:'streak'}]);
+  assert.deepEqual(livelliFotoRpg('effetto-fulmine',{divina:true,mitica:true,corona:true}),[
+    {id:'effetto-nebula',ruolo:'mitica'},
+    {id:'divina',ruolo:'streak'},
+    {id:'effetto-fulmine',ruolo:'acquistato'},
+    {id:'corona',ruolo:'corona'},
+  ]);
 });
 
 test('Anteprima: appendere effetti non rimuove foto, armatura o altri livelli',t=>{
@@ -63,4 +70,6 @@ test('Il Profilo usa sempre lo stesso avatar della Streak sotto il layer fotogra
   assert.match(app,/corona: coronaAttiva/);
   assert.match(app,/mitica: skinEquipaggiata\?\.id === 'skin-mitica'/);
   assert.match(app,/effettoEquipaggiato\?\.id \|\| null/);
+  assert.match(app,/divina: Boolean\(viso.aura\) \|\| auraDivinaAnteprima/);
+  assert.match(app,/apriAnteprimaAuraDivinaRpg/);
 });

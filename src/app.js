@@ -1633,6 +1633,38 @@ function apriAnteprimaAura(oggetto, profilo, st) {
 }
 
 
+function apriAnteprimaAuraDivinaRpg(profilo, st) {
+  const overlay=el('div',{class:'aura-preview-overlay',role:'dialog',
+    aria:{modal:'true',label:'Anteprima Aura divina'}});
+  const precedente=document.activeElement;
+  const chiudi=()=>{overlay.remove();document.removeEventListener('keydown',tastiera);precedente?.focus?.();};
+  const tastiera=e=>{if(e.key==='Escape')chiudi();};
+  const pannello=el('section',{class:'aura-preview-panel aura-divina-preview'},[
+    el('div',{class:'aura-preview-heading'},[
+      el('div',{},[
+        el('span',{class:'aura-shop-kicker',testo:'RICOMPENSA STREAK · 75 GIORNI'}),
+        el('h2',{testo:'Aura divina'}),
+      ]),
+      bottone('✕',{classe:'fantasma aura-preview-close',titolo:'Chiudi anteprima',onClick:chiudi}),
+    ]),
+    el('p',{class:'nota',testo:'Anteprima con il tuo equipaggiamento attuale. Non modifica gli oggetti e non sblocca premi in anticipo.'}),
+  ]);
+  const avatar=bloccoPersonaggio({...profilo,__anteprimaDivina:true},st);
+  avatar.classList.add('aura-preview-character');
+  for(const nodo of avatar.querySelectorAll('.riga-pezzi, .personaggio-equipaggiamento, button'))nodo.remove();
+  pannello.appendChild(avatar);
+  const record=Math.max(0,Number(st?.streak?.record)||0);
+  pannello.appendChild(el('p',{class:'nota',testo:record>=75
+    ? 'Aura divina sbloccata: rimane tua e si combina con la Corona e gli effetti acquistati.'
+    : 'Ti mancano '+(75-record)+' giorni di record Streak per ottenerla gratuitamente.'}));
+  pannello.appendChild(bottone('Chiudi anteprima',{classe:'fantasma',onClick:chiudi}));
+  overlay.appendChild(pannello);
+  overlay.addEventListener('click',e=>{if(e.target===overlay)chiudi();});
+  document.addEventListener('keydown',tastiera);
+  document.body.appendChild(overlay);
+  overlay.querySelector('button')?.focus?.();
+}
+
 function apriAnteprimaCoronaRpg(profilo, st) {
   const overlay = el('div', { class:'aura-preview-overlay', role:'dialog',
     aria:{modal:'true',label:'Anteprima Corona dell’Infinito'} });
@@ -1694,6 +1726,17 @@ function vistaAuraShop(zona, soloInventario = false) {
       testo:'Le immagini e le animazioni dei cosmetici si vedono soltanto premendo Anteprima sul singolo oggetto.'}));
   }
 
+
+  // Premio gratuito della Streak: non esiste come acquisto e non usa slot dello shop.
+  const premioDivino=el('section',{class:'aura-streak-divina'},[
+    el('span',{class:'aura-shop-kicker',testo:'RICOMPENSA GRATUITA · STREAK'}),
+    el('h2',{testo:'Aura divina · 75 giorni'}),
+    el('p',{class:'nota',testo:'Un alone celestiale che resta insieme alle armature, alle skin, alla Corona e agli effetti comprati.'}),
+    el('strong',{testo:streak>=75?'✓ SBLOCCATA':streak+' / 75 giorni di record'}),
+    bottone('Anteprima Aura divina',{classe:'fantasma aura-divina-preview-btn',
+      onClick:()=>apriAnteprimaAuraDivinaRpg(profiloAttivo(),statoMio())}),
+  ]);
+
   const mitica = el('section',{class:'aura-streak-mitica'+(streak>=80?' sbloccata':'' )},[
     el('div',{class:'aura-mitica-sigil',testo:'✹'}),
     el('div',{},[
@@ -1724,6 +1767,7 @@ function vistaAuraShop(zona, soloInventario = false) {
     ]),
   ]);
   if (!soloInventario) {
+    zona.appendChild(premioDivino);
     zona.appendChild(mitica);
     zona.appendChild(el('p', { class: 'nota shop-connessione', testo: sb.collegato() ? 'Acquisti protetti online. Equipaggia la tua collezione anche offline.' : 'Accedi dal Profilo per acquistare. La tua collezione resta disponibile anche offline.' }));
   }
@@ -6246,6 +6290,7 @@ function prossimoGiornoPrevisto(previsti, daIso) {
  */
 function bloccoPersonaggio(profilo, st) {
   const coronaAnteprima = Boolean(profilo?.__anteprimaCorona);
+  const auraDivinaAnteprima = Boolean(profilo?.__anteprimaDivina);
   const rpg = calcolaAvatar(profilo.classe_rpg, serieMie(), seduteMie(), esercizioPerId, {
     profilo,
   });
@@ -6335,7 +6380,7 @@ function bloccoPersonaggio(profilo, st) {
     const recordCorona = Math.max(Number(rpg.recordStreak)||0, Number(st?.streak?.record)||0);
     const coronaAttiva = statoCoronaInfinito(equipaggiamentoRpg, recordCorona, coronaAnteprima).visibile;
     if (coronaAttiva) grafica.classList.add('personaggio-aura-divina');
-    if (viso.aura || coronaAttiva) {
+    if (viso.aura || coronaAttiva || auraDivinaAnteprima) {
       grafica.classList.add('personaggio-aura');
       // LE SCINTILLE. La luce, i fazzi, l'anello e il contorno li fa il CSS; le
       // scintille sono elementi veri perché ognuna ha una posizione, una grandezza,
@@ -6448,13 +6493,14 @@ function bloccoPersonaggio(profilo, st) {
     // volto, armatura, titolo e skin rimangono esattamente come equipaggiati.
     const scenaFotografica = montaFotoRpg(grafica, effettoEquipaggiato?.id || null, {
       corona: coronaAttiva,
+      divina: Boolean(viso.aura) || auraDivinaAnteprima,
       mitica: skinEquipaggiata?.id === 'skin-mitica',
       classe: classeId,
     });
     // Fallback per avatar senza effetto fotografico: Aura divina storica.
     if (!scenaFotografica) {
       montaEffettiRpg(grafica, null, {
-        divina: Boolean(viso.aura),
+        divina: Boolean(viso.aura) || auraDivinaAnteprima,
         corona: coronaAttiva,
         mitica: skinEquipaggiata?.id === 'skin-mitica',
         classe: classeId,
@@ -6533,6 +6579,13 @@ function bloccoPersonaggio(profilo, st) {
         }),
       ]));
     }
+    // Anteprima della ricompensa gratuita dei 75 giorni direttamente nel Profilo.
+    striscia.appendChild(el('div',{class:'pezzo pezzo-aura-divina'},[
+      el('span',{class:'pezzo-nome',testo:'Aura divina'}),
+      el('span',{class:'pezzo-quando',testo:recordCorona>=75?'sbloccata · 75 giorni':'mancano '+(75-recordCorona)+' giorni'}),
+      bottone('Anteprima',{classe:'fantasma aura-divina-preview-btn',
+        onClick:()=>apriAnteprimaAuraDivinaRpg(profilo,st)}),
+    ]));
     const coronaSbloccata = recordCorona >= 80;
     const coronaIndossata = statoCoronaInfinito(equipaggiamentoRpg, recordCorona).equipaggiata;
     striscia.appendChild(el('div',{
