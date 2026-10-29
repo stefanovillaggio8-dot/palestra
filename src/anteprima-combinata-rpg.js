@@ -20,7 +20,7 @@ const TESSERE = Object.freeze({
 });
 const LOADED=new Map();
 const MAX_CACHE=48;
-const sprite=new Image();
+let sprite=null;
 
 export function configurazioneFotoRpg({classe,stato,armatura=null,skin=null,effetto=null,divina=false,corona=false}={}) {
   const c=CLASSI_FOTO_RPG.includes(classe)?classe:'guerriero';
@@ -70,6 +70,8 @@ export function fasciaSagoma(classe,y) {
 }
 
 function getAtlas() {
+  if(typeof Image!=='function')return Promise.resolve(null);
+  if(!sprite) sprite=new Image();
   if(!sprite.src) sprite.src=AURA_FOTO_ATLAS;
   if(sprite.complete && sprite.naturalWidth)return Promise.resolve(sprite);
   return new Promise(resolve=>{
