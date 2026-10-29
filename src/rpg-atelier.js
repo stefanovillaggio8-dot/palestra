@@ -4,6 +4,7 @@
 import { AURA_FOTO_ATLAS } from './aura-foto-atlas.js';
 import { FOTO_RPG_RIQUADRI, livelliFotoRpg } from './aura-foto-rpg.js';
 import { fasciaSagoma, disegnaCoronaEnergetica } from './anteprima-combinata-rpg.js';
+import { fotoCinematograficaRpg } from './foto-cinematica-rpg.js';
 
 export const CLASSI_ATELIER = Object.freeze(['guerriero','assassino','berserker']);
 export const EFFETTI_ATELIER = Object.freeze([
@@ -70,7 +71,12 @@ const fotoPronta = async(el)=>{
 export async function renderFotoAtelier(grafica, opzioni={}) {
   if(typeof document==='undefined')throw new Error('Serve il browser');
   const c=opzioniAtelier(opzioni);
-  const immagine=await fotoPronta(grafica?.querySelector?.('.personaggio-ritratto'));
+  const fotoBase=await fotoPronta(grafica?.querySelector?.('.personaggio-ritratto'));
+  // Il file finale deve usare lo stesso scatto completo visibile in anteprima.
+  // Se il collage non e' installato resta il renderer precedente.
+  const scena=await fotoCinematograficaRpg(c);
+  const immagine=scena ? await attesaImmagine(scena).catch(()=>fotoBase) : fotoBase;
+  const giaFotografica=Boolean(scena&&immagine!==fotoBase);
   const larghezza=780,altezza=1170;
   const canvas=document.createElement('canvas');
   canvas.width=larghezza;canvas.height=altezza;
@@ -83,12 +89,12 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
   ctx.drawImage(immagine,dx,dy,dw,dh);
   // Il rivestimento della skin in CSS e' un canvas separato dalla foto.
   const pelle=grafica.querySelector?.('.rpg-skin-fedele');
-  if(pelle?.width&&pelle?.height) {
+  if(!giaFotografica&&pelle?.width&&pelle?.height) {
     try {ctx.save();ctx.globalCompositeOperation='source-over';ctx.drawImage(pelle,dx,dy,dw,dh);ctx.restore();}
     catch {ctx.restore();}
   }
   const livelli=livelliFotoRpg(c.effetto,{mitica:!!c.skin,corona:c.corona,divina:c.divina});
-  if(livelli.length) {
+  if(!giaFotografica&&livelli.length) {
     const atlas=await attesaImmagine(AURA_FOTO_ATLAS);
     const sw=atlas.naturalWidth/3,sh=atlas.naturalHeight/2;
     const posX={'0%':0,'50%':1,'100%':2},posY={'0%':0,'100%':1};
