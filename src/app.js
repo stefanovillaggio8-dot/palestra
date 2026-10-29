@@ -1759,9 +1759,9 @@ function vistaAuraShop(zona, soloInventario = false) {
       el('span',{class:'aura-shop-meta',testo:posseduti.length+' oggetti nella collezione'}),
       bottone('Atelier · combina e salva foto',{classe:'fantasma rpg-atelier-open',onClick:()=>apriAtelierConDatiRpg(profiloAttivo(),statoMio())}),
       el('a',{class:'fantasma aura-shop-galleria-foto',
-        href:'./img/personaggi/catalogo/effetti-3-classi-v350.webp',
+        href:'./galleria-aura.html?classe='+classe,
         target:'_blank',rel:'noopener noreferrer',
-        testo:'✦ Galleria delle nuove immagini'}),
+        testo:'✦ Galleria delle combinazioni'}),
     ]),
   ]));
 
