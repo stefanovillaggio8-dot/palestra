@@ -1541,10 +1541,10 @@ function svgCosmeticiRpg(armaturaId, effettoId, skinId) {
 function bloccoRequisitoSkin(oggetto, st, posseduto = false) {
   const a = accessoSkin(oggetto, st, oggetto.classe, posseduto);
   return el('div', { class: 'aura-skin-requisito' }, [
-    el('strong', { testo: 'Record richiesto: ' + a.richiesto + ' giorni' }),
-    el('span', { testo: 'Il tuo record: ' + a.record + (a.record === 1 ? ' giorno' : ' giorni') + ' · ' + (a.mancanti === 1 ? 'Manca 1 giorno' : 'Mancano ' + a.mancanti + ' giorni') }),
-    el('progress', { max: a.richiesto, value: Math.min(a.record, a.richiesto), aria: { label: 'Progressione del record di Streak' } }),
-    el('small', { testo: posseduto ? 'Già tuo: i nuovi requisiti non cambiano la proprietà.' : 'Vale il record storico, anche dopo una Streak interrotta.' }),
+    el('strong', { testo: 'Streak attuale richiesta: ' + a.richiesto + ' giorni' }),
+    el('span', { testo: 'La tua Streak: ' + a.streakAttuale + (a.streakAttuale === 1 ? ' giorno' : ' giorni') + ' · ' + (a.mancanti === 1 ? 'Manca 1 giorno' : 'Mancano ' + a.mancanti + ' giorni') }),
+    el('progress', { max: a.richiesto, value: Math.min(a.streakAttuale, a.richiesto), aria: { label: 'Progressione della Streak attuale per acquistare' } }),
+    el('small', { testo: posseduto ? 'Già tuo: puoi continuare a equipaggiarlo anche dopo aver perso la Streak.' : 'Se salti un giorno di allenamento previsto, il contatore riparte da zero. Il record resta salvato.' }),
   ]);
 }
 
@@ -1733,6 +1733,7 @@ function vistaAuraShop(zona, soloInventario = false) {
     .map(r => String(r.fonte || '').split(':')[1])
     .filter(Boolean))];
   const streak = Math.max(0, Number(st.streak?.record) || 0);
+  const streakShop = Math.max(0, Number(st.streak?.giorni) || 0);
   const statoCorona = statoCoronaInfinito(profilo.equipaggiamento_aura, streak);
   // Navigazione primaria dello shop: il bottone Indietro sta sopra i contenuti
   // e le due tab principali rimangono Shop a sinistra / Inventario a destra.
@@ -1754,7 +1755,7 @@ function vistaAuraShop(zona, soloInventario = false) {
       ]),
     ]),
     el('div',{class:'aura-shop-hero-footer'},[
-      el('span',{class:'aura-shop-meta',testo:'Record Streak: '+streak+' giorni'}),
+      el('span',{class:'aura-shop-meta',testo:'Streak attuale per gli acquisti: '+streakShop+' giorni'}),
       el('span',{class:'aura-shop-meta',testo:posseduti.length+' oggetti nella collezione'}),
       bottone('Atelier · combina e salva foto',{classe:'fantasma rpg-atelier-open',onClick:()=>apriAtelierConDatiRpg(profiloAttivo(),statoMio())}),
     ]),
@@ -1936,12 +1937,12 @@ function vistaAuraShop(zona, soloInventario = false) {
             classe:'fantasma aura-shop-preview-btn',
             onClick:()=>apriAnteprimaAura(o, profiloAttivo(), statoMio()),
           }),
-          bottone(equipped?'✓ Equipaggiato':owned?'✓ Già acquistato':(!accesso.streakRaggiunta?'Record di Streak insufficiente':Number(st.aura)<o.prezzo?'Aura insufficienti':'Acquista'),{
+          bottone(equipped?'✓ Equipaggiato':owned?'✓ Già acquistato':(!accesso.streakRaggiunta?'Streak attuale insufficiente':Number(st.aura)<o.prezzo?'Aura insufficienti':'Acquista'),{
           classe:owned?'fantasma':'principale',
           disabilitato:owned||!accesso.acquistabile,
           onClick:async()=>{
             if(posseduti.includes(o.id)) return;
-            if (!accessoSkin(o, statoMio(), profiloAttivo().classe_rpg).acquistabile) { avviso('Controlla record di Streak, classe e Aura.', { tipo: 'errore' }); return; }
+            if (!accessoSkin(o, statoMio(), profiloAttivo().classe_rpg).acquistabile) { avviso('Controlla Streak attuale, classe e Aura.', { tipo: 'errore' }); return; }
             if(Number(st.aura)<o.prezzo){avviso('Non hai abbastanza Aura.',{tipo:'errore'});return;}
             const conferma=await chiediConferma('Comprare '+o.nome+'?','Spenderai '+formattaAura(o.prezzo)+' Aura. L’acquisto non si ripete e l’oggetto resta nell’inventario.');
             if(!conferma) return;

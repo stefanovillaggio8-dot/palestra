@@ -14,13 +14,16 @@ export function scenarioSkin(id) {
   return REQUISITI[id] ? './img/scenari/' + REQUISITI[id][1] + '.svg' : null;
 }
 export function accessoSkin(oggetto, stato, classe, posseduto = false) {
-  const valore = Number(stato?.streak?.record);
-  const record = Number.isFinite(valore) ? Math.max(0, Math.floor(valore)) : 0;
+  // Per gli acquisti conta la Streak CORRENTE: dopo una giornata prevista
+  // saltata torna a zero, anche se il record storico era molto alto.
+  // L'inventario già acquistato rimane invece equipaggiabile per sempre.
+  const valore = Number(stato?.streak?.giorni);
+  const streakAttuale = Number.isFinite(valore) ? Math.max(0, Math.floor(valore)) : 0;
   const richiesto = requisitoSkin(oggetto.id);
   const compatibile = !oggetto.classe || oggetto.classe === classe;
-  const streakRaggiunta = record >= richiesto;
+  const streakRaggiunta = streakAttuale >= richiesto;
   return {
-    record, richiesto, mancanti: Math.max(0, richiesto - record),
+    streakAttuale, richiesto, mancanti: Math.max(0, richiesto - streakAttuale),
     streakRaggiunta, compatibile, posseduto,
     equipaggiabile: posseduto && compatibile,
     acquistabile: !posseduto && compatibile && streakRaggiunta && Number(stato?.aura) >= oggetto.prezzo,
