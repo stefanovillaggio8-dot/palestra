@@ -51,7 +51,9 @@ test('Filtri e ordine del catalogo lasciano gli acquisti e i salvataggi intatti'
  const end=app.indexOf('function disegnaDentro(',start);
  const shop=app.slice(start,end);
  assert.match(shop,/\['Tutti','Armatura','Effetto','Skin','Titolo'\]/);
- assert.match(shop,/ordineTipi=\{Armatura:0,Effetto:1,Skin:2,Titolo:3\}/);
+ assert.match(shop,/ordinaPerRaritaAura\(OGGETTI_AURA\.filter/);
+ assert.match(shop,/ordinaPerRaritaAura\(OGGETTI_AURA\.filter\(o=>posseduti\.includes/);
+ assert.match(shop,/Dal Comune al Mitico/);
  assert.match(shop,/aria-pressed/);
  assert.ok(shop.indexOf("zona.appendChild(filtri); zona.appendChild(catalogo);") <
    shop.indexOf("zona.appendChild(el('div',{class:'aura-shop-rewards'}"),
