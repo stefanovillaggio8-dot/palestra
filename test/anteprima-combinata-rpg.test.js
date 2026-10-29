@@ -42,7 +42,8 @@ test('Il renderer fotografico non cambia foto, profilo o dati degli utenti',asyn
   const app=await readFile(new URL('../src/app.js',import.meta.url),'utf8');
   assert.match(source,/globalCompositeOperation='destination-out'/);
   assert.match(source,/canvas\.className='rpg-foto-combinata'/);
-  assert.match(source,/const contour=SAGOME\[classe\]/);
+  assert.match(source,/ctx\.createRadialGradient/);
+  assert.match(source,/bordo\.addColorStop\(\.90/);
   assert.match(source,/chiaveFotoRpg\(c\)/);
   assert.match(app,/percorsoStato\(classeId, statoFotoConsentito\)/);
   assert.match(app,/applicaSkinRpg\(grafica, fotoRpg, classeId/);
