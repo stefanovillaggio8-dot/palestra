@@ -6590,7 +6590,13 @@ function bloccoPersonaggio(profilo, st) {
     // Le tre griglie APPROVATE vengono utilizzate come fotografie integrate
     // senza alterare i ritratti Streak e gli altri cosmetici non rappresentati.
     // Se non sono ancora installate su GitHub, resta il fallback precedente.
-    montaScenaCinematograficaRpg(grafica,fotoRpg,{
+    // Senza cosmetici o anteprima esplicita conserva le sei foto di
+    // progressione Streak, altrimenti una foto "base" completa anticiperebbe
+    // visivamente equipaggiamento che non e' ancora sbloccato.
+    const scenaRichiesta=Number.isInteger(profilo?.__anteprimaStato) ||
+      coronaAnteprima || auraDivinaAnteprima ||
+      Boolean(armaturaEquipaggiata || effettoEquipaggiato || skinEquipaggiata || coronaAttiva);
+    if(scenaRichiesta) montaScenaCinematograficaRpg(grafica,fotoRpg,{
       classe:classeId,
       armatura:armaturaEquipaggiata?.id || null,
       skin:skinEquipaggiata?.id || null,
