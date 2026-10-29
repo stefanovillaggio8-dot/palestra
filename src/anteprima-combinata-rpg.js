@@ -92,6 +92,9 @@ function ritagliaPersona(ctx,classe,w,h) {
   const contour=SAGOME[classe]||SAGOME.guerriero;
   ctx.save();
   ctx.globalCompositeOperation='destination-out';
+  // Sfumatura ampia, senza l'ovale netto che sembrava una foto ritagliata.
+  // Se Safari non supporta filter, la scena resta comunque leggibile.
+  ctx.filter='blur('+Math.max(18,Math.round(w*.05))+'px)';
   ctx.beginPath();
   contour.forEach(([y,left],i)=>{
     if(i===0)ctx.moveTo(w*left,y*h);
@@ -105,6 +108,37 @@ function ritagliaPersona(ctx,classe,w,h) {
   ctx.fillStyle='#000';ctx.fill();
   ctx.restore();
 }
+// Corona magica integrata: doppio anello, rune, scintille e bagliore riflesso.
+// Non e' una texture singola incollata sulla testa.
+export function disegnaCoronaEnergetica(ctx,w,h) {
+ if(!ctx || typeof ctx.ellipse!=='function')return;
+ const cx=w*.5,cy=h*.091,rx=w*.17,ry=h*.019;
+ ctx.save();ctx.globalCompositeOperation='screen';
+ ctx.shadowColor='#ffe29a';ctx.shadowBlur=w*.028;ctx.lineWidth=Math.max(1.2,w*.003);
+ for(let k=0;k<2;k++){
+   ctx.strokeStyle=k?'rgba(255,244,195,.72)':'rgba(255,184,77,.93)';
+   ctx.beginPath();ctx.ellipse(cx,cy+k*h*.015,rx*(1+k*.16),ry*(1+k*.25),0,0,Math.PI*2);ctx.stroke();
+ }
+ // Le rune sospese orbitano visivamente sopra la fronte e non coprono il viso.
+ ctx.lineWidth=Math.max(.8,w*.002);
+ for(let i=0;i<11;i++){
+   const theta=2*Math.PI*i/11,px=cx+Math.cos(theta)*w*.192;
+   const py=cy+Math.sin(theta)*h*.024-h*.015;
+   ctx.strokeStyle=i%2?'rgba(255,231,166,.90)':'rgba(255,180,86,.75)';
+   ctx.beginPath();ctx.moveTo(px,py-h*.009);ctx.lineTo(px+w*.004,py);
+   ctx.lineTo(px,py+h*.009);ctx.lineTo(px-w*.004,py);ctx.closePath();ctx.stroke();
+ }
+ // Scintille discendenti, meno luminose dei dettagli sulla testa.
+ for(let i=0;i<9;i++){
+  const angle=i*.87,px=cx+Math.sin(angle)*w*.25;
+  const py=cy+h*(.028+(i%4)*.012);
+  const r=Math.max(1,w*(.0015+(i%3)*.001));
+  ctx.globalAlpha=.48+(i%3)*.14;
+  ctx.fillStyle='#ffecc3';ctx.beginPath();ctx.arc(px,py,r,0,Math.PI*2);ctx.fill();
+ }
+ ctx.restore();
+}
+
 function generaLivello(c,atlas,width,height) {
   const layer=document.createElement('canvas');
   layer.width=width;layer.height=height;
@@ -136,6 +170,7 @@ function generaLivello(c,atlas,width,height) {
     // Non viene applicata a schermo intero sul petto.
     ctx.save();ctx.globalAlpha=.92;
     disegnaSprite(ctx,atlas,'corona',width*.31,height*.015,width*.38,height*.16);
+    disegnaCoronaEnergetica(ctx,width,height);
     ctx.restore();
   }
   return layer;
