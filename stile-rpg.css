@@ -2046,3 +2046,113 @@ body {
 .personaggio-scena-grafica.rpg-scena-cinematografica::after {
   content:none!important;
 }
+
+
+/* v345 · Ricompense Streak coerenti e Corona dell'Infinito di livello mitico.
+   La ricompensa 75 giorni esiste una sola volta ed e' una tessera con foto. */
+.striscia-pezzi .pezzo-aura-divina,
+.striscia-pezzi .pezzo-corona-infinito {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:flex-start;
+  min-width:0;
+  gap:5px;
+  padding-bottom:10px;
+  border-radius:15px;
+}
+.striscia-pezzi .pezzo-aura-divina {
+  border-color:rgba(247,202,127,.38);
+  background:linear-gradient(160deg,rgba(74,48,37,.48),rgba(25,26,40,.89));
+}
+.striscia-pezzi .pezzo-aura-divina .pezzo-img,
+.striscia-pezzi .pezzo-corona-infinito .pezzo-img {
+  width:100%;
+  display:block;
+  max-width:100%;
+  height:auto;
+  min-height:0;
+  object-fit:contain;
+}
+.pezzo-corona-ritratto {
+  position:relative;
+  width:100%;
+  min-width:0;
+  border-radius:10px;
+  overflow:hidden;
+  background:radial-gradient(circle at 50% 22%,rgba(244,185,66,.18),rgba(16,17,29,.55) 73%);
+}
+.pezzo-corona-ritratto .pezzo-img {
+  opacity:.94;
+}
+.pezzo-corona-sigillo {
+  position:absolute;
+  left:50%;
+  top:2%;
+  transform:translateX(-50%);
+  display:grid;
+  place-items:center;
+  width:54%;
+  height:21%;
+  font-size:1.4rem;
+  color:#ffe7a1;
+  text-shadow:0 0 7px #ffbd53,0 0 16px #b9742a;
+  border:1px solid rgba(255,211,128,.64);
+  border-radius:50%;
+  background:radial-gradient(ellipse,rgba(255,235,166,.29),transparent 76%);
+  pointer-events:none;
+}
+.pezzo-corona-infinito:not(.acceso) .pezzo-corona-ritratto {
+  filter:saturate(.73) brightness(.83);
+}
+.striscia-pezzi .premio-preview-btn {
+  width:calc(100% - 7px);
+  min-width:0;
+  min-height:34px;
+  margin-top:auto;
+  padding:6px 4px;
+  font-size:.72rem;
+  color:#f9dca3;
+  border:1px solid rgba(226,177,102,.42);
+  background:linear-gradient(140deg,rgba(93,62,43,.62),rgba(46,34,61,.78));
+  border-radius:10px;
+}
+.striscia-pezzi .premio-preview-btn:focus-visible {
+  outline:2px solid #ffdf97;
+  outline-offset:2px;
+}
+/* Il nuovo effetto è un'unica immagine a piena altezza; la foto di partenza,
+   il viso e l'equipaggiamento rimangono invariati sotto le luci. */
+.personaggio-scena-grafica.rpg-corona-premium-attiva {
+  isolation:isolate;
+}
+.personaggio-scena-grafica .rpg-corona-premium {
+  position:absolute;
+  inset:0;
+  display:block;
+  width:100%;
+  height:100%;
+  z-index:12;
+  pointer-events:none;
+  object-fit:fill;
+  opacity:.96;
+  mix-blend-mode:screen;
+  filter:drop-shadow(0 0 7px rgba(251,191,82,.18));
+  animation:corona-infinito-respiro 6.8s ease-in-out infinite alternate;
+}
+@keyframes corona-infinito-respiro {
+  0% {opacity:.78;filter:drop-shadow(0 0 6px rgba(251,191,82,.12))}
+  100% {opacity:1;filter:drop-shadow(0 0 15px rgba(252,211,110,.35))}
+}
+.personaggio-scena-grafica.rpg-scena-cinematografica .rpg-corona-premium {
+  display:none!important; /* fotografie complete: nessuna doppia Corona */
+}
+/* Nessuna maschera a mandorla o triangolo: nel fallback la vignetta sfuma su
+   gran parte della scena invece di tagliare nettamente il personaggio. */
+.personaggio-scena-grafica .aura-foto-fx {
+  -webkit-mask-image:radial-gradient(ellipse 79% 87% at 50% 50%, transparent 38%, rgba(0,0,0,.12) 60%,rgba(0,0,0,.72) 85%, #000 100%);
+  mask-image:radial-gradient(ellipse 79% 87% at 50% 50%, transparent 38%, rgba(0,0,0,.12) 60%,rgba(0,0,0,.72) 85%, #000 100%);
+}
+@media(prefers-reduced-motion:reduce){
+  .personaggio-scena-grafica .rpg-corona-premium {animation:none;}
+}
