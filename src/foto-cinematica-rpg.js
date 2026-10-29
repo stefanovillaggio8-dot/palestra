@@ -18,19 +18,19 @@ export const ARMATURE_EPICHE_SCENE = Object.freeze({
 // v350: fotografie complete ad alta definizione, tre classi × tre effetti.
 export const FOTO_EFFETTI_PREMIUM_RPG = Object.freeze({
   assassino:Object.freeze({
-    'effetto-ambra':'img/personaggi/effetti/assassino-ambra.webp?v=350',
-    'effetto-fulmine':'img/personaggi/effetti/assassino-fulmine.webp?v=350',
-    'skin-mitica':'img/personaggi/effetti/assassino-astrale.webp?v=350',
+    'effetto-ambra':'img/personaggi/effetti/assassino-ambra.webp?v=352',
+    'effetto-fulmine':'img/personaggi/effetti/assassino-fulmine.webp?v=352',
+    'skin-mitica':'img/personaggi/effetti/assassino-astrale.webp?v=352',
   }),
   guerriero:Object.freeze({
-    'effetto-ambra':'img/personaggi/effetti/guerriero-ambra.webp?v=350',
-    'effetto-fulmine':'img/personaggi/effetti/guerriero-fulmine.webp?v=350',
-    'skin-mitica':'img/personaggi/effetti/guerriero-astrale.webp?v=350',
+    'effetto-ambra':'img/personaggi/effetti/guerriero-ambra.webp?v=352',
+    'effetto-fulmine':'img/personaggi/effetti/guerriero-fulmine.webp?v=352',
+    'skin-mitica':'img/personaggi/effetti/guerriero-astrale.webp?v=352',
   }),
   berserker:Object.freeze({
-    'effetto-ambra':'img/personaggi/effetti/berserker-ambra.webp?v=350',
-    'effetto-fulmine':'img/personaggi/effetti/berserker-fulmine.webp?v=350',
-    'skin-mitica':'img/personaggi/effetti/berserker-astrale.webp?v=350',
+    'effetto-ambra':'img/personaggi/effetti/berserker-ambra.webp?v=352',
+    'effetto-fulmine':'img/personaggi/effetti/berserker-fulmine.webp?v=352',
+    'skin-mitica':'img/personaggi/effetti/berserker-astrale.webp?v=352',
   }),
 });
 export const FOTO_RPG_SPECIALI = Object.freeze({
@@ -71,7 +71,7 @@ export function percorsoCombinazioneFotoRpg({classe,armatura=null,effetto=null,
  const variante=fx
    ? fx + (skin==='skin-mitica'?'-astrale':'')
    : 'astrale';
- return 'img/personaggi/combinazioni/'+classe+'/'+base+'/'+variante+'.webp?v=351';
+ return 'img/personaggi/combinazioni/'+classe+'/'+base+'/'+variante+'.webp?v=352';
 }
 export function percorsoScenaSpecialeRpg({classe,armatura=null,effetto=null,skin=null,
   corona=false,divina=false,stato=null,stadio=null,armaSbloccata=false}={}) {
