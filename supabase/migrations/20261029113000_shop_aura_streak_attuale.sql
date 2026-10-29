@@ -33,7 +33,7 @@ begin
     for g in select t::date from pg_catalog.generate_series(
       ultimo+1, p_oggi-1, interval '1 day'
     ) as t loop
-      if pg_catalog.extract(dow from g)::integer = any(p_previsti)
+      if extract(dow from g)::integer = any(p_previsti)
         and not (g = any(allenamenti)) then
         return 0;
       end if;
@@ -45,7 +45,7 @@ begin
     if g = any(allenamenti) then
       totale := totale+1;
     elsif not con_calendario
-      or pg_catalog.extract(dow from g)::integer=any(p_previsti) then
+      or extract(dow from g)::integer=any(p_previsti) then
       exit;
     end if;
     g := g-1;
