@@ -129,7 +129,7 @@ function generaLivello(c,atlas,width,height) {
     ctx.restore();
   }
   // Prima mascheriamo corpo e faccia: nessun fulmine, fumo o nebula
-  // puo' attraversare il protagonista.
+  // può attraversare il protagonista.
   ritagliaPersona(ctx,c.classe,width,height);
   if(c.corona) {
     // La Corona e' un dettaglio autonomo SOPRA la testa.
