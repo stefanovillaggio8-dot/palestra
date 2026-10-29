@@ -107,7 +107,7 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
       }
       fx.save();fx.globalCompositeOperation='destination-out';
       fx.beginPath();
-      // Per la testa allarghiamo la sagoma protetta, cosi' neppure i
+      // Per la testa allarghiamo la sagoma protetta, così neppure i
       // gradienti o i fulmini possono rendere il volto illeggibile.
       for(let i=0;i<=100;i++){
         const y=i/100;let [left]=fasciaSagoma(c.classe,y);
