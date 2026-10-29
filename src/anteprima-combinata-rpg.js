@@ -243,7 +243,7 @@ export async function scaricaFotoCombinataRpg(grafica,classe='rpg') {
   ctx.drawImage(original,0,0,out.width,out.height);
   const skin=grafica.querySelector('.rpg-skin-fedele');
   if(skin?.width) {
-    ctx.save();ctx.globalCompositeOperation='color';
+    ctx.save();ctx.globalCompositeOperation='source-over';
     ctx.drawImage(skin,0,0,out.width,out.height);ctx.restore();
   }
   const effects=grafica.querySelector('.rpg-foto-combinata');
