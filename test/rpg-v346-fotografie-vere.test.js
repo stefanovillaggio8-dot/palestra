@@ -55,7 +55,10 @@ test('Le nuove foto premium sono dedicate a tutte le classi e non anticipano le 
    for(const id of ['effetto-ambra','effetto-fulmine']){
      assert.match(percorsoScenaSpecialeRpg({...base,effetto:id}),new RegExp(classe+'-'+(id==='effetto-ambra'?'ambra':'fulmine')+'\\.webp'));
      assert.equal(percorsoScenaSpecialeRpg({...base,effetto:id,armaSbloccata:true}),null);
-     assert.equal(percorsoScenaSpecialeRpg({...base,effetto:id,armatura:'armatura-guerriero-braci'}),null);
+     const armored=percorsoScenaSpecialeRpg({...base,effetto:id,armatura:'armatura-guerriero-braci'});
+     if(classe==='guerriero')
+       assert.match(armored,/armatura-guerriero-braci\/(ambra|fulmine)\.webp/);
+     else assert.equal(armored,null);
      assert.equal(percorsoScenaSpecialeRpg({...base,effetto:id,corona:true}),null);
      assert.equal(percorsoScenaSpecialeRpg({...base,effetto:id,divina:true}),null);
    }
