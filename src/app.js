@@ -1755,7 +1755,7 @@ function vistaAuraShop(zona, soloInventario = false) {
     el('div',{class:'aura-shop-hero-footer'},[
       el('span',{class:'aura-shop-meta',testo:'Record Streak: '+streak+' giorni'}),
       el('span',{class:'aura-shop-meta',testo:posseduti.length+' oggetti nella collezione'}),
-      bottone('✦ Atelier · combina gli effetti',{classe:'fantasma rpg-atelier-open',onClick:()=>apriAtelierConDatiRpg(profiloAttivo(),statoMio())}),
+      bottone('Atelier · combina e salva foto',{classe:'fantasma rpg-atelier-open',onClick:()=>apriAtelierConDatiRpg(profiloAttivo(),statoMio())}),
     ]),
   ]));
 
