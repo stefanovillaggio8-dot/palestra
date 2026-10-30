@@ -6682,8 +6682,8 @@ function bloccoPersonaggio(profilo, st) {
     // compositore fotografico li nascondeva tramite rpg-composite-active.
     if (effettoVivo) grafica.classList.add('rpg-render-live');
     const scenaFotografica = !effettoVivo && montaFotoRpg(grafica, effettoEquipaggiato?.id || null, {
-      corona: coronaAttiva,
-      divina: Boolean(viso.aura) || auraDivinaAnteprima,
+      corona: false, // Corona SVG indipendente, visibile anche con foto combinate
+      divina: false, // Aura divina celestiale distinta dall'atlante dorato
       mitica: skinEquipaggiata?.id === 'skin-mitica',
       classe: classeId,
     });
@@ -6696,8 +6696,8 @@ function bloccoPersonaggio(profilo, st) {
       armatura: armaturaEquipaggiata?.id || null,
       skin: skinEquipaggiata?.id || null,
       effetto: effettoEquipaggiato?.id || null,
-      divina: Boolean(viso.aura) || auraDivinaAnteprima,
-      corona: coronaAttiva,
+      divina: false, // sovrapposto separatamente
+      corona: false, // sovrapposta separatamente
     });
     // Le tre griglie APPROVATE vengono utilizzate come fotografie integrate
     // senza alterare i ritratti Streak e gli altri cosmetici non rappresentati.
@@ -6708,7 +6708,9 @@ function bloccoPersonaggio(profilo, st) {
     const scenaRichiesta=Number.isInteger(profilo?.__anteprimaStato) ||
       coronaAnteprima || auraDivinaAnteprima ||
       Boolean(armaturaEquipaggiata || effettoEquipaggiato || skinEquipaggiata || coronaAttiva);
-    if(scenaRichiesta && !effettoVivo) montaScenaCinematograficaRpg(grafica,fotoRpg,{
+    // Le scene preconfezionate possono già includere una corona: con i nuovi
+    // livelli premium usiamo invece sempre la foto originale e sovrapposizioni distinte.
+    if(scenaRichiesta && !effettoVivo && !auraDivinaAttiva && !coronaAttiva) montaScenaCinematograficaRpg(grafica,fotoRpg,{
       classe:classeId,
       stato:statoFotoConsentito,
       armaSbloccata:armaSbloccata,
@@ -6722,8 +6724,8 @@ function bloccoPersonaggio(profilo, st) {
     // quando la fotografia è pronta: nessun avatar senza effetti su Safari.
     if (effettoVivo || (!scenaFotografica && !combinata)) {
       montaEffettiRpg(grafica, effettoVivo ? effettoEquipaggiato?.id || null : null, {
-        divina: Boolean(viso.aura) || auraDivinaAnteprima,
-        corona: coronaAttiva,
+        divina: false,
+        corona: false,
         mitica: skinEquipaggiata?.id === 'skin-mitica',
         classe: classeId,
       });
