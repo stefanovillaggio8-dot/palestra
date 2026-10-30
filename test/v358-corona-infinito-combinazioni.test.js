@@ -3,67 +3,69 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { combinazioniRpg, opzioniAtelier, nomeFileAtelier,
   NUMERO_COMBINAZIONI_ATELIER } from '../src/rpg-atelier.js';
-import { configurazioneFotoRpg, chiaveFotoRpg } from '../src/anteprima-combinata-rpg.js';
-const src=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
+import { percorsoFotoCoronaV359 } from '../src/foto-corona-v359.js';
+import { slotPerOggettoRpg, equipaggiamentoRpgUnico } from '../src/equipaggiamento-rpg.js';
+const src=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 
-test('80 giorni: TUTTE le 7.560 foto con Corona hanno combinazioni uniche',()=>{
-  const withCrown=new Set(),withoutCrown=new Set(),perClasse={};
-  for(const combo of combinazioniRpg()) {
-    const key=nomeFileAtelier(combo);
-    if(combo.corona) {
-      assert.ok(!withCrown.has(key), 'duplicato '+key);
-      withCrown.add(key);
-      perClasse[combo.classe]=(perClasse[combo.classe]||0)+1;
-      const other=nomeFileAtelier({...combo,corona:false});
-      withoutCrown.add(other);
-      assert.notEqual(key,other,'due foto devono differire per premio 80 giorni');
-      assert.equal(opzioniAtelier(combo).corona,true);
+test('Corona: tutte le 4536 combinazioni realmente consentite senza doppi effetti',()=>{
+  const seen=new Set(),perClasse={};
+  for(const cfg of combinazioniRpg()){
+    if(!cfg.corona)continue;
+    assert.equal(cfg.skin,'');
+    const key=nomeFileAtelier(cfg);
+    assert.ok(!seen.has(key),key);
+    seen.add(key);
+    perClasse[cfg.classe]=(perClasse[cfg.classe]||0)+1;
+    assert.ok(opzioniAtelier(cfg).corona);
+  }
+  assert.equal(NUMERO_COMBINAZIONI_ATELIER,9072);
+  assert.equal(seen.size,4536);
+  for(const cls of ['guerriero','assassino','berserker'])
+    assert.equal(perClasse[cls],1512);
+});
+
+test('La Corona finale è una nuova fotografia integrale, non un adesivo sulla testa',()=>{
+  const app=src('src/app.js'),atelier=src('src/rpg-atelier.js');
+  assert.match(app,/src: fotoCoronaRpg \|\| fotoArmaturaRpg \|\| fotoProgressioneRpg/);
+  assert.match(app,/percorsoFotoCoronaV359/);
+  assert.doesNotMatch(app,/src:'\.\/img\/effetti\/corona-infinito-v358\.svg'/);
+  assert.match(atelier,/percorsoFotoCoronaV359/);
+  assert.doesNotMatch(atelier,/ctx\.drawImage\(regalia,dx,dy,dw,dh\)/);
+  assert.match(src('tools/render_corona_v359.py'),/assert len\(files\)==144/);
+});
+
+test('144 fotografie coprono 3 classi, sei stati e due armature ognuna',()=>{
+  const seen=new Set();
+  for(const cls of ['guerriero','assassino','berserker']){
+    for(const base of [0,1,2,3,4,5,'a','b']){
+      const arm={
+        assassino:['armatura-assassino-notte','armatura-assassino-spettro'],
+        guerriero:['armatura-guerriero-braci','armatura-guerriero-abisso'],
+        berserker:['armatura-berserker-rabbia','armatura-berserker-apocalisse']
+      }[cls];
+      for(const fx of [null,'effetto-ambra','effetto-ombra','effetto-fulmine','effetto-nebula','skin-mitica']){
+        const url=percorsoFotoCoronaV359({classe:cls,
+          stato:typeof base==='number'?base:2,
+          armatura:typeof base==='number'?null:arm[base==='a'?0:1],effetto:fx});
+        assert.ok(url&&url.endsWith('.webp?v=359'));
+        seen.add(url);
+      }
     }
   }
-  assert.equal(NUMERO_COMBINAZIONI_ATELIER,15120);
-  assert.equal(withCrown.size,7560);
-  assert.equal(withoutCrown.size,7560);
-  for(const c of ['assassino','guerriero','berserker'])
-    assert.equal(perClasse[c],2520,c+' deve avere tutte le sue foto');
+  assert.equal(seen.size,144);
+  assert.notEqual(percorsoFotoCoronaV359({classe:'assassino',stato:2,effetto:'skin-mitica'}),
+    percorsoFotoCoronaV359({classe:'assassino',stato:2,effetto:'effetto-ombra'}));
 });
 
-test('Il nuovo SVG è una REGALIA fisica, senza anelli sul corpo, e l Aura divina resta quella originale',()=>{
-  const svg=src('img/effetti/corona-infinito-v358.svg');
-  assert.match(svg,/viewBox="0 0 640 890"/);
-  for(const id of ['oro','platino','ametista','diamante','eclisse','gemma'])
-    assert.ok(svg.includes('id="'+id+'"'),id);
-  assert.ok((svg.match(/<use /g)||[]).length>=12);
-  assert.doesNotMatch(svg,/twin helixes|ground seal|aria-label="Aura divina"/i);
-  const app=src('src/app.js');
-  assert.match(app,/src:'\.\/img\/effetti\/corona-infinito-v358\.svg'/);
-  assert.match(app,/divina: auraDivinaAttiva/,'divina usa la texture originale');
-  assert.doesNotMatch(app,/src:'\.\/img\/effetti\/aura-divina-v357\.svg'/);
-  assert.match(app,/\(!auraDivinaAnteprima \|\| coronaAnteprima\)/);
-});
-
-test('Preview e download PNG usano ESATTAMENTE la stessa Corona per ogni configurazione',()=>{
-  const app=src('src/app.js'),atelier=src('src/rpg-atelier.js'),
-    exported=src('src/anteprima-combinata-rpg.js');
-  assert.match(app,/class:'rpg-corona-premium'/);
-  assert.match(atelier,/if\(c\.corona\)\s*\{/);
-  assert.match(atelier,/attesaImmagine\('\.\/img\/effetti\/corona-infinito-v358\.svg'\)/);
-  assert.match(atelier,/ctx\.drawImage\(regalia,dx,dy,dw,dh\)/);
-  assert.match(exported,/ctx\.drawImage\(crown,0,0,out.width,out.height\)/);
-  assert.match(atelier,/fotoCinematograficaRpg\(\{\.\.\.c,corona:false,divina:false\}\)/);
-  assert.doesNotMatch(atelier,/disegnaCoronaEnergetica\(ctx,dw,dh\)/);
-  const cfg=configurazioneFotoRpg({classe:'assassino',stato:5,
-    armatura:'armatura-assassino-spettro',skin:'skin-mitica',
-    effetto:'effetto-nebula',divina:true,corona:true});
-  assert.ok(chiaveFotoRpg(cfg).endsWith('|1|1'));
-});
-
-test('Il premio resta ottenibile solo dopo 80 giorni di Streak',()=>{
-  const skin=src('src/aura-skin.js');
-  assert.match(skin,/giorni >= 80/);
-  assert.match(skin,/Number\(record\) \|\| 0\) < 80/);
-  const sw=src('sw.js'),html=src('index.html');
-  assert.match(sw,/palestra-v358/);
-  assert.match(html,/palestra-v358/);
-  assert.match(sw,/img\/effetti\/corona-infinito-v358\.svg/);
-  assert.doesNotMatch(sw,/img\/effetti\/aura-divina-v357\.svg/);
+test('L Aura divina rimane un premio separato, non scompare con una Corona',()=>{
+  const app=src('src/app.js'),css=src('stile-rpg.css');
+  assert.match(app,/divina: auraDivinaAttiva/);
+  assert.match(app,/!auraDivinaAttiva && montaFotoCombinataRpg/);
+  assert.match(css,/\.personaggio-aura-divina:not\(\.rpg-composite-active\)>.aura-foto-divina/);
+  assert.equal(slotPerOggettoRpg({id:'skin-mitica',tipo:'Effetto'}),'Effetto');
+  assert.deepEqual(equipaggiamentoRpgUnico({Astrale:'skin-mitica',Effetto:'effetto-ombra'}),
+    {Effetto:'effetto-ombra'});
+  assert.match(src('src/aura-skin.js'),/giorni >= 80/);
+  assert.match(src('sw.js'),/palestra-v359/);
+  assert.match(src('index.html'),/palestra-v359/);
 });
