@@ -95,5 +95,5 @@ test('PNG esportato: gli effetti vengono mascherati prima di coprire il volto',a
   assert.match(source,/fasciaSagoma\(c\.classe,y\)/);
   assert.match(source,/left=Math\.min\(left,\.34\)/);
   assert.match(source,/right=Math\.max\(right,\.66\)/);
-  assert.match(source,/if\(c\.corona\)/);
+  assert.match(source,/percorsoFotoCoronaV359/);
 });
