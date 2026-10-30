@@ -44,7 +44,7 @@ test('La Corona non costa Aura e la preview conserva tutti gli slot',async()=>{
   assert.match(app,/cambiaCoronaInfinito\(profiloCorrente\.equipaggiamento_aura/);
   assert.match(app,/Corona dell.Infinito/);
   assert.match(app,/mitica: astraleAttiva/);
-  assert.match(app,/rpg-corona-premium/);
+  assert.match(app,/rpg-corona-foto-v359/);
   assert.match(app,/effettoEquipaggiato\?\.id \|\| null/);
   assert.match(fx,/mitica && tipo!=='effetto-nebula'/);
   assert.match(fx,/if\(divina && corona\)/);
