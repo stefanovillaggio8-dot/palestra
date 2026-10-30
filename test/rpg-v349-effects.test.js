@@ -37,7 +37,7 @@ test('Ambra, Scarica viola ed Astrale scelgono il renderer visibile su iPhone mo
 });
 test('Il compositore statico non copre il rendering live, anche con corona e armatura',async()=>{
  const app=await read('src/app.js'),css=await read('stile-rpg.css');
- const start=app.indexOf('const effettoVivo=usaEffettiViviRpg(');
+ const start=app.indexOf('const effettoVivo=!fotoCoronaRpg && usaEffettiViviRpg(');
  const end=app.indexOf('// LA FILMSTRIP:',start);
  assert.ok(start>0&&end>start);
  const b=app.slice(start,end);
