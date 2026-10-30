@@ -58,7 +58,7 @@ test('Shop bloccato e anteprima non cambiano profilo, saldo o inventario', async
 });
 
 test('equipaggiare, ricaricare e disequipaggiare conserva tutti gli acquisti e il saldo', async () => {
-  for (const [id, tipo] of [['titolo-cardio','Titolo'], ['effetto-ombra','Effetto'], ['armatura-guerriero-braci','Armatura'], ['skin-mitica','Skin']]) {
+  for (const [id, tipo] of [['titolo-cardio','Titolo'], ['effetto-ombra','Effetto'], ['armatura-guerriero-braci','Armatura'], ['skin-mitica','Effetto']]) {
     await db.salva('ricompense',{id:'fixture-'+id,account_id:'account-1',tipo:'spesa_aura',fonte:'shop:'+id+':legacy',aura:-1,xp:0});
   }
   const spese = await db.tutti('ricompense');
@@ -75,8 +75,11 @@ test('equipaggiare, ricaricare e disequipaggiare conserva tutti gli acquisti e i
   window.location.hash='#/aura-shop/inventario';
   await pausa();
   const profilo=(await db.tutti('profili')).find(p=>p.id==='account-1');
-  assert.deepEqual(profilo.equipaggiamento_aura,{Titolo:'titolo-cardio',Effetto:'effetto-ombra',Armatura:'armatura-guerriero-braci',Astrale:'skin-mitica'});
-  for (let i=0;i<4;i++) {
+  assert.deepEqual(profilo.equipaggiamento_aura,{Titolo:'titolo-cardio',Effetto:'skin-mitica',Armatura:'armatura-guerriero-braci'});
+  // Astrale ha sostituito Fumo d'ombra: un SOLO effetto equipaggiato.
+  const fumo=perClasse(app,'aura-shop-owned').find(r=>r.textContent.includes('Fumo d’ombra'));
+  assert.ok(fumo&&!fumo.textContent.includes('✓ Equipaggiato'));
+  for (let i=0;i<3;i++) {
     const riga=perClasse(app,'aura-shop-owned').find(r=>r.textContent.includes('Disequipaggia'));
     assert.ok(riga);
     await pulsante(riga,'Disequipaggia').click();
