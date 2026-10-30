@@ -249,6 +249,9 @@ export async function scaricaFotoCombinataRpg(grafica,classe='rpg') {
   }
   const effects=grafica.querySelector('.rpg-foto-combinata');
   if(!integrata && effects?.width)ctx.drawImage(effects,0,0,out.width,out.height);
+  const divine=grafica.querySelector('.rpg-aura-divina-premium');
+  if(divine?.complete && divine.naturalWidth>0)
+    ctx.drawImage(divine,0,0,out.width,out.height);
   const crown=grafica.querySelector('.rpg-corona-premium');
   if(crown?.complete && crown.naturalWidth>0)
     ctx.drawImage(crown,0,0,out.width,out.height);
