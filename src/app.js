@@ -6503,20 +6503,17 @@ function bloccoPersonaggio(profilo, st) {
     // L'Aura Divina degli 80 giorni ha un'identità visiva distinta: non deve
     // sembrare la normale aura dorata, ma un alone celestiale con anello e raggi.
     const recordCorona = Math.max(Number(rpg.recordStreak)||0, Number(st?.streak?.record)||0);
-    const coronaAttiva = statoCoronaInfinito(equipaggiamentoRpg, recordCorona, coronaAnteprima).visibile;
+    const coronaAttiva = (!auraDivinaAnteprima || coronaAnteprima) && statoCoronaInfinito(equipaggiamentoRpg, recordCorona, coronaAnteprima).visibile;
     const auraDivinaAttiva=Boolean(viso.aura)||auraDivinaAnteprima;
-    if (auraDivinaAttiva) {
-      grafica.classList.add('personaggio-aura-divina');
-      grafica.appendChild(el('img',{class:'rpg-aura-divina-premium',
-        src:'./img/effetti/aura-divina-v357.svg',
-        alt:'',aria:{hidden:'true'},loading:'eager',decoding:'async'}));
-    }
+    // Restituisce all'Aura divina la fotografia originale dell'atlante,
+    // senza aggiungere l'altra Corona. Non tocca il viso o la posa.
+    if (auraDivinaAttiva) grafica.classList.add('personaggio-aura-divina');
     if(coronaAttiva) {
       // Premio di 80 giorni: un unico livello illustrato premium, niente
       // due corone incollate tra il vecchio atlante e il nuovo Canvas.
       const premioCorona=el('img',{
         class:'rpg-corona-premium',
-        src:'./img/effetti/corona-infinito-v345.svg',
+        src:'./img/effetti/corona-infinito-v358.svg',
         alt:'',aria:{hidden:'true'},
         loading:'eager',decoding:'async',
       });
@@ -6672,8 +6669,8 @@ function bloccoPersonaggio(profilo, st) {
       armatura:armaturaEquipaggiata?.id || null,
       skin:skinEquipaggiata?.id || null,
       effetto:effettoEquipaggiato?.id || null,
-      corona:coronaAttiva,
-      divina:Boolean(viso.aura) || auraDivinaAnteprima,
+      corona:false,
+      divina:false,
     });
     const effettoVivo=usaEffettiViviRpg(effettoEquipaggiato?.id || null,{
       mitica:skinEquipaggiata?.id==='skin-mitica',
@@ -6681,9 +6678,9 @@ function bloccoPersonaggio(profilo, st) {
     // Ambra, Fulmine e Astrale usano UN solo renderer Canvas. Prima il
     // compositore fotografico li nascondeva tramite rpg-composite-active.
     if (effettoVivo) grafica.classList.add('rpg-render-live');
-    const scenaFotografica = !effettoVivo && montaFotoRpg(grafica, effettoEquipaggiato?.id || null, {
-      corona: false, // Corona SVG indipendente, visibile anche con foto combinate
-      divina: false, // Aura divina celestiale distinta dall'atlante dorato
+    const scenaFotografica = (!effettoVivo || auraDivinaAttiva) && montaFotoRpg(grafica, effettoEquipaggiato?.id || null, {
+      corona: false, // Nuova Corona regale: asset indipendente
+      divina: auraDivinaAttiva, // Restaurata l'Aura divina v356, senza la Corona
       mitica: skinEquipaggiata?.id === 'skin-mitica',
       classe: classeId,
     });
@@ -6696,8 +6693,8 @@ function bloccoPersonaggio(profilo, st) {
       armatura: armaturaEquipaggiata?.id || null,
       skin: skinEquipaggiata?.id || null,
       effetto: effettoEquipaggiato?.id || null,
-      divina: false, // sovrapposto separatamente
-      corona: false, // sovrapposta separatamente
+      divina: auraDivinaAttiva, // Atlante originale: si conserva l'Aura divina
+      corona: false, // Solo la nuova Corona regale separata
     });
     // Le tre griglie APPROVATE vengono utilizzate come fotografie integrate
     // senza alterare i ritratti Streak e gli altri cosmetici non rappresentati.
@@ -6724,7 +6721,7 @@ function bloccoPersonaggio(profilo, st) {
     // quando la fotografia è pronta: nessun avatar senza effetti su Safari.
     if (effettoVivo || (!scenaFotografica && !combinata)) {
       montaEffettiRpg(grafica, effettoVivo ? effettoEquipaggiato?.id || null : null, {
-        divina: false,
+        divina: false, // La fotografia già conserva l'Aura originale
         corona: false,
         mitica: skinEquipaggiata?.id === 'skin-mitica',
         classe: classeId,
