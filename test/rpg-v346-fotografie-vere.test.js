@@ -37,7 +37,7 @@ test('Cinema v346 sostituisce vecchi strati, export Atelier usa la stessa immagi
  assert.match(s,/caricaScenaSpeciale/);
  assert.match(css,/rpg-scena-cinematografica\.rpg-scena-foto-speciale/);
  assert.match(css,/aspect-ratio:auto/);
- assert.match(atelier,/fotoCinematograficaRpg\(c\)/);
+ assert.match(atelier,/fotoCinematograficaRpg\(\{\.\.\.c,corona:false,divina:false\}\)/);
  assert.match(app,/montaScenaCinematograficaRpg\(grafica,fotoRpg/);
 });
 test('I link temporanei sono usati solo dal workflow di importazione',async()=>{
