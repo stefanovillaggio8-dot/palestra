@@ -16,25 +16,21 @@ test('v357: 4 KPI compatti + Rank in Home, XP senza doppio riquadro',()=>{
   assert.match(s,/giorni consecutivi/);
 });
 
-test('v357: Astrale è Effetto separato dagli altri effetti e mantiene vecchi inventari',()=>{
-  const s=src('src/app.js');
-  assert.match(s,/id:'skin-mitica',nome:'Astrale[^\n]*tipo:'Effetto'/);
-  assert.match(s,/slotOggetto = \(o\) => o\.id === 'skin-mitica' \? 'Astrale'/);
-  assert.match(s,/equipaggiamentoRpg\.Astrale \?\? equipaggiamentoRpg\.Skin/);
-  assert.match(s,/delete prossimo\.Skin/);
-  assert.doesNotMatch(s,/for\(const f of \['Tutti','Armatura','Effetto','Skin','Titolo'\]/);
+test('v359: Astrale occupa SOLO Effetto, non uno slot extra',()=>{
+  const app=src('src/app.js'),eq=src('src/equipaggiamento-rpg.js');
+  assert.match(app,/id:'skin-mitica',nome:'Astrale[^\n]*tipo:'Effetto'/);
+  assert.match(app,/slotPerOggettoRpg/);
+  assert.match(app,/equipaggiamentoRpgUnico/);
+  assert.match(eq,/if\(!out\.Effetto/);
+  assert.doesNotMatch(app,/slotOggetto = \(o\) => o\.id === 'skin-mitica' \? 'Astrale'/);
 });
 
-test('v358: Aura divina originale, Corona Regale 80 giorni e export fedele',()=>{
-  const app=src('src/app.js'),compos=src('src/anteprima-combinata-rpg.js');
-  const corona=src('img/effetti/corona-infinito-v358.svg');
-  assert.match(app,/rpg-corona-premium/);
-  assert.match(app,/divina: auraDivinaAttiva/);
-  assert.doesNotMatch(app,/src:'\.\/img\/effetti\/aura-divina-v357\.svg'/);
-  assert.match(compos,/querySelector\('\.rpg-corona-premium'\)/);
-  assert.match(corona,/id="ametista"/);
-  assert.match(corona,/id="oro"/);
-  assert.doesNotMatch(corona,/float(?:ing)? twin helixes/i);
+test('v359: Aura divina visibile e Corona tramite foto WebP non SVG',()=>{
+  const app=src('src/app.js'),css=src('stile-rpg.css');
+  assert.match(app,/!auraDivinaAttiva && montaFotoCombinataRpg/);
+  assert.match(css,/\.aura-foto-divina/);
+  assert.match(app,/percorsoFotoCoronaV359/);
+  assert.doesNotMatch(app,/src:'\.\/img\/effetti\/corona-infinito-v358\.svg'/);
 });
 
 test('v357: Aura calcolata dalla difficoltà e dall’imbarazzo, senza invertire tier',()=>{
@@ -54,7 +50,7 @@ test('v357: Aura calcolata dalla difficoltà e dall’imbarazzo, senza invertire
 });
 
 test('v357: cache/HTML sincronizzati e nessun asset assente',()=>{
-  assert.match(src('index.html'),/palestra-v358/);
-  assert.match(src('sw.js'),/palestra-v358/);
-  assert.match(src('sw.js'),/img\/effetti\/corona-infinito-v358\.svg/);
+  assert.match(src('index.html'),/palestra-v359/);
+  assert.match(src('sw.js'),/palestra-v359/);
+  assert.match(src('sw.js'),/src\/foto-corona-v359\.js/);
 });
