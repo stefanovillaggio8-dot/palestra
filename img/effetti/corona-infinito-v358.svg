@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 890" preserveAspectRatio="none" role="img" aria-label="Corona dell'Infinito: regalia d'oro e ametista, 80 giorni">
+<defs>
+  <linearGradient id="oro" x1="0" y1="0" x2="1" y2="1">
+    <stop stop-color="#613113"/><stop offset=".15" stop-color="#ffc87a"/><stop offset=".36" stop-color="#fff6d0"/><stop offset=".52" stop-color="#c67931"/><stop offset=".68" stop-color="#ffe6a2"/><stop offset="1" stop-color="#6e361a"/>
+  </linearGradient>
+  <linearGradient id="platino" x1="0" y1="0" x2="1" y2=".8">
+    <stop stop-color="#f5f9ff"/><stop offset=".42" stop-color="#9bc7ef"/><stop offset=".75" stop-color="#e8faff"/><stop offset="1" stop-color="#4465a4"/>
+  </linearGradient>
+  <radialGradient id="ametista"><stop stop-color="#fffaff"/><stop offset=".15" stop-color="#fdbbff"/><stop offset=".43" stop-color="#9d5cff"/><stop offset=".80" stop-color="#3a207e"/><stop offset="1" stop-color="#080723"/></radialGradient>
+  <radialGradient id="eclisse"><stop stop-color="#9275f7" stop-opacity=".1"/><stop offset=".52" stop-color="#f2d4ff" stop-opacity=".035"/><stop offset=".68" stop-color="#9a78ff" stop-opacity=".35"/><stop offset=".79" stop-color="#ffe2a8" stop-opacity=".18"/><stop offset="1" stop-color="#1b1553" stop-opacity="0"/></radialGradient>
+  <radialGradient id="diamante"><stop stop-color="#ffffff"/><stop offset=".25" stop-color="#c3edff"/><stop offset=".6" stop-color="#a0a5ff"/><stop offset="1" stop-color="#3b277a"/></radialGradient>
+  <filter id="glow" x="-150%" y="-160%" width="400%" height="420%"><feGaussianBlur stdDeviation="7"/></filter>
+  <filter id="jewelGlow" x="-160%" y="-160%" width="420%" height="420%">
+    <feGaussianBlur stdDeviation="4"/><feComponentTransfer><feFuncA type="linear" slope=".72"/></feComponentTransfer>
+  </filter>
+  <filter id="shadow" x="-80%" y="-100%" width="260%" height="300%"><feGaussianBlur stdDeviation="3.4"/></filter>
+  <g id="runa"><path d="M0-13 L8-3 L0 13 L-8-3 Z M0-7 L0 7 M-4-2 L4-2" fill="none" stroke="url(#platino)" stroke-width="1.8"/></g>
+  <g id="stella"><path d="M0-16L2.6-3L15 0L2.6 3L0 16L-2.6 3L-15 0L-2.6-3Z" fill="#fffbea"/><circle r="2.5" fill="white"/></g>
+  <g id="gemma"><path d="M0-26 L14-10 L13 12 L0 29 L-13 12 L-14-10Z" fill="url(#ametista)" stroke="#ffe7a0" stroke-width="2.8"/><path d="M0-26L0 29M-14-10L14-10M0 29L14-10" fill="none" stroke="#fff9ed" stroke-opacity=".67" stroke-width="1.25"/></g>
+</defs>
+<!-- Il corpo e il volto restano fotografici e completamente intatti: solo il cielo sopra il capo. -->
+<g opacity=".72"><ellipse cx="320" cy="134" rx="226" ry="142" fill="url(#eclisse)"/><ellipse cx="320" cy="118" rx="184" ry="81" stroke="#f0d7ad" stroke-width="4" fill="none" opacity=".16" filter="url(#glow)"/></g>
+<!-- Regalia fisica, non una serie di anelli intorno al corpo. -->
+<g transform="translate(0 -10)">
+  <path d="M172 150 Q320 190 468 150 L465 167 Q320 205 175 167Z" fill="#040710" opacity=".58" filter="url(#shadow)"/>
+  <path d="M174 148 L180 120 L214 137 L228 72 L257 121 L277 54 L300 118 L320 25 L340 118 L363 54 L383 121 L412 72 L426 137 L460 120 L466 148Z" fill="url(#oro)" stroke="#fff0b9" stroke-width="3.6" stroke-linejoin="round"/>
+  <path d="M180 146L228 89L257 129L278 69L300 128L320 36L340 128L362 69L383 129L412 89L460 146" fill="none" stroke="#fff4d1" stroke-width="1.7" opacity=".91"/>
+  <path d="M179 151 Q320 180 461 151 L464 168 Q320 202 176 168Z" fill="url(#oro)" stroke="#fcecc3" stroke-width="2.7"/>
+  <path d="M179 158 Q320 191 461 158" fill="none" stroke="#553017" stroke-width="5"/>
+  <path d="M180 158 Q320 193 460 158" fill="none" stroke="#fff5d0" stroke-width="1.8" opacity=".9"/>
+  <path d="M189 169 Q320 188 450 169" fill="none" stroke="#feefce" stroke-width="1.5" stroke-dasharray="2 9"/>
+  <!-- Gemme e innesti d'argento incastonati, molto differenti dall'Aura divina. -->
+  <use href="#gemma" transform="translate(320 80) scale(1.42)"/>
+  <use href="#gemma" transform="translate(228 113) scale(.56)"/>
+  <use href="#gemma" transform="translate(412 113) scale(.56)"/>
+  <use href="#gemma" transform="translate(277 126) scale(.40)"/>
+  <use href="#gemma" transform="translate(363 126) scale(.40)"/>
+  <circle cx="320" cy="164" r="11" fill="url(#diamante)" stroke="#fef8ed" stroke-width="2"/>
+  <path d="M308 164L320 153L332 164L320 175Z" fill="none" stroke="#fff" stroke-width="1.5"/>
+  <path d="M205 151L215 161L205 171L195 161Z M435 151L445 161L435 171L425 161Z" fill="#fce5b0" stroke="#503e26" stroke-width="1"/>
+</g>
+<!-- Sette scaglie della regalia orbitano LONTANO dal viso, non lungo il corpo. -->
+<g opacity=".93">
+ <use href="#runa" transform="translate(106 70) rotate(-25) scale(.75)"/>
+ <use href="#runa" transform="translate(534 70) rotate(25) scale(.75)"/>
+ <use href="#runa" transform="translate(83 190) rotate(-13) scale(.48)"/>
+ <use href="#runa" transform="translate(557 190) rotate(13) scale(.48)"/>
+ <use href="#runa" transform="translate(146 236) rotate(15) scale(.42)"/>
+ <use href="#runa" transform="translate(494 236) rotate(-15) scale(.42)"/>
+ <use href="#gemma" transform="translate(118 147) rotate(-22) scale(.40)"/>
+ <use href="#gemma" transform="translate(522 147) rotate(22) scale(.40)"/>
+</g>
+<!-- Piccoli raggi/stelle da premio mitico: niente ali, anelli corporei o sigilli sul torace. -->
+<g fill="none" stroke-linecap="round">
+ <path d="M320 5V20 M320 181V202 M150 89L119 74 M490 89L521 74 M111 208L90 224 M529 208L550 224" stroke="#e2c2ff" stroke-width="2.5" opacity=".65"/>
+ <path d="M165 29L149 9 M475 29L491 9 M150 195L135 210 M490 195L505 210" stroke="#ffe3aa" stroke-width="1.6" opacity=".58"/>
+</g>
+<g opacity=".92">
+  <use href="#stella" transform="translate(320 15) scale(.64)"/>
+  <use href="#stella" transform="translate(141 120) scale(.55)"/>
+  <use href="#stella" transform="translate(497 106) scale(.36)"/>
+  <use href="#stella" transform="translate(63 175) scale(.31)"/>
+  <use href="#stella" transform="translate(571 171) scale(.38)"/>
+  <use href="#stella" transform="translate(113 274) scale(.25)"/>
+  <use href="#stella" transform="translate(519 273) scale(.3)"/>
+</g>
+<!-- Scintille laterali tenui fino al fondo, mai attraversano volto/corpo. -->
+<g fill="#fff1d5" opacity=".55">
+ <circle cx="54" cy="360" r="1.8"/><circle cx="586" cy="329" r="1.5"/><circle cx="70" cy="580" r="1.4"/>
+ <circle cx="577" cy="569" r="1.3"/><circle cx="100" cy="780" r="1.3"/><circle cx="533" cy="802" r="1.6"/>
+</g>
+</svg>
