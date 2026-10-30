@@ -3,6 +3,7 @@
 // in palestra con le mani occupate.
 
 import { requisitoSkin, accessoSkin, scenarioSkin, statoCoronaInfinito, cambiaCoronaInfinito, CORONA_INFINITO_ID, ordinaPerRaritaAura } from './aura-skin.js';
+import { equipaggiamentoRpgUnico, slotPerOggettoRpg, aggiornaEquipaggiamentoRpg } from './equipaggiamento-rpg.js';
 import * as db from './db.js';
 import * as sb from './supabase.js';
 import * as sync from './sync.js';
@@ -1603,7 +1604,7 @@ function apriAnteprimaAura(oggetto, profilo, st) {
   const disegnaAnteprima = () => {
     const profiloAnteprima = {
       ...profilo, classe_rpg: classeAnteprima,
-      equipaggiamento_aura: { ...(profilo.equipaggiamento_aura || {}), [oggetto.id === 'skin-mitica' ? 'Astrale' : oggetto.tipo]: oggetto.id },
+      equipaggiamento_aura: aggiornaEquipaggiamentoRpg(profilo.equipaggiamento_aura,oggetto,true),
     };
     const personaggio = bloccoPersonaggio(profiloAnteprima, st);
     personaggio.classList.add('aura-preview-character');
@@ -1822,14 +1823,11 @@ function vistaAuraShop(zona, soloInventario = false) {
   const ownedGrid=inventario.querySelector('.aura-shop-owned-grid');
   const oggettiPosseduti=ordinaPerRaritaAura(OGGETTI_AURA.filter(o=>posseduti.includes(o.id)&&(!o.classe||o.classe===classe)));
   // Equipaggiamento persistente sul profilo: equipaggiare non consuma né elimina l'oggetto.
-  const equipaggiamento = { ...(profilo.equipaggiamento_aura || {}) };
-  const slotOggetto = (o) => o.id === 'skin-mitica' ? 'Astrale' : (o.tipo === 'Armatura' ? 'Armatura' : o.tipo);
-  // Gli acquisti precedenti hanno ancora Astrale nello slot Skin.
-  if (!Object.hasOwn(equipaggiamento,'Astrale') && equipaggiamento.Skin === 'skin-mitica') equipaggiamento.Astrale = 'skin-mitica';
+  const equipaggiamento = equipaggiamentoRpgUnico(profilo.equipaggiamento_aura);
+  const slotOggetto = slotPerOggettoRpg;
   const salvaEquipaggiamento = async (slot, id) => {
     const profiloCorrente = profiloAttivo();
-    const prossimo = { ...(profiloCorrente.equipaggiamento_aura || {}) };
-    if (slot === 'Astrale') delete prossimo.Skin; // migrazione vecchio slot
+    const prossimo = equipaggiamentoRpgUnico(profiloCorrente.equipaggiamento_aura);
     if (id) prossimo[slot] = id; else delete prossimo[slot];
 
     // Aggiorna subito il profilo in memoria e IndexedDB: il testo del pulsante
@@ -6414,10 +6412,11 @@ function bloccoPersonaggio(profilo, st) {
   const rpg = calcolaAvatar(profilo.classe_rpg, serieMie(), seduteMie(), esercizioPerId, {
     profilo,
   });
-  const equipaggiamentoRpg = profilo.equipaggiamento_aura || {};
+  const equipaggiamentoRpg = equipaggiamentoRpgUnico(profilo.equipaggiamento_aura);
   const armaturaEquipaggiata = OGGETTI_AURA.find((o) => o.id === equipaggiamentoRpg.Armatura && o.tipo === 'Armatura' && o.classe === (rpg.classe && rpg.classe.id));
   const effettoEquipaggiato = OGGETTI_AURA.find((o) => o.id === equipaggiamentoRpg.Effetto && o.tipo === 'Effetto');
-  const skinEquipaggiata = OGGETTI_AURA.find((o) => o.id === (equipaggiamentoRpg.Astrale ?? equipaggiamentoRpg.Skin) && o.id === 'skin-mitica');
+  const astraleAttiva = equipaggiamentoRpg.Effetto === 'skin-mitica';
+  const skinEquipaggiata = null; // Astrale occupa Effetto, non può sommarsi ad altri effetti.
   const titoloEquipaggiato = OGGETTI_AURA.find((o) => o.id === equipaggiamentoRpg.Titolo && o.tipo === 'Titolo');
 
   const box = el('section', { class: 'blocco' });
@@ -6497,7 +6496,7 @@ function bloccoPersonaggio(profilo, st) {
     // I cosmetici equipaggiati restano visibili nel Profilo; nello Shop solo premendo Anteprima.
     if (armaturaEquipaggiata) grafica.classList.add('shop-' + armaturaEquipaggiata.id);
     if (effettoEquipaggiato) grafica.classList.add('shop-' + effettoEquipaggiato.id);
-    if (skinEquipaggiata) grafica.classList.add('shop-' + skinEquipaggiata.id);
+    if (astraleAttiva) grafica.classList.add('shop-skin-mitica');
     // L'AURA è il sesto premio: non ha un'immagine tutta sua (l'ultima riga è
     // già "tutto addosso"), quindi è una luce che si accende sopra la foto.
     // L'Aura Divina degli 80 giorni ha un'identità visiva distinta: non deve
@@ -6667,33 +6666,33 @@ function bloccoPersonaggio(profilo, st) {
       stato:statoFotoConsentito,
       armaSbloccata,
       armatura:armaturaEquipaggiata?.id || null,
-      skin:skinEquipaggiata?.id || null,
-      effetto:effettoEquipaggiato?.id || null,
+      skin:astraleAttiva ? 'skin-mitica' : null,
+      effetto:astraleAttiva ? null : effettoEquipaggiato?.id || null,
       corona:false,
       divina:false,
     });
-    const effettoVivo=usaEffettiViviRpg(effettoEquipaggiato?.id || null,{
-      mitica:skinEquipaggiata?.id==='skin-mitica',
+    const effettoVivo=usaEffettiViviRpg(astraleAttiva ? null : effettoEquipaggiato?.id || null,{
+      mitica:astraleAttiva,
     }) && !fotoEffettoPremium;
     // Ambra, Fulmine e Astrale usano UN solo renderer Canvas. Prima il
     // compositore fotografico li nascondeva tramite rpg-composite-active.
     if (effettoVivo) grafica.classList.add('rpg-render-live');
-    const scenaFotografica = (!effettoVivo || auraDivinaAttiva) && montaFotoRpg(grafica, effettoEquipaggiato?.id || null, {
+    const scenaFotografica = (!effettoVivo || auraDivinaAttiva) && montaFotoRpg(grafica, effettoVivo || astraleAttiva ? null : effettoEquipaggiato?.id || null, {
       corona: false, // Nuova Corona regale: asset indipendente
       divina: auraDivinaAttiva, // Restaurata l'Aura divina v356, senza la Corona
-      mitica: skinEquipaggiata?.id === 'skin-mitica',
+      mitica: astraleAttiva,
       classe: classeId,
     });
     // Fallback per avatar senza effetto fotografico: Aura divina storica.
     // Per ogni combinazione possibile costruisci una FOTO reale da avatar e
     // texture (stessa faccia, stesso corpo, stesso stato, nessun duplicato).
     // I layer precedenti restano fallback in caso di Safari senza Canvas.
-    const combinata = !effettoVivo && montaFotoCombinataRpg(grafica, fotoRpg, {
+    const combinata = !effettoVivo && !auraDivinaAttiva && montaFotoCombinataRpg(grafica, fotoRpg, {
       classe: classeId, stato: viso.indice,
       armatura: armaturaEquipaggiata?.id || null,
-      skin: skinEquipaggiata?.id || null,
-      effetto: effettoEquipaggiato?.id || null,
-      divina: auraDivinaAttiva, // Atlante originale: si conserva l'Aura divina
+      skin: astraleAttiva ? 'skin-mitica' : null,
+      effetto: astraleAttiva ? null : effettoEquipaggiato?.id || null,
+      divina: false, // Atlante originale: si conserva l'Aura divina
       corona: false, // Solo la nuova Corona regale separata
     });
     // Le tre griglie APPROVATE vengono utilizzate come fotografie integrate
@@ -6704,7 +6703,7 @@ function bloccoPersonaggio(profilo, st) {
     // visivamente equipaggiamento che non e' ancora sbloccato.
     const scenaRichiesta=Number.isInteger(profilo?.__anteprimaStato) ||
       coronaAnteprima || auraDivinaAnteprima ||
-      Boolean(armaturaEquipaggiata || effettoEquipaggiato || skinEquipaggiata || coronaAttiva);
+      Boolean(armaturaEquipaggiata || effettoEquipaggiato || astraleAttiva || coronaAttiva);
     // Le scene preconfezionate possono già includere una corona: con i nuovi
     // livelli premium usiamo invece sempre la foto originale e sovrapposizioni distinte.
     if(scenaRichiesta && !effettoVivo && !auraDivinaAttiva && !coronaAttiva) montaScenaCinematograficaRpg(grafica,fotoRpg,{
@@ -6712,18 +6711,18 @@ function bloccoPersonaggio(profilo, st) {
       stato:statoFotoConsentito,
       armaSbloccata:armaSbloccata,
       armatura:armaturaEquipaggiata?.id || null,
-      skin:skinEquipaggiata?.id || null,
-      effetto:effettoEquipaggiato?.id || null,
+      skin:astraleAttiva ? 'skin-mitica' : null,
+      effetto:astraleAttiva ? null : effettoEquipaggiato?.id || null,
       corona:coronaAttiva,
       divina:Boolean(viso.aura) || auraDivinaAnteprima,
     });
     // La classe rpg-composite-active viene attivata dal renderer, SOLO
     // quando la fotografia è pronta: nessun avatar senza effetti su Safari.
     if (effettoVivo || (!scenaFotografica && !combinata)) {
-      montaEffettiRpg(grafica, effettoVivo ? effettoEquipaggiato?.id || null : null, {
+      montaEffettiRpg(grafica, effettoVivo ? (astraleAttiva ? null : effettoEquipaggiato?.id || null) : null, {
         divina: false, // La fotografia già conserva l'Aura originale
         corona: false,
-        mitica: skinEquipaggiata?.id === 'skin-mitica',
+        mitica: astraleAttiva,
         classe: classeId,
       });
     }
@@ -6856,9 +6855,7 @@ scena.appendChild(grafica);
   box.appendChild(scena);
   // Mostra sul personaggio quali cosmetici del negozio sono equipaggiati.
   // La collezione resta intatta anche quando si cambia aspetto.
-  const oggettiEquipaggiati = OGGETTI_AURA.filter((o) => o.id === 'skin-mitica'
-    ? (equipaggiamentoRpg.Astrale ?? equipaggiamentoRpg.Skin) === o.id
-    : equipaggiamentoRpg[o.tipo === 'Armatura' ? 'Armatura' : o.tipo] === o.id);
+  const oggettiEquipaggiati = OGGETTI_AURA.filter((o) => equipaggiamentoRpg[slotPerOggettoRpg(o)] === o.id);
   const coronaIndossata = statoCoronaInfinito(equipaggiamentoRpg, Math.max(Number(rpg.recordStreak)||0,Number(st?.streak?.record)||0)).equipaggiata;
   if (oggettiEquipaggiati.length || coronaIndossata) {
     box.appendChild(el('div', { class: 'personaggio-equipaggiamento' }, [
