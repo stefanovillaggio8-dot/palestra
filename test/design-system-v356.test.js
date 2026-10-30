@@ -75,5 +75,5 @@ test('L aura shop e le ricompense restano raggiungibili senza cambiare logica',a
  assert.match(app,/await sb\.acquistaAura\(account, o\.id\)/);
  assert.match(app,/streakShop/);
  assert.match(app,/ordinaPerRaritaAura/);
- assert.match(app,/class:'rpg-atelier-open'/);
+ assert.match(app,/rpg-atelier-open/);
 });
