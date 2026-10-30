@@ -100,8 +100,13 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
     try {ctx.save();ctx.globalCompositeOperation='source-over';ctx.drawImage(pelle,dx,dy,dw,dh);ctx.restore();}
     catch {ctx.restore();}
   }
-  const livelli=livelliFotoRpg(c.effetto==='skin-mitica'?null:c.effetto,{mitica:c.effetto==='skin-mitica'&&!fotoCorona,corona:false,divina:c.divina});
-  if(!giaFotografica&&livelli.length) {
+  // I nuovi WebP includono già l'effetto acquistato. Solo l'Aura divina,
+  // premio separato dei 75 giorni, va aggiunta alla foto finale.
+  const livelli=fotoCorona
+    ? livelliFotoRpg(null,{mitica:false,corona:false,divina:c.divina})
+    : livelliFotoRpg(c.effetto==='skin-mitica'?null:c.effetto,
+        {mitica:c.effetto==='skin-mitica',corona:false,divina:c.divina});
+  if((!giaFotografica || c.divina)&&livelli.length) {
     const atlas=await attesaImmagine(AURA_FOTO_ATLAS);
     const sw=atlas.naturalWidth/3,sh=atlas.naturalHeight/2;
     const posX={'0%':0,'50%':1,'100%':2},posY={'0%':0,'100%':1};
