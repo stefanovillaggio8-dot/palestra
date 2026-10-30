@@ -74,7 +74,7 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
   const fotoBase=await fotoPronta(grafica?.querySelector?.('.personaggio-ritratto'));
   // Il file finale deve usare lo stesso scatto completo visibile in anteprima.
   // Se il collage non e' installato resta il renderer precedente.
-  const scena=await fotoCinematograficaRpg({...c,corona:false,divina:false});
+  const scena=c.divina ? null : await fotoCinematograficaRpg({...c,corona:false,divina:false});
   const immagine=scena ? await attesaImmagine(scena).catch(()=>fotoBase) : fotoBase;
   const giaFotografica=Boolean(scena&&immagine!==fotoBase);
   const larghezza=780,altezza=1170;
