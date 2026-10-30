@@ -32,7 +32,8 @@ test('Corona 80 giorni: una sola fonte grafica premium, su tutte le classi',asyn
   assert.doesNotMatch(photo,/disegnaSprite\(ctx,atlas,'corona'/);
   assert.match(css,/rpg-scena-cinematografica \.rpg-corona-premium\s*\{/);
   assert.ok((asset.match(/<use /g)||[]).length>=12);
-  assert.match(asset,/id="gold"/);
+  assert.match(asset,/id="oro"/);
+  assert.match(asset,/id="ametista"/);
 });
 
 test('Fumo, Nebulosa e Aura: dissolvenza fotografica senza sagoma rigida',async()=>{
