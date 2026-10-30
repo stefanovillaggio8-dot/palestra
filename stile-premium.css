@@ -446,7 +446,11 @@ body::before {
   #app {padding-inline:12px;}
   .contenuto {padding-top:12px;}
   .contenuto > h1,.contenuto > .riga-titoli > h1 {font-size:clamp(1.58rem,7vw,2.15rem);}
-  .app-vista-casa .riga-teschio {gap:7px;}
+  /* Su iPhone due KPI in alto, Rank a larghezza intera: nessun badge tagliato. */
+  .app-vista-casa .riga-teschio {grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+  .app-vista-casa .riga-teschio > .teschio-rank {
+    grid-column:1/-1;min-height:86px;
+  }
   .app-vista-casa .riga-teschio > :is(.teschio-streak,.teschio-aura,.teschio-rank) {
     padding:10px 9px;min-height:111px;border-radius:14px;
     flex:initial!important;
