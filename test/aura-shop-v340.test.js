@@ -17,19 +17,19 @@ test('Ogni classe possiede sei stati, tre armature e ogni combinazione estetica'
     chiavi.add(chiave);contatori[cfg.classe]++;
     const r=configurazioneFotoRpg({
       classe:cfg.classe,stato:cfg.stadio,armatura:cfg.armatura,
-      skin:cfg.skin,effetto:cfg.effetto,divina:cfg.divina,corona:cfg.corona,
+      skin:cfg.effetto==='skin-mitica'?'skin-mitica':null,effetto:cfg.effetto==='skin-mitica'?null:cfg.effetto,divina:cfg.divina,corona:cfg.corona,
     });
     assert.equal(r.classe,cfg.classe);
     assert.equal(r.stato,cfg.stadio);
     assert.equal(r.corona,cfg.corona);
     assert.equal(r.divina,cfg.divina);
-    assert.equal(r.effetto,cfg.effetto||null);
-    assert.equal(r.skin,cfg.skin||null);
+    assert.equal(r.effetto,cfg.effetto==='skin-mitica'?null:cfg.effetto||null);
+    assert.equal(r.skin,cfg.effetto==='skin-mitica'?'skin-mitica':null);
     assert.equal(r.armatura,cfg.armatura||null);
   }
-  assert.equal(NUMERO_COMBINAZIONI_ATELIER,15120);
-  assert.equal(chiavi.size,15120);
-  assert.deepEqual(Object.values(contatori),[5040,5040,5040]);
+  assert.equal(NUMERO_COMBINAZIONI_ATELIER,9072);
+  assert.equal(chiavi.size,9072);
+  assert.deepEqual(Object.values(contatori),[3024,3024,3024]);
   assert.notEqual(chiaveFotoRpg({classe:'assassino',stato:2,corona:true}),
     chiaveFotoRpg({classe:'assassino',stato:2,corona:false}));
 });
