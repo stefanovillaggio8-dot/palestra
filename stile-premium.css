@@ -1,0 +1,488 @@
+/* PALESTRA v356 — design system OBSIDIAN / EMERALD
+ * Aggiornamento visivo globale, senza toccare dati, forme dei componenti,
+ * selettori di azioni o logiche di allenamento. Caricato DOPO stile-rpg.css.
+ * Tutte le animazioni lunghe sono limitate ai CAMBI PAGINA e ai tocchi.
+ */
+:root {
+  color-scheme: dark;
+  --nero:#080d13;
+  --nero-2:#0d151e;
+  --card:#131d28;
+  --card-2:#1a2633;
+  --bordo:#344257;
+  --viola:#a78bfa;
+  --viola-scuro:#292340;
+  --verde:#5fe2af;
+  --blu:#84bafe;
+  --giallo:#f2cb81;
+  --testo:#f5f8ff;
+  --testo-2:#bbc7d7;
+  --testo-3:#99a9be;
+  --r:19px;
+  --ui-panel:linear-gradient(148deg,rgba(24,38,51,.98),rgba(13,22,33,.98));
+  --ui-outline:1px solid rgba(151,185,210,.19);
+  --ui-elevation:0 17px 38px rgba(1,4,12,.28),inset 0 1px rgba(229,245,255,.035);
+  --ui-ease:cubic-bezier(.2,.82,.22,1);
+}
+html {scroll-behavior:smooth;}
+body {
+  background:
+    radial-gradient(ellipse 760px 420px at 7% -95px,rgba(78,61,150,.29),transparent 80%),
+    radial-gradient(ellipse 680px 410px at 105% 330px,rgba(24,121,104,.15),transparent 75%),
+    linear-gradient(172deg,#080d14 5%,#0a1019 52%,#080d13);
+  background-color:var(--nero);
+  min-height:100dvh;
+}
+body::before {
+  content:"";position:fixed;z-index:-1;inset:0;pointer-events:none;
+  background-image:radial-gradient(rgba(216,232,245,.05) .55px,transparent .85px);
+  background-size:27px 27px;
+  mask-image:linear-gradient(to bottom,rgba(0,0,0,.6),transparent 85%);
+}
+#app {
+  max-width:960px;
+  padding-inline:clamp(12px,2.2vw,26px);
+  padding-bottom:calc(116px + env(safe-area-inset-bottom));
+}
+.contenuto {
+  display:flow-root;
+  padding-top:18px;
+  min-width:0;
+}
+.contenuto > :is(h1,.riga-titoli:first-of-type) {
+  position:relative;
+}
+.contenuto > h1,
+.contenuto > .riga-titoli > h1 {
+  font-size:clamp(1.75rem,4.7vw,2.6rem);
+  line-height:1.12;
+  letter-spacing:-.045em;
+  font-weight:850;
+  margin:5px 0 12px;
+  background:linear-gradient(95deg,#fff 0%,#dce9f3 55%,#98e6cc 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.contenuto > h2 {
+  font-size:clamp(1.18rem,3.1vw,1.5rem);letter-spacing:-.025em;
+  margin:25px 2px 8px;
+}
+.contenuto > .riga-titoli {
+  margin:8px 0 8px;
+  align-items:center;
+  row-gap:10px;
+}
+.contenuto > .riga-titoli h1 {margin-bottom:2px;}
+.contenuto > .nota {line-height:1.55;}
+.app-page-kicker {
+  display:flex;align-items:center;gap:9px;width:fit-content;
+  color:#a6f4d5;font-size:.68rem;font-weight:850;letter-spacing:.19em;
+  text-transform:uppercase;margin:8px 0 11px;
+}
+.app-page-kicker-dot {
+  width:8px;height:8px;border-radius:50%;background:#70e6b6;
+  box-shadow:0 0 0 4px rgba(67,214,147,.10),0 0 15px rgba(77,231,168,.38);
+}
+.contenuto .nota {color:#aebdd0;line-height:1.53;}
+.contenuto .conteggio {
+  display:inline-flex;align-items:center;width:fit-content;max-width:100%;
+  min-height:27px;padding:4px 10px;border-radius:999px;
+  border:1px solid rgba(147,178,206,.21);background:rgba(44,59,81,.43);
+  color:#d1dbea;font-size:.75rem;letter-spacing:.012em;line-height:1.28;
+}
+.contenuto a:not(.bot):focus-visible,
+.contenuto button:focus-visible,
+.menu-basso a:focus-visible {
+  outline:2px solid #96f6cc;outline-offset:3px;
+}
+/* Reusable elevated surfaces throughout the app */
+.contenuto :is(
+ .blocco,.scheda-giorno,.scheda-esercizio,.blocco-esercizio,
+ .spiegazione.generale,.box-riepilogo,.card-rank,.grafico,.blocco-mensile
+) {
+  background:var(--ui-panel);
+  border:var(--ui-outline);
+  border-radius:20px;
+  box-shadow:var(--ui-elevation);
+}
+.contenuto :is(.blocco,.spiegazione.generale,.card-rank,.grafico) {
+  margin-block:12px;
+}
+.contenuto :is(.blocco,.spiegazione.generale,.scheda-giorno,.card-rank) {
+  overflow-wrap:anywhere;
+}
+.contenuto .blocco > h2,
+.contenuto .spiegazione.generale h3,
+.contenuto .scheda-giorno .titolo-collegabile,
+.contenuto .scheda-chiusa > summary {
+  color:#edf5ff;
+  font-weight:780;letter-spacing:-.02em;
+}
+/* Main controls: precise press state, strongly visible primary actions */
+.contenuto .bot,
+.contenuto .bottone-guarda,
+.contenuto .chip,
+.contenuto .indietro {
+  border-radius:13px;
+  transition:transform .23s var(--ui-ease),background-color .22s ease,
+    border-color .22s ease,box-shadow .22s ease,color .22s ease;
+}
+.contenuto .bot:not(.principale):not(.pericolo):not(.pericolo-b):not(.attivo):not(:disabled) {
+  background:linear-gradient(148deg,rgba(38,52,71,.86),rgba(22,31,45,.9));
+  border-color:rgba(159,179,213,.26);
+}
+.contenuto .bot.principale {
+  background:linear-gradient(115deg,#48d99f,#3cbab1);
+  border-color:#90f3ca;
+  color:#051b18;
+  text-shadow:none;
+  box-shadow:0 7px 23px rgba(33,197,139,.19),inset 0 1px rgba(255,255,255,.44);
+  font-weight:850;
+}
+.contenuto .bot.principale:disabled {box-shadow:none;}
+.contenuto .bot:active {transform:translateY(2px) scale(.968);}
+@media (hover:hover) and (pointer:fine) {
+  .contenuto .bot:not(:disabled):hover,
+  .contenuto .bottone-guarda:hover,
+  .app-quick-action:hover {transform:translateY(-2px);}
+  .contenuto .bot.principale:hover {
+    box-shadow:0 10px 28px rgba(29,220,154,.29),inset 0 1px rgba(255,255,255,.4);
+  }
+  .contenuto .scheda-giorno:hover,
+  .contenuto .card-rank:hover {border-color:rgba(134,205,197,.43);}
+}
+/* Main workout schedule — the next REAL day is shown first (DOM order). */
+.app-vista-allenamento > .riga-titoli {
+  padding:14px 16px;
+  border-radius:19px;
+  background:linear-gradient(110deg,rgba(32,50,66,.8),rgba(21,31,47,.45));
+  border:1px solid rgba(149,193,208,.14);
+}
+.app-vista-allenamento .scheda-giorno {
+  position:relative;
+  padding:clamp(15px,3vw,23px);
+  margin:14px 0;
+  overflow:hidden;
+  transition:border-color .25s ease,transform .25s var(--ui-ease),box-shadow .25s ease;
+}
+.app-vista-allenamento .scheda-giorno::before {
+  content:"";position:absolute;inset:0 0 auto;height:3px;
+  background:linear-gradient(90deg,rgba(125,144,211,.25),transparent);
+  pointer-events:none;
+}
+.app-vista-allenamento .scheda-giorno.scheda-prossima {
+  border-color:rgba(90,235,176,.61);
+  background:
+    radial-gradient(ellipse 400px 200px at 100% 0,rgba(62,231,168,.15),transparent 74%),
+    linear-gradient(148deg,#203331,#12232a 58%,#0e1b24);
+  box-shadow:0 17px 39px rgba(5,15,17,.35),0 0 0 1px rgba(72,212,161,.08),inset 0 1px rgba(155,250,203,.12);
+}
+.app-vista-allenamento .scheda-giorno.scheda-prossima::before {
+  background:linear-gradient(90deg,#51e6ac,#9bf6d2 43%,transparent);
+}
+.app-vista-allenamento .scheda-prossima .tag-prossimo-giorno {
+  border:1px solid rgba(151,250,203,.56);background:rgba(79,225,164,.18);color:#b6ffd8;
+  box-shadow:0 0 19px rgba(63,218,151,.12);
+}
+.app-vista-allenamento .scheda-giorno .riga-titoli {
+  display:flex;gap:8px 12px;align-items:center;flex-wrap:wrap;
+}
+.app-vista-allenamento .scheda-giorno .titolo-collegabile {
+  font-size:clamp(1.15rem,3.6vw,1.55rem);
+}
+.app-vista-allenamento .griglia-esercizi {
+  gap:8px;margin:15px 0 17px;
+}
+.app-vista-allenamento .pillola-esercizio {
+  min-height:39px;padding:5px 12px 5px 5px;
+  background:rgba(38,56,74,.75);border:1px solid rgba(142,179,204,.20);
+  color:#dbe8f3;border-radius:100px;font-size:.78rem;
+}
+.app-vista-allenamento .pillola-esercizio .foto-esercizio {
+  width:30px;height:30px;border:1px solid rgba(207,234,255,.1);
+}
+.app-vista-allenamento .scheda-prossima .pillola-esercizio {
+  border-color:rgba(116,232,176,.23);
+}
+/* Continue workout is a clear, high-priority hero */
+.app-vista-allenamento #zona-avviso .tape-grande {
+  border-radius:19px;padding:17px;border:1px solid rgba(107,230,185,.47);
+  background:linear-gradient(120deg,#173d36,#152d35 72%,#131c2a);
+  box-shadow:0 9px 30px rgba(18,190,135,.13);
+}
+.app-vista-allenamento #zona-avviso .tape-grande strong {
+  font-size:1.2rem;color:#c7ffde;
+}
+/* Dashboard — compact readable KPIs and direct navigation */
+.app-vista-casa .riga-teschio {
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:14px 0;
+}
+.app-vista-casa .riga-teschio > :is(.teschio-streak,.teschio-aura,.teschio-rank) {
+  min-width:0;min-height:125px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;
+  border-radius:19px;border:1px solid rgba(164,192,214,.22);
+  background:linear-gradient(145deg,#1e2a39,#101824);
+  box-shadow:0 12px 24px rgba(1,6,13,.21);padding:15px;
+}
+.app-vista-casa .riga-teschio .teschio-streak.acceso {
+  background:radial-gradient(ellipse at top left,rgba(239,156,89,.18),transparent 65%),#172530;
+}
+.app-vista-casa .riga-teschio strong {
+  font-size:clamp(1.25rem,3.3vw,1.75rem);
+  line-height:1.14;font-variant-numeric:tabular-nums;
+}
+.app-quick-actions {
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:14px 0 21px;
+}
+.app-quick-action {
+  display:flex;align-items:center;justify-content:center;gap:9px;
+  min-width:0;min-height:56px;padding:11px 9px;
+  border:1px solid rgba(149,195,207,.29);border-radius:15px;
+  background:linear-gradient(145deg,#1a2b36,#14202e);
+  color:#e8f7f3;font-size:.82rem;font-weight:780;
+  box-shadow:0 9px 21px rgba(0,0,0,.16);
+}
+.app-quick-action:active {transform:scale(.96);}
+.app-quick-icon {font-size:1.26rem;color:#7af0c6;line-height:1;flex-shrink:0;}
+.app-vista-casa .blocco-progresso-livello {
+  border:1px solid rgba(105,215,174,.21);border-radius:16px;
+  padding:13px 16px;background:rgba(17,37,43,.71);
+}
+.app-vista-casa :is(.tessera-missione,.missione,.scheda-missione) {
+  border-radius:18px;box-shadow:var(--ui-elevation);
+}
+/* Rank and charts: a distinct data-first visual hierarchy */
+.app-vista-rank .chip-scelte {
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;
+  padding:6px;margin:7px 0 18px;border-radius:17px;
+  border:1px solid rgba(160,179,210,.2);background:rgba(20,29,42,.9);
+}
+.app-vista-rank .chip-scelte .bot {
+  min-width:0;padding:10px 4px;min-height:45px;
+  font-size:clamp(.58rem,1.8vw,.76rem);letter-spacing:.015em;
+  overflow-wrap:anywhere;border-radius:12px;
+}
+.app-vista-rank .chip-scelte .attivo {
+  color:#082319!important;background:linear-gradient(120deg,#6deabb,#a5f9d5)!important;
+  border:1px solid #b2ffe1!important;
+  box-shadow:0 6px 19px rgba(65,235,167,.18)!important;
+}
+.app-vista-rank .card-rank {
+  position:relative;padding:17px;border-radius:18px;
+  transition:transform .24s var(--ui-ease),border-color .24s ease;
+}
+.app-vista-rank .card-rank::before {
+  content:"";height:3px;position:absolute;top:0;left:18px;right:18px;
+  background:linear-gradient(90deg,transparent,#a69ce9 42%,transparent);
+  opacity:.42;border-radius:99px;
+}
+.contenuto .grafico {
+  padding:clamp(12px,2.5vw,20px);
+  border-color:rgba(144,187,214,.22);
+  background:linear-gradient(151deg,#1b2b37,#111b29 78%);
+  overflow-x:auto;overscroll-behavior-x:contain;
+}
+.contenuto .grafico .griglia {stroke:#bad7ee16;}
+.contenuto .grafico .linea-grafico {
+  stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round;
+  filter:drop-shadow(0 0 3px rgba(118,230,190,.34));
+}
+.contenuto .grafico .punto-grafico {transition:r .15s ease,stroke-width .15s ease;}
+.contenuto .grafico .barra-grafico {fill:#69bfc1;}
+.contenuto .grafico .barra-spotter {fill:#f4ac7b;}
+.contenuto .scheda-chiusa {
+  overflow:hidden;margin:10px 0;border:1px solid rgba(143,172,204,.19);
+  border-radius:15px;background:rgba(21,34,48,.78);
+}
+.contenuto .scheda-chiusa > summary {
+  padding:14px 17px;cursor:pointer;
+  border-radius:15px;transition:background .2s ease;
+}
+.contenuto .scheda-chiusa[open] > summary {background:rgba(92,134,159,.13);}
+.contenuto .scheda-chiusa > .dentro-scheda {padding:10px 15px 16px;}
+/* History reads like a timeline rather than a wall of identical rectangles */
+.app-vista-storico .elenco-sedute {
+  position:relative;padding-left:12px;gap:10px;
+  border-left:1px solid rgba(93,191,165,.34);
+}
+.app-vista-storico .elenco-sedute > * {
+  position:relative;
+  border-radius:17px;border:1px solid rgba(149,184,212,.22);
+  background:linear-gradient(140deg,#1b2a36,#111b28);
+  padding:13px 15px;
+  box-shadow:0 9px 23px rgba(1,3,8,.18);
+}
+.app-vista-storico .elenco-sedute > *::before {
+  content:"";position:absolute;left:-17px;top:22px;
+  width:9px;height:9px;border-radius:50%;
+  border:2px solid #0d151f;background:#6ae3b0;
+  box-shadow:0 0 0 3px rgba(80,226,166,.16);
+}
+/* Training rows: contrast, legible completed state, stable widths */
+.app-vista-seduta .riga-serie,
+.app-vista-giorno .riga-serie,
+.app-vista-esercizio .riga-serie {
+  border-radius:13px;background:rgba(22,35,47,.9);
+  border-color:rgba(148,174,203,.22);
+  transition:background-color .18s ease,border-color .18s ease,box-shadow .18s ease;
+}
+.app-vista-seduta .riga-serie.serie-fatta {
+  background:rgba(25,77,62,.66);border-color:rgba(101,239,173,.37);
+  box-shadow:inset 3px 0 #6df0ad;
+}
+.app-vista-seduta :is(input,select,textarea),
+.app-vista-giorno :is(input,select,textarea),
+.app-vista-profilo :is(input,select,textarea),
+.app-vista-rank :is(input,select,textarea) {
+  border-radius:11px;
+}
+.app-vista-seduta .recupero-crono-alto.recupero-attivo,
+.app-vista-seduta .recupero-in-alto.recupero-attivo {
+  box-shadow:0 0 0 1px rgba(100,240,178,.28),0 0 16px rgba(75,222,162,.12);
+}
+/* Profile: character identity first, shop visible just after it */
+.app-vista-profilo .testa-profilo {
+  padding:20px 16px;margin:11px 0 14px;
+  border:1px solid rgba(143,190,209,.23);border-radius:22px;
+  background:
+    radial-gradient(ellipse 240px 140px at 50% 0,rgba(148,97,223,.22),transparent 75%),
+    linear-gradient(160deg,#1c2938,#121b2c);
+  box-shadow:var(--ui-elevation);
+}
+.app-vista-profilo .testa-profilo h2 {font-size:1.4rem;letter-spacing:-.03em;}
+.app-vista-profilo .aura-shop-open {
+  border-radius:18px;padding:16px 19px;
+  background:linear-gradient(110deg,#302345,#222a3a 66%,#132a31);
+  border-color:rgba(187,137,248,.45);
+  box-shadow:0 13px 28px rgba(18,11,39,.3);
+}
+.app-vista-profilo .aura-shop-open strong {letter-spacing:.13em;}
+.app-vista-profilo .aura-shop-open > span:last-child {
+  font-size:1.3rem;color:#c3f2e2;transition:transform .24s var(--ui-ease);
+}
+@media(hover:hover) {
+  .app-vista-profilo .aura-shop-open:hover > span:last-child {transform:translateX(4px);}
+}
+/* Bottom navigation: unified, quiet glass with a visible active target */
+.basso {z-index:40;}
+.menu-basso {
+  max-width:1040px;margin:0 auto;
+  gap:clamp(3px,1vw,9px);
+  background:linear-gradient(180deg,rgba(13,22,31,.96),rgba(9,15,24,.98));
+  backdrop-filter:blur(18px) saturate(1.3);-webkit-backdrop-filter:blur(18px) saturate(1.3);
+  border:1px solid rgba(165,203,214,.19);
+  border-bottom:0;
+  border-radius:20px 20px 0 0;
+  padding:7px 8px calc(8px + env(safe-area-inset-bottom));
+  box-shadow:0 -11px 34px rgba(0,0,0,.33);
+}
+.menu-basso .voce-menu {
+  position:relative;min-width:0;min-height:56px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:4px;padding:8px 3px;line-height:1.2;
+  color:#a3b3c5;font-weight:720;font-size:clamp(.62rem,1.8vw,.78rem);
+  border:1px solid transparent;border-radius:14px;
+  transition:color .22s ease,background .22s ease,transform .22s var(--ui-ease),border-color .22s ease;
+}
+.menu-basso .voce-menu .icona-menu {
+  display:grid;place-items:center;min-height:22px;
+  transition:transform .28s var(--ui-ease),color .25s ease;
+}
+.menu-basso .voce-menu.attiva {
+  color:#c9ffea;
+  background:linear-gradient(145deg,rgba(66,184,140,.23),rgba(51,114,105,.15));
+  border-color:rgba(112,228,174,.37);
+  box-shadow:inset 0 1px rgba(195,255,227,.07),0 4px 14px rgba(7,52,37,.11);
+}
+.menu-basso .voce-menu.attiva::before {
+  position:absolute;top:0;left:50%;margin:0;
+  width:27px;height:3px;transform:translateX(-50%);
+  border-radius:0 0 10px 10px;
+  background:#80f2c8;box-shadow:0 0 11px rgba(100,248,182,.43);
+}
+.menu-basso .voce-menu.attiva .icona-menu {transform:translateY(-2px) scale(1.08);}
+.menu-basso .voce-menu:active {transform:scale(.92);}
+.stato-save {
+  background:rgba(10,17,25,.96);border-bottom:1px solid rgba(147,186,209,.19);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  font-size:.74rem;letter-spacing:.01em;
+}
+.stato-save .pallino-ok {box-shadow:0 0 10px rgba(83,231,160,.47);}
+.basso .versione-app {font-size:.64rem;color:#95a9b8;}
+/* Motion: no page flash on same-route saves, scroll, series and XP changes */
+@keyframes ui356-arrive {
+  from{opacity:0;transform:translate3d(0,18px,0) scale(.983);}
+  to{opacity:1;transform:translate3d(0,0,0) scale(1);}
+}
+@keyframes ui356-title {
+  from{opacity:0;filter:blur(3px);transform:translateY(10px);}
+  to{opacity:1;filter:blur(0);transform:translateY(0);}
+}
+@keyframes ui356-accent {
+  from{opacity:0;transform:scaleX(.25);}
+  to{opacity:1;transform:scaleX(1);}
+}
+@keyframes ui356-progression {
+  from{transform:scaleX(.12);opacity:.55;}
+  to{transform:scaleX(1);opacity:1;}
+}
+#app[data-cambio-vista="si"] .app-page-kicker,
+#app[data-cambio-vista="si"] .contenuto > h1,
+#app[data-cambio-vista="si"] .contenuto > .riga-titoli {
+  animation:ui356-title .42s var(--ui-ease) both;
+}
+#app[data-cambio-vista="si"] .contenuto > :is(
+ .scheda-giorno,.blocco,.grafico,.card-rank,.box-riepilogo,.spiegazione.generale,
+ .riga-teschio,.app-quick-actions,.testa-profilo,.aura-shop-open,.elenco-sedute
+) {
+  animation:ui356-arrive .48s var(--ui-ease) both;
+}
+#app[data-cambio-vista="si"] .contenuto > :is(.scheda-giorno,.blocco,.grafico,.card-rank):nth-of-type(2) {animation-delay:65ms;}
+#app[data-cambio-vista="si"] .contenuto > :is(.scheda-giorno,.blocco,.grafico,.card-rank):nth-of-type(3) {animation-delay:110ms;}
+#app[data-cambio-vista="si"] .contenuto > :is(.scheda-giorno,.blocco,.grafico,.card-rank):nth-of-type(4) {animation-delay:145ms;}
+#app[data-cambio-vista="si"] .contenuto .blocco-progresso-livello .barra-piena {
+  transform-origin:0 50%;
+  animation:ui356-progression .66s var(--ui-ease) both;
+}
+@media(max-width:620px) {
+  #app {padding-inline:12px;}
+  .contenuto {padding-top:12px;}
+  .contenuto > h1,.contenuto > .riga-titoli > h1 {font-size:clamp(1.58rem,7vw,2.15rem);}
+  /* Su iPhone due KPI in alto, Rank a larghezza intera: nessun badge tagliato. */
+  .app-vista-casa .riga-teschio {grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+  .app-vista-casa .riga-teschio > .teschio-rank {
+    grid-column:1/-1;min-height:86px;
+  }
+  .app-vista-casa .riga-teschio > :is(.teschio-streak,.teschio-aura,.teschio-rank) {
+    padding:10px 9px;min-height:111px;border-radius:14px;
+    flex:initial!important;
+  }
+  .app-vista-casa .riga-teschio strong {font-size:clamp(1rem,4vw,1.37rem);}
+  .app-quick-actions {gap:7px;}
+  .app-quick-action {flex-direction:column;gap:5px;min-height:71px;font-size:.73rem;}
+  .app-vista-allenamento .scheda-giorno {padding:15px;}
+  .app-vista-rank .chip-scelte {gap:4px;padding:4px;}
+  .app-vista-rank .chip-scelte .bot {padding:9px 3px;font-size:.63rem;}
+  .menu-basso {border-radius:15px 15px 0 0;padding-inline:4px;}
+  .menu-basso .voce-menu {gap:3px;}
+}
+@media(max-width:390px) {
+  .app-page-kicker {font-size:.60rem;letter-spacing:.13em;}
+  .app-vista-casa .riga-teschio .nota {font-size:.65rem;}
+  .menu-basso .voce-menu {font-size:.64rem;padding-inline:1px;}
+  .app-vista-allenamento .pillola-esercizio {font-size:.73rem;}
+}
+/* Never override the user's selection: no animated chrome when turned off. */
+html.animazioni-mai .app-page-kicker,
+html.animazioni-mai #app *,
+html.animazioni-mai #app *::before,
+html.animazioni-mai #app *::after,
+html.animazioni-mai .menu-basso *,
+html.animazioni-mai .menu-basso *::before {
+  animation:none!important;transition:none!important;scroll-behavior:auto!important;
+}
+@media(prefers-reduced-motion:reduce) {
+  html:not(.animazioni-sempre) #app *,
+  html:not(.animazioni-sempre) #app *::before,
+  html:not(.animazioni-sempre) .menu-basso * {
+    animation:none!important;transition:none!important;scroll-behavior:auto!important;
+  }
+}

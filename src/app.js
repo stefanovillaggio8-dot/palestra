@@ -1352,6 +1352,9 @@ function disegna() {
   // Quindi: stessa rotta si ripristina, rotta diversa si parte dall'alto.
   const rottaOra = (window.location.hash || '#/').replace(/^#/, '');
   const stessaRotta = rottaOra === rottaDisegnata;
+  // La transizione di pagina parte solo navigando. I salvataggi e le spunte
+  // che ridisegnano la vista non devono farla scomparire e ricomparire.
+  if(zona.dataset) zona.dataset.cambioVista = stessaRotta ? 'no' : 'si';
   const scrollPrima = stessaRotta && typeof window.scrollY === 'number' ? window.scrollY : 0;
   rottaDisegnata = rottaOra;
   svuota(zona);
@@ -1989,6 +1992,29 @@ function disegnaDentro(zona) {
   disegnaStatoSalvataggio();
 
   const rotta = (window.location.hash || '#/').replace(/^#/, '');
+  // Identità visiva per pagina senza cambiare le rotte o i contenuti esistenti.
+  const etichette = {
+    '/casa':['casa','IL TUO QUARTIER GENERALE'],
+    '/rank':['rank','LA TUA FORZA'],
+    '/storico':['storico','OGNI ALLENAMENTO CONTA'],
+    '/progressi':['progressi','NUMERI CHE RACCONTANO'],
+    '/profilo':['profilo','IL TUO PERSONAGGIO'],
+    '/aura-shop':['shop','IL TUO ARSENALE'],
+    '/aura-shop/inventario':['inventario','LA TUA COLLEZIONE'],
+  };
+  const corrente = etichette[rotta] ||
+    (rotta.startsWith('/seduta/') ? ['seduta','ALLENAMENTO IN CORSO'] :
+     rotta.startsWith('/giorno/') ? ['giorno','DETTAGLIO ALLENAMENTO'] :
+     rotta.startsWith('/storico/') ? ['storico','DETTAGLIO SEDUTA'] :
+     rotta.startsWith('/esercizio/') ? ['esercizio','ANALISI ESERCIZIO'] : null);
+  if (corrente) {
+    contenuto.classList.add('app-vista-' + corrente[0]);
+    if(!['shop','inventario'].includes(corrente[0]))
+      contenuto.appendChild(el('div',{class:'app-page-kicker'},[
+        el('span',{class:'app-page-kicker-dot',aria:{hidden:'true'}}),
+        el('span',{testo:corrente[1]}),
+      ]));
+  } else if(rotta==='/'||rotta==='') contenuto.classList.add('app-vista-allenamento');
   if (rotta === '/' || rotta === '') vistaHome(contenuto);
   else if (rotta === '/casa') vistaCasa(contenuto);
   else if (rotta === '/rank' || rotta === '/ranki') vistaRank(contenuto);
@@ -2181,6 +2207,10 @@ function vistaHome(zona) {
   const indiceProssimaGiornata = indiceProssimoGiorno(v, seduteDellaPersona(), versioniDellaPersona());
 
   zona.appendChild(el('div', { id: 'zona-avviso' }));
+  zona.appendChild(el('div',{class:'app-page-kicker'},[
+    el('span',{class:'app-page-kicker-dot',aria:{hidden:'true'}}),
+    el('span',{testo:'IL TUO PERCORSO · WORKOUT HUB'}),
+  ]));
 
   // Ogni persona usa il proprio link: non mostrare un selettore che fa sembrare
   // l'account di Andrea parte del profilo di Stefano. Gli amici si aprono da Amici.
@@ -2211,7 +2241,15 @@ function vistaHome(zona) {
   ]));
   zona.appendChild(el('p', { class: 'nota', testo: `Versione della scheda numero ${v.numero}. Se la modifichi le sedute passate non cambiano mai.` }));
 
-  for (const g of giorni) {
+  // Soltanto l'ordine VISIVO cambia: il giorno prossimo viene presentato
+  // per primo, tutti gli altri seguono il giro. La scheda e i suoi ID
+  // restano identici, anche nella sincronizzazione e nello storico.
+  const prossimoGiornoId = indiceProssimaGiornata >= 0
+    ? giorni[indiceProssimaGiornata]?.id : null;
+  const giorniVisualizzati = prossimoGiornoId
+    ? [...giorni.slice(indiceProssimaGiornata),...giorni.slice(0,indiceProssimaGiornata)]
+    : giorni;
+  for (const g of giorniVisualizzati) {
     const ultimo = ultimaSedutaDelGiorno(g.id);
     const opzionali = (g.esercizi || []).filter((e) => e.opzionale).length;
     const serie = (g.esercizi || []).reduce((a, e) => a + (e.serie ? e.serie.length : 0), 0);
@@ -2227,7 +2265,9 @@ function vistaHome(zona) {
         es.opzionale ? el('span', { class: 'tag-opzionale', testo: 'opzionale' }) : null,
       ]));
     }
-    zona.appendChild(el('section', { class: 'scheda-giorno' }, [
+    zona.appendChild(el('section', {
+      class: 'scheda-giorno'+(g.id===prossimoGiornoId?' scheda-prossima':''),
+    }, [
       el('div', { class: 'riga-titoli' }, [
         // il nome del giorno si può toccare per vedere la scheda senza allenarsi
         el('a', { href: '#/giorno/' + g.id, class: 'titolo-collegabile', testo: g.nome }),
@@ -7283,6 +7323,22 @@ function vistaCasa(zona) {
     ]),
   ]);
   zona.appendChild(riepilogo);
+  // Le tre destinazioni più usate stanno ora subito dopo i numeri, non
+  // nascoste in mezzo alle missioni o alle impostazioni.
+  zona.appendChild(el('nav',{class:'app-quick-actions','aria-label':'Scorciatoie'},[
+    el('a',{href:'#/',class:'app-quick-action'},[
+      el('span',{class:'app-quick-icon',testo:'↗',aria:{hidden:'true'}}),
+      el('span',{testo:'Allenati'}),
+    ]),
+    el('a',{href:'#/progressi',class:'app-quick-action'},[
+      el('span',{class:'app-quick-icon',testo:'◫',aria:{hidden:'true'}}),
+      el('span',{testo:'Progressi'}),
+    ]),
+    el('a',{href:'#/aura-shop',class:'app-quick-action'},[
+      el('span',{class:'app-quick-icon',testo:'✦',aria:{hidden:'true'}}),
+      el('span',{testo:'Aura Shop'}),
+    ]),
+  ]));
   zona.appendChild(el('div', { class: 'blocco-progresso-livello' }, [
     barraProgresso(st.livello.progresso, `account: livello ${st.livello.livello} → ${st.livello.livello + 1}`),
     el('span', { class: 'nota', testo: `mancano ${formattaNumero(st.livello.mancano)} XP al livello account ${st.livello.livello + 1}` }),
@@ -8331,7 +8387,6 @@ async function vistaProfilo(zona) {
   const st = statoMio();
   const profilo = profiloAttivo();
   zona.appendChild(el('h1', { testo: 'Profilo' }));
-  zona.appendChild(el('a',{href:'#/aura-shop',class:'aura-shop-open'},[el('span',{testo:'✦'}),el('span',{},[el('strong',{testo:'AURA SHOP'}),el('small',{testo:'Armature · effetti · titoli'})]),el('span',{testo:'→'})]));
 
   // l'avatar grande e centrale, come nei giochi
   const testa = el('div', { class: 'testa-profilo' }, [
@@ -8342,6 +8397,12 @@ async function vistaProfilo(zona) {
     el('div', { class: 'riga-teschio piccolo' }, [teschioStreak(st)]),
   ]);
   zona.appendChild(testa);
+  // Prima l'identità e il personaggio, poi l'ingresso allo Shop.
+  zona.appendChild(el('a',{href:'#/aura-shop',class:'aura-shop-open'},[
+    el('span',{testo:'✦'}),
+    el('span',{},[el('strong',{testo:'AURA SHOP'}),el('small',{testo:'Armature · effetti · titoli'})]),
+    el('span',{testo:'→'}),
+  ]));
 
   // ---- il calendario: i giorni che alleni, fatti e saltati, insieme.
   // Va subito sotto la testa e non in fondo, perchÈ la domanda che ti fai guardando
