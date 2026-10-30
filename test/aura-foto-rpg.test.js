@@ -70,6 +70,6 @@ test('Il Profilo usa sempre lo stesso avatar della Streak sotto il layer fotogra
   assert.match(app,/rpg-corona-premium/);
   assert.match(app,/mitica: skinEquipaggiata\?\.id === 'skin-mitica'/);
   assert.match(app,/effettoEquipaggiato\?\.id \|\| null/);
-  assert.match(app,/rpg-aura-divina-premium/);
+  assert.match(app,/divina: auraDivinaAttiva/);
   assert.match(app,/apriAnteprimaAuraDivinaRpg/);
 });
