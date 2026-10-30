@@ -486,3 +486,99 @@ html.animazioni-mai .menu-basso *::before {
     animation:none!important;transition:none!important;scroll-behavior:auto!important;
   }
 }
+
+
+/* v357 — testi leggibili senza troncare parole su iPhone e card piccole. */
+.contenuto :is(.blocco,.spiegazione.generale,.scheda-giorno,.card-rank,.grafico),
+.contenuto :is(.tessera-missione,.aura-shop-card,.aura-shop-owned,.personaggio-equip-tag),
+.contenuto :is(.aura-streak-mitica,.aura-streak-divina,.riga-teschio) {
+  overflow-wrap:break-word;
+  word-break:normal;
+  hyphens:manual;
+}
+.contenuto :is(h1,h2,h3,h4,p,.nota,.simbolo,.kpi-sottotitolo,
+  .aura-shop-item-type,.aura-shop-rarity,.aura-shop-kicker) {
+  overflow-wrap:break-word;word-break:normal;hyphens:manual;
+}
+.contenuto :is(.aura-shop-card-actions button,.aura-shop-filter,.app-quick-action,
+  .bot,.bottone-guarda,.aura-shop-inline-link) {
+  min-width:0;max-width:100%;
+  overflow-wrap:break-word;word-break:normal;white-space:normal;
+  line-height:1.3;
+}
+.app-vista-casa .riga-teschio {
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:9px;margin:11px 0 15px;align-items:stretch;
+}
+.app-vista-casa .riga-teschio > :is(
+  .teschio-streak,.teschio-aura,.teschio-livello,.teschio-xp,.teschio-rank) {
+  display:flex;flex-direction:column;align-items:flex-start;justify-content:center;
+  min-width:0;min-height:95px;gap:6px;
+  border-radius:16px;border:1px solid rgba(164,192,214,.22);
+  background:linear-gradient(145deg,#1e2a39,#101824);
+  padding:12px;box-shadow:0 10px 22px rgba(1,6,13,.20);
+  overflow-wrap:break-word;word-break:normal;
+}
+.app-vista-casa .riga-teschio > .teschio-streak.acceso {
+  background:radial-gradient(ellipse at top left,rgba(239,156,89,.18),transparent 65%),#172530;
+}
+.app-vista-casa .riga-teschio > .teschio-rank {
+  grid-column:1/-1;min-height:65px;
+  display:flex;flex-direction:row;align-items:center;justify-content:space-between;flex-wrap:wrap;
+}
+.app-vista-casa .riga-teschio > .teschio-rank .nota {max-width:65%;text-align:right;}
+.app-vista-casa .riga-teschio .kpi-nome,
+.app-vista-casa .riga-teschio .simbolo {
+  font-size:.66rem;font-weight:800;letter-spacing:.09em;
+  line-height:1.3;white-space:normal;overflow-wrap:normal;
+}
+.app-vista-casa .riga-teschio .kpi-sottotitolo {
+  font-size:.73rem;line-height:1.35;margin:0;color:#aebdd0;
+}
+.app-vista-casa .riga-teschio :is(.fuoco,strong:not(.badge-rank)) {
+  font-size:clamp(1.1rem,2.4vw,1.55rem);
+  font-variant-numeric:tabular-nums;line-height:1.12;
+}
+.app-vista-casa .riga-teschio .teschio-streak .fuoco {
+  font-weight:850;letter-spacing:-.035em;
+}
+.app-vista-casa .riga-teschio .teschio-xp .barra-progresso {width:100%;max-width:100%;}
+.app-vista-casa .riga-teschio .richiamo-streak {
+  position:static;max-width:100%;font-size:.67rem;line-height:1.3;
+}
+.personaggio-scena-grafica .rpg-aura-divina-premium {
+  position:absolute;inset:0;width:100%;height:100%;
+  z-index:10;object-fit:fill;pointer-events:none;
+  opacity:.95;mix-blend-mode:screen;
+  animation:rpg-divina-v357 7s ease-in-out infinite alternate;
+}
+/* La Corona d'oro rimane sopra l'alone azzurro, non si confonde con esso. */
+.personaggio-scena-grafica .rpg-corona-premium {z-index:12;}
+@keyframes rpg-divina-v357 {
+  0% {opacity:.76;filter:brightness(.88) saturate(1.12);}
+  100% {opacity:1;filter:brightness(1.15) saturate(1.35);}
+}
+@media(max-width:720px) {
+  .app-vista-casa .riga-teschio {grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+  .app-vista-casa .riga-teschio > :is(
+    .teschio-streak,.teschio-aura,.teschio-livello,.teschio-xp) {
+    grid-column:auto;min-height:91px;padding:11px;flex:initial!important;
+  }
+  .app-vista-casa .riga-teschio > .teschio-rank {
+    grid-column:1/-1;min-height:70px;padding:12px;flex:initial!important;
+  }
+  .app-vista-casa .riga-teschio .richiamo-streak {font-size:.62rem;}
+  .app-vista-casa .riga-teschio :is(.fuoco,strong:not(.badge-rank)) {
+    font-size:clamp(1.2rem,5vw,1.55rem);
+  }
+}
+@media(max-width:380px) {
+  .app-vista-casa .riga-teschio > :is(
+    .teschio-streak,.teschio-aura,.teschio-livello,.teschio-xp) {padding:9px;}
+  .app-vista-casa .riga-teschio .simbolo {font-size:.60rem;letter-spacing:.04em;}
+}
+@media(prefers-reduced-motion:reduce) {
+  .personaggio-scena-grafica .rpg-aura-divina-premium {animation:none;}
+}
+html.animazioni-mai .personaggio-scena-grafica .rpg-aura-divina-premium {animation:none;}
