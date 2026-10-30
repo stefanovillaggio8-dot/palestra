@@ -38,7 +38,7 @@ test('Shop bloccato e anteprima non cambiano profilo, saldo o inventario', async
   await pulsante(app,'Anteprima Aura divina').click();
   const divina=perClasse(body,'aura-preview-overlay')[0];
   assert.ok(divina);
-  assert.equal(perClasse(divina,'rpg-aura-divina-premium').length,1);
+  assert.equal(perClasse(divina,'aura-foto-divina').length,1);
   assert.equal(perClasse(divina,'aura-foto-ambra').length,1);
   assert.equal(perClasse(divina,'aura-foto-corona').length,0);
   await pulsante(divina,'Chiudi anteprima').click();
