@@ -44,7 +44,7 @@ test('Il compositore statico non copre il rendering live, anche con corona e arm
  assert.match(b,/\(!effettoVivo \|\| auraDivinaAttiva\) && montaFotoRpg/);
  assert.match(b,/!fotoCoronaRpg && !effettoVivo && !auraDivinaAttiva && montaFotoCombinataRpg/);
  assert.match(b,/scenaRichiesta && !fotoCoronaRpg && !effettoVivo/);
- assert.match(b,/montaEffettiRpg\(grafica, effettoVivo \? effettoEquipaggiato\?\.id \|\| null : null/);
+ assert.match(b,/montaEffettiRpg\(grafica, effettoVivo \? \(astraleAttiva \? null : effettoEquipaggiato\?\.id \|\| null\) : null/);
  assert.match(b,/rpg-render-live/);
  assert.match(css,/\.rpg-render-live\.rpg-fx-attiva \.rpg-effetti-canvas/);
  assert.match(css,/display:block!important/);
