@@ -9,7 +9,7 @@
 // e il test I3 che sia quello dell'ultimo commit, altrimenti si alza la cache e si
 // lascia scritto il numero vecchio. E' successo due volte: nella v54 avevo alzato
 // solo questo file, e dopo la v55 avevo smesso di alzarlo del tutto.
-const VERSIONE = 'palestra-v356';
+const VERSIONE = 'palestra-v357';
 
 // LE 18 FOTO DEI PERSONAGGI, CON LA VERSIONE DENTRO.
 //
@@ -38,6 +38,7 @@ const FILE = [
   './src/aura-foto-rpg.js',
   './src/anteprima-combinata-rpg.js',
   './img/effetti/corona-infinito-v345.svg',
+  './img/effetti/aura-divina-v357.svg',
   './src/rpg-atelier.js',
   './src/foto-cinematica-rpg.js',
   // Full-resolution photographic effect renders for all three RPG classes.
