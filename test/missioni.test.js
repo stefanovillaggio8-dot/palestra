@@ -466,8 +466,8 @@ test('23. ogni missione ha una meccanica dichiarata e valida', () => {
     assert.ok(MECCANICHE_VALIDE.includes(m.meccanica),
       'meccanica sconosciuta in ' + m.id + ': ' + m.meccanica);
   }
-  assert.equal(POOL.length, 109,
-    'il pool deve avere 109 missioni: erano 112, ne ho tolte 13 e aggiunte 10');
+  assert.equal(POOL.length, 117,
+    'il pool contiene le 109 missioni storiche più 8 nuove scenette pubbliche');
 });
 
 test('24. le cinque weekly di una settimana non sono cinque volte la stessa sfida', () => {
