@@ -25,7 +25,7 @@ test('Corona 80 giorni: una sola fonte grafica premium, su tutte le classi',asyn
   const photo=await read('src/anteprima-combinata-rpg.js');
   const css=await read('stile-rpg.css');
   const asset=await read('tools/render_corona_v359.py');
-  assert.match(app,/if\(coronaAttiva\) \{/);
+  assert.match(app,/if\(coronaAttiva\)grafica\.classList\.add\('rpg-corona-foto-v359'\)/);
   assert.match(app,/rpg-corona-foto-v359/);
   assert.match(app,/percorsoFotoCoronaV359/);
   assert.match(photo,/const crown=grafica\.querySelector\('\.rpg-corona-premium'\)/);
