@@ -6631,6 +6631,9 @@ function bloccoPersonaggio(profilo, st) {
       effetto:astraleAttiva ? 'skin-mitica' : effettoEquipaggiato?.id || null,
       armaSbloccata,
     }) : null;
+    // La regalia è già stampata nella nuova fotografia: impedisci alle vecchie
+    // onde/aura-corona CSS di aggiungere nuovamente un anello dorato.
+    if (fotoCoronaRpg) grafica.classList.add('aura-foto-fx-attiva');
     const fotoRpg = el('img', {
       class: 'personaggio-ritratto',
       src: fotoCoronaRpg || fotoArmaturaRpg || fotoProgressioneRpg,
