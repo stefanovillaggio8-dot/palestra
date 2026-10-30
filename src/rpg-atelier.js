@@ -5,10 +5,11 @@ import { AURA_FOTO_ATLAS } from './aura-foto-atlas.js';
 import { FOTO_RPG_RIQUADRI, livelliFotoRpg } from './aura-foto-rpg.js';
 import { fasciaSagoma, disegnaCoronaEnergetica } from './anteprima-combinata-rpg.js';
 import { fotoCinematograficaRpg } from './foto-cinematica-rpg.js';
+import { percorsoFotoCoronaV359 } from './foto-corona-v359.js';
 
 export const CLASSI_ATELIER = Object.freeze(['guerriero','assassino','berserker']);
 export const EFFETTI_ATELIER = Object.freeze([
-  '', 'effetto-ambra','effetto-ombra','effetto-fulmine','effetto-nebula'
+  '', 'effetto-ambra','effetto-ombra','effetto-fulmine','effetto-nebula','skin-mitica'
 ]);
 export const ARMATURE_ATELIER = Object.freeze({
   guerriero: ['','armatura-guerriero-braci','armatura-guerriero-abisso'],
@@ -18,7 +19,7 @@ export const ARMATURE_ATELIER = Object.freeze({
 export const TITOLI_ATELIER = Object.freeze(['', 'titolo-cardio','titolo-tecnica','titolo-ego','titolo-riposo','titolo-specchio','titolo-panca']);
 export const STADI_ATELIER = 6;
 export const NUMERO_COMBINAZIONI_ATELIER =
-  CLASSI_ATELIER.length * STADI_ATELIER * 3 * 2 * EFFETTI_ATELIER.length * 2 * 2 * TITOLI_ATELIER.length; // 15120
+  CLASSI_ATELIER.length * STADI_ATELIER * 3 * EFFETTI_ATELIER.length * 2 * 2 * TITOLI_ATELIER.length; // 9072
 
 export function opzioniAtelier(valori={}) {
   const classe=CLASSI_ATELIER.includes(valori.classe)?valori.classe:'guerriero';
@@ -27,8 +28,10 @@ export function opzioniAtelier(valori={}) {
   return {
     classe,stadio,
     armatura:ARMATURE_ATELIER[classe].includes(valori.armatura)?valori.armatura:'',
-    skin:valori.skin==='skin-mitica'?'skin-mitica':'',
-    effetto:EFFETTI_ATELIER.includes(valori.effetto)?valori.effetto:'',
+    // Astrale è un effetto, non una seconda skin sovrapponibile.
+    skin:'',
+    effetto:EFFETTI_ATELIER.includes(valori.effetto)&&valori.effetto
+      ? valori.effetto : valori.skin==='skin-mitica'?'skin-mitica':'',
     divina:Boolean(valori.divina),corona:Boolean(valori.corona),
     titolo:TITOLI_ATELIER.includes(valori.titolo)?valori.titolo:'',
   };
@@ -37,7 +40,7 @@ export function* combinazioniRpg() {
   for(const classe of CLASSI_ATELIER)
     for(let stadio=0;stadio<STADI_ATELIER;stadio++)
       for(const armatura of ARMATURE_ATELIER[classe])
-        for(const skin of ['', 'skin-mitica'])
+        for(const skin of [''])
           for(const effetto of EFFETTI_ATELIER)
             for(const divina of [false,true])
               for(const corona of [false,true])
@@ -74,7 +77,11 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
   const fotoBase=await fotoPronta(grafica?.querySelector?.('.personaggio-ritratto'));
   // Il file finale deve usare lo stesso scatto completo visibile in anteprima.
   // Se il collage non e' installato resta il renderer precedente.
-  const scena=c.divina ? null : await fotoCinematograficaRpg({...c,corona:false,divina:false});
+  const fotoCorona=c.corona ? percorsoFotoCoronaV359({
+    classe:c.classe,stato:c.stadio,armatura:c.armatura||null,
+    effetto:c.effetto||null,armaSbloccata:c.stadio>=4,
+  }) : null;
+  const scena=fotoCorona || (c.divina ? null : await fotoCinematograficaRpg({...c,corona:false,divina:false}));
   const immagine=scena ? await attesaImmagine(scena).catch(()=>fotoBase) : fotoBase;
   const giaFotografica=Boolean(scena&&immagine!==fotoBase);
   const larghezza=780,altezza=1170;
@@ -93,7 +100,7 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
     try {ctx.save();ctx.globalCompositeOperation='source-over';ctx.drawImage(pelle,dx,dy,dw,dh);ctx.restore();}
     catch {ctx.restore();}
   }
-  const livelli=livelliFotoRpg(c.effetto,{mitica:!!c.skin,corona:false,divina:c.divina});
+  const livelli=livelliFotoRpg(c.effetto==='skin-mitica'?null:c.effetto,{mitica:c.effetto==='skin-mitica'&&!fotoCorona,corona:false,divina:c.divina});
   if(!giaFotografica&&livelli.length) {
     const atlas=await attesaImmagine(AURA_FOTO_ATLAS);
     const sw=atlas.naturalWidth/3,sh=atlas.naturalHeight/2;
@@ -133,15 +140,7 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
     }
 
   }
-  if(c.corona) {
-    // Immagine nuova in ogni configurazione: stesso asset della preview.
-    // Viene applicata alla foto risultante qualunque siano classe, stato,
-    // armatura, effetto, Astrale, Aura divina e titolo. Mai una corona precotta.
-    const regalia=await attesaImmagine('./img/effetti/corona-infinito-v358.svg');
-    ctx.save();ctx.globalCompositeOperation='source-over';
-    ctx.drawImage(regalia,dx,dy,dw,dh);
-    ctx.restore();
-  }
+
   if(c.titolo) {
     const titolo= c.titolo.replace(/^titolo-/,'').replaceAll('-',' ').toUpperCase();
     ctx.save();ctx.fillStyle='rgba(7,9,19,.80)';ctx.fillRect(0,altezza-94,larghezza,94);
