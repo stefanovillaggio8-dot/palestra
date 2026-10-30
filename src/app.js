@@ -1354,7 +1354,7 @@ function disegna() {
   const stessaRotta = rottaOra === rottaDisegnata;
   // La transizione di pagina parte solo navigando. I salvataggi e le spunte
   // che ridisegnano la vista non devono farla scomparire e ricomparire.
-  zona.dataset.cambioVista = stessaRotta ? 'no' : 'si';
+  if(zona.dataset) zona.dataset.cambioVista = stessaRotta ? 'no' : 'si';
   const scrollPrima = stessaRotta && typeof window.scrollY === 'number' ? window.scrollY : 0;
   rottaDisegnata = rottaOra;
   svuota(zona);
