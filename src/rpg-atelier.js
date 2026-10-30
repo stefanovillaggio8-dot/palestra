@@ -74,7 +74,7 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
   const fotoBase=await fotoPronta(grafica?.querySelector?.('.personaggio-ritratto'));
   // Il file finale deve usare lo stesso scatto completo visibile in anteprima.
   // Se il collage non e' installato resta il renderer precedente.
-  const scena=await fotoCinematograficaRpg(c);
+  const scena=c.divina ? null : await fotoCinematograficaRpg({...c,corona:false,divina:false});
   const immagine=scena ? await attesaImmagine(scena).catch(()=>fotoBase) : fotoBase;
   const giaFotografica=Boolean(scena&&immagine!==fotoBase);
   const larghezza=780,altezza=1170;
@@ -93,7 +93,7 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
     try {ctx.save();ctx.globalCompositeOperation='source-over';ctx.drawImage(pelle,dx,dy,dw,dh);ctx.restore();}
     catch {ctx.restore();}
   }
-  const livelli=livelliFotoRpg(c.effetto,{mitica:!!c.skin,corona:c.corona,divina:c.divina});
+  const livelli=livelliFotoRpg(c.effetto,{mitica:!!c.skin,corona:false,divina:c.divina});
   if(!giaFotografica&&livelli.length) {
     const atlas=await attesaImmagine(AURA_FOTO_ATLAS);
     const sw=atlas.naturalWidth/3,sh=atlas.naturalHeight/2;
@@ -131,21 +131,16 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
       ctx.save();ctx.globalCompositeOperation='screen';
       ctx.drawImage(fxCanvas,dx,dy,dw,dh);ctx.restore();
     }
-    if(c.corona) {
-      // La Corona si trova SOPRA il capo; mai come adesivo sul petto.
-      const pos=FOTO_RPG_RIQUADRI.corona;
-      ctx.save();ctx.globalCompositeOperation='screen';
-      ctx.drawImage(atlas,posX[pos[0]]*sw,posY[pos[1]]*sh,sw,sh,
-        dx+dw*.30,dy+dh*.005,dw*.40,dh*.145);
-      ctx.restore();
-      // Nei canvas ridotti (test/browser legacy) il dettaglio fotografico
-      // resta disponibile anche se translate non e' implementato.
-      if(typeof ctx.translate==='function') {
-        ctx.save();ctx.translate(dx,dy);
-        disegnaCoronaEnergetica(ctx,dw,dh);
-        ctx.restore();
-      }
-    }
+
+  }
+  if(c.corona) {
+    // Immagine nuova in ogni configurazione: stesso asset della preview.
+    // Viene applicata alla foto risultante qualunque siano classe, stato,
+    // armatura, effetto, Astrale, Aura divina e titolo. Mai una corona precotta.
+    const regalia=await attesaImmagine('./img/effetti/corona-infinito-v358.svg');
+    ctx.save();ctx.globalCompositeOperation='source-over';
+    ctx.drawImage(regalia,dx,dy,dw,dh);
+    ctx.restore();
   }
   if(c.titolo) {
     const titolo= c.titolo.replace(/^titolo-/,'').replaceAll('-',' ').toUpperCase();

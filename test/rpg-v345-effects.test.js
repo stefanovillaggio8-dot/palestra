@@ -24,15 +24,16 @@ test('Corona 80 giorni: una sola fonte grafica premium, su tutte le classi',asyn
   const app=await read('src/app.js');
   const photo=await read('src/anteprima-combinata-rpg.js');
   const css=await read('stile-rpg.css');
-  const asset=await read('img/effetti/corona-infinito-v345.svg');
+  const asset=await read('img/effetti/corona-infinito-v358.svg');
   assert.match(app,/if\(coronaAttiva\) \{/);
   assert.match(app,/class:'rpg-corona-premium'/);
-  assert.match(app,/src:'\.\/img\/effetti\/corona-infinito-v345\.svg'/);
+  assert.match(app,/src:'\.\/img\/effetti\/corona-infinito-v358\.svg'/);
   assert.match(photo,/const crown=grafica\.querySelector\('\.rpg-corona-premium'\)/);
   assert.doesNotMatch(photo,/disegnaSprite\(ctx,atlas,'corona'/);
   assert.match(css,/rpg-scena-cinematografica \.rpg-corona-premium\s*\{/);
   assert.ok((asset.match(/<use /g)||[]).length>=12);
-  assert.match(asset,/id="gold"/);
+  assert.match(asset,/id="oro"/);
+  assert.match(asset,/id="ametista"/);
 });
 
 test('Fumo, Nebulosa e Aura: dissolvenza fotografica senza sagoma rigida',async()=>{

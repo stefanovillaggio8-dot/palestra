@@ -13,8 +13,8 @@ export function apriAtelierRpg({profilo,st,oggetto=null,stadioAttuale=0,renderPe
   let cfg=opzioniAtelier({
     classe:oggetto?.classe||iniziale,stadio:stadioAttuale,
     armatura:oggetto?.tipo==='Armatura'?oggetto.id:baseEq.Armatura,
-    skin:oggetto?.tipo==='Skin'?oggetto.id:baseEq.Skin,
-    effetto:oggetto?.tipo==='Effetto'?oggetto.id:baseEq.Effetto,
+    skin:oggetto?.id==='skin-mitica'?oggetto.id:(baseEq.Astrale||baseEq.Skin),
+    effetto:oggetto?.tipo==='Effetto' && oggetto.id!=='skin-mitica'?oggetto.id:baseEq.Effetto,
     divina:false,corona:false,
   });
   let titolo=titoloCorrente;
@@ -58,7 +58,7 @@ export function apriAtelierRpg({profilo,st,oggetto=null,stadioAttuale=0,renderPe
       case 'classe':return CLASSI_ATELIER.map(id=>[id,CLASSI[id]]);
       case 'stadio':return Array.from({length:STADI_ATELIER},(_,i)=>[String(i),STATI[i]]);
       case 'armatura':return ARMATURE_ATELIER[cfg.classe].map(id=>[id,oggetti.find(o=>o.id===id)?.nome||'Senza armatura shop']);
-      case 'skin':return [['','Nessuna skin'],['skin-mitica','Astrale · forma mitica']];
+      case 'skin':return [['','Senza Astrale'],['skin-mitica','Astrale · effetto cosmico']];
       case 'effetto':return EFFETTI_ATELIER.map(id=>[id,oggetti.find(o=>o.id===id)?.nome||'Nessun effetto']);
       case 'divina':return [['false','Senza Aura divina'],['true','Aura divina (75 giorni)']];
       case 'corona':return [['false','Senza Corona'],['true','Corona dell’Infinito (80 giorni)']];
@@ -70,7 +70,7 @@ export function apriAtelierRpg({profilo,st,oggetto=null,stadioAttuale=0,renderPe
     cfg=opzioniAtelier(cfg);
     tools.replaceChildren();
     for(const [key,label] of [['classe','Classe'],['stadio','Foto progressione Streak'],
-      ['armatura','Armatura shop'],['skin','Skin'],['effetto','Effetto acquistabile'],
+      ['armatura','Armatura shop'],['skin','Astrale (effetto speciale)'],['effetto','Altri effetti'],
       ['divina','Aura divina'],['corona','Corona'],['titolo','Titolo']]) {
       const wrapper=make('label','rpg-atelier-field');
       const caption=make('span','rpg-atelier-field-label',label);
@@ -97,7 +97,7 @@ export function apriAtelierRpg({profilo,st,oggetto=null,stadioAttuale=0,renderPe
       __anteprimaDivina:cfg.divina,
       __anteprimaCorona:cfg.corona,
       equipaggiamento_aura:{
-        ...baseEq,Armatura:cfg.armatura||null,Skin:cfg.skin||null,
+        ...baseEq,Armatura:cfg.armatura||null,Astrale:cfg.skin||null,Skin:cfg.skin||null,
         Effetto:cfg.effetto||null,Titolo:titolo||null,
         Corona:cfg.corona?'corona-infinito':'nessuna',
       },

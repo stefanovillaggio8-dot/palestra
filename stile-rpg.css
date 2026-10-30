@@ -2212,3 +2212,30 @@ body {
   background:linear-gradient(140deg,rgba(83,52,133,.27),rgba(38,47,78,.3));
 }
 .aura-shop-galleria-foto:focus-visible {outline:2px solid #e0beff;outline-offset:3px;}
+
+
+/* v358 – Corona dell'Infinito: regalia fisica 80 giorni.
+   Non è un'aura: resta localizzata SOPRA il capo e lascia il personaggio intatto.
+   La sua unica fonte è il nuovo SVG, anche con effetti, armature e Aura divina. */
+.personaggio-scena-grafica .rpg-corona-premium {
+  position:absolute;inset:0;width:100%;height:100%;
+  display:block;z-index:18;object-fit:fill;
+  mix-blend-mode:normal;filter:none;opacity:1;
+  pointer-events:none;animation:corona-regale-v358 9s ease-in-out infinite;
+}
+@keyframes corona-regale-v358 {
+  0%,100% {opacity:1;filter:drop-shadow(0 0 5px rgba(195,135,252,.13));}
+  50% {opacity:.91;filter:drop-shadow(0 0 11px rgba(240,195,255,.38));}
+}
+/* Le vecchie foto complete potrebbero sopprimere le aure: la Corona nuova
+   deve rimanere visibile anche quando una foto è stata caricata prima. */
+.personaggio-scena-grafica.rpg-scena-cinematografica .rpg-corona-premium,
+.personaggio-scena-grafica.rpg-scena-cinematografica.rpg-scena-foto-speciale .rpg-corona-premium {
+  display:block!important;
+}
+/* L'Aura divina usa il suo renderer classico, non il vecchio overlay azzurro. */
+.personaggio-scena-grafica .rpg-aura-divina-premium {display:none!important;}
+@media(prefers-reduced-motion:reduce) {
+ .personaggio-scena-grafica .rpg-corona-premium {animation:none!important;filter:none!important;opacity:1!important;}
+}
+html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:none!important;}
