@@ -60,7 +60,7 @@ test('Preview e download PNG usano ESATTAMENTE la stessa Corona per ogni configu
 test('Il premio resta ottenibile solo dopo 80 giorni di Streak',()=>{
   const skin=src('src/aura-skin.js');
   assert.match(skin,/giorni >= 80/);
-  assert.match(skin,/record\) < 80/);
+  assert.match(skin,/Number\(record\) \|\| 0\) < 80/);
   const sw=src('sw.js'),html=src('index.html');
   assert.match(sw,/palestra-v358/);
   assert.match(html,/palestra-v358/);
