@@ -363,8 +363,8 @@ export const POOL = [
   // attrezzi altrui. Non cambia alcuna serie e non richiede pesi aggiuntivi.
   M('oscar-della-borraccia','L’OSCAR DELLA BORRACCIA',
     'Durante una pausa, davanti ai tuoi amici, ringrazia la tua borraccia per 30 secondi come se avessi vinto un Oscar. Cita due sponsor immaginari, fai un inchino solenne e chiedi ai tuoi amici: "Merito questo premio?"', 'unhinged', {meccanica:'recitazione'}),
-  M('conferenza-del-nulla','LA CONFERENZA DEL NULLA',
-    'Dopo una serie normale, in vista degli altri, fai una conferenza stampa di 45 secondi con i tuoi amici su un record completamente inventato. Rispondi a due domande senza ridere e chiedi ai tuoi amici: "La stampa è soddisfatta?"', 'insane', {meccanica:'amici'}),
+  M('menu-dei-manubri','IL RISTORANTE DEI MANUBRI',
+    'In un angolo libero della palestra, in vista degli altri, inventa un menu a tre portate usando solo nomi di attrezzi. Leggilo ai tuoi amici con aria da cameriere elegante e chiedi: "Desiderate il dolce oppure il conto?"', 'insane', {meccanica:'creativita'}),
   M('passerella-del-borsone','LA SFILATA DEL BORSONE',
     'In una zona libera della palestra, in vista degli altri, sfila per 20 secondi con il tuo borsone come fossi su una passerella. Fai un inchino e chiedi a un amico: "È alta moda o alta vergogna?"', 'insane', {meccanica:'recitazione'}),
   M('telecronaca-del-recupero','IL TELECRONISTA DELLA PAUSA',
