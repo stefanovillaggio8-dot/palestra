@@ -25,15 +25,16 @@ test('v357: Astrale è Effetto separato dagli altri effetti e mantiene vecchi in
   assert.doesNotMatch(s,/for\(const f of \['Tutti','Armatura','Effetto','Skin','Titolo'\]/);
 });
 
-test('v357: Corona e Aura divina hanno asset distinti e vengono esportati',()=>{
+test('v358: Aura divina originale, Corona Regale 80 giorni e export fedele',()=>{
   const app=src('src/app.js'),compos=src('src/anteprima-combinata-rpg.js');
-  const divina=src('img/effetti/aura-divina-v357.svg'),corona=src('img/effetti/corona-infinito-v345.svg');
-  assert.match(app,/rpg-aura-divina-premium/);
+  const corona=src('img/effetti/corona-infinito-v358.svg');
   assert.match(app,/rpg-corona-premium/);
-  assert.match(compos,/querySelector\('\.rpg-aura-divina-premium'\)/);
+  assert.match(app,/divina: auraDivinaAttiva/);
+  assert.doesNotMatch(app,/src:'\.\/img\/effetti\/aura-divina-v357\.svg'/);
   assert.match(compos,/querySelector\('\.rpg-corona-premium'\)/);
-  assert.match(divina,/#55e4ff/);assert.match(corona,/#f5bf5f/);
-  assert.ok(!divina.includes('#f5bf5f'),'la Divina non replica il colore corona');
+  assert.match(corona,/id="ametista"/);
+  assert.match(corona,/id="oro"/);
+  assert.doesNotMatch(corona,/float(?:ing)? twin helixes/i);
 });
 
 test('v357: Aura calcolata dalla difficoltà e dall’imbarazzo, senza invertire tier',()=>{
@@ -53,7 +54,7 @@ test('v357: Aura calcolata dalla difficoltà e dall’imbarazzo, senza invertire
 });
 
 test('v357: cache/HTML sincronizzati e nessun asset assente',()=>{
-  assert.match(src('index.html'),/palestra-v357/);
-  assert.match(src('sw.js'),/palestra-v357/);
-  assert.match(src('sw.js'),/img\/effetti\/aura-divina-v357\.svg/);
+  assert.match(src('index.html'),/palestra-v358/);
+  assert.match(src('sw.js'),/palestra-v358/);
+  assert.match(src('sw.js'),/img\/effetti\/corona-infinito-v358\.svg/);
 });
