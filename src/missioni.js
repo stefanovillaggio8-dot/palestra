@@ -85,11 +85,26 @@ export function meccanicaDi(missione) {
   return 'improvvisazione';
 }
 
-const M = (id, titolo, testo, difficolta, extra = {}) => ({
-  id, titolo, testo, difficolta, segreta: false,
-  meccanica: meccanicaDi({ id, titolo, testo }),
-  ...extra,
-});
+/** Ricompensa Aura: livello + visibilità + fasi + recitazione. Nessun bonus per
+ * sollevare troppo, disturbare utenti o fare sfide durante la serie.
+ * Gli intervalli non si sovrappongono tra difficoltà differenti.
+ */
+export function puntiAuraMissione(missione) {
+  const base=DIFFICOLTA[missione?.difficolta]?.aura ?? 20;
+  const testo=String(missione?.testo||'');
+  const pubblico=/davanti (?:alla sala|a tutti|agli altri|ai presenti)|tutta la sala|ad alta voce|in vista degli altri|in mezzo alla sala|davanti a chi/i.test(testo);
+  const amici=/\bamici?\b|compagno|compagni|gruppo di allenamento/i.test(testo);
+  const lunga=/\b(?:due|tre|quattro) fasi\b|(?:due|tre|quattro) (?:volte|passaggi)|(?:20|30|45|60) secondi|per almeno/i.test(testo);
+  const creativo=['recitazione','creativita','improvvisazione'].includes(missione?.meccanica);
+  const bonus=(pubblico?8:0)+(amici?4:0)+(lunga?5:0)+(creativo?3:0);
+  const max={easy:35,unhinged:65,insane:110,legendary:185}[missione?.difficolta]||35;
+  return Math.min(max,Math.round((base+bonus)/5)*5);
+}
+const M = (id, titolo, testo, difficolta, extra = {}) => {
+  const missione={id,titolo,testo,difficolta,segreta:false,
+    meccanica:meccanicaDi({id,titolo,testo}),...extra};
+  return {...missione, puntiAura:puntiAuraMissione(missione)};
+};
 
 export const POOL = [
   M('la-domanda-maledetta', 'LA DOMANDA MALEDETTA',
@@ -197,7 +212,7 @@ export const POOL = [
   M('il-mare-verso', 'IL MARE VERSO',
       'Dopo ognuna delle prime tre serie porta le mani alla fronte come se guardassi il mare e di\': "Stiamo andando benissimo". Le tre volte devono essere identiche e se aggiungi qualunque parola l\'allenamento è ricominciato.', 'easy', { meccanica: 'fasi' }),
   M('la-lotta', 'LA LOTTA INTERNA',
-      'Durante la serie più pesante della giornata discuti con te stesso ad alta voce: una frase per ogni ripetizione, alternate fra "ce la faccio" e "non ce la faccio". Non puoi dire due volte di fila la stessa frase, e alla fine chiudi con un verdetto di una parola sola.', 'insane', { meccanica: 'regole' }),
+      'Durante il recupero dopo una serie normale discuti con te stesso ad alta voce: una frase per ogni ripetizione, alternate fra "ce la faccio" e "non ce la faccio". Non puoi dire due volte di fila la stessa frase, e alla fine chiudi con un verdetto di una parola sola.', 'insane', { meccanica: 'regole' }),
   
     // ---- le sfide di Ste, scritte da lui il 07/10/2026 ----
     // Queste sono sue, parola per parola nel senso. Livello e punti li ho messi io, e
@@ -215,7 +230,7 @@ export const POOL = [
     //    vincitore, la foto da campione, l'applauso all'amico e il conto delle
     //    ripetizioni sono sfide DIVERSE da queste, e qui ognuna ha la sua.
     // ---------------------------------------------------------------------------,
-  M('lo-specchio-maledetto', 'IL SPECCHIO MALEDETTO',
+  M('lo-specchio-maledetto', 'LO SPECCHIO MALEDETTO',
       'Fai davanti allo specchio una posa da bodybuilder esagerata e tientila per venti secondi senza muovere il corpo. In tutta la posa il viso deve restare serio: se ti vedi sorridere o fare una smorfia, la posa vale zero e la rifai da capo.', 'insane'),
   M('il-coach-improvvisato', 'IL COACH IMPROVVISATO',
       'Spiega a un amico, con serietà da allenatore, come si fa un esercizio normalissimo, e non cambiare mai discorso. Alla fine chiedigli: "Tutto chiaro?"', 'unhinged'),
@@ -298,13 +313,13 @@ export const POOL = [
   M('la-camera-lenta', 'LA CAMERA LENTA',
       'Fai tre ripetizioni a velocità metà, come un replay della finale, faccia seria. Poi una ripetizione a velocità piena senza nessuna pausa tra le due fasi. Se ti fermi a metà, la ripetizione lenta vale zero e ricominci dal primo esercizio.', 'easy', { meccanica: 'regole' }),
   M('il-conteggio-drama', 'IL CONTO A DUE',
-      'Fai tre serie insieme a un amico e ognuno conta ad alta voce le ripetizioni del suo collega. Dovete dirle nello stesso identico momento, come un doppio, e alla fine lui ti chiede: "Quante ne abbiamo fatte?" Se uno arriva prima o dopo, la serie vale zero e ricominciate da capo.', 'easy', { meccanica: 'amici' }),
+      'Durante una pausa, con un amico, recitate a turno un conteggio immaginario di dieci ripetizioni. Dovete arrivare a dieci nello stesso istante, poi lui ti chiede: "Quante ne abbiamo contate?" Se non siete sincronizzati, rifate solo la scenetta.', 'easy', { meccanica: 'amici' }),
   M('la-posa-vincitore', 'LA POSA',
       'Una posa unica in tre fasi, e ogni fase dura quindici secondi: prima la posa da dopo la serie, poi la stessa posa mentre spieghi la tua vittoria come un intervista, poi la stessa posa con una mano che stringe un oggetto che in realtà non c\'è. Un amico sceglie la fase da fare e ti dice: "Questa volta facciamo la terza. Ma perché proprio quella?" e tu rispondi senza fermarti.', 'easy', { meccanica: 'fasi' }),
   M('il-portavoce', 'IL PORTAVOCE',
       'Assumi il ruolo di portavoce di un tuo amico e racconta a un altro amico la sua serie, trenta secondi, alternando cose vere e cose inventate. A un certo punto il portato ti interrompe e ti corregge: devi tornare sul filo senza ammettere che hai inventato.', 'insane', { meccanica: 'amici' }),
   M('la-lente', 'LA LENTE',
-      'Prima di iniziare, guarda i tre attrezzi che userai oggi e memorizza i loro numeri. A fine serie, senza guardare nulla, recita quei tre numeri al tuo amico nell\'ordine esatto in cui li hai usati. Se sbagli uno solo, la serie si rifa da capo.', 'easy', { meccanica: 'memoria' }),
+      'Prima di iniziare, guarda i tre attrezzi che userai oggi e memorizza i loro numeri. A fine serie, senza guardare nulla, recita quei tre numeri al tuo amico nell\'ordine esatto in cui li hai usati. Se sbagli un numero, riprova solo il gioco di memoria durante il recupero.', 'easy', { meccanica: 'memoria' }),
   M('il-portale', 'IL PORTALE',
       'Guarda un attrezzo libero e vuoto e trattalo per trenta secondi come se fosse il portale verso un\'altra palestra: racconta ad alta voce che cosa c\'è dall\'altra parte, senza fermarti. Poi chiedi a un amico: "Ci verrei? Perché no?" e accetta solo una risposta vera.', 'legendary'),
   M('la-seduta-di-ascolto', 'LA SEDUTA DI ASCOLTO',
@@ -338,11 +353,30 @@ export const POOL = [
   M('processo-al-campione', 'IL PROCESSO AL CAMPIONE',
       'Il tuo amico ti accusa di un crimine sportivo immaginario: aver fatto una ripetizione troppo perfetta. Hai 45 secondi per difenderti, portare una prova inventata e convincere la giuria. Un secondo amico pronuncia il verdetto.', 'insane', { meccanica: 'amici' }),
   M('documentario-sulla-patata', 'IL DOCUMENTARIO SULLA PATATA',
-      'Registra un documentario di 45 secondi su un oggetto casuale della palestra, come se fosse una specie rarissima in via d\'estinzione. Devi includere habitat, comportamento, alimentazione e una curiosità inventata.', 'insane', { meccanica: 'creativita' }),
+      'Recita un documentario di 45 secondi su un oggetto casuale della palestra, come se fosse una specie rarissima in via d\'estinzione. Devi includere habitat, comportamento, alimentazione e una curiosità inventata.', 'insane', { meccanica: 'creativita' }),
   M('discorso-di-dimissioni', 'IL DISCORSO DI DIMISSIONI',
       'Annuncia agli amici che ti dimetti ufficialmente dalla tua carriera di atleta, motivando la decisione con tre ragioni assurde. Dopo 30 secondi, cambi idea improvvisamente e proclami il tuo ritorno. A quel punto lui ti chiede: "E allora perché hai detto che te ne vai?" e tu rispondi come se fosse tutto previsto.', 'legendary', { meccanica: 'fasi' }),
   M('boss-del-ridicolo', 'IL BOSS DEL RIDICOLO',
       'Gli amici scelgono tre parole casuali. Devi improvvisare un discorso epico di 60 secondi che le contenga tutte, fingendo di essere il boss finale di un videogioco. Devi avere un nome, una frase d\'attacco e un punto debole ridicolo. A metà del discorso uno degli amici ti grana: "E con queste parole come fai?" e tu rispondi sul momento.', 'legendary', { meccanica: 'improvvisazione' }),
+
+  // Imbarazzo pubblico divertente: volontario, nelle pause e senza occupare
+  // attrezzi altrui. Non cambia alcuna serie e non richiede pesi aggiuntivi.
+  M('oscar-della-borraccia','L’OSCAR DELLA BORRACCIA',
+    'Durante una pausa, davanti ai tuoi amici, ringrazia la tua borraccia per 30 secondi come se avessi vinto un Oscar. Cita due sponsor immaginari, fai un inchino solenne e chiedi ai tuoi amici: "Merito questo premio?"', 'unhinged', {meccanica:'recitazione'}),
+  M('menu-dei-manubri','IL RISTORANTE DEI MANUBRI',
+    'In un angolo libero della palestra, in vista degli altri, inventa un menu a tre portate usando solo nomi di attrezzi. Leggilo ai tuoi amici con aria da cameriere elegante e chiedi: "Desiderate il dolce oppure il conto?"', 'insane', {meccanica:'creativita'}),
+  M('passerella-del-borsone','LA SFILATA DEL BORSONE',
+    'In una zona libera della palestra, in vista degli altri, sfila per 20 secondi con il tuo borsone come fossi su una passerella. Fai un inchino e chiedi a un amico: "È alta moda o alta vergogna?"', 'insane', {meccanica:'recitazione'}),
+  M('telecronaca-del-recupero','IL TELECRONISTA DELLA PAUSA',
+    'Durante il recupero, davanti a due amici, commenta per 30 secondi il gesto di bere acqua come fosse la finale mondiale. Racconta tre momenti epici, proclama il vincitore e chiedi ai tuoi amici: "È stata la miglior bevuta della storia?"', 'unhinged', {meccanica:'recitazione'}),
+  M('re-del-giorno-riposo','IL RE DEL RIPOSO',
+    'In un angolo libero, davanti ai tuoi amici che vogliono giocare, pronuncia per 60 secondi il discorso d’incoronazione del re del riposo. Annuncia una legge, una tassa assurda e il motto ufficiale; poi chiedi ai tuoi amici: "Mi riconoscete come sovrano?"', 'legendary', {meccanica:'creativita'}),
+  M('processo-all-acqua','IL PROCESSO ALL’ACQUA',
+    'Davanti a due amici consenzienti, accusa la tua borraccia di averti tradito. Interpreta giudice, avvocato e testimone con tre voci diverse. Dopo 45 secondi fai un verdetto ridicolo e chiedi ai tuoi amici: "La sentenza vi sembra giusta?"', 'legendary', {meccanica:'recitazione'}),
+  M('pubblicita-alla-panca','LA PUBBLICITÀ IMPOSSIBILE',
+    'Durante una pausa, inventa una pubblicità di 30 secondi per un attrezzo libero, senza occuparlo. Fai tre promesse assurde e chiedi ai tuoi amici: "Lo comprereste?"', 'easy', {meccanica:'creativita'}),
+  M('addio-alla-lat','ADDIO, CARA LAT',
+    'A fine allenamento, in vista dei tuoi amici, saluta la lat machine come se stessi partendo per dieci anni. Recita un addio drammatico di 30 secondi, poi chiedi ai tuoi amici: "Pensate che mi perdonerà?" e torna alla borraccia.', 'unhinged', {meccanica:'recitazione'}),
 
 ];
 
@@ -355,7 +389,7 @@ export function ricompensaMissione(missione, { segreta = false } = {}) {
   const d = DIFFICOLTA[missione.difficolta] || DIFFICOLTA.easy;
   const f = segreta ? MOLTIPLICATORE_SECRET : 1;
   return {
-    aura: Math.round(d.aura * f),
+    aura: Math.round((Number(missione.puntiAura) || puntiAuraMissione(missione)) * f),
     xp: Math.round(d.xp * f),
     difficolta: d,
     segreta: !!segreta,

@@ -38,7 +38,7 @@ test('Shop bloccato e anteprima non cambiano profilo, saldo o inventario', async
   await pulsante(app,'Anteprima Aura divina').click();
   const divina=perClasse(body,'aura-preview-overlay')[0];
   assert.ok(divina);
-  assert.equal(perClasse(divina,'aura-foto-divina').length,1);
+  assert.equal(perClasse(divina,'rpg-aura-divina-premium').length,1);
   assert.equal(perClasse(divina,'aura-foto-ambra').length,1);
   assert.equal(perClasse(divina,'aura-foto-corona').length,0);
   await pulsante(divina,'Chiudi anteprima').click();
@@ -65,7 +65,7 @@ test('equipaggiare, ricaricare e disequipaggiare conserva tutti gli acquisti e i
   await avvia();
   window.location.hash='#/aura-shop/inventario';
   await pausa();
-  for (const nome of ['Cardio? Denunciami','Fumo d’ombra','Custode delle Braci','Astrale — forma mitica']) {
+  for (const nome of ['Cardio? Denunciami','Fumo d’ombra','Custode delle Braci','Astrale · effetto cosmico']) {
     const riga = perClasse(app,'aura-shop-owned').find(r=>r.textContent.includes(nome));
     assert.ok(riga,nome);
     await pulsante(riga,'Equipaggia').click();
@@ -75,7 +75,7 @@ test('equipaggiare, ricaricare e disequipaggiare conserva tutti gli acquisti e i
   window.location.hash='#/aura-shop/inventario';
   await pausa();
   const profilo=(await db.tutti('profili')).find(p=>p.id==='account-1');
-  assert.deepEqual(profilo.equipaggiamento_aura,{Titolo:'titolo-cardio',Effetto:'effetto-ombra',Armatura:'armatura-guerriero-braci',Skin:'skin-mitica'});
+  assert.deepEqual(profilo.equipaggiamento_aura,{Titolo:'titolo-cardio',Effetto:'effetto-ombra',Armatura:'armatura-guerriero-braci',Astrale:'skin-mitica'});
   for (let i=0;i<4;i++) {
     const riga=perClasse(app,'aura-shop-owned').find(r=>r.textContent.includes('Disequipaggia'));
     assert.ok(riga);

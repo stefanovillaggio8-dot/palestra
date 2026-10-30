@@ -50,7 +50,7 @@ test('Filtri e ordine del catalogo lasciano gli acquisti e i salvataggi intatti'
  const start=app.indexOf('function vistaAuraShop(');
  const end=app.indexOf('function disegnaDentro(',start);
  const shop=app.slice(start,end);
- assert.match(shop,/\['Tutti','Armatura','Effetto','Skin','Titolo'\]/);
+ assert.match(shop,/\['Tutti','Armatura','Effetto','Titolo'\]/);
  assert.match(shop,/ordinaPerRaritaAura\(OGGETTI_AURA\.filter/);
  assert.match(shop,/ordinaPerRaritaAura\(OGGETTI_AURA\.filter\(o=>posseduti\.includes/);
  assert.match(shop,/Dal Comune al Mitico/);

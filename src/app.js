@@ -1448,7 +1448,7 @@ const OGGETTI_AURA = [
   {id:'armatura-assassino-spettro',immagine:'./img/personaggi/armature/assassino-spettro.webp',miniatura:'./img/personaggi/armature/assassino-spettro-mini.webp',nome:'Spettro Cremisi',tipo:'Armatura',rarita:'Leggendario',prezzo:13800,classe:'assassino',icona:'🩸',descrizione:'Silhouette furtiva con bagliori rossi.'},
   {id:'armatura-berserker-rabbia',immagine:'./img/personaggi/armature/berserker-rabbia.webp',miniatura:'./img/personaggi/armature/berserker-rabbia-mini.webp',nome:'Rabbia Antica',tipo:'Armatura',rarita:'Epico',prezzo:9800,classe:'berserker',icona:'🪓',descrizione:'Corna, metallo grezzo e furia pura.'},
   {id:'armatura-berserker-apocalisse',immagine:'./img/personaggi/armature/berserker-apocalisse.webp',miniatura:'./img/personaggi/armature/berserker-apocalisse-mini.webp',nome:'Ultimo Giorno',tipo:'Armatura',rarita:'Leggendario',prezzo:14500,classe:'berserker',icona:'🔥',descrizione:'Un set enorme che sembra uscito dalla fine del mondo.'},
-  {id:'skin-mitica',nome:'Astrale — forma mitica',tipo:'Skin',rarita:'Mitico',prezzo:22000,icona:'🌠',descrizione:'Aspetto cosmico raro, solo estetico.'},
+  {id:'skin-mitica',nome:'Astrale · effetto cosmico',tipo:'Effetto',rarita:'Mitico',prezzo:22000,icona:'🌠',descrizione:'Un effetto stellare viola che si combina con altre particelle, Aura divina e Corona.'},
 ];
 const CLASSE_AURA = {guerriero:'Guerriero',assassino:'Assassino',berserker:'Berserker'};
 
@@ -1603,7 +1603,7 @@ function apriAnteprimaAura(oggetto, profilo, st) {
   const disegnaAnteprima = () => {
     const profiloAnteprima = {
       ...profilo, classe_rpg: classeAnteprima,
-      equipaggiamento_aura: { ...(profilo.equipaggiamento_aura || {}), [oggetto.tipo]: oggetto.id },
+      equipaggiamento_aura: { ...(profilo.equipaggiamento_aura || {}), [oggetto.id === 'skin-mitica' ? 'Astrale' : oggetto.tipo]: oggetto.id },
     };
     const personaggio = bloccoPersonaggio(profiloAnteprima, st);
     personaggio.classList.add('aura-preview-character');
@@ -1784,7 +1784,7 @@ function vistaAuraShop(zona, soloInventario = false) {
     el('div',{},[
       el('span',{class:'aura-shop-kicker',testo:'RICOMPENSA ESCLUSIVA · NON IN VENDITA'}),
       el('h2',{testo:'Corona dell’Infinito'}),
-      el('p',{testo:'L’aura più rara: anello cosmico, particelle stellari e bagliore che pulsa attorno al personaggio.'}),
+      el('p',{testo:'Corona dorata sospesa sopra la testa, con rune e sigilli; si abbina all’alone celestiale dell’Aura divina senza confondersi.'}),
       el('strong',{testo:streak>=80?'✦ SBLOCCATA · 80 giorni raggiunti':Math.min(80,streak)+' / 80 giorni di streak'}),
       el('div',{class:'aura-shop-progress'},[el('span',{style:'width:'+Math.min(100,streak/80*100)+'%'})]),
       el('small',{testo:streak>=80?'Questa ricompensa resta tua: non serve comprarla.':'Allenati con costanza per sbloccare la più bella aura del gioco.'}),
@@ -1823,10 +1823,13 @@ function vistaAuraShop(zona, soloInventario = false) {
   const oggettiPosseduti=ordinaPerRaritaAura(OGGETTI_AURA.filter(o=>posseduti.includes(o.id)&&(!o.classe||o.classe===classe)));
   // Equipaggiamento persistente sul profilo: equipaggiare non consuma né elimina l'oggetto.
   const equipaggiamento = { ...(profilo.equipaggiamento_aura || {}) };
-  const slotOggetto = (o) => o.tipo === 'Armatura' ? 'Armatura' : o.tipo;
+  const slotOggetto = (o) => o.id === 'skin-mitica' ? 'Astrale' : (o.tipo === 'Armatura' ? 'Armatura' : o.tipo);
+  // Gli acquisti precedenti hanno ancora Astrale nello slot Skin.
+  if (!Object.hasOwn(equipaggiamento,'Astrale') && equipaggiamento.Skin === 'skin-mitica') equipaggiamento.Astrale = 'skin-mitica';
   const salvaEquipaggiamento = async (slot, id) => {
     const profiloCorrente = profiloAttivo();
     const prossimo = { ...(profiloCorrente.equipaggiamento_aura || {}) };
+    if (slot === 'Astrale') delete prossimo.Skin; // migrazione vecchio slot
     if (id) prossimo[slot] = id; else delete prossimo[slot];
 
     // Aggiorna subito il profilo in memoria e IndexedDB: il testo del pulsante
@@ -1891,7 +1894,7 @@ function vistaAuraShop(zona, soloInventario = false) {
   const griglia=el('div',{class:'aura-shop-grid'});
   catalogo.appendChild(griglia);
   let filtro='Tutti';
-  for(const f of ['Tutti','Armatura','Effetto','Skin','Titolo']){
+  for(const f of ['Tutti','Armatura','Effetto','Titolo']){
     const tastoFiltro=bottone(f,{classe:'fantasma aura-shop-filter'+(filtro===f?' attivo':''),onClick:()=>{
       filtro=f;
       for(const b of filtri.querySelectorAll('button')) {
@@ -5864,24 +5867,18 @@ function teschioStreak(st) {
     //
     // E nel caso "da accendere" il numero c’è lo stesso: la tua streak non è
     // sparita, è a un passo dal salire. Mostrare "??" diceva che avevi perso tutto.
+    el('span', { class:'kpi-nome', testo:'🔥 STREAK' }),
     el('span', {
       class: 'fuoco',
-      testo: stato === 'spenta' ? '??' : String(f.giorni),
+      testo: String(f.giorni),
       // Il numero che appena è cambiato pulsa: è l'unico modo per capire se
       // quello che stai guardando è il nuovo o il vecchio, senza leggere due volte.
       dati: { giorni: String(f.giorni), stato },
     }),
-    el('div', { class: 'riga-streak' }, [
-      el('strong', { class: 'etichetta-streak', testo: 'STREAK' }),
-      el('span', {
-        class: 'nota',
-        testo: stato === 'acceso'
-          ? (f.giorni === 1 ? 'un giorno di fila' : 'giorni di fila')
-          : (stato === 'da accendere'
-            ? `ti tocca oggi: allenati e sale a ${f.giorni + 1}`
-            : f.nome),
-      }),
-    ]),
+    el('span', { class:'nota kpi-sottotitolo',
+      testo: stato === 'spenta' ? 'Serie da riprendere'
+        : f.giorni === 1 ? 'giorno consecutivo' : 'giorni consecutivi',
+    }),
     // L'AVVISO DEL GIORNO CHE ASPETTA.
     //
     // Ste (10/10/2026): "quando devo allenarmi, spunta streak accesa con lo 0". Aveva
@@ -5907,7 +5904,23 @@ function teschioAura(st) {
   return el('div', { class: 'teschio-aura' }, [
     el('span', { class: 'simbolo', testo: 'AURA' }),
     el('strong', { testo: formattaAura(st.aura) }),
-    el('span', { class: 'nota', testo: `livello account ${st.livello.livello} · ${formattaNumero(st.livello.xp)} XP` }),
+    el('span', { class:'nota kpi-sottotitolo', testo:'Saldo disponibile' }),
+  ]);
+}
+
+function teschioLivelloAccount(st) {
+  return el('div', { class:'teschio-livello' }, [
+    el('span',{class:'simbolo',testo:'LIVELLO ACCOUNT'}),
+    el('strong',{testo:String(st.livello.livello)}),
+    el('span',{class:'nota kpi-sottotitolo',testo:'Prossimo: livello '+(st.livello.livello+1)}),
+  ]);
+}
+function teschioXP(st) {
+  return el('div', { class:'teschio-xp' }, [
+    el('span',{class:'simbolo',testo:'XP TOTALI'}),
+    el('strong',{testo:formattaNumero(st.livello.xp)}),
+    el('span',{class:'nota kpi-sottotitolo',testo:'Mancano '+formattaNumero(st.livello.mancano)+' XP'}),
+    barraProgresso(st.livello.progresso,'XP verso il livello '+(st.livello.livello+1)),
   ]);
 }
 
@@ -6404,7 +6417,7 @@ function bloccoPersonaggio(profilo, st) {
   const equipaggiamentoRpg = profilo.equipaggiamento_aura || {};
   const armaturaEquipaggiata = OGGETTI_AURA.find((o) => o.id === equipaggiamentoRpg.Armatura && o.tipo === 'Armatura' && o.classe === (rpg.classe && rpg.classe.id));
   const effettoEquipaggiato = OGGETTI_AURA.find((o) => o.id === equipaggiamentoRpg.Effetto && o.tipo === 'Effetto');
-  const skinEquipaggiata = OGGETTI_AURA.find((o) => o.id === equipaggiamentoRpg.Skin && o.tipo === 'Skin');
+  const skinEquipaggiata = OGGETTI_AURA.find((o) => o.id === (equipaggiamentoRpg.Astrale ?? equipaggiamentoRpg.Skin) && o.id === 'skin-mitica');
   const titoloEquipaggiato = OGGETTI_AURA.find((o) => o.id === equipaggiamentoRpg.Titolo && o.tipo === 'Titolo');
 
   const box = el('section', { class: 'blocco' });
@@ -6491,7 +6504,13 @@ function bloccoPersonaggio(profilo, st) {
     // sembrare la normale aura dorata, ma un alone celestiale con anello e raggi.
     const recordCorona = Math.max(Number(rpg.recordStreak)||0, Number(st?.streak?.record)||0);
     const coronaAttiva = statoCoronaInfinito(equipaggiamentoRpg, recordCorona, coronaAnteprima).visibile;
-    if (coronaAttiva) grafica.classList.add('personaggio-aura-divina');
+    const auraDivinaAttiva=Boolean(viso.aura)||auraDivinaAnteprima;
+    if (auraDivinaAttiva) {
+      grafica.classList.add('personaggio-aura-divina');
+      grafica.appendChild(el('img',{class:'rpg-aura-divina-premium',
+        src:'./img/effetti/aura-divina-v357.svg',
+        alt:'',aria:{hidden:'true'},loading:'eager',decoding:'async'}));
+    }
     if(coronaAttiva) {
       // Premio di 80 giorni: un unico livello illustrato premium, niente
       // due corone incollate tra il vecchio atlante e il nuovo Canvas.
@@ -6663,8 +6682,8 @@ function bloccoPersonaggio(profilo, st) {
     // compositore fotografico li nascondeva tramite rpg-composite-active.
     if (effettoVivo) grafica.classList.add('rpg-render-live');
     const scenaFotografica = !effettoVivo && montaFotoRpg(grafica, effettoEquipaggiato?.id || null, {
-      corona: coronaAttiva,
-      divina: Boolean(viso.aura) || auraDivinaAnteprima,
+      corona: false, // Corona SVG indipendente, visibile anche con foto combinate
+      divina: false, // Aura divina celestiale distinta dall'atlante dorato
       mitica: skinEquipaggiata?.id === 'skin-mitica',
       classe: classeId,
     });
@@ -6677,8 +6696,8 @@ function bloccoPersonaggio(profilo, st) {
       armatura: armaturaEquipaggiata?.id || null,
       skin: skinEquipaggiata?.id || null,
       effetto: effettoEquipaggiato?.id || null,
-      divina: Boolean(viso.aura) || auraDivinaAnteprima,
-      corona: coronaAttiva,
+      divina: false, // sovrapposto separatamente
+      corona: false, // sovrapposta separatamente
     });
     // Le tre griglie APPROVATE vengono utilizzate come fotografie integrate
     // senza alterare i ritratti Streak e gli altri cosmetici non rappresentati.
@@ -6689,7 +6708,9 @@ function bloccoPersonaggio(profilo, st) {
     const scenaRichiesta=Number.isInteger(profilo?.__anteprimaStato) ||
       coronaAnteprima || auraDivinaAnteprima ||
       Boolean(armaturaEquipaggiata || effettoEquipaggiato || skinEquipaggiata || coronaAttiva);
-    if(scenaRichiesta && !effettoVivo) montaScenaCinematograficaRpg(grafica,fotoRpg,{
+    // Le scene preconfezionate possono già includere una corona: con i nuovi
+    // livelli premium usiamo invece sempre la foto originale e sovrapposizioni distinte.
+    if(scenaRichiesta && !effettoVivo && !auraDivinaAttiva && !coronaAttiva) montaScenaCinematograficaRpg(grafica,fotoRpg,{
       classe:classeId,
       stato:statoFotoConsentito,
       armaSbloccata:armaSbloccata,
@@ -6703,8 +6724,8 @@ function bloccoPersonaggio(profilo, st) {
     // quando la fotografia è pronta: nessun avatar senza effetti su Safari.
     if (effettoVivo || (!scenaFotografica && !combinata)) {
       montaEffettiRpg(grafica, effettoVivo ? effettoEquipaggiato?.id || null : null, {
-        divina: Boolean(viso.aura) || auraDivinaAnteprima,
-        corona: coronaAttiva,
+        divina: false,
+        corona: false,
         mitica: skinEquipaggiata?.id === 'skin-mitica',
         classe: classeId,
       });
@@ -6838,7 +6859,9 @@ scena.appendChild(grafica);
   box.appendChild(scena);
   // Mostra sul personaggio quali cosmetici del negozio sono equipaggiati.
   // La collezione resta intatta anche quando si cambia aspetto.
-  const oggettiEquipaggiati = OGGETTI_AURA.filter((o) => equipaggiamentoRpg[o.tipo === 'Armatura' ? 'Armatura' : o.tipo] === o.id);
+  const oggettiEquipaggiati = OGGETTI_AURA.filter((o) => o.id === 'skin-mitica'
+    ? (equipaggiamentoRpg.Astrale ?? equipaggiamentoRpg.Skin) === o.id
+    : equipaggiamentoRpg[o.tipo === 'Armatura' ? 'Armatura' : o.tipo] === o.id);
   const coronaIndossata = statoCoronaInfinito(equipaggiamentoRpg, Math.max(Number(rpg.recordStreak)||0,Number(st?.streak?.record)||0)).equipaggiata;
   if (oggettiEquipaggiati.length || coronaIndossata) {
     box.appendChild(el('div', { class: 'personaggio-equipaggiamento' }, [
@@ -7313,6 +7336,8 @@ function vistaCasa(zona) {
   const riepilogo = el('div', { class: 'riga-teschio' }, [
     teschioStreak(st),
     teschioAura(st),
+    teschioLivelloAccount(st),
+    teschioXP(st),
     el('div', { class: 'teschio-rank' }, [
       el('span', { class: 'simbolo', testo: 'RANK' }),
       st.rankPrincipale
@@ -7339,10 +7364,7 @@ function vistaCasa(zona) {
       el('span',{testo:'Aura Shop'}),
     ]),
   ]));
-  zona.appendChild(el('div', { class: 'blocco-progresso-livello' }, [
-    barraProgresso(st.livello.progresso, `account: livello ${st.livello.livello} → ${st.livello.livello + 1}`),
-    el('span', { class: 'nota', testo: `mancano ${formattaNumero(st.livello.mancano)} XP al livello account ${st.livello.livello + 1}` }),
-  ]));
+  // Il progresso XP si trova ora nella tessera accanto a Streak, Aura e livello.
 
   // --- ultimo allenamento ---
   const finite = seduteMie().filter((s) => s && !s.eliminata && s.stato === 'completata')

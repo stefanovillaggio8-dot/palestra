@@ -152,7 +152,7 @@ test('T5. la card dice cosa fare, e non sembra accesa quando non lo è', () => {
   assert.match(card, /▲ Oggi ti tocca: allenati e sale a \$\{f\.giorni \+ 1\}/,
     'e quando ha giorni, dice quanto sale se vai: è la domanda che ti fai guardandola');
   // il numero resta quello vero, anche a zero: "??" avrebbe significato "l'hai persa"
-  assert.match(card, /stato === 'spenta' \? '\?\?' : String\(f\.giorni\)/,
+  assert.match(card, /testo: String\(f\.giorni\)/,
     'il numero resta anche quando devi ancora accenderla');
 
   // E LA CARD NON DEVE SEMBRARE ACCESA.
