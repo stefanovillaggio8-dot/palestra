@@ -455,9 +455,16 @@ test('1b. ogni giorno si puo\' aprire senza iniziare l\'allenamento', async () =
   globalThis.window.location.hash = '#/';
   await attendiChe(() => perClasse(app, 'scheda-giorno').length === 4);
   const giorni = perClasse(app, 'scheda-giorno');
-  const link = perClasse(giorni[0], 'titolo-collegabile')[0];
+  // Il prossimo giorno puo' apparire per primo: non presumere Giorno 1.
+  // Tutte e quattro le schede devono comunque essere navigabili.
+  const linkGiorni=giorni.flatMap(g=>perClasse(g,'titolo-collegabile'));
+  assert.deepEqual(
+    new Set(linkGiorni.map(link=>link.attributi.href)),
+    new Set(['#/giorno/giorno-1','#/giorno/giorno-2',
+             '#/giorno/giorno-3','#/giorno/giorno-4']),
+  );
+  const link=linkGiorni.find(link=>link.attributi.href==='#/giorno/giorno-1');
   assert.ok(link, 'il nome del giorno si puo\' toccare');
-  assert.equal(link.attributi.href, '#/giorno/giorno-1');
 
   // non deve partire nessuna seduta
   const prima = await db.tutti('sedute');
