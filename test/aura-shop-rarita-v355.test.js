@@ -36,6 +36,6 @@ test('Il codice del negozio usa il criterio nuovo, non il vecchio raggruppamento
  assert.match(shop,/const elenco=ordinaPerRaritaAura\(OGGETTI_AURA\.filter/);
  assert.match(shop,/const oggettiPosseduti=ordinaPerRaritaAura\(/);
  assert.doesNotMatch(shop,/ordineTipi=/);
- assert.match(shop,/for\(const f of \['Tutti','Armatura','Effetto','Skin','Titolo'\]\)/);
+ assert.match(shop,/for\(const f of \['Tutti','Armatura','Effetto','Titolo'\]\)/);
  assert.match(shop,/await sb\.acquistaAura\(account, o\.id\)/);
 });
