@@ -40,11 +40,11 @@ test('Corona equipaggiabile in slot separato con tutte le combinazioni, anche tr
 test('La Corona non costa Aura e la preview conserva tutti gli slot',async()=>{
   const app=await readFile(new URL('../src/app.js',import.meta.url),'utf8');
   const fx=await readFile(new URL('../src/effetti-rpg-canvas.js',import.meta.url),'utf8');
-  assert.match(app,/equipaggiamento_aura: \{ \.\.\.\(profilo\.equipaggiamento_aura \|\| \{\}\), \[oggetto\.id === 'skin-mitica' \? 'Astrale' : oggetto\.tipo\]: oggetto\.id \}/);
+  assert.match(app,/aggiornaEquipaggiamentoRpg\(profilo\.equipaggiamento_aura,oggetto,true\)/);
   assert.match(app,/cambiaCoronaInfinito\(profiloCorrente\.equipaggiamento_aura/);
   assert.match(app,/Corona dell.Infinito/);
-  assert.match(app,/mitica: skinEquipaggiata\?\.id === 'skin-mitica'/);
-  assert.match(app,/rpg-corona-premium/);
+  assert.match(app,/mitica: astraleAttiva/);
+  assert.match(app,/rpg-corona-foto-v359/);
   assert.match(app,/effettoEquipaggiato\?\.id \|\| null/);
   assert.match(fx,/mitica && tipo!=='effetto-nebula'/);
   assert.match(fx,/if\(divina && corona\)/);

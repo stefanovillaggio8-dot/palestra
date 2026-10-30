@@ -1,0 +1,51 @@
+name: Render actual Corona photographs v359
+on:
+  push:
+    branches: [fix/v359-foto-corona-aura-e-slot]
+    paths:
+      - 'rpg-corona-v359.trigger'
+permissions:
+  contents: write
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/v359-foto-corona-aura-e-slot
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install image renderer
+        run: python -m pip install pillow
+      - name: Generate real full-frame RPG photos
+        run: python tools/render_corona_v359.py
+      - name: Validate each of the 144 unique photographs
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          cl={'assassino':['armatura-assassino-notte','armatura-assassino-spettro'],
+              'guerriero':['armatura-guerriero-braci','armatura-guerriero-abisso'],
+              'berserker':['armatura-berserker-rabbia','armatura-berserker-apocalisse']}
+          root=Path('img/personaggi/corona-v359')
+          items=list(root.rglob('*.webp'))
+          assert len(items)==144,(len(items),str(items[:5]))
+          for cls,arm in cl.items():
+            for base in [*(f'stato-{i}' for i in range(6)),*arm]:
+              for effect in ['base','ambra','ombra','fulmine','nebula','astrale']:
+                f=root/cls/base/(effect+'.webp')
+                assert f.is_file(),f
+                with Image.open(f) as image:
+                  assert image.width>=320 and image.height>=480,(f,image.size)
+                  image.verify()
+          print('144 new photo assets are complete and decodable')
+          PY
+      - name: Commit image assets to the same branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add img/personaggi/corona-v359/
+          git rm -f rpg-corona-v359.trigger
+          git commit -m "assets(v359): 144 full photographic Corona variants"
+          git push origin HEAD:fix/v359-foto-corona-aura-e-slot

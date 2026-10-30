@@ -6,7 +6,7 @@ import {
  TITOLI_ATELIER,combinazioniRpg,opzioniAtelier,nomeFileAtelier,renderFotoAtelier,
 } from '../src/rpg-atelier.js';
 
-test('Copertura completa delle 15120 combinazioni RPG senza duplicati',()=>{
+test('Copertura completa delle 9072 combinazioni RPG senza duplicati',()=>{
  const keys=new Set();
  const perClasse={guerriero:0,assassino:0,berserker:0};
  for(const cfg of combinazioniRpg()) {
@@ -18,9 +18,9 @@ test('Copertura completa delle 15120 combinazioni RPG senza duplicati',()=>{
    assert.ok(TITOLI_ATELIER.includes(cfg.titolo));
    perClasse[cfg.classe]++;
  }
- assert.equal(NUMERO_COMBINAZIONI_ATELIER,15120);
+ assert.equal(NUMERO_COMBINAZIONI_ATELIER,9072);
  assert.equal(keys.size,NUMERO_COMBINAZIONI_ATELIER);
- for(const classe of CLASSI_ATELIER)assert.equal(perClasse[classe],5040);
+ for(const classe of CLASSI_ATELIER)assert.equal(perClasse[classe],3024);
 });
 
 test('Le armature delle altre classi non possono sovrapporsi',()=>{
@@ -74,8 +74,8 @@ test('Esporta realmente la foto combinata con le texture separabili',async(t)=>{
    skin:'skin-mitica',divina:true,corona:true,titolo:'titolo-panca',
  });
  assert.equal(out.width,780);assert.equal(out.height,1170);
- assert.ok(draws.length>=4,'ritratto originale + mitica + fulmine + divina + corona');
- assert.equal(draws[0][0],ritratto,'ritratto originale e non generato');
+ assert.ok(draws.length>=3,'foto completa + Aura divina storica + maschera fotografica');
+ assert.ok(draws[0][0] && draws[0][0].naturalWidth,'foto pre-renderizzata con la stessa identità, non adesivi');
  assert.ok(texts.length>=1,'titolo presente nella foto');
 });
 
@@ -95,5 +95,5 @@ test('PNG esportato: gli effetti vengono mascherati prima di coprire il volto',a
   assert.match(source,/fasciaSagoma\(c\.classe,y\)/);
   assert.match(source,/left=Math\.min\(left,\.34\)/);
   assert.match(source,/right=Math\.max\(right,\.66\)/);
-  assert.match(source,/if\(c\.corona\)/);
+  assert.match(source,/percorsoFotoCoronaV359/);
 });
