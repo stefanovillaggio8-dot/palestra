@@ -28,19 +28,19 @@ test('v365: no invented weapons, no simultaneous Shop effects, no swapped paid a
 });
 test('v365: app uses the original stage photograph, no second aura overlay and one effect only',()=>{
  const app=file('src/app.js');
- assert.match(app,/import \{ percorsoFotoAuraDivinaV365 \}/);
- assert.match(app,/const fotoAuraDivinaRpg=percorsoFotoAuraDivinaV365/);
+ assert.match(app,/import \{ percorsoFotoAuraDivinaV366 \}/);
+ assert.match(app,/const fotoAuraDivinaRpg=percorsoFotoAuraDivinaV366/);
  assert.match(app,/src: fotoAuraDivinaRpg \|\| fotoCoronaRpg/);
  assert.match(app,/divina: auraDivinaAttiva && !fotoAuraDivinaRpg/);
  assert.match(app,/const auraDivinaAttiva=auraDivinaAnteprima \|\| \(Boolean\(viso\.aura\) && !effettoEquipaggiato\)/);
  assert.match(app,/armaSbloccataRpg\(rpg.premi\)/);
- assert.match(file('src/anteprima-combinata-rpg.js'),/aura-divina-v365/);
+ assert.match(file('src/anteprima-combinata-rpg.js'),/aura-divina-v\(\?:365\|366\)/);
  assert.doesNotMatch(app,/db\.salva\([^)]*auraDivinaRpg/);
 });
 test('v365: 9 full-frame WebP files and versioned iPhone offline gallery',()=>{
  const sw=file('sw.js'),html=file('index.html');
- assert.match(sw,/palestra-v365/);
- assert.match(html,/palestra-v365/);
+ assert.match(sw,/palestra-v366/);
+ assert.match(html,/palestra-v366/);
  assert.match(sw,/foto-aura-divina-v365\.js/);
  assert.match(sw,/aura-divina-v365\/'/);
  assert.match(sw,/aura-divina-v365-anteprima\.html/);

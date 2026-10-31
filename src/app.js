@@ -5,7 +5,7 @@
 import { requisitoSkin, accessoSkin, scenarioSkin, statoCoronaInfinito, cambiaCoronaInfinito, CORONA_INFINITO_ID, ordinaPerRaritaAura } from './aura-skin.js';
 import { equipaggiamentoRpgUnico, slotPerOggettoRpg, aggiornaEquipaggiamentoRpg } from './equipaggiamento-rpg.js';
 import { percorsoFotoCoronaV360 } from './foto-corona-v360.js';
-import { percorsoFotoAuraDivinaV365 } from './foto-aura-divina-v365.js';
+import { percorsoFotoAuraDivinaV366 } from './foto-aura-divina-v366.js';
 import * as db from './db.js';
 import * as sb from './supabase.js';
 import * as sync from './sync.js';
@@ -1670,9 +1670,9 @@ function apriAnteprimaAuraDivinaRpg(profilo, st) {
       ]),
       bottone('✕',{classe:'fantasma aura-preview-close',titolo:'Chiudi anteprima',onClick:chiudi}),
     ]),
-    el('p',{class:'nota',testo:'Anteprima con il tuo equipaggiamento attuale. Non modifica gli oggetti e non sblocca premi in anticipo.'}),
+    el('p',{class:'nota',testo:'Anteprima del premio a 75 giorni: armatura completa, armi già sbloccate e la tua armatura dello Shop, se equipaggiata. Non modifica sblocchi o inventario.'}),
   ]);
-  const avatar=bloccoPersonaggio({...profilo,__anteprimaDivina:true},st);
+  const avatar=bloccoPersonaggio({...profilo,__anteprimaDivina:true,__anteprimaStato:5},st);
   avatar.classList.add('aura-preview-character');
   for(const nodo of avatar.querySelectorAll('.riga-pezzi, .personaggio-equipaggiamento, button'))nodo.remove();
   pannello.appendChild(avatar);
@@ -1799,7 +1799,7 @@ function vistaAuraShop(zona, soloInventario = false) {
   const premioDivino=el('section',{class:'aura-streak-divina'},[
     el('span',{class:'aura-shop-kicker',testo:'RICOMPENSA GRATUITA · STREAK'}),
     el('h2',{testo:'Aura divina · 75 giorni'}),
-    el('p',{class:'nota',testo:'Un alone celestiale che resta insieme alle armature, alle skin, alla Corona e agli effetti comprati.'}),
+    el('p',{class:'nota',testo:'Luce divina sul personaggio già completo, anche con le armature dello Shop. Un solo effetto visivo alla volta.'}),
     el('strong',{testo:streak>=75?'✓ SBLOCCATA':streak+' / 75 giorni di record'}),
     bottone('Anteprima Aura divina',{classe:'fantasma aura-divina-preview-btn',
       onClick:()=>apriAnteprimaAuraDivinaRpg(profiloAttivo(),statoMio())}),
@@ -6640,7 +6640,7 @@ function bloccoPersonaggio(profilo, st) {
     // Il pugnale dell'Assassino, la spada del Guerriero e l'ascia del
     // Berserker corrispondono al premio 'elmo' (30 giorni di RECORD Streak).
     // Il valore arriva dai premi reali, non dallo stadio visualizzato.
-    const armaSbloccata=armaSbloccataRpg(rpg.premi);
+    const armaSbloccata=armaSbloccataRpg(rpg.premi) || auraDivinaAnteprima; // Preview 75 days must show unlocked weapons without modifying real rewards
     // Anche un'anteprima di uno stadio futuro NON deve anticipare un'arma.
     const statoFotoConsentito=armaSbloccata ? viso.indice : Math.min(viso.indice,3);
     const fotoProgressioneRpg = percorsoStato(classeId, statoFotoConsentito);
@@ -6656,13 +6656,14 @@ function bloccoPersonaggio(profilo, st) {
       divina:false, // Aura v363 e' ora sempre un livello separato, mai bruciato nella fotografia della Corona.
       armaSbloccata,
     }) : null;
-    // v365: the actual approved gold Divine Aura is baked into only these
-    // nine canonical stage photos. Paid armor, crown and other FX keep their
-    // independent routes; no image may secretly grant a missing weapon.
-    const fotoAuraDivinaRpg=percorsoFotoAuraDivinaV365({
-      classe:classeId,stato:statoFotoConsentito,
+    // v366: 75-day reward always has the completed stage-5 legendary armor
+    // and the authentic class weapon earned at day 30. Only Shop armor
+    // selection changes the photograph; extra Shop effects are NEVER stacked.
+    const fotoAuraDivinaRpg=percorsoFotoAuraDivinaV366({
+      classe:classeId,
+      stato:auraDivinaAnteprima ? 5 : statoFotoConsentito,
       divina:auraDivinaAttiva,
-      armatura:fotoArmaturaRpg ? armaturaEquipaggiata?.id : null,
+      armatura:armaturaEquipaggiata?.id || null,
       corona:coronaAttiva,
       effetto:effettoEquipaggiato?.id || null,
       anteprima:auraDivinaAnteprima,
@@ -6716,7 +6717,7 @@ function bloccoPersonaggio(profilo, st) {
     if (effettoVivo) grafica.classList.add('rpg-render-live');
     const scenaFotografica = (!effettoVivo || auraDivinaAttiva) && montaFotoRpg(grafica, fotoAuraDivinaRpg || fotoCoronaRpg || effettoVivo || auraDivinaAttiva || astraleAttiva ? null : effettoEquipaggiato?.id || null, {
       corona: false, // Nuova Corona regale: asset indipendente
-      divina: auraDivinaAttiva && !fotoAuraDivinaRpg, // v365 image already contains the approved aura; never overlay it twice.
+      divina: auraDivinaAttiva && !fotoAuraDivinaRpg, // v366 has Divine Aura baked into complete armor photos; no second overlay.
       mitica: !auraDivinaAttiva && !fotoCoronaRpg && astraleAttiva,
       classe: classeId,
     });

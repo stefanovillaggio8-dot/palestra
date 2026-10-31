@@ -46,6 +46,6 @@ test('v363: volto intatto, salvataggio con lo stesso effetto e cache offline',()
  assert.match(photos,/ctx\.drawImage\(magica,0,0,out\.width,out\.height\)/);
  const sw=source('sw.js'),html=source('index.html');
  assert.match(sw,/aura-divina-v364\.webp\?v=364/);
- assert.match(sw,/palestra-v365/);
- assert.match(html,/palestra-v365/);
+ assert.match(sw,/palestra-v366/);
+ assert.match(html,/palestra-v366/);
 });

@@ -6,6 +6,7 @@ import { FOTO_RPG_RIQUADRI, livelliFotoRpg } from './aura-foto-rpg.js';
 import { fasciaSagoma, disegnaCoronaEnergetica } from './anteprima-combinata-rpg.js';
 import { fotoCinematograficaRpg } from './foto-cinematica-rpg.js';
 import { percorsoFotoCoronaV360 } from './foto-corona-v360.js';
+import { percorsoFotoAuraDivinaV366 } from './foto-aura-divina-v366.js';
 
 export const CLASSI_ATELIER = Object.freeze(['guerriero','assassino','berserker']);
 export const EFFETTI_ATELIER = Object.freeze([
@@ -73,7 +74,8 @@ const fotoPronta = async(el)=>{
     I cambi colore/armature sono solo cosmetici, mai premi Streak anticipati. */
 export async function renderFotoAtelier(grafica, opzioni={}) {
   if(typeof document==='undefined')throw new Error('Serve il browser');
-  const c=opzioniAtelier(opzioni);
+  const input=opzioniAtelier(opzioni);
+  const c=input.divina?{...input,stadio:5,effetto:''}:input; // visual preview only: 75-day reward is full armor, one aura
   const fotoBase=await fotoPronta(grafica?.querySelector?.('.personaggio-ritratto'));
   // Il file finale deve usare lo stesso scatto completo visibile in anteprima.
   // Se il collage non e' installato resta il renderer precedente.
@@ -81,7 +83,13 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
     classe:c.classe,stato:c.stadio,armatura:c.armatura||null,
     effetto:c.effetto||null,divina:c.divina,armaSbloccata:c.stadio>=4,
   }) : null;
-  const scena=fotoCorona || (c.divina ? null : await fotoCinematograficaRpg({...c,corona:false,divina:false}));
+  // Aura alone is already baked into all nine full-armored Shop/standard photos.
+  // The Atelier never adds a second Shop effect to Divine Aura.
+  const fotoDivina=!c.corona&&c.divina?percorsoFotoAuraDivinaV366({
+    classe:c.classe,stato:c.stadio,armatura:c.armatura||null,
+    divina:true,corona:false,effetto:null,anteprima:true,armaSbloccata:true
+  }):null;
+  const scena=fotoDivina||fotoCorona||(c.divina?null:await fotoCinematograficaRpg({...c,corona:false,divina:false}));
   const immagine=scena ? await attesaImmagine(scena).catch(()=>fotoBase) : fotoBase;
   const giaFotografica=Boolean(scena&&immagine!==fotoBase);
   const larghezza=780,altezza=1170;
@@ -102,11 +110,11 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
   }
   // I nuovi WebP includono già l'effetto acquistato. Solo l'Aura divina,
   // premio separato dei 75 giorni, va aggiunta alla foto finale.
-  const livelli=fotoCorona
+  const livelli=(fotoDivina||fotoCorona)
     ? livelliFotoRpg(null,{mitica:false,corona:false,divina:false})
     : livelliFotoRpg(c.effetto==='skin-mitica'?null:c.effetto,
         {mitica:c.effetto==='skin-mitica',corona:false,divina:c.divina});
-  if((!giaFotografica || c.divina)&&livelli.length) {
+  if((!giaFotografica || (c.divina && !fotoDivina))&&livelli.length) {
     const atlas=await attesaImmagine(AURA_FOTO_ATLAS);
     const sw=atlas.naturalWidth/3,sh=atlas.naturalHeight/2;
     const posX={'0%':0,'50%':1,'100%':2},posY={'0%':0,'100%':1};
