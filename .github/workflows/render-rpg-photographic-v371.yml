@@ -1,0 +1,49 @@
+name: Render and validate original-photo RPG artwork
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'rpg-art-v371.trigger'
+permissions:
+  contents: write
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 29
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install image decoders
+        run: python -m pip install Pillow pillow-avif-plugin
+      - name: Build 648 crown composites and nine Divine awards from actual originals
+        run: python tools/render_corona_v360.py
+      - name: Validate all generated images
+        run: |
+          python - <<'PY'
+          from PIL import Image
+          from pathlib import Path
+          a=list(Path("img/personaggi/corona-v360").rglob("*.webp"))
+          b=list(Path("img/personaggi/aura-divina-v371").rglob("*.webp"))
+          assert len(a)==648, len(a)
+          assert len(b)==9,len(b)
+          for p in a+b:
+              with Image.open(p) as im:
+                  assert im.size==(720,1080),(p,im.size)
+                  im.verify()
+              assert p.stat().st_size>10000,p
+          print("Verified:",len(a),"Corona photos and",len(b),"Aura Divina photos")
+          PY
+      - name: Commit generated binary images
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add img/personaggi/corona-v360 img/personaggi/aura-divina-v371 docs/corona-v360-anteprima.jpg
+          git add -u rpg-art-v371.trigger
+          git diff --cached --quiet && exit 0
+          git commit -m "assets(v371): authentic Shop armors, real unlocked weapons, horned Berserker and matching divine aura"
+          git pull --rebase origin main
+          git push origin HEAD:main
