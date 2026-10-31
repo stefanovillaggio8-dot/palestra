@@ -108,7 +108,10 @@ def apply_divine(im, divine):
     d.ellipse((w*.23,h*.08,w*.78,h*.98),fill=235)
     protect=protect.filter(ImageFilter.GaussianBlur(44))
     from PIL import ImageChops
-    mask=ImageChops.subtract(mask, protect.point(lambda v: int(v*.84)))
+    mask=ImageChops.subtract(mask, protect.point(lambda v: int(v*.90)))
+    # The original Aura is very bright: soften ONLY in combined Corona photos.
+    # Standalone Aura divina in the app remains untouched.
+    mask=mask.point(lambda v: int(v*.25))
     aura.putalpha(mask)
     im.alpha_composite(aura)
     return im
@@ -116,7 +119,7 @@ def apply_divine(im, divine):
 def crown_effects(im, cls, seed):
     w,h=im.size
     rng=random.Random(seed)
-    head_y={"assassino":.091,"guerriero":.086,"berserker":.102}[cls]*h
+    head_y={"assassino":.077,"guerriero":.075,"berserker":.081}[cls]*h
     halo=Image.new("RGBA",im.size,(0,0,0,0))
     glow=Image.new("RGBA",im.size,(0,0,0,0))
     d=ImageDraw.Draw(halo,"RGBA")
@@ -124,8 +127,8 @@ def crown_effects(im, cls, seed):
     cx=w*.50
     # Concentrated gold-violet endgame energy, behind the head only.
     for k in range(3):
-        rx=w*(.158+k*.029)
-        ry=h*(.061+k*.013)
+        rx=w*(.124+k*.024)
+        ry=h*(.039+k*.010)
         box=(int(cx-rx),int(head_y-ry),int(cx+rx),int(head_y+ry))
         col=(255,189,70,115-k*25) if k%2==0 else (182,95,255,125)
         d.arc(box,192+k*18,345+k*12,fill=col,width=max(1,4-k))
@@ -149,11 +152,11 @@ def crown_effects(im, cls, seed):
 def fit_crown(im, crown, cls):
     w,h=im.size
     # Same design and size hierarchy for every class.
-    width=int(w*({"assassino":.30,"guerriero":.285,"berserker":.24}[cls]))
-    height=max(1,int(width*crown.height/crown.width))
+    width=int(w*({"assassino":.175,"guerriero":.172,"berserker":.166}[cls]))
+    height=int(h*({"assassino":.066,"guerriero":.063,"berserker":.067}[cls]))
     art=crown.resize((width,height),RS)
     # Bottom of crown is seated on hood/helmet, not floating above character.
-    basey={"assassino":.119,"guerriero":.105,"berserker":.116}[cls]*h
+    basey={"assassino":.103,"guerriero":.103,"berserker":.111}[cls]*h
     x=(w-width)//2; y=int(basey-height)
     # Make sure the output can include high crown tips.
     if y<0:
