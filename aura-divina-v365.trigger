@@ -1,0 +1,1 @@
+Build nine primary Divine Aura photos from the EXACT already approved golden effect and three original weapon progression stages; do not publish to main without visual review.
