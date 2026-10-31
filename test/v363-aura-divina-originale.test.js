@@ -12,7 +12,7 @@ test('v363: asset originale presente e non cambia le immagini Streak',()=>{
  assert.equal(bytes.toString('ascii',0,4),'RIFF');
  assert.equal(bytes.toString('ascii',8,12),'WEBP');
  assert.ok(statSync(path).size>30000,'Missing magic detail');
- assert.ok(existsSync(new URL('../docs/aura-divina-v363-preview.jpg',import.meta.url)));
+ assert.ok(existsSync(new URL('../docs/aura-divina-v364-confronto.jpg',import.meta.url)));
 });
 test('v363: nuovo effetto standalone senza vecchia texture Divina',t=>{
  const old=globalThis.document;
@@ -24,7 +24,7 @@ test('v363: nuovo effetto standalone senza vecchia texture Divina',t=>{
  assert.equal(montaFotoRpg(parent,null,{divina:true}),true);
  assert.equal(children.length,1);
  assert.match(children[0].className,/aura-foto-divina/);
- assert.match(children[0].style.backgroundImage,/aura-divina-v363\.webp\?v=364/);
+ assert.match(children[0].style.backgroundImage,/aura-divina-v364\.webp\?v=364/);
  assert.equal(children[0].style.backgroundSize,'100% 100%');
  assert.deepEqual(livelliFotoRpg(null,{divina:true}),[{id:'divina',ruolo:'streak'}]);
 });
@@ -42,10 +42,10 @@ test('v363: volto intatto, salvataggio con lo stesso effetto e cache offline',()
  assert.match(patch,/mask-image:none!important/);
  assert.match(patch,/mix-blend-mode:normal!important/);
  const photos=source('src/anteprima-combinata-rpg.js');
- assert.match(photos,/img\/effetti\/aura-divina-v363\.webp\?v=364/);
+ assert.match(photos,/img\/effetti\/aura-divina-v364\.webp\?v=364/);
  assert.match(photos,/ctx\.drawImage\(magica,0,0,out\.width,out\.height\)/);
  const sw=source('sw.js'),html=source('index.html');
- assert.match(sw,/aura-divina-v363\.webp\?v=364/);
+ assert.match(sw,/aura-divina-v364\.webp\?v=364/);
  assert.match(sw,/palestra-v364/);
  assert.match(html,/palestra-v364/);
 });
