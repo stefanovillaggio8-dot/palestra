@@ -394,7 +394,7 @@ self.addEventListener('fetch', (evento) => {
       // Le 648 combinazioni Corona non vanno precaricate tutte: peserebbero
       // troppo, soprattutto su iPhone. Dopo la prima visita rimangono invece
       // disponibili offline, senza memorizzare dati personali.
-      if (risposta.ok && /\\/img\\/personaggi\\/.*\\.(?:webp|svg|png|jpe?g)$/i.test(url.pathname)) {
+      if (risposta.ok && url.pathname.includes('/img/personaggi/') && /\.(?:webp|svg|png|jpe?g)$/i.test(url.pathname)) {
         try { await cache.put(richiesta, risposta.clone()); } catch { /* quota piena */ }
       }
       return risposta;
