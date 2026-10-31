@@ -1,0 +1,1 @@
+Replace inaccurate Berserker Rabbia Shop variant with faithful full-armor weapon-equipped Divine photo.
