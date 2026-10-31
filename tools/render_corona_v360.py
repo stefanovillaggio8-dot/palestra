@@ -274,6 +274,23 @@ def build_divine_nine(divine):
             if dest.stat().st_size<10000:raise ValueError(f"Corrupt divine artwork: {dest}")
     print("Created all 9 canonical-image Divine Aura variants")
 
+def build_armed_shop():
+    # 3 classes x 2 true Shop armors x 6 effect variants = 36 exact-photo combos.
+    out=ROOT/"img/personaggi/armatura-con-arma-v371"
+    files=[]
+    for cls,armors in CLASSES.items():
+        for armor in armors[1:]:
+            for effect in EFFECTS:
+                im=open_scaled(source_photo(cls,5,effect,armor))
+                im=restored_equipment(im,cls,armor,5)
+                dest=out/cls/armor/(effect+".webp")
+                dest.parent.mkdir(parents=True,exist_ok=True)
+                im.convert("RGB").save(dest,"WEBP",quality=91,method=5)
+                if dest.stat().st_size<10000:raise ValueError(dest)
+                files.append(dest)
+    assert len(files)==36,len(files)
+    print("Created",len(files),"armed Shop armor + effect portraits")
+
 def make_preview(files):
     names=[
       ("assassino",5,"standard","base",False),
@@ -327,6 +344,7 @@ def main():
     if len(hashes)!=648 or len(set(hashes))!=648:
         raise ValueError("648 distinct photos required")
     build_divine_nine(divine)
+    build_armed_shop()
     preview=make_preview(hashes)
     print(f"Generated {len(hashes)} unique full-frame crowned photos; {preview}")
 
