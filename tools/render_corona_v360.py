@@ -233,27 +233,50 @@ def build_divine_nine(divine):
             w,h=SIZE
             fx=Image.new("RGBA",SIZE,(0,0,0,0))
             d=ImageDraw.Draw(fx,"RGBA")
-            # Same luminous halo, feathers, orbiting energy, and rune circle for all.
+            # One identical magical signature for every portrait.
+            # Curved gold feather strokes (not straight fan lines), flowing
+            # elliptical ribbons and a bright halo surrounding the silhouette.
             for i in range(3):
-                pad=9+i*7
-                d.arc((w*.33-pad,h*.052-pad,w*.67+pad,h*.316+pad),
-                      188,352,fill=(255,215,129,185-i*45),width=3)
-                d.arc((w*.33-pad,h*.052-pad,w*.67+pad,h*.316+pad),
-                      8,174,fill=(255,215,129,185-i*45),width=3)
+                pad=i*7
+                d.arc((w*.29-pad,h*.041-pad,w*.71+pad,h*.320+pad),
+                      187,354,fill=(255,205,108,235-i*48),width=5-i)
+                d.arc((w*.29-pad,h*.041-pad,w*.71+pad,h*.320+pad),
+                      7,174,fill=(255,215,127,235-i*48),width=5-i)
+            def bezier(a,b,c,d0):
+                pts=[]
+                for k in range(44):
+                    t=k/43;u=1-t
+                    pts.append((int(u**3*a[0]+3*u*u*t*b[0]+3*u*t*t*c[0]+t**3*d0[0]),
+                                int(u**3*a[1]+3*u*u*t*b[1]+3*u*t*t*c[1]+t**3*d0[1])))
+                return pts
             for side in (-1,1):
-                for i in range(35):
-                    t=i/34
-                    x0=w*(.5+side*.145)
-                    x1=w*(.5+side*(.25+.24*abs(1-2*t)))
-                    yy=h*(.16+.46*t)
-                    d.line([(x0,h*(.23+.26*t)),(x1,yy)],
-                          fill=(255,206,112,130),width=3 if i%4==0 else 2)
-                for i in range(3):
-                    rx=w*(.30+i*.055)
-                    ry=h*(.09+i*.023)
-                    d.arc((w*.5-rx,h*.43-ry,w*.5+rx,h*.43+ry),
-                          12 if side==1 else 188,158 if side==1 else 348,
-                          fill=(255,207,125,164),width=4)
+                for i in range(34):
+                    t=i/33
+                    start=(w*(.5+side*(.125+.025*t)),h*(.36+.29*t))
+                    end=(w*(.5+side*(.30+.18*(1-t))),h*(.052+.50*t))
+                    c1=(w*(.5+side*(.27+.04*t)),h*(.29+.21*t))
+                    c2=(w*(.5+side*(.44+.11*(1-t))),h*(.11+.43*t))
+                    pts=bezier(start,c1,c2,end)
+                    d.line(pts,fill=(255,192,86,135),width=4 if i%5==0 else 2,joint="curve")
+                # Curved flight feather silhouettes, with individual thin tips.
+                for i in range(8):
+                    t=i/7
+                    q0=(w*(.5+side*.22),h*(.37+.025*t))
+                    q1=(w*(.5+side*(.39+.06*t)),h*(.19+.02*t))
+                    q2=(w*(.5+side*.53),h*(.04+.07*t))
+                    q3=(w*(.5+side*(.47+.01*t)),h*(.015+.12*t))
+                    d.line(bezier(q0,q1,q2,q3),
+                           fill=(255,222,149,145),width=2,joint="curve")
+            for layer,(cy,rot,rx,ry) in enumerate((
+                    (h*.49,-.23,w*.48,h*.13),(h*.72,.28,w*.49,h*.13))):
+                pts=[]
+                for j in range(280):
+                    angle=j*2*math.pi/279
+                    xx=rx*math.cos(angle);yy=ry*math.sin(angle)
+                    x=w*.5+xx*math.cos(rot)-yy*math.sin(rot)
+                    y=cy+xx*math.sin(rot)+yy*math.cos(rot)
+                    pts.append((int(x),int(y)))
+                d.line(pts,fill=(255,224,156,199),width=4,joint="curve")
             d.ellipse((w*.04,h*.887,w*.96,h*.981),outline=(255,213,135,239),width=5)
             d.ellipse((w*.12,h*.899,w*.88,h*.968),outline=(255,239,179,206),width=2)
             for j in range(120):
