@@ -19,7 +19,7 @@ jobs:
       - run: python -m pip install Pillow
       - name: Download NEW effect-only artwork (no figure)
         env:
-          SOURCE_URL: 'https://dnznrvs05pmza.cloudfront.net/gemini/gemini-3-pro-image/images/92150c35-42af-4dc8-a59b-931c2c7e1525/b119133a-bc56-4ff9-8d74-d102b2123448/Create_one_premium__professional_fantasy_RPG_game_AURA_cosme.png?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiNTEwODQ4MmNiZTY1NWYyYSIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MzU3MDg2MH0.3L4Fk1PFb2c3-LIbfTlUiGBocgpEUHJGT3_b8Hg1kY4'
+          SOURCE_URL: 'https://dnznrvs05pmza.cloudfront.net/gemini/gemini-3-pro-image/images/c31dfb5d-ce3e-4175-ad90-7010c1b53823/525018a2-6ef2-42f1-b249-23f796d377c5/SINGLE_3_4_PORTRAIT_of_a_UNIQUE_CONTINUOUS_CELESTIAL_AURA_fl.png?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiYjkyZGU3MjUyYjhjN2QyMSIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MzU5OTY1M30.vpBW5hjV1mwirE5oxoPg3JfkaNS8PhRgsk7QlkVBGBo'
         run: |
           mkdir -p img/effetti
           curl -fsSL --retry 3 --max-time 120 "$SOURCE_URL" -o img/effetti/aura-divina-v364-source.png
