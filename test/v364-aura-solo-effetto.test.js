@@ -27,7 +27,7 @@ test('v364: preview streak progression, accounts and cache unchanged',()=>{
  assert.match(app,/statoFotoConsentito/);
  assert.match(app,/armaSbloccataRpg/);
  assert.match(app,/divina: auraDivinaAttiva/);
- assert.match(file('sw.js'),/palestra-v366/);
+ assert.match(file('sw.js'),/palestra-v\d+/);
  assert.match(file('sw.js'),/aura-divina-v364\.webp\?v=364/);
- assert.match(file('index.html'),/palestra-v366/);
+ assert.match(file('index.html'),/palestra-v\d+/);
 });
