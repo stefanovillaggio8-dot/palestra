@@ -38,7 +38,12 @@ def open_scaled(path):
     with Image.open(path) as im:
         return im.convert("RGBA").resize(SIZE, RS)
 
-def source_photo(cls, stage, effect):
+def source_photo(cls, stage, effect, armor=""):
+    # L'armatura selezionata deve essere fotografata davvero, non tinta sopra al corpo base.
+    if armor:
+        if effect == "base":
+            return ROOT / "img/personaggi/armature" / (armor.removeprefix("armatura-") + ".webp")
+        return ROOT / "img/personaggi/combinazioni" / cls / armor / (effect + ".webp")
     if effect == "base":
         return ROOT / f"img/personaggi/stati/{cls}-{stage}.webp"
     return ROOT / f"img/personaggi/combinazioni/{cls}/stato-{stage}/{effect}.webp"
@@ -201,10 +206,10 @@ def main():
         arm=armor or "standard"
         for effect in EFFECTS:
          for is_divine in (False, True):
-          path=source_photo(cls,stage,effect)
+          path=source_photo(cls,stage,effect,armor)
           if not path.is_file(): raise FileNotFoundError(path)
           im=open_scaled(path)
-          im=apply_armor_theme(im,cls,armor)
+          # Original Shop armor source: never apply a fake recolor to a canonical costume.
           if is_divine: im=apply_divine(im,divine)
           seed=int(hashlib.sha256(f"{cls}/{stage}/{arm}/{effect}/{is_divine}".encode()).hexdigest()[:10],16)
           im=crown_effects(im,cls,seed)
