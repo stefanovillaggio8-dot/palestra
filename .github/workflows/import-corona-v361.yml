@@ -1,0 +1,69 @@
+name: Import approved full-render Corona original images v361
+on:
+  push:
+    branches: ['feature/corona-v361-art-originali']
+    paths: ['rpg-corona-v361.trigger']
+permissions:
+  contents: write
+jobs:
+  import-illustrations:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/corona-v361-art-originali
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Pillow
+        run: python -m pip install --disable-pip-version-check Pillow
+      - name: Download nine original ChatGPT-generated portraits (no overlays)
+        run: |
+          set -euo pipefail
+          mkdir -p img/personaggi/corona-v361-original
+          curl --fail --location --retry 3 --retry-delay 2 --connect-timeout 15 --max-time 90 --silent --show-error 'https://d2jqrm6oza8nb6.cloudfront.net/datasets/d2700f16-c4bb-4207-8f24-d455fa221758.png?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiM2MxYTk1Y2Y5NTY5ZGI0YSIsImJ1Y2tldCI6InJ1bndheS1kYXRhc2V0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MzU3ODQ0N30.FuScOz0fq89t9gb7A5giwNd_GkJUm9HdZR-n4PHjeqQ' -o 'img/personaggi/corona-v361-original/assassino-5-base.png'
+          curl --fail --location --retry 3 --retry-delay 2 --connect-timeout 15 --max-time 90 --silent --show-error 'https://d2jqrm6oza8nb6.cloudfront.net/datasets/9a8a6cd5-42a0-4ac7-b9a6-0cdb324e3ac6.png?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiNzFmOGE1NDViZTFiODY2MiIsImJ1Y2tldCI6InJ1bndheS1kYXRhc2V0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MzU3OTg0NX0.fwEne78IR4cP8N18p6nKEnRiY6nd4yjrZv2H9wNa_G4' -o 'img/personaggi/corona-v361-original/assassino-5-fulmine.png'
+          curl --fail --location --retry 3 --retry-delay 2 --connect-timeout 15 --max-time 90 --silent --show-error 'https://d2jqrm6oza8nb6.cloudfront.net/datasets/f448fb19-d9e4-44a4-80ca-8b71c2fa23cf.png?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiNjY1OTI5MjY1YmI5YjM5MCIsImJ1Y2tldCI6InJ1bndheS1kYXRhc2V0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MzU4MzI3MH0.70jqmJTf7ir85zhO1zXuNhN7wsyv1HHIrAKwcjGs-K4' -o 'img/personaggi/corona-v361-original/assassino-1-ombra.png'
+          curl --fail --location --retry 3 --retry-delay 2 --connect-timeout 15 --max-time 90 --silent --show-error 'https://d2jqrm6oza8nb6.cloudfront.net/datasets/16cf5205-d707-4d1f-9785-2e5e004d8fd7.png?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiOTkzMGQ3YTExYmJlYzRlZCIsImJ1Y2tldCI6InJ1bndheS1kYXRhc2V0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MzYzODE3N30.IpskcvM3y7CGfLccKbIIm22Cfd6CDmprnoZ6os4v8uQ' -o 'img/personaggi/corona-v361-original/guerriero-5-ambra.png'
+          curl --fail --location --retry 3 --retry-delay 2 --connect-timeout 15 --max-time 90 --silent --show-error 'https://d2jqrm6oza8nb6.cloudfront.net/datasets/13c5abe0-ad81-408d-ac7f-d7ff5293fcc7.png?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiY2QxODM3YzdlNTA4NDgxYSIsImJ1Y2tldCI6InJ1bndheS1kYXRhc2V0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MzYxNDAyM30.5egC05Wz8jwqWGa_AdgSIMc2M9RnTUlPak_sEYJuRe4' -o 'img/personaggi/corona-v361-original/guerriero-2-astrale.png'
+          curl --fail --location --retry 3 --retry-delay 2 --connect-timeout 15 --max-time 90 --silent --show-error 'https://d2jqrm6oza8nb6.cloudfront.net/datasets/a0177960-6a13-49bf-9994-92564d84c4db.png?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiZjIyMzhjNGNiNDYyYWUyMCIsImJ1Y2tldCI6InJ1bndheS1kYXRhc2V0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MzYzODM0OH0.ZYRwyNgF9UeGYR6LYGxagjqN46u4puQYDKk6xOLdufY' -o 'img/personaggi/corona-v361-original/guerriero-4-fulmine.png'
+          curl --fail --location --retry 3 --retry-delay 2 --connect-timeout 15 --max-time 90 --silent --show-error 'https://d2jqrm6oza8nb6.cloudfront.net/datasets/650c61eb-ed5f-48a9-b2c2-810568dd6bc3.png?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiMDg2NWMyNjA4YzAyYjRlNCIsImJ1Y2tldCI6InJ1bndheS1kYXRhc2V0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MzYzMjIyNH0.TDLUWPDRJtf6I0c9fuBEwhCSLeaFP8n5dLWLIxg6gMs' -o 'img/personaggi/corona-v361-original/berserker-5-base.png'
+          curl --fail --location --retry 3 --retry-delay 2 --connect-timeout 15 --max-time 90 --silent --show-error 'https://d2jqrm6oza8nb6.cloudfront.net/datasets/fe64c1da-7432-44a9-b9e3-78426627f10a.png?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiNzcxZmE3OTk3ZDQ4NzgwYyIsImJ1Y2tldCI6InJ1bndheS1kYXRhc2V0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MzYyMjQyNX0.a7YIiBvnVdPsl1ogB-OiiW9SZ4Qd59shczZl6jA4wy4' -o 'img/personaggi/corona-v361-original/berserker-3-nebula.png'
+          curl --fail --location --retry 3 --retry-delay 2 --connect-timeout 15 --max-time 90 --silent --show-error 'https://d2jqrm6oza8nb6.cloudfront.net/datasets/bad3b581-6307-450d-aa4d-192ce507d206.png?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiY2QyN2MwMDY1OGMxZjhjNiIsImJ1Y2tldCI6InJ1bndheS1kYXRhc2V0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MzU5NTE0Mn0.lqsngvugDf4d6MtE1VlQ5IzVgYsQpq_db7HSkFtNOSU' -o 'img/personaggi/corona-v361-original/berserker-4-ambra.png'
+      - name: Validate and encode mobile previews
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          import hashlib
+          root=Path("img/personaggi/corona-v361-original")
+          names=["assassino-5-base","assassino-5-fulmine","assassino-1-ombra","guerriero-5-ambra","guerriero-2-astrale","guerriero-4-fulmine","berserker-5-base","berserker-3-nebula","berserker-4-ambra"]
+          assert len(names)==9 and len(set(names))==9
+          shas=[]
+          for name in names:
+              p=root/(name+".png")
+              with Image.open(p) as im:
+                  assert im.format=="PNG",(name,im.format)
+                  assert im.width>=900 and im.height>=1300,(name,im.size)
+                  assert im.height>im.width,(name,im.size)
+                  im.verify()
+              shas.append(hashlib.sha256(p.read_bytes()).hexdigest())
+              with Image.open(p) as im:
+                  im.convert("RGB").save(root/(name+".webp"),"WEBP",quality=92,method=6)
+          assert len(set(shas))==9,"Duplicate original image"
+          webps=list(root.glob("*.webp"))
+          assert len(webps)==9,len(webps)
+          for image in webps:
+              with Image.open(image) as im:
+                  assert im.width>=900 and im.height>=1300
+                  im.verify()
+          print("9 original PNG renders and 9 WebP previews verified")
+          PY
+      - name: Commit new images to preview branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add img/personaggi/corona-v361-original/
+          git commit -m "assets(corona v361): 9 original regenerated full-character portraits"
+          git push origin HEAD:feature/corona-v361-art-originali
