@@ -26,15 +26,14 @@ export function opzioniAtelier(valori={}) {
   const classe=CLASSI_ATELIER.includes(valori.classe)?valori.classe:'guerriero';
   const numero=Number(valori.stadio);
   const stadio=Number.isFinite(numero)?Math.max(0,Math.min(5,Math.trunc(numero))):0;
-  const divina=Boolean(valori.divina);
   return {
-    classe,stadio:divina?5:stadio, // 75-day Aura means complete equipment and earned weapons
+    classe,stadio,
     armatura:ARMATURE_ATELIER[classe].includes(valori.armatura)?valori.armatura:'',
     // Astrale è un effetto, non una seconda skin sovrapponibile.
     skin:'',
-    effetto:divina?'':(EFFETTI_ATELIER.includes(valori.effetto)&&valori.effetto
-      ? valori.effetto : valori.skin==='skin-mitica'?'skin-mitica':''),
-    divina,corona:Boolean(valori.corona),
+    effetto:EFFETTI_ATELIER.includes(valori.effetto)&&valori.effetto
+      ? valori.effetto : valori.skin==='skin-mitica'?'skin-mitica':'',
+    divina:Boolean(valori.divina),corona:Boolean(valori.corona),
     titolo:TITOLI_ATELIER.includes(valori.titolo)?valori.titolo:'',
   };
 }
@@ -75,7 +74,8 @@ const fotoPronta = async(el)=>{
     I cambi colore/armature sono solo cosmetici, mai premi Streak anticipati. */
 export async function renderFotoAtelier(grafica, opzioni={}) {
   if(typeof document==='undefined')throw new Error('Serve il browser');
-  const c=opzioniAtelier(opzioni);
+  const input=opzioniAtelier(opzioni);
+  const c=input.divina?{...input,stadio:5,effetto:''}:input; // visual preview only: 75-day reward is full armor, one aura
   const fotoBase=await fotoPronta(grafica?.querySelector?.('.personaggio-ritratto'));
   // Il file finale deve usare lo stesso scatto completo visibile in anteprima.
   // Se il collage non e' installato resta il renderer precedente.
