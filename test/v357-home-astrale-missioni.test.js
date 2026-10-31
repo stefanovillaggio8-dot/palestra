@@ -29,7 +29,7 @@ test('v359: Aura divina visibile e Corona tramite foto WebP non SVG',()=>{
   const app=src('src/app.js'),css=src('stile-rpg.css');
   assert.match(app,/!auraDivinaAttiva && montaFotoCombinataRpg/);
   assert.match(css,/\.aura-foto-divina/);
-  assert.match(app,/percorsoFotoCoronaV359/);
+  assert.match(app,/percorsoFotoCoronaV360/);
   assert.doesNotMatch(app,/src:'\.\/img\/effetti\/corona-infinito-v358\.svg'/);
 });
 
@@ -50,7 +50,7 @@ test('v357: Aura calcolata dalla difficoltà e dall’imbarazzo, senza invertire
 });
 
 test('v357: cache/HTML sincronizzati e nessun asset assente',()=>{
-  assert.match(src('index.html'),/palestra-v359/);
-  assert.match(src('sw.js'),/palestra-v359/);
-  assert.match(src('sw.js'),/src\/foto-corona-v359\.js/);
+  assert.match(src('index.html'),/palestra-v360/);
+  assert.match(src('sw.js'),/palestra-v360/);
+  assert.match(src('sw.js'),/src\/foto-corona-v360\.js/);
 });

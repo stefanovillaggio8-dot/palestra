@@ -74,7 +74,7 @@ test('Esporta realmente la foto combinata con le texture separabili',async(t)=>{
    skin:'skin-mitica',divina:true,corona:true,titolo:'titolo-panca',
  });
  assert.equal(out.width,780);assert.equal(out.height,1170);
- assert.ok(draws.length>=3,'foto completa + Aura divina storica + maschera fotografica');
+ assert.ok(draws.length>=1,'foto completa con Corona e Aura divina preintegrate una sola volta');
  assert.ok(draws[0][0] && draws[0][0].naturalWidth,'foto pre-renderizzata con la stessa identità, non adesivi');
  assert.ok(texts.length>=1,'titolo presente nella foto');
 });
@@ -95,5 +95,5 @@ test('PNG esportato: gli effetti vengono mascherati prima di coprire il volto',a
   assert.match(source,/fasciaSagoma\(c\.classe,y\)/);
   assert.match(source,/left=Math\.min\(left,\.34\)/);
   assert.match(source,/right=Math\.max\(right,\.66\)/);
-  assert.match(source,/percorsoFotoCoronaV359/);
+  assert.match(source,/percorsoFotoCoronaV360/);
 });

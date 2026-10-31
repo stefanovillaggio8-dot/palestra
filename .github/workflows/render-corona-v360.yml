@@ -1,0 +1,64 @@
+name: Build Corona Infinito 648 complete combinations v360
+on:
+  push:
+    branches:
+      - feature/corona-infinito-v360-combinazioni
+    paths:
+      - rpg-corona-v360.trigger
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 28
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/corona-infinito-v360-combinazioni
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install image libraries
+        run: python -m pip install Pillow pillow-avif-plugin
+      - name: Download the user-approved crown asset once
+        env:
+          SOURCE_URL: "https://dnznrvs05pmza.cloudfront.net/gemini/gemini-3.1-flash-image/images/07460b5a-b996-4450-9b72-dbc778c41cf4/e2c226c8-d3df-4bda-b141-d3f3365ec9b6/Precise_jewelry_product_extraction_from__approved__The_image.png?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiMzEyMWUzNzM4MWZhNDhkZiIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MzYyNjA5OX0.fHT0xNEdfjXJafGAmQKsUeBiCKamXeWPAYh1h6U84-w"
+        run: |
+          mkdir -p img/effetti
+          curl --retry 3 --fail --location --silent --show-error "$SOURCE_URL" -o img/effetti/corona-infinito-v360-original.png
+          python - <<'PY'
+          from PIL import Image
+          with Image.open("img/effetti/corona-infinito-v360-original.png") as img:
+              assert min(img.size)>=512, img.size
+              img.verify()
+          PY
+      - name: Render 648 unique full-frame combinations
+        run: python tools/render_corona_v360.py
+      - name: Verify all actual WebP files
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          import hashlib
+          root=Path("img/personaggi/corona-v360")
+          files=list(root.rglob("*.webp"))
+          assert len(files)==648, len(files)
+          digests=set()
+          for file in files:
+              with Image.open(file) as img:
+                  assert img.size==(720,1080), (file,img.size)
+                  img.verify()
+              assert file.stat().st_size>10000,file
+              digests.add(hashlib.sha256(file.read_bytes()).hexdigest())
+          assert len(digests)==648
+          assert Path("docs/corona-v360-anteprima.jpg").is_file()
+          print("648 unique staged portraits verified")
+          PY
+      - name: Commit generated images on feature branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add img/personaggi/corona-v360 img/effetti/corona-infinito-v360-original.png docs/corona-v360-anteprima.jpg
+          git rm -f rpg-corona-v360.trigger
+          git commit -m "assets(v360): 648 crowned full-frame combinations, approved crown design"
+          git push origin HEAD:feature/corona-infinito-v360-combinazioni

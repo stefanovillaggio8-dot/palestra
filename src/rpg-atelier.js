@@ -5,7 +5,7 @@ import { AURA_FOTO_ATLAS } from './aura-foto-atlas.js';
 import { FOTO_RPG_RIQUADRI, livelliFotoRpg } from './aura-foto-rpg.js';
 import { fasciaSagoma, disegnaCoronaEnergetica } from './anteprima-combinata-rpg.js';
 import { fotoCinematograficaRpg } from './foto-cinematica-rpg.js';
-import { percorsoFotoCoronaV359 } from './foto-corona-v359.js';
+import { percorsoFotoCoronaV360 } from './foto-corona-v360.js';
 
 export const CLASSI_ATELIER = Object.freeze(['guerriero','assassino','berserker']);
 export const EFFETTI_ATELIER = Object.freeze([
@@ -77,9 +77,9 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
   const fotoBase=await fotoPronta(grafica?.querySelector?.('.personaggio-ritratto'));
   // Il file finale deve usare lo stesso scatto completo visibile in anteprima.
   // Se il collage non e' installato resta il renderer precedente.
-  const fotoCorona=c.corona ? percorsoFotoCoronaV359({
+  const fotoCorona=c.corona ? percorsoFotoCoronaV360({
     classe:c.classe,stato:c.stadio,armatura:c.armatura||null,
-    effetto:c.effetto||null,armaSbloccata:c.stadio>=4,
+    effetto:c.effetto||null,divina:c.divina,armaSbloccata:c.stadio>=4,
   }) : null;
   const scena=fotoCorona || (c.divina ? null : await fotoCinematograficaRpg({...c,corona:false,divina:false}));
   const immagine=scena ? await attesaImmagine(scena).catch(()=>fotoBase) : fotoBase;
@@ -103,7 +103,7 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
   // I nuovi WebP includono già l'effetto acquistato. Solo l'Aura divina,
   // premio separato dei 75 giorni, va aggiunta alla foto finale.
   const livelli=fotoCorona
-    ? livelliFotoRpg(null,{mitica:false,corona:false,divina:c.divina})
+    ? livelliFotoRpg(null,{mitica:false,corona:false,divina:false})
     : livelliFotoRpg(c.effetto==='skin-mitica'?null:c.effetto,
         {mitica:c.effetto==='skin-mitica',corona:false,divina:c.divina});
   if((!giaFotografica || c.divina)&&livelli.length) {

@@ -251,7 +251,8 @@ export async function scaricaFotoCombinataRpg(grafica,classe='rpg') {
   if(!integrata && effects?.width)ctx.drawImage(effects,0,0,out.width,out.height);
   // v359: l'Aura divina originaria torna ad essere un vero livello fotografico
   // dell'atlante. Copialo anche nel PNG finale; il precedente SVG è eliminato.
-  if(grafica.classList?.contains('personaggio-aura-divina')) {
+  const fotoCoronataConDivina=/\/corona-v360\/.*-divina\.webp/.test(original.currentSrc||original.src||'');
+  if(grafica.classList?.contains('personaggio-aura-divina') && !fotoCoronataConDivina) {
     const atlas=await getAtlas();
     if(atlas){
       const a=document.createElement('canvas');

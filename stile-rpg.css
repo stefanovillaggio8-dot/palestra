@@ -2243,11 +2243,11 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
 /* v359: Corona integrata nelle nuove foto WebP, nessun livello SVG
    sopra volto/cappuccio. Aura divina originale sempre leggibile,
    compreso nei dialoghi Anteprima con una Corona fotografica. */
-.personaggio-scena-grafica.rpg-corona-foto-v359 .rpg-corona-premium {display:none!important;}
+.personaggio-scena-grafica.rpg-corona-foto-v360 .rpg-corona-premium {display:none!important;}
 .personaggio-scena-grafica.personaggio-aura-divina:not(.rpg-composite-active)>.aura-foto-divina {
  display:block!important;opacity:.95!important;visibility:visible!important;
  mix-blend-mode:screen;z-index:9;
 }
-.personaggio-scena-grafica.rpg-corona-foto-v359 .personaggio-ritratto {
+.personaggio-scena-grafica.rpg-corona-foto-v360 .personaggio-ritratto {
  filter:none;object-fit:contain;
 }
