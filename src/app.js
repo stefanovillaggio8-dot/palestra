@@ -5,7 +5,7 @@
 import { requisitoSkin, accessoSkin, scenarioSkin, statoCoronaInfinito, cambiaCoronaInfinito, CORONA_INFINITO_ID, ordinaPerRaritaAura } from './aura-skin.js';
 import { equipaggiamentoRpgUnico, slotPerOggettoRpg, aggiornaEquipaggiamentoRpg } from './equipaggiamento-rpg.js';
 import { percorsoFotoCoronaV360 } from './foto-corona-v360.js';
-import { percorsoFotoAuraDivinaV366 } from './foto-aura-divina-v366.js?v=368';
+import { percorsoFotoAuraDivinaV366 } from './foto-aura-divina-v366.js';
 import * as db from './db.js';
 import * as sb from './supabase.js';
 import * as sync from './sync.js';
