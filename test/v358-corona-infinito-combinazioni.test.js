@@ -66,6 +66,6 @@ test('L Aura divina rimane un premio separato, non scompare con una Corona',()=>
   assert.deepEqual(equipaggiamentoRpgUnico({Astrale:'skin-mitica',Effetto:'effetto-ombra'}),
     {Effetto:'effetto-ombra'});
   assert.match(src('src/aura-skin.js'),/giorni >= 80/);
-  assert.match(src('sw.js'),/palestra-v364/);
-  assert.match(src('index.html'),/palestra-v364/);
+  assert.match(src('sw.js'),/palestra-v365/);
+  assert.match(src('index.html'),/palestra-v365/);
 });
