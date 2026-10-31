@@ -6652,7 +6652,7 @@ function bloccoPersonaggio(profilo, st) {
       classe:classeId,stato:statoFotoConsentito,
       armatura:armaturaEquipaggiata?.id || null,
       effetto:astraleAttiva ? 'skin-mitica' : effettoEquipaggiato?.id || null,
-      divina:auraDivinaAttiva,
+      divina:false, // Aura v363 e' ora sempre un livello separato, mai bruciato nella fotografia della Corona.
       armaSbloccata,
     }) : null;
     // La regalia è già stampata nella nuova fotografia: impedisci alle vecchie
@@ -6701,7 +6701,7 @@ function bloccoPersonaggio(profilo, st) {
     if (effettoVivo) grafica.classList.add('rpg-render-live');
     const scenaFotografica = (!effettoVivo || auraDivinaAttiva) && montaFotoRpg(grafica, fotoCoronaRpg || effettoVivo || astraleAttiva ? null : effettoEquipaggiato?.id || null, {
       corona: false, // Nuova Corona regale: asset indipendente
-      divina: auraDivinaAttiva && !fotoCoronaRpg, // Gia' nella foto v360: niente doppio overlay
+      divina: auraDivinaAttiva, // Nuovo effetto v363, anche con la Corona (foto base senza vecchia aura).
       mitica: !fotoCoronaRpg && astraleAttiva,
       classe: classeId,
     });
