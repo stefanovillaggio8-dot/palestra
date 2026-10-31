@@ -85,6 +85,11 @@ export function apriAtelierRpg({profilo,st,oggetto=null,stadioAttuale=0,renderPe
         else if(key==='stadio')cfg.stadio=Number(select.value);
         else if(key==='divina'||key==='corona')cfg[key]=select.value==='true';
         else cfg[key]=select.value;
+        // Un solo effetto per volta: Aura divina e un effetto Shop non possono coesistere.
+        // Il premio 75 giorni mostra sempre il livello 5 completo.
+        if(key==='divina' && cfg.divina){cfg.effetto='';cfg.stadio=5;}
+        if(key==='effetto' && cfg.effetto)cfg.divina=false;
+        if(key==='stadio' && cfg.stadio<5)cfg.divina=false;
         if(key==='classe')cfg.armatura='';
         render();
       });
