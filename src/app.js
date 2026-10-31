@@ -5,6 +5,7 @@
 import { requisitoSkin, accessoSkin, scenarioSkin, statoCoronaInfinito, cambiaCoronaInfinito, CORONA_INFINITO_ID, ordinaPerRaritaAura } from './aura-skin.js';
 import { equipaggiamentoRpgUnico, slotPerOggettoRpg, aggiornaEquipaggiamentoRpg } from './equipaggiamento-rpg.js';
 import { percorsoFotoCoronaV360 } from './foto-corona-v360.js';
+import { percorsoFotoAuraDivinaV365 } from './foto-aura-divina-v365.js';
 import * as db from './db.js';
 import * as sb from './supabase.js';
 import * as sync from './sync.js';
@@ -6527,14 +6528,14 @@ function bloccoPersonaggio(profilo, st) {
     // sembrare la normale aura dorata, ma un alone celestiale con anello e raggi.
     const recordCorona = Math.max(Number(rpg.recordStreak)||0, Number(st?.streak?.record)||0);
     const coronaAttiva = (!auraDivinaAnteprima || coronaAnteprima) && statoCoronaInfinito(equipaggiamentoRpg, recordCorona, coronaAnteprima).visibile;
-    const auraDivinaAttiva=Boolean(viso.aura)||auraDivinaAnteprima;
+    const auraDivinaAttiva=auraDivinaAnteprima || (Boolean(viso.aura) && !effettoEquipaggiato); // one effect at a time; an explicitly equipped Shop effect takes priority
     // Restituisce all'Aura divina la fotografia originale dell'atlante,
     // senza aggiungere l'altra Corona. Non tocca il viso o la posa.
     if (auraDivinaAttiva) grafica.classList.add('personaggio-aura-divina');
     // Corona dell'Infinito: foto WebP complete; nessuna corona adesiva o SVG sopra il viso.
     if(coronaAttiva)grafica.classList.add('rpg-corona-foto-v360');
 
-    if (viso.aura || coronaAttiva || auraDivinaAnteprima) {
+    if (auraDivinaAttiva || coronaAttiva) {
       grafica.classList.add('personaggio-aura');
       // LE SCINTILLE. La luce, i fazzi, l'anello e il contorno li fa il CSS; le
       // scintille sono elementi veri perché ognuna ha una posizione, una grandezza,
@@ -6655,28 +6656,42 @@ function bloccoPersonaggio(profilo, st) {
       divina:false, // Aura v363 e' ora sempre un livello separato, mai bruciato nella fotografia della Corona.
       armaSbloccata,
     }) : null;
+    // v365: the actual approved gold Divine Aura is baked into only these
+    // nine canonical stage photos. Paid armor, crown and other FX keep their
+    // independent routes; no image may secretly grant a missing weapon.
+    const fotoAuraDivinaRpg=percorsoFotoAuraDivinaV365({
+      classe:classeId,stato:statoFotoConsentito,
+      divina:auraDivinaAttiva,
+      armatura:fotoArmaturaRpg ? armaturaEquipaggiata?.id : null,
+      corona:coronaAttiva,
+      effetto:effettoEquipaggiato?.id || null,
+      anteprima:auraDivinaAnteprima,
+      armaSbloccata,
+    });
+    if(fotoAuraDivinaRpg)grafica.classList.add('aura-foto-fx-attiva');
+
     // La regalia è già stampata nella nuova fotografia: impedisci alle vecchie
     // onde/aura-corona CSS di aggiungere nuovamente un anello dorato.
     if (fotoCoronaRpg) grafica.classList.add('aura-foto-fx-attiva');
     const fotoRpg = el('img', {
       class: 'personaggio-ritratto',
-      src: fotoCoronaRpg || fotoArmaturaRpg || fotoProgressioneRpg,
+      src: fotoAuraDivinaRpg || fotoCoronaRpg || fotoArmaturaRpg || fotoProgressioneRpg,
       alt: `${rpg.classe.nome}: ${armaturaEquipaggiata?.nome || skinEquipaggiata?.nome || viso.stato.riga}`,
       loading: 'lazy',
       decoding: 'async',
     });
     // Per qualunque problema di cache/mancata foto, mostra il personaggio base
     // e non un rettangolo vuoto. Non cambia l'equipaggiamento salvato.
-    if (fotoCoronaRpg || fotoArmaturaRpg) fotoRpg.addEventListener('error',()=>{
+    if (fotoAuraDivinaRpg || fotoCoronaRpg || fotoArmaturaRpg) fotoRpg.addEventListener('error',()=>{
       // Un WebP mancante non deve nascondere mai l'avatar originale.
-      fotoRpg.src= fotoCoronaRpg ? (fotoArmaturaRpg||fotoProgressioneRpg) : fotoProgressioneRpg;
+      fotoRpg.src= fotoCoronaRpg ? (fotoArmaturaRpg||fotoProgressioneRpg) : fotoProgressioneRpg; // safe original image when v365 is unavailable
       if(!fotoArmaturaRpg)applicaSkinRpg(grafica,fotoRpg,classeId,armaturaEquipaggiata?.id,null);
     },{once:true});
     grafica.appendChild(fotoRpg);
-    if (fotoArmaturaRpg || fotoCoronaRpg) grafica.classList.add('rpg-armor-photo-integrale');
+    if (fotoArmaturaRpg || fotoCoronaRpg || fotoAuraDivinaRpg) grafica.classList.add('rpg-armor-photo-integrale');
     // Il rivestimento geometrico era la causa delle piastre piatte da videogioco:
     // lo conserviamo SOLO come fallback quando manca una foto vera.
-    if (!fotoCoronaRpg && !fotoArmaturaRpg && !mostraFotoConArma)
+    if (!fotoAuraDivinaRpg && !fotoCoronaRpg && !fotoArmaturaRpg && !mostraFotoConArma)
       applicaSkinRpg(grafica, fotoRpg, classeId, armaturaEquipaggiata?.id, null);
     // Le foto degli effetti formano uno strato trasparente ATTORNO all'avatar:
     // volto, armatura, titolo e skin rimangono esattamente come equipaggiati.
@@ -6693,16 +6708,16 @@ function bloccoPersonaggio(profilo, st) {
       corona:false,
       divina:false,
     });
-    const effettoVivo=!fotoCoronaRpg && usaEffettiViviRpg(astraleAttiva ? null : effettoEquipaggiato?.id || null,{
+    const effettoVivo=!auraDivinaAttiva && !fotoCoronaRpg && usaEffettiViviRpg(astraleAttiva ? null : effettoEquipaggiato?.id || null,{
       mitica:astraleAttiva,
     }) && !fotoEffettoPremium;
     // Ambra, Fulmine e Astrale usano UN solo renderer Canvas. Prima il
     // compositore fotografico li nascondeva tramite rpg-composite-active.
     if (effettoVivo) grafica.classList.add('rpg-render-live');
-    const scenaFotografica = (!effettoVivo || auraDivinaAttiva) && montaFotoRpg(grafica, fotoCoronaRpg || effettoVivo || astraleAttiva ? null : effettoEquipaggiato?.id || null, {
+    const scenaFotografica = (!effettoVivo || auraDivinaAttiva) && montaFotoRpg(grafica, fotoAuraDivinaRpg || fotoCoronaRpg || effettoVivo || auraDivinaAttiva || astraleAttiva ? null : effettoEquipaggiato?.id || null, {
       corona: false, // Nuova Corona regale: asset indipendente
-      divina: auraDivinaAttiva, // Nuovo effetto v363, anche con la Corona (foto base senza vecchia aura).
-      mitica: !fotoCoronaRpg && astraleAttiva,
+      divina: auraDivinaAttiva && !fotoAuraDivinaRpg, // v365 image already contains the approved aura; never overlay it twice.
+      mitica: !auraDivinaAttiva && !fotoCoronaRpg && astraleAttiva,
       classe: classeId,
     });
     // Fallback per avatar senza effetto fotografico: Aura divina storica.
