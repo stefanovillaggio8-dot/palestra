@@ -1,0 +1,58 @@
+name: Render Original Divine Aura v363
+on:
+  push:
+    branches: [feature/aura-divina-v363-originale]
+    paths: [aura-divina-v363.trigger]
+permissions:
+  contents: write
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/aura-divina-v363-originale
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Pillow
+        run: python -m pip install Pillow
+      - name: Import original artist-created effect texture
+        env:
+          SOURCE_URL: 'https://dnznrvs05pmza.cloudfront.net/gemini/gemini-3-pro-image/images/ca0dc555-d9ea-44ae-86d6-9f95512eba45/af88ae7d-65d0-4716-924e-7d46e451f277/SINGLE_ELEMENT_ONLY__an_exceptionally_beautiful_VERTICAL_DIV.png?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiNjVhMmJjNDVmMjRhYTE5ZSIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MzYzNzQ0NX0.p6RPCbXT1sDH0zuj6PifbuUGScJv2w05-b5evQTNWa0'
+        run: |
+          mkdir -p img/effetti
+          curl -fsSL --retry 3 --connect-timeout 15 --max-time 120 "$SOURCE_URL" -o img/effetti/aura-divina-v363-source.png
+          python - <<'PY'
+          from PIL import Image
+          with Image.open('img/effetti/aura-divina-v363-source.png') as im:
+              assert im.format=='PNG',im.format
+              assert min(im.size)>1000,im.size
+              im.verify()
+          PY
+      - name: Build transparent magic overlay and 3 character previews
+        run: python tools/render_aura_divina_v363.py
+      - name: Verify original avatar silhouettes and alpha
+        run: |
+          python - <<'PY'
+          from PIL import Image
+          from pathlib import Path
+          o=Path('img/effetti/aura-divina-v363.webp')
+          with Image.open(o) as im:
+              im=im.convert('RGBA')
+              assert im.size==(720,1080)
+              assert im.getpixel((360,340))[3]<35,'face protection failed'
+              assert im.getpixel((360,580))[3]<35,'torso protection failed'
+              assert im.getbbox()
+          assert Path('docs/aura-divina-v363-preview.jpg').stat().st_size>20000
+          print('Original divine aura, transparent center and class previews verified')
+          PY
+      - name: Commit complete original aura and preview to branch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add img/effetti/aura-divina-v363-source.png img/effetti/aura-divina-v363.webp docs/aura-divina-v363-preview.jpg
+          git rm -f aura-divina-v363.trigger
+          git commit -m 'assets(aura v363): original luminous divine overlay and three class previews'
+          git push origin HEAD:feature/aura-divina-v363-originale
