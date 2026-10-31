@@ -37,7 +37,7 @@ export function montaFotoRpg(elemento,effetto,opzioni={}) {
       // v363: Aura Divina nuova da zero; i bordi del WEBP sono trasparenti
       // e il centro lascia visibili viso, torso, armi e armature reali.
       layer.style.backgroundImage=id==='divina'
-        ? 'url("./img/effetti/aura-divina-v363.webp?v=363")'
+        ? 'url("./img/effetti/aura-divina-v364.webp?v=364")'
         : 'url("'+AURA_FOTO_ATLAS+'")';
       layer.style.backgroundPosition=id==='divina'?'center center':x+' '+y;
       layer.style.backgroundSize=id==='divina'?'100% 100%':'300% 200%';
