@@ -216,6 +216,64 @@ def fit_crown(im, crown, cls):
     im.alpha_composite(art,(x,y))
     return im
 
+def build_divine_nine(divine):
+    # The nine awards share ONE effect geometry and use their original armor photos.
+    out=ROOT/"img/personaggi/aura-divina-v371"
+    from PIL import ImageChops
+    for cls,armors in CLASSES.items():
+        for armor in armors:
+            im=open_scaled(source_photo(cls,5,"base",armor))
+            im=restored_equipment(im,cls,armor,5)
+            w,h=SIZE
+            fx=Image.new("RGBA",SIZE,(0,0,0,0))
+            d=ImageDraw.Draw(fx,"RGBA")
+            # Same luminous halo, feathers, orbiting energy, and rune circle for all.
+            for i in range(3):
+                pad=9+i*7
+                d.arc((w*.33-pad,h*.052-pad,w*.67+pad,h*.316+pad),
+                      188,352,fill=(255,215,129,185-i*45),width=3)
+                d.arc((w*.33-pad,h*.052-pad,w*.67+pad,h*.316+pad),
+                      8,174,fill=(255,215,129,185-i*45),width=3)
+            for side in (-1,1):
+                for i in range(35):
+                    t=i/34
+                    x0=w*(.5+side*.145)
+                    x1=w*(.5+side*(.25+.24*abs(1-2*t)))
+                    yy=h*(.16+.46*t)
+                    d.line([(x0,h*(.23+.26*t)),(x1,yy)],
+                          fill=(255,206,112,130),width=3 if i%4==0 else 2)
+                for i in range(3):
+                    rx=w*(.30+i*.055)
+                    ry=h*(.09+i*.023)
+                    d.arc((w*.5-rx,h*.43-ry,w*.5+rx,h*.43+ry),
+                          12 if side==1 else 188,158 if side==1 else 348,
+                          fill=(255,207,125,164),width=4)
+            d.ellipse((w*.04,h*.887,w*.96,h*.981),outline=(255,213,135,239),width=5)
+            d.ellipse((w*.12,h*.899,w*.88,h*.968),outline=(255,239,179,206),width=2)
+            for j in range(120):
+                rng=random.Random(j*53+75)
+                x=rng.randint(12,w-12);y=rng.randint(20,int(h*.9))
+                if w*.31<x<w*.69 and h*.08<y<h*.86:continue
+                rr=1 if j%7 else 3
+                d.ellipse((x-rr,y-rr,x+rr,y+rr),fill=(255,232,159,200))
+            glow=fx.filter(ImageFilter.GaussianBlur(13))
+            glow.putalpha(glow.getchannel("A").point(lambda a:int(a*.6)))
+            # Mask effects out of face, chest, skin and weapons.
+            mask=Image.new("L",SIZE,0)
+            md=ImageDraw.Draw(mask)
+            md.ellipse((w*.24,h*.074,w*.76,h*.93),fill=230)
+            md.ellipse((w*.14,h*.26,w*.86,h*.72),fill=230)
+            mask=mask.filter(ImageFilter.GaussianBlur(18))
+            for effect_layer in (glow,fx):
+                a=ImageChops.subtract(effect_layer.getchannel("A"),mask)
+                effect_layer.putalpha(a)
+                im.alpha_composite(effect_layer)
+            dest=out/cls/((armor or "base")+".webp")
+            dest.parent.mkdir(parents=True,exist_ok=True)
+            im.convert("RGB").save(dest,"WEBP",quality=91,method=5)
+            if dest.stat().st_size<10000:raise ValueError(f"Corrupt divine artwork: {dest}")
+    print("Created all 9 canonical-image Divine Aura variants")
+
 def make_preview(files):
     names=[
       ("assassino",5,"standard","base",False),
@@ -268,6 +326,7 @@ def main():
           hashes.append(hashlib.sha256(out.read_bytes()).hexdigest())
     if len(hashes)!=648 or len(set(hashes))!=648:
         raise ValueError("648 distinct photos required")
+    build_divine_nine(divine)
     preview=make_preview(hashes)
     print(f"Generated {len(hashes)} unique full-frame crowned photos; {preview}")
 
