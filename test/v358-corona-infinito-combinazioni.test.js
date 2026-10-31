@@ -27,9 +27,9 @@ test('Corona: tutte le 4536 combinazioni realmente consentite senza doppi effett
 test('La Corona finale è una nuova fotografia integrale, non un adesivo sulla testa',()=>{
   const app=src('src/app.js'),atelier=src('src/rpg-atelier.js');
   assert.match(app,/src: fotoCoronaRpg \|\| fotoArmaturaRpg \|\| fotoProgressioneRpg/);
-  assert.match(app,/percorsoFotoCoronaV359/);
+  assert.match(app,/percorsoFotoCoronaV360/);
   assert.doesNotMatch(app,/src:'\.\/img\/effetti\/corona-infinito-v358\.svg'/);
-  assert.match(atelier,/percorsoFotoCoronaV359/);
+  assert.match(atelier,/percorsoFotoCoronaV360/);
   assert.doesNotMatch(atelier,/ctx\.drawImage\(regalia,dx,dy,dw,dh\)/);
   assert.match(src('tools/render_corona_v359.py'),/assert len\(files\)==144/);
 });
@@ -66,6 +66,6 @@ test('L Aura divina rimane un premio separato, non scompare con una Corona',()=>
   assert.deepEqual(equipaggiamentoRpgUnico({Astrale:'skin-mitica',Effetto:'effetto-ombra'}),
     {Effetto:'effetto-ombra'});
   assert.match(src('src/aura-skin.js'),/giorni >= 80/);
-  assert.match(src('sw.js'),/palestra-v359/);
-  assert.match(src('index.html'),/palestra-v359/);
+  assert.match(src('sw.js'),/palestra-v360/);
+  assert.match(src('index.html'),/palestra-v360/);
 });

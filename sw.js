@@ -39,6 +39,7 @@ const FILE = [
   './src/anteprima-combinata-rpg.js',
   './src/equipaggiamento-rpg.js',
   './src/foto-corona-v360.js',
+  './src/foto-corona-v359.js', // Legacy map still tested; preserve offline compatibility.
   // 648 nuove fotografie disponibili su richiesta; precache limitata a 18 foto standard.
   ...['assassino','guerriero','berserker'].flatMap(cls =>
     Array.from({length:6},(_,i)=>'./img/personaggi/corona-v360/'+cls+'/stato-'+i+'/standard/base-divina.webp?v=360')),
