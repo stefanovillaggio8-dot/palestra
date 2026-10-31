@@ -5,7 +5,7 @@
 import { requisitoSkin, accessoSkin, scenarioSkin, statoCoronaInfinito, cambiaCoronaInfinito, CORONA_INFINITO_ID, ordinaPerRaritaAura } from './aura-skin.js';
 import { equipaggiamentoRpgUnico, slotPerOggettoRpg, aggiornaEquipaggiamentoRpg } from './equipaggiamento-rpg.js';
 import { percorsoFotoCoronaV360 } from './foto-corona-v360.js';
-import { percorsoFotoAuraDivinaV366 } from './foto-aura-divina-v366.js';
+import { percorsoFotoAuraDivinaV366 } from './foto-aura-divina-v366.js?v=367';
 import * as db from './db.js';
 import * as sb from './supabase.js';
 import * as sync from './sync.js';
@@ -6656,7 +6656,7 @@ function bloccoPersonaggio(profilo, st) {
       divina:false, // Aura v363 e' ora sempre un livello separato, mai bruciato nella fotografia della Corona.
       armaSbloccata,
     }) : null;
-    // v366: 75-day reward always has the completed stage-5 legendary armor
+    // v367: 75-day reward always has the completed stage-5 legendary armor
     // and the authentic class weapon earned at day 30. Only Shop armor
     // selection changes the photograph; extra Shop effects are NEVER stacked.
     const fotoAuraDivinaRpg=percorsoFotoAuraDivinaV366({
@@ -6717,7 +6717,7 @@ function bloccoPersonaggio(profilo, st) {
     if (effettoVivo) grafica.classList.add('rpg-render-live');
     const scenaFotografica = (!effettoVivo || auraDivinaAttiva) && montaFotoRpg(grafica, fotoAuraDivinaRpg || fotoCoronaRpg || effettoVivo || auraDivinaAttiva || astraleAttiva ? null : effettoEquipaggiato?.id || null, {
       corona: false, // Nuova Corona regale: asset indipendente
-      divina: auraDivinaAttiva && !fotoAuraDivinaRpg, // v366 has Divine Aura baked into complete armor photos; no second overlay.
+      divina: auraDivinaAttiva && !fotoAuraDivinaRpg, // v367 SVG artwork preserves original photo with a single Divine aura; do not duplicate it.
       mitica: !auraDivinaAttiva && !fotoCoronaRpg && astraleAttiva,
       classe: classeId,
     });
