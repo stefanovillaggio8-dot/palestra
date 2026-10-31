@@ -50,7 +50,7 @@ test('v357: Aura calcolata dalla difficoltà e dall’imbarazzo, senza invertire
 });
 
 test('v357: cache/HTML sincronizzati e nessun asset assente',()=>{
-  assert.match(src('index.html'),/palestra-v362/);
-  assert.match(src('sw.js'),/palestra-v362/);
+  assert.match(src('index.html'),/palestra-v363/);
+  assert.match(src('sw.js'),/palestra-v363/);
   assert.match(src('sw.js'),/src\/foto-corona-v360\.js/);
 });
