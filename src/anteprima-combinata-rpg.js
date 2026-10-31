@@ -252,7 +252,7 @@ export async function scaricaFotoCombinataRpg(grafica,classe='rpg') {
   // v363: la foto esportata usa esattamente la NUOVA Aura Divina scontornata.
   // Se Safari non riesce a caricare il WebP, fallback alla vecchia texture.
   const fotoCoronataConDivina=/\/corona-v360\/.*-divina\.webp/.test(original.currentSrc||original.src||'');
-  if(grafica.classList?.contains('personaggio-aura-divina') && !/\/aura-divina-v365\//.test(original.currentSrc||original.src||'')) {
+  if(grafica.classList?.contains('personaggio-aura-divina') && !/\/aura-divina-v(?:365|366)\//.test(original.currentSrc||original.src||'')) {
     const magica=await new Promise(resolve=>{
       const img=document.createElement('img');
       img.onload=()=>resolve(img);
