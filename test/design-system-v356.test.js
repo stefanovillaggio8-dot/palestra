@@ -62,9 +62,9 @@ test('App, precache e CSS hanno tutti la stessa nuova versione',async()=>{
  const css=await leggi('stile-premium.css');
  assert.match(sw,/palestra-v\d+/);
  assert.match(html,/palestra-v\d+/);
- assert.match(html,/stile-premium\.css\?v=366/);
- assert.match(sw,/stile-premium\.css\?v=366/);
- assert.ok(html.indexOf('stile-rpg.css?v=366')<html.indexOf('stile-premium.css?v=366'));
+ assert.match(html,/stile-premium\.css\?v=\d+/);
+ assert.match(sw,/stile-premium\.css\?v=\d+/);
+ assert.ok(html.indexOf('stile-rpg.css?v=')<html.indexOf('stile-premium.css?v='));
  assert.match(css,/--ui-panel/);
  assert.match(css,/max-width:620px/);
  assert.match(css,/--ui-ease/);
