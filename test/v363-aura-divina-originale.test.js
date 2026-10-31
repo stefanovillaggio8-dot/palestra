@@ -31,7 +31,7 @@ test('v363: nuovo effetto standalone senza vecchia texture Divina',t=>{
 test('v363: effetto anche con la corona, senza overlay vecchio bruciato nella foto',()=>{
  const app=source('src/app.js');
  assert.match(app,/divina:false, \/\/ Aura v363/);
- assert.match(app,/divina: auraDivinaAttiva, \/\/ Nuovo effetto v363/);
+ assert.match(app,/divina: auraDivinaAttiva && !fotoAuraDivinaRpg/);
  assert.doesNotMatch(app,/divina: auraDivinaAttiva && !fotoCoronaRpg/);
  assert.match(app,/statoFotoConsentito/);
  assert.match(app,/armaSbloccataRpg/);
