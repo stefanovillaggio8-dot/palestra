@@ -119,21 +119,21 @@ def apply_divine(im, divine):
 def crown_effects(im, cls, seed):
     w,h=im.size
     rng=random.Random(seed)
-    head_y={"assassino":.077,"guerriero":.075,"berserker":.081}[cls]*h
+    head_y={"assassino":.091,"guerriero":.088,"berserker":.093}[cls]*h
     halo=Image.new("RGBA",im.size,(0,0,0,0))
     glow=Image.new("RGBA",im.size,(0,0,0,0))
     d=ImageDraw.Draw(halo,"RGBA")
     g=ImageDraw.Draw(glow,"RGBA")
     cx=w*.50
     # Concentrated gold-violet endgame energy, behind the head only.
-    for k in range(3):
-        rx=w*(.124+k*.024)
-        ry=h*(.039+k*.010)
+    for k in range(2):
+        rx=w*(.105+k*.024)
+        ry=h*(.030+k*.010)
         box=(int(cx-rx),int(head_y-ry),int(cx+rx),int(head_y+ry))
-        col=(255,189,70,115-k*25) if k%2==0 else (182,95,255,125)
-        d.arc(box,192+k*18,345+k*12,fill=col,width=max(1,4-k))
-        d.arc(box,10+k*8,161+k*11,fill=col,width=max(1,4-k))
-        g.arc(box,0,360,fill=(*col[:3],75),width=13)
+        col=(255,189,70,90-k*16) if k%2==0 else (182,95,255,85)
+        d.arc(box,198+k*18,328+k*9,fill=col,width=max(1,3-k))
+        d.arc(box,18+k*8,148+k*7,fill=col,width=max(1,3-k))
+        g.arc(box,202,330,fill=(*col[:3],48),width=9)
     for i in range(75):
         x=int(cx+rng.uniform(-.255,.255)*w)
         y=int(head_y+rng.uniform(-.090,.105)*h)
@@ -152,11 +152,11 @@ def crown_effects(im, cls, seed):
 def fit_crown(im, crown, cls):
     w,h=im.size
     # Same design and size hierarchy for every class.
-    width=int(w*({"assassino":.175,"guerriero":.172,"berserker":.166}[cls]))
-    height=int(h*({"assassino":.066,"guerriero":.063,"berserker":.067}[cls]))
+    width=int(w*({"assassino":.215,"guerriero":.205,"berserker":.205}[cls]))
+    height=int(h*({"assassino":.086,"guerriero":.084,"berserker":.082}[cls]))
     art=crown.resize((width,height),RS)
     # Bottom of crown is seated on hood/helmet, not floating above character.
-    basey={"assassino":.103,"guerriero":.103,"berserker":.111}[cls]*h
+    basey={"assassino":.127,"guerriero":.121,"berserker":.123}[cls]*h
     x=(w-width)//2; y=int(basey-height)
     # Make sure the output can include high crown tips.
     if y<0:
