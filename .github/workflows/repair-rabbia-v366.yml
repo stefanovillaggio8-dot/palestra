@@ -1,0 +1,55 @@
+name: Repair Berserker Rabbia Shop armor v366
+on:
+  push:
+    branches: [fix/aura-divina-v366-armature-shop-complete]
+    paths: [rabbia-v366.trigger]
+permissions:
+  contents: write
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/aura-divina-v366-armature-shop-complete
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install Pillow
+      - name: Import new fully equipped accurate Rabbia shop armor
+        env:
+          SOURCE_URL: 'https://dnznrvs05pmza.cloudfront.net/gemini/gemini-3-pro-image/images/b930b985-b3e2-4b3b-903e-c029f21fdbf3/ebe82ee8-b9dc-45bc-b858-50f1f01df9ba/Edit__shop_as_the_exact_original_photograph__preserving_ever.png?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiZmI0NmVmZDEyMjg5MGUyYyIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MzU5MjUyOX0.pXI6UlJuEqZfPw-Pnar7JSIl_tbWTG_Pup78xdPXbwg'
+        run: |
+          curl -fsSL --retry 3 --max-time 100 "$SOURCE_URL" -o /tmp/rabbia.png
+          python - <<'PY'
+          from PIL import Image,ImageOps,ImageDraw
+          from pathlib import Path
+          root=Path('img/personaggi/aura-divina-v366')
+          with Image.open('/tmp/rabbia.png') as raw:
+              assert raw.width>=900 and raw.height>=1200,raw.size
+              result=ImageOps.pad(raw.convert('RGB'),(720,1080),method=Image.Resampling.LANCZOS,color=(10,8,14))
+          result.save(root/'berserker/armatura-berserker-rabbia.webp','WEBP',quality=94,method=6)
+          groups=[
+              ('assassino',['base','armatura-assassino-notte','armatura-assassino-spettro']),
+              ('guerriero',['base','armatura-guerriero-braci','armatura-guerriero-abisso']),
+              ('berserker',['base','armatura-berserker-rabbia','armatura-berserker-apocalisse'])
+          ]
+          W,H=365,548
+          sheet=Image.new('RGB',(3*W,3*(H+42)),(12,10,17))
+          text=ImageDraw.Draw(sheet)
+          for row,(cls,ids) in enumerate(groups):
+              for col,id in enumerate(ids):
+                  im=Image.open(root/cls/(id+'.webp')).convert('RGB').resize((W,H),Image.Resampling.LANCZOS)
+                  x,y=col*W,row*(H+42)
+                  sheet.paste(im,(x,y))
+                  text.text((x+8,y+H+13),f'{cls.upper()} | {id.replace("armatura-"+cls+"-","").upper()}',fill=(251,212,146))
+          sheet.save('docs/aura-divina-v366-shop-completo.jpg','JPEG',quality=88,optimize=True)
+          PY
+      - name: Commit the repaired image and updated visual overview
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add img/personaggi/aura-divina-v366/berserker/armatura-berserker-rabbia.webp docs/aura-divina-v366-shop-completo.jpg
+          git rm rabbia-v366.trigger
+          git commit -m 'assets(v366): accurately preserve Rabbia shop armor with unlocked axe'
+          git push origin HEAD:fix/aura-divina-v366-armature-shop-complete
