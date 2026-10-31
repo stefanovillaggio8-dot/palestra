@@ -22,7 +22,7 @@ jobs:
         run: python -m pip install Pillow pillow-avif-plugin
       - name: Download the user-approved crown asset once
         env:
-          SOURCE_URL: "https://dnznrvs05pmza.cloudfront.net/gemini/gemini-3.1-flash-image/images/5f6dcd97-2e02-4769-9edd-6fdae4340641/51968060-5dea-48dc-8ba0-16fd352e47c7/From__approved_extract_and_faithfully_reproduce_ONLY_THE_SAM.png?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiODgzMWZlYTljNGRjNzZjYiIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MzYyMTAzM30.5olRK8OyFvj7GWHIbCuQYZ4p51y0N4jZi5rcpDtY1WU"
+          SOURCE_URL: "https://dnznrvs05pmza.cloudfront.net/gemini/gemini-3.1-flash-image/images/07460b5a-b996-4450-9b72-dbc778c41cf4/e2c226c8-d3df-4bda-b141-d3f3365ec9b6/Precise_jewelry_product_extraction_from__approved__The_image.png?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiMzEyMWUzNzM4MWZhNDhkZiIsImJ1Y2tldCI6InJ1bndheS10YXNrLWFydGlmYWN0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MzYyNjA5OX0.fHT0xNEdfjXJafGAmQKsUeBiCKamXeWPAYh1h6U84-w"
         run: |
           mkdir -p img/effetti
           curl --retry 3 --fail --location --silent --show-error "$SOURCE_URL" -o img/effetti/corona-infinito-v360-original.png
