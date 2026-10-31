@@ -1,1 +1,0 @@
-Render original divine aura texture with face and torso cut-out, QA against all three original RPG classes.
