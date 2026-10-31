@@ -26,7 +26,7 @@ test('Corona: tutte le 4536 combinazioni realmente consentite senza doppi effett
 
 test('La Corona finale è una nuova fotografia integrale, non un adesivo sulla testa',()=>{
   const app=src('src/app.js'),atelier=src('src/rpg-atelier.js');
-  assert.match(app,/src: fotoCoronaRpg \|\| fotoArmaturaRpg \|\| fotoProgressioneRpg/);
+  assert.match(app,/src: fotoAuraDivinaRpg \|\| fotoCoronaRpg \|\| fotoArmaturaRpg \|\| fotoProgressioneRpg/);
   assert.match(app,/percorsoFotoCoronaV360/);
   assert.doesNotMatch(app,/src:'\.\/img\/effetti\/corona-infinito-v358\.svg'/);
   assert.match(atelier,/percorsoFotoCoronaV360/);
