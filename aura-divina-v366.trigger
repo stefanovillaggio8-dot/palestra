@@ -1,1 +1,0 @@
-Generate 9 accurate Divine Aura full-armor portraits: stage5 standard, two purchasable class armor sets, all with original weapon unlocked at day30. No other effect, no crown; preserve identity. Test before main.
