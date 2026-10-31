@@ -2251,3 +2251,41 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
 .personaggio-scena-grafica.rpg-corona-foto-v360 .personaggio-ritratto {
  filter:none;object-fit:contain;
 }
+
+
+/* v362: solo illustrazioni complete nelle anteprime della ricompensa finale. */
+.aura-corona-preview .corona-v361-art {
+  margin:12px auto 10px;
+  max-width:360px;
+  overflow:hidden;
+  border:1px solid rgba(225,181,100,.4);
+  border-radius:16px;
+  background:#0d0814;
+  box-shadow:0 12px 36px rgba(0,0,0,.34);
+}
+.aura-corona-preview .corona-v361-art-img {
+  display:block;
+  width:100%;
+  height:auto;
+  aspect-ratio:2/3;
+  object-fit:contain;
+}
+.aura-corona-preview .corona-v361-art figcaption {
+  padding:10px 13px;
+  font-size:.82rem;
+  color:#f6d7a2;
+  background:linear-gradient(90deg,#1d142c,#17121d);
+}
+.aura-corona-preview .corona-v361-nota {font-size:.84rem;line-height:1.5;}
+/* v360 imponeva 95% di opacita' e fusione screen: il personaggio spariva.
+   La maschera ora lascia libera la testa e il busto, mentre la luce divina
+   rimane lungo il perimetro; nessuna modifica alla vera Aura sbloccata. */
+.personaggio-scena-grafica.personaggio-aura-divina:not(.rpg-composite-active) > .aura-foto-divina {
+  display:block!important;
+  visibility:visible!important;
+  opacity:.56!important;
+  mix-blend-mode:normal!important;
+  z-index:4!important;
+  -webkit-mask-image:radial-gradient(ellipse 43% 70% at 50% 48%,transparent 55%,rgba(0,0,0,.25) 75%,#000 100%)!important;
+  mask-image:radial-gradient(ellipse 43% 70% at 50% 48%,transparent 55%,rgba(0,0,0,.25) 75%,#000 100%)!important;
+}
