@@ -43,5 +43,5 @@ test('v362: app, cache e preview sincronizzate',()=>{
  assert.match(sw,/palestra-v366/);
  assert.match(html,/palestra-v366/);
  assert.match(sw,/corona-v361-anteprima\.html/);
- assert.match(html,/stile-rpg\.css\?v=365/);
+ assert.match(html,/stile-rpg\.css\?v=366/);
 });
