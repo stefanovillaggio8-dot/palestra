@@ -40,8 +40,8 @@ test('v362: aura divina illumina i bordi senza nascondere il personaggio',()=>{
 
 test('v362: app, cache e preview sincronizzate',()=>{
  const sw=file('sw.js'),html=file('index.html');
- assert.match(sw,/palestra-v363/);
- assert.match(html,/palestra-v363/);
+ assert.match(sw,/palestra-v364/);
+ assert.match(html,/palestra-v364/);
  assert.match(sw,/corona-v361-anteprima\.html/);
- assert.match(html,/stile-rpg\.css\?v=363/);
+ assert.match(html,/stile-rpg\.css\?v=364/);
 });
