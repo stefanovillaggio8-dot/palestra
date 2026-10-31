@@ -46,7 +46,7 @@ test('Anteprima, Atelier e download usano le foto reali evitando sovrapposizioni
   const comp=await readFile(new URL('../src/anteprima-combinata-rpg.js',import.meta.url),'utf8');
   assert.match(a,/montaScenaCinematograficaRpg\(grafica,fotoRpg/);
   assert.match(atelier,/fotoCinematograficaRpg\(\{\.\.\.c,corona:false,divina:false\}\)/);
-  assert.match(atelier,/\(!giaFotografica \|\| c\.divina\)&&livelli.length/);
+  assert.match(atelier,/\(!giaFotografica \|\| \(c\.divina && !fotoDivina\)\)&&livelli.length/);
   assert.match(comp,/!integrata && effects\?\.width/);
   assert.match(css,/rpg-scena-cinematografica/);
   assert.match(css,/\.rpg-foto-combinata/);
