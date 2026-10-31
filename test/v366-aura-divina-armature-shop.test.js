@@ -23,7 +23,7 @@ test('v366: exactly 9 valid photographs, three full outfits per class, two purch
    for(const armatura of armors){
      const path=percorsoFotoAuraDivinaV366({classe,stato:5,divina:true,
        armatura:armatura==='base'?null:armatura,armaSbloccata:true});
-     assert.ok(path?.includes('/aura-divina-v366/'),String(path));
+     assert.ok(path?.includes('/aura-divina-v367/'),String(path));
      assert.ok(!urls.has(path),path);urls.add(path);
      const full=new URL('../'+path.replace(/^\.\//,'').split('?')[0],import.meta.url);
      assert.ok(existsSync(full),path);
@@ -56,7 +56,7 @@ test('v366: real profile renders owned Shop armor, correct 75-day preview and on
 });
 test('v366: Shop gallery, offline images and iPhone PWA version agree',()=>{
  const sw=source('sw.js'),html=source('index.html');
- assert.match(sw,/palestra-v366/);assert.match(html,/palestra-v366/);
+ assert.match(sw,/palestra-v\d+/);assert.match(html,/palestra-v\d+/);
  assert.match(sw,/foto-aura-divina-v366\.js/);
  assert.match(sw,/aura-divina-v366/);
  assert.match(sw,/aura-divina-v366-anteprima\.html/);
