@@ -259,7 +259,7 @@ export async function scaricaFotoCombinataRpg(grafica,classe='rpg') {
       a.width=out.width;a.height=out.height;
       const fx=a.getContext('2d',{alpha:true});
       if(fx){
-        fx.globalAlpha=.94;
+        fx.globalAlpha=.56; // v362: conserva volto e colori originali nel PNG salvato
         disegnaSprite(fx,atlas,'divina',0,0,a.width,a.height);
         ritagliaPersona(fx,classe,a.width,a.height);
         ctx.drawImage(a,0,0,out.width,out.height);

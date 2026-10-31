@@ -33,7 +33,7 @@ test('Le armature originali rimangono le immagini di progressione Streak',async(
  assert.match(app,/applicaSkinRpg\(grafica, fotoRpg, classeId/);
  assert.match(app,/percorsoStato\(classeId, statoFotoConsentito\)/);
  assert.doesNotMatch(app,/const overlayCosmetici = svgCosmeticiRpg\(/);
- assert.match(app,/__anteprimaCorona:true/);
+ assert.match(app,/corona-v361-original/); // anteprima finale illustrativa, separata dalle foto Streak
  assert.match(app,/classeAnteprima = oggetto\.classe/);
  assert.match(app,/id === 'skin-mitica'/);
 });
