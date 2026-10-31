@@ -257,7 +257,7 @@ export async function scaricaFotoCombinataRpg(grafica,classe='rpg') {
       const img=document.createElement('img');
       img.onload=()=>resolve(img);
       img.onerror=()=>resolve(null);
-      img.src='./img/effetti/aura-divina-v363.webp?v=363';
+      img.src='./img/effetti/aura-divina-v364.webp?v=364';
       if(img.complete&&img.naturalWidth)resolve(img);
     });
     if(magica?.naturalWidth){
