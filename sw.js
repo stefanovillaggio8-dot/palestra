@@ -40,6 +40,7 @@ const FILE = [
   './src/anteprima-combinata-rpg.js',
   './src/equipaggiamento-rpg.js',
   './src/foto-corona-v360.js',
+  './src/foto-armatura-armata-v371.js',
   './src/foto-aura-divina-v365.js',
   './src/foto-aura-divina-v366.js?v=369',
   './img/personaggi/armature/berserker-apocalisse-corna.svg?v=369',
