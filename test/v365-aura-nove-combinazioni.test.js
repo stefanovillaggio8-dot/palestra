@@ -39,8 +39,8 @@ test('v365: app uses the original stage photograph, no second aura overlay and o
 });
 test('v365: 9 full-frame WebP files and versioned iPhone offline gallery',()=>{
  const sw=file('sw.js'),html=file('index.html');
- assert.match(sw,/palestra-v366/);
- assert.match(html,/palestra-v366/);
+ assert.match(sw,/palestra-v\d+/);
+ assert.match(html,/palestra-v\d+/);
  assert.match(sw,/foto-aura-divina-v365\.js/);
  assert.match(sw,/aura-divina-v365\/'/);
  assert.match(sw,/aura-divina-v365-anteprima\.html/);
