@@ -1,1 +1,0 @@
-Rebuild the comparison with one continuous premium divine energy aura. No change to portraits, faces, costumes, weapons, or streak stages.
