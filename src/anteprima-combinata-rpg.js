@@ -249,20 +249,31 @@ export async function scaricaFotoCombinataRpg(grafica,classe='rpg') {
   }
   const effects=grafica.querySelector('.rpg-foto-combinata');
   if(!integrata && effects?.width)ctx.drawImage(effects,0,0,out.width,out.height);
-  // v359: l'Aura divina originaria torna ad essere un vero livello fotografico
-  // dell'atlante. Copialo anche nel PNG finale; il precedente SVG è eliminato.
+  // v363: la foto esportata usa esattamente la NUOVA Aura Divina scontornata.
+  // Se Safari non riesce a caricare il WebP, fallback alla vecchia texture.
   const fotoCoronataConDivina=/\/corona-v360\/.*-divina\.webp/.test(original.currentSrc||original.src||'');
-  if(grafica.classList?.contains('personaggio-aura-divina') && !fotoCoronataConDivina) {
-    const atlas=await getAtlas();
-    if(atlas){
-      const a=document.createElement('canvas');
-      a.width=out.width;a.height=out.height;
-      const fx=a.getContext('2d',{alpha:true});
-      if(fx){
-        fx.globalAlpha=.56; // v362: conserva volto e colori originali nel PNG salvato
-        disegnaSprite(fx,atlas,'divina',0,0,a.width,a.height);
-        ritagliaPersona(fx,classe,a.width,a.height);
-        ctx.drawImage(a,0,0,out.width,out.height);
+  if(grafica.classList?.contains('personaggio-aura-divina')) {
+    const magica=await new Promise(resolve=>{
+      const img=document.createElement('img');
+      img.onload=()=>resolve(img);
+      img.onerror=()=>resolve(null);
+      img.src='./img/effetti/aura-divina-v363.webp?v=363';
+      if(img.complete&&img.naturalWidth)resolve(img);
+    });
+    if(magica?.naturalWidth){
+      ctx.drawImage(magica,0,0,out.width,out.height);
+    } else if(!fotoCoronataConDivina){
+      const atlas=await getAtlas();
+      if(atlas){
+        const a=document.createElement('canvas');
+        a.width=out.width;a.height=out.height;
+        const fx=a.getContext('2d',{alpha:true});
+        if(fx){
+          fx.globalAlpha=.56; // Fallback v362 se il nuovo WebP non e' disponibile.
+          disegnaSprite(fx,atlas,'divina',0,0,a.width,a.height);
+          ritagliaPersona(fx,classe,a.width,a.height);
+          ctx.drawImage(a,0,0,out.width,out.height);
+        }
       }
     }
   }
