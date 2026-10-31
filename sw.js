@@ -36,7 +36,7 @@ const FILE = [
   './src/effetti-rpg-canvas.js',
   './src/aura-foto-atlas.js',
   './src/aura-foto-rpg.js',
-  './img/effetti/aura-divina-v364.webp?v=365', // visual effect shared by every class and streak stage
+  './img/effetti/aura-divina-v364.webp?v=364', // visual effect shared by every class and streak stage
   './src/anteprima-combinata-rpg.js',
   './src/equipaggiamento-rpg.js',
   './src/foto-corona-v360.js',
