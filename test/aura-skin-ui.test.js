@@ -34,12 +34,13 @@ test('Shop bloccato e anteprima non cambiano profilo, saldo o inventario', async
   assert.notEqual(pulsante(braci,'Streak attuale insufficiente').getAttribute('disabled'),null);
   assert.ok(!cards.some(c=>c.textContent.includes('Velo della Notte')));
   // Aura divina è un premio GRATUITO a 75 giorni: anteprima permessa
-  // anche a Streak zero e compatibile con l'effetto acquistato già equipaggiato.
+  // anche a Streak zero; l'anteprima mostra solo Aura Divina (un effetto per volta).
   await pulsante(app,'Anteprima Aura divina').click();
   const divina=perClasse(body,'aura-preview-overlay')[0];
   assert.ok(divina);
-  assert.equal(perClasse(divina,'aura-foto-divina').length,1);
-  assert.equal(perClasse(divina,'aura-foto-ambra').length,1);
+  assert.equal(perClasse(divina,'aura-foto-divina').length,0); // Aura v365 is already part of the full photo.
+  assert.match(perClasse(divina,'personaggio-ritratto')[0].getAttribute('src'),/aura-divina-v365/);
+  assert.equal(perClasse(divina,'aura-foto-ambra').length,0);
   assert.equal(perClasse(divina,'aura-foto-corona').length,0);
   await pulsante(divina,'Chiudi anteprima').click();
   assert.equal(perClasse(body,'aura-preview-overlay').length,0);
