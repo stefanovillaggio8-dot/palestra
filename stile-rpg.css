@@ -2289,3 +2289,29 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
   -webkit-mask-image:radial-gradient(ellipse 43% 70% at 50% 48%,transparent 55%,rgba(0,0,0,.25) 75%,#000 100%)!important;
   mask-image:radial-gradient(ellipse 43% 70% at 50% 48%,transparent 55%,rgba(0,0,0,.25) 75%,#000 100%)!important;
 }
+
+
+/* v363: Aura Divina 75 giorni: nuovo effetto originale.
+ * La texture ha un vero canale alfa e protegge gia' la sagoma;
+ * percio' rimuovere la vecchia maschera ellittica che la sbiadiva.
+ * NON aggiunge corone, spade, elmi, skin o armature. */
+.personaggio-scena-grafica.personaggio-aura-divina:not(.rpg-composite-active) > .aura-foto-divina {
+  display:block!important;
+  visibility:visible!important;
+  opacity:.98!important;
+  mix-blend-mode:normal!important;
+  z-index:5!important;
+  background-position:center center!important;
+  background-size:100% 100%!important;
+  -webkit-mask-image:none!important;
+  mask-image:none!important;
+  filter:drop-shadow(0 0 5px rgba(255,203,110,.25));
+  animation:aura-divina-v363-respiro 7.5s ease-in-out infinite alternate;
+}
+@keyframes aura-divina-v363-respiro {
+  from {transform:translateY(0);opacity:.86;}
+  to {transform:translateY(-2px);opacity:1;}
+}
+@media(prefers-reduced-motion:reduce) {
+  .personaggio-scena-grafica .aura-foto-divina {animation:none!important;}
+}
