@@ -48,6 +48,52 @@ def source_photo(cls, stage, effect, armor=""):
         return ROOT / f"img/personaggi/stati/{cls}-{stage}.webp"
     return ROOT / f"img/personaggi/combinazioni/{cls}/stato-{stage}/{effect}.webp"
 
+# True photographic equipment from the canonical level-five photo, no new faces.
+# Coordinates are in the original 900 x 1350 portrait.
+WEAPON_SHAPES = {
+ "assassino": [
+  ([(155,665),(216,650),(268,700),(245,757),(321,941),(295,973),(211,789),(182,740)],(52,10)),
+  ([(745,665),(684,650),(632,700),(655,757),(579,941),(605,973),(689,789),(718,740)],(-52,10)),
+ ],
+ "guerriero": [
+  ([(129,671),(190,660),(260,709),(239,765),(254,1295),(212,1329),(191,772),(145,733)],(32,5)),
+ ],
+ "berserker": [
+  ([(20,251),(114,223),(198,256),(199,381),(155,424),(176,1298),
+     (139,1325),(124,432),(38,456),(12,407)],(65,0)),
+ ],
+}
+
+def restored_equipment(im, cls, armor, stage):
+    if not armor:
+        return im
+    if stage>=4:
+        canonical=open_scaled(ROOT / f"img/personaggi/stati/{cls}-5.webp")
+        w,h=SIZE
+        for coords,shift in WEAPON_SHAPES[cls]:
+            mask=Image.new("L",SIZE,0)
+            d=ImageDraw.Draw(mask)
+            d.polygon([(int(x*w/900),int(y*h/1350)) for x,y in coords],fill=255)
+            mask=mask.filter(ImageFilter.GaussianBlur(1.2))
+            sprite=canonical.copy()
+            sprite.putalpha(mask)
+            layer=Image.new("RGBA",SIZE,(0,0,0,0))
+            layer.paste(sprite,(int(shift[0]*w/900),int(shift[1]*h/1350)))
+            im.alpha_composite(layer)
+    if cls=="berserker" and armor=="armatura-berserker-apocalisse":
+        # The original Apocalisse photo omitted its Viking horns.
+        original=open_scaled(ROOT/"img/personaggi/stati/berserker-5.webp")
+        w,h=SIZE
+        left=[(296,28),(346,25),(397,86),(403,173),(376,177),(354,143),(326,122),(299,102)]
+        mirror=[(900-x,y) for x,y in left]
+        mask=Image.new("L",SIZE,0)
+        d=ImageDraw.Draw(mask)
+        for p in [left,mirror]:
+            d.polygon([(int(x*w/900),int(y*h/1350)) for x,y in p],fill=255)
+        original.putalpha(mask.filter(ImageFilter.GaussianBlur(1.1)))
+        im.alpha_composite(original)
+    return im
+
 def load_crown():
     if not CROWN.is_file():
         raise FileNotFoundError("Missing approved crown source: " + str(CROWN))
@@ -209,6 +255,7 @@ def main():
           path=source_photo(cls,stage,effect,armor)
           if not path.is_file(): raise FileNotFoundError(path)
           im=open_scaled(path)
+          im=restored_equipment(im,cls,armor,stage)
           # Original Shop armor source: never apply a fake recolor to a canonical costume.
           if is_divine: im=apply_divine(im,divine)
           seed=int(hashlib.sha256(f"{cls}/{stage}/{arm}/{effect}/{is_divine}".encode()).hexdigest()[:10],16)
