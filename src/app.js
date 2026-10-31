@@ -7387,6 +7387,10 @@ function vistaCasa(zona) {
       el('span',{class:'app-quick-icon',testo:'↗',aria:{hidden:'true'}}),
       el('span',{testo:'Allenati'}),
     ]),
+    el('a',{href:'https://stefanovillaggio8-dot.github.io/music-box/?gym=1',target:'_blank',rel:'noopener noreferrer',class:'app-quick-action'},[
+      el('span',{class:'app-quick-icon',testo:'♫',aria:{hidden:'true'}}),
+      el('span',{testo:'Music Box · Gym'}),
+    ]),
     el('a',{href:'#/progressi',class:'app-quick-action'},[
       el('span',{class:'app-quick-icon',testo:'◫',aria:{hidden:'true'}}),
       el('span',{testo:'Progressi'}),
