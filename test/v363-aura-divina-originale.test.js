@@ -6,7 +6,7 @@ import {montaFotoRpg,livelliFotoRpg} from '../src/aura-foto-rpg.js';
 const source=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 
 test('v363: asset originale presente e non cambia le immagini Streak',()=>{
- const path=new URL('../img/effetti/aura-divina-v363.webp',import.meta.url);
+ const path=new URL('../img/effetti/aura-divina-v364.webp',import.meta.url);
  assert.ok(existsSync(path));
  const bytes=readFileSync(path);
  assert.equal(bytes.toString('ascii',0,4),'RIFF');
@@ -24,7 +24,7 @@ test('v363: nuovo effetto standalone senza vecchia texture Divina',t=>{
  assert.equal(montaFotoRpg(parent,null,{divina:true}),true);
  assert.equal(children.length,1);
  assert.match(children[0].className,/aura-foto-divina/);
- assert.match(children[0].style.backgroundImage,/aura-divina-v363\.webp\?v=363/);
+ assert.match(children[0].style.backgroundImage,/aura-divina-v363\.webp\?v=364/);
  assert.equal(children[0].style.backgroundSize,'100% 100%');
  assert.deepEqual(livelliFotoRpg(null,{divina:true}),[{id:'divina',ruolo:'streak'}]);
 });
@@ -42,10 +42,10 @@ test('v363: volto intatto, salvataggio con lo stesso effetto e cache offline',()
  assert.match(patch,/mask-image:none!important/);
  assert.match(patch,/mix-blend-mode:normal!important/);
  const photos=source('src/anteprima-combinata-rpg.js');
- assert.match(photos,/img\/effetti\/aura-divina-v363\.webp\?v=363/);
+ assert.match(photos,/img\/effetti\/aura-divina-v363\.webp\?v=364/);
  assert.match(photos,/ctx\.drawImage\(magica,0,0,out\.width,out\.height\)/);
  const sw=source('sw.js'),html=source('index.html');
- assert.match(sw,/aura-divina-v363\.webp\?v=363/);
- assert.match(sw,/palestra-v363/);
- assert.match(html,/palestra-v363/);
+ assert.match(sw,/aura-divina-v363\.webp\?v=364/);
+ assert.match(sw,/palestra-v364/);
+ assert.match(html,/palestra-v364/);
 });
