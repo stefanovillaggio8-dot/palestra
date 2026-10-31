@@ -1691,11 +1691,13 @@ function apriAnteprimaAuraDivinaRpg(profilo, st) {
 }
 
 function apriAnteprimaCoronaRpg(profilo, st) {
-  const overlay = el('div', { class:'aura-preview-overlay', role:'dialog',
-    aria:{modal:'true',label:'Anteprima Corona dell’Infinito'} });
-  const precedente = document.activeElement;
-  const chiudi=()=>{ overlay.remove(); document.removeEventListener('keydown',tastiera); precedente?.focus?.(); };
-  const tastiera=e=>{ if(e.key==='Escape') chiudi(); };
+  // Artwork di ricompensa finale, non foto del livello corrente. Usa immagini
+  // generate complete (occhi, corona, armi) e non una corona sopra il ritratto.
+  const overlay=el('div',{class:'aura-preview-overlay',role:'dialog',
+    aria:{modal:'true',label:'Anteprima Corona dell’Infinito'}});
+  const precedente=document.activeElement;
+  const chiudi=()=>{overlay.remove();document.removeEventListener('keydown',tastiera);precedente?.focus?.();};
+  const tastiera=e=>{if(e.key==='Escape')chiudi();};
   const pannello=el('section',{class:'aura-preview-panel aura-corona-preview'},[
     el('div',{class:'aura-preview-heading'},[
       el('div',{},[
@@ -1704,19 +1706,40 @@ function apriAnteprimaCoronaRpg(profilo, st) {
       ]),
       bottone('✕',{classe:'fantasma aura-preview-close',titolo:'Chiudi anteprima',onClick:chiudi}),
     ]),
-    el('p',{class:'nota',testo:'Anteprima temporanea sul tuo personaggio. Non modifica gli sblocchi.'}),
+    el('p',{class:'nota',testo:'Anteprima illustrativa del premio finale: corona, occhi e armi sono parte della nuova immagine. La tua progressione e il tuo equipaggiamento non vengono modificati.'}),
   ]);
-  const avatar=bloccoPersonaggio({ ...profilo, __anteprimaCorona:true },st);
-  avatar.classList.add('aura-preview-character');
-  for(const nodo of avatar.querySelectorAll('.riga-pezzi, .personaggio-equipaggiamento, button')) nodo.remove();
-  pannello.appendChild(avatar);
+  const classe=String(profilo?.classe_rpg||'').toLowerCase();
+  const effetto=equipaggiamentoRpgUnico(profilo?.equipaggiamento_aura).Effetto;
+  const concept={
+    assassino:{base:'assassino-5-base','effetto-fulmine':'assassino-5-fulmine','effetto-ombra':'assassino-1-ombra'},
+    guerriero:{base:'guerriero-5-ambra','effetto-fulmine':'guerriero-4-fulmine','skin-mitica':'guerriero-2-astrale'},
+    berserker:{base:'berserker-5-base','effetto-ambra':'berserker-4-ambra','effetto-nebula':'berserker-3-nebula'},
+  };
+  const variante=concept[classe];
+  if(variante){
+    const nome=variante[effetto]||variante.base;
+    const percorso='./img/personaggi/corona-v361-original/'+nome;
+    const nomeClasse=CLASSE_AURA[classe]||classe;
+    pannello.appendChild(el('figure',{class:'corona-v361-art'},[
+      el('img',{class:'corona-v361-art-img',src:percorso+'.webp?v=362',
+        alt:'Illustrazione completa della Corona dell’Infinito sul '+nomeClasse,
+        loading:'eager',decoding:'async'}),
+      el('figcaption',{testo:nomeClasse+' · Corona dell’Infinito · premio finale'}),
+    ]));
+    pannello.appendChild(el('p',{class:'nota corona-v361-nota',testo:
+      'Questo concept mostra la ricompensa finale, non le armi e l’armatura del tuo livello attuale. Le altre combinazioni mantengono le immagini della v360 fino alla loro rigenerazione.'}));
+    pannello.appendChild(bottone('Salva illustrazione originale',{classe:'fantasma aura-save-photo',onClick:()=>{
+      const link=document.createElement('a');
+      link.href=percorso+'.png?v=362';link.download=nome+'.png';
+      document.body.appendChild(link);link.click();link.remove();
+    }}));
+  }else{
+    pannello.appendChild(el('p',{class:'nota',testo:'Scegli Assassino, Guerriero o Berserker per vedere il premio finale.'}));
+  }
   const record=Math.max(0,Number(st?.streak?.record)||0);
   pannello.appendChild(el('p',{class:'nota',testo:record>=80
-    ? 'Ricompensa sbloccata: resta tua per sempre.'
+    ? 'Ricompensa sbloccata: rimane tua per sempre.'
     : 'Ti mancano '+(80-record)+' giorni di record Streak per sbloccarla.'}));
-  pannello.appendChild(bottone('Salva foto con gli oggetti attuali', { classe:'fantasma aura-save-photo',
-    onClick:()=>scaricaFotoCombinataRpg(pannello.querySelector('.personaggio-scena-grafica'),profilo.classe_rpg),
-  }));
   pannello.appendChild(bottone('Chiudi anteprima',{classe:'fantasma',onClick:chiudi}));
   overlay.appendChild(pannello);
   overlay.addEventListener('click',e=>{if(e.target===overlay)chiudi();});
