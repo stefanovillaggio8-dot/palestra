@@ -98,6 +98,7 @@ const FILE = [
   // buona, e il fallback per le navigazioni pu? mandare qui quando serve.
   './anteprima-aura.html',
   './galleria-aura.html',
+  './aura-divina-v365-anteprima.html',
   './corona-v361-anteprima.html', // 9 generated portraits: images cached only on demand
   './img/personaggi/galleria-v352/assassino-01.webp?v=365',
   './img/personaggi/galleria-v352/assassino-02.webp?v=365',
