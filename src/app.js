@@ -5,7 +5,7 @@
 import { requisitoSkin, accessoSkin, scenarioSkin, statoCoronaInfinito, cambiaCoronaInfinito, CORONA_INFINITO_ID, ordinaPerRaritaAura } from './aura-skin.js';
 import { equipaggiamentoRpgUnico, slotPerOggettoRpg, aggiornaEquipaggiamentoRpg } from './equipaggiamento-rpg.js';
 import { percorsoFotoCoronaV360 } from './foto-corona-v360.js';
-import { percorsoFotoAuraDivinaV366 } from './foto-aura-divina-v366.js?v=367';
+import { percorsoFotoAuraDivinaV366 } from './foto-aura-divina-v366.js?v=368';
 import * as db from './db.js';
 import * as sb from './supabase.js';
 import * as sync from './sync.js';
@@ -1450,7 +1450,7 @@ const OGGETTI_AURA = [
   {id:'armatura-assassino-notte',immagine:'./img/personaggi/armature/assassino-notte.webp',miniatura:'./img/personaggi/armature/assassino-notte-mini.webp',nome:'Velo della Notte',tipo:'Armatura',rarita:'Epico',prezzo:9400,classe:'assassino',icona:'🥷',descrizione:'Corazza leggera, lame e cappuccio.'},
   {id:'armatura-assassino-spettro',immagine:'./img/personaggi/armature/assassino-spettro.webp',miniatura:'./img/personaggi/armature/assassino-spettro-mini.webp',nome:'Spettro Cremisi',tipo:'Armatura',rarita:'Leggendario',prezzo:13800,classe:'assassino',icona:'🩸',descrizione:'Silhouette furtiva con bagliori rossi.'},
   {id:'armatura-berserker-rabbia',immagine:'./img/personaggi/armature/berserker-rabbia.webp',miniatura:'./img/personaggi/armature/berserker-rabbia-mini.webp',nome:'Rabbia Antica',tipo:'Armatura',rarita:'Epico',prezzo:9800,classe:'berserker',icona:'🪓',descrizione:'Corna, metallo grezzo e furia pura.'},
-  {id:'armatura-berserker-apocalisse',immagine:'./img/personaggi/armature/berserker-apocalisse.webp',miniatura:'./img/personaggi/armature/berserker-apocalisse-mini.webp',nome:'Ultimo Giorno',tipo:'Armatura',rarita:'Leggendario',prezzo:14500,classe:'berserker',icona:'🔥',descrizione:'Un set enorme che sembra uscito dalla fine del mondo.'},
+  {id:'armatura-berserker-apocalisse',immagine:'./img/personaggi/armature/berserker-apocalisse-corna.svg?v=368',miniatura:'./img/personaggi/armature/berserker-apocalisse-corna.svg?v=368',nome:'Ultimo Giorno',tipo:'Armatura',rarita:'Leggendario',prezzo:14500,classe:'berserker',icona:'🔥',descrizione:'Un set enorme che sembra uscito dalla fine del mondo.'},
   {id:'skin-mitica',nome:'Astrale · effetto cosmico',tipo:'Effetto',rarita:'Mitico',prezzo:22000,icona:'🌠',descrizione:'Un effetto stellare viola che si combina con altre particelle, Aura divina e Corona.'},
 ];
 const CLASSE_AURA = {guerriero:'Guerriero',assassino:'Assassino',berserker:'Berserker'};
