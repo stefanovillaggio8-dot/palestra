@@ -4,7 +4,7 @@
 
 import { requisitoSkin, accessoSkin, scenarioSkin, statoCoronaInfinito, cambiaCoronaInfinito, CORONA_INFINITO_ID, ordinaPerRaritaAura } from './aura-skin.js';
 import { equipaggiamentoRpgUnico, slotPerOggettoRpg, aggiornaEquipaggiamentoRpg } from './equipaggiamento-rpg.js';
-import { percorsoFotoCoronaV359 } from './foto-corona-v359.js';
+import { percorsoFotoCoronaV360 } from './foto-corona-v360.js';
 import * as db from './db.js';
 import * as sb from './supabase.js';
 import * as sync from './sync.js';
@@ -6509,7 +6509,7 @@ function bloccoPersonaggio(profilo, st) {
     // senza aggiungere l'altra Corona. Non tocca il viso o la posa.
     if (auraDivinaAttiva) grafica.classList.add('personaggio-aura-divina');
     // Corona dell'Infinito: foto WebP complete; nessuna corona adesiva o SVG sopra il viso.
-    if(coronaAttiva)grafica.classList.add('rpg-corona-foto-v359');
+    if(coronaAttiva)grafica.classList.add('rpg-corona-foto-v360');
 
     if (viso.aura || coronaAttiva || auraDivinaAnteprima) {
       grafica.classList.add('personaggio-aura');
@@ -6625,10 +6625,11 @@ function bloccoPersonaggio(profilo, st) {
     // con l'arma VERA, senza incollarne una sopra.
     const mostraFotoConArma=armaSbloccata && statoFotoConsentito>=4;
     const fotoArmaturaRpg = mostraFotoConArma ? null : armaturaEquipaggiata?.immagine || null;
-    const fotoCoronaRpg = coronaAttiva ? percorsoFotoCoronaV359({
+    const fotoCoronaRpg = coronaAttiva ? percorsoFotoCoronaV360({
       classe:classeId,stato:statoFotoConsentito,
       armatura:armaturaEquipaggiata?.id || null,
       effetto:astraleAttiva ? 'skin-mitica' : effettoEquipaggiato?.id || null,
+      divina:auraDivinaAttiva,
       armaSbloccata,
     }) : null;
     // La regalia è già stampata nella nuova fotografia: impedisci alle vecchie
@@ -6677,7 +6678,7 @@ function bloccoPersonaggio(profilo, st) {
     if (effettoVivo) grafica.classList.add('rpg-render-live');
     const scenaFotografica = (!effettoVivo || auraDivinaAttiva) && montaFotoRpg(grafica, fotoCoronaRpg || effettoVivo || astraleAttiva ? null : effettoEquipaggiato?.id || null, {
       corona: false, // Nuova Corona regale: asset indipendente
-      divina: auraDivinaAttiva, // Restaurata l'Aura divina v356, senza la Corona
+      divina: auraDivinaAttiva && !fotoCoronaRpg, // Gia' nella foto v360: niente doppio overlay
       mitica: !fotoCoronaRpg && astraleAttiva,
       classe: classeId,
     });
