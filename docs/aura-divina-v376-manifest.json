@@ -1,0 +1,155 @@
+[
+  {
+    "classe": "assassino",
+    "armatura": "base",
+    "source": "img/personaggi/stati/assassino-5.webp",
+    "source_sha256": "c6c8b5080f0a6592824520fc2416ebd7acad44de4ad781869acf9b8aa5ae4321",
+    "final_sha256": "768c27eb9b249404ca3404920584c3fc1d6dccbe76461f0b417a5dbfdc4aa769",
+    "aura_template": "v376-single-gold-376",
+    "canvas": [
+      720,
+      1080
+    ],
+    "head_y": 78,
+    "feet_y": 997,
+    "segmentation": "isnet-general-use",
+    "mask_coverage": 0.3099,
+    "scale": 0.92269
+  },
+  {
+    "classe": "assassino",
+    "armatura": "armatura-assassino-notte",
+    "source": "img/personaggi/armatura-con-arma-v371/assassino/armatura-assassino-notte/base.webp",
+    "source_sha256": "3dac090e1efcd6652378daacce59bfefc92d661520d988630573fbaab06c4840",
+    "final_sha256": "3a962b014bf60acbf22852abe79c90f3e51392517c4d66a11a29ef47ff6ed521",
+    "aura_template": "v376-single-gold-376",
+    "canvas": [
+      720,
+      1080
+    ],
+    "head_y": 78,
+    "feet_y": 997,
+    "segmentation": "isnet-general-use",
+    "mask_coverage": 0.2697,
+    "scale": 0.97249
+  },
+  {
+    "classe": "assassino",
+    "armatura": "armatura-assassino-spettro",
+    "source": "img/personaggi/armatura-con-arma-v371/assassino/armatura-assassino-spettro/base.webp",
+    "source_sha256": "6f68343de773c6e9e47d5e05f253dd33d2268ab69ac41d81001810f6d4b6e2e8",
+    "final_sha256": "c18f0728aa36963323ce6862c316b7c7774ba1da2c2c33e3601a4157aa7bf403",
+    "aura_template": "v376-single-gold-376",
+    "canvas": [
+      720,
+      1080
+    ],
+    "head_y": 78,
+    "feet_y": 997,
+    "segmentation": "isnet-general-use",
+    "mask_coverage": 0.259,
+    "scale": 0.96941
+  },
+  {
+    "classe": "guerriero",
+    "armatura": "base",
+    "source": "img/personaggi/stati/guerriero-5.webp",
+    "source_sha256": "c020b4877cb28deeaa8a5beac9dcaa69d138ebfd507b836d27b999c390cedb52",
+    "final_sha256": "10cff5bc89a24e844d92eb906e1327e393ff71a97acf060203fa7ebbeafed858",
+    "aura_template": "v376-single-gold-376",
+    "canvas": [
+      720,
+      1080
+    ],
+    "head_y": 78,
+    "feet_y": 997,
+    "segmentation": "isnet-general-use",
+    "mask_coverage": 0.356,
+    "scale": 0.91808
+  },
+  {
+    "classe": "guerriero",
+    "armatura": "armatura-guerriero-braci",
+    "source": "img/personaggi/armatura-con-arma-v371/guerriero/armatura-guerriero-braci/base.webp",
+    "source_sha256": "0761fdc5ac98bafc72f03a6e407fe0b3bc9d1d3a49e3035367d5231a7bac55ab",
+    "final_sha256": "78858386db1d297feb11660e20aa526e1a517f4d0078bb4af5d84c78ebb4a521",
+    "aura_template": "v376-single-gold-376",
+    "canvas": [
+      720,
+      1080
+    ],
+    "head_y": 78,
+    "feet_y": 997,
+    "segmentation": "isnet-general-use",
+    "mask_coverage": 0.3734,
+    "scale": 0.97249
+  },
+  {
+    "classe": "guerriero",
+    "armatura": "armatura-guerriero-abisso",
+    "source": "img/personaggi/aura-divina-v366/guerriero/armatura-guerriero-abisso.webp",
+    "source_sha256": "c133aeb952550fa0b382a1be90305ea4e019cc4d5f6a865da7a568aa451a67f0",
+    "final_sha256": "ccffd4221939adfaa514b92094ea3e8deec41fe43efe38003c600240c0a284f2",
+    "aura_template": "v376-single-gold-376",
+    "canvas": [
+      720,
+      1080
+    ],
+    "head_y": 78,
+    "feet_y": 997,
+    "segmentation": "isnet-general-use",
+    "mask_coverage": 0.344,
+    "scale": 1.05269
+  },
+  {
+    "classe": "berserker",
+    "armatura": "base",
+    "source": "img/personaggi/stati/berserker-5.webp",
+    "source_sha256": "a25476ccec167b05a482f553ca0ab758ef5b6c9f130f9807eda3f81aa5b6fab3",
+    "final_sha256": "b9a645e47371d72d98cc22b0364e058a54a31b8c2911e856fb83082637c97e19",
+    "aura_template": "v376-single-gold-376",
+    "canvas": [
+      720,
+      1080
+    ],
+    "head_y": 78,
+    "feet_y": 997,
+    "segmentation": "isnet-general-use",
+    "mask_coverage": 0.4411,
+    "scale": 0.90186
+  },
+  {
+    "classe": "berserker",
+    "armatura": "armatura-berserker-rabbia",
+    "source": "img/personaggi/armatura-con-arma-v371/berserker/armatura-berserker-rabbia/base.webp",
+    "source_sha256": "a042c522c6691927f9d11cfc9275f3924a2da198043b592eb6312e921748d4a2",
+    "final_sha256": "14a0580db3637e4c437e31d4602645a53b401e7aa59ef416f4af90e212e3786d",
+    "aura_template": "v376-single-gold-376",
+    "canvas": [
+      720,
+      1080
+    ],
+    "head_y": 78,
+    "feet_y": 997,
+    "segmentation": "isnet-general-use",
+    "mask_coverage": 0.4748,
+    "scale": 0.98817
+  },
+  {
+    "classe": "berserker",
+    "armatura": "armatura-berserker-apocalisse",
+    "source": "img/personaggi/aura-divina-v366/berserker/armatura-berserker-apocalisse.webp",
+    "source_sha256": "885c13773422e720c1cb8fbd76eee5206d37cd5b6231707635831d5036c73294",
+    "final_sha256": "a49b04c04a4d576777694c4e7bb94c00f258b67fa5831e2405ad3cdf5d43ae42",
+    "aura_template": "v376-single-gold-376",
+    "canvas": [
+      720,
+      1080
+    ],
+    "head_y": 78,
+    "feet_y": 997,
+    "segmentation": "isnet-general-use",
+    "mask_coverage": 0.4036,
+    "scale": 1.06736
+  }
+]
