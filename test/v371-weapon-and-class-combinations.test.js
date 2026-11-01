@@ -29,7 +29,7 @@ test('v371: 36 unique armed Shop armor+effect variants',()=>{
      assert.ok(!paths.has(url),url);paths.add(url);
      assert.equal(percorsoFotoArmaturaArmataV371({...args,stato:3}),null);
      assert.equal(percorsoFotoArmaturaArmataV371({...args,stato:4}),url);
-     const file=new URL('../'+url.replace(/^\\.\\//,'').split('?')[0],import.meta.url);
+     const file=new URL('../'+url.replace('./','').split('?')[0],import.meta.url);
      assert.ok(existsSync(file),'Missing armed Shop portrait: '+url);
      assert.ok(statSync(file).size>10000,url);
      const magic=readFileSync(file);
