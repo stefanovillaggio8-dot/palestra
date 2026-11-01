@@ -23,25 +23,37 @@ CLASSES={
 RES=Image.Resampling.LANCZOS
 
 def warm_rabbia_aura(im):
-    """Color ONLY bright, low-saturation outside-head aura pixels to warm gold.
-    Leave beard, eye area, wolf, horns, body and shield unchanged.
+    """Recolor the WHITE background halo to the SAME GOLD as the other two
+    Berserkers.  A painted ellipse guide confines edits to the existing light
+    ring; it does not touch face, armor, wolf, shield, hands or axe.
     """
-    pixels=im.load()
-    w,h=im.size
-    for y in range(48,575):
-        for x in range(80,650):
-            # Exclusively the arc's exterior: never recolor the subject.
-            exterior=(y<105 or (x<210 or x>528)) and not (x<185 and 235<y<440)
-            if not exterior:
-                continue
+    mask=Image.new("L",SIZE,0)
+    d=ImageDraw.Draw(mask)
+    # Existing v373 Rabbia bright halo runs behind the helmet/shoulders.
+    d.ellipse((143,55,577,514),outline=255,width=54)
+    # Keep front of figure 100% untouched.
+    guard=Image.new("L",SIZE,0)
+    gd=ImageDraw.Draw(guard)
+    gd.ellipse((212,140,516,960),fill=255)
+    gd.ellipse((171,250,553,670),fill=255)
+    guard=guard.filter(ImageFilter.GaussianBlur(9))
+    mask=ImageChops.subtract(mask,guard)
+    pixels=im.load(); active=mask.load()
+    for y in range(45,525):
+        for x in range(120,595):
+            strength=active[x,y]/255
+            if strength<=.06:continue
             r,g,b,a=pixels[x,y]
-            lo=min(r,g,b);hi=max(r,g,b)
-            if lo<125 or hi-lo>60:continue
-            # Golden conversion of white/blue halo only; retain original shading.
-            k=min(.52,max(0,(lo-125)/150)*.65)
-            pixels[x,y]=(round(r*(1-k)+255*k),
-                          round(g*(1-k)+195*k),
-                          round(b*(1-k)+88*k),a)
+            low=min(r,g,b);high=max(r,g,b)
+            if high<128 or low<95 or high-low>110:continue
+            # Convert pale white/silver glow into bright amber-gold light.
+            weight=.91*strength*min(1.0,(high-115)/105)
+            tr=255
+            tg=min(223,round(150+high*.22))
+            tb=min(127,round(26+high*.25))
+            pixels[x,y]=(round(r*(1-weight)+tr*weight),
+                          round(g*(1-weight)+tg*weight),
+                          round(b*(1-weight)+tb*weight),a)
     return im
 
 def shared_berserker_sparks(im):
