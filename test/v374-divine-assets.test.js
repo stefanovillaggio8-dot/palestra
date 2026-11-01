@@ -44,8 +44,8 @@ test('v374 versions and website assets agree',()=>{
  const html=load('index.html').toString('utf8');
  const sw=load('sw.js').toString('utf8');
  const preview=load('aura-divina-v366-anteprima.html').toString('utf8');
- assert.match(html,/palestra-v384/);
- assert.match(sw,/palestra-v384/);
+ assert.match(html,/palestra-v385/);
+ assert.match(sw,/palestra-v385/);
  assert.match(sw,/aura-divina-v379/);
  assert.match(preview,/aura-divina-v379/);
 });

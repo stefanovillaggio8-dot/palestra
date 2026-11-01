@@ -2404,3 +2404,26 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
   .rank-stemma-tessera { transition: none; }
   .rank-stemma-tessera:hover { transform: none; }
 }
+
+
+/* v385 · PWA Music Box: real in-app shortcut, never obscured by phone safe areas */
+.musicbox-palestra-link {
+  display:flex;align-items:center;gap:12px;width:min(100%,600px);
+  margin:12px 0 17px;padding:12px 15px;
+  color:#f4e9ff;text-decoration:none;
+  background:linear-gradient(115deg,#392252,#201c38 64%,#122b32);
+  border:1px solid rgba(187,142,255,.55);border-radius:16px;
+  box-shadow:0 6px 24px rgba(21,12,41,.22),inset 0 0 16px rgba(158,107,222,.13);
+  position:relative;z-index:1;
+}
+.musicbox-palestra-link:focus-visible{outline:3px solid #c8a6ff;outline-offset:3px}
+.musicbox-palestra-icon{font-size:29px;line-height:1;color:#dfbbff}
+.musicbox-palestra-copy{display:flex;flex:1;min-width:0;flex-direction:column;gap:3px}
+.musicbox-palestra-copy strong{font-size:.91rem}
+.musicbox-palestra-copy small{font-size:.76rem;color:#cdbde8}
+.musicbox-palestra-arrow{font-size:1.3rem;color:#c8eaff}
+.streak-online-aiuto{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin:12px 0}
+@media(max-width:600px){
+  .musicbox-palestra-link{min-height:65px;margin:10px 0 15px;padding:11px 13px}
+  .streak-online-aiuto button{width:100%}
+}

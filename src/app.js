@@ -460,6 +460,11 @@ async function avvia() {
     // altrimenti per qualche secondo mostrerebbe il livello vecchio
     await caricaLivelliImparati();
     sync.avvia();
+    // Se si ritorna dall'altra PWA, recupera subito la rettifica autentica.
+    window.addEventListener('focus', () => {
+      if (!sb.collegato()) return;
+      aggiornaCreditoStreakOnline().then((cambiata) => { if (cambiata) disegna(); }).catch(() => {});
+    });
     // Non aspettare una nuova navigazione per mostrare l'accredito remoto.
     aggiornaCreditoStreakOnline().then((cambiata) => {
       if (cambiata) disegna();
@@ -2257,6 +2262,7 @@ function vistaHome(zona) {
     el('span',{class:'app-page-kicker-dot',aria:{hidden:'true'}}),
     el('span',{testo:'IL TUO PERCORSO · WORKOUT HUB'}),
   ]));
+  zona.appendChild(collegamentoMusicBox());
 
   // Ogni persona usa il proprio link: non mostrare un selettore che fa sembrare
   // l'account di Andrea parte del profilo di Stefano. Gli amici si aprono da Amici.
@@ -7412,10 +7418,51 @@ function rigaPillole(st, profilo) {
   ]);
 }
 
+
+/** Music Box è una PWA esterna: il link deve stare nel contenuto dell'app,
+ * non flottare sopra la safe area dei telefoni. */
+function collegamentoMusicBox() {
+  return el('a', {
+    href: 'https://stefanovillaggio8-dot.github.io/music-box/?modo=gym',
+    class: 'musicbox-palestra-link',
+    target: '_blank',
+    rel: 'noopener noreferrer',
+    title: 'Apri Music Box con la playlist Gym',
+  }, [
+    el('span',{class:'musicbox-palestra-icon',testo:'♫','aria-hidden':'true'}),
+    el('span',{class:'musicbox-palestra-copy'},[
+      el('strong',{testo:'Music Box · Gym'}),
+      el('small',{testo:'Apri la tua musica per allenarti'}),
+    ]),
+    el('span',{class:'musicbox-palestra-arrow',testo:'↗','aria-hidden':'true'}),
+  ]);
+}
+
+/** Un PC senza sessione online non deve far sembrare persi i giorni salvati. */
+function avvisoStreakDaSincronizzare(st) {
+  if (accountAttivo() !== 'account-1' || !st || st.streak?.giorni !== 0) return null;
+  const connesso = sb.collegato();
+  return el('div', {class:'tape tape-giallo streak-online-aiuto'}, [
+    el('span',{testo:connesso
+      ? 'La streak online non è ancora disponibile su questo dispositivo. Puoi riprovare il recupero.'
+      : 'La streak online non è collegata qui. Accedi al tuo account dalla sezione Amici per recuperare i giorni salvati.'}),
+    bottone(connesso ? 'Ricarica streak' : 'Accedi al database',{
+      classe:'fantasma',
+      onClick:connesso ? async () => {
+        const cambiata=await aggiornaCreditoStreakOnline();
+        if (cambiata || statoMio().streak.giorni>0) { disegna(); return; }
+        avviso('Non riesco a leggere la streak online. Controlla la sessione dalla sezione Amici.',{tipo:'errore',durata:8500});
+      } : () => vai('/amici'),
+    }),
+  ]);
+}
+
 function vistaCasa(zona) {
   const st = statoMio();
   const profilo = profiloAttivo();
   zona.appendChild(rigaPillole(st, profilo));
+  const aiutoStreak=avvisoStreakDaSincronizzare(st);
+  if (aiutoStreak) zona.appendChild(aiutoStreak);
   zona.appendChild(el('div', { class: 'riga-titoli' }, [
     el('h1', { testo: 'Casa' }),
     el('span', { class: 'conteggio', testo: `${profilo.username} · livello account ${st.livello.livello}` }),
@@ -7453,6 +7500,7 @@ function vistaCasa(zona) {
       el('span',{testo:'Aura Shop'}),
     ]),
   ]));
+  zona.appendChild(collegamentoMusicBox());
   // Il progresso XP si trova ora nella tessera accanto a Streak, Aura e livello.
 
   // --- ultimo allenamento ---
@@ -8519,6 +8567,8 @@ async function vistaProfilo(zona) {
   const st = statoMio();
   const profilo = profiloAttivo();
   zona.appendChild(el('h1', { testo: 'Profilo' }));
+  const aiutoStreak=avvisoStreakDaSincronizzare(st);
+  if (aiutoStreak) zona.appendChild(aiutoStreak);
 
   // l'avatar grande e centrale, come nei giochi
   const testa = el('div', { class: 'testa-profilo' }, [
@@ -8529,6 +8579,7 @@ async function vistaProfilo(zona) {
     el('div', { class: 'riga-teschio piccolo' }, [teschioStreak(st)]),
   ]);
   zona.appendChild(testa);
+  zona.appendChild(collegamentoMusicBox());
   // Prima l'identità e il personaggio, poi l'ingresso allo Shop.
   zona.appendChild(el('a',{href:'#/aura-shop',class:'aura-shop-open'},[
     el('span',{testo:'✦'}),

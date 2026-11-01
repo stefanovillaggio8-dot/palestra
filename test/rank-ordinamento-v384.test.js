@@ -34,6 +34,6 @@ test('live page uses the comparator and new offline module is cached',()=>{
  assert.match(app,/for \(const r of ordinaRecordRank\(stato\.record\)\)/);
  assert.match(app,/from '\.\/rank-ordina\.js'/);
  assert.match(sw,/'\.\/src\/rank-ordina\.js'/);
- assert.match(html,/palestra-v384/);
- assert.match(sw,/palestra-v384/);
+ assert.match(html,/palestra-v385/);
+ assert.match(sw,/palestra-v385/);
 });
