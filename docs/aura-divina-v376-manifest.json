@@ -140,7 +140,7 @@
     "armatura": "armatura-berserker-apocalisse",
     "source": "img/personaggi/armature/berserker-apocalisse.webp",
     "source_sha256": "467684ee3d518a1bad8a101a67bf8d803195d95347a3077ca34633fb5ea3e5a5",
-    "final_sha256": "c80a03da85b8338e8408655ae016f0998aaf86cfe4a84c419526f0adcad4a18e",
+    "final_sha256": "e9d3f5e3f8dc3311349b811fa876108bc52c97c248c9a498ba62aeff5ee0ce79",
     "aura_template": "v376-single-gold-376",
     "canvas": [
       720,
@@ -149,7 +149,7 @@
     "head_y": 78,
     "feet_y": 997,
     "segmentation": "isnet-general-use",
-    "mask_coverage": 0.4974,
+    "mask_coverage": 0.4978,
     "scale": 0.9613
   }
 ]
