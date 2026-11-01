@@ -62,7 +62,7 @@ WEAPON_SHAPES = {
  "berserker": [
   # Separate blade and narrow real wooden handle; never copy a rectangle of background.
   ([(23,272),(95,239),(171,250),(194,282),(182,359),(152,391),
-    (131,420),(89,409),(44,456),(16,415)],(32,0)),
+    (131,420),(89,409),(44,456),(16,415)],(53,0)),
  ],
 }
 
@@ -78,7 +78,7 @@ def restored_equipment(im, cls, armor, stage):
             # A genuine wooden handle, shaded and narrow, without copying any
             # rectangle of dark background from the canonical photograph.
             dd=ImageDraw.Draw(im,"RGBA")
-            x=int(w*.188)
+            x=int(w*.213)
             dd.polygon([(x-7,int(h*.240)),(x+7,int(h*.240)),
                         (x+8,int(h*.966)),(x-6,int(h*.966))],
                        fill=(79,52,32,245))
@@ -98,6 +98,10 @@ def restored_equipment(im, cls, armor, stage):
             mask=ImageChops.multiply(mask,luma)
             mask=mask.filter(ImageFilter.GaussianBlur(0.75))
             sprite=ImageOps.mirror(canonical) if cls=="assassino" and index==1 else canonical.copy()
+            # Mirror the source luminance as well: both real daggers have equal metallic clarity.
+            source_light=ImageOps.grayscale(sprite)
+            source_alpha=source_light.point(lambda v:max(0,min(255,(v-cutoff)*6)))
+            mask=ImageChops.multiply(mask,source_alpha).filter(ImageFilter.GaussianBlur(.55))
             sprite.putalpha(mask)
             layer=Image.new("RGBA",SIZE,(0,0,0,0))
             layer.paste(sprite,(int(shift[0]*w/900),int(shift[1]*h/1350)))
@@ -235,7 +239,7 @@ def fit_crown(im, crown, cls):
     height=int(h*({"assassino":.086,"guerriero":.084,"berserker":.082}[cls]))
     art=crown.resize((width,height),RS)
     # Bottom of crown is seated on hood/helmet, not floating above character.
-    basey={"assassino":.127,"guerriero":.121,"berserker":.123}[cls]*h
+    basey={"assassino":.102,"guerriero":.098,"berserker":.102}[cls]*h
     x=(w-width)//2; y=int(basey-height)
     # Make sure the output can include high crown tips.
     if y<0:
