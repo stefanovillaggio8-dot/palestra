@@ -1,5 +1,5 @@
 /**
- * v377 — The 75-day Divine Aura applies ONLY to a complete Streak-5 avatar:
+ * v378 — The 75-day Divine Aura applies ONLY to a complete Streak-5 avatar:
  * original weapons unlocked day 30, legendary armor day 50, aura day 75.
  * Three classes x [completed free armor, two purchasable Shop armors] = 9 photos.
  */
@@ -20,5 +20,5 @@ export function percorsoFotoAuraDivinaV366({
  if(effetto&&!anteprima)return null;
  const nome=armatura||'base';
  if(!disponibili.includes(nome))return null;
- return './img/personaggi/aura-divina-v375/'+classe+'/'+nome+'.webp?v=377';
+ return './img/personaggi/aura-divina-v378/'+classe+'/'+nome+'.webp?v=378';
 }

@@ -28,7 +28,7 @@ test('v374 keeps all nine unique photographed characters and class armors intact
    const url=percorsoFotoAuraDivinaV366({
     classe,armatura:armatura==='base'?null:armatura,stato:5,divina:true,armaSbloccata:true
    });
-   assert.ok(url.includes('/aura-divina-v375/'+classe+'/'+armatura+'.webp?v=377'),url);
+   assert.ok(url.includes('/aura-divina-v378/'+classe+'/'+armatura+'.webp?v=378'),url);
   }
  }
 });
@@ -44,8 +44,8 @@ test('v374 versions and website assets agree',()=>{
  const html=load('index.html').toString('utf8');
  const sw=load('sw.js').toString('utf8');
  const preview=load('aura-divina-v366-anteprima.html').toString('utf8');
- assert.match(html,/palestra-v377/);
- assert.match(sw,/palestra-v377/);
- assert.match(sw,/aura-divina-v375/);
- assert.match(preview,/aura-divina-v375/);
+ assert.match(html,/palestra-v378/);
+ assert.match(sw,/palestra-v378/);
+ assert.match(sw,/aura-divina-v378/);
+ assert.match(preview,/aura-divina-v378/);
 });
