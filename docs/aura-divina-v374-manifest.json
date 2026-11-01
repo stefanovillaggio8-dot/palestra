@@ -1,0 +1,110 @@
+[
+  {
+    "classe": "assassino",
+    "armatura": "base",
+    "canvas": [
+      720,
+      1080
+    ],
+    "head_y": 78,
+    "feet_y": 997,
+    "original_sha256": "1a7ed5d65301615278b205b4e34c6911cb9d27f71c68adbc30287b332389b0b4",
+    "final_sha256": "0ba827e6ecde3e75b157bdd24b7d541619ccf59466d5aa69f0dddc58eeb01890"
+  },
+  {
+    "classe": "assassino",
+    "armatura": "armatura-assassino-notte",
+    "canvas": [
+      720,
+      1080
+    ],
+    "head_y": 78,
+    "feet_y": 997,
+    "original_sha256": "359f939bcc69d03888aa8e09575c3ca1c92297c81181c5a9c9305df1b8ca4d6e",
+    "final_sha256": "ec7e58db72cdc9a7487720b162bf804bd15137b4c965277e547b07032770a603"
+  },
+  {
+    "classe": "assassino",
+    "armatura": "armatura-assassino-spettro",
+    "canvas": [
+      720,
+      1080
+    ],
+    "head_y": 78,
+    "feet_y": 997,
+    "original_sha256": "87ae7482b2a5f6a3d1512a2d3057632ad3defe75f5e55d316920863cbc6b648e",
+    "final_sha256": "15cbbefe341516599df902d69e5a0921661c08c995218dce98a56ed811337248"
+  },
+  {
+    "classe": "guerriero",
+    "armatura": "base",
+    "canvas": [
+      720,
+      1080
+    ],
+    "head_y": 78,
+    "feet_y": 997,
+    "original_sha256": "3dae9f11a70faa1bc4400db6a41c1f6a0f615452069e0e3a789219ec218a12aa",
+    "final_sha256": "25387b84f0953b42969f039fb566604e91c68336eff0e315a91d1a4ccc598f9e"
+  },
+  {
+    "classe": "guerriero",
+    "armatura": "armatura-guerriero-braci",
+    "canvas": [
+      720,
+      1080
+    ],
+    "head_y": 78,
+    "feet_y": 997,
+    "original_sha256": "9de6ea58771705b2d585efe6173228163bb44c89fcf306c694fb031176477179",
+    "final_sha256": "dc476b79075e63b730b9d6827e59294b91e40101c9a398dce32b9608c6089317"
+  },
+  {
+    "classe": "guerriero",
+    "armatura": "armatura-guerriero-abisso",
+    "canvas": [
+      720,
+      1080
+    ],
+    "head_y": 78,
+    "feet_y": 997,
+    "original_sha256": "c102dffe2683e2e93c1c88c3ea2d838086234a283f9c93735256f7d63f165339",
+    "final_sha256": "88f98998390e19eb26716ca0568a7aeec8fa8bb7bd2f21db7827f370118504b4"
+  },
+  {
+    "classe": "berserker",
+    "armatura": "base",
+    "canvas": [
+      720,
+      1080
+    ],
+    "head_y": 78,
+    "feet_y": 997,
+    "original_sha256": "1f7dee9a3feb6c0ceea10c9dc4a0738a8a838f8db87ab84aaf8f88af289e1823",
+    "final_sha256": "139b1c427e1cf14b803722459f827300c2cab68657d48b1a229ffe9da925c197"
+  },
+  {
+    "classe": "berserker",
+    "armatura": "armatura-berserker-rabbia",
+    "canvas": [
+      720,
+      1080
+    ],
+    "head_y": 78,
+    "feet_y": 997,
+    "original_sha256": "a4973bbbe47aed4e1df8aa8970f74e323d05bb461198fd439c7d2c48b577f4fa",
+    "final_sha256": "14b7efb0a6b7cd3d67a43546e74f514c010a47a59287105bb03b217c13bb15ad"
+  },
+  {
+    "classe": "berserker",
+    "armatura": "armatura-berserker-apocalisse",
+    "canvas": [
+      720,
+      1080
+    ],
+    "head_y": 78,
+    "feet_y": 997,
+    "original_sha256": "9a3d62e99caaffa8ffbf847fa1a541e17a95a608aca5447bb63dbd07d4f7865a",
+    "final_sha256": "f2914381434353642203ba5361f67494684e3a73aa44469a4512f5cae3da5b42"
+  }
+]
