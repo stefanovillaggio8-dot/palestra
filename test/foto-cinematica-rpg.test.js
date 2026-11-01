@@ -94,7 +94,7 @@ test('La scheda usa il premio vero e le fotografie canoniche se lo sblocco richi
  const app=await readFile(new URL('../src/app.js',import.meta.url),'utf8');
  assert.match(app,/armaSbloccataRpg\(rpg\.premi\)/);
  assert.match(app,/armaSbloccata \? viso\.indice : Math\.min\(viso\.indice,3\)/);
- assert.match(app,/mostraFotoConArma \? null : armaturaEquipaggiata\?\.immagine/);
+ assert.match(app,/fotoArmaturaArmataRpg \|\| armaturaEquipaggiata\?\.immagine/);
  assert.match(app,/fotoProgressioneRpg = percorsoStato\(classeId, statoFotoConsentito\)/);
  assert.match(app,/armaSbloccata:armaSbloccata/);
 });
