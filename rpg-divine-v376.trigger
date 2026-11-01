@@ -1,1 +1,1 @@
-Generate new aura-free originals and compare nine variants v376. 2026-11-01.
+Run v376 corrected normalization and clipping, preserve nine unique clean original portraits. 2026-11-01T02:02
