@@ -52,7 +52,7 @@ def atmospheric_backdrop():
     return Image.fromarray(base,'RGBA')
 
 def extract_approved_photographic_fx():
-    source=ROOT/"img/personaggi/aura-divina-v375/assassino/armatura-assassino-notte.webp"
+    source=ROOT/"img/personaggi/aura-divina-v366/assassino/armatura-assassino-notte.webp"
     with Image.open(source) as im:
         data=np.asarray(im.convert('RGB'),dtype=np.float32)
     rr,gg,bb=data[:,:,0],data[:,:,1],data[:,:,2]
