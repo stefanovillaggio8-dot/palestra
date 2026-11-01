@@ -22,10 +22,10 @@ ROWS=[
  ("assassino","armatura-assassino-spettro","img/personaggi/armatura-con-arma-v371/assassino/armatura-assassino-spettro/base.webp",76,1024),
  ("guerriero","base","img/personaggi/stati/guerriero-5.webp",42,1043),
  ("guerriero","armatura-guerriero-braci","img/personaggi/armatura-con-arma-v371/guerriero/armatura-guerriero-braci/base.webp",75,1020),
- ("guerriero","armatura-guerriero-abisso","img/personaggi/aura-divina-v366/guerriero/armatura-guerriero-abisso.webp",115,988),
+ ("guerriero","armatura-guerriero-abisso","img/personaggi/armature/guerriero-abisso.webp",85,1040),
  ("berserker","base","img/personaggi/stati/berserker-5.webp",25,1044),
  ("berserker","armatura-berserker-rabbia","img/personaggi/armatura-con-arma-v371/berserker/armatura-berserker-rabbia/base.webp",76,1006),
- ("berserker","armatura-berserker-apocalisse","img/personaggi/aura-divina-v366/berserker/armatura-berserker-apocalisse.webp",114,975),
+ ("berserker","armatura-berserker-apocalisse","img/personaggi/armature/berserker-apocalisse.webp",66,1022),
 ]
 TARGET_HEAD,TARGET_FOOT=78,997
 
@@ -74,6 +74,37 @@ def aura_background():
     base.alpha_composite(lines)
     return base
 
+def restore_correct_weapon(raw,path):
+    """Patch ONLY the original, already-approved weapon from v366 into clean armor.
+    The old photography's surrounding magical ribbons are never reintroduced.
+    Source body, face, gear and shield are the clean unmodified armor portrait.
+    """
+    key=path.stem
+    if key not in ('guerriero-abisso','berserker-apocalisse'):
+        return raw
+    cls='guerriero' if key.startswith('guerriero') else 'berserker'
+    armor='armatura-'+key
+    donor=ROOT/'img/personaggi/aura-divina-v366'/cls/(armor+'.webp')
+    assert donor.is_file(),donor
+    blade=Image.open(donor).convert('RGB').resize(SIZE,RES)
+    m=Image.new('L',SIZE,0)
+    d=ImageDraw.Draw(m)
+    if key=='guerriero-abisso':
+        # Original corrected diagonally-held sword: tip, edge, guard, gauntlet.
+        d.line([(33,749),(205,577)],fill=255,width=19)
+        d.line([(41,740),(203,580)],fill=255,width=12)
+        d.ellipse((181,529,250,606),fill=255)
+        d.polygon([(171,588),(206,555),(239,588),(208,611)],fill=255)
+    else:
+        # Original single axe, with shaft actually held by the left hand.
+        d.line([(58,489),(364,720)],fill=255,width=23)
+        d.polygon([(266,716),(314,683),(398,690),(418,742),
+                   (392,806),(350,811),(302,780)],fill=255)
+        d.ellipse((179,527,265,618),fill=255)
+    m=m.filter(ImageFilter.GaussianBlur(1.3))
+    raw.paste(blade,(0,0),m)
+    return raw
+
 def isolate(session,path):
     from rembg import remove
     raw=Image.open(path).convert('RGB')
@@ -82,6 +113,7 @@ def isolate(session,path):
     assert abs(raw.width/raw.height-2/3)<0.015,(str(path),raw.size)
     if raw.size!=SIZE:
         raw=raw.resize(SIZE,RES)
+    raw=restore_correct_weapon(raw,path)
     png=io.BytesIO()
     raw.save(png,format='PNG')
     segmented=Image.open(io.BytesIO(remove(png.getvalue(),session=session))).convert('RGBA')
