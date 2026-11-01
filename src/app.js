@@ -28,10 +28,11 @@ import { creaPacchetto, validaPacchetto, unisci, csvSerie, csvSedute, csvEserciz
 import { ESERCIZI, SCHEDA_ID, SCHEDA_NOME, PERSONE, accountId, chiSei, personaDaMemoria, costruisciSnapshot, eserciziMancanti } from './dati-iniziali.js';
 import { nuovoId, adesso, TABELLE, riallineaEsercizi } from './sincronizzazione.js';
 // --- il gioco: rank, LP, streak, Aura, missioni, amici ---
-import { statoAccount, ricompenseAllenamento, gruppiDaSerie } from './gioco.js';
+import { statoAccount, ricompenseAllenamento, gruppiDaSerie } from './gioco.js?v=381';
 import { calcolaAvatar, CLASSI, classeConsigliata, eCardio, minutiDiCardio, nomePremio, statoVisivo, percorsoStato, schedaProgressione, STATI_IMMAGINE } from './avatar-rpg.js';
 import { haSigillo, creaSigillo, verificaSigillo } from './sigillo-classe.js';
-import { isoGiorno } from './streak.js';
+import { isoGiorno } from './streak.js?v=381';
+import { validaCreditoStreakOnline, profiloConCreditoStreak } from './streak-online.js?v=381';
 import { suona, sbloccaAudio, audioSpento, impostaAudioSpento } from './audio.js';
 import { bloccoGlossario } from './glossario-app.js';
 import {
@@ -437,7 +438,19 @@ async function avvia() {
       }
     }
 
-    sync.iscriviti(() => { aggiornaStatoSalvataggio(); });
+    // A fine sincronizzazione il profilo cloud puo' contenere una rettifica
+    // che non era disponibile al primo disegno: aggiorna la card live.
+    let timerCreditoStreak = null;
+    sync.iscriviti(() => {
+      aggiornaStatoSalvataggio();
+      if (sync.inEsecuzione()) return;
+      if (timerCreditoStreak !== null) clearTimeout(timerCreditoStreak);
+      timerCreditoStreak = setTimeout(async () => {
+        timerCreditoStreak = null;
+        const account = accountAttivo();
+        if (await aggiornaCreditoStreakOnline() && accountAttivo() === account) disegna();
+      }, 200);
+    });
     aggiornaFaseAvvio('caricamento delle statistiche');
     // il peso corporeo serve al Rank: lo carico in memoria subito all'avvio
     await aggiornaPesoInMemoria();
@@ -445,6 +458,10 @@ async function avvia() {
     // altrimenti per qualche secondo mostrerebbe il livello vecchio
     await caricaLivelliImparati();
     sync.avvia();
+    // Non aspettare una nuova navigazione per mostrare l'accredito remoto.
+    aggiornaCreditoStreakOnline().then((cambiata) => {
+      if (cambiata) disegna();
+    }).catch(() => {});
     window.addEventListener('hashchange', () => disegna());
 
     // LE SEZIONI CHE ENTRANO A CASCATA (22/10/2026).
@@ -5604,6 +5621,25 @@ function profiloDi(idAccount) {
   return profili().find((p) => p && p.id === idAccount) || null;
 }
 
+// Solo lettura: nessuna seduta fittizia, nessuna scrittura al DB.
+const RETTIFICHE_STREAK_ONLINE = new Map();
+async function aggiornaCreditoStreakOnline() {
+  if (!sb.collegato()) return false;
+  const id = accountAttivo();
+  try {
+    const remoto = await sb.leggiUno('profili', id);
+    if (!remoto || remoto.id !== id) return false;
+    const credito = validaCreditoStreakOnline(remoto);
+    const precedente = RETTIFICHE_STREAK_ONLINE.get(id) || null;
+    if (JSON.stringify(precedente) === JSON.stringify(credito)) return false;
+    RETTIFICHE_STREAK_ONLINE.set(id, credito);
+    return true;
+  } catch {
+    // Connessione assente: la streak puo' usare normalmente il profilo locale.
+    return false;
+  }
+}
+
 function profiloAttivo() {
   const salvato = profiloDi(accountAttivo());
   const p = personaAttiva();
@@ -5632,7 +5668,10 @@ function profiloAttivo() {
     // questo flag continua a dire che la scelta c'è stata e l'app non te la fa
     // rifare. Vedi `personaggio_creato` in src/avatar-stato.js.
     personaggio_creato: !!(salvato && (salvato.personaggio_creato || salvato.classe_rpg)),
-    privacy: privacyDi(salvato || {}),
+    privacy: profiloConCreditoStreak(
+      { privacy: privacyDi(salvato || {}) },
+      RETTIFICHE_STREAK_ONLINE.get(accountAttivo()) || null
+    ).privacy,
   };
 }
 
