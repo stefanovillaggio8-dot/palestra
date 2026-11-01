@@ -1,0 +1,119 @@
+[
+  {
+    "classe": "assassino",
+    "armatura": "base",
+    "orig_sha256": "32b78fb049639505b67332e67f58e5490b61a5805e656ae15fd1f4999cfdd09d",
+    "output_sha256": "4fe250cee881c907e1ddfa65520889a09a843d235cd5aceccdb98b889ef14285",
+    "head_y": 78,
+    "feet_y": 997,
+    "canvas": [
+      720,
+      1080
+    ],
+    "label": "Assassino \u00b7 Completo gratuito"
+  },
+  {
+    "classe": "assassino",
+    "armatura": "armatura-assassino-notte",
+    "orig_sha256": "a21b021778569b5a8bdc302c04fc46eec9e056faf8a2d67addc0f26211eb4587",
+    "output_sha256": "979e326052119e5d297e39714492f913c7eb5f37c59eff9c4b6ef4c4723d3512",
+    "head_y": 78,
+    "feet_y": 997,
+    "canvas": [
+      720,
+      1080
+    ],
+    "label": "Assassino \u00b7 Velo della Notte"
+  },
+  {
+    "classe": "assassino",
+    "armatura": "armatura-assassino-spettro",
+    "orig_sha256": "64a9885c44ffa5ec4c7c90acf90625579197c174eea06c041902b67ee62b11e0",
+    "output_sha256": "57600e4e086ee16fc3ac35b9f77b7b2b3cfc6ecd7b60867ba781f58e61a7884f",
+    "head_y": 78,
+    "feet_y": 997,
+    "canvas": [
+      720,
+      1080
+    ],
+    "label": "Assassino \u00b7 Spettro Cremisi"
+  },
+  {
+    "classe": "guerriero",
+    "armatura": "base",
+    "orig_sha256": "084d4041161ccfd6e39081b09f443bee06f3de47fe2f1c49e6924a499164dbe9",
+    "output_sha256": "8e1c2c86b824df8848be14f1cdb624cd2f81e90ac337ee3d34d8fe9dbb67c590",
+    "head_y": 78,
+    "feet_y": 997,
+    "canvas": [
+      720,
+      1080
+    ],
+    "label": "Guerriero \u00b7 Completo gratuito"
+  },
+  {
+    "classe": "guerriero",
+    "armatura": "armatura-guerriero-braci",
+    "orig_sha256": "8c67011352b6b496b1b4b71cbef657bedcd36d9dccd07d7e25f44a70c256f373",
+    "output_sha256": "e75f2756aaa3b44216331bba329ec1b844ec2ebb8aff22c124d7cb585a54a2ef",
+    "head_y": 78,
+    "feet_y": 997,
+    "canvas": [
+      720,
+      1080
+    ],
+    "label": "Guerriero \u00b7 Custode delle Braci"
+  },
+  {
+    "classe": "guerriero",
+    "armatura": "armatura-guerriero-abisso",
+    "orig_sha256": "c133aeb952550fa0b382a1be90305ea4e019cc4d5f6a865da7a568aa451a67f0",
+    "output_sha256": "b408621efe776c15dbf173072728fb2a9f187706a5462fd0921a156d441009b8",
+    "head_y": 78,
+    "feet_y": 997,
+    "canvas": [
+      720,
+      1080
+    ],
+    "label": "Guerriero \u00b7 Armatura dell'Abisso"
+  },
+  {
+    "classe": "berserker",
+    "armatura": "base",
+    "orig_sha256": "2b5bff7df13bbf76944f4c72d7461bf27ed86064501ab9d54b317586e11c6bed",
+    "output_sha256": "0e76f97e081a8af0d5c9012caadfab3ff57434778405964e1c1b9f782779cbdb",
+    "head_y": 78,
+    "feet_y": 997,
+    "canvas": [
+      720,
+      1080
+    ],
+    "label": "Berserker \u00b7 Completo gratuito"
+  },
+  {
+    "classe": "berserker",
+    "armatura": "armatura-berserker-rabbia",
+    "orig_sha256": "72d27e2ae5bb3337c15381c389ee23005f1a895437f9d83eada411a410cf4f7b",
+    "output_sha256": "41b57f40bf7948ddedea33de0fceb63c38093b0bcf1545b96da20d0475e5d25a",
+    "head_y": 78,
+    "feet_y": 997,
+    "canvas": [
+      720,
+      1080
+    ],
+    "label": "Berserker \u00b7 Rabbia"
+  },
+  {
+    "classe": "berserker",
+    "armatura": "armatura-berserker-apocalisse",
+    "orig_sha256": "885c13773422e720c1cb8fbd76eee5206d37cd5b6231707635831d5036c73294",
+    "output_sha256": "440a50f5eef60882a9d749f93256952e01c6df11dbba726c5b5b63a048ddf5db",
+    "head_y": 78,
+    "feet_y": 997,
+    "canvas": [
+      720,
+      1080
+    ],
+    "label": "Berserker \u00b7 Apocalisse"
+  }
+]
