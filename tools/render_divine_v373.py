@@ -74,23 +74,19 @@ def effect_template():
     for extra,alpha,width in [(7,90,8),(3,170,5),(0,235,3)]:
         d.ellipse((halo_box[0]-extra,halo_box[1]-extra,halo_box[2]+extra,halo_box[3]+extra),
                   outline=(*gold,alpha),width=width)
-    # Rich curved feather trails behind shoulders, same curves for each class.
+    # Fine, naturally separated flowing energy feathers; avoid broad triangular
+    # sheets made of dozens of parallel lines crossing the original costumes.
     for side in [-1,1]:
         def sidep(x,y):return (round(w/2+side*x),round(y))
-        for i in range(31):
-            t=i/30
-            p0=sidep(120+22*t,380+190*t)
-            p1=sidep(218+110*t,228+70*t)
-            p2=sidep(315+125*(1-t),160+84*t)
-            p3=sidep(336+54*(1-t),32+220*t)
+        for i in range(9):
+            t=i/8
+            p0=sidep(165+8*t,320+94*t)
+            p1=sidep(255+45*t,210+63*t)
+            p2=sidep(330+20*t,135+75*t)
+            p3=sidep(352+23*t,55+130*t)
             pts=bezier(p0,p1,p2,p3)
-            d.line(pts,fill=(255,194+round(40*t),105+round(60*t),125+round(60*(1-t))),
-                   width=3 if i%4==0 else 2,joint="curve")
-        for j in range(8):
-            t=j/7
-            pts=bezier(sidep(140,328+t*43),sidep(260,230+t*23),
-                        sidep(420,72+t*90),sidep(408,27+t*73))
-            d.line(pts,fill=(255,230,158,170),width=2,joint="curve")
+            d.line(pts,fill=(255,205+round(27*t),127,70+round(45*(1-t))),
+                   width=2,joint="curve")
     # Two consistent swirling light bands (kept behind bodies by protection mask).
     for cx,cy,rx,ry,rot in [(360,536,335,105,-.27),(360,760,340,113,.28)]:
         points=[]
@@ -99,15 +95,10 @@ def effect_template():
             xx,yy=rx*math.cos(angle),ry*math.sin(angle)
             points.append((round(cx+xx*math.cos(rot)-yy*math.sin(rot)),
                            round(cy+xx*math.sin(rot)+yy*math.cos(rot))))
-        d.line(points,fill=(255,216,125,203),width=4,joint="curve")
-        d.line([(x,y+5) for x,y in points],fill=(255,172,70,112),width=2,joint="curve")
-    # One common runic floor platform at exactly the same screen position.
-    for box,thick,opacity in [((50,940,670,1053),5,230),
-                              ((80,955,640,1042),3,195),
-                              ((123,968,597,1034),2,155)]:
-        d.ellipse(box,outline=(255,210,122,opacity),width=thick)
-    d.line([(75,998),(645,998)],fill=(255,192,97,90),width=1)
-    d.line([(360,945),(360,1054)],fill=(255,215,134,90),width=2)
+        d.line(points,fill=(255,216,125,85),width=2,joint="curve")
+        d.line([(x,y+4) for x,y in points],fill=(255,172,70,48),width=1,joint="curve")
+    # Original photos already have a physically grounded rune circle.
+    # Do not draw a second one: avoid doubled rings or lines crossing boots.
     random.seed(75)
     for i in range(200):
         x=random.randrange(14,w-14)
