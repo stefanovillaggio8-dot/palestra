@@ -74,7 +74,7 @@ def extract_approved_photographic_fx():
     result=Image.fromarray(rgba,'RGBA')
     # Warm light cast into the scene behind the bright photographic wisps.
     bloom=result.filter(ImageFilter.GaussianBlur(23))
-    bloom.putalpha(bloom.getchannel('A').point(lambda a:min(175,round(a*.80))))
+    bloom.putalpha(bloom.getchannel('A').point(lambda a:min(210,round(a*1.12))))
     return bloom,result
 
 def divine_light_template():
@@ -84,9 +84,9 @@ def divine_light_template():
     bg.alpha_composite(photo)
     halo=Image.new('RGBA',SIZE,(0,0,0,0))
     d=ImageDraw.Draw(halo,'RGBA')
-    # Wide, uninterrupted light field; faint boundary, strong soft bloom.
-    d.ellipse((65,60,655,974),outline=(255,194,91,158),width=8)
-    d.ellipse((70,65,650,966),outline=(255,222,138,145),width=3)
+    # No giant oval contour. The previous v376-style wireframe looked
+    # flat and synthetic. Use the actual photographic ribbons from the
+    # approved Shop image, with only a natural halo and floor foundation.
     # Full, soft moonlike halo around the head, placed BEHIND the character.
     d.ellipse((212,59,508,355),outline=(255,207,99,218),width=9)
     d.ellipse((218,65,502,349),outline=(255,238,175,190),width=3)
@@ -99,8 +99,9 @@ def divine_light_template():
             xx=rx*math.cos(theta); yy=ry*math.sin(theta)
             points.append((int(360+xx*math.cos(rot)-yy*math.sin(rot)),
                            int(yc+xx*math.sin(rot)+yy*math.cos(rot))))
-        d.line(points,fill=(255,218,132,150),width=6,joint="curve")
-        d.line([(x,y-3) for x,y in points],fill=(255,245,199,96),width=2,joint="curve")
+        d.line(points,fill=(255,207,111,119),width=14,joint="curve")
+        d.line([(x,y-3) for x,y in points],fill=(255,242,185,169),width=5,joint="curve")
+        d.line([(x,y-4) for x,y in points],fill=(255,255,218,116),width=2,joint="curve")
     # Actual bright floor portal with elliptical runes and light pools.
     for b,opacity,width in [
       ((42,916,678,1043),185,11),((54,931,666,1033),240,5),
