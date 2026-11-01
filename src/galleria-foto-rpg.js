@@ -20,16 +20,13 @@ const ARMATURE=Object.freeze({
 });
 export function fotoGalleriaRpg(classe,id){
  if(!CLASSI_GALLERIA.includes(classe))return null;
- const scene='img/personaggi/scene/'+classe+'-';
- if(id==='base')return scene+'base.webp';
- if(id==='ambra'||id==='fulmine'||id==='astrale')
-   return 'img/personaggi/effetti/'+classe+'-'+id+'.webp';
- if(id==='ombra')return scene+'base-fumo.webp';
- if(id==='nebula')return 'img/personaggi/combinazioni/'+classe+'/stato-0/nebula.webp';
- if(id==='armatura')return 'img/personaggi/armature/'+ARMATURE[classe].file+'.webp';
- if(id==='divina')return classe==='assassino'
-   ? scene+'divina.webp' : scene+'epica-divina-corona-fumo.webp';
- if(id==='corona')return scene+'base-corona.webp';
+ const root='img/personaggi/';
+ const effect={ambra:'ambra',fulmine:'fulmine',ombra:'ombra',nebula:'nebula',astrale:'astrale'}[id];
+ if(id==='base')return root+'stati/'+classe+'-5.webp';
+ if(effect)return root+'combinazioni/'+classe+'/stato-5/'+effect+'.webp';
+ if(id==='armatura')return root+'armature/'+ARMATURE[classe].file+'.webp';
+ if(id==='divina')return root+'aura-divina-v371/'+classe+'/base.webp';
+ if(id==='corona')return root+'corona-v360/'+classe+'/stato-5/standard/base-divina.webp';
  return null;
 }
 // Esattamente le 27 fotografie ritagliate dai tre collage approvati.
@@ -45,8 +42,8 @@ export function nomeGalleriaRpg(classe,id){
    EFFETTI_GALLERIA.find(x=>x.id===id)?.nome||null;
 }
 export function notaGalleriaRpg(classe,id){
- if(id==='divina'&&classe!=='assassino')
-   return 'Foto combinata dimostrativa con armatura, Fumo, Corona e Aura divina.';
+ if(id==='divina')
+   return 'Ricompensa gratuita dei 75 giorni, sulla fotografia originale della classe.';
  if(id==='corona')return 'Ricompensa gratuita al record di 80 giorni; nessuno sblocco in anticipo.';
  if(id==='divina')return 'Ricompensa gratuita al record di 75 giorni; nessuno sblocco in anticipo.';
  return 'Anteprima estetica: nessun oggetto viene equipaggiato o acquistato.';
@@ -80,9 +77,10 @@ function init(){
    button.setAttribute('aria-label','Ingrandisci '+nomeGalleriaRpg(classe,eff.id)+' · '+NOMI_GALLERIA[classe]);
    const wrap=document.createElement('span');wrap.className='gallery-photo';
    const img=document.createElement('img');
-   const esatta=fotoGalleriaApprovataRpg(classe,eff.id);
+   // Prefer the real canonical photos; old v352 collage could replace faces.
+   const esatta=null;
    const precedente=fotoGalleriaRpg(classe,eff.id);
-   img.src='./'+(esatta||precedente);
+   img.src='./'+(esatta||precedente)+'?v=371';
    img.dataset.fotoApprovata=String(Boolean(esatta));
    img.alt=NOMI_GALLERIA[classe]+' · '+nomeGalleriaRpg(classe,eff.id);
    img.loading='lazy';img.decoding='async';
