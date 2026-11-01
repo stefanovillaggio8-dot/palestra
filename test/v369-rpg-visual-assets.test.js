@@ -38,7 +38,7 @@ test('audit visuale: nove foto Divine mantengono il file fotografico originale s
    assert.equal(photo.toString('ascii',8,12),'WEBP');
    assert.ok(statSync(file).size>40000,url);
    if(classe==='berserker'&&armatura==='armatura-berserker-apocalisse')
-    assert.match(source('tools/render_corona_v360.py'),/restore_apocalypse_horns|armatura-berserker-apocalisse/);
+    assert.match(readFileSync(root('tools/render_corona_v360.py'),'utf8'),/restore_apocalypse_horns|armatura-berserker-apocalisse/);
    count++;
   }
  assert.equal(count,9);
