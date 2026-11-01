@@ -39,7 +39,7 @@ test('Shop bloccato e anteprima non cambiano profilo, saldo o inventario', async
   const divina=perClasse(body,'aura-preview-overlay')[0];
   assert.ok(divina);
   assert.equal(perClasse(divina,'aura-foto-divina').length,0); // Aura v365 is already part of the full photo.
-  assert.match(perClasse(divina,'personaggio-ritratto')[0].getAttribute('src'),/aura-divina-v375/);
+  assert.match(perClasse(divina,'personaggio-ritratto')[0].getAttribute('src'),/aura-divina-v376/);
   assert.equal(perClasse(divina,'aura-foto-ambra').length,0);
   assert.equal(perClasse(divina,'aura-foto-corona').length,0);
   await pulsante(divina,'Chiudi anteprima').click();
