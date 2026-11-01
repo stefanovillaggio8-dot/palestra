@@ -54,6 +54,18 @@ def warm_rabbia_aura(im):
             pixels[x,y]=(round(r*(1-weight)+tr*weight),
                           round(g*(1-weight)+tg*weight),
                           round(b*(1-weight)+tb*weight),a)
+    # The original Rabbia rune floor was also pearl-white, unlike the other
+    # Divine portraits. Warm only luminous floor pixels, never the boots.
+    for y in range(906,1054):
+        for x in range(35,697):
+            if 187<x<548 and y<1001:continue
+            r,g,b,a=pixels[x,y]
+            lo=min(r,g,b);hi=max(r,g,b)
+            if hi<130 or lo<83 or hi-lo>115:continue
+            k=.73*min(1,(hi-115)/105)
+            pixels[x,y]=(round(r*(1-k)+255*k),
+                          round(g*(1-k)+185*k),
+                          round(b*(1-k)+69*k),a)
     return im
 
 def shared_berserker_sparks(im):
