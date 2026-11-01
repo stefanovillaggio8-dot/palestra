@@ -77,7 +77,11 @@ def aura_background():
 def isolate(session,path):
     from rembg import remove
     raw=Image.open(path).convert('RGB')
-    assert raw.size==SIZE,(str(path),raw.size)
+    # Original base portraits are 900x1350; shop armors are 720x1080.
+    # Both have the same 2:3 aspect ratio: resample without stretching.
+    assert abs(raw.width/raw.height-2/3)<0.015,(str(path),raw.size)
+    if raw.size!=SIZE:
+        raw=raw.resize(SIZE,RES)
     png=io.BytesIO()
     raw.save(png,format='PNG')
     segmented=Image.open(io.BytesIO(remove(png.getvalue(),session=session))).convert('RGBA')
