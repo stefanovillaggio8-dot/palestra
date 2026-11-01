@@ -56,13 +56,18 @@ def warm_rabbia_aura(im):
                           round(b*(1-weight)+tb*weight),a)
     # The original Rabbia rune floor was also pearl-white, unlike the other
     # Divine portraits. Warm only luminous floor pixels, never the boots.
+    boots=Image.new("L",SIZE,0)
+    bd=ImageDraw.Draw(boots)
+    bd.ellipse((195,896,363,1008),fill=255)
+    bd.ellipse((433,897,554,1011),fill=255)
+    boots=boots.filter(ImageFilter.GaussianBlur(9))
+    protection=boots.load()
     for y in range(906,1054):
         for x in range(35,697):
-            if 187<x<548 and y<1001:continue
             r,g,b,a=pixels[x,y]
             lo=min(r,g,b);hi=max(r,g,b)
             if hi<130 or lo<83 or hi-lo>115:continue
-            k=.73*min(1,(hi-115)/105)
+            k=.73*min(1,(hi-115)/105)*(1-protection[x,y]/255)
             pixels[x,y]=(round(r*(1-k)+255*k),
                           round(g*(1-k)+185*k),
                           round(b*(1-k)+69*k),a)
