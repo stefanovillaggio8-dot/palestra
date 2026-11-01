@@ -74,11 +74,17 @@ def restored_equipment(im, cls, armor, stage):
     if stage>=4:
         canonical=open_scaled(ROOT / f"img/personaggi/stati/{cls}-5.webp")
         w,h=SIZE
-        for coords,shift in WEAPON_SHAPES[cls]:
+        from PIL import ImageChops, ImageOps
+        light=ImageOps.grayscale(canonical)
+        for index,(coords,shift) in enumerate(WEAPON_SHAPES[cls]):
             mask=Image.new("L",SIZE,0)
             d=ImageDraw.Draw(mask)
             d.polygon([(int(x*w/900),int(y*h/1350)) for x,y in coords],fill=255)
-            mask=mask.filter(ImageFilter.GaussianBlur(1.2))
+            # Pixel-level matte: no black backdrop rectangles around silver blades.
+            cutoff=34 if cls=="berserker" and index==1 else 68
+            luma=light.point(lambda v: max(0,min(255,(v-cutoff)*6)))
+            mask=ImageChops.multiply(mask,luma)
+            mask=mask.filter(ImageFilter.GaussianBlur(0.75))
             sprite=canonical.copy()
             sprite.putalpha(mask)
             layer=Image.new("RGBA",SIZE,(0,0,0,0))
@@ -96,7 +102,11 @@ def restored_equipment(im, cls, armor, stage):
         d=ImageDraw.Draw(mask)
         for p in [left,mirror]:
             d.polygon([(int(x*w/900),int(y*h/1350)) for x,y in p],fill=255)
-        original.putalpha(mask.filter(ImageFilter.GaussianBlur(1.1)))
+        from PIL import ImageChops, ImageOps
+        shade=ImageOps.grayscale(original)
+        horn_matte=shade.point(lambda v:max(0,min(255,(v-49)*5)))
+        mask=ImageChops.multiply(mask,horn_matte)
+        original.putalpha(mask.filter(ImageFilter.GaussianBlur(0.7)))
         im.alpha_composite(original)
     return im
 
