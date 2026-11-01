@@ -54,7 +54,7 @@ test('Tutte le 144 fotografie realmente presenti e decodificabili WebP',()=>{
 test('Corona fotografica, Aura divina classica e PNG privi di doppie spirali',()=>{
  const app=src('src/app.js'),compositor=src('src/anteprima-combinata-rpg.js');
  assert.match(app,/if \(fotoCoronaRpg\) grafica\.classList\.add\('aura-foto-fx-attiva'\)/);
- assert.match(app,/!fotoCoronaRpg && !effettoVivo && !auraDivinaAttiva/);
+ assert.match(app,/!fotoCoronaRpg && !fotoArmaturaArmataRpg && !effettoVivo && !auraDivinaAttiva/);
  assert.match(compositor,/grafica\.classList\?\.contains\('personaggio-aura-divina'\)/);
  assert.match(compositor,/disegnaSprite\(fx,atlas,'divina'/);
  assert.doesNotMatch(app,/src:'\.\/img\/effetti\/corona-infinito-v358\.svg'/);
