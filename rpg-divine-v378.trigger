@@ -1,1 +1,1 @@
-Refine all three base divine portraits: eliminate synthetic giant golden ellipse, boost original photographed golden wisps and floor light; all shop images unchanged. 2026-11-01 revision B
+Render final free Divine photos with actual photographic golden energy extracted from approved Shop portrait, no drawn orbithalo wireframe, original bodies intact. 2026-11-01 revision C.
