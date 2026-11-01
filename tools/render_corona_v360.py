@@ -63,8 +63,6 @@ WEAPON_SHAPES = {
   # Separate blade and narrow real wooden handle; never copy a rectangle of background.
   ([(23,272),(95,239),(171,250),(194,282),(182,359),(152,391),
     (131,420),(89,409),(44,456),(16,415)],(32,0)),
-  ([(135,330),(167,330),(164,452),(158,728),(159,1030),(156,1267),
-    (135,1280),(137,1015),(139,733),(138,457)],(32,0)),
  ],
 }
 
@@ -76,6 +74,20 @@ def restored_equipment(im, cls, armor, stage):
         w,h=SIZE
         from PIL import ImageChops, ImageOps
         light=ImageOps.grayscale(canonical)
+        if cls=="berserker":
+            # A genuine wooden handle, shaded and narrow, without copying any
+            # rectangle of dark background from the canonical photograph.
+            dd=ImageDraw.Draw(im,"RGBA")
+            x=int(w*.188)
+            dd.polygon([(x-7,int(h*.240)),(x+7,int(h*.240)),
+                        (x+8,int(h*.966)),(x-6,int(h*.966))],
+                       fill=(79,52,32,245))
+            dd.line([(x-4,int(h*.245)),(x-2,int(h*.962))],
+                    fill=(157,107,69,185),width=2)
+            dd.line([(x+6,int(h*.245)),(x+7,int(h*.962))],
+                    fill=(23,19,17,195),width=2)
+            for yy in range(int(h*.40),int(h*.53),15):
+                dd.line([(x-7,yy),(x+8,yy+5)],fill=(49,33,24,211),width=2)
         for index,(coords,shift) in enumerate(WEAPON_SHAPES[cls]):
             mask=Image.new("L",SIZE,0)
             d=ImageDraw.Draw(mask)
@@ -85,7 +97,7 @@ def restored_equipment(im, cls, armor, stage):
             luma=light.point(lambda v: max(0,min(255,(v-cutoff)*6)))
             mask=ImageChops.multiply(mask,luma)
             mask=mask.filter(ImageFilter.GaussianBlur(0.75))
-            sprite=canonical.copy()
+            sprite=ImageOps.mirror(canonical) if cls=="assassino" and index==1 else canonical.copy()
             sprite.putalpha(mask)
             layer=Image.new("RGBA",SIZE,(0,0,0,0))
             layer.paste(sprite,(int(shift[0]*w/900),int(shift[1]*h/1350)))
