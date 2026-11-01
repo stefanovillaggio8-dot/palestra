@@ -52,7 +52,7 @@ test('COLORI-2. un giorno previsto e passato senza seduta diventa ROSSO', () => 
   // Ogni giorno e' previsto e non c'e' nessuna seduta: i giorni passati sono tutti
   // saltati, quindi devono essere tanti quanti i giorni passati nel mese.
   const c = colori([], [0, 1, 2, 3, 4, 5, 6]);
-  assert.ok(c.rosso >= 1, 'i giorni previsti e passati senza seduta devono essere rossi');
+  assert.ok(c.rosso >= (oggi.getDate()>1 ? 1 : 0), 'se ci sono giorni già trascorsi previsti devono essere rossi');
   // E NON devono essere verdi: uno non puo' essereallenato e saltato lo stesso giorno.
   assert.equal(c.verde, 0, 'nessun giorno puo\' essere verde senza esserci andato');
 });
@@ -81,7 +81,7 @@ test('COLORI-3. un giorno che NON hai scelto e\' VIOLA (recupero), MAI rosso', (
       `una cella non puo' essere insieme saltata e di recupero: "${k}"`);
   }
   const c = colori([], [1]);
-  assert.ok(c.viola >= 1, 'i giorni di recupero devono essere viola');
+  assert.ok(c.viola >= (oggi.getDate()>1 ? 1 : 0), 'se il mese ha giorni già trascorsi di recupero devono essere viola');
   // E i rossi possono essere SOLO i lunedi' gia' passati, non anche gli altri
   // giorni. Con sei giorni di recupero al mese, se i rossi fossero sei o piu' il
   // rosso non piu' significherebbe "giorno saltato".
