@@ -23,5 +23,5 @@ export function percorsoFotoCoronaV360({classe,stato=0,armatura=null,
   const variante=effetto?EFFETTI_CORONA_V360[effetto]:'base';
   if(!variante)return null;
   return './img/personaggi/corona-v360/'+classe+'/stato-'+livello+'/' +
-    (armatura||'standard')+'/'+variante+(divina?'-divina':'')+'.webp?v=371';
+    (armatura||'standard')+'/'+variante+(divina?'-divina':'')+'.webp?v=372';
 }
