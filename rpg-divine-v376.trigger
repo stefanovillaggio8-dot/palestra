@@ -1,1 +1,1 @@
-Render v376 final original-image corrections: same gold aura, clean backgrounds, connected axe shaft no double weapon. 2026-11-01T02:13.
+Refine Apocalypse single axe: remove dark disconnected rear shaft, keep its forward wooden handle physically gripped. 2026-11-01T02:19
