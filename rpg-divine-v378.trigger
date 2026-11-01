@@ -1,1 +1,1 @@
-Build 3 free Divine photos from clean original character photos with photographic aura; preserve six shop photos. 2026-11-01.
+Refine all three base divine portraits: eliminate synthetic giant golden ellipse, boost original photographed golden wisps and floor light; all shop images unchanged. 2026-11-01 revision B
