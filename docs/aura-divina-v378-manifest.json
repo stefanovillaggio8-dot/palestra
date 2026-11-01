@@ -1,0 +1,137 @@
+[
+  {
+    "classe": "assassino",
+    "armatura": "base",
+    "mode": "repaired-free-original",
+    "source": "img/personaggi/stati/assassino-5.webp",
+    "source_sha256": "c6c8b5080f0a6592824520fc2416ebd7acad44de4ad781869acf9b8aa5ae4321",
+    "final_sha256": "50c2204e0719e773a37518f02665aaea0e69f13c750f82b363357f928c817ae7",
+    "aura_template": "v378-photographic-gold",
+    "canvas": [
+      720,
+      1080
+    ],
+    "head_y": 78,
+    "feet_y": 997
+  },
+  {
+    "classe": "assassino",
+    "armatura": "armatura-assassino-notte",
+    "mode": "approved-shop-unchanged",
+    "source": "img/personaggi/aura-divina-v375/assassino/armatura-assassino-notte.webp",
+    "source_sha256": "2aad00715f9883a9adb49ef49d855b6081f45c1a2435a7bfa92cef58cb7f8d95",
+    "final_sha256": "2aad00715f9883a9adb49ef49d855b6081f45c1a2435a7bfa92cef58cb7f8d95",
+    "aura_template": "approved-v375-unchanged",
+    "canvas": [
+      720,
+      1080
+    ],
+    "head_y": 78,
+    "feet_y": 997
+  },
+  {
+    "classe": "assassino",
+    "armatura": "armatura-assassino-spettro",
+    "mode": "approved-shop-unchanged",
+    "source": "img/personaggi/aura-divina-v375/assassino/armatura-assassino-spettro.webp",
+    "source_sha256": "01cb691c302591e03ed2002bc767f9807282891d2e4f693015995de64de877fc",
+    "final_sha256": "01cb691c302591e03ed2002bc767f9807282891d2e4f693015995de64de877fc",
+    "aura_template": "approved-v375-unchanged",
+    "canvas": [
+      720,
+      1080
+    ],
+    "head_y": 78,
+    "feet_y": 997
+  },
+  {
+    "classe": "guerriero",
+    "armatura": "base",
+    "mode": "repaired-free-original",
+    "source": "img/personaggi/stati/guerriero-5.webp",
+    "source_sha256": "c020b4877cb28deeaa8a5beac9dcaa69d138ebfd507b836d27b999c390cedb52",
+    "final_sha256": "866c4d0e6c96fc13c9f74c052bcb661363b1241a45af4f5d94957db59d0f08b4",
+    "aura_template": "v378-photographic-gold",
+    "canvas": [
+      720,
+      1080
+    ],
+    "head_y": 78,
+    "feet_y": 997
+  },
+  {
+    "classe": "guerriero",
+    "armatura": "armatura-guerriero-braci",
+    "mode": "approved-shop-unchanged",
+    "source": "img/personaggi/aura-divina-v375/guerriero/armatura-guerriero-braci.webp",
+    "source_sha256": "6cb38833bf0b1e9bbb749fa2e81a15c8f3ee58b82ea855b2b8c7750445f6120b",
+    "final_sha256": "6cb38833bf0b1e9bbb749fa2e81a15c8f3ee58b82ea855b2b8c7750445f6120b",
+    "aura_template": "approved-v375-unchanged",
+    "canvas": [
+      720,
+      1080
+    ],
+    "head_y": 78,
+    "feet_y": 997
+  },
+  {
+    "classe": "guerriero",
+    "armatura": "armatura-guerriero-abisso",
+    "mode": "approved-shop-unchanged",
+    "source": "img/personaggi/aura-divina-v375/guerriero/armatura-guerriero-abisso.webp",
+    "source_sha256": "ad85bef31a7b6502f3004bfd7389cee797f3e79609d4f438718c584717ae76b1",
+    "final_sha256": "ad85bef31a7b6502f3004bfd7389cee797f3e79609d4f438718c584717ae76b1",
+    "aura_template": "approved-v375-unchanged",
+    "canvas": [
+      720,
+      1080
+    ],
+    "head_y": 78,
+    "feet_y": 997
+  },
+  {
+    "classe": "berserker",
+    "armatura": "base",
+    "mode": "repaired-free-original",
+    "source": "img/personaggi/stati/berserker-5.webp",
+    "source_sha256": "a25476ccec167b05a482f553ca0ab758ef5b6c9f130f9807eda3f81aa5b6fab3",
+    "final_sha256": "69816602dc4d231dc9de0b19696e15b26617b3eb3125f74b70c6b4b00056d52f",
+    "aura_template": "v378-photographic-gold",
+    "canvas": [
+      720,
+      1080
+    ],
+    "head_y": 78,
+    "feet_y": 997
+  },
+  {
+    "classe": "berserker",
+    "armatura": "armatura-berserker-rabbia",
+    "mode": "approved-shop-unchanged",
+    "source": "img/personaggi/aura-divina-v375/berserker/armatura-berserker-rabbia.webp",
+    "source_sha256": "721859e57680e720bc8f2c4ee834a60f626ab1367e4aa538bbfa991534b671d6",
+    "final_sha256": "721859e57680e720bc8f2c4ee834a60f626ab1367e4aa538bbfa991534b671d6",
+    "aura_template": "approved-v375-unchanged",
+    "canvas": [
+      720,
+      1080
+    ],
+    "head_y": 78,
+    "feet_y": 997
+  },
+  {
+    "classe": "berserker",
+    "armatura": "armatura-berserker-apocalisse",
+    "mode": "approved-shop-unchanged",
+    "source": "img/personaggi/aura-divina-v375/berserker/armatura-berserker-apocalisse.webp",
+    "source_sha256": "0ecd70904645f94b31aebbbdd9c0e7a7ac2c590ffc16802f977f4401b36d6454",
+    "final_sha256": "0ecd70904645f94b31aebbbdd9c0e7a7ac2c590ffc16802f977f4401b36d6454",
+    "aura_template": "approved-v375-unchanged",
+    "canvas": [
+      720,
+      1080
+    ],
+    "head_y": 78,
+    "feet_y": 997
+  }
+]
