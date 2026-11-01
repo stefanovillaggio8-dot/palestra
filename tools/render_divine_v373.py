@@ -145,11 +145,16 @@ def recover_horns(source,scale,dx,dy):
     left=[(int(x*scale),int(y*scale)) for x,y in left]
     hd.polygon(left,fill=250)
     hd.polygon(right,fill=250)
-    horns=horns.filter(ImageFilter.GaussianBlur(1))
+    # Matte out the black surroundings: only actual horn material survives.
+    from PIL import ImageOps
+    shade=ImageOps.grayscale(original)
+    material=shade.point(lambda v:max(0,min(255,(v-32)*5)))
+    horns=ImageChops.multiply(horns,material).filter(ImageFilter.GaussianBlur(0.85))
     original.putalpha(horns)
     paste=Image.new("RGBA",SIZE,(0,0,0,0))
-    # Align the horns with the original helmet while not touching the face.
-    paste.paste(original,(dx,dy-18))
+    # Horn tips near screen y=50, bases at y=180, above the actual helmet.
+    horns_y=round(50-34*scale)
+    paste.paste(original,(dx,horns_y))
     return paste
 
 def main():
