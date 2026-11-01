@@ -1,0 +1,60 @@
+name: Rebuild verified Divine Aura portraits
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'rpg-divine-v373.trigger'
+permissions:
+  contents: write
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install image tools
+        run: python -m pip install Pillow
+      - name: Render nine authentic armors, same zoom and golden aura
+        run: python tools/render_divine_v373.py
+      - name: Verify files, dimensions, identity and uniqueness
+        run: |
+          python - <<'PY'
+          from PIL import Image
+          from pathlib import Path
+          import hashlib,json
+          root=Path("img/personaggi/aura-divina-v373")
+          files=sorted(root.rglob("*.webp"))
+          manifest=json.loads(Path("docs/aura-divina-v373-manifest.json").read_text())
+          assert len(files)==len(manifest)==9,(len(files),len(manifest))
+          assert len({(e["classe"],e["armatura"]) for e in manifest})==9
+          assert len({e["orig_sha256"] for e in manifest})==9
+          assert len({e["output_sha256"] for e in manifest})==9
+          for e in manifest:
+            src=Path("img/personaggi/aura-divina-v366")/e["classe"]/(e["armatura"]+".webp")
+            dst=root/e["classe"]/(e["armatura"]+".webp")
+            assert src.is_file() and dst.is_file(),dst
+            assert hashlib.sha256(src.read_bytes()).hexdigest()==e["orig_sha256"]
+            assert hashlib.sha256(dst.read_bytes()).hexdigest()==e["output_sha256"]
+            assert e["canvas"]==[720,1080]
+            assert e["head_y"]==78 and e["feet_y"]==997
+            with Image.open(dst) as im:
+              im.verify()
+            with Image.open(dst) as im:
+              assert im.size==(720,1080),dst
+          assert Path("docs/aura-divina-v373-anteprima.jpg").is_file()
+          print("VALIDATED: 9 unique characters, 9 original photo identities, uniform frame and authentic equipment")
+          PY
+      - name: Publish only validated images
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add img/personaggi/aura-divina-v373 docs/aura-divina-v373-manifest.json docs/aura-divina-v373-anteprima.jpg
+          git diff --cached --quiet && exit 0
+          git commit -m "assets(v373): nine original-face Divine portraits with uniform framing and correctly matched equipment"
+          git pull --rebase origin main
+          git push origin HEAD:main
