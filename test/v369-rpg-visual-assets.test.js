@@ -23,14 +23,14 @@ test('audit visuale: tutte le 648 foto Corona sono file esistenti e non vuoti', 
      }
  assert.equal(seen.size,648);
 });
-test('audit visuale: nove foto Divine mantengono il file fotografico originale senza generare volti', () => {
+test('audit visuale: nove foto Divine approvate sono file WebP validi e completi', () => {
  let count=0;
  for (const [classe,armature] of Object.entries(ARMATURE_DIVINE_V366))
   for (const armatura of armature) {
    const url=percorsoFotoAuraDivinaV366({
     classe,stato:5,divina:true,armatura:armatura==='base'?null:armatura,armaSbloccata:true
    });
-   assert.ok(url.endsWith('.webp?v=378'),url);
+   assert.ok(url.endsWith('.webp?v=379'),url);
    const file=root(url);
    assert.ok(existsSync(file),url);
    const photo=readFileSync(file);
