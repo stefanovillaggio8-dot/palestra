@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {existsSync,readFileSync,statSync} from 'node:fs';
 import {percorsoFotoArmaturaArmataV371} from '../src/foto-armatura-armata-v371.js';
 import {percorsoFotoCoronaV360} from '../src/foto-corona-v360.js';
 import {percorsoFotoAuraDivinaV366} from '../src/foto-aura-divina-v366.js';
@@ -28,6 +29,12 @@ test('v371: 36 unique armed Shop armor+effect variants',()=>{
      assert.ok(!paths.has(url),url);paths.add(url);
      assert.equal(percorsoFotoArmaturaArmataV371({...args,stato:3}),null);
      assert.equal(percorsoFotoArmaturaArmataV371({...args,stato:4}),url);
+     const file=new URL('../'+url.replace(/^\\.\\//,'').split('?')[0],import.meta.url);
+     assert.ok(existsSync(file),'Missing armed Shop portrait: '+url);
+     assert.ok(statSync(file).size>10000,url);
+     const magic=readFileSync(file);
+     assert.equal(magic.toString('ascii',0,4),'RIFF');
+     assert.equal(magic.toString('ascii',8,12),'WEBP');
    }
  assert.equal(paths.size,36);
 });
