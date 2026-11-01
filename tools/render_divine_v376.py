@@ -96,10 +96,15 @@ def fit_character(img,head,feet):
     x=(SIZE[0]-rw)//2
     y=round(TARGET_HEAD-head*scale)
     layer=Image.new('RGBA',SIZE,(0,0,0,0))
-    layer.paste(new,(x,y),new)
-    # PIL paste with mask premultiplies the alpha; do a direct alpha overlay.
-    layer=Image.new('RGBA',SIZE,(0,0,0,0))
-    layer.alpha_composite(new,(x,y))
+    # Oversized normalized figures can extend above/left of the fixed canvas.
+    # Explicit cropping preserves RGBA alpha without PIL's double-premultiply.
+    dx,dy=max(x,0),max(y,0)
+    sx,sy=max(0,-x),max(0,-y)
+    cw=min(SIZE[0]-dx,new.width-sx)
+    ch=min(SIZE[1]-dy,new.height-sy)
+    assert cw>0 and ch>0,(x,y,new.size)
+    clipped=new.crop((sx,sy,sx+cw,sy+ch))
+    layer.alpha_composite(clipped,(dx,dy))
     return layer,scale,x,y
 
 def main():
