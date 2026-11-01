@@ -30,7 +30,7 @@ test('audit visuale: nove foto Divine mantengono il file fotografico originale s
    const url=percorsoFotoAuraDivinaV366({
     classe,stato:5,divina:true,armatura:armatura==='base'?null:armatura,armaSbloccata:true
    });
-   assert.ok(url.endsWith('.webp?v=376'),url);
+   assert.ok(url.endsWith('.webp?v=377'),url);
    const file=root(url);
    assert.ok(existsSync(file),url);
    const photo=readFileSync(file);

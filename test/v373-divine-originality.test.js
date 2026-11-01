@@ -28,7 +28,7 @@ test('v373: exactly nine distinct real originals and nine distinct published pho
     assert.equal(output.toString('ascii',8,12),'WEBP');
     assert.ok(output.length>42000);
     const url=percorsoFotoAuraDivinaV366({classe,armatura:armor==='base'?null:armor,stato:5,divina:true,armaSbloccata:true});
-    assert.ok(url.includes(`/aura-divina-v376/${classe}/${armor}.webp?v=376`),url);
+    assert.ok(url.includes(`/aura-divina-v375/${classe}/${armor}.webp?v=377`),url);
   }
  }
 });
