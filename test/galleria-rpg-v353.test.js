@@ -32,8 +32,8 @@ test('Le immagini approvate devono essere tutte presenti o tutte ancora in caric
 });
 test('Fallback usa le foto gia pubblicate fino alla fine della pubblicazione degli asset',async()=>{
  const src=await file('src/galleria-foto-rpg.js');
- assert.match(src,/const esatta=fotoGalleriaApprovataRpg\(classe,eff.id\)/);
- assert.match(src,/img.src='\.\/'\+\(esatta\|\|precedente\)/);
+ assert.match(src,/const esatta=null/);
+ assert.match(src,/img.src='\.\/'\+\(esatta\|\|precedente\)\+'\?v=371'/);
  assert.match(src,/if\(fallbacks\+\+===0 && esatta\)/);
  assert.doesNotMatch(src,/localStorage\.|indexedDB\.|acquistaAura\(/);
 });
