@@ -25,7 +25,7 @@ export function fotoGalleriaRpg(classe,id){
  if(id==='base')return root+'stati/'+classe+'-5.webp';
  if(effect)return root+'combinazioni/'+classe+'/stato-5/'+effect+'.webp';
  if(id==='armatura')return root+'armature/'+ARMATURE[classe].file+'.webp';
- if(id==='divina')return root+'aura-divina-v371/'+classe+'/base.webp';
+ if(id==='divina')return root+'aura-divina-v373/'+classe+'/base.webp';
  if(id==='corona')return root+'corona-v360/'+classe+'/stato-5/standard/base-divina.webp';
  return null;
 }
@@ -80,7 +80,7 @@ function init(){
    // Prefer the real canonical photos; old v352 collage could replace faces.
    const esatta=null;
    const precedente=fotoGalleriaRpg(classe,eff.id);
-   img.src='./'+(esatta||precedente)+'?v=372';
+   img.src='./'+(esatta||precedente)+'?v=373';
    img.dataset.fotoApprovata=String(Boolean(esatta));
    img.alt=NOMI_GALLERIA[classe]+' · '+nomeGalleriaRpg(classe,eff.id);
    img.loading='lazy';img.decoding='async';
