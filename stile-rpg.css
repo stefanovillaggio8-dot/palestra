@@ -2315,3 +2315,92 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
 @media(prefers-reduced-motion:reduce) {
   .personaggio-scena-grafica .aura-foto-divina {animation:none!important;}
 }
+
+
+/* v383 · Stemmi RPG originali e distinti per tutte le 19 divisioni.
+   La grafica è decorativa: soglie, LP, account e record non cambiano. */
+.badge-rank-con-stemma {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+  gap: 6px;
+  max-width: 100%;
+  min-height: 49px;
+  padding: 2px 10px 2px 4px;
+  border-radius: 12px;
+  line-height: 1.2;
+}
+.rank-stemma-icona {
+  flex: 0 0 auto;
+  width: 41px;
+  height: 48px;
+  object-fit: contain;
+  filter: drop-shadow(0 1px 7px color-mix(in srgb, var(--rank-colore) 62%, transparent));
+}
+.badge-rank-testo {
+  display: inline-block;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: .68rem;
+  font-weight: 900;
+  line-height: 1.3;
+  letter-spacing: .045em;
+}
+.teschio-rank .badge-rank-con-stemma .rank-stemma-icona { width: 54px; height: 61px; }
+.teschio-rank .badge-rank-con-stemma { white-space: normal; }
+.card-grande .rank-stemma-icona { width: 69px; height: 78px; }
+.card-grande .badge-rank-con-stemma { padding: 3px 13px 3px 3px; }
+.rank-stemmi-griglia {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  align-items: stretch;
+  gap: 12px;
+  margin: 18px 0 30px;
+}
+.rank-stemma-tessera {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  gap: 4px;
+  padding: 12px 7px 13px;
+  border: 1px solid rgba(206, 180, 135, .23);
+  border-radius: 16px;
+  background: radial-gradient(ellipse at 50% 38%, rgba(142, 118, 67, .17), transparent 70%), linear-gradient(155deg, #1b1e26, #100f17);
+  box-shadow: inset 0 0 23px rgba(0, 0, 0, .17);
+  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+.rank-stemma-tessera:hover {
+  transform: translateY(-3px);
+  border-color: rgba(254, 214, 127, .72);
+  box-shadow: 0 10px 29px rgba(0, 0, 0, .25), inset 0 0 25px rgba(204, 174, 93, .08);
+}
+.rank-stemma-galleria-img {
+  width: min(100%, 146px);
+  height: 156px;
+  object-fit: contain;
+  filter: drop-shadow(0 3px 10px rgba(235, 177, 96, .18));
+}
+.rank-stemma-galleria-nome {
+  color: #f5e9d6;
+  font-size: .83rem;
+  text-align: center;
+  text-wrap: balance;
+}
+.rank-stemma-tessera-olympian {
+  border-color: rgba(255, 208, 111, .65);
+  background: radial-gradient(ellipse at 50% 37%, rgba(249, 204, 117, .23), transparent 75%), linear-gradient(155deg, #25221d, #101018);
+  box-shadow: 0 0 22px -11px #f6ca78, inset 0 0 20px rgba(249, 205, 122, .07);
+}
+@media (max-width: 530px) {
+  .rank-stemmi-griglia { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+  .rank-stemma-tessera { padding: 9px 5px; }
+  .rank-stemma-galleria-img { height: 139px; }
+  .badge-rank-con-stemma { gap: 4px; font-size: .62rem; }
+  .rank-stemma-icona { width: 34px; height: 42px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rank-stemma-tessera { transition: none; }
+  .rank-stemma-tessera:hover { transform: none; }
+}

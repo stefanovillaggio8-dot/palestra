@@ -29,6 +29,7 @@ import { ESERCIZI, SCHEDA_ID, SCHEDA_NOME, PERSONE, accountId, chiSei, personaDa
 import { nuovoId, adesso, TABELLE, riallineaEsercizi } from './sincronizzazione.js';
 // --- il gioco: rank, LP, streak, Aura, missioni, amici ---
 import { statoAccount, ricompenseAllenamento, gruppiDaSerie } from './gioco.js';
+import { percorsoStemma, nomeStemma, tutteLeGraficheRank } from './rank-stemmi.js';
 import { calcolaAvatar, CLASSI, classeConsigliata, eCardio, minutiDiCardio, nomePremio, statoVisivo, percorsoStato, schedaProgressione, STATI_IMMAGINE } from './avatar-rpg.js';
 import { haSigillo, creaSigillo, verificaSigillo } from './sigillo-classe.js';
 import { isoGiorno } from './streak.js';
@@ -5771,12 +5772,18 @@ function seduteDellaPersonaPer(p) {
 function badgeRank(rankId, lp, divisione) {
   const r = RANK.find((x) => x.id === rankId);
   if (!r) return el('span', { class: 'badge-rank badge-nessuno', testo: 'SENZA RANK' });
+  const src = percorsoStemma(rankId, divisione, lp);
+  const nome = nomeStemma(rankId, divisione, lp);
   const secondario = rankId === 'olympian' ? ' #4fc3ff' : '';
   return el('span', {
-    class: 'badge-rank badge-' + rankId,
-    testo: r.nome + (divisione ? ' ' + divisione.nome : '') + (lp ? ' · ' + lp + ' LP' : ''),
+    class: 'badge-rank badge-' + rankId + ' badge-rank-con-stemma',
+    title: nome + (Number.isFinite(Number(lp)) ? ' · ' + Number(lp) + ' LP' : ''),
     style: `--rank-colore:${r.colore};--rank-ombra:${r.ombra}${secondario}`,
-  });
+  }, [
+    el('img', { class: 'rank-stemma-icona', src, width: '52', height: '59',
+      alt: '', 'aria-hidden': 'true', loading: 'lazy', decoding: 'async' }),
+    el('span', { class: 'badge-rank-testo', testo: nome + (lp ? ' · ' + lp + ' LP' : '') }),
+  ]);
 }
 
 /**
@@ -7670,6 +7677,7 @@ function vistaRank(zona) {
   const bottoni = el('div', { class: 'chip-scelte' });
   const voci = [
     ['miei', 'MY RANKS'],
+    ['stemmi', 'STEMMI'],
     ['classifica', 'LEADERBOARD'],
     ['amici', 'FRIENDS'],
     ['prova', 'PROVA UN ESERCIZIO'],
@@ -7690,11 +7698,29 @@ function vistaRank(zona) {
   function disegnaSezione() {
     svuota(contenitore);
     if (scheda === 'miei') sezioneMieiRank(st);
+    else if (scheda === 'stemmi') sezioneStemmi();
     else if (scheda === 'classifica') sezioneClassifica(st);
     else if (scheda === 'prova') sezioneProvaRank(st);
     else sezioneConfronto(st);
   }
 
+  function sezioneStemmi() {
+    contenitore.appendChild(el('h2', { testo: 'Galleria degli stemmi' }));
+    contenitore.appendChild(el('p', { class: 'nota', testo:
+      'Dal Bronze I al Titan III. Le divisioni salgono da I a III. Olympian è unico, senza divisioni.' }));
+    const griglia = el('div', { class: 'rank-stemmi-griglia' });
+    for (const rank of tutteLeGraficheRank()) {
+      griglia.appendChild(el('div', {
+        class: 'rank-stemma-tessera rank-stemma-tessera-' + rank.id,
+      }, [
+        el('img', { class: 'rank-stemma-galleria-img', src: rank.src,
+          width: '140', height: '158', alt: 'Stemma ' + rank.nome,
+          loading: 'lazy', decoding: 'async' }),
+        el('strong', { class: 'rank-stemma-galleria-nome', testo: rank.nome }),
+      ]));
+    }
+    contenitore.appendChild(griglia);
+  }
 
   /**
    * PROVA UN ESERCIZIO E VEDI IL RANK (Ste, 21/10/2026)

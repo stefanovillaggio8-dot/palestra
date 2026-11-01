@@ -49,8 +49,8 @@ test('v378: app version, PWA cache and gallery use only corrected three images',
  const sw=bytes('sw.js').toString();
  const page=bytes('aura-divina-v366-anteprima.html').toString();
  const renderer=bytes('tools/render_divine_v378.py').toString();
- assert.match(html,/palestra-v382/);
- assert.match(sw,/palestra-v382/);
+ assert.match(html,/palestra-v383/);
+ assert.match(sw,/palestra-v383/);
  assert.match(sw,/aura-divina-v379/);
  assert.match(page,/aura-divina-v379/);
  assert.equal((page.match(/<figure>/g)||[]).length,9);
