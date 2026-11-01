@@ -1,0 +1,56 @@
+name: Render nine true-original Divine portraits v374
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'rpg-divine-v374.trigger'
+permissions:
+  contents: write
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Pillow
+        run: python -m pip install Pillow
+      - name: Preserve original faces and generate matching Divine Aura portraits
+        run: python tools/render_divine_v374.py
+      - name: Validate all nine photo identities and the correct class mapping
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          import json,hashlib
+          data=json.loads(Path('docs/aura-divina-v374-manifest.json').read_text())
+          assert len(data)==9
+          assert len({(d['classe'],d['armatura']) for d in data})==9
+          assert len({d['original_sha256'] for d in data})==9
+          assert len({d['final_sha256'] for d in data})==9
+          for d in data:
+            a=Path('img/personaggi/aura-divina-v373')/d['classe']/(d['armatura']+'.webp')
+            b=Path('img/personaggi/aura-divina-v374')/d['classe']/(d['armatura']+'.webp')
+            assert a.is_file() and b.is_file()
+            assert hashlib.sha256(a.read_bytes()).hexdigest()==d['original_sha256']
+            assert hashlib.sha256(b.read_bytes()).hexdigest()==d['final_sha256']
+            assert d['canvas']==[720,1080] and (d['head_y'],d['feet_y'])==(78,997)
+            with Image.open(b) as im:
+              assert im.size==(720,1080)
+              im.verify()
+          assert Path('docs/aura-divina-v374-preview.jpg').stat().st_size>50000
+          print('PASSED: 9 distinct 720x1080 originals, exact armors, faces and weapons preserved')
+          PY
+      - name: Commit actual verified WebP artwork
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add img/personaggi/aura-divina-v374 docs/aura-divina-v374-preview.jpg docs/aura-divina-v374-manifest.json
+          git diff --cached --quiet && exit 0
+          git commit -m 'assets(v374): matching Divine aura, refined sword hand and original faces'
+          git pull --rebase origin main
+          git push origin HEAD:main
