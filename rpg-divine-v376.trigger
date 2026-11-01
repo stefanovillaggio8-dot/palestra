@@ -1,1 +1,1 @@
-Rebuild nine V376 pictures from clean real portraits; restore connected Abisso sword and Apocalypse axe without old rings. 2026-11-01T02:08.
+Render v376 final original-image corrections: same gold aura, clean backgrounds, connected axe shaft no double weapon. 2026-11-01T02:13.
