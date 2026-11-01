@@ -94,14 +94,12 @@ def restored_equipment(im, cls, armor, stage):
             d.polygon([(int(x*w/900),int(y*h/1350)) for x,y in coords],fill=255)
             # Pixel-level matte: no black backdrop rectangles around silver blades.
             cutoff=(23 if index==1 else 36) if cls=="berserker" else (40 if cls=="assassino" else 68)
-            luma=light.point(lambda v: max(0,min(255,(v-cutoff)*6)))
-            mask=ImageChops.multiply(mask,luma)
-            mask=mask.filter(ImageFilter.GaussianBlur(0.75))
             sprite=ImageOps.mirror(canonical) if cls=="assassino" and index==1 else canonical.copy()
-            # Mirror the source luminance as well: both real daggers have equal metallic clarity.
+            # Use luminance of the same image (mirrored for the second dagger),
+            # so silver stays equally visible in both hands.
             source_light=ImageOps.grayscale(sprite)
             source_alpha=source_light.point(lambda v:max(0,min(255,(v-cutoff)*6)))
-            mask=ImageChops.multiply(mask,source_alpha).filter(ImageFilter.GaussianBlur(.55))
+            mask=ImageChops.multiply(mask,source_alpha).filter(ImageFilter.GaussianBlur(.65))
             sprite.putalpha(mask)
             layer=Image.new("RGBA",SIZE,(0,0,0,0))
             layer.paste(sprite,(int(shift[0]*w/900),int(shift[1]*h/1350)))
