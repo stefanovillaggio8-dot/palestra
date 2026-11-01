@@ -20,5 +20,5 @@ export function percorsoFotoAuraDivinaV366({
  if(effetto&&!anteprima)return null;
  const nome=armatura||'base';
  if(!disponibili.includes(nome))return null;
- return './img/personaggi/aura-divina-v371/'+classe+'/'+nome+'.webp?v=371';
+ return './img/personaggi/aura-divina-v371/'+classe+'/'+nome+'.webp?v=372';
 }
