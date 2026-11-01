@@ -97,11 +97,11 @@ def restore_correct_weapon(raw,path):
         d.polygon([(171,588),(206,555),(239,588),(208,611)],fill=255)
     else:
         # Original single axe, with shaft actually held by the left hand.
-        d.line([(58,489),(364,720)],fill=255,width=23)
+        d.line([(58,489),(364,720)],fill=255,width=12)
         d.polygon([(266,716),(314,683),(398,690),(418,742),
                    (392,806),(350,811),(302,780)],fill=255)
         d.ellipse((179,527,265,618),fill=255)
-    m=m.filter(ImageFilter.GaussianBlur(1.3))
+    m=m.filter(ImageFilter.GaussianBlur(0.8))
     raw.paste(blade,(0,0),m)
     return raw
 
