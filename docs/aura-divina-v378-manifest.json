@@ -5,7 +5,7 @@
     "mode": "repaired-free-original",
     "source": "img/personaggi/stati/assassino-5.webp",
     "source_sha256": "c6c8b5080f0a6592824520fc2416ebd7acad44de4ad781869acf9b8aa5ae4321",
-    "final_sha256": "a41471d0a213cd888b1540d66f542af6cc43ac79f6eeb2d85bac7786e5b89845",
+    "final_sha256": "b4fa51025a4ec5fa4b8c853de024f7fdd38ad0e8c7d1c06d2970478911307638",
     "aura_template": "v378-photographic-gold",
     "canvas": [
       720,
@@ -50,7 +50,7 @@
     "mode": "repaired-free-original",
     "source": "img/personaggi/stati/guerriero-5.webp",
     "source_sha256": "c020b4877cb28deeaa8a5beac9dcaa69d138ebfd507b836d27b999c390cedb52",
-    "final_sha256": "d5b460a9e4513ca130ef3db9accf9ebbc23eca8d73f3e2cf39c99ecad8f56c37",
+    "final_sha256": "cf1bbbeb9a8e31127ace5d8eb3db13d25a7bfb68685fa2af5e601743788b0c1b",
     "aura_template": "v378-photographic-gold",
     "canvas": [
       720,
@@ -95,7 +95,7 @@
     "mode": "repaired-free-original",
     "source": "img/personaggi/stati/berserker-5.webp",
     "source_sha256": "a25476ccec167b05a482f553ca0ab758ef5b6c9f130f9807eda3f81aa5b6fab3",
-    "final_sha256": "02157dd7b80e87ea409bf106accb2bca3ab038f25687c537b604d91a0e588ea9",
+    "final_sha256": "b7492abfe74015649325eb4527161c14872d1e5874b5ce02c82a92cce63ca0a1",
     "aura_template": "v378-photographic-gold",
     "canvas": [
       720,
