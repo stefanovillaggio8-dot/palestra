@@ -23,7 +23,7 @@ test('v366: exactly 9 valid photographs, three full outfits per class, two purch
    for(const armatura of armors){
      const path=percorsoFotoAuraDivinaV366({classe,stato:5,divina:true,
        armatura:armatura==='base'?null:armatura,armaSbloccata:true});
-     assert.ok(path?.includes('/aura-divina-v374/'),String(path));
+     assert.ok(path?.includes('/aura-divina-v375/'),String(path));
      assert.ok(!urls.has(path),path);urls.add(path);
      const full=new URL('../'+path.replace(/^\.\//,'').split('?')[0],import.meta.url);
      assert.ok(existsSync(full),path);
