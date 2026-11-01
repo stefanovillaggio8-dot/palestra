@@ -87,9 +87,9 @@
   {
     "classe": "guerriero",
     "armatura": "armatura-guerriero-abisso",
-    "source": "img/personaggi/aura-divina-v366/guerriero/armatura-guerriero-abisso.webp",
-    "source_sha256": "c133aeb952550fa0b382a1be90305ea4e019cc4d5f6a865da7a568aa451a67f0",
-    "final_sha256": "ccffd4221939adfaa514b92094ea3e8deec41fe43efe38003c600240c0a284f2",
+    "source": "img/personaggi/armature/guerriero-abisso.webp",
+    "source_sha256": "263b55c8a7e131b430c66644a2abde220b62f656171c9d4b46b9b21f9f7c6849",
+    "final_sha256": "374e6687bd287334ceb64e13838d0bca08c9b3a2e6fdcad857ebecf3229c030f",
     "aura_template": "v376-single-gold-376",
     "canvas": [
       720,
@@ -98,8 +98,8 @@
     "head_y": 78,
     "feet_y": 997,
     "segmentation": "isnet-general-use",
-    "mask_coverage": 0.344,
-    "scale": 1.05269
+    "mask_coverage": 0.4776,
+    "scale": 0.9623
   },
   {
     "classe": "berserker",
@@ -138,9 +138,9 @@
   {
     "classe": "berserker",
     "armatura": "armatura-berserker-apocalisse",
-    "source": "img/personaggi/aura-divina-v366/berserker/armatura-berserker-apocalisse.webp",
-    "source_sha256": "885c13773422e720c1cb8fbd76eee5206d37cd5b6231707635831d5036c73294",
-    "final_sha256": "a49b04c04a4d576777694c4e7bb94c00f258b67fa5831e2405ad3cdf5d43ae42",
+    "source": "img/personaggi/armature/berserker-apocalisse.webp",
+    "source_sha256": "467684ee3d518a1bad8a101a67bf8d803195d95347a3077ca34633fb5ea3e5a5",
+    "final_sha256": "d8b9043daa9dceceaad7cd7c7df1488fff099ab38ecc1b533b6aaa9b5d63be54",
     "aura_template": "v376-single-gold-376",
     "canvas": [
       720,
@@ -149,7 +149,7 @@
     "head_y": 78,
     "feet_y": 997,
     "segmentation": "isnet-general-use",
-    "mask_coverage": 0.4036,
-    "scale": 1.06736
+    "mask_coverage": 0.4978,
+    "scale": 0.9613
   }
 ]
