@@ -262,6 +262,62 @@ export function isoGiorno(data) {
  * sette, ma È quella che non sbaglia nessuno: non azzera niente che non sia
  * sicuramente saltato.
  */
+/**
+ * Accredito manuale di streak senza inventare una seduta, delle serie o dei
+ * carichi. Il dato arriva dal profilo sincronizzato online ed e' isolato
+ * all'account che lo possiede.
+ *
+ * Da una data ancora si riparte dal numero riconosciuto; ogni nuovo allenamento
+ * effettivamente completato conta +1. Un successivo giorno previsto saltato
+ * interrompe la catena secondo le stesse regole normali.
+ */
+function applicaRettificaStreak(stato, oggi, profilo) {
+  const credito = profilo?.privacy?.rettifica_streak;
+  if (!credito || typeof credito !== 'object') return stato;
+  const ancora = String(credito.data || '');
+  const base = Number(credito.giorni);
+  if (!dataPossibile(ancora) || ancora > oggi ||
+      !Number.isInteger(base) || base < 1 || base > 10000) return stato;
+
+  const fatti = new Set(stato.giorniAllenati);
+  const accreditati = [...new Set([...fatti, ancora])].sort((a,b)=>b.localeCompare(a));
+  const previsti = Array.isArray(stato.giorniPrevisti)
+    ? new Set(stato.giorniPrevisti) : null;
+  let nuovoConteggio = base;
+  let valida = true;
+  let cursor = giornoSuccessivo(ancora);
+  let iterazioni = 0;
+  while (cursor && cursor <= oggi && iterazioni++ < 10000) {
+    if (fatti.has(cursor)) nuovoConteggio++;
+    else if (cursor < oggi && (!previsti || previsti.has(giornoSettimana(cursor)))) {
+      valida = false; break;
+    }
+    cursor = giornoSuccessivo(cursor);
+  }
+  if (iterazioni >= 10000) valida = false;
+  const record = Math.max(stato.record || 0, base, valida ? nuovoConteggio : 0);
+  if (!valida) return {
+    ...stato, record, prossimoObiettivo: prossimoMilestone(record),
+    giorniAllenati: accreditati,
+  };
+  return {
+    ...stato,
+    giorni: Math.max(stato.giorni || 0, nuovoConteggio),
+    attiva: true, interrotta: false,
+    fattoOggi: fatti.has(oggi) || ancora === oggi,
+    giorniAllenati: accreditati,
+    ultimoGiorno: accreditati[0],
+    record,
+    prossimoObiettivo: prossimoMilestone(record),
+    prossimoGiorno: stato.giorniPrevisti
+      ? prossimoGiornoPrevisto(stato.giorniPrevisti, accreditati[0], oggi)
+      : null,
+    testo: (Math.max(stato.giorni || 0, nuovoConteggio)) +
+      ' allenamenti di streak (giorno ' + ancora + ' accreditato manualmente).',
+    rettificaStreak: { data: ancora, giorni: base },
+  };
+}
+
 export function calcolaStreak(sedute, oggi = isoGiorno(new Date()), profilo = null) {
   // Si passa `oggi` a `giorniAllenati`: senza, il filtro sulle sedute future usa la
   // data vera del computer e non quella che il chiamante sta usando. In un test, o
@@ -278,13 +334,13 @@ export function calcolaStreak(sedute, oggi = isoGiorno(new Date()), profilo = nu
   // Il prossimo che scrive `record + 1` senza controllare riceve NaN, e il prossimo
   // che mostra `prossimoObiettivo` a schermo stampa "null".
   if (!giorni.length) {
-    return {
+    return applicaRettificaStreak({
       giorni: 0, attiva: false, interrotta: false, fattoOggi: false,
       giorniAllenati: [], ultimoGiorno: null, giorniPrevisti: previsti,
       prossimoGiorno: null, record: 0,
       prossimoObiettivo: prossimoMilestone(0),
       testo: 'Non hai ancora finito un allenamento: la streak parte dal primo allenamento.',
-    };
+    }, oggi, profilo);
   }
   const ultimo = giorni[0];
   const consecutive = contaAllenamentiConsecutiviConGiorni(giorni, previsti, oggi);
@@ -322,7 +378,7 @@ export function calcolaStreak(sedute, oggi = isoGiorno(new Date()), profilo = nu
   // il prossimo giorno previsto non ancora fatto: serve a dire "ti manca giovedi"
   const prossimoGiorno = previsti ? prossimoGiornoPrevisto(previsti, ultimo, oggi) : null;
 
-  return {
+  return applicaRettificaStreak({
     giorni: viva ? valore : 0,
     attiva: viva,
     interrotta: !viva,
@@ -334,7 +390,7 @@ export function calcolaStreak(sedute, oggi = isoGiorno(new Date()), profilo = nu
     record,
     prossimoObiettivo: prossimoMilestone(record),
     testo: testoStreak({ viva, valore, fattoOggi, ultimo, previsti, prossimoGiorno, oggiISO: oggi }),
-  };
+  }, oggi, profilo);
 }
 
 /**
