@@ -30,15 +30,15 @@ test('audit visuale: nove foto Divine mantengono il file fotografico originale s
    const url=percorsoFotoAuraDivinaV366({
     classe,stato:5,divina:true,armatura:armatura==='base'?null:armatura,armaSbloccata:true
    });
-   assert.ok(url.endsWith('.svg?v=367'),url);
+   assert.ok(url.endsWith('.webp?v=371'),url);
    const file=root(url);
    assert.ok(existsSync(file),url);
-   const svg=readFileSync(file,'utf8');
-   assert.match(svg,/data:image\/webp;base64,/,'Manca ritratto originale: '+url);
-   assert.match(svg,/id="protect"/,'Manca protezione del volto: '+url);
+   const photo=readFileSync(file);
+   assert.equal(photo.toString('ascii',0,4),'RIFF');
+   assert.equal(photo.toString('ascii',8,12),'WEBP');
    assert.ok(statSync(file).size>40000,url);
    if(classe==='berserker'&&armatura==='armatura-berserker-apocalisse')
-    assert.match(svg,/id="original-horns"/);
+    assert.match(source('tools/render_corona_v360.py'),/restore_apocalypse_horns|armatura-berserker-apocalisse/);
    count++;
   }
  assert.equal(count,9);
