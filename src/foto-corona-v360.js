@@ -1,4 +1,4 @@
-// Corona dell'Infinito v360: tutte le 648 immagini complete
+// Corona dell'Infinito: 648 corrected original-photo artworks refreshed in v371
 // 3 classi × 6 stadi Streak × 3 stati armatura × 6 effetti × 2 Aura divina.
 // Le immagini sono solo viste: gli sblocchi reali vengono valutati in app.js.
 export const CLASSI_CORONA_V360=Object.freeze({
@@ -23,5 +23,5 @@ export function percorsoFotoCoronaV360({classe,stato=0,armatura=null,
   const variante=effetto?EFFETTI_CORONA_V360[effetto]:'base';
   if(!variante)return null;
   return './img/personaggi/corona-v360/'+classe+'/stato-'+livello+'/' +
-    (armatura||'standard')+'/'+variante+(divina?'-divina':'')+'.webp?v=360';
+    (armatura||'standard')+'/'+variante+(divina?'-divina':'')+'.webp?v=371';
 }
