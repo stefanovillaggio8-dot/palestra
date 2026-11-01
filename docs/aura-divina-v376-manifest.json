@@ -89,7 +89,7 @@
     "armatura": "armatura-guerriero-abisso",
     "source": "img/personaggi/armature/guerriero-abisso.webp",
     "source_sha256": "263b55c8a7e131b430c66644a2abde220b62f656171c9d4b46b9b21f9f7c6849",
-    "final_sha256": "374e6687bd287334ceb64e13838d0bca08c9b3a2e6fdcad857ebecf3229c030f",
+    "final_sha256": "fcec6eb15607856423ec9050bb5bae41dc0dacbc26252956404ed599bf660dd6",
     "aura_template": "v376-single-gold-376",
     "canvas": [
       720,
@@ -98,7 +98,7 @@
     "head_y": 78,
     "feet_y": 997,
     "segmentation": "isnet-general-use",
-    "mask_coverage": 0.4776,
+    "mask_coverage": 0.4779,
     "scale": 0.9623
   },
   {
@@ -140,7 +140,7 @@
     "armatura": "armatura-berserker-apocalisse",
     "source": "img/personaggi/armature/berserker-apocalisse.webp",
     "source_sha256": "467684ee3d518a1bad8a101a67bf8d803195d95347a3077ca34633fb5ea3e5a5",
-    "final_sha256": "d8b9043daa9dceceaad7cd7c7df1488fff099ab38ecc1b533b6aaa9b5d63be54",
+    "final_sha256": "c80a03da85b8338e8408655ae016f0998aaf86cfe4a84c419526f0adcad4a18e",
     "aura_template": "v376-single-gold-376",
     "canvas": [
       720,
@@ -149,7 +149,7 @@
     "head_y": 78,
     "feet_y": 997,
     "segmentation": "isnet-general-use",
-    "mask_coverage": 0.4978,
+    "mask_coverage": 0.4974,
     "scale": 0.9613
   }
 ]
