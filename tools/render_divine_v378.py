@@ -88,20 +88,11 @@ def divine_light_template():
     # flat and synthetic. Use the actual photographic ribbons from the
     # approved Shop image, with only a natural halo and floor foundation.
     # Full, soft moonlike halo around the head, placed BEHIND the character.
-    d.ellipse((212,59,508,355),outline=(255,207,99,218),width=9)
-    d.ellipse((218,65,502,349),outline=(255,238,175,190),width=3)
-    # Swirling light ribbons are wide and highly luminous, not thin black
-    # outlined ellipses; they share positions and colors on all three.
-    for yc,rx,ry,rot in [(426,340,103,-.22),(704,338,123,.27)]:
-        points=[]
-        for i in range(400):
-            theta=math.tau*i/399
-            xx=rx*math.cos(theta); yy=ry*math.sin(theta)
-            points.append((int(360+xx*math.cos(rot)-yy*math.sin(rot)),
-                           int(yc+xx*math.sin(rot)+yy*math.cos(rot))))
-        d.line(points,fill=(255,207,111,119),width=14,joint="curve")
-        d.line([(x,y-3) for x,y in points],fill=(255,242,185,169),width=5,joint="curve")
-        d.line([(x,y-4) for x,y in points],fill=(255,255,218,116),width=2,joint="curve")
+    d.ellipse((212,59,508,355),outline=(255,207,99,144),width=8)
+    d.ellipse((218,65,502,349),outline=(255,238,175,135),width=3)
+    # Keep the genuine photograph's soft orbiting wisps. Additional
+    # geometrical ellipses looked like wires and were rejected in v376.
+    # The captured ribbons already form complete exterior golden arcs.
     # Actual bright floor portal with elliptical runes and light pools.
     for b,opacity,width in [
       ((42,916,678,1043),185,11),((54,931,666,1033),240,5),
