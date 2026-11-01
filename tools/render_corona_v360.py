@@ -62,9 +62,9 @@ WEAPON_SHAPES = {
  "berserker": [
   # Separate blade and narrow real wooden handle; never copy a rectangle of background.
   ([(23,272),(95,239),(171,250),(194,282),(182,359),(152,391),
-    (131,420),(89,409),(44,456),(16,415)],(112,0)),
+    (131,420),(89,409),(44,456),(16,415)],(32,0)),
   ([(135,330),(167,330),(164,452),(158,728),(159,1030),(156,1267),
-    (135,1280),(137,1015),(139,733),(138,457)],(112,0)),
+    (135,1280),(137,1015),(139,733),(138,457)],(32,0)),
  ],
 }
 
@@ -81,7 +81,7 @@ def restored_equipment(im, cls, armor, stage):
             d=ImageDraw.Draw(mask)
             d.polygon([(int(x*w/900),int(y*h/1350)) for x,y in coords],fill=255)
             # Pixel-level matte: no black backdrop rectangles around silver blades.
-            cutoff=34 if cls=="berserker" and index==1 else 68
+            cutoff=(23 if index==1 else 36) if cls=="berserker" else (40 if cls=="assassino" else 68)
             luma=light.point(lambda v: max(0,min(255,(v-cutoff)*6)))
             mask=ImageChops.multiply(mask,luma)
             mask=mask.filter(ImageFilter.GaussianBlur(0.75))
