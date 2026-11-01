@@ -3,7 +3,7 @@
     "classe": "assassino",
     "armatura": "base",
     "orig_sha256": "32b78fb049639505b67332e67f58e5490b61a5805e656ae15fd1f4999cfdd09d",
-    "output_sha256": "a5279a45d7c79988dfa439ee649bd6c42509d65a4251d2771bad15f71ac02324",
+    "output_sha256": "1a7ed5d65301615278b205b4e34c6911cb9d27f71c68adbc30287b332389b0b4",
     "head_y": 78,
     "feet_y": 997,
     "canvas": [
@@ -16,7 +16,7 @@
     "classe": "assassino",
     "armatura": "armatura-assassino-notte",
     "orig_sha256": "a21b021778569b5a8bdc302c04fc46eec9e056faf8a2d67addc0f26211eb4587",
-    "output_sha256": "60e048859c4d34f110e9f3072a5745a015ef514262363f4dd079f1f4c1534af1",
+    "output_sha256": "359f939bcc69d03888aa8e09575c3ca1c92297c81181c5a9c9305df1b8ca4d6e",
     "head_y": 78,
     "feet_y": 997,
     "canvas": [
@@ -29,7 +29,7 @@
     "classe": "assassino",
     "armatura": "armatura-assassino-spettro",
     "orig_sha256": "64a9885c44ffa5ec4c7c90acf90625579197c174eea06c041902b67ee62b11e0",
-    "output_sha256": "b084ffaae705dfb740f0877a49dfcdbbafdd38607ecec97180c5a39c23eb0b1c",
+    "output_sha256": "87ae7482b2a5f6a3d1512a2d3057632ad3defe75f5e55d316920863cbc6b648e",
     "head_y": 78,
     "feet_y": 997,
     "canvas": [
@@ -42,7 +42,7 @@
     "classe": "guerriero",
     "armatura": "base",
     "orig_sha256": "084d4041161ccfd6e39081b09f443bee06f3de47fe2f1c49e6924a499164dbe9",
-    "output_sha256": "57c706fee46e6c1e8d02b4486628aff214b06a1ab05dc6d44e0d5aa787de5168",
+    "output_sha256": "3dae9f11a70faa1bc4400db6a41c1f6a0f615452069e0e3a789219ec218a12aa",
     "head_y": 78,
     "feet_y": 997,
     "canvas": [
@@ -55,7 +55,7 @@
     "classe": "guerriero",
     "armatura": "armatura-guerriero-braci",
     "orig_sha256": "8c67011352b6b496b1b4b71cbef657bedcd36d9dccd07d7e25f44a70c256f373",
-    "output_sha256": "1dd8c1d3c7f8f6f844a4b627325bb3b12c3896bc0c626b8e9aba332b916cbc24",
+    "output_sha256": "9de6ea58771705b2d585efe6173228163bb44c89fcf306c694fb031176477179",
     "head_y": 78,
     "feet_y": 997,
     "canvas": [
@@ -68,7 +68,7 @@
     "classe": "guerriero",
     "armatura": "armatura-guerriero-abisso",
     "orig_sha256": "c133aeb952550fa0b382a1be90305ea4e019cc4d5f6a865da7a568aa451a67f0",
-    "output_sha256": "f346395ed3c1864831ec347e01664b3d3809c374f6902118f759a4a37c7ed1f7",
+    "output_sha256": "c102dffe2683e2e93c1c88c3ea2d838086234a283f9c93735256f7d63f165339",
     "head_y": 78,
     "feet_y": 997,
     "canvas": [
@@ -81,7 +81,7 @@
     "classe": "berserker",
     "armatura": "base",
     "orig_sha256": "2b5bff7df13bbf76944f4c72d7461bf27ed86064501ab9d54b317586e11c6bed",
-    "output_sha256": "f8efa561708fc95acde43a70c7f45fbdbf4a57f9427448d1abd873ecefb6ee95",
+    "output_sha256": "1f7dee9a3feb6c0ceea10c9dc4a0738a8a838f8db87ab84aaf8f88af289e1823",
     "head_y": 78,
     "feet_y": 997,
     "canvas": [
@@ -94,7 +94,7 @@
     "classe": "berserker",
     "armatura": "armatura-berserker-rabbia",
     "orig_sha256": "72d27e2ae5bb3337c15381c389ee23005f1a895437f9d83eada411a410cf4f7b",
-    "output_sha256": "008e52481a46187cd3a54a2c17bcaa3efc245d5db726f5f61a98c4822ce1dbc1",
+    "output_sha256": "a4973bbbe47aed4e1df8aa8970f74e323d05bb461198fd439c7d2c48b577f4fa",
     "head_y": 78,
     "feet_y": 997,
     "canvas": [
@@ -107,7 +107,7 @@
     "classe": "berserker",
     "armatura": "armatura-berserker-apocalisse",
     "orig_sha256": "885c13773422e720c1cb8fbd76eee5206d37cd5b6231707635831d5036c73294",
-    "output_sha256": "afd63c2ea88a624ba1a0b67083a2d7fef7ef9b840209e9f6beb18e6a1633242a",
+    "output_sha256": "9a3d62e99caaffa8ffbf847fa1a541e17a95a608aca5447bb63dbd07d4f7865a",
     "head_y": 78,
     "feet_y": 997,
     "canvas": [
