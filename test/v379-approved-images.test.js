@@ -21,7 +21,7 @@ test('v379: all nine image files match the approved final binary manifest',()=>{
    assert.equal(bin.toString('ascii',0,4),'RIFF');
    assert.equal(bin.toString('ascii',8,12),'WEBP');
    assert.equal(sha(path),m.sha256);
-   assert.equal(percorsoFotoAuraDivinaV366({classe,stato:5,divina:true,armatura:armatura==='base'?null:armatura,armaSbloccata:true}),'./'+path+'?v=379');
+   assert.equal(percorsoFotoAuraDivinaV366({classe,stato:5,divina:true,armatura:armatura==='base'?null:armatura,armaSbloccata:true}),'./'+path+'?v=380');
   }
  }
 });
@@ -32,7 +32,7 @@ test('v379: correct nine gallery positions, PWA cache, Berserker one-head source
  const gallery=read('aura-divina-v366-anteprima.html').toString();
  assert.equal((gallery.match(/<figure>/g)||[]).length,9);
  assert.equal((gallery.match(/aura-divina-v379/g)||[]).length,18);
- assert.match(read('index.html').toString(),/palestra-v379/);
- assert.match(read('sw.js').toString(),/palestra-v379/);
+ assert.match(read('index.html').toString(),/palestra-v380/);
+ assert.match(read('sw.js').toString(),/palestra-v380/);
  assert.match(read('sw.js').toString(),/aura-divina-v379/);
 });

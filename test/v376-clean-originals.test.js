@@ -29,7 +29,7 @@ test('v376: all nine published portraits have exactly one same aura template and
    assert.equal(bytes(output).toString('ascii',0,4),'RIFF');
    assert.ok(statSync(file(output)).size>40000);
    const live=percorsoFotoAuraDivinaV366({classe:cls,armatura:armor==='base'?null:armor,stato:5,divina:true,armaSbloccata:true});
-   assert.equal(live,'./img/personaggi/aura-divina-v379/'+cls+'/'+armor+'.webp?v=379');
+   assert.equal(live,'./img/personaggi/aura-divina-v379/'+cls+'/'+armor+'.webp?v=380');
   }
  assert.ok(existsSync(file('docs/aura-divina-v376-preview.jpg')));
 });
@@ -42,8 +42,8 @@ test('v376: original weapon corrections and no pre-baked imported photo glows',(
  assert.match(python,/img\/personaggi\/armature\/berserker-apocalisse/);
  const sw=bytes('sw.js').toString();
  const html=bytes('index.html').toString();
- assert.match(sw,/palestra-v379/);
- assert.match(html,/palestra-v379/);
+ assert.match(sw,/palestra-v380/);
+ assert.match(html,/palestra-v380/);
  assert.match(sw,/aura-divina-v379/);
  assert.match(bytes('aura-divina-v366-anteprima.html').toString(),/aura-divina-v379/);
 });

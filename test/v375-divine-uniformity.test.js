@@ -26,7 +26,7 @@ test('v375: same golden aura geometry on all nine truly different avatars',()=>{
    assert.equal(final.toString('ascii',0,4),'RIFF');
    assert.ok(final.length>40000);
    const url=percorsoFotoAuraDivinaV366({classe,stato:5,divina:true,armatura:armatura==='base'?null:armatura,armaSbloccata:true});
-   assert.equal(url,'./img/personaggi/aura-divina-v379/'+classe+'/'+armatura+'.webp?v=379');
+   assert.equal(url,'./img/personaggi/aura-divina-v379/'+classe+'/'+armatura+'.webp?v=380');
   }
  }
  assert.ok(existsSync(new URL('../docs/aura-divina-v375-preview.jpg',import.meta.url)));
@@ -40,7 +40,7 @@ test('v375: uniform ring geometry and protected character regions',()=>{
  assert.doesNotMatch(script,/add_earned_weapon\(/);
  const index=read('index.html').toString('utf8');
  const sw=read('sw.js').toString('utf8');
- assert.match(index,/palestra-v379/);
- assert.match(sw,/palestra-v379/);
+ assert.match(index,/palestra-v380/);
+ assert.match(sw,/palestra-v380/);
  assert.match(sw,/aura-divina-v379/);
 });
