@@ -80,7 +80,7 @@ function init(){
    // Prefer the real canonical photos; old v352 collage could replace faces.
    const esatta=null;
    const precedente=fotoGalleriaRpg(classe,eff.id);
-   img.src='./'+(esatta||precedente)+'?v=371';
+   img.src='./'+(esatta||precedente)+'?v=372';
    img.dataset.fotoApprovata=String(Boolean(esatta));
    img.alt=NOMI_GALLERIA[classe]+' · '+nomeGalleriaRpg(classe,eff.id);
    img.loading='lazy';img.decoding='async';
