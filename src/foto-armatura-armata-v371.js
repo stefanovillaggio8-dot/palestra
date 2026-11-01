@@ -21,5 +21,5 @@ export function percorsoFotoArmaturaArmataV371({
   if(!armaSbloccata || !Number.isInteger(n) || n<4 || n>5)return null;
   const fx=effetto===null?'base':FX[effetto];
   if(!fx)return null;
-  return './img/personaggi/armatura-con-arma-v371/'+classe+'/'+armatura+'/'+fx+'.webp?v=371';
+  return './img/personaggi/armatura-con-arma-v371/'+classe+'/'+armatura+'/'+fx+'.webp?v=372';
 }
