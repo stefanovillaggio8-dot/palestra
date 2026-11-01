@@ -37,13 +37,13 @@ test('Ambra, Scarica viola ed Astrale scelgono il renderer visibile su iPhone mo
 });
 test('Il compositore statico non copre il rendering live, anche con corona e armatura',async()=>{
  const app=await read('src/app.js'),css=await read('stile-rpg.css');
- const start=app.indexOf('const effettoVivo=!auraDivinaAttiva && !fotoCoronaRpg && usaEffettiViviRpg(');
+ const start=app.indexOf('const effettoVivo=!auraDivinaAttiva && !fotoCoronaRpg && !fotoArmaturaArmataRpg && usaEffettiViviRpg(');
  const end=app.indexOf('// LA FILMSTRIP:',start);
  assert.ok(start>0&&end>start);
  const b=app.slice(start,end);
  assert.match(b,/\(!effettoVivo \|\| auraDivinaAttiva\) && montaFotoRpg/);
- assert.match(b,/!fotoCoronaRpg && !effettoVivo && !auraDivinaAttiva && montaFotoCombinataRpg/);
- assert.match(b,/scenaRichiesta && !fotoCoronaRpg && !effettoVivo/);
+ assert.match(b,/!fotoCoronaRpg && !fotoArmaturaArmataRpg && !effettoVivo && !auraDivinaAttiva && montaFotoCombinataRpg/);
+ assert.match(b,/scenaRichiesta && !fotoCoronaRpg && !fotoArmaturaArmataRpg && !effettoVivo/);
  assert.match(b,/montaEffettiRpg\(grafica, effettoVivo \? \(astraleAttiva \? null : effettoEquipaggiato\?\.id \|\| null\) : null/);
  assert.match(b,/rpg-render-live/);
  assert.match(css,/\.rpg-render-live\.rpg-fx-attiva \.rpg-effetti-canvas/);
