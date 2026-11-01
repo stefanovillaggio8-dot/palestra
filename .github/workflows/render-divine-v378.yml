@@ -1,0 +1,56 @@
+name: Build three corrected Divine free portraits v378
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'rpg-divine-v378.trigger'
+permissions:
+  contents: write
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install image-processing dependencies
+        run: python -m pip install "Pillow>=10,<12" "numpy>=1.26,<3" "onnxruntime>=1.19,<2" "rembg>=2.0.60,<3"
+      - name: Produce genuine repaired free portraits, preserving Shop files
+        run: python tools/render_divine_v378.py
+      - name: Validate source photos and exact byte copying
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          import hashlib,json
+          rows=json.loads(Path('docs/aura-divina-v378-manifest.json').read_text())
+          assert len(rows)==9
+          assert len({(row['classe'],row['armatura']) for row in rows})==9
+          assert len({row['final_sha256'] for row in rows})==9
+          assert sum(row['mode']=='repaired-free-original' for row in rows)==3
+          for row in rows:
+              original=Path(row['source'])
+              result=Path('img/personaggi/aura-divina-v378')/row['classe']/(row['armatura']+'.webp')
+              assert original.is_file() and result.is_file()
+              assert hashlib.sha256(original.read_bytes()).hexdigest()==row['source_sha256']
+              assert hashlib.sha256(result.read_bytes()).hexdigest()==row['final_sha256']
+              assert row['canvas']==[720,1080]
+              with Image.open(result) as im: assert im.size==(720,1080)
+              if row['mode']=='approved-shop-unchanged': assert original.read_bytes()==result.read_bytes()
+              else: assert '/stati/' in row['source'] and 'aura' not in row['source']
+          assert Path('docs/aura-divina-v378-preview.jpg').stat().st_size>50000
+          print('Three repaired free originals; six Shop files byte-identical')
+          PY
+      - name: Commit validated 9 photos and review preview (app unchanged)
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add img/personaggi/aura-divina-v378 docs/aura-divina-v378-preview.jpg docs/aura-divina-v378-manifest.json
+          git diff --cached --quiet && exit 0
+          git commit -m 'assets(v378): fix three free Divine Aura phase 1 portraits'
+          git pull --rebase origin main
+          git push origin HEAD:main
