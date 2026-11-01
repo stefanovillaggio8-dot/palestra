@@ -30,6 +30,7 @@ import { nuovoId, adesso, TABELLE, riallineaEsercizi } from './sincronizzazione.
 // --- il gioco: rank, LP, streak, Aura, missioni, amici ---
 import { statoAccount, ricompenseAllenamento, gruppiDaSerie } from './gioco.js';
 import { percorsoStemma, nomeStemma, tutteLeGraficheRank } from './rank-stemmi.js';
+import { ordinaRecordRank } from './rank-ordina.js';
 import { calcolaAvatar, CLASSI, classeConsigliata, eCardio, minutiDiCardio, nomePremio, statoVisivo, percorsoStato, schedaProgressione, STATI_IMMAGINE } from './avatar-rpg.js';
 import { haSigillo, creaSigillo, verificaSigillo } from './sigillo-classe.js';
 import { isoGiorno } from './streak.js';
@@ -7936,7 +7937,9 @@ function vistaRank(zona) {
       contenitore.appendChild(box);
       return;
     }
-    for (const r of stato.record) contenitore.appendChild(cardRank(r, { compatta: true }));
+    contenitore.appendChild(el('p', { class: 'nota nota-piccola',
+      testo: 'Ordinati dal grado più alto al più basso: Olympian, Titan, Diamond, Platinum, Gold, Silver, Bronze. A parità di rank: III, II, I e poi LP.' }));
+    for (const r of ordinaRecordRank(stato.record)) contenitore.appendChild(cardRank(r, { compatta: true }));
   }
 
   function sezioneClassifica(stato) {

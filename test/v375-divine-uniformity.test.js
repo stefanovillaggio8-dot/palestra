@@ -40,7 +40,7 @@ test('v375: uniform ring geometry and protected character regions',()=>{
  assert.doesNotMatch(script,/add_earned_weapon\(/);
  const index=read('index.html').toString('utf8');
  const sw=read('sw.js').toString('utf8');
- assert.match(index,/palestra-v383/);
- assert.match(sw,/palestra-v383/);
+ assert.match(index,/palestra-v384/);
+ assert.match(sw,/palestra-v384/);
  assert.match(sw,/aura-divina-v379/);
 });
