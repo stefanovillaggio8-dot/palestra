@@ -1,0 +1,119 @@
+[
+  {
+    "classe": "assassino",
+    "armatura": "base",
+    "canvas": [
+      720,
+      1080
+    ],
+    "head_y": 78,
+    "feet_y": 997,
+    "aura_template": "v375-uniform-gold-750375",
+    "original_sha256": "0ba827e6ecde3e75b157bdd24b7d541619ccf59466d5aa69f0dddc58eeb01890",
+    "final_sha256": "c7a540e03819ab3e74cd0f3f7a2f25f28e6ada4db17361d1b4b73e7a2f9540f7"
+  },
+  {
+    "classe": "assassino",
+    "armatura": "armatura-assassino-notte",
+    "canvas": [
+      720,
+      1080
+    ],
+    "head_y": 78,
+    "feet_y": 997,
+    "aura_template": "v375-uniform-gold-750375",
+    "original_sha256": "ec7e58db72cdc9a7487720b162bf804bd15137b4c965277e547b07032770a603",
+    "final_sha256": "2aad00715f9883a9adb49ef49d855b6081f45c1a2435a7bfa92cef58cb7f8d95"
+  },
+  {
+    "classe": "assassino",
+    "armatura": "armatura-assassino-spettro",
+    "canvas": [
+      720,
+      1080
+    ],
+    "head_y": 78,
+    "feet_y": 997,
+    "aura_template": "v375-uniform-gold-750375",
+    "original_sha256": "15cbbefe341516599df902d69e5a0921661c08c995218dce98a56ed811337248",
+    "final_sha256": "01cb691c302591e03ed2002bc767f9807282891d2e4f693015995de64de877fc"
+  },
+  {
+    "classe": "guerriero",
+    "armatura": "base",
+    "canvas": [
+      720,
+      1080
+    ],
+    "head_y": 78,
+    "feet_y": 997,
+    "aura_template": "v375-uniform-gold-750375",
+    "original_sha256": "25387b84f0953b42969f039fb566604e91c68336eff0e315a91d1a4ccc598f9e",
+    "final_sha256": "77b1b88e4ad7817baf57e8a9f17a2452a3c497d9e3c45d50485900301703da16"
+  },
+  {
+    "classe": "guerriero",
+    "armatura": "armatura-guerriero-braci",
+    "canvas": [
+      720,
+      1080
+    ],
+    "head_y": 78,
+    "feet_y": 997,
+    "aura_template": "v375-uniform-gold-750375",
+    "original_sha256": "dc476b79075e63b730b9d6827e59294b91e40101c9a398dce32b9608c6089317",
+    "final_sha256": "6cb38833bf0b1e9bbb749fa2e81a15c8f3ee58b82ea855b2b8c7750445f6120b"
+  },
+  {
+    "classe": "guerriero",
+    "armatura": "armatura-guerriero-abisso",
+    "canvas": [
+      720,
+      1080
+    ],
+    "head_y": 78,
+    "feet_y": 997,
+    "aura_template": "v375-uniform-gold-750375",
+    "original_sha256": "88f98998390e19eb26716ca0568a7aeec8fa8bb7bd2f21db7827f370118504b4",
+    "final_sha256": "ad85bef31a7b6502f3004bfd7389cee797f3e79609d4f438718c584717ae76b1"
+  },
+  {
+    "classe": "berserker",
+    "armatura": "base",
+    "canvas": [
+      720,
+      1080
+    ],
+    "head_y": 78,
+    "feet_y": 997,
+    "aura_template": "v375-uniform-gold-750375",
+    "original_sha256": "139b1c427e1cf14b803722459f827300c2cab68657d48b1a229ffe9da925c197",
+    "final_sha256": "8a53e9c89e016c5ded39c60bfeab3604b796c9296c681ea4ca09ad3969b3aa8a"
+  },
+  {
+    "classe": "berserker",
+    "armatura": "armatura-berserker-rabbia",
+    "canvas": [
+      720,
+      1080
+    ],
+    "head_y": 78,
+    "feet_y": 997,
+    "aura_template": "v375-uniform-gold-750375",
+    "original_sha256": "37e2ae91dc7fcc4c0f35990706cec43937949b6a24245890d7d8e4d125c6c880",
+    "final_sha256": "721859e57680e720bc8f2c4ee834a60f626ab1367e4aa538bbfa991534b671d6"
+  },
+  {
+    "classe": "berserker",
+    "armatura": "armatura-berserker-apocalisse",
+    "canvas": [
+      720,
+      1080
+    ],
+    "head_y": 78,
+    "feet_y": 997,
+    "aura_template": "v375-uniform-gold-750375",
+    "original_sha256": "f2914381434353642203ba5361f67494684e3a73aa44469a4512f5cae3da5b42",
+    "final_sha256": "0ecd70904645f94b31aebbbdd9c0e7a7ac2c590ffc16802f977f4401b36d6454"
+  }
+]
