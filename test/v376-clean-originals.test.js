@@ -42,8 +42,8 @@ test('v376: original weapon corrections and no pre-baked imported photo glows',(
  assert.match(python,/img\/personaggi\/armature\/berserker-apocalisse/);
  const sw=bytes('sw.js').toString();
  const html=bytes('index.html').toString();
- assert.match(sw,/palestra-v380/);
- assert.match(html,/palestra-v380/);
+ assert.match(sw,/palestra-v382/);
+ assert.match(html,/palestra-v382/);
  assert.match(sw,/aura-divina-v379/);
  assert.match(bytes('aura-divina-v366-anteprima.html').toString(),/aura-divina-v379/);
 });

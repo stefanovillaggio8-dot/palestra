@@ -28,11 +28,11 @@ import { creaPacchetto, validaPacchetto, unisci, csvSerie, csvSedute, csvEserciz
 import { ESERCIZI, SCHEDA_ID, SCHEDA_NOME, PERSONE, accountId, chiSei, personaDaMemoria, costruisciSnapshot, eserciziMancanti } from './dati-iniziali.js';
 import { nuovoId, adesso, TABELLE, riallineaEsercizi } from './sincronizzazione.js';
 // --- il gioco: rank, LP, streak, Aura, missioni, amici ---
-import { statoAccount, ricompenseAllenamento, gruppiDaSerie } from './gioco.js?v=381';
+import { statoAccount, ricompenseAllenamento, gruppiDaSerie } from './gioco.js';
 import { calcolaAvatar, CLASSI, classeConsigliata, eCardio, minutiDiCardio, nomePremio, statoVisivo, percorsoStato, schedaProgressione, STATI_IMMAGINE } from './avatar-rpg.js';
 import { haSigillo, creaSigillo, verificaSigillo } from './sigillo-classe.js';
-import { isoGiorno } from './streak.js?v=381';
-import { validaCreditoStreakOnline, profiloConCreditoStreak } from './streak-online.js?v=381';
+import { isoGiorno } from './streak.js';
+import { validaCreditoStreakOnline, profiloConCreditoStreak } from './streak-online.js';
 import { suona, sbloccaAudio, audioSpento, impostaAudioSpento } from './audio.js';
 import { bloccoGlossario } from './glossario-app.js';
 import {
@@ -438,7 +438,7 @@ async function avvia() {
       }
     }
 
-    // A fine sincronizzazione il profilo cloud puo' contenere una rettifica
+    // A fine sincronizzazione il profilo cloud può contenere una rettifica
     // che non era disponibile al primo disegno: aggiorna la card live.
     let timerCreditoStreak = null;
     sync.iscriviti(() => {
@@ -5635,7 +5635,7 @@ async function aggiornaCreditoStreakOnline() {
     RETTIFICHE_STREAK_ONLINE.set(id, credito);
     return true;
   } catch {
-    // Connessione assente: la streak puo' usare normalmente il profilo locale.
+    // Connessione assente: la streak può usare normalmente il profilo locale.
     return false;
   }
 }

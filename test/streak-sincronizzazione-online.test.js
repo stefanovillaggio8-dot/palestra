@@ -20,7 +20,7 @@ test('invalid credit rejected and other account never receives it',()=>{
  assert.equal(validaCreditoStreakOnline({privacy:{rettifica_streak:{data:'2026-10-31',giorni:-1}}}),null);
  assert.equal(calcolaStreak([], '2026-11-01', {id:'account-2',giorni_allenamento:[2,3,5,6]}).giorni,0);
 });
-test('the app redraws the streak on startup and after sync, cache v381',()=>{
+test('the app redraws the streak on startup and after sync, cache v382',()=>{
  const app=read('src/app.js');
  assert.match(app,/sync\.iscriviti\(\(\) => \{/);
  assert.match(app,/if \(sync\.inEsecuzione\(\)\) return/);
@@ -28,8 +28,8 @@ test('the app redraws the streak on startup and after sync, cache v381',()=>{
  assert.match(app,/aggiornaCreditoStreakOnline\(\)\.then/);
  assert.match(app,/RETTIFICHE_STREAK_ONLINE\.get\(accountAttivo\(\)\)/);
  assert.match(app,/if \(cambiata\) disegna\(\)/);
- assert.match(app,/streak-online\.js\?v=381/);
- assert.match(read('index.html'),/palestra-v381/);
- assert.match(read('sw.js'),/palestra-v381/);
- assert.match(read('index.html'),/src\/app\.js\?v=381/);
+ assert.match(app,/from '\.\/streak-online\.js'/);
+ assert.match(read('index.html'),/palestra-v382/);
+ assert.match(read('sw.js'),/palestra-v382/);
+ assert.match(read('index.html'),/src\/app\.js\?v=382/);
 });
