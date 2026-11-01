@@ -1,1 +1,1 @@
-Render final free Divine photos with actual photographic golden energy extracted from approved Shop portrait, no drawn orbithalo wireframe, original bodies intact. 2026-11-01 revision C.
+Finalize base aura v378: copy original photographed gold wisps from unaltered v366 Shop master instead of v375 wireframe. Leave characters and six shop portraits unchanged. 2026-11-01 revision D.
