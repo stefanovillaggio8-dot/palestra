@@ -74,19 +74,8 @@ def effect_template():
     for extra,alpha,width in [(7,90,8),(3,170,5),(0,235,3)]:
         d.ellipse((halo_box[0]-extra,halo_box[1]-extra,halo_box[2]+extra,halo_box[3]+extra),
                   outline=(*gold,alpha),width=width)
-    # Fine, naturally separated flowing energy feathers; avoid broad triangular
-    # sheets made of dozens of parallel lines crossing the original costumes.
-    for side in [-1,1]:
-        def sidep(x,y):return (round(w/2+side*x),round(y))
-        for i in range(9):
-            t=i/8
-            p0=sidep(165+8*t,320+94*t)
-            p1=sidep(255+45*t,210+63*t)
-            p2=sidep(330+20*t,135+75*t)
-            p3=sidep(352+23*t,55+130*t)
-            pts=bezier(p0,p1,p2,p3)
-            d.line(pts,fill=(255,205+round(27*t),127,70+round(45*(1-t))),
-                   width=2,joint="curve")
+    # Retain authentic photographed light wings/ribbons from the originals.
+    # Drawing new feather sheets here caused unnatural diagonal streaks.
     # Two consistent swirling light bands (kept behind bodies by protection mask).
     for cx,cy,rx,ry,rot in [(360,536,335,105,-.27),(360,760,340,113,.28)]:
         points=[]
