@@ -39,7 +39,7 @@ test('v378: all 3 broken free Phase-1 Divine portraits corrected, 6 Shop assets 
     assert.deepEqual(final,original);
    }
    const path=percorsoFotoAuraDivinaV366({classe:cls,armatura:armor==='base'?null:armor,stato:5,divina:true,armaSbloccata:true});
-   assert.equal(path,'./'+output+'?v=378');
+   assert.equal(path,'./img/personaggi/aura-divina-v379/'+cls+'/'+armor+'.webp?v=379');
   }
  }
  assert.ok(existsSync(file('docs/aura-divina-v378-preview.jpg')));
@@ -49,10 +49,10 @@ test('v378: app version, PWA cache and gallery use only corrected three images',
  const sw=bytes('sw.js').toString();
  const page=bytes('aura-divina-v366-anteprima.html').toString();
  const renderer=bytes('tools/render_divine_v378.py').toString();
- assert.match(html,/palestra-v378/);
- assert.match(sw,/palestra-v378/);
- assert.match(sw,/aura-divina-v378/);
- assert.match(page,/aura-divina-v378/);
+ assert.match(html,/palestra-v379/);
+ assert.match(sw,/palestra-v379/);
+ assert.match(sw,/aura-divina-v379/);
+ assert.match(page,/aura-divina-v379/);
  assert.equal((page.match(/<figure>/g)||[]).length,9);
  assert.match(renderer,/extract_approved_photographic_fx/);
  assert.match(renderer,/aura-divina-v366\/assassino\/armatura-assassino-notte.webp/);

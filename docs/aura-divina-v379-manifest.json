@@ -1,0 +1,104 @@
+[
+  {
+    "classe": "assassino",
+    "armatura": "base",
+    "file": "img/personaggi/aura-divina-v379/assassino/base.webp",
+    "sha256": "270f52dfb42052539ebc3600ca98975c4bfad76eb042091046ae2a8b60224baa",
+    "dimensions": [
+      720,
+      1080
+    ],
+    "source": "assassino_incappucciato_nell_aura_dorata.png"
+  },
+  {
+    "classe": "assassino",
+    "armatura": "armatura-assassino-notte",
+    "file": "img/personaggi/aura-divina-v379/assassino/armatura-assassino-notte.webp",
+    "sha256": "ae193aac00a55095c3c12dbcd8d927c0c8fb8186a7134247a9a43e47907587dc",
+    "dimensions": [
+      720,
+      1080
+    ],
+    "source": "assassino_del_velo_dorato.png"
+  },
+  {
+    "classe": "assassino",
+    "armatura": "armatura-assassino-spettro",
+    "file": "img/personaggi/aura-divina-v379/assassino/armatura-assassino-spettro.webp",
+    "sha256": "ebefb13e1e23c0a55b7e38751e33eec5b4da4f370ab54ec03ecd825601a0190b",
+    "dimensions": [
+      720,
+      1080
+    ],
+    "source": "assassino_spettro_cremisi_nell_aura_divina.png"
+  },
+  {
+    "classe": "guerriero",
+    "armatura": "base",
+    "file": "img/personaggi/aura-divina-v379/guerriero/base.webp",
+    "sha256": "8ff8846ce5884e9642941d4dcac742c5c0cafb8dacf401a9c5cc43ed9be5f86c",
+    "dimensions": [
+      720,
+      1080
+    ],
+    "source": "guerriero_corazzato_nell_aura_divina.png"
+  },
+  {
+    "classe": "guerriero",
+    "armatura": "armatura-guerriero-braci",
+    "file": "img/personaggi/aura-divina-v379/guerriero/armatura-guerriero-braci.webp",
+    "sha256": "1d11bb9b9c6732ac74afa19ab282e9b07dd6b1344e4f2604b11093abdd462e84",
+    "dimensions": [
+      720,
+      1080
+    ],
+    "source": "guerriero_veterano_dell_aura_divina.png"
+  },
+  {
+    "classe": "guerriero",
+    "armatura": "armatura-guerriero-abisso",
+    "file": "img/personaggi/aura-divina-v379/guerriero/armatura-guerriero-abisso.webp",
+    "sha256": "4e6a4878e8c42b2c90d7a74739c4aad2d83652e8a4624b407739223bbd7db4e5",
+    "dimensions": [
+      720,
+      1080
+    ],
+    "source": "guerriero_dell_abisso_sotto_l_aura_divina.png"
+  },
+  {
+    "classe": "berserker",
+    "armatura": "base",
+    "file": "img/personaggi/aura-divina-v379/berserker/base.webp",
+    "sha256": "1b6b907e629c490c76b51791fcef303562edc5e3c409e849ad45690b91042047",
+    "dimensions": [
+      720,
+      1080
+    ],
+    "source": "guerriero_berserker_con_aureola_dorata.png",
+    "correction": "one horned-helmet head, closed mouth; no double head overlay"
+  },
+  {
+    "classe": "berserker",
+    "armatura": "armatura-berserker-rabbia",
+    "file": "img/personaggi/aura-divina-v379/berserker/armatura-berserker-rabbia.webp",
+    "sha256": "dd58c43c29559fce21be8685b5572e86e9068f8149ecbcdd29da01178fd05814",
+    "dimensions": [
+      720,
+      1080
+    ],
+    "source": "berserker_norreno_nell_aura_dorata.png",
+    "correction": "one horned-helmet head, closed mouth; no double head overlay"
+  },
+  {
+    "classe": "berserker",
+    "armatura": "armatura-berserker-apocalisse",
+    "file": "img/personaggi/aura-divina-v379/berserker/armatura-berserker-apocalisse.webp",
+    "sha256": "112e953b6f0724ebeeb4cae703f0c193c7e87d8ac2ddc3d99ee7bb42443d7e71",
+    "dimensions": [
+      720,
+      1080
+    ],
+    "source": "berserker_apocalisse_nell_aura_divina.png",
+    "correction": "one horned-helmet head, closed mouth; no double head overlay"
+  }
+]
