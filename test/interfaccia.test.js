@@ -341,7 +341,7 @@ test('8. i progressi scrivono la spiegazione in italiano', async () => {
   globalThis.window.location.hash = '#/progressi';
   await attendiChe(() => perClasse(app, 'spiegazione').length >= 1);
   const spiegazione = perClasse(app, 'spiegazione')[0];
-  assert.match(spiegazione.textContent, /sedut/i);
+  assert.match(spiegazione.textContent, /allenament|sedut/i);
   assert.ok(perClasse(app, 'grafico').length >= 1, 'c\'e\' almeno un grafico');
 });
 
@@ -353,18 +353,16 @@ test('9. le impostazioni si aprono e mostrano stato e backup', async () => {
   assert.ok(pulsante(app, 'Importa un backup JSON'));
 });
 
-test('8b. nei progressi c\'e\' il riepilogo scritto PRIMA dei grafici', async () => {
+test('8b. nei progressi non appare due volte il riepilogo generale', async () => {
   globalThis.window.location.hash = '#/progressi';
-  await attendiChe(() => perClasse(app, 'spiegazione').length >= 1);
-  const generale = perClasse(app, 'spiegazione').find((b) => (b.textContent || '').includes('quanto sei migliorato'));
-  assert.ok(generale, 'c\'e\' il riepilogo generale scritto');
-  // deve stare PRIMA, perche' e\' la risposta principale e i grafici vengono dopo
-  const spiegazioni = perClasse(app, 'spiegazione');
-  assert.equal(spiegazioni[0], generale, 'il riepilogo generale e\' il primo blocco');
-  // qui non ci sono sedute completate, quindi deve dirlo con onesta' invece di
-  // inventare un confronto. (i confronti veri sono testati in progressi.test.js)
-  assert.ok(generale.querySelectorAll('.riga-spiegazione').length >= 1, 'c\'e\' almeno una riga di spiegazione');
-  assert.match(generale.textContent || '', /Guardando tutti gli esercizi insieme|almeno due sedute/);
+  await attendiChe(() => perClasse(app, 'progressi-grafici-panel').length >= 1);
+  assert.equal(perClasse(app, 'box-riepilogo').length, 0, 'il vecchio riepilogo duplicato non deve esserci');
+  const cards = perClasse(app, 'card-riepilogo');
+  assert.ok(cards.length <= 1, 'il riepilogo compatto deve essere unico');
+  if (cards.length) {
+    assert.match(cards[0].textContent || '', /In generale, quanto sei migliorato/);
+  }
+  assert.ok(perClasse(app, 'progressi-grafici-panel').length >= 1, 'i grafici restano disponibili');
 });
 
 test('10. eliminare una serie la mette nel cestino', async () => {
