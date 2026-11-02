@@ -33,6 +33,10 @@ import { percorsoStemma, nomeStemma, tutteLeGraficheRank } from './rank-stemmi.j
 import { ordinaRecordRank } from './rank-ordina.js';
 import { segnaliProgressione } from './analisi-progressi.js';
 import { vistaRecapPalestra } from './recap-ui.js';
+import { idRegolazioni, leggiRegolazioni, riepilogoRegolazioni } from './regolazioni-macchina.js';
+import { apriRegolazioniMacchina } from './regolazioni-ui.js';
+import { riassuntoFinaleAllenamento } from './finale-allenamento.js';
+import { mostraFinaleCinematico } from './finale-allenamento-ui.js';
 import { calcolaAvatar, CLASSI, classeConsigliata, eCardio, minutiDiCardio, nomePremio, statoVisivo, percorsoStato, schedaProgressione, STATI_IMMAGINE } from './avatar-rpg.js';
 import { haSigillo, creaSigillo, verificaSigillo } from './sigillo-classe.js';
 import { isoGiorno } from './streak.js';
@@ -2493,6 +2497,21 @@ async function creaSerie(sedutaId, esercizioId, ordine, esercizio, prevista = {}
   return db.salva('serie', nuovaSerie({ seduta_id: sedutaId, esercizio_id: esercizioId, ordine, esercizio, prevista }));
 }
 
+function regolazioniMie(e) {
+  const n=V.note?.find(x=>x && !x.eliminata && x.id===idRegolazioni(accountAttivo(),e.id));
+  return n ? riepilogoRegolazioni(leggiRegolazioni(n)) : '';
+}
+async function modificaRegolazioni(e) {
+  await apriRegolazioniMacchina({
+    account:accountAttivo(),esercizio:e,
+    onSalvato:r=>{
+      const i=V.note.findIndex(x=>x.id===r.id);
+      if(i>=0)V.note[i]=r;else V.note.push(r);
+      disegna();
+    },
+  });
+}
+
 /* ===================== vista: giorno ===================== */
 
 /* ===================== vista: giorno ===================== */
@@ -2709,6 +2728,11 @@ function vistaGiorno(zona, giornoId) {
           ])
           : null,
         e.nota_permanente ? el('p', { class: 'nota-permanente', testo: e.nota_permanente }) : null,
+        el('div', { class: 'regolazioni-inline' }, [
+          bottone('⚙ Regolazioni macchina', { onClick: () => modificaRegolazioni(e),
+            classe:'fantasma piccolo-b' }),
+          regolazioniMie(e) ? el('p', { class:'regolazioni-salvate', testo:regolazioniMie(e) }) : null,
+        ]),
       ]),
     ]));
   }
@@ -2965,6 +2989,8 @@ async function vistaSeduta(zona, sedutaId) {
       el('h2', { testo: nomeConMuscolo(e) }),
       // il rank di questo esercizio: record, LP e progressione
       el('a', { href: '#/esercizio/' + e.id, class: 'bottone-guarda piccolo-b', testo: 'Il suo Rank' }),
+      bottone('⚙ Regolazioni', { onClick: () => modificaRegolazioni(e),
+        classe:'fantasma piccolo-b', titolo:'Sedile, impugnatura e altezza della macchina' }),
       e.convenzione === 'cavo_totali' ? bottone('Configura', { onClick: () => configuraCaricoEsercizio(e), classe: 'fantasma piccolo-b' }) : null,
     ]));
     blocco.appendChild(el('div', { class: 'riga-convenzione' }, [
@@ -2979,6 +3005,9 @@ async function vistaSeduta(zona, sedutaId) {
         el('summary', { testo: 'Nota permanente' }),
         el('p', { testo: e.nota_permanente }),
       ]));
+    }
+    if (regolazioniMie(e)) {
+      blocco.appendChild(el('div', {class:'regolazioni-salvate',testo:'⚙ '+regolazioniMie(e)}));
     }
 
     // nota della seduta per questo esercizio (livello 2)
@@ -3593,12 +3622,13 @@ async function finisceAllenamento(s) {
   await ricaricaTutto();
   // il gioco: record, rank, LP, streak, Aura e traguardi. Tutto calcolato
   // dai dati appena salvati e passato dal database, mai scritto a mano.
-  await assegnaRicompense(s.id);
+  const premiAllenamento = await assegnaRicompense(s.id);
   // Ste (08/10/2026): "sistema appena finisci" e poi "tutto quanto deve farsi
   // automaticamente". Qui l'app ti portava allo storico e basta: finivi l'allenamento
   // e non ti diceva SE avevi fatto un primato o SE eri salito di fascia. Il Rank era
   // già calcolato e già salvato, nessuno lo mostrava.
-  annunciaFineSeduta(rankPrima, mappaRank(V.esercizi, serieMie(), seduteMie()));
+  const rankDopo = mappaRank(V.esercizi, serieMie(), seduteMie());
+  annunciaFineSeduta(rankPrima, rankDopo);
   // IL SUONO DI FINE ALLENAMENTO.
   //
   // Ste (10/10/2026) ha chiarito che per l'app Palestra l'audio è permesso. Qui è
@@ -3612,6 +3642,24 @@ async function finisceAllenamento(s) {
   vai('/storico/' + s.id);
   // adesso la scheda: quello che hai fatto diventa la scheda per la prossima volta
   await proponiAggiornamentoScheda(s.id);
+  // La celebrazione legge soltanto i valori già salvati. Mai premi aggiuntivi.
+  try {
+    const salvata=V.sedute.find(x=>x.id===s.id);
+    const riepilogo=riassuntoFinaleAllenamento({
+      seduta:salvata||{...fresca,stato:'completata',durata_secondi:secondiRivalutati},
+      serie:serieMie(),premi:premiAllenamento,
+      prima:rankPrima,dopo:rankDopo,
+    });
+    const p=profiloAttivo();
+    let foto=null;
+    if(p.classe_rpg) {
+      const avatar=calcolaAvatar(p.classe_rpg,serieMie(),seduteMie(),esercizioPerId,{profilo:p});
+      foto=percorsoStato(p.classe_rpg,statoVisivo(avatar.premi).indice);
+    }
+    mostraFinaleCinematico(riepilogo,{foto});
+  } catch(e) {
+    console.warn('Finale visuale non disponibile: allenamento già salvato',e);
+  }
 }
 
 /**
