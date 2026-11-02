@@ -4476,7 +4476,12 @@ function cardRiepilogoMio() {
         return;
       }
       for (const v of voci) {
-        dettaglio.appendChild(el('p', { class: 'riga-variazione ' + (colori[chiave] || 'neutro'), testo: v.frase }));
+        dettaglio.appendChild(el('p', { class: 'riga-variazione ' + (colori[chiave] || 'neutro'), testo: v.migliore === 0
+          ? v.nome + ': nessun miglioramento confermato.'
+          : v.nome + ': ' + (v.assistito
+            ? (v.migliore > 0 ? 'meno aiuto' : 'più aiuto')
+            : (v.migliore > 0 ? 'più peso' : 'meno peso'))
+            + ' rispetto a prima.' }));
       }
     });
     return b;
@@ -4487,9 +4492,9 @@ function cardRiepilogoMio() {
     quadro(generale.indietro, 'PEGGIORATI', 'rosso', 'indietro'),
   ]));
   card.appendChild(dettaglio);
-  if (generale.linee && generale.linee.length) {
-    card.appendChild(el('p', { class: 'nota nota-piccola', testo: generale.linee[0] }));
-  }
+  card.appendChild(el('p', { class: 'nota nota-piccola',
+    testo: 'Tocca uno dei tre riquadri per vedere quali esercizi sono cambiati.',
+  }));
   return card;
 }
 
@@ -4526,7 +4531,7 @@ function cardHallOfFame() {
   blocco.appendChild(el('h2', { testo: '🏆 Hall of Fame' }));
   blocco.appendChild(el('p', {
     class: 'nota',
-    testo: 'I tuoi cinque record più alti, ordinati per grado e punti. I dati arrivano dagli allenamenti completati.',
+    testo: 'I cinque esercizi in cui hai ottenuto i risultati migliori.',
   }));
   if (!records.length) {
     blocco.appendChild(el('p', { class: 'nota', testo: 'Completa un allenamento per far comparire i tuoi record.' }));
@@ -4538,14 +4543,12 @@ function cardHallOfFame() {
   records.forEach((record, indice) => {
     const nome = String(record.esercizio?.nome || 'Esercizio');
     const grado = titoli[record.rankId] || 'Classificato';
-    const lp = Number.isFinite(Number(record.lp)) ? Number(record.lp) : 0;
     const riga = el('div', { class: 'hall-of-fame-riga' }, [
       el('span', { class: 'hall-of-fame-numero', testo: String(indice + 1) }),
       el('div', { class: 'hall-of-fame-dettaglio' }, [
         el('strong', { testo: nome }),
-        el('span', { class: 'nota', testo: String(record.testo || 'Record registrato').slice(0, 130) }),
       ]),
-      el('span', { class: 'hall-of-fame-grado', testo: grado + (record.rankId === 'olympian' ? '' : ' · ' + lp + ' LP') }),
+      el('span', { class: 'hall-of-fame-grado', testo: grado }),
     ]);
     righe.appendChild(riga);
   });
@@ -4560,14 +4563,14 @@ function cardCoachProgressi() {
   const box = el('section', { class: 'blocco coach-progressi' });
   box.appendChild(el('h2', { testo: '📈 Coach · andamento recente' }));
   box.appendChild(el('p', { class: 'nota',
-    testo: 'Confronto tra due allenamenti completati per esercizio, senza serie assistite. Un segnale non è una prescrizione: valuta anche tecnica, recupero e dolore.' }));
+    testo: 'Questo confronto ti aiuta a vedere come stanno andando gli ultimi allenamenti. Non indica da solo se devi aumentare il peso.' }));
   if (!segnali.length) {
     box.appendChild(el('p', { class: 'nota', testo: 'Servono almeno due sedute completate dello stesso esercizio con peso e ripetizioni registrati.' }));
     return box;
   }
   const titoli = {
     miglioramento: 'In crescita', stabile: 'Stabile',
-    da_rivedere: 'Da rivalutare', non_confrontabile: 'Carico e ripetizioni diversi',
+    da_rivedere: 'Da rivalutare', non_confrontabile: 'Risultato diverso',
   };
   const lista = el('div', { class: 'coach-progressi-lista' });
   for (const segnale of segnali) {
@@ -4577,7 +4580,10 @@ function cardCoachProgressi() {
         el('strong', { testo: segnale.nome }),
         el('span', { class: 'coach-progressi-esito', testo: titoli[segnale.esito] || 'Non confrontabile' }),
       ]),
-      el('div', { class: 'nota', testo: 'Prima: ' + formato(segnale.precedente) + ' · Ultima: ' + formato(segnale.ultima) }),
+      el('details', { class: 'coach-progressi-numeri' }, [
+        el('summary', { testo: 'Confronta i pesi e le ripetizioni' }),
+        el('p', { class: 'nota', testo: 'Prima: ' + formato(segnale.precedente) + ' · Ultima: ' + formato(segnale.ultima) }),
+      ]),
     ]);
     lista.appendChild(item);
   }
