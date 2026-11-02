@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { analizzaComandoVocale, supportoComandiVocali } from '../src/comandi-vocali.js';
 
 const parse=(s,options={maxSerie:4})=>analizzaComandoVocale(s,options);
@@ -63,4 +64,57 @@ test('voce: non segna la serie per caso nella trascrizione dei dati',()=>{
  const x=parse('serie 2 22 kg sette ripetizioni');
  assert.equal(x.tipo,'dati');
  assert.equal(x.numeroSerie,2);
+});
+
+test('voce v411: ordinali prima, seconda, terza e quarta serie',()=>{
+ const second=parse('seconda serie 25 chili 8 rep');
+ assert.equal(second.tipo,'dati');
+ assert.equal(second.numeroSerie,2);
+ assert.deepEqual(second.campi,{peso:25,ripetizioni:8});
+ assert.equal(parse('serie seconda 20 chili').numeroSerie,2);
+ assert.equal(parse('terza serie 25 kg').numeroSerie,3);
+ assert.equal(parse('quarta serie, 25 chili, 8 ripetizioni').numeroSerie,4);
+ assert.equal(parse('quinta serie 20 chili').ok,false);
+});
+test('voce v411: chili e mezzo prima o dopo l unita',()=>{
+ for (const frase of [
+  'seconda serie 25 chili e mezzo 8 rip',
+  'seconda serie 25 e mezzo chili 8 rep',
+  'serie 2 venticinque chili e mezzo otto ripetizioni',
+  'serie 2 25,5 kg 8 reps',
+  'serie 2 25.5 kg 8 rip.'
+ ]) {
+  const p=parse(frase);
+  assert.equal(p.numeroSerie,2,frase);
+  assert.deepEqual(p.campi,{peso:25.5,ripetizioni:8},frase);
+ }
+});
+test('voce v411: fatto e fatta segnano la serie, anche da soli',()=>{
+ for(const s of ['fatto','fatta','segna serie','segna la seconda serie',
+   'seconda serie 25 chili e mezzo 8 rep fatta']){
+  assert.equal(parse(s).tipo,'completa_serie',s);
+ }
+ const completa=parse('seconda serie 25 chili e mezzo 8 rep fatta con spotter');
+ assert.equal(completa.numeroSerie,2);
+ assert.deepEqual(completa.campi,{peso:25.5,ripetizioni:8,spotter:true});
+ assert.equal(parse('serie 2 25 chili 8 rep').tipo,'dati');
+ assert.equal(parse('serie 2 non fatta').ok,false);
+});
+test('voce v411: spotter e ripetizioni assistite preservano il carico',()=>{
+ assert.deepEqual(parse('spotter').campi,{spotter:true});
+ assert.deepEqual(parse('senza spotter').campi,{spotter:false});
+ const p=parse('seconda serie 25 chili 8 rep 2 assistite con spotter');
+ assert.deepEqual(p.campi,{peso:25,ripetizioni:8,spotter:true,rip_assistite:2});
+ assert.equal(parse('8 rep 9 assistite con spotter').ok,false);
+ assert.equal(parse('30 minuti con spotter',{cardio:true}).ok,false);
+});
+test('voce v411: richiede ancora la conferma della UI e recupero da ogni spunta',()=>{
+ const app=readFileSync(new URL('../src/app.js',import.meta.url),'utf8');
+ const ui=readFileSync(new URL('../src/comandi-vocali-ui.js',import.meta.url),'utf8');
+ assert.match(ui,/const conferma=bottone\('Conferma'/);
+ assert.match(ui,/await suConferma\(p,target\)/);
+ assert.match(app,/function impostaRecuperoSerie\(sedutaId, avvia\)/);
+ assert.match(app,/impostaRecuperoSerie\(serie\.seduta_id, fatta\)/);
+ assert.match(app,/impostaRecuperoSerie\(seduta\.id,true\)/);
+ assert.match(app, /await aggiornaSerie\(target,\{\.\.\.campi,stato:'fatta'\}\)/);
 });
