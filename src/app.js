@@ -37,6 +37,8 @@ import { idRegolazioni, leggiRegolazioni, riepilogoRegolazioni } from './regolaz
 import { apriRegolazioniMacchina } from './regolazioni-ui.js';
 import { riassuntoFinaleAllenamento } from './finale-allenamento.js';
 import { collegaPremioASeduta, premiDaAnnullare } from './ricompense-sedute.js';
+import { confrontoGhost } from './ghost-mode.js';
+import { nuovaVoceCronologia, eventoDaNota, storicoCronologia, variazioniSerie, modificheAncoraAttuali, annullaVoce } from './cronologia.js';
 import { mostraFinaleCinematico } from './finale-allenamento-ui.js';
 import { calcolaAvatar, CLASSI, classeConsigliata, eCardio, minutiDiCardio, nomePremio, statoVisivo, percorsoStato, schedaProgressione, STATI_IMMAGINE } from './avatar-rpg.js';
 import { haSigillo, creaSigillo, verificaSigillo } from './sigillo-classe.js';
@@ -2070,6 +2072,7 @@ function disegnaDentro(zona) {
     '/casa':['casa','IL TUO QUARTIER GENERALE'],
     '/rank':['rank','LA TUA FORZA'],
     '/storico':['storico','OGNI ALLENAMENTO CONTA'],
+    '/cronologia':['storico','CRONOLOGIA E RIPRISTINO'],
     '/progressi':['progressi','NUMERI CHE RACCONTANO'],
     '/recap':['recap','LA TUA STORIA IN PALESTRA'],
     '/profilo':['profilo','IL TUO PERSONAGGIO'],
@@ -2102,6 +2105,7 @@ function disegnaDentro(zona) {
   else if (rotta.startsWith('/seduta/')) vistaSeduta(contenuto, rotta.split('/')[2]);
   else if (rotta === '/scheda') vistaScheda(contenuto);
   else if (rotta === '/storico') vistaStorico(contenuto);
+  else if (rotta === '/cronologia') vistaCronologia(contenuto);
   else if (rotta.startsWith('/storico/')) vistaSedutaPassata(contenuto, rotta.split('/')[2]);
   else if (rotta === '/progressi') vistaProgressi(contenuto);
   else if (rotta === '/recap') vistaRecap(contenuto);
@@ -2114,6 +2118,7 @@ function cornice() {
   // la voce del menu in cui ti trovi viene accesa: così sai sempre dove sei
   const voceAttiva = (percorso) => {
     if (percorso === '/') return rotta === '/' || rotta === '' || rotta.startsWith('/giorno') || rotta.startsWith('/seduta') || rotta.startsWith('/scheda');
+    if (percorso === '/storico' && rotta === '/cronologia') return true;
     return rotta === percorso || rotta.startsWith(percorso + '/');
   };
   const voce = (href, etichetta, percorso) => el('a', {
@@ -2944,6 +2949,19 @@ async function vistaSeduta(zona, sedutaId) {
   aggiorna();
   timerSeduta = setInterval(aggiorna, 1000);
 
+  const attivoGhost = ghostAttivoPerAccount();
+  zona.appendChild(el('div',{class:'ghost-strumenti'},[
+    el('span',{class:'ghost-strumenti-testo',testo:'👻 Sfida i tuoi risultati precedenti, serie dopo serie'}),
+    bottone(attivoGhost?'Ghost attivo':'Ghost disattivato',{
+      classe:attivoGhost?'ghost-toggle acceso':'ghost-toggle',
+      titolo:'Mostra o nascondi il confronto Ghost dentro la seduta',
+      onClick:()=>{
+        try { localStorage.setItem('palestra-ghost:'+accountAttivo(),attivoGhost?'0':'1'); }
+        catch(e) { console.warn('Preferenza Ghost non salvata',e); }
+        disegna();
+      },
+    }),
+  ]));
   zona.appendChild(el('label', { class: 'nota-seduta' }, ['Note della seduta']));
   const notaSeduta = campoTesto(s.note, {
     segnaposto: 'Come ti sei sentito, cosa hai cambiato...',
@@ -3010,6 +3028,34 @@ async function vistaSeduta(zona, sedutaId) {
     if (regolazioniMie(e)) {
       blocco.appendChild(el('div', {class:'regolazioni-salvate',testo:'⚙ '+regolazioniMie(e)}));
     }
+    const ghost = attivoGhost ? confrontoGhost({
+      sedute:seduteDellaPersona(), serie:serieDellaPersona(),
+      sedutaAttivaId:s.id, esercizioId:e.id,
+      assistito:!convenzioneMisuraCarico(e.convenzione), cardio:eCardio(e),
+    }) : null;
+    if (ghost && ghost.disponibile) {
+      blocco.appendChild(el('div',{class:'ghost-inline','aria-label':'Confronto Ghost con la seduta precedente'},[
+        el('div',{class:'ghost-inline-top'},[
+          el('strong',{testo:'👻 GHOST · '+dataLeggibile(ghost.data)}),
+          el('span',{class:'ghost-inline-stato '+ghost.stato,testo:ghost.etichetta}),
+        ]),
+        el('div',{class:'ghost-inline-duello'},[
+          el('div',{class:'ghost-inline-valore'},[
+            el('small',{testo:'OGGI · serie '+ghost.indice}),
+            el('strong',{testo:ghost.oggi}),
+          ]),
+          el('span',{class:'ghost-inline-versus',testo:'VS'}),
+          el('div',{class:'ghost-inline-valore passato'},[
+            el('small',{testo:'ULTIMA VOLTA'}),
+            el('strong',{testo:ghost.ghost}),
+          ]),
+        ]),
+        el('div',{class:'ghost-inline-punteggio',testo:ghost.comparate
+          ? ('Serie vinte '+ghost.risultati.vinta+' · pari '+ghost.risultati.pari+
+             ' · sotto '+ghost.risultati.persa+(ghost.risultati.mista?' · diverse '+ghost.risultati.mista:''))
+          : 'Completa una serie per iniziare la sfida. I valori di oggi non sono ancora un record.'}),
+      ]));
+    }
 
     // nota della seduta per questo esercizio (livello 2)
     const notaEsercizioId = 'nota-' + s.id + '-' + e.id;
@@ -3025,7 +3071,9 @@ async function vistaSeduta(zona, sedutaId) {
       }),
     ]));
 
-    if (!confronto.disponibile) {
+    if (ghost && ghost.disponibile) {
+      // Il pannello Ghost riassume il confronto senza ripetere l'ultima seduta.
+    } else if (!confronto.disponibile) {
       blocco.appendChild(el('p', { class: 'tape tape-giallo', testo: NON_DISPONIBILE + ': ' + confronto.motivo }));
     } else if (!ultimo) {
       blocco.appendChild(el('p', { class: 'nota', testo: 'Prima volta che registri questo esercizio: niente da confrontare.' }));
@@ -3381,7 +3429,15 @@ const rip = campoNumero(serieCardio ? valoreMinutiCardioNelCampo(serie) : serie.
     bottone('Elimina', {
       onClick: async () => {
         const ok = await chiediConferma('Eliminare la serie?', 'La serie va nel cestino e puoi recuperarla. La seduta non viene toccata.', { testoOk: 'Nel cestino', pericolo: true });
-        if (ok) { await db.cestino('serie', serie.id); V.serie = await db.tutti('serie'); disegna(); }
+        if (ok) {
+          await db.cestino('serie', serie.id);
+          try { await registraVoceCronologia({
+            tipo:'serie_eliminata',serieId:serie.id,
+            titolo:'Serie eliminata · '+(e?.nome||'Esercizio'),
+            dettaglio:'Serie '+numero+' spostata nel cestino',
+          }); } catch(err) { console.warn('Registro cronologia non disponibile',err); }
+          V.serie = await db.tutti('serie'); disegna();
+        }
       },
       classe: 'fantasma piccolo-b pericolo-b',
     }),
@@ -3579,11 +3635,37 @@ function mostraErroreBreve(testo) {
   console.error(testo);
 }
 
+function ghostAttivoPerAccount() {
+  try { return localStorage.getItem('palestra-ghost:'+accountAttivo())!=='0'; }
+  catch { return true; }
+}
+
+async function registraVoceCronologia(dati) {
+  const r = nuovaVoceCronologia({id:nuovoId(),account:accountAttivo(),...dati});
+  const salvata = await db.salva('note',r);
+  if (Array.isArray(V.note)) V.note.push(salvata);
+  return salvata;
+}
+
 async function aggiornaSerie(serie, campi) {
   // cambiaSerie rilegge la serie dal database e mette in fila i cambiamenti
   // della stessa serie: È quello che impedisce a un campo salvato in ritardo
   // di cancellare la spunta o lo spotter appena messi.
-  const salvata = await cambiaSerie(serie.id, campi);
+  const salvata = await cambiaSerie(serie.id, campi, {
+    onSalvata: async (precedente,nuovo)=>{
+      const modifica=variazioniSerie(precedente,nuovo,campi);
+      if (!modifica) return;
+      const esercizio=esercizioPerId(serie.esercizio_id);
+      const det=Object.keys(modifica.dopo).map(k=>
+        k+': '+JSON.stringify(modifica.prima[k])+' → '+JSON.stringify(modifica.dopo[k])).join(' · ');
+      await registraVoceCronologia({
+        tipo:'serie_modificata',
+        titolo:'Serie modificata · '+(esercizio?.nome||'Esercizio'),
+        dettaglio:det.slice(0,280), serieId:serie.id,
+        prima:modifica.prima, dopo:modifica.dopo,
+      });
+    },
+  });
   const idx = V.serie.findIndex((x) => x.id === serie.id);
   if (idx >= 0) V.serie[idx] = salvata;
   disegnaStatoSalvataggio();
@@ -3624,6 +3706,14 @@ async function finisceAllenamento(s) {
   // il gioco: record, rank, LP, streak, Aura e traguardi. Tutto calcolato
   // dai dati appena salvati e passato dal database, mai scritto a mano.
   const premiAllenamento = await assegnaRicompense(s.id);
+  try {
+    await registraVoceCronologia({
+      tipo:'allenamento_completato',
+      titolo:'Allenamento completato · '+(s.nome_giorno||'Seduta'),
+      dettaglio:'+'+formattaNumero(premiAllenamento.reduce((n,r)=>n+(Number(r.xp)||0),0))+
+        ' XP · +'+formattaAura(premiAllenamento.reduce((n,r)=>n+(Number(r.aura)||0),0))+' Aura',
+    });
+  } catch(e) { console.warn('Cronologia fine allenamento non salvata',e); }
   // Ste (08/10/2026): "sistema appena finisci" e poi "tutto quanto deve farsi
   // automaticamente". Qui l'app ti portava allo storico e basta: finivi l'allenamento
   // e non ti diceva SE avevi fatto un primato o SE eri salito di fascia. Il Rank era
@@ -3824,13 +3914,22 @@ async function eliminaSeduteEGuadagni(ids) {
   });
   // Le ricompense vengono eliminate con lo stesso meccanismo dello storico,
   // quindi il sync non potra' farle riapparire dopo l'aggiornamento.
+  const serieCestinate=[];
   for (const s of mie) {
     for (const x of V.serie.filter(x => x.seduta_id === s.id && !x.eliminata)) {
       await db.cestino('serie', x.id);
+      serieCestinate.push(x.id);
     }
     await db.cestino('sedute', s.id);
   }
   for (const r of premi) await db.cestino('ricompense', r.id);
+  await registraVoceCronologia({
+    tipo:'sedute_eliminate',
+    titolo:mie.length===1?'Seduta eliminata':'Eliminate '+mie.length+' sedute',
+    dettaglio:'Annullati '+formattaNumero(premi.reduce((n,r)=>n+(Number(r.xp)||0),0))+
+      ' XP e '+formattaAura(premi.reduce((n,r)=>n+(Number(r.aura)||0),0))+' Aura',
+    sedute:mie.map(x=>x.id),serie:serieCestinate,ricompense:premi.map(x=>x.id),
+  });
   await ricaricaTutto();
   return {
     numero:mie.length,
@@ -3843,6 +3942,10 @@ const selezioneStorico = { attiva: false, ids: new Set() };
 
 function vistaStorico(zona) {
   zona.appendChild(el('h1', { testo: 'Storico' }));
+  zona.appendChild(el('div',{class:'cronologia-accesso'},[
+    el('span',{testo:'Ripristina modifiche, serie e allenamenti cancellati'}),
+    bottone('↶ Cronologia e Annulla',{classe:'fantasma piccolo-b',onClick:()=>vai('/cronologia')}),
+  ]));
   const completate = seduteDellaPersona().filter((s) => s.stato === 'completata' && !s.eliminata)
     .sort((a, b) => String(b.data).localeCompare(String(a.data)));
   if (!completate.length) {
