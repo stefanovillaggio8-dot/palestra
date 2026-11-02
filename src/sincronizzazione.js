@@ -26,6 +26,29 @@ export function nuovoId() {
 export function adesso() { return new Date().toISOString(); }
 
 /** Prepara la riga per il server: toglie i campi locali e la clona. */
+/**
+ * Un telefono nuovo o una PWA vecchia potrebbe salvare tutto il profilo con
+ * privacy priva della rettifica 31/10 e della ripartenza del giro. Il profilo
+ * online e' autorevole per queste impostazioni gia' confermate: preservale
+ * durante l'UPSERT, senza toccare avatar, preferenze, missioni o allenamenti.
+ * E' una protezione aggiuntiva al trigger server, utile anche nei test offline.
+ */
+export function preservaMetadatiProfiloLocaleSuRemoto(locale, remoto) {
+  if (!locale || !remoto || !locale.id || locale.id !== remoto.id) return locale;
+  const remoti = remoto.privacy && typeof remoto.privacy === 'object' ? remoto.privacy : {};
+  const locali = locale.privacy && typeof locale.privacy === 'object' ? locale.privacy : {};
+  const protetti = ['rettifica_streak', 'giorni_streak_accreditati', 'ripartenza_giro'];
+  const nuovaPrivacy = { ...locali };
+  let cambiata = false;
+  for (const chiave of protetti) {
+    if (remoti[chiave] === undefined || remoti[chiave] === null) continue;
+    if (JSON.stringify(nuovaPrivacy[chiave]) === JSON.stringify(remoti[chiave])) continue;
+    nuovaPrivacy[chiave] = remoti[chiave];
+    cambiata = true;
+  }
+  return cambiata ? { ...locale, privacy: nuovaPrivacy } : locale;
+}
+
 export function rigaPerInvio(riga, tabella = '') {
   const out = {};
   for (const k of Object.keys(riga)) {
