@@ -34,7 +34,8 @@ NUMERI.set('cinquecento',500);
 function convertiNumeri(testo) {
  const t=String(testo||'').toLowerCase()
   .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
-  .replace(/[×]/g,' per ').replace(/[;,!?]/g,' ').replace(/\s+/g,' ').trim();
+  .replace(/[×]/g,' per ').replace(/(\d)\s*,\s*(\d)/g,'$1.$2')
+  .replace(/[;,!?]/g,' ').replace(/\s+/g,' ').trim();
  const parts=t.replace(/\b(\d+)\s*,\s*(\d+)\b/g,'$1.$2').split(' ').map(w=>{
    const p=w.replace(/[.:]$/,'');
    return NUMERI.has(p)?String(NUMERI.get(p)):w;
