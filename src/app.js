@@ -32,6 +32,7 @@ import { statoAccount, ricompenseAllenamento, gruppiDaSerie } from './gioco.js';
 import { percorsoStemma, nomeStemma, tutteLeGraficheRank } from './rank-stemmi.js';
 import { ordinaRecordRank } from './rank-ordina.js';
 import { segnaliProgressione } from './analisi-progressi.js';
+import { vistaRecapPalestra } from './recap-ui.js';
 import { calcolaAvatar, CLASSI, classeConsigliata, eCardio, minutiDiCardio, nomePremio, statoVisivo, percorsoStato, schedaProgressione, STATI_IMMAGINE } from './avatar-rpg.js';
 import { haSigillo, creaSigillo, verificaSigillo } from './sigillo-classe.js';
 import { isoGiorno } from './streak.js';
@@ -2050,6 +2051,7 @@ function disegnaDentro(zona) {
     '/rank':['rank','LA TUA FORZA'],
     '/storico':['storico','OGNI ALLENAMENTO CONTA'],
     '/progressi':['progressi','NUMERI CHE RACCONTANO'],
+    '/recap':['recap','LA TUA STORIA IN PALESTRA'],
     '/profilo':['profilo','IL TUO PERSONAGGIO'],
     '/aura-shop':['shop','IL TUO ARSENALE'],
     '/aura-shop/inventario':['inventario','LA TUA COLLEZIONE'],
@@ -2082,6 +2084,7 @@ function disegnaDentro(zona) {
   else if (rotta === '/storico') vistaStorico(contenuto);
   else if (rotta.startsWith('/storico/')) vistaSedutaPassata(contenuto, rotta.split('/')[2]);
   else if (rotta === '/progressi') vistaProgressi(contenuto);
+  else if (rotta === '/recap') vistaRecap(contenuto);
   else if (rotta === '/impostazioni') vistaImpostazioni(contenuto);
   else vistaHome(contenuto);
 }
@@ -2262,6 +2265,11 @@ function vistaHome(zona) {
   zona.appendChild(el('div',{class:'app-page-kicker'},[
     el('span',{class:'app-page-kicker-dot',aria:{hidden:'true'}}),
     el('span',{testo:'IL TUO PERCORSO · WORKOUT HUB'}),
+  ]));
+  zona.appendChild(el('a', { href: '#/recap', class: 'recap-casa-link' }, [
+    el('span', { testo: '✦' }),
+    el('strong', { testo: 'Guarda il Recap del mese e dell’anno' }),
+    el('span', { 'aria-hidden': 'true', testo: '→' }),
   ]));
   zona.appendChild(collegamentoMusicBox());
 
@@ -4591,8 +4599,25 @@ function cardCoachProgressi() {
   return box;
 }
 
+function vistaRecap(zona) {
+  zona.appendChild(vistaRecapPalestra({
+    sedute: seduteMie(),
+    serie: serieMie(),
+    esercizi: V.esercizi,
+    oggi: isoGiorno(new Date()),
+  }));
+}
+
 function vistaProgressi(zona) {
   zona.appendChild(el('h1', { testo: 'Progressi' }));
+  zona.appendChild(el('a', { href: '#/recap', class: 'recap-invito' }, [
+    el('span', { class: 'recap-invito-icona', testo: '✦' }),
+    el('span', {}, [
+      el('strong', { testo: 'Il tuo Recap' }),
+      el('span', { class: 'nota', testo: 'Rivivi il mese e l’anno in palestra' }),
+    ]),
+    el('span', { 'aria-hidden': 'true', testo: '→' }),
+  ]));
   zona.appendChild(el('p', { class: 'nota progressi-introduzione',
     testo: 'Qui scopri cosa è cambiato nei tuoi allenamenti. Prima il risultato generale, poi un esercizio alla volta.',
   }));

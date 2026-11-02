@@ -646,3 +646,95 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-aura-divina-premium {animati
 .progressi-extra .riga-esercizio-forza span{color:#bfd4e5;font-size:.82rem}
 .progressi-grafici-panel .grafico-dati:not([open])>.grafico-dati-txt{display:none}
 @media(max-width:540px){.progressi-grafici-panel .progressi-lettura{padding:12px}.progressi-altri-grafici{padding:7px 10px}}
+
+
+/* RECAP v392 — poche statistiche, la storia dei tuoi allenamenti. */
+.recap-casa-link,.recap-invito{display:flex;align-items:center;gap:13px;
+  text-decoration:none;border:1px solid rgba(150,228,196,.38);
+  background:linear-gradient(116deg,rgba(29,82,75,.55),rgba(30,36,69,.73));
+  border-radius:17px;padding:15px 17px;color:#ecfff4;margin:13px 0;
+  box-shadow:0 9px 28px rgba(0,0,0,.19);}
+.recap-casa-link strong,.recap-invito strong{flex:1;font-weight:850;letter-spacing:-.015em}
+.recap-invito>span:nth-child(2){display:grid;gap:2px;flex:1}
+.recap-invito .nota{font-size:.79rem}
+.recap-invito-icona{display:grid;place-items:center;flex:0 0 40px;height:40px;
+  background:rgba(130,233,189,.14);border:1px solid rgba(127,240,194,.22);
+  border-radius:13px;color:#c5ffe5;font-size:1.4rem}
+.recap-casa-link:focus-visible,.recap-invito:focus-visible{outline:2px solid #96f6cc;outline-offset:3px}
+.recap-pagina{max-width:800px;margin-inline:auto}
+.recap-intestazione{padding:24px 18px 12px;text-align:center}
+.recap-eyebrow,.recap-label{display:block;font-size:.7rem;letter-spacing:.14em;
+  font-weight:850;color:#8bd8b9}
+.recap-intestazione h1{font-size:clamp(2rem,6vw,3rem);font-weight:900;letter-spacing:-.065em;
+  color:#fff;margin:6px 0}
+.recap-intestazione p{margin:7px auto;max-width:40ch}
+.recap-schede{display:flex;gap:7px;margin:12px 0;padding:5px;background:rgba(28,42,59,.92);
+  border-radius:15px;border:1px solid rgba(169,195,217,.18)}
+.recap-tab{flex:1;min-height:44px;border:0;border-radius:11px;background:transparent;
+  color:#b4c4d4;font:inherit;font-size:.95rem;font-weight:800;cursor:pointer}
+.recap-tab.attivo{background:linear-gradient(130deg,#4ce4ab,#40bcb0);color:#071c19;
+  box-shadow:0 5px 17px rgba(42,211,151,.15)}
+.recap-filtri{display:flex;gap:12px;margin:17px 0;flex-wrap:wrap}
+.recap-etichetta{display:flex;flex-direction:column;gap:5px;flex:1 1 145px;
+  font-weight:750;font-size:.85rem;color:#c6d7e9}
+.recap-select{width:100%;min-height:45px;background:#18283a;color:#f3fff9;
+  border:1px solid rgba(155,202,218,.23);border-radius:12px;padding:9px}
+.recap-hero{position:relative;overflow:hidden;padding:clamp(22px,4.4vw,38px);
+  border-radius:24px;background:
+    radial-gradient(circle at 92% 0%,rgba(62,230,176,.23),transparent 55%),
+    linear-gradient(145deg,#1c3b3b,#1b263c 70%,#131c2c);
+  border:1px solid rgba(109,220,171,.27);
+  box-shadow:0 18px 42px rgba(1,7,12,.3)}
+.recap-periodo{font-size:.79rem;text-transform:uppercase;letter-spacing:.18em;font-weight:800;color:#a5f7cd}
+.recap-hero h2{margin:12px 0;font-size:clamp(1.7rem,4.2vw,2.35rem);line-height:1.12;
+  font-weight:900;letter-spacing:-.044em;color:#f4fff9}
+.recap-messaggio{margin:0 0 22px;max-width:50ch;color:#d1e6e0;line-height:1.55}
+.recap-kpi{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.recap-indicatore{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;gap:7px;min-height:98px;padding:12px 6px;
+  border:1px solid rgba(203,255,228,.12);border-radius:15px;background:rgba(8,20,25,.28)}
+.recap-indicatore strong{font-size:clamp(1.45rem,4.7vw,2.5rem);font-weight:900;
+  letter-spacing:-.05em;font-variant-numeric:tabular-nums;color:#d9ffe8}
+.recap-indicatore span{color:#c9ddd5;font-size:.76rem;line-height:1.25}
+.recap-sottocard,.recap-grafico,.recap-dettagli{margin-top:15px;padding:19px;
+  border-radius:20px;border:1px solid rgba(152,188,213,.2);
+  background:linear-gradient(150deg,rgba(27,42,57,.96),rgba(17,27,41,.97))}
+.recap-sottocard h3{margin:8px 0;font-size:clamp(1.3rem,3vw,1.7rem);letter-spacing:-.03em}
+.recap-sottocard .nota{margin:5px 0}
+.recap-record-lista{display:grid;gap:9px;margin-top:14px}
+.recap-record{padding:10px 12px;background:rgba(92,183,147,.09);border:1px solid rgba(132,209,175,.2);
+  border-radius:12px;font-weight:700;font-size:.88rem;line-height:1.55}
+.recap-nascosti summary,.recap-dettagli summary{cursor:pointer;font-weight:750;
+  color:#d6f6e6;list-style-position:inside;padding:3px 0}
+.recap-dettagli .nota,.recap-nascosti .nota{margin:8px 0}
+.recap-grafico h3{margin:0 0 5px;font-size:1.1rem}
+.recap-grafico p{margin:0 0 14px}
+.recap-colonne{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:7px;
+  min-width:0;min-height:170px;align-items:end}
+.recap-colonna{display:flex;flex-direction:column;align-items:center;justify-content:end;gap:7px;min-width:0}
+.recap-barra{width:100%;height:132px;display:flex;align-items:flex-end;justify-content:center;
+  border-radius:8px;background:rgba(165,201,208,.06);overflow:hidden}
+.recap-riempimento{width:100%;border-radius:7px 7px 0 0;
+  background:linear-gradient(0deg,#319b95,#76f4bd);
+  transform-origin:bottom;min-height:0}
+.recap-colonna span{font-size:.67rem;color:#bdcfe0;white-space:nowrap}
+.recap-mese-riga{display:flex;padding:9px 0;margin:0;border-bottom:1px solid rgba(165,185,207,.12);
+  font-size:.88rem;color:#d7e8f4}
+@media(prefers-reduced-motion:no-preference){
+  .recap-hero{animation:recap-appari .45s ease both}
+  .recap-riempimento{animation:recap-cresci .8s cubic-bezier(.18,.8,.2,1) both}
+  .recap-colonna:nth-child(n+7) .recap-riempimento{animation-delay:.1s}
+  @keyframes recap-appari{from{opacity:.4;transform:translateY(7px)}to{opacity:1;transform:none}}
+  @keyframes recap-cresci{from{transform:scaleY(.02)}to{transform:scaleY(1)}}
+}
+@media(max-width:520px){
+  .recap-intestazione{padding-inline:8px}
+  .recap-hero{padding:20px 13px}
+  .recap-kpi{gap:5px}
+  .recap-indicatore{min-height:86px;padding:10px 3px}
+  .recap-indicatore span{font-size:.67rem}
+  .recap-colonne{gap:3px}
+  .recap-colonna span{font-size:.55rem}
+  .recap-barra{height:112px}
+  .recap-grafico,.recap-sottocard,.recap-dettagli{padding:14px}
+}
