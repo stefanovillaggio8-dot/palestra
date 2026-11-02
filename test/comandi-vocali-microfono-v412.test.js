@@ -32,7 +32,7 @@ test('voce v412: il microfono si ferma alla chiusura, cambio scheda e pagina nas
  assert.equal(r.abortCount,1);
  assert.equal(perClasse(document.body,'voce-comando-overlay').length,0);
  risultatoTardivo?.({resultIndex:0,results:[{isFinal:true,0:{transcript:'7 rep'},length:1}]});
- assert.equal(campo.value,'','nessun testo deve comparire dopo la chiusura');
+ assert.equal(campo.value??'','','nessun testo deve comparire dopo la chiusura');
  chiudiUno();
  assert.equal(r.abortCount,1,'chiudi ripetuto non deve attivare altri stop');
 
