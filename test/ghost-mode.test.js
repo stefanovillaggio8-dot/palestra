@@ -120,3 +120,45 @@ test('assistenza vera: 20 kg di aiuto restano peggio di 10 kg',()=>{
     esercizioId:'dip-assistito',assistito:true,zavorri:false});
   assert.equal(g.risultati.persa,1);
 });
+
+
+test('Ghost compatto: mostra tutte e tre le serie precedenti nello stesso box',()=>{
+ const history=[
+   row('old1','next','trazioni',1,null,7,{peso_assistenza:20}),
+   row('old2','next','trazioni',2,null,6,{peso_assistenza:20}),
+   row('old3','next','trazioni',3,null,6,{peso_assistenza:18}),
+ ];
+ const today=[
+   row('new1','now','trazioni',1,null,7,{peso_assistenza:22}),
+   row('new2','now','trazioni',2,null,6,{peso_assistenza:20,stato:'da_fare'}),
+   row('new3','now','trazioni',3,null,6,{peso_assistenza:18,stato:'da_fare'}),
+ ];
+ const g=confrontoGhost({sedute,serie:[...history,...today],
+    sedutaAttivaId:'now',esercizioId:'trazioni',assistito:true,zavorri:true});
+ assert.deepEqual(g.serieStoriche.map(x=>x.testo),['20×7','20×6','18×6']);
+ assert.deepEqual(g.serieStoriche.map(x=>x.fatta),[true,false,false]);
+ assert.deepEqual(g.serieStoriche.map(x=>x.prossima),[false,true,false]);
+ assert.equal(g.serieStoriche[0].risultato,'vinta');
+ assert.equal(g.indice,1);
+ assert.equal(g.oggi,'22 kg × 7');
+});
+test('Ghost compatto cambia la pillola attiva quando preparo la seconda serie',()=>{
+ const last=[
+  row('old1','next','dips',1,20,7),
+  row('old2','next','dips',2,20,6),
+  row('old3','next','dips',3,18,6),
+ ];
+ const current=[
+  row('a','now','dips',1,22,7),
+  row('b','now','dips',2,22,6,{stato:'da_fare'}),
+  row('c','now','dips',3,18,6,{stato:'da_fare'}),
+ ];
+ const g=confrontoGhost({sedute,serie:[...last,...current],
+  sedutaAttivaId:'now',esercizioId:'dips',
+  serieFocusId:'b',bozzaIds:['b']});
+ assert.equal(g.oggi,'22 kg × 6');
+ assert.equal(g.indice,2);
+ assert.equal(g.serieStoriche[1].attiva,true);
+ assert.equal(g.serieStoriche[0].fatta,true);
+ assert.equal(g.serieStoriche[2].testo,'18×6');
+});
