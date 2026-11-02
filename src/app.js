@@ -8004,13 +8004,16 @@ function vistaCasa(zona) {
     teschioAura(st),
     teschioLivelloAccount(st),
     teschioXP(st),
-    el('div', { class: 'teschio-rank' }, [
+    el('div', { class: 'teschio-rank casa-rank-compatto' }, [
       el('span', { class: 'simbolo', testo: 'RANK' }),
       st.rankPrincipale
         ? badgeRank(st.rankPrincipale.rankId, st.rankPrincipale.lp, st.rankPrincipale.divisione)
         : el('strong', { testo: '—' }),
-      el('span', { class: 'nota', testo: st.rankPrincipale && st.rankPrincipale.esercizio
-        ? st.rankPrincipale.esercizio.nome : 'nessun record ancora' }),
+      el('span', { class: 'nota casa-rank-esercizio',
+        titolo: st.rankPrincipale && st.rankPrincipale.esercizio
+          ? st.rankPrincipale.esercizio.nome : 'Nessun record ancora',
+        testo: st.rankPrincipale && st.rankPrincipale.esercizio
+          ? st.rankPrincipale.esercizio.nome : 'Nessun record ancora' }),
     ]),
   ]);
   zona.appendChild(riepilogo);
