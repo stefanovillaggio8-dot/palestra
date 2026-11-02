@@ -1,0 +1,23 @@
+// Contratti del guardaroba RPG: slot unici, niente perdita acquisti.
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+const source=readFileSync(new URL('../src/equipaggiamento-rpg.js',import.meta.url),'utf8');
+const m=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
+const original={Armatura:'armatura-a',Skin:'skin-a',Effetto:'fuoco',Titolo:'campione'};
+let next=m.aggiornaEquipaggiamentoRpg(original,{id:'ghiaccio',tipo:'Effetto'},true);
+assert.equal(next.Effetto,'ghiaccio');
+assert.equal(next.Armatura,'armatura-a');
+assert.equal(original.Effetto,'fuoco','Non modificare il salvataggio originale');
+next=m.aggiornaEquipaggiamentoRpg(next,{id:'ghiaccio',tipo:'Effetto'},false);
+assert.equal('Effetto' in next,false);
+const old={Skin:'skin-mitica',Astrale:'skin-mitica',Armatura:'armatura-a'};
+const migrated=m.equipaggiamentoRpgUnico(old);
+assert.equal(migrated.Effetto,'skin-mitica');
+assert.equal('Astrale' in migrated,false);
+assert.equal('Skin' in migrated,false);
+assert.equal(migrated.Armatura,'armatura-a');
+assert.equal(m.slotPerOggettoRpg({id:'skin-mitica',tipo:'Skin'}),'Effetto');
+const preserved=m.equipaggiamentoRpgUnico({Effetto:'fuoco',Astrale:'skin-mitica'});
+assert.equal(preserved.Effetto,'fuoco','Astrale non deve sostituire effetti gia equipaggiati');
+assert.throws(()=>m.aggiornaEquipaggiamentoRpg(original,{id:'x',tipo:'sconosciuto'}));
+console.log('OK: slot RPG, migrazione Astrale e nessuna perdita equipaggiamento');
