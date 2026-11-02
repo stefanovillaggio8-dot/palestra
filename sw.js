@@ -390,6 +390,15 @@ self.addEventListener('fetch', (evento) => {
     const cache = await caches.open(VERSIONE);
     const salvata = await cache.match(richiesta);
     if (salvata) return salvata;
+    // I CSS/JS locali sono precaricati senza query, mentre index.html li
+    // richiede con ?v=VERSIONE. Offline bisogna trovare lo stesso asset,
+    // senza ignorare query arbitrarie o accettare una release diversa.
+    if (/\.(?:css|js)$/i.test(url.pathname) &&
+        url.searchParams.size === 1 &&
+        url.searchParams.get('v') === NUMERO) {
+      const precaricata = await cache.match(richiesta, { ignoreSearch: true });
+      if (precaricata) return precaricata;
+    }
     // Gli URL di avvio con query aprono la stessa app, preservando la query.
     const indice = new URL('./index.html', self.location.href);
     const radice = new URL('./', self.location.href);
