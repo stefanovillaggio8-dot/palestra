@@ -592,3 +592,10 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-aura-divina-premium {animati
 .hall-of-fame-dettaglio strong,.hall-of-fame-dettaglio .nota{overflow-wrap:anywhere}
 .hall-of-fame-grado{flex:0 0 auto;font-size:.77rem;font-weight:700;color:#d6c3ff;text-align:right;max-width:37%}
 @media(max-width:480px){.hall-of-fame-riga{gap:9px;padding:10px}.hall-of-fame-grado{font-size:.7rem;max-width:34%}}
+
+
+/* Coach: quadro consultivo, senza controlli che cambiano i dati. */
+.coach-progressi-lista{display:grid;gap:9px;margin-top:13px}
+.coach-progressi-riga{padding:12px 14px;border:1px solid rgba(255,255,255,.1);border-radius:14px;background:rgba(255,255,255,.03)}
+.coach-progressi-testa{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:5px}
+.coach-progressi-esito{font-weight:700;font-size:.78rem;color:#b0dbe3}
