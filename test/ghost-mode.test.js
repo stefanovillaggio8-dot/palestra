@@ -87,3 +87,36 @@ test('Ghost segue la serie che sto modificando, non la prima ancora vuota',()=>{
   assert.equal(g.oggi,'50 kg × 7');
   assert.equal(g.ghost,'45 kg × 7');
 });
+
+
+test('BUG FOTO: zavorra 22 kg x7 batte il Ghost 20 kg x7 della seduta precedente',()=>{
+  const seduteFoto=[
+    {id:'24ott',stato:'completata',data:'2026-10-24',ora_fine:'2026-10-24T19:20:00'},
+    {id:'oggi',stato:'in_corso',data:'2026-11-02'},
+  ];
+  const serieFoto=[
+    {id:'ghost1',seduta_id:'24ott',esercizio_id:'trazioni',ordine:1,
+      peso_assistenza:20,ripetizioni:7,stato:'fatta'},
+    {id:'oggi1',seduta_id:'oggi',esercizio_id:'trazioni',ordine:1,
+      peso_assistenza:22,ripetizioni:7,stato:'fatta'},
+    {id:'oggi2',seduta_id:'oggi',esercizio_id:'trazioni',ordine:2,
+      peso_assistenza:22,ripetizioni:7,stato:'da_fare'},
+  ];
+  const g=confrontoGhost({sedute:seduteFoto,serie:serieFoto,
+    sedutaAttivaId:'oggi',esercizioId:'trazioni',assistito:true,zavorri:true});
+  assert.equal(g.oggi,'22 kg × 7');
+  assert.equal(g.ghost,'20 kg × 7');
+  assert.equal(g.indice,1,'deve mostrare la serie appena completata, non la 2 vuota');
+  assert.equal(g.prossimaSerie,2);
+  assert.equal(g.risultati.vinta,1);
+  assert.equal(g.risultati.persa,0);
+  assert.equal(g.stato,'vinci');
+  assert.match(g.etichetta,/Sei avanti/);
+});
+test('assistenza vera: 20 kg di aiuto restano peggio di 10 kg',()=>{
+  const rows=[row('old-a','next','dip-assistito',1,null,7,{peso_assistenza:10}),
+    row('now-a','now','dip-assistito',1,null,7,{peso_assistenza:20})];
+  const g=confrontoGhost({sedute,serie:rows,sedutaAttivaId:'now',
+    esercizioId:'dip-assistito',assistito:true,zavorri:false});
+  assert.equal(g.risultati.persa,1);
+});
