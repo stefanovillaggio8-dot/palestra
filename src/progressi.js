@@ -35,7 +35,8 @@ export function testoProgresso(nomeEsercizio, esercizio, storico, periodoDescriz
   const punti = (storico || []).filter((p) => p && (p.serie || []).length);
   const linee = [];
   const esercizioConv = esercizio || { convenzione: null };
-  const assistito = !convenzioneMisuraCarico(esercizioConv.convenzione);
+  const zavorre = esercizioConv.convenzione === CONVENZIONI.ZAVORRI;
+  const assistito = !convenzioneMisuraCarico(esercizioConv.convenzione) && !zavorre;
 
   if (!punti.length) {
     return {
@@ -58,7 +59,18 @@ export function testoProgresso(nomeEsercizio, esercizio, storico, periodoDescriz
     linee.push(`${prefisso}${punti.length} sedute registrate, dal ${primo.data} al ${ultimo.data}.`);
   }
 
-  if (assistito) {
+  if (zavorre) {
+    // Il valore è SALVATO nel campo peso_assistenza per compatibilità, ma per
+    // dips e trazioni zavorrate rappresenta kg AGGIUNTI al peso corporeo.
+    const da = rPrimo.pesoAssistenzaMassimo;
+    const a = rUltimo.pesoAssistenzaMassimo;
+    if (da !== null && a !== null) {
+      if (a > da) linee.push(`Hai aggiunto più zavorra: da ${formattaNumero(da)} a ${formattaNumero(a)} kg oltre al tuo peso corporeo.`);
+      else if (a < da) linee.push(`Hai aggiunto meno zavorra: da ${formattaNumero(da)} a ${formattaNumero(a)} kg oltre al tuo peso corporeo.`);
+      else linee.push(`La zavorra è rimasta a ${formattaNumero(a)} kg oltre al tuo peso corporeo.`);
+      linee.push('Per capire il risultato guarda anche quante ripetizioni hai fatto con quei kg.');
+    }
+  } else if (assistito) {
     // esercizi con corpo libero o assistenza: il peso NON È un carico
     const aP = rPrimo.pesoAssistenzaMassimo;
     const aU = rUltimo.pesoAssistenzaMassimo;
@@ -163,6 +175,44 @@ export function testoProgresso(nomeEsercizio, esercizio, storico, periodoDescriz
 }
 
 /**
+ * Una serie di riferimento PER IL CARICO della seduta: valore massimo registrato
+ * e, a parità di kg, il maggior numero di ripetizioni realmente registrate.
+ * Nei zavorrati il campo fisico è peso_assistenza, ma NON indica aiuto.
+ */
+export function serieRiferimentoProgressi(serie, esercizio) {
+  const campo = convenzioneMisuraCarico(esercizio?.convenzione) ? 'peso' : 'peso_assistenza';
+  let migliore = null;
+  for (const set of serie || []) {
+    if (!set || set.eliminata || (set.stato && set.stato !== 'fatta')) continue;
+    const carico = set[campo];
+    if (carico === null || carico === undefined || !Number.isFinite(Number(carico))) continue;
+    const rip = set.ripetizioni === null || set.ripetizioni === undefined
+      || !Number.isFinite(Number(set.ripetizioni)) ? null : Number(set.ripetizioni);
+    const peso = Number(carico);
+    if (!migliore || peso > migliore.peso || (peso === migliore.peso && rip !== null
+      && (migliore.ripetizioni === null || rip > migliore.ripetizioni))) {
+      migliore = { peso, ripetizioni: rip };
+    }
+  }
+  return migliore;
+}
+
+/** Ultimo allenamento PRIMA del precedente, anche quando mancano ripetizioni. */
+export function confrontoCompattoProgressi(voce) {
+  if (!voce || !Number.isFinite(Number(voce.a)) || !Number.isFinite(Number(voce.da))
+      || voce.a === null || voce.da === null) return '';
+  const kg = (peso, reps, mostraRip) => {
+    const prefisso = voce.zavorre ? '+' : '';
+    return prefisso + formattaNumero(peso) + ' kg'
+      + (mostraRip && reps !== null && reps !== undefined && Number.isFinite(Number(reps))
+        ? ' × ' + formattaNumero(reps) : '');
+  };
+  const ultimo = kg(voce.a, voce.ripA, true);
+  const prima = kg(voce.da, voce.ripDa, voce.contro !== 'scheda');
+  return '(' + ultimo + ' vs ' + prima + (voce.contro === 'scheda' ? ' previsti in scheda' : '') + ')';
+}
+
+/**
  * Frase con la differenza di UN esercizio: da dove a dove e di quanto.
  * È quella che appare quando Ste preme su "migliorati", "fermi" o "indietro".
  */
@@ -175,7 +225,7 @@ export function fraseVariazione(v) {
   // da dove viene il confronto: dalla prima volta o dalla scheda scritta
   const puntoPartenza = v.contro === 'scheda'
     ? `la scheda diceva ${formattaNumero(v.da)} kg`
-    : (v.assistito ? `${formattaNumero(v.da)} kg di assistenza` : `${formattaNumero(v.da)} kg`);
+    : (v.zavorre ? `+${formattaNumero(v.da)} kg di zavorra` : v.assistito ? `${formattaNumero(v.da)} kg di assistenza` : `${formattaNumero(v.da)} kg`);
 
   if (v.migliore === 0) {
     const stessa = v.assistito
@@ -197,6 +247,10 @@ export function fraseVariazione(v) {
       ? `sempre ${formattaNumero(v.a)} kg di assistenza`
       : `sempre ${formattaNumero(v.a)} kg`;
     return `${v.nome}: ${quando}${stessa}, come prima.`;
+  }
+  if (v.zavorre) {
+    const segno = v.migliore > 0 ? '+' : '−';
+    return `${v.nome}: ${quando}zavorra da +${formattaNumero(v.da)} a +${formattaNumero(v.a)} kg oltre al corpo (${segno}${numero} kg). ${confrontoCompattoProgressi(v)}`;
   }
   if (v.assistito) {
     const segno = v.migliore > 0 ? '−' : '+';
@@ -257,8 +311,9 @@ export function riepilogoGenerale(esercizi) {
     const nome = (voce && voce.nome) || 'esercizio';
     if (!punti.length) { saltati.push({ nome, motivo: 'nessuna seduta registrata' }); continue; }
     const e = voce.esercizio || { convenzione: null };
-    const assistito = !convenzioneMisuraCarico(e.convenzione);
-    const chiave = assistito ? 'pesoAssistenzaMassimo' : 'pesoMassimo';
+    const zavorre = e.convenzione === CONVENZIONI.ZAVORRI;
+    const assistito = convenzioneInvertita(e.convenzione);
+    const chiave = convenzioneMisuraCarico(e.convenzione) ? 'pesoMassimo' : 'pesoAssistenzaMassimo';
 
     // Ste ha detto: "ho messo che ho aumentato di 3 kg ma non spunta negli
     // esercizi migliorati". Con una sola seduta non c'era niente da confrontare,
@@ -266,12 +321,15 @@ export function riepilogoGenerale(esercizi) {
     // l'ultima seduta con quello che c'era scritto nella scheda: È comunque un
     // confronto utile, e gli dico da dove a dove.
     let contro; let da; let a; let dataDa; let dataA; let sequenza = null;
+    let ripDa = null; let ripA = null;
     if (punti.length >= 2) {
       contro = 'sessioni';
       da = riassuntoEsercizio(punti[0].serie, e)[chiave];
       a = riassuntoEsercizio(punti[punti.length - 1].serie, e)[chiave];
       dataDa = punti[0].data;
       dataA = punti[punti.length - 1].data;
+      ripDa = serieRiferimentoProgressi(punti[0].serie, e)?.ripetizioni ?? null;
+      ripA = serieRiferimentoProgressi(punti[punti.length - 1].serie, e)?.ripetizioni ?? null;
       // tutti i valori in ordine cronologico: così si vede subito qual È il
       // peso vecchio e qual È quello nuovo, senza dover fidarsi del riassunto
       sequenza = punti.map((p) => {
@@ -287,6 +345,7 @@ export function riepilogoGenerale(esercizi) {
       contro = 'scheda';
       da = Number(prevista);
       a = riassuntoEsercizio(punti[0].serie, e)[chiave];
+      ripA = serieRiferimentoProgressi(punti[0].serie, e)?.ripetizioni ?? null;
     }
     if (da === null || da === undefined || !Number.isFinite(Number(da))) {
       saltati.push({ nome, motivo: 'il peso non e\' confrontabile (manca il numero)' });
@@ -323,8 +382,8 @@ export function riepilogoGenerale(esercizi) {
       }
     }
     voci.push({
-      nome, esercizio: e, assistito, chiave, contro, dataDa, dataA, sequenza,
-      da, a, delta, migliore, punti: punti.length,
+      nome, esercizio: e, assistito, zavorre, chiave, contro, dataDa, dataA, sequenza,
+      da, a, ripDa, ripA, delta, migliore, punti: punti.length,
       serie: punti.length,
     });
   }
@@ -372,6 +431,7 @@ export function riepilogoGenerale(esercizi) {
     const frasi = top.map((v) => {
       const perc = differenzaPercentuale(v.da, v.a);
       const numero = formattaNumero(Math.abs(v.delta));
+      if (v.zavorre) return `${v.nome} +${numero} kg di zavorra${perc === null ? '' : ` (${frasePercentuale(perc)})`}`;
       if (v.assistito) return `${v.nome} −${numero} kg di assistenza in meno${perc === null ? '' : ` (${frasePercentuale(perc)})`}`;
       return `${v.nome} +${numero} kg${perc === null ? '' : ` (${frasePercentuale(perc)})`}`;
     });
@@ -382,6 +442,7 @@ export function riepilogoGenerale(esercizi) {
     const peggiori = indietro.slice().sort((x, y) => x.migliore - y.migliore).slice(0, 3);
     const frasi = peggiori.map((v) => {
       const numero = formattaNumero(Math.abs(v.delta));
+      if (v.zavorre) return `${v.nome} −${numero} kg di zavorra`;
       if (v.assistito) return `${v.nome} +${numero} kg di assistenza in piu\'`;
       return `${v.nome} −${numero} kg`;
     });
