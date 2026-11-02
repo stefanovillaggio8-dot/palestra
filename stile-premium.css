@@ -582,3 +582,13 @@ html.animazioni-mai .menu-basso *::before {
   .personaggio-scena-grafica .rpg-aura-divina-premium {animation:none;}
 }
 html.animazioni-mai .personaggio-scena-grafica .rpg-aura-divina-premium {animation:none;}
+
+
+/* Hall of Fame: soltanto presentazione, nessun impatto sui dati. */
+.hall-of-fame-lista{display:grid;gap:9px;margin:14px 0}
+.hall-of-fame-riga{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid rgba(255,255,255,.1);border-radius:14px;background:rgba(255,255,255,.035)}
+.hall-of-fame-numero{display:grid;place-items:center;flex:0 0 32px;height:32px;border-radius:11px;background:rgba(255,203,105,.12);color:#ffd68c;font-weight:800}
+.hall-of-fame-dettaglio{display:flex;flex:1;min-width:0;flex-direction:column;gap:3px}
+.hall-of-fame-dettaglio strong,.hall-of-fame-dettaglio .nota{overflow-wrap:anywhere}
+.hall-of-fame-grado{flex:0 0 auto;font-size:.77rem;font-weight:700;color:#d6c3ff;text-align:right;max-width:37%}
+@media(max-width:480px){.hall-of-fame-riga{gap:9px;padding:10px}.hall-of-fame-grado{font-size:.7rem;max-width:34%}}
