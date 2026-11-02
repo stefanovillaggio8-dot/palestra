@@ -1106,3 +1106,74 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-aura-divina-premium {animati
 .avvio-aiuto p,.caricamento:has(> button) p{margin:9px 0;color:#c6d8e2;font-size:.9rem}
 .avvio-aiuto button,.caricamento:has(> button) button{min-height:44px;margin-top:10px}
 @media(max-width:480px){.avvio-aiuto,.caricamento:has(> button){margin:22px 12px;padding:16px}}
+
+
+/* v397 — Regolazioni personali, senza appesantire le serie. */
+.regolazioni-inline{margin:9px 0 0;display:grid;gap:7px}
+.regolazioni-inline .bot,.titolo-esercizio .bot{min-height:38px}
+.regolazioni-salvate{margin:7px 0 10px;padding:9px 12px;border-radius:12px;
+  font-size:.82rem;line-height:1.5;color:#c4f4df;overflow-wrap:break-word;
+  border:1px solid rgba(105,212,161,.22);background:rgba(41,94,77,.12)}
+.regolazioni-overlay{position:fixed;inset:0;z-index:9000;display:flex;align-items:center;justify-content:center;
+  padding:calc(14px + env(safe-area-inset-top)) 12px calc(14px + env(safe-area-inset-bottom));
+  background:rgba(2,9,15,.82);backdrop-filter:blur(13px);-webkit-backdrop-filter:blur(13px)}
+.regolazioni-modal{width:min(560px,100%);max-height:100%;overflow:auto;overscroll-behavior:contain;
+  padding:clamp(16px,4vw,26px);border-radius:22px;background:linear-gradient(145deg,#172c38,#111b2d);
+  border:1px solid rgba(145,216,192,.32);box-shadow:0 22px 80px rgba(0,0,0,.48)}
+.regolazioni-modal h2{margin:0 0 7px;font-size:clamp(1.3rem,4vw,1.7rem);color:#f1fff9}
+.regolazioni-modal .nota{margin:0 0 17px}
+.regolazioni-campo{display:flex;flex-direction:column;gap:6px;margin:12px 0;font-size:.84rem;
+  font-weight:750;color:#d8ede8}
+.regolazioni-input{box-sizing:border-box;width:100%;min-height:43px;resize:vertical;padding:11px 12px;
+  background:#0e1c29;color:#f4fff9;border:1px solid rgba(158,205,201,.34);
+  border-radius:12px;font:inherit;font-size:.91rem;line-height:1.45}
+.regolazioni-input:focus-visible{outline:2px solid #65e6af;outline-offset:1px}
+.regolazioni-azioni{display:flex;gap:11px;justify-content:flex-end;flex-wrap:wrap;margin-top:19px}
+.regolazioni-azioni .bot{min-height:44px}
+
+/* Finale cinematografico: solo dopo conferma e salvataggio della seduta. */
+.finale-cine-overlay{position:fixed;inset:0;z-index:9200;display:flex;align-items:center;justify-content:center;
+  padding:calc(12px + env(safe-area-inset-top)) 12px calc(12px + env(safe-area-inset-bottom));
+  background:radial-gradient(ellipse at 50% 30%,rgba(49,116,103,.42),transparent 56%),
+    linear-gradient(153deg,rgba(5,12,24,.98),rgba(12,15,35,.98));
+  backdrop-filter:blur(17px);-webkit-backdrop-filter:blur(17px);overflow-y:auto}
+.finale-cine-card{position:relative;isolation:isolate;overflow:auto;max-height:100%;width:min(480px,100%);
+  box-sizing:border-box;display:flex;flex-direction:column;align-items:center;
+  gap:8px;text-align:center;padding:clamp(17px,4vw,28px);
+  border:1px solid rgba(111,239,187,.4);border-radius:25px;
+  background:radial-gradient(ellipse at 50% 12%,rgba(69,187,143,.18),transparent 59%),
+    linear-gradient(155deg,rgba(22,44,52,.99),rgba(15,23,40,.99));
+  box-shadow:0 25px 95px rgba(0,0,0,.65),0 0 42px rgba(70,221,167,.12)}
+.finale-cine-card:before{position:absolute;z-index:-1;content:'';left:8%;right:8%;top:12%;
+  height:40%;border-radius:50%;background:radial-gradient(ellipse,rgba(66,218,158,.24),transparent 70%);filter:blur(22px)}
+.finale-cine-sovratitolo{letter-spacing:.22em;font-size:.72rem;font-weight:900;color:#89f0c5}
+.finale-cine-personaggio{height:clamp(160px,29vh,280px);max-width:100%;width:auto;object-fit:contain;
+  filter:drop-shadow(0 9px 32px rgba(73,228,171,.32))}
+.finale-cine-simbolo{display:grid;place-items:center;height:clamp(160px,26vh,260px);
+  font-size:clamp(6rem,18vw,9rem);color:#adf4cb;text-shadow:0 0 46px rgba(77,255,185,.47)}
+.finale-cine-card h2{margin:2px 0;font-size:clamp(1.55rem,5vw,2.1rem);line-height:1.14;
+  letter-spacing:-.04em;color:#f5fff8}
+.finale-cine-giorno{margin:0;color:#abdec9;font-size:.93rem}
+.finale-cine-messaggio{margin:5px 0;color:#e8faee;font-weight:750}
+.finale-cine-numeri{width:100%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:11px 0 3px}
+.finale-cine-numeri>div{padding:10px 5px;display:flex;flex-direction:column;gap:4px;
+  border-radius:13px;background:rgba(134,224,193,.08);border:1px solid rgba(118,227,187,.15)}
+.finale-cine-numeri strong{font-weight:900;font-size:1.45rem;color:#e1ffef;font-variant-numeric:tabular-nums}
+.finale-cine-numeri span{font-size:.7rem;color:#bed7d1}
+.finale-cine-record{margin:4px 0;padding:7px 10px;border:1px solid rgba(250,211,122,.28);
+  border-radius:12px;color:#ffe1a2;font-weight:800;font-size:.84rem}
+.finale-cine-premi{display:flex;flex-wrap:wrap;justify-content:center;gap:9px;width:100%;margin:6px 0 10px}
+.finale-cine-premi>span{padding:7px 12px;border-radius:999px;font-size:.86rem;font-weight:850;
+  color:#e7d5ff;background:rgba(110,75,155,.25);border:1px solid rgba(185,143,230,.3)}
+.finale-cine-card>.bot{min-height:42px;width:min(320px,100%);margin:2px 0}
+.finale-cine-overlay button:focus-visible{outline:2px solid #b6ffe0;outline-offset:3px}
+@media(prefers-reduced-motion:no-preference){
+  .finale-cine-card{animation:finale-cine-entra .56s cubic-bezier(.16,.8,.18,1) both}
+  .finale-cine-personaggio,.finale-cine-simbolo{animation:finale-cine-eroe 1.15s cubic-bezier(.2,.9,.4,1) both}
+  .finale-cine-premi{animation:finale-cine-premi .68s .35s both}
+  @keyframes finale-cine-entra{from{opacity:0;transform:translateY(30px) scale(.95)}to{opacity:1;transform:none}}
+  @keyframes finale-cine-eroe{from{opacity:.3;transform:scale(.76) translateY(24px)}to{opacity:1;transform:none}}
+  @keyframes finale-cine-premi{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+}
+@media(max-width:480px){.finale-cine-card{padding:14px 12px;gap:6px}.finale-cine-personaggio{height:clamp(145px,24vh,230px)}
+  .finale-cine-numeri strong{font-size:1.3rem}.finale-cine-numeri span{font-size:.65rem}}
