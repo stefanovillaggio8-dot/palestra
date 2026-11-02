@@ -8,7 +8,7 @@
 import * as db from './db.js';
 import * as sb from './supabase.js';
 import {
-  TABELLE, rigaPerInvio, decidiPush, dopoInvioRiuscito, applicaRemote,
+  TABELLE, rigaPerInvio, preservaMetadatiProfiloLocaleSuRemoto, decidiPush, dopoInvioRiuscito, applicaRemote,
   costruisciConflitto, risolviConflitto, attesaRiprovo, statoSalvataggio, adesso, nuovoId,
 } from './sincronizzazione.js';
 
@@ -226,7 +226,13 @@ async function manda() {
       const utenteVerificato = await sb.utenteCorrente();
       const utenteSupabase = utenteVerificato && utenteVerificato.id;
       if (!utenteSupabase) throw new Error('Supabase non ha confermato l’utente autenticato: accedi di nuovo e riprova.');
-      await sb.scrivi(tabella, { ...rigaPerInvio(riga, tabella), user_id: utenteSupabase, rev: nuovoRev });
+      // L'UPSERT e' una sostituzione JSON completa del profilo, non un PATCH
+      // campo-per-campo. Mantieni accrediti e ripartenze gia' sul server quando
+      // questa PWA locale non li conosce ancora (es. reinstallazione iPhone).
+      const daInviare = tabella === 'profili'
+        ? preservaMetadatiProfiloLocaleSuRemoto(rigaPerInvio(riga,tabella), remoto)
+        : rigaPerInvio(riga,tabella);
+      await sb.scrivi(tabella, { ...daInviare, user_id: utenteSupabase, rev: nuovoRev });
       // La coda si svuota solo dopo la conferma. Se nel frattempo la riga è
       // cambiata, la modifica più nuova resta in coda con la base aggiornata.
       await confermaInvio(tabella, riga, nuovoRev);
