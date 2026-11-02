@@ -408,30 +408,30 @@ async function avvia() {
     ascoltaScorrimento();
 
     aggiornaFaseAvvio('lettura di esercizi e allenamenti salvati');
-    await ricaricaTutto();
+    await ricaricaTutto({ caricaAmiciOnline: false });
 
     aggiornaFaseAvvio('controllo dei dati salvati');
     // Una volta sola: gli esercizi con i zavorri salvati come assistenza passano
     // a zavorri. Solo l'etichetta, nessun numero viene toccato. Vedi la funzione.
     const sistematiZavorri = await sistemaZavorriComeZavorri();
-    if (sistematiZavorri.length) await ricaricaTutto();
+    if (sistematiZavorri.length) await ricaricaTutto({ caricaAmiciOnline: false });
 
     // Il One Arm Overhead Tricep Extension è un normale cavo, non assistenza.
     const tricipiteCavoCorretto = await correggiOneArmTricepExtension();
-    if (tricipiteCavoCorretto) await ricaricaTutto();
+    if (tricipiteCavoCorretto) await ricaricaTutto({ caricaAmiciOnline: false });
 
     // Un esercizio ha cambiato nome (Ste, 21/10/2026). Solo il nome: l'id resta,
     // cosi le serie vecchie restano attaccate all'esercizio giusto.
     const convenzioni = await sistemaConvenzioniEsercizi();
-    if (convenzioni.length) await ricaricaTutto();
+    if (convenzioni.length) await ricaricaTutto({ caricaAmiciOnline: false });
 
     // Il Face Pull ora è un solo esercizio: la carrucola si sceglie nella sua configurazione.
     const facePullUnificato = await unificaFacePullDoppia();
-    if (facePullUnificato) await ricaricaTutto();
+    if (facePullUnificato) await ricaricaTutto({ caricaAmiciOnline: false });
 
     const rinominati = await rinominaEserciziCambiati();
     if (rinominati.length) {
-      await ricaricaTutto();
+      await ricaricaTutto({ caricaAmiciOnline: false });
       avviso(rinominati.map((r) => r.a).join(' e ') + ': adesso l\'app lo chiama cosi\'. '
         + 'I tuoi numeri non sono cambiati.', { tipo: 'ok' });
     }
@@ -444,6 +444,7 @@ async function avvia() {
     window.addEventListener('hashchange', () => disegna());
     disegna();
     if (window.PALESTRA_AVVIO) window.PALESTRA_AVVIO.pronto = true;
+    clearTimeout(controlloAvvio);
 
     // Quando il cloud finisce, ricarichiamo i dati e ridisegniamo normalmente.
     aggiornaFaseAvvio('preparazione della sincronizzazione online');
@@ -542,7 +543,12 @@ if ('serviceWorker' in navigator) {
     }
   } catch (errore) {
     clearTimeout(controlloAvvio);
-    mostraErrore(radice, errore);
+    if (window.PALESTRA_AVVIO && window.PALESTRA_AVVIO.pronto) {
+      console.error('Avvio online non terminato:', errore);
+      avviso('Connessione online non riuscita. Puoi usare i dati locali; riproveremo.', { tipo: 'errore', durata: 9000 });
+    } else {
+      mostraErrore(radice, errore);
+    }
   }
 }
 
@@ -669,7 +675,7 @@ function mostraErrore(radice, errore) {
 }
 
 /** Ricarica tutto quello che serve per la vista corrente. */
-async function ricaricaTutto() {
+async function ricaricaTutto({ caricaAmiciOnline = true } = {}) {
   V.esercizi = await db.tutti('esercizi');
   V.schede = await db.tutti('schede');
   V.versi = await db.tutti('versioni');
@@ -681,7 +687,8 @@ async function ricaricaTutto() {
   // arrivano da una RPC limitata e non entrano mai nella coda di sincronizzazione.
   const idMio = accountAttivo();
   V.profili = (await db.tutti('profili')).filter((p) => p && p.id === idMio);
-  if (sb.collegato()) {
+  // All'avvio leggere il cloud qui può bloccare anche l'IndexedDB già pronto.
+  if (caricaAmiciOnline && sb.collegato()) {
     try {
       const amiciOnline = await sb.profiliAmici();
       const visti = new Set(V.profili.map((p) => p.id));
