@@ -28,11 +28,16 @@ test('serie non fatte: nessuna vittoria o record inventato',()=>{
   assert.equal(g.comparate,0);
   assert.equal(g.stato,'inizia');
 });
-test('spotter rende il confronto non omogeneo',()=>{
+test('spotter senza dettaglio: serie contata e distinta dalle vittorie',()=>{
   const serie=[row('a','next','dips',1,35,5),row('b','now','dips',1,40,5,{spotter:true})];
   const g=confrontoGhost({sedute,serie,sedutaAttivaId:'now',esercizioId:'dips'});
-  assert.equal(g.risultati.non_confrontabile,1);
+  assert.equal(g.completate,1);
+  assert.equal(g.spotterFatte,1);
+  assert.equal(g.risultati.assistita,1);
+  assert.equal(g.risultati.vinta,0);
   assert.equal(g.comparate,0);
+  assert.match(g.etichetta,/spotter/);
+  assert.equal(g.oggi,'40 kg × 5 · S');
 });
 test('meno assistenza vale come avanzamento',()=>{
   const serie=[
@@ -161,4 +166,52 @@ test('Ghost compatto cambia la pillola attiva quando preparo la seconda serie',(
  assert.equal(g.serieStoriche[1].attiva,true);
  assert.equal(g.serieStoriche[0].fatta,true);
  assert.equal(g.serieStoriche[2].testo,'18×6');
+});
+
+test('serie con spotter: 2 rip assistite di 7, 22 kg contro 20 kg x 7 pulite non e vittoria',()=>{
+  const serie=[row('old','next','trazioni',1,null,7,{peso_assistenza:20}),
+    row('new','now','trazioni',1,null,7,{peso_assistenza:22,spotter:true,rip_assistite:2})];
+  const g=confrontoGhost({sedute,serie,sedutaAttivaId:'now',esercizioId:'trazioni',
+    assistito:true,zavorri:true});
+  assert.equal(g.completate,1);
+  assert.equal(g.spotterFatte,1);
+  assert.equal(g.risultati.vinta,0);
+  assert.equal(g.risultati.mista,1,'più zavorra ma meno ripetizioni pulite');
+  assert.equal(g.oggi,'22 kg × 7 · S2');
+});
+test('spotter con rip assistite note: più kg e più rip pulite vale come vittoria',()=>{
+  const serie=[row('old','next','panca',1,40,8,{spotter:true,rip_assistite:3}),
+    row('new','now','panca',1,45,8,{spotter:true,rip_assistite:2})];
+  const g=confrontoGhost({sedute,serie,sedutaAttivaId:'now',esercizioId:'panca'});
+  assert.equal(g.risultati.vinta,1);
+  assert.equal(g.spotterFatte,1);
+  assert.equal(g.serieStoriche[0].testo,'40×8 · S3');
+  assert.equal(g.serieStoriche[0].spotter,true);
+  assert.equal(g.serieStoriche[0].spotterOggi,true);
+  assert.equal(g.serieStoriche[0].risultato,'vinta');
+});
+test('spotter con assistite ignote della volta prima: conta senza assegnare vittorie',()=>{
+  const serie=[row('old','next','panca',1,40,8,{spotter:true,rip_assistite:null}),
+    row('new','now','panca',1,45,8,{spotter:true,rip_assistite:2})];
+  const g=confrontoGhost({sedute,serie,sedutaAttivaId:'now',esercizioId:'panca'});
+  assert.equal(g.completate,1);
+  assert.equal(g.risultati.assistita,1);
+  assert.equal(g.risultati.vinta,0);
+  assert.equal(g.serieStoriche[0].testo,'40×8 · S');
+});
+test('serie non completate con spotter non sono ancora da contare',()=>{
+  const serie=[row('old','next','lat',1,50,7,{spotter:true,rip_assistite:2}),
+    row('new','now','lat',1,55,7,{spotter:true,rip_assistite:1,stato:'da_fare'})];
+  const g=confrontoGhost({sedute,serie,sedutaAttivaId:'now',esercizioId:'lat'});
+  assert.equal(g.completate,0);
+  assert.equal(g.spotterFatte,0);
+  assert.equal(g.risultati.vinta,0);
+});
+test('spotter con ripetizioni assistite impossibili non crea vittorie',()=>{
+  const serie=[row('old','next','panca',1,40,8),
+    row('new','now','panca',1,50,8,{spotter:true,rip_assistite:12})];
+  const g=confrontoGhost({sedute,serie,sedutaAttivaId:'now',esercizioId:'panca'});
+  assert.equal(g.completate,1);
+  assert.equal(g.risultati.assistita,1);
+  assert.equal(g.risultati.vinta,0);
 });
