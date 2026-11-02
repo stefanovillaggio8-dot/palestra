@@ -3438,17 +3438,6 @@ html.animazioni-mai .barra-piena::after { animation: none; }
   .aura-shop-card-actions { flex-wrap: wrap; }
 }
 
-/* Ultima regola: include anche effetti e armature aggiunti dopo il tema base. */
-@media (prefers-reduced-motion: reduce) {
-  html:not(.animazioni-sempre) *,
-  html:not(.animazioni-sempre) *::before,
-  html:not(.animazioni-sempre) *::after {
-    animation-duration: .001ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: .001ms !important;
-    scroll-behavior: auto !important;
-  }
-}
 
 /* Ghost e cronologia: v400. Usa i colori della Palestra reale e resta
    compatto: nessun tab Ghost o schermata aggiuntiva durante l'allenamento. */
@@ -3650,6 +3639,15 @@ html.animazioni-mai .barra-piena::after { animation: none; }
   .voce-comando-modale {padding:13px;gap:8px;}
   .riga-serie .bot.voce-serie-pulsante {min-width:38px;min-height:40px;padding:5px;}
 }
-@media(prefers-reduced-motion:reduce) {
-  .voce-comando-modale, .voce-comando-overlay {animation:none!important;}
+
+/* Ultima regola: include anche effetti e armature aggiunti dopo il tema base. */
+@media (prefers-reduced-motion: reduce) {
+  html:not(.animazioni-sempre) *,
+  html:not(.animazioni-sempre) *::before,
+  html:not(.animazioni-sempre) *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+    scroll-behavior: auto !important;
+  }
 }
