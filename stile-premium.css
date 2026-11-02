@@ -599,3 +599,34 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-aura-divina-premium {animati
 .coach-progressi-riga{padding:12px 14px;border:1px solid rgba(255,255,255,.1);border-radius:14px;background:rgba(255,255,255,.03)}
 .coach-progressi-testa{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:5px}
 .coach-progressi-esito{font-weight:700;font-size:.78rem;color:#b0dbe3}
+
+
+/* Progressi v389: una lettura semplice, dal riepilogo ai grafici ai dettagli. */
+.progressi-grafici-panel{margin:18px 0;padding:clamp(12px,2.8vw,22px);border:1px solid rgba(157,192,215,.2);border-radius:20px;background:linear-gradient(150deg,#172536,#101925);box-shadow:0 14px 35px rgba(0,0,0,.23)}
+.progressi-intro h2{margin:0 0 5px;font-size:clamp(1.12rem,3vw,1.5rem)}
+.progressi-intro p{margin:0 0 16px}
+.progressi-filtri{display:grid;gap:8px;margin-bottom:14px}
+.progressi-filtri .selettore{width:100%;max-width:100%;min-height:44px}
+.progressi-filtri .chip-scelte{display:flex;flex-wrap:wrap;gap:7px}
+.progressi-filtri .chip{flex:1 1 auto;min-height:37px}
+.progressi-extra{margin:18px 0;border:1px solid rgba(151,185,210,.22);border-radius:18px;background:rgba(18,29,41,.93);overflow:hidden}
+.progressi-extra>summary{cursor:pointer;padding:17px;font-weight:800;font-size:1rem;color:#eaf4ff;list-style-position:inside}
+.progressi-extra[open]>summary{border-bottom:1px solid rgba(151,185,210,.17)}
+.progressi-extra-corpo{padding:12px}
+.progressi-extra-corpo>.blocco,.progressi-extra-corpo>.spiegazione{margin:10px 0}
+.progressi-grafici-panel .grafico{overflow:hidden;padding:clamp(10px,2vw,18px)}
+.progressi-grafici-panel .grafico-svg{display:block;width:100%;height:auto;overflow:visible}
+.progressi-grafici-panel .grafico-dati{margin-top:12px;border-top:1px solid rgba(148,178,210,.15);padding-top:10px}
+.progressi-grafici-panel .grafico-dati>summary{cursor:pointer;font-size:.82rem;color:#aac7df}
+.progressi-grafici-panel .grafico-selezione{min-height:1.4em;color:#c1eada}
+.progressi-grafici-panel .punto-grafico{cursor:pointer;transition:r .18s ease,filter .18s ease}
+.progressi-grafici-panel .punto-grafico:is(:hover,:focus){r:8;filter:drop-shadow(0 0 5px rgba(139,242,210,.8))}
+@media (prefers-reduced-motion:no-preference){
+.progressi-grafici-panel .linea-grafico{stroke-dasharray:1;stroke-dashoffset:1;animation:progresso-linea 1.05s cubic-bezier(.22,.7,.2,1) forwards}
+.progressi-grafici-panel .punto-grafico{opacity:0;animation:progresso-punto .4s ease .5s forwards}
+.progressi-grafici-panel .barra-grafico{transform-box:fill-box;transform-origin:center bottom;animation:progresso-barra .75s cubic-bezier(.2,.8,.2,1) both}
+@keyframes progresso-linea{to{stroke-dashoffset:0}}
+@keyframes progresso-punto{to{opacity:1}}
+@keyframes progresso-barra{from{transform:scaleY(.03);opacity:.35}to{transform:scaleY(1);opacity:1}}
+}
+@media(max-width:520px){.progressi-grafici-panel{padding:12px}.progressi-filtri .chip{font-size:.76rem}.progressi-extra-corpo{padding:7px}}
