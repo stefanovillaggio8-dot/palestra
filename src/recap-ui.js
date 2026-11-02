@@ -1,7 +1,7 @@
 // Interfaccia Recap: mese e anno, facile da leggere anche su iPhone.
 // Non salva nulla e non assegna premi: usa i dati già disponibili nel profilo.
 import { el, svuota } from './ui.js';
-import { calcolaRecapPalestra, NOMI_MESI_RECAP } from './recap-palestra.js';
+import { calcolaRecapPalestra, NOMI_MESI_RECAP, tabellaEserciziAnnuale } from './recap-palestra.js';
 import { formattaNumero } from './numeri.js';
 
 const due = v => String(v).padStart(2,'0');
@@ -21,7 +21,7 @@ function testoPeriodico(dati) {
   if (dati.record) return 'Hai continuato ad allenarti e hai superato alcuni tuoi risultati precedenti.';
   return 'Hai portato avanti i tuoi allenamenti. La costanza conta anche senza un nuovo record.';
 }
-export function vistaRecapPalestra({sedute=[],serie=[],esercizi=[],oggi=null}={}) {
+export function vistaRecapPalestra({sedute=[],serie=[],esercizi=[],pesi=[],oggi=null}={}) {
   const oggiLocale=oggi || (()=>{const d=new Date();return d.getFullYear()+'-'+due(d.getMonth()+1)+'-'+due(d.getDate());})();
   const [annoCorrente,meseCorrente] = oggiLocale.slice(0,7).split('-').map(Number);
   const meseIniziale = meseCorrente === 1 ? 12 : meseCorrente - 1;
@@ -124,6 +124,59 @@ export function vistaRecapPalestra({sedute=[],serie=[],esercizi=[],oggi=null}={}
     ]);
     host.appendChild(more);
   }
+  function tabellaMensileEsercizi(d) {
+    const blocco=el('section',{class:'recap-esercizi-annuali'});
+    blocco.appendChild(el('h3',{testo:'I tuoi risultati, mese per mese'}));
+    blocco.appendChild(el('p',{class:'nota',testo:
+      'Per ogni esercizio trovi la miglior serie del mese: kg, ripetizioni e quanto pesavi quel giorno. Nessuna percentuale.'}));
+    const mesi=tabellaEserciziAnnuale({sedute,serie,esercizi,pesi,anno:d.anno,oggi:oggiLocale});
+    const conDati=mesi.filter(m=>m.esercizi.length);
+    if(!conDati.length){
+      blocco.appendChild(el('p',{class:'nota',testo:'Non ci sono serie completate da confrontare in questo anno.'}));
+      return blocco;
+    }
+    const ultimoMese=conDati[conDati.length-1].mese;
+    for(const mese of mesi) {
+      const contenitore=el('details',{class:'recap-mese-esercizi',open:mese.mese===ultimoMese?true:null});
+      const sommario=el('summary',{class:'recap-mese-titolo'},[
+        el('strong',{testo:mese.nome}),
+        el('span',{class:'nota',testo:mese.esercizi.length
+          ? mese.esercizi.length+' esercizi'
+          : 'Nessun risultato'}),
+      ]);
+      contenitore.appendChild(sommario);
+      if(mese.esercizi.length){
+        const scroll=el('div',{class:'recap-tabella-scroll'});
+        const table=el('table',{class:'recap-tabella-esercizi'});
+        table.appendChild(el('thead',{},[el('tr',{},[
+          el('th',{scope:'col',testo:'Esercizio'}),
+          el('th',{scope:'col',testo:'Kg × rip.'}),
+          el('th',{scope:'col',testo:'Peso corporeo'}),
+        ])]));
+        const corpo=el('tbody');
+        for(const r of mese.esercizi){
+          const testoCarico=r.convenzione==='corpo_libero'
+            ? formattaNumero(r.ripetizioni)+' rip.'
+            : (r.convenzione==='zavorri'?'+':'')+formattaNumero(r.peso)+' kg × '+formattaNumero(r.ripetizioni)
+              +(r.convenzione==='assistenza'?' (aiuto)':'');
+          corpo.appendChild(el('tr',{},[
+            el('th',{scope:'row',testo:r.nome}),
+            el('td',{class:'recap-risultato',testo:testoCarico}),
+            el('td',{class:'recap-peso-corporeo',testo:r.pesoCorporeo===null
+              ? '—' : formattaNumero(r.pesoCorporeo)+' kg'}),
+          ]));
+        }
+        table.appendChild(corpo);
+        scroll.appendChild(table);
+        contenitore.appendChild(scroll);
+      }
+      blocco.appendChild(contenitore);
+    }
+    blocco.appendChild(el('p',{class:'nota nota-piccola',testo:
+      'Nei dips e nelle trazioni il segno + indica la zavorra oltre al peso corporeo. — significa che per quel giorno non è registrata una pesata.'}));
+    return blocco;
+  }
+
   function renderAnno(d,host) {
     const hero=el('section',{class:'recap-hero'});
     hero.appendChild(el('div',{class:'recap-periodo',testo:'Anno '+d.anno}));
@@ -156,6 +209,7 @@ export function vistaRecapPalestra({sedute=[],serie=[],esercizi=[],oggi=null}={}
     }
     grafico.appendChild(colonne);
     host.appendChild(grafico);
+    host.appendChild(tabellaMensileEsercizi(d));
     const elenco=el('details',{class:'recap-dettagli'},[
       el('summary',{testo:'Vedi il totale di ogni mese'}),
     ]);

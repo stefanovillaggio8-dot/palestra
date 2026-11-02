@@ -4600,12 +4600,26 @@ function cardCoachProgressi() {
 }
 
 function vistaRecap(zona) {
-  zona.appendChild(vistaRecapPalestra({
-    sedute: seduteMie(),
-    serie: serieMie(),
-    esercizi: V.esercizi,
-    oggi: isoGiorno(new Date()),
-  }));
+  const account = accountAttivo();
+  const dati = { sedute: seduteMie(), serie: serieMie(),
+    esercizi: V.esercizi, oggi: isoGiorno(new Date()) };
+  const contenitore = el('div', { class: 'recap-contenitore' });
+  zona.appendChild(contenitore);
+  contenitore.appendChild(el('p', { class: 'nota', testo: 'Preparo i tuoi risultati...' }));
+  // Legge lo storico pesi della persona attiva, senza modificarlo.
+  pesiCronologici(account).then((pesi) => {
+    if (!contenitore.isConnected || account !== accountAttivo()) return;
+    svuota(contenitore);
+    contenitore.appendChild(vistaRecapPalestra({ ...dati, pesi }));
+  }).catch((err) => {
+    console.warn('Recap: pesate non disponibili', err);
+    if (!contenitore.isConnected || account !== accountAttivo()) return;
+    svuota(contenitore);
+    contenitore.appendChild(vistaRecapPalestra({ ...dati, pesi: [] }));
+    contenitore.appendChild(el('p', { class: 'nota',
+      testo: 'Non riesco a leggere lo storico delle pesate. I risultati degli esercizi restano disponibili.',
+    }));
+  });
 }
 
 function vistaProgressi(zona) {
