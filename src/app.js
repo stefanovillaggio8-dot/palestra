@@ -2802,6 +2802,22 @@ let timerSeduta = null;
 // Timer di recupero tra le serie: parte quando segni una serie e si azzera alla successiva.
 let inizioRecuperoSerie = null;
 
+// Spunta, numero e voce condividono il timer di recupero.
+function impostaRecuperoSerie(sedutaId, avvia) {
+  inizioRecuperoSerie = avvia ? Date.now() : null;
+  try {
+    const chiave = 'palestra-recupero:' + sedutaId;
+    if (inizioRecuperoSerie) localStorage.setItem(chiave, String(inizioRecuperoSerie));
+    else localStorage.removeItem(chiave);
+  } catch { /* Il timer continua anche senza storage. */ }
+  for (const id of ['cronometro-recupero-alto', 'cronometro-fine']) {
+    const nodo = document.getElementById(id);
+    if (!nodo) continue;
+    nodo.textContent = 'Recupero 00:00';
+    nodo.classList.toggle('recupero-attivo', !!avvia);
+  }
+}
+
 
 /**
  * Configurazione rapida della macchina/esecuzione, direttamente dalla scheda.
@@ -3175,16 +3191,7 @@ function apriComandoSerieAllenamento(serie,numero) {
    if(!live||live.eliminata||live.stato!=='in_corso')
      throw new Error('La seduta non è più attiva.');
    if(comando.tipo==='recupero_avvia'||comando.tipo==='recupero_stop'){
-     inizioRecuperoSerie=comando.tipo==='recupero_avvia'?Date.now():null;
-     try{
-       const key='palestra-recupero:'+seduta.id;
-       if(inizioRecuperoSerie)localStorage.setItem(key,String(inizioRecuperoSerie));
-       else localStorage.removeItem(key);
-     }catch{}
-     for(const id of ['cronometro-fine','cronometro-recupero-alto']){
-       const n=document.getElementById(id);
-       if(n)n.textContent='Recupero 00:00';
-     }
+     impostaRecuperoSerie(seduta.id,comando.tipo==='recupero_avvia');
      avviso(comando.tipo==='recupero_avvia'?'Recupero avviato':'Recupero fermato',
        {tipo:'ok',durata:2200});
      return;
@@ -3192,33 +3199,37 @@ function apriComandoSerieAllenamento(serie,numero) {
    const target=b&&await db.prendi('serie',b.id);
    if(!target||target.eliminata||target.seduta_id!==seduta.id||
      target.esercizio_id!==esercizio.id)throw new Error('Questa serie non è disponibile.');
+   if(!['completa_serie','dati'].includes(comando.tipo))
+     throw new Error('Comando non riconosciuto.');
+   const dati=comando.campi||{};
+   // I dati non pronunciati rimangono invariati.
+   const campi={
+     ...(dati.peso!==undefined?{
+       [convenzioneMisuraCarico(esercizio.convenzione)?'peso':'peso_assistenza']:dati.peso
+     }:{}),
+     ...(dati.ripetizioni!==undefined?{ripetizioni:dati.ripetizioni}:{}),
+     ...(dati.spotter!==undefined?{spotter:dati.spotter}:{}),
+     ...(dati.rip_assistite!==undefined?{rip_assistite:dati.rip_assistite}:{}),
+     ...(dati.spotter===false?{rip_assistite:null}:{}),
+     ...(eCardio(esercizio)&&dati.ripetizioni!==undefined?{durata_unita:'minuti'}:{}),
+   };
    if(comando.tipo==='completa_serie'){
      if(eFatta(target)){avviso('Serie già completata.',{tipo:'ok'});return;}
-     const row=[...document.querySelectorAll('.riga-serie[data-serie-id]')]
-       .find(x=>x.dataset.serieId===target.id);
-     const spunta=row?.querySelector('.bottone-spunta');
-     if(spunta) spunta.click(); // suono, timer e salvataggio del flusso originale
-     else {
-       inizioRecuperoSerie=Date.now();
-       try{localStorage.setItem('palestra-recupero:'+seduta.id,String(inizioRecuperoSerie))}catch{}
-       const campi={stato:'fatta'};
-       if(pesoCorporeoOra()!==null)campi.peso_corpo=pesoCorporeoOra();
-       await aggiornaSerie(target,campi);disegna();
-     }
+     if(pesoCorporeoOra()!==null)campi.peso_corpo=pesoCorporeoOra();
+     // Carico, rip, spotter e spunta sono salvati insieme.
+     await aggiornaSerie(target,{...campi,stato:'fatta'});
+     impostaRecuperoSerie(seduta.id,true);
+     suona('serie');
+     pulsa();
+     disegna();
+     avviso('Serie segnata · recupero avviato automaticamente.',{tipo:'ok',durata:2400});
      return;
    }
-   if(comando.tipo!=='dati')throw new Error('Comando non riconosciuto.');
-   if(eFatta(target))throw new Error('Togli prima la spunta per modificare questa serie.');
-   const campi={
-     ...(comando.campi.peso!==undefined?{
-       [convenzioneMisuraCarico(esercizio.convenzione)?'peso':'peso_assistenza']:comando.campi.peso
-     }:{}),
-     ...(comando.campi.ripetizioni!==undefined?{ripetizioni:comando.campi.ripetizioni}:{}),
-     ...(eCardio(esercizio)?{durata_unita:'minuti'}:{}),
-   };
+   if(eFatta(target)&&(dati.peso!==undefined||dati.ripetizioni!==undefined))
+     throw new Error('Togli prima la spunta per cambiare peso o ripetizioni.');
    await aggiornaSerie(target,campi);
    disegna();
-   avviso('Serie aggiornata. Spuntala dopo averla eseguita.',{tipo:'ok',durata:3300});
+   avviso('Serie aggiornata.',{tipo:'ok',durata:2300});
   },
  });
 }
@@ -3262,15 +3273,9 @@ function rigaSerie(serie, numero, confronto, seduta, pesoRigaSorella = null) {
     onClick: (ev) => {
       registra({ cosa: 'spunta premuta', serie: serie.id, ordine: numero, esercizio: e && e.nome });
       const fatta = !eFatta(serie);
-      // Ogni nuova serie segnata fa ripartire il timer di recupero da zero.
-      inizioRecuperoSerie = fatta ? Date.now() : null;
-      try {
-        const chiave = 'palestra-recupero:' + serie.seduta_id;
-        if (inizioRecuperoSerie) localStorage.setItem(chiave, String(inizioRecuperoSerie));
-        else localStorage.removeItem(chiave);
-      } catch { /* Il timer continua anche se lo storage non è disponibile. */ }
-      const timerRecupero = document.getElementById('cronometro-fine');
-      if (timerRecupero) timerRecupero.textContent = 'Recupero 00:00';
+      // Parte da solo quando segni la serie.
+      impostaRecuperoSerie(serie.seduta_id, fatta);
+      if (fatta) avviso('Recupero avviato automaticamente.', { tipo: 'ok', durata: 1800 });
       segnaAspettoFatto(riga, spunta, fatta, etichettaFatta);
       if (fatta) pulsa();
       // IL SUONO DELLA SERIA FATTA.
@@ -3323,9 +3328,14 @@ function rigaSerie(serie, numero, confronto, seduta, pesoRigaSorella = null) {
     onClick: () => {
       registra({ cosa: 'numero premuto', serie: serie.id });
       const fatta = !eFatta(serie);
+      impostaRecuperoSerie(serie.seduta_id, fatta);
+      if (fatta) avviso('Recupero avviato automaticamente.', { tipo: 'ok', durata: 1800 });
       segnaAspettoFatto(riga, spunta, fatta, etichettaFatta);
-      if (fatta) pulsa();
-      aggiornaSerie(serie, { stato: fatta ? 'fatta' : 'da_fare' })
+      if (fatta) { pulsa(); suona('serie'); }
+      else suona('togli');
+      const campi = { stato: fatta ? 'fatta' : 'da_fare' };
+      if (fatta && pesoCorporeoOra() !== null) campi.peso_corpo = pesoCorporeoOra();
+      aggiornaSerie(serie, campi)
         .then(() => { registra({ cosa: 'salvataggio ok da numero' }); disegna(); })
         .catch((err) => { registra({ cosa: 'salvataggio FALLITO', errore: String((err && err.message) || err) }); });
     },
