@@ -1,5 +1,5 @@
 // Legame tra i premi e l'allenamento che li ha fatti ottenere.
-// Usa "dettaglio" (gia' sincronizzato), senza aggiungere colonne a Supabase.
+// Usa "dettaglio" (già sincronizzato), senza aggiungere colonne a Supabase.
 // Le ricompense di missione e gli acquisti nello shop non dipendono dalla seduta.
 const TIPI_SEDUTA = new Set(['allenamento', 'record', 'promozione', 'traguardo']);
 const CODA = /\n\[palestra-seduta:([^\]\r\n]+)\]$/;
@@ -55,7 +55,7 @@ export function premiDaAnnullare({ account, ids = [], sedute = [], serie = [], r
 
     // Dati storici precedenti al collegamento esplicito: non supporre quale
     // allenamento abbia generato un premio se nello stesso giorno sono presenti
-    // piu' candidati che non vengono tutti eliminati.
+    // più candidati che non vengono tutti eliminati.
     if (!['record', 'promozione', 'traguardo'].includes(r.tipo)) return false;
     const candidati = valide.filter(s => stessoGiorno(s.data, r.quando)
       && (r.tipo === 'traguardo'
