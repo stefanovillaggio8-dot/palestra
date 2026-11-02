@@ -31,6 +31,7 @@ import { nuovoId, adesso, TABELLE, riallineaEsercizi } from './sincronizzazione.
 import { statoAccount, ricompenseAllenamento, gruppiDaSerie } from './gioco.js';
 import { percorsoStemma, nomeStemma, tutteLeGraficheRank } from './rank-stemmi.js';
 import { ordinaRecordRank } from './rank-ordina.js';
+import { segnaliProgressione } from './analisi-progressi.js';
 import { calcolaAvatar, CLASSI, classeConsigliata, eCardio, minutiDiCardio, nomePremio, statoVisivo, percorsoStato, schedaProgressione, STATI_IMMAGINE } from './avatar-rpg.js';
 import { haSigillo, creaSigillo, verificaSigillo } from './sigillo-classe.js';
 import { isoGiorno } from './streak.js';
@@ -4553,6 +4554,37 @@ function cardHallOfFame() {
   return blocco;
 }
 
+/** Confronti prudenti delle ultime due sedute, senza prescrizioni automatiche. */
+function cardCoachProgressi() {
+  const segnali = segnaliProgressione(seduteMie(), serieMie(), V.esercizi, 4);
+  const box = el('section', { class: 'blocco coach-progressi' });
+  box.appendChild(el('h2', { testo: '📈 Coach · andamento recente' }));
+  box.appendChild(el('p', { class: 'nota',
+    testo: 'Confronto tra due allenamenti completati per esercizio, senza serie assistite. Un segnale non è una prescrizione: valuta anche tecnica, recupero e dolore.' }));
+  if (!segnali.length) {
+    box.appendChild(el('p', { class: 'nota', testo: 'Servono almeno due sedute completate dello stesso esercizio con peso e ripetizioni registrati.' }));
+    return box;
+  }
+  const titoli = {
+    miglioramento: 'In crescita', stabile: 'Stabile',
+    da_rivedere: 'Da rivalutare', non_confrontabile: 'Carico e ripetizioni diversi',
+  };
+  const lista = el('div', { class: 'coach-progressi-lista' });
+  for (const segnale of segnali) {
+    const formato = s => String(s.peso).replace('.', ',') + ' kg × ' + String(s.ripetizioni).replace('.', ',');
+    const item = el('div', { class: 'coach-progressi-riga' }, [
+      el('div', { class: 'coach-progressi-testa' }, [
+        el('strong', { testo: segnale.nome }),
+        el('span', { class: 'coach-progressi-esito', testo: titoli[segnale.esito] || 'Non confrontabile' }),
+      ]),
+      el('div', { class: 'nota', testo: 'Prima: ' + formato(segnale.precedente) + ' · Ultima: ' + formato(segnale.ultima) }),
+    ]);
+    lista.appendChild(item);
+  }
+  box.appendChild(lista);
+  return box;
+}
+
 function vistaProgressi(zona) {
   zona.appendChild(el('h1', { testo: 'Progressi' }));
 
@@ -4572,6 +4604,7 @@ function vistaProgressi(zona) {
   const cardRiepilogo = cardRiepilogoMio();
   if (cardRiepilogo) zona.appendChild(cardRiepilogo);
   zona.appendChild(cardHallOfFame());
+  zona.appendChild(cardCoachProgressi());
 
   // Ste (04/10/2026): "voglio il rapporto peso potenza quindi in base al peso
   // corporeo". E poi: "con kg intendo il peso che alzo in più rispetto al mio
