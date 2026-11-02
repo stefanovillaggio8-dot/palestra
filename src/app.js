@@ -3038,7 +3038,7 @@ async function vistaSeduta(zona, sedutaId) {
       blocco.appendChild(el('div',{class:'ghost-inline',dati:{ghostEsercizio:e.id,ghostSeduta:s.id},'aria-label':'Confronto Ghost con la seduta precedente'},[
         el('div',{class:'ghost-inline-top'},[
           el('strong',{testo:'👻 GHOST · '+dataLeggibile(ghost.data)}),
-          el('span',{class:'ghost-inline-stato '+ghost.stato,testo:ghost.etichetta}),
+          el('span',{class:'ghost-inline-stato '+ghost.statoVisuale,testo:ghost.etichetta}),
         ]),
         el('div',{class:'ghost-inline-duello'},[
           el('div',{class:'ghost-inline-valore'},[
@@ -3697,7 +3697,7 @@ function aggiornaGhostDalForm(sedutaId, esercizioId) {
       : 'Completa una serie per iniziare la sfida. I kg copiati dalla scheda non contano.');
     scrivi('.ghost-inline-bozza',ghost.messaggioBozza);
     const stato=pannello.querySelector('.ghost-inline-stato');
-    if(stato) stato.className='ghost-inline-stato '+ghost.stato;
+    if(stato) stato.className='ghost-inline-stato '+ghost.statoVisuale;
   }
 }
 
