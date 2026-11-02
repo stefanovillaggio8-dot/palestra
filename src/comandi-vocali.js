@@ -56,9 +56,20 @@ function trovaUnita(testo,unita) {
  // In "22 chili 7 ripetizioni", "chili 7" NON significa 7 chili.
  // Un'unita' seguita da un numero vale come "peso 22" soltanto quando
  // non segue gia' un numero della misura precedente.
- const dopoValidi=[...testo.matchAll(dopo)].filter(m=>
-   !/\d(?:\.\d+)?\s*$/.test(testo.slice(0,m.index)));
- const trovato=[...testo.matchAll(prima),...dopoValidi].map(m=>Number(m[1]));
+ const qualunqueUnita=/(?:kg|kili|chili|chilo|chilogrammi|chilogrammo|kilo|kilos|peso|zavorra|zavorre|assistenza|ripetizioni|ripetizione|rip|reps|rep|ripetute|minuti|minuto|min)$/;
+ const primaValidi=[...testo.matchAll(prima)].filter(m=>{
+   const prefisso=testo.slice(0,m.index).trim();
+   const unitaPrecedente=prefisso.match(qualunqueUnita);
+   if(!unitaPrecedente)return true;
+   return /\d(?:\.\d+)?\s*$/.test(prefisso.slice(0,unitaPrecedente.index));
+ });
+ const dopoValidi=[...testo.matchAll(dopo)].filter(m=>{
+   const prefisso=testo.slice(0,m.index).trim();
+   const ultimoNumero=prefisso.match(/\d+(?:\.\d+)?$/);
+   if(!ultimoNumero)return true;
+   return qualunqueUnita.test(prefisso.slice(0,ultimoNumero.index).trim());
+ });
+ const trovato=[...primaValidi,...dopoValidi].map(m=>Number(m[1]));
  const diversi=[...new Set(trovato)];
  if(diversi.length>1) return {errore:'Hai indicato valori diversi per lo stesso campo.'};
  return {valore:diversi.length===1?diversi[0]:null};
