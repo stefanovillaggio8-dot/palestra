@@ -3032,17 +3032,18 @@ async function vistaSeduta(zona, sedutaId) {
       sedute:seduteDellaPersona(), serie:serieDellaPersona(),
       sedutaAttivaId:s.id, esercizioId:e.id,
       assistito:!convenzioneMisuraCarico(e.convenzione), cardio:eCardio(e),
+      bozzaIds:[...GHOST_BOZZE],
     }) : null;
     if (ghost && ghost.disponibile) {
-      blocco.appendChild(el('div',{class:'ghost-inline','aria-label':'Confronto Ghost con la seduta precedente'},[
+      blocco.appendChild(el('div',{class:'ghost-inline',dati:{ghostEsercizio:e.id,ghostSeduta:s.id},'aria-label':'Confronto Ghost con la seduta precedente'},[
         el('div',{class:'ghost-inline-top'},[
           el('strong',{testo:'👻 GHOST · '+dataLeggibile(ghost.data)}),
           el('span',{class:'ghost-inline-stato '+ghost.stato,testo:ghost.etichetta}),
         ]),
         el('div',{class:'ghost-inline-duello'},[
           el('div',{class:'ghost-inline-valore'},[
-            el('small',{testo:'OGGI · serie '+ghost.indice}),
-            el('strong',{testo:ghost.oggi}),
+            el('small',{class:'ghost-inline-label-oggi',testo:(ghost.bozza?'BOZZA':'OGGI')+' · serie '+ghost.indice}),
+            el('strong',{class:'ghost-inline-oggi',testo:ghost.oggi}),
           ]),
           el('span',{class:'ghost-inline-versus',testo:'VS'}),
           el('div',{class:'ghost-inline-valore passato'},[
@@ -3053,7 +3054,8 @@ async function vistaSeduta(zona, sedutaId) {
         el('div',{class:'ghost-inline-punteggio',testo:ghost.comparate
           ? ('Serie vinte '+ghost.risultati.vinta+' · pari '+ghost.risultati.pari+
              ' · sotto '+ghost.risultati.persa+(ghost.risultati.mista?' · diverse '+ghost.risultati.mista:''))
-          : 'Completa una serie per iniziare la sfida. I valori di oggi non sono ancora un record.'}),
+          : 'Completa una serie per iniziare la sfida. I kg copiati dalla scheda non contano.'}),
+        el('p',{class:'ghost-inline-bozza',testo:ghost.messaggioBozza}),
       ]));
     }
 
@@ -3479,6 +3481,14 @@ const rip = campoNumero(serieCardio ? valoreMinutiCardioNelCampo(serie) : serie.
       riga.appendChild(rigaC);
     }
   }
+  // Si aggiorna al singolo tasto premuto, senza ridisegnare la schermata
+  // e senza rubare il focus ai campi kg/ripetizioni.
+  riga.addEventListener('input',(ev)=>{
+    if (!ev.target?.classList?.contains('campo-peso') &&
+        !ev.target?.classList?.contains('campo-rip')) return;
+    GHOST_BOZZE.add(serie.id);
+    aggiornaGhostDalForm(serie.seduta_id,serie.esercizio_id);
+  });
   return riga;
 }
 
@@ -3635,6 +3645,62 @@ function mostraErroreBreve(testo) {
   console.error(testo);
 }
 
+// Una bozza e' distinta da una serie gia' completata. I numeri copiati
+// dalla scheda precedente restano invisibili nel confronto finche' l'utente
+// non li modifica o non spunta la serie.
+const GHOST_BOZZE = new Set();
+
+function aggiornaGhostDalForm(sedutaId, esercizioId) {
+  if (!ghostAttivoPerAccount() || typeof document==='undefined') return;
+  const pannelli=[...document.querySelectorAll('.ghost-inline')]
+    .filter(n=>n.dataset?.ghostSeduta===sedutaId &&
+      n.dataset?.ghostEsercizio===esercizioId);
+  if (!pannelli.length) return;
+  const esercizio=esercizioPerId(esercizioId);
+  if (!esercizio) return;
+  const righe=[...document.querySelectorAll('.riga-serie[data-serie-id]')];
+  const copie=serieDellaPersona().map(x=>{
+    if (x.seduta_id!==sedutaId || x.esercizio_id!==esercizioId) return x;
+    const riga=righe.find(n=>n.dataset?.serieId===x.id);
+    if (!riga) return x;
+    const copia={...x};
+    for (const [selettore,campo] of [
+      ['.campo-peso',convenzioneMisuraCarico(esercizio.convenzione)?'peso':'peso_assistenza'],
+      ['.campo-rip','ripetizioni'],
+    ]) {
+      const input=riga.querySelector(selettore);
+      if (!input) continue;
+      const valore=String(input.value||'').trim().replace(',','.');
+      if (valore==='' || /^[+-]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)$/.test(valore))
+        copia[campo]=valore===''?null:Number(valore);
+    }
+    if(eCardio(esercizio)) copia.durata_unita='minuti';
+    return copia;
+  });
+  const ghost=confrontoGhost({
+    sedute:seduteDellaPersona(),serie:copie,sedutaAttivaId:sedutaId,
+    esercizioId,assistito:!convenzioneMisuraCarico(esercizio.convenzione),
+    cardio:eCardio(esercizio),bozzaIds:[...GHOST_BOZZE],
+  });
+  if (!ghost.disponibile) return;
+  for(const pannello of pannelli) {
+    const scrivi=(sel,contenuto)=>{
+      const n=pannello.querySelector(sel);
+      if(n) n.textContent=contenuto;
+    };
+    scrivi('.ghost-inline-label-oggi',(ghost.bozza?'BOZZA':'OGGI')+' · serie '+ghost.indice);
+    scrivi('.ghost-inline-oggi',ghost.oggi);
+    scrivi('.ghost-inline-stato',ghost.etichetta);
+    scrivi('.ghost-inline-punteggio',ghost.comparate
+      ? 'Serie vinte '+ghost.risultati.vinta+' · pari '+ghost.risultati.pari+' · sotto '+ghost.risultati.persa+
+        (ghost.risultati.mista?' · diverse '+ghost.risultati.mista:'')
+      : 'Completa una serie per iniziare la sfida. I kg copiati dalla scheda non contano.');
+    scrivi('.ghost-inline-bozza',ghost.messaggioBozza);
+    const stato=pannello.querySelector('.ghost-inline-stato');
+    if(stato) stato.className='ghost-inline-stato '+ghost.stato;
+  }
+}
+
 function ghostAttivoPerAccount() {
   try { return localStorage.getItem('palestra-ghost:'+accountAttivo())!=='0'; }
   catch { return true; }
@@ -3668,6 +3734,8 @@ async function aggiornaSerie(serie, campi) {
   });
   const idx = V.serie.findIndex((x) => x.id === serie.id);
   if (idx >= 0) V.serie[idx] = salvata;
+  if(campi.stato==='fatta') GHOST_BOZZE.delete(serie.id);
+  aggiornaGhostDalForm(serie.seduta_id,serie.esercizio_id);
   disegnaStatoSalvataggio();
   return salvata;
 }
