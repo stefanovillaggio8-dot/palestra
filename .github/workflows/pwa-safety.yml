@@ -7,6 +7,7 @@ on:
       - 'src/update-via-sw.js'
       - 'tests/sicurezza-release.mjs'
       - 'tests/sincronizzazione-sicura.mjs'
+      - 'tests/streak-sicura.mjs'
       - '.github/workflows/pwa-safety.yml'
   push:
     branches: [main]
@@ -27,3 +28,4 @@ jobs:
         run: |
           node tests/sicurezza-release.mjs
           node tests/sincronizzazione-sicura.mjs
+          node tests/streak-sicura.mjs
