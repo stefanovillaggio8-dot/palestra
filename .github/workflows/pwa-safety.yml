@@ -8,6 +8,7 @@ on:
       - 'tests/sicurezza-release.mjs'
       - 'tests/sincronizzazione-sicura.mjs'
       - 'tests/streak-sicura.mjs'
+      - 'tests/equipaggiamento-sicuro.mjs'
       - '.github/workflows/pwa-safety.yml'
   push:
     branches: [main]
@@ -29,3 +30,4 @@ jobs:
           node tests/sicurezza-release.mjs
           node tests/sincronizzazione-sicura.mjs
           node tests/streak-sicura.mjs
+          node tests/equipaggiamento-sicuro.mjs
