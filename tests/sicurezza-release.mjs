@@ -28,9 +28,9 @@ assert.match(sw, /new Request\(percorso,\s*\{\s*cache:\s*['"]reload['"]\s*\}\)/,
   'Pre-cache senza bypass della cache HTTP');
 assert.match(sw, /\.then\(\(\) => self\.skipWaiting\(\)\)/,
   'Attivazione del nuovo worker non collegata al completamento pre-cache');
-assert.match(sw, /cache\\.match\\(richiesta,\\s*\\{\\s*ignoreSearch:\\s*true\\s*\\}\\)/,
+assert.match(sw, /cache\.match\(richiesta,\s*\{\s*ignoreSearch:\s*true\s*\}\)/,
   'Il SW deve supportare gli asset JS/CSS versionati quando offline');
-assert.match(sw, /url\\.searchParams\\.get\\(['"]v['"]\\)\\s*===\\s*NUMERO/,
+assert.match(sw, /url\.searchParams\.get\(['"]v['"]\)\s*===\s*NUMERO/,
   'Il bypass delle query deve essere limitato alla release corrente');
 assert.match(sw, /richiesta\.method\s*!==\s*['"]GET['"]/,
   'Il service worker non deve intercettare scritture');
