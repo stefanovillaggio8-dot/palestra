@@ -1088,3 +1088,21 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-aura-divina-premium {animati
 #app .avvio-aiuto button{min-height:44px;width:100%;margin-top:14px;border-radius:12px}
 #app .caricamento>p{margin:8px auto;line-height:1.5}
 #app .caricamento>button{min-height:44px;margin-top:12px}
+
+
+/* v396 — avvio leggibile e recupero sicuro, anche su iPhone. */
+.avvio-aiuto,.caricamento:has(> button){
+  max-width:470px;
+  margin:30px auto;
+  padding:20px 18px;
+  text-align:left;
+  border-radius:17px;
+  border:1px solid rgba(151,201,217,.26);
+  background:linear-gradient(135deg,rgba(29,48,64,.96),rgba(18,30,44,.97));
+  box-shadow:0 12px 30px rgba(0,0,0,.2);
+  line-height:1.55;
+}
+.avvio-aiuto h2,.avvio-aiuto strong{display:block;font-size:1.14rem;margin:0 0 12px;color:#ebf9f7}
+.avvio-aiuto p,.caricamento:has(> button) p{margin:9px 0;color:#c6d8e2;font-size:.9rem}
+.avvio-aiuto button,.caricamento:has(> button) button{min-height:44px;margin-top:10px}
+@media(max-width:480px){.avvio-aiuto,.caricamento:has(> button){margin:22px 12px;padding:16px}}
