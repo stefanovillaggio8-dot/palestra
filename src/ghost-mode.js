@@ -16,7 +16,7 @@ function testoSerie(s, {assistito=false,cardio=false}={}) {
   if (!valido(peso) || !valido(s.ripetizioni)) return 'dati incompleti';
   return numero(peso) + ' kg × ' + numero(s.ripetizioni);
 }
-function sfidaSerie(attuale, passata, {assistito=false,cardio=false}={}) {
+function sfidaSerie(attuale, passata, {assistito=false,cardio=false,zavorri=false}={}) {
   if (!attuale || !passata || attuale.stato!=='fatta' || passata.stato!=='fatta') return 'non_confrontabile';
   if (cardio) {
     if (!['minuti','secondi'].includes(attuale.durata_unita) ||
@@ -34,14 +34,18 @@ function sfidaSerie(attuale, passata, {assistito=false,cardio=false}={}) {
     !valido(attuale.rip_assistite) || !valido(passata.rip_assistite) ||
     Number(attuale.rip_assistite)!==Number(passata.rip_assistite)
   )) return 'non_confrontabile';
-  const forza = assistito ? Number(kgB)-Number(kgA) : Number(kgA)-Number(kgB);
+  // Solo le macchine di ASSISTENZA sono inverse: meno kg = meglio.
+  // Le ZAVORRE per trazioni e dips usano lo stesso campo peso_assistenza
+  // per compatibilita' storica, ma piu' kg aggiunti = PIU' lavoro.
+  const forza = assistito && !zavorri
+    ? Number(kgB)-Number(kgA) : Number(kgA)-Number(kgB);
   const rip = Number(attuale.ripetizioni)-Number(passata.ripetizioni);
   if (forza === 0 && rip === 0) return 'pari';
   if (forza >= 0 && rip >= 0) return 'vinta';
   if (forza <= 0 && rip <= 0) return 'persa';
   return 'mista';
 }
-export function confrontoGhost({sedute=[],serie=[],sedutaAttivaId,esercizioId,assistito=false,cardio=false,bozzaIds=[],serieFocusId=null}={}) {
+export function confrontoGhost({sedute=[],serie=[],sedutaAttivaId,esercizioId,assistito=false,cardio=false,zavorri=false,bozzaIds=[],serieFocusId=null}={}) {
   const attuale=serie.filter(s=>s && !s.eliminata && s.seduta_id===sedutaAttivaId
     && s.esercizio_id===esercizioId).sort((a,b)=>(Number(a.ordine)||0)-(Number(b.ordine)||0));
   const candidati=sedute.filter(s=>s && !s.eliminata && s.stato==='completata' && s.id!==sedutaAttivaId)
@@ -58,13 +62,18 @@ export function confrontoGhost({sedute=[],serie=[],sedutaAttivaId,esercizioId,as
   for (let i=0;i<complete.length;i++) {
     const originalIndex=attuale.findIndex(s=>s.id===complete[i].id);
     const passata=passate[originalIndex]||null;
-    risultati[sfidaSerie(complete[i],passata,{assistito,cardio})]++;
+    risultati[sfidaSerie(complete[i],passata,{assistito,cardio,zavorri})]++;
   }
   const prossima=attuale.findIndex(s=>s.stato!=='fatta');
   const inFocus=serieFocusId ? attuale.findIndex(s=>s.id===serieFocusId) : -1;
-  // Se stai modificando proprio la serie 3, il pannello deve mostrare
-  // la 3 e non continuare a visualizzare la prima serie non ancora spuntata.
-  const indice=inFocus>=0 ? inFocus : prossima<0 ? Math.max(0,attuale.length-1) : prossima;
+  // Quando segni la serie 1, mostra la 1 completata anziche' spostare
+  // subito OGGI sulla serie 2 ancora vuota (come nel bug dello screenshot).
+  // Se stai scrivendo in un'altra serie, mostra quella bozza per prima.
+  const ultimaFatta=attuale.findLastIndex(s=>s.stato==='fatta');
+  const ultimaBozza=attuale.findLastIndex(s=>s.stato!=='fatta' && bozzaIds.includes(s.id));
+  const indice=inFocus>=0 ? inFocus : ultimaBozza>=0 ? ultimaBozza
+    : ultimaFatta>=0 ? ultimaFatta : prossima>=0 ? prossima
+    : Math.max(0,attuale.length-1);
   const riferimento=passate[indice]?.stato==='fatta' ? passate[indice] : null;
   const tuaSerie=attuale[indice]||null;
   // I valori copiati dalla scheda precedente NON rappresentano una serie fatta.
@@ -72,7 +81,7 @@ export function confrontoGhost({sedute=[],serie=[],sedutaAttivaId,esercizioId,as
   // ma non incrementa vittorie, record o premi finche' non viene spuntata.
   const bozza=!!tuaSerie && tuaSerie.stato!=='fatta' && bozzaIds.includes(tuaSerie.id);
   const anteprima=bozza && riferimento
-    ? sfidaSerie({...tuaSerie,stato:'fatta'},riferimento,{assistito,cardio})
+    ? sfidaSerie({...tuaSerie,stato:'fatta'},riferimento,{assistito,cardio,zavorri})
     : null;
   const comparate=risultati.vinta+risultati.persa+risultati.pari;
   const stato=comparate===0 ? 'inizia' : risultati.vinta>risultati.persa ? 'vinci'
@@ -87,6 +96,7 @@ export function confrontoGhost({sedute=[],serie=[],sedutaAttivaId,esercizioId,as
       ? testoSerie(tuaSerie,{assistito,cardio}) : '— Da segnare',
     ghost:testoSerie(riferimento,{assistito,cardio}),
     indice:indice+1,
+    prossimaSerie:prossima>=0 && prossima!==indice ? prossima+1 : null,
     etichetta:bozza ? (
       anteprima==='vinta'?'Bozza migliore · da completare':
       anteprima==='persa'?'Bozza sotto al Ghost · da completare':
