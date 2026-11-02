@@ -53,3 +53,14 @@ test('voce: microfono rilevato senza accessi forzati',()=>{
  class MockRecognition{}
  assert.equal(supportoComandiVocali({webkitSpeechRecognition:MockRecognition}).disponibile,true);
 });
+
+
+test('voce: il peso detto due volte come 22 peso 22 chili vale sempre 22',()=>{
+ assert.deepEqual(parse('peso 22 chili 7 ripetizioni').campi,{peso:22,ripetizioni:7});
+ assert.deepEqual(parse('ripetizioni 7 peso 22').campi,{peso:22,ripetizioni:7});
+});
+test('voce: non segna la serie per caso nella trascrizione dei dati',()=>{
+ const x=parse('serie 2 22 kg sette ripetizioni');
+ assert.equal(x.tipo,'dati');
+ assert.equal(x.numeroSerie,2);
+});
