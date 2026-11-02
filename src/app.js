@@ -6679,6 +6679,7 @@ export function bloccoCalendario(profilo, st) {
   const box = el('section', { class: 'blocco' });
   const previsti = new Set(Array.isArray(profilo.giorni_allenamento) ? profilo.giorni_allenamento : []);
   const giorniFatti = new Set((st.streak && st.streak.giorniAllenati) || []);
+  const giorniAccreditati = new Set((st.streak && st.streak.giorniAccreditati) || []);
   const oggi = isoGiorno(new Date());
   const oggiAnno = Number(oggi.slice(0, 4));
   const anno = statoCalendario.anno === null ? oggiAnno : statoCalendario.anno;
@@ -6728,17 +6729,18 @@ export function bloccoCalendario(profilo, st) {
   const meseIniziale = (anno === oggiAnno) ? primoMese : 1;
   const griglia = el('div', { class: 'calendario-anno' });
   for (let m = meseIniziale; m <= 12; m++) {
-    griglia.appendChild(bloccoMese(anno, m, previsti, giorniFatti, oggi));
+    griglia.appendChild(bloccoMese(anno, m, previsti, giorniFatti, oggi, giorniAccreditati));
   }
   box.appendChild(griglia);
 
   // ---- IL DETTAGLIO DEL GIORNO PREMUTO.
   if (statoCalendario.giorno) {
-    box.appendChild(dettaglioGiorno(statoCalendario.giorno));
+    box.appendChild(dettaglioGiorno(statoCalendario.giorno, giorniAccreditati));
   }
 
   box.appendChild(el('div', { class: 'legenda-calendario' }, [
     el('span', { class: 'pastiglia legenda-fatto', testo: 'allenato' }),
+    el('span', { class: 'pastiglia legenda-fatto', testo: 'giorno accreditato' }),
     el('span', { class: 'pastiglia legenda-saltato', testo: 'saltato' }),
     el('span', { class: 'pastiglia legenda-recupero', testo: 'giorno di recupero' }),
     el('span', { class: 'pastiglia legenda-atteso', testo: 'ti tocca' }),
@@ -6768,7 +6770,7 @@ function rigaOggi(previsti, giorniFatti, oggi) {
 }
 
 /** Un mese: nome, i sette giorni in testa, e tutti i giorni con il loro numero. */
-function bloccoMese(anno, mese, previsti, giorniFatti, oggi) {
+function bloccoMese(anno, mese, previsti, giorniFatti, oggi, giorniAccreditati = new Set()) {
   const primoDelMese = new Date(anno, mese - 1, 1, 12);
   const ultimo = new Date(anno, mese, 0, 12);
   const prefisso = `${anno}-${String(mese).padStart(2, '0')}-`;
@@ -6811,6 +6813,7 @@ function bloccoMese(anno, mese, previsti, giorniFatti, oggi) {
     }
     const previsto = previsti.has(d.getDay());
     const fatto = giorniFatti.has(isoCell);
+    const accreditato = giorniAccreditati.has(isoCell);
     const passato = isoCell < oggi;
     // IL SALTATO richiede tre cose insieme: che il giorno ti toccasse, che non ci
     // sei andato, e che sia passato. Oggi non è un giorno saltato: non è ancora
@@ -6821,6 +6824,7 @@ function bloccoMese(anno, mese, previsti, giorniFatti, oggi) {
     if (fatto) classi.push('fatto');
     else if (saltato) classi.push('saltato');
     else if (!previsto && passato) classi.push('recupero');
+    if (accreditato) classi.push('accreditato');
     if (previsto && !fatto && !saltato) classi.push('atteso');
     if (isoCell === oggi) classi.push('oggi');
     if (isoCell > oggi) classi.push('futuro');
@@ -6849,8 +6853,8 @@ const aperto = isoCell === statoCalendario.giorno;
           for (const c of celle) numeroCambiato(c);
         }
       },
-      aria: { label: ariaGiorno(isoCell, d, previsto, fatto, saltato, !previsto) },
-      titolo: `${d.getDate()}/${mese}` + (fatto ? ' allenato' : (saltato ? ' saltato' : (previsto ? ' giorno di allenamento' : ' recupero'))),
+      aria: { label: accreditato ? isoCell+' giorno accreditato per la streak' : ariaGiorno(isoCell, d, previsto, fatto, saltato, !previsto) },
+      titolo: `${d.getDate()}/${mese}` + (accreditato ? ' giorno accreditato per la streak' : (fatto ? ' allenato' : (saltato ? ' saltato' : (previsto ? ' giorno di allenamento' : ' recupero')))),
     }));
   }
   box.appendChild(riga);
@@ -6858,15 +6862,21 @@ const aperto = isoCell === statoCalendario.giorno;
 }
 
 /** Cosa hai fatto in un giorno preciso. */
-function dettaglioGiorno(iso) {
-  const sedute = seduteDellaPersona().filter((s) => String(s.data || '').slice(0, 10) === iso && s.stato === 'completata');
+function dettaglioGiorno(iso, giorniAccreditati = new Set()) {
+  const sedute = seduteDellaPersona().filter((s) => !s.eliminata && String(s.data || '').slice(0, 10) === iso && s.stato === 'completata');
   const box = el('div', { class: 'spiegazione' });
   const NOME = ['Domenica', 'Luned\u00ec', 'Marted\u00ec', 'Mercoled\u00ec', 'Gioved\u00ec', 'Venerd\u00ec', 'Sabato'];
   const d = new Date(iso + 'T12:00:00');
   box.appendChild(el('h3', { class: 'nota', testo: `${NOME[d.getDay()]} ${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}` }));
 
+  if (giorniAccreditati.has(iso)) {
+    box.appendChild(el('p', { class: 'nota nota-chiaro',
+      testo: 'Giorno accreditato per la streak su tua richiesta. Vale nel calendario senza aggiungere una seduta, serie, XP o Aura.' }));
+  }
   if (!sedute.length) {
-    box.appendChild(el('p', { class: 'nota', testo: 'Qui non hai allenato.' }));
+    if (!giorniAccreditati.has(iso)) {
+      box.appendChild(el('p', { class: 'nota', testo: 'Qui non hai allenato.' }));
+    }
     return box;
   }
 for (const s of sedute) {
