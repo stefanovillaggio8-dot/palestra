@@ -272,50 +272,12 @@ export function isoGiorno(data) {
  * interrompe la catena secondo le stesse regole normali.
  */
 function applicaRettificaStreak(stato, oggi, profilo) {
-  const credito = profilo?.privacy?.rettifica_streak;
-  if (!credito || typeof credito !== 'object') return stato;
-  const ancora = String(credito.data || '');
-  const base = Number(credito.giorni);
-  if (!dataPossibile(ancora) || ancora > oggi ||
-      !Number.isInteger(base) || base < 1 || base > 10000) return stato;
-
-  const fatti = new Set(stato.giorniAllenati);
-  const accreditati = [...new Set([...fatti, ancora])].sort((a,b)=>b.localeCompare(a));
-  const previsti = Array.isArray(stato.giorniPrevisti)
-    ? new Set(stato.giorniPrevisti) : null;
-  let nuovoConteggio = base;
-  let valida = true;
-  let cursor = giornoSuccessivo(ancora);
-  let iterazioni = 0;
-  while (cursor && cursor <= oggi && iterazioni++ < 10000) {
-    if (fatti.has(cursor)) nuovoConteggio++;
-    else if (cursor < oggi && (!previsti || previsti.has(giornoSettimana(cursor)))) {
-      valida = false; break;
-    }
-    cursor = giornoSuccessivo(cursor);
-  }
-  if (iterazioni >= 10000) valida = false;
-  const record = Math.max(stato.record || 0, base, valida ? nuovoConteggio : 0);
-  if (!valida) return {
-    ...stato, record, prossimoObiettivo: prossimoMilestone(record),
-    giorniAllenati: accreditati,
-  };
-  return {
-    ...stato,
-    giorni: Math.max(stato.giorni || 0, nuovoConteggio),
-    attiva: true, interrotta: false,
-    fattoOggi: fatti.has(oggi) || ancora === oggi,
-    giorniAllenati: accreditati,
-    ultimoGiorno: accreditati[0],
-    record,
-    prossimoObiettivo: prossimoMilestone(record),
-    prossimoGiorno: stato.giorniPrevisti
-      ? prossimoGiornoPrevisto(stato.giorniPrevisti, accreditati[0], oggi)
-      : null,
-    testo: (Math.max(stato.giorni || 0, nuovoConteggio)) +
-      ' allenamenti di streak (giorno ' + ancora + ' accreditato manualmente).',
-    rettificaStreak: { data: ancora, giorni: base },
-  };
+  // La streak deve rispecchiare soltanto le date con sedute COMPLETATE e
+  // presenti nel calendario. Una vecchia rettifica del profilo non può
+  // aggiungere giorni virtuali: cancellando la seduta, il giorno torna rosso
+  // e il conteggio (attuale e record) scende nello stesso momento.
+  // Conserviamo la firma solo per compatibilità, senza applicare il credito.
+  return stato;
 }
 
 export function calcolaStreak(sedute, oggi = isoGiorno(new Date()), profilo = null) {
