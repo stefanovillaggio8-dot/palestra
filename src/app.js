@@ -4518,6 +4518,41 @@ function prestazioniDiQuestaPersona() {
   return fuori;
 }
 
+/** I migliori cinque record reali, senza scrivere dati o assegnare premi. */
+function cardHallOfFame() {
+  const records = ordinaRecordRank(statoMio().recordValidi || []).slice(0, 5);
+  const blocco = el('section', { class: 'blocco hall-of-fame' });
+  blocco.appendChild(el('h2', { testo: '🏆 Hall of Fame' }));
+  blocco.appendChild(el('p', {
+    class: 'nota',
+    testo: 'I tuoi cinque record più alti, ordinati per grado e punti. I dati arrivano dagli allenamenti completati.',
+  }));
+  if (!records.length) {
+    blocco.appendChild(el('p', { class: 'nota', testo: 'Completa un allenamento per far comparire i tuoi record.' }));
+    return blocco;
+  }
+  const titoli = { bronze: 'Bronzo', silver: 'Argento', gold: 'Oro',
+    platinum: 'Platino', diamond: 'Diamante', titan: 'Titan', olympian: 'Olympian' };
+  const righe = el('div', { class: 'hall-of-fame-lista' });
+  records.forEach((record, indice) => {
+    const nome = String(record.esercizio?.nome || 'Esercizio');
+    const grado = titoli[record.rankId] || 'Classificato';
+    const lp = Number.isFinite(Number(record.lp)) ? Number(record.lp) : 0;
+    const riga = el('div', { class: 'hall-of-fame-riga' }, [
+      el('span', { class: 'hall-of-fame-numero', testo: String(indice + 1) }),
+      el('div', { class: 'hall-of-fame-dettaglio' }, [
+        el('strong', { testo: nome }),
+        el('span', { class: 'nota', testo: String(record.testo || 'Record registrato').slice(0, 130) }),
+      ]),
+      el('span', { class: 'hall-of-fame-grado', testo: grado + (record.rankId === 'olympian' ? '' : ' · ' + lp + ' LP') }),
+    ]);
+    righe.appendChild(riga);
+  });
+  blocco.appendChild(righe);
+  blocco.appendChild(el('a', { href: '#/rank', class: 'nota', testo: 'Vedi tutti i tuoi rank →' }));
+  return blocco;
+}
+
 function vistaProgressi(zona) {
   zona.appendChild(el('h1', { testo: 'Progressi' }));
 
@@ -4536,6 +4571,7 @@ function vistaProgressi(zona) {
   // guarda per primo, e sta in alto anche nel Profilo e nelle Impostazioni.
   const cardRiepilogo = cardRiepilogoMio();
   if (cardRiepilogo) zona.appendChild(cardRiepilogo);
+  zona.appendChild(cardHallOfFame());
 
   // Ste (04/10/2026): "voglio il rapporto peso potenza quindi in base al peso
   // corporeo". E poi: "con kg intendo il peso che alzo in più rispetto al mio
