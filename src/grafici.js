@@ -97,7 +97,7 @@ export function graficoLinea(punti, { chiaveY, titoloY, etichette = [], larghezz
 
   const tabella = el('details', { class: 'grafico-dati' }, [el('summary', { testo: 'Mostra tutti i valori' })]);
   const voci = buoni.map((q) => `${q.etichetta || ''}: ${formattaNumero(q[chiaveY])}`);
-  tabella.appendChild(el('p', { class: 'grafico-dati-txt', testo: 'Numeri usati: ' + voci.join(' · ') }));
+  tabella.appendChild(el('p', { class: 'grafico-dati-txt', testo: 'Valori: ' + voci.join(' · ') }));
   if (nota) tabella.appendChild(el('p', { class: 'grafico-nota', testo: nota }));
   scatola.appendChild(tabella);
   return scatola;
@@ -136,10 +136,10 @@ export function graficoBarre(punti, { chiaveY, titoloY, etichette = [], larghezz
     if (n <= 8) svg.appendChild(v);
   });
   scatola.appendChild(svg);
-  const tabella = el('div', { class: 'grafico-dati' });
+  const tabella = el('details', { class: 'grafico-dati' }, [el('summary', { testo: 'Mostra tutti i valori' })]);
   tabella.appendChild(el('p', {
     class: 'grafico-dati-txt',
-    testo: 'Numeri usati: ' + buoni.map((p) => `${p.etichetta}: ${formattaNumero(p[chiaveY])}`).join(' · '),
+    testo: 'Valori: ' + buoni.map((p) => `${p.etichetta}: ${formattaNumero(p[chiaveY])}`).join(' · '),
   }));
   const conSpotter = buoni.filter((p) => Number(p.spotter) > 0);
   if (conSpotter.length) {

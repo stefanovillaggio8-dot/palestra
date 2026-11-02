@@ -4476,7 +4476,12 @@ function cardRiepilogoMio() {
         return;
       }
       for (const v of voci) {
-        dettaglio.appendChild(el('p', { class: 'riga-variazione ' + (colori[chiave] || 'neutro'), testo: v.frase }));
+        dettaglio.appendChild(el('p', { class: 'riga-variazione ' + (colori[chiave] || 'neutro'), testo: v.migliore === 0
+          ? v.nome + ': nessun miglioramento confermato.'
+          : v.nome + ': ' + (v.assistito
+            ? (v.migliore > 0 ? 'meno aiuto' : 'più aiuto')
+            : (v.migliore > 0 ? 'più peso' : 'meno peso'))
+            + ' rispetto a prima.' }));
       }
     });
     return b;
@@ -4487,9 +4492,9 @@ function cardRiepilogoMio() {
     quadro(generale.indietro, 'PEGGIORATI', 'rosso', 'indietro'),
   ]));
   card.appendChild(dettaglio);
-  if (generale.linee && generale.linee.length) {
-    card.appendChild(el('p', { class: 'nota nota-piccola', testo: generale.linee[0] }));
-  }
+  card.appendChild(el('p', { class: 'nota nota-piccola',
+    testo: 'Tocca uno dei tre riquadri per vedere quali esercizi sono cambiati.',
+  }));
   return card;
 }
 
@@ -4526,7 +4531,7 @@ function cardHallOfFame() {
   blocco.appendChild(el('h2', { testo: '🏆 Hall of Fame' }));
   blocco.appendChild(el('p', {
     class: 'nota',
-    testo: 'I tuoi cinque record più alti, ordinati per grado e punti. I dati arrivano dagli allenamenti completati.',
+    testo: 'I cinque esercizi in cui hai ottenuto i risultati migliori.',
   }));
   if (!records.length) {
     blocco.appendChild(el('p', { class: 'nota', testo: 'Completa un allenamento per far comparire i tuoi record.' }));
@@ -4538,14 +4543,12 @@ function cardHallOfFame() {
   records.forEach((record, indice) => {
     const nome = String(record.esercizio?.nome || 'Esercizio');
     const grado = titoli[record.rankId] || 'Classificato';
-    const lp = Number.isFinite(Number(record.lp)) ? Number(record.lp) : 0;
     const riga = el('div', { class: 'hall-of-fame-riga' }, [
       el('span', { class: 'hall-of-fame-numero', testo: String(indice + 1) }),
       el('div', { class: 'hall-of-fame-dettaglio' }, [
         el('strong', { testo: nome }),
-        el('span', { class: 'nota', testo: String(record.testo || 'Record registrato').slice(0, 130) }),
       ]),
-      el('span', { class: 'hall-of-fame-grado', testo: grado + (record.rankId === 'olympian' ? '' : ' · ' + lp + ' LP') }),
+      el('span', { class: 'hall-of-fame-grado', testo: grado }),
     ]);
     righe.appendChild(riga);
   });
@@ -4560,14 +4563,14 @@ function cardCoachProgressi() {
   const box = el('section', { class: 'blocco coach-progressi' });
   box.appendChild(el('h2', { testo: '📈 Coach · andamento recente' }));
   box.appendChild(el('p', { class: 'nota',
-    testo: 'Confronto tra due allenamenti completati per esercizio, senza serie assistite. Un segnale non è una prescrizione: valuta anche tecnica, recupero e dolore.' }));
+    testo: 'Questo confronto ti aiuta a vedere come stanno andando gli ultimi allenamenti. Non indica da solo se devi aumentare il peso.' }));
   if (!segnali.length) {
     box.appendChild(el('p', { class: 'nota', testo: 'Servono almeno due sedute completate dello stesso esercizio con peso e ripetizioni registrati.' }));
     return box;
   }
   const titoli = {
     miglioramento: 'In crescita', stabile: 'Stabile',
-    da_rivedere: 'Da rivalutare', non_confrontabile: 'Carico e ripetizioni diversi',
+    da_rivedere: 'Da rivalutare', non_confrontabile: 'Risultato diverso',
   };
   const lista = el('div', { class: 'coach-progressi-lista' });
   for (const segnale of segnali) {
@@ -4577,7 +4580,10 @@ function cardCoachProgressi() {
         el('strong', { testo: segnale.nome }),
         el('span', { class: 'coach-progressi-esito', testo: titoli[segnale.esito] || 'Non confrontabile' }),
       ]),
-      el('div', { class: 'nota', testo: 'Prima: ' + formato(segnale.precedente) + ' · Ultima: ' + formato(segnale.ultima) }),
+      el('details', { class: 'coach-progressi-numeri' }, [
+        el('summary', { testo: 'Confronta i pesi e le ripetizioni' }),
+        el('p', { class: 'nota', testo: 'Prima: ' + formato(segnale.precedente) + ' · Ultima: ' + formato(segnale.ultima) }),
+      ]),
     ]);
     lista.appendChild(item);
   }
@@ -4587,25 +4593,15 @@ function cardCoachProgressi() {
 
 function vistaProgressi(zona) {
   zona.appendChild(el('h1', { testo: 'Progressi' }));
+  zona.appendChild(el('p', { class: 'nota progressi-introduzione',
+    testo: 'Qui scopri cosa è cambiato nei tuoi allenamenti. Prima il risultato generale, poi un esercizio alla volta.',
+  }));
 
-  // LA CARD COMPATTA PRIMA DI TUTTO (22/10/2026):
-  //
-  // Ste ha mandato la foto: in alto, tre riquadri con il numero (migliorati,
-  // invariati, peggiorati) e sotto la frase con il verdetto. Tutto il resto della
-  // pagina viene dopo, e ripiegato dentro sezioni chiuse: la pagina era troppo
-  // lunga e troppo incasinata.
-  const boxGenerale = el('div', { class: 'spiegazione generale box-riepilogo' });
-  const spazioGenerale = el('div', { id: 'riepilogo-generale' });
-  boxGenerale.appendChild(el('h3', { testo: 'In generale, quanto sei migliorato' }));
-  boxGenerale.appendChild(spazioGenerale);
-  zona.appendChild(boxGenerale);
-  // LA CARD COMPATTA PRIMA DI TUTTO (22/10/2026): è il riepilogo che si
-  // guarda per primo, e sta in alto anche nel Profilo e nelle Impostazioni.
   const cardRiepilogo = cardRiepilogoMio();
   if (cardRiepilogo) zona.appendChild(cardRiepilogo);
   // I dettagli non interrompono la lettura del riepilogo e dei grafici.
   const extra = el('details', { class: 'progressi-extra' }, [
-    el('summary', { testo: 'Record, Coach e analisi approfondite' }),
+    el('summary', { testo: 'Vuoi approfondire? Apri record e altre statistiche' }),
   ]);
   const extraDentro = el('div', { class: 'progressi-extra-corpo' });
   extra.appendChild(extraDentro);
@@ -4631,7 +4627,7 @@ function vistaProgressi(zona) {
       // resto si apre con un tocco.
       const dentroForza = el('div', { class: 'dentro-scheda' });
       boxForza.appendChild(el('details', { class: 'scheda-chiusa' }, [
-        el('summary', { class: 'scheda-titolo', testo: 'Quanto stai sollevando in più del tuo corpo' }),
+        el('summary', { class: 'scheda-titolo', testo: 'Come viene stimato il tuo livello' }),
         dentroForza,
       ]));
     if (media.media === null) {
@@ -4641,24 +4637,11 @@ function vistaProgressi(zona) {
         class: 'nota numero-grande',
         testo: `${formattaNumero(media.percentuale)}%`,
       }));
-      dentroForza.appendChild(el('p', {
-        class: 'nota nota-piccola',
-        testo: `La percentuale è quanto hai sollevato rispetto a quello che ci si aspetta `
-          + `da una persona forte come te, su quel pezzo. 100% vuol dire che l'hai eguagliato, `
-          + `sotto il 100% che ti manca, sopra il 100% che lo hai superato. `
-          + `È calcolata sul tuo corpo di ${formattaNumero(pesoOraProgressi)} kg, `
-          + `su ${media.conta} esercizi${media.saltate ? ` (ne ho esclusi ${media.saltate})` : ''}.`,
+      dentroForza.appendChild(el('p', { class: 'nota',
+        testo: 'Questo valore confronta alcuni tuoi carichi con dei riferimenti stimati. Non è una misura esatta della forza, né quanto sollevi in più del tuo peso.',
       }));
-      dentroForza.appendChild(el('p', {
-        class: 'nota nota-piccola',
-        testo: 'Sopra il 100% vuol dire che hai superato il livello di chi si allena bene: '
-          + 'i numeri di riferimento sono stime prudenti, e se per te sono sbagliati, '
-          + 'il numero giusto è quello che dici tu.',
-      }));
-      dentroForza.appendChild(el('p', {
-        class: 'nota nota-piccola',
-        testo: 'Le gambe non contano nella media: i loro numeri sono troppo alti e la farebbero saltare. '
-          + 'Restano visibili uno per uno, però.',
+      dentroForza.appendChild(el('p', { class: 'nota nota-piccola',
+        testo: 'È solo una stima e alcuni esercizi non entrano nella media.',
       }));
     }
     extraDentro.appendChild(boxForza);
@@ -4672,16 +4655,15 @@ function vistaProgressi(zona) {
     // media. Una classifica che mostra solo il primo È una pubblicita': qui si vede
     // anche dove hai i numeri più bassi, che È la parte che serve a capire.
     if (prestazioniOra.length) {
-      const boxTabella = el('div', { class: 'spiegazione generale' });
-      boxTabella.appendChild(el('h3', { testo: 'Ogni esercizio, e quanto vali' }));
+      const boxTabella = el('details', { class: 'scheda-chiusa progressi-tabella-dettaglio' }, [
+        el('summary', { testo: 'Vedi i risultati di ogni esercizio' }),
+      ]);
       const utili = prestazioniOra.filter((p) => p.percentuale !== null);
       const lista = utili.slice().sort((a, b) => b.percentuale - a.percentuale);
       for (const p of lista) {
         const righe = el('div', { class: 'riga-esercizio-forza' }, [
           el('strong', { testo: p.nome }),
-          el('span', { testo: `${formattaNumero(p.kg)} kg` }),
-          el('span', { testo: `${formattaNumero(p.rapporto)}× il tuo peso` }),
-          el('span', { testo: `${formattaNumero(p.percentuale)}% del livello realistico` }),
+          el('span', { testo: `${formattaNumero(p.kg)} kg · ${formattaNumero(p.percentuale)}% del riferimento stimato` }),
         ]);
         if (!p.contaNellaMedia) {
           righe.appendChild(el('span', { class: 'nota nota-piccola', testo: 'non conta nella media: è gamba' }));
@@ -4691,14 +4673,6 @@ function vistaProgressi(zona) {
       extraDentro.appendChild(boxTabella);
     }
   }
-
-  // Il riepilogo generale viene PRIMA di tutto il resto: Ste ha detto che coi
-  // grafici da solo non capisce, quindi la risposta principale È in parole.
-  // Il riquadro vecchio "In generale, quanto sei migliorato" duplicava la card
-  // nuova (che sta in cima alla pagina, con i riquadri cliccabili). Ste (22/10/2026):
-  // "la cosa dei progressi in quanti sono migliorato peggiorato e uguale".
-  // Quindi questo qui sotto si nasconde e resta solo la card.
-  zona.appendChild(el('p', { class: 'nota', testo: 'Gli esercizi sono divisi per variante: Chest Press e Chest Press su un\'altra macchina non vengono mai messi a confronto.' }));
 
   const v = versioneCorrente();
   const eserciziNellaScheda = [];
@@ -4725,10 +4699,10 @@ function vistaProgressi(zona) {
 
   const periodi = [
     { k: 'tutto', t: 'Tutto' },
-    { k: '30', t: 'Ultimi 30 giorni' },
-    { k: '90', t: 'Ultimi 3 mesi' },
-    { k: '180', t: 'Ultimi 6 mesi' },
-    { k: '365', t: 'Ultimo anno' },
+    { k: '30', t: '30 giorni' },
+    { k: '90', t: '3 mesi' },
+    { k: '180', t: '6 mesi' },
+    { k: '365', t: '1 anno' },
   ];
 
   const selettoreEsercizio = el('select', { class: 'selettore' },
@@ -4748,8 +4722,8 @@ function vistaProgressi(zona) {
 
   const graficiPanel = el('section', { class: 'progressi-grafici-panel' }, [
     el('div', { class: 'progressi-intro' }, [
-      el('h2', { testo: 'Grafici del tuo allenamento' }),
-      el('p', { class: 'nota', testo: 'Scegli un esercizio e un periodo. Tocca i punti per leggere i valori.' }),
+      el('h2', { testo: 'Guarda un esercizio' }),
+      el('p', { class: 'nota', testo: 'Scegli l’esercizio e guarda se il peso è cambiato. Tocca i punti se vuoi leggere i numeri.' }),
     ]),
   ]);
   const filtriGrafici = el('div', { class: 'progressi-filtri' });
@@ -4790,33 +4764,6 @@ function vistaProgressi(zona) {
     return storicoDi(selezionato);
   }
 
-  // Il peso previsto dalla scheda NEL GIORNO IN CUI HAI ALLENATO.
-  //
-  // Ste ha fatto così: durante l'allenamento ha alzato di 3 kg e poi ha
-  // confermato "Aggiorna la scheda". A quel punto la scheda corrente contiene
-  // già 38 kg, quindi confrontare la seduta con lei dava zero e l'esercizio
-  // finiva fra i "fermi". Invece va confrontato con la scheda che hai usato
-  // mentre allenavi: e quella È ancora salvata, È la versione della seduta.
-  function pesoPrevistoPerSessione(esercizioId, seduta) {
-    const e = esercizioPerId(esercizioId);
-    if (!e || !seduta) return null;
-    const assistito = !convenzioneMisuraCarico(e.convenzione);
-    const v = V.versi.find((x) => x.id === seduta.versione_id);
-    const giorni = (v && v.snapshot && v.snapshot.giorni) || [];
-    let massimo = null;
-    for (const g of giorni) {
-      for (const es of (g.esercizi || [])) {
-        if (es.esercizio_id !== esercizioId) continue;
-        for (const ser of (es.serie || [])) {
-          const p = assistito ? ser.peso_assistenza : ser.peso;
-          if (p === null || p === undefined || !Number.isFinite(Number(p))) continue;
-          massimo = massimo === null ? Number(p) : Math.max(massimo, Number(p));
-        }
-      }
-    }
-    return massimo;
-  }
-
 function aggiorna() {
     const e = esercizioPerId(selezionato);
     // L'ESERCIZIO PUÒ NON ESSERCI PIÙ.
@@ -4833,91 +4780,53 @@ function aggiorna() {
     if (!e) {
       svuota(contenitoreTesto);
       svuota(contenitoreGrafici);
-      svuota(spazioGenerale);
       contenitoreTesto.appendChild(el('p', { class: 'nota', testo: 'Questo esercizio non è più nel catalogo, ma le sue serie ci sono ancora. Aggiungilo di nuovo dal catalogo per rivedere i progressi.' }));
       return;
     }
     const punti = storicoEsercizio();
     svuota(contenitoreTesto);
     svuota(contenitoreGrafici);
-    svuota(spazioGenerale);
 
     const descrizionePeriodo = periodo === 'tutto' ? '' : (periodi.find((p) => p.k === periodo) || {}).t.replace('Ultimi ', '').replace('Ultimo ', '');
 
-    // il riepilogo generale: tutti gli esercizi insieme, non uno solo
-    const vociEsercizi = conDati.map((id) => {
-      const punti = storicoDi(id);
-      const ultima = punti.length ? punti[punti.length - 1] : null;
-      return {
-        nome: (esercizioPerId(id) || {}).nome || id,
-        esercizio: esercizioPerId(id),
-        punti,
-        prevista: pesoPrevistoPerSessione(id, ultima && ultima.seduta),
-      };
-    });
-    const generale = riepilogoGenerale(vociEsercizi);
-    if (generale.numeri.length) {
-      // I riquadri si toccano: premendo "migliorati" (o "fermi", o "indietro")
-      // sotto compare la lista esercizio per esercizio con di quanto È cambiato.
-      const dettaglio = el('div', { class: 'dettaglio-riepilogo' });
-      const colori = { migliorati: 'verde', indietro: 'rosso', fermi: 'neutro' };
-      const riquadri = [];
-
-      const chiudiTutti = () => {
-        for (const b of riquadri) b.setAttribute('aria-pressed', 'false');
-      };
-
-      const scriviDettaglio = (chiave) => {
-        svuota(dettaglio);
-        const voci = (generale.gruppi && generale.gruppi[chiave]) || [];
-        chiudiTutti();
-        for (const b of riquadri) {
-          if (b.dataset.gruppo === chiave) b.setAttribute('aria-pressed', 'true');
-        }
-        if (!voci.length) {
-          dettaglio.appendChild(el('p', { class: 'nota', testo: 'Nessun esercizio in questo gruppo.' }));
-          return;
-        }
-        for (const v of voci) {
-          dettaglio.appendChild(el('p', { class: 'riga-variazione ' + (colori[chiave] || 'neutro'), testo: v.frase }));
-        }
-      };
-
-      for (const n of generale.numeri) {
-        const b = bottone('', {
-          onClick: () => {
-            const giaAperto = riquadri.find((x) => x.getAttribute('aria-pressed') === 'true');
-            if (giaAperto && giaAperto.dataset.gruppo === n.etichetta) {
-              svuota(dettaglio); // secondo tocco: richiudi
-              chiudiTutti();
-              return;
-            }
-            scriviDettaglio(n.etichetta);
-          },
-          classe: 'numero-riepilogo ' + (colori[n.etichetta] || 'neutro'),
-        }, [
-          el('strong', { testo: String(n.valore) }),
-          el('span', { testo: n.etichetta }),
-        ]);
-        b.dataset.gruppo = n.etichetta;
-        b.setAttribute('aria-pressed', 'false');
-        riquadri.push(b);
-      }
-
-      spazioGenerale.appendChild(el('div', { class: 'numeri-riepilogo' }, riquadri));
-      spazioGenerale.appendChild(dettaglio);
-      spazioGenerale.appendChild(el('p', { class: 'nota nota-piccola', testo: 'Tocca un riquadro per vedere gli esercizi uno per uno e di quanto sono cambiati.' }));
-    }
-    for (const riga of generale.linee) {
-      spazioGenerale.appendChild(el('p', { class: 'riga-spiegazione', testo: riga }));
-    }
-
     const res = testoProgresso(e.nome, e, punti, descrizionePeriodo);
 
-    const box = el('div', { class: 'spiegazione' });
-    box.appendChild(el('h3', { testo: e.nome }));
-    box.appendChild(el('p', { class: 'nota', testo: res.convenzione }));
-    for (const riga of res.linee) box.appendChild(el('p', { class: 'riga-spiegazione', testo: riga }));
+    const assistito = !convenzioneMisuraCarico(e.convenzione);
+    const chiave = assistito ? 'assistenza' : 'pesoMassimo';
+    const valori = res.dati.filter((d) => d[chiave] !== null && Number.isFinite(Number(d[chiave])));
+    let spiegazione = 'Per capire se stai migliorando, registra almeno due allenamenti di questo esercizio.';
+    if (valori.length >= 2) {
+      const prima = Number(valori[0][chiave]);
+      const dopo = Number(valori[valori.length - 1][chiave]);
+      if (dopo === prima) {
+        spiegazione = assistito
+          ? 'Hai usato lo stesso aiuto di prima. Guarda anche le ripetizioni.'
+          : 'Il peso è rimasto uguale. Potresti aver fatto più ripetizioni.';
+      } else if ((assistito && dopo < prima) || (!assistito && dopo > prima)) {
+        spiegazione = assistito
+          ? 'Hai avuto bisogno di meno aiuto: è un buon segnale.'
+          : 'Hai usato più peso rispetto alla prima volta. Contano anche ripetizioni e tecnica.';
+      } else {
+        spiegazione = assistito
+          ? 'Hai usato più aiuto: non significa per forza che stai peggiorando.'
+          : 'Hai usato meno peso. Potrebbe dipendere anche dalla stanchezza.';
+      }
+    }
+    const box = el('div', { class: 'spiegazione progressi-lettura' });
+    box.appendChild(el('h3', { testo: 'Cosa significa?' }));
+    box.appendChild(el('p', { class: 'progressi-verdetto', testo: spiegazione }));
+    const spiegazioneCompleta = el('details', { class: 'progressi-spiegazione-completa' }, [
+      el('summary', { testo: 'Leggi la spiegazione completa' }),
+    ]);
+    spiegazioneCompleta.appendChild(el('p', { class: 'nota',
+      testo: assistito
+        ? 'Questo grafico mostra quanto ti ha aiutato la macchina. Quando l’aiuto diminuisce, stai facendo più lavoro da solo.'
+        : 'Questo grafico mostra il peso più alto registrato in ogni allenamento, non tutta la forza che hai.',
+    }));
+    spiegazioneCompleta.appendChild(el('p', { class: 'nota',
+      testo: 'Per capire se sei migliorato, considera anche le ripetizioni, come ti sentivi e la tecnica. I numeri precisi sono disponibili sotto il grafico.',
+    }));
+    box.appendChild(spiegazioneCompleta);
     contenitoreTesto.appendChild(box);
 
     if (!res.dati.length) return;
@@ -4926,15 +4835,12 @@ function aggiorna() {
       const x = new Date(d + 'T12:00:00');
       return x.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' });
     };
-    const assistito = !convenzioneMisuraCarico(e.convenzione);
-    const chiave = assistito ? 'assistenza' : 'pesoMassimo';
-
-    contenitoreGrafici.appendChild(el('h3', { testo: assistito ? 'Andamento del peso di assistenza' : 'Andamento del carico massimo' }));
+    contenitoreGrafici.appendChild(el('h3', { testo: assistito ? 'Quanto aiuto ti è servito' : 'Il peso che hai usato' }));
     contenitoreGrafici.appendChild(graficoLinea(
       res.dati.map((d) => ({ etichetta: etichettaBreve(d.data), ...d })),
       {
         chiaveY: chiave,
-        titoloY: assistito ? 'kg di assistenza (meno = meglio)' : 'kg',
+        titoloY: assistito ? 'Aiuto (kg)' : 'Peso (kg)',
         larghezza: 680,
         altezza: 220,
         nota: assistito
@@ -4943,10 +4849,15 @@ function aggiorna() {
       },
     ));
 
+    const altriGrafici = el('details', { class: 'progressi-altri-grafici' }, [
+      el('summary', { testo: 'Altri grafici: ripetizioni e lavoro totale' }),
+    ]);
+    let altriDisponibili = false;
     const ripCostanti = serieARipetizioniCostanti(punti, e);
     if (ripCostanti.punti.length >= 2) {
-      contenitoreGrafici.appendChild(el('h3', { testo: `Ripetizioni a parita\' di peso (${formattaNumero(ripCostanti.peso)} kg)` }));
-      contenitoreGrafici.appendChild(graficoLinea(
+      altriDisponibili = true;
+      altriGrafici.appendChild(el('h3', { testo: 'Le ripetizioni con lo stesso peso' }));
+      altriGrafici.appendChild(graficoLinea(
         ripCostanti.punti.map((p) => ({ etichetta: etichettaBreve(p.data), ...p })),
         { chiaveY: 'ripetizioniMedie', titoloY: 'ripetizioni medie', larghezza: 680, altezza: 220 },
       ));
@@ -4954,12 +4865,14 @@ function aggiorna() {
 
     const conVolume = res.dati.filter((d) => d.volume !== null);
     if (!assistito && conVolume.length) {
-      contenitoreGrafici.appendChild(el('h3', { testo: 'Volume della seduta' }));
-      contenitoreGrafici.appendChild(graficoBarre(
+      altriDisponibili = true;
+      altriGrafici.appendChild(el('h3', { testo: 'Quanto lavoro hai fatto' }));
+      altriGrafici.appendChild(graficoBarre(
         conVolume.map((d) => ({ etichetta: etichettaBreve(d.data), ...d })),
         { chiaveY: 'volume', titoloY: 'volume (kg)', larghezza: 680, altezza: 220 },
       ));
     }
+    if (altriDisponibili) contenitoreGrafici.appendChild(altriGrafici);
   }
   aggiorna();
 }

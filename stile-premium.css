@@ -630,3 +630,19 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-aura-divina-premium {animati
 @keyframes progresso-barra{from{transform:scaleY(.03);opacity:.35}to{transform:scaleY(1);opacity:1}}
 }
 @media(max-width:520px){.progressi-grafici-panel{padding:12px}.progressi-filtri .chip{font-size:.76rem}.progressi-extra-corpo{padding:7px}}
+
+
+/* Progressi v390: prima parole chiare, poi eventuali dettagli. */
+.progressi-introduzione{max-width:60ch;margin:0 0 14px;font-size:.94rem;line-height:1.55}
+.progressi-grafici-panel .progressi-lettura{padding:15px 17px;margin:12px 0 18px;border:1px solid rgba(103,211,170,.25);border-radius:16px;background:linear-gradient(130deg,rgba(41,94,84,.16),rgba(28,45,62,.28))}
+.progressi-lettura h3{font-size:1rem;letter-spacing:0;margin:0 0 7px}
+.progressi-lettura .progressi-verdetto{margin:0;font-size:clamp(.93rem,2.5vw,1.05rem);line-height:1.55;font-weight:650;color:#e5f9ef}
+.progressi-spiegazione-completa,.progressi-altri-grafici,.coach-progressi-numeri{margin-top:12px}
+.progressi-spiegazione-completa>summary,.progressi-altri-grafici>summary,.coach-progressi-numeri>summary{list-style-position:inside;cursor:pointer;color:#b4d9ed;font-size:.86rem;font-weight:650;padding:8px 0}
+.progressi-altri-grafici{border:1px solid rgba(155,188,210,.18);background:rgba(19,32,46,.55);border-radius:15px;padding:8px 13px}
+.progressi-altri-grafici[open]{padding-bottom:16px}
+.progressi-extra .progressi-tabella-dettaglio{margin:10px 0;padding:10px}
+.progressi-extra .riga-esercizio-forza{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between}
+.progressi-extra .riga-esercizio-forza span{color:#bfd4e5;font-size:.82rem}
+.progressi-grafici-panel .grafico-dati:not([open])>.grafico-dati-txt{display:none}
+@media(max-width:540px){.progressi-grafici-panel .progressi-lettura{padding:12px}.progressi-altri-grafici{padding:7px 10px}}
