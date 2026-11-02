@@ -41,7 +41,7 @@ function sfidaSerie(attuale, passata, {assistito=false,cardio=false}={}) {
   if (forza <= 0 && rip <= 0) return 'persa';
   return 'mista';
 }
-export function confrontoGhost({sedute=[],serie=[],sedutaAttivaId,esercizioId,assistito=false,cardio=false,bozzaIds=[]}={}) {
+export function confrontoGhost({sedute=[],serie=[],sedutaAttivaId,esercizioId,assistito=false,cardio=false,bozzaIds=[],serieFocusId=null}={}) {
   const attuale=serie.filter(s=>s && !s.eliminata && s.seduta_id===sedutaAttivaId
     && s.esercizio_id===esercizioId).sort((a,b)=>(Number(a.ordine)||0)-(Number(b.ordine)||0));
   const candidati=sedute.filter(s=>s && !s.eliminata && s.stato==='completata' && s.id!==sedutaAttivaId)
@@ -61,7 +61,10 @@ export function confrontoGhost({sedute=[],serie=[],sedutaAttivaId,esercizioId,as
     risultati[sfidaSerie(complete[i],passata,{assistito,cardio})]++;
   }
   const prossima=attuale.findIndex(s=>s.stato!=='fatta');
-  const indice=prossima<0 ? Math.max(0,attuale.length-1) : prossima;
+  const inFocus=serieFocusId ? attuale.findIndex(s=>s.id===serieFocusId) : -1;
+  // Se stai modificando proprio la serie 3, il pannello deve mostrare
+  // la 3 e non continuare a visualizzare la prima serie non ancora spuntata.
+  const indice=inFocus>=0 ? inFocus : prossima<0 ? Math.max(0,attuale.length-1) : prossima;
   const riferimento=passate[indice]?.stato==='fatta' ? passate[indice] : null;
   const tuaSerie=attuale[indice]||null;
   // I valori copiati dalla scheda precedente NON rappresentano una serie fatta.
