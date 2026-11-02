@@ -367,12 +367,21 @@ async function avvia() {
   let faseAvvio = 'inizializzazione';
   const aggiornaFaseAvvio = (testo) => {
     faseAvvio = testo;
-    if (statoAvvio && statoAvvio.isConnected) statoAvvio.textContent = 'Carico i tuoi dati...\\n' + testo;
+    if (window.PALESTRA_AVVIO) window.PALESTRA_AVVIO.fase = testo;
+    // Safari prima nascondeva la seconda riga: usare una frase leggibile.
+    if (statoAvvio && statoAvvio.isConnected) {
+      statoAvvio.textContent = 'Carico i tuoi dati… · ' + testo;
+    }
   };
   const controlloAvvio = setTimeout(() => {
     if (statoAvvio && statoAvvio.isConnected) {
-      statoAvvio.textContent = 'Avvio bloccato durante: ' + faseAvvio +
-        '. Ricarica la pagina una volta con internet. I tuoi allenamenti salvati non sono stati cancellati.';
+      svuota(statoAvvio);
+      statoAvvio.appendChild(el('p', { testo: 'L’app impiega troppo tempo durante: ' + faseAvvio + '.' }));
+      statoAvvio.appendChild(el('p', { class: 'nota', testo: 'Puoi riprovare senza cancellare gli allenamenti salvati.' }));
+      statoAvvio.appendChild(bottone('Riprova apertura', {
+        onClick: () => window.location.reload(),
+        classe: 'principale',
+      }));
     }
   }, 12000);
 
@@ -427,6 +436,16 @@ async function avvia() {
         + 'I tuoi numeri non sono cambiati.', { tipo: 'ok' });
     }
 
+    // Prima i dati salvati sul dispositivo: la rete NON deve bloccare la scheda.
+    // Le migrazioni locali sono finite; ora si può navigare anche offline.
+    aggiornaFaseAvvio('preparazione delle statistiche locali');
+    await aggiornaPesoInMemoria();
+    await caricaLivelliImparati();
+    window.addEventListener('hashchange', () => disegna());
+    disegna();
+    if (window.PALESTRA_AVVIO) window.PALESTRA_AVVIO.pronto = true;
+
+    // Quando il cloud finisce, ricarichiamo i dati e ridisegniamo normalmente.
     aggiornaFaseAvvio('preparazione della sincronizzazione online');
     // La prima sincronizzazione non deve partire prima della relazione d'amicizia:
     // dopo un invito valido il server autorizza il download dei dati condivisi.
@@ -471,8 +490,6 @@ async function avvia() {
     aggiornaCreditoStreakOnline().then((cambiata) => {
       if (cambiata) disegna();
     }).catch(() => {});
-    window.addEventListener('hashchange', () => disegna());
-
     // LE SEZIONI CHE ENTRANO A CASCATA (22/10/2026).
     //
     // Ste: "le sezioni entrano a cascata solo quando cambi schermata, non a
@@ -645,17 +662,8 @@ function mostraErrore(radice, errore) {
     el('p', { class: 'nota', testo: 'Motore scelto per i dati: ' + db.MOTORE_SCELTO.tipo + '. Browser: ' + navigator.userAgent }),
     el('div', { class: 'riga-pulsanti' }, [
       bottone('Riprova', { onClick: () => location.reload(), classe: 'principale grande' }),
-      bottone('Prova con la memoria del browser', {
-        onClick: async () => {
-          try {
-            await db.svuotaTutto();
-            for (const t of TABELLE) { try { localStorage.removeItem('palestra-mem-' + t); } catch { /* pazienza */ } }
-            try { localStorage.removeItem('palestra-mem-meta'); } catch { /* pazienza */ }
-            location.reload();
-          } catch (e) { avviso('Non sono riuscito a cancellare: ' + e.message, { tipo: 'errore' }); }
-        },
-        classe: 'fantasma',
-      }),
+      // Recupero mai distruttivo: non cancellare IndexedDB o dati offline.
+
     ]),
   ]));
 }
@@ -9428,7 +9436,10 @@ function disegnaBarraGioco(contenitore) {
 
 /* ===================== avvio app ===================== */
 
-avvia();
+avvia().catch((errore) => {
+  const radice = document.getElementById('app');
+  if (radice) mostraErrore(radice, errore);
+});
 
 // Esportato solo per i test: serve a riavviare l'app e verificare che le correzioni
 // al nome della scheda vengano applicate anche a chi l'ha già installata.
