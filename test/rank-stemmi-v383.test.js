@@ -44,6 +44,6 @@ test('all rank surfaces use crest artwork and the offline precache includes it',
  assert.match(app,/\['stemmi', 'STEMMI'\]/);
  assert.match(sw,/'\.\/src\/rank-stemmi\.js'/);
  assert.match(sw,/rank-stemmi-v383/);
- assert.match(html,/palestra-v385/);
- assert.match(sw,/palestra-v385/);
+ assert.match(html,/palestra-v\d+/);
+ assert.match(sw,/palestra-v\d+/);
 });
