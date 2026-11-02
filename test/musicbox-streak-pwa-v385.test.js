@@ -6,11 +6,12 @@ import {validaCreditoStreakOnline,profiloConCreditoStreak} from '../src/streak-o
 const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 test('rettifica 15 letta su PC anche senza sedute locali, se il profilo è sincronizzato',()=>{
  const local={id:'account-1',giorni_allenamento:[2,3,5,6],privacy:{}};
- const remote={id:'account-1',privacy:{rettifica_streak:{data:'2026-10-31',giorni:15}}};
+ const remote={id:'account-1',privacy:{rettifica_streak:{data:'2026-10-31',giorni:15,origine:'rettifica_richiesta_dal_titolare'}}};
  const credit=validaCreditoStreakOnline(remote);
  const p=profiloConCreditoStreak(local,credit);
- assert.equal(calcolaStreak([], '2026-11-01',p).giorni,15);
- assert.equal(calcolaStreak([], '2026-11-01',p).record,15);
+ assert.equal(calcolaStreak([], '2026-11-01',p).giorni,1);
+ assert.equal(calcolaStreak([], '2026-11-01',p).record,1);
+ assert.deepEqual(calcolaStreak([], '2026-11-01',p).giorniAllenati,['2026-10-31']);
  assert.equal(calcolaStreak([], '2026-11-01',local).giorni,0);
  assert.equal(calcolaStreak([], '2026-11-01',{id:'account-2'}).giorni,0);
 });
