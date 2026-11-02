@@ -4818,8 +4818,14 @@ function aggiorna() {
     const spiegazioneCompleta = el('details', { class: 'progressi-spiegazione-completa' }, [
       el('summary', { testo: 'Leggi la spiegazione completa' }),
     ]);
-    spiegazioneCompleta.appendChild(el('p', { class: 'nota', testo: 'Tipo di esercizio: ' + (res.convenzione || 'non specificato') }));
-    for (const riga of res.linee) spiegazioneCompleta.appendChild(el('p', { class: 'riga-spiegazione', testo: riga }));
+    spiegazioneCompleta.appendChild(el('p', { class: 'nota',
+      testo: assistito
+        ? 'Questo grafico mostra quanto ti ha aiutato la macchina. Quando l’aiuto diminuisce, stai facendo più lavoro da solo.'
+        : 'Questo grafico mostra il peso più alto registrato in ogni allenamento, non tutta la forza che hai.',
+    }));
+    spiegazioneCompleta.appendChild(el('p', { class: 'nota',
+      testo: 'Per capire se sei migliorato, considera anche le ripetizioni, come ti sentivi e la tecnica. I numeri precisi sono disponibili sotto il grafico.',
+    }));
     box.appendChild(spiegazioneCompleta);
     contenitoreTesto.appendChild(box);
 
