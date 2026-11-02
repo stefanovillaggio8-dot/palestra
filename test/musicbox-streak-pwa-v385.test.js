@@ -16,8 +16,8 @@ test('rettifica 15 letta su PC anche senza sedute locali, se il profilo è sincr
 });
 test('Musica disponibile nelle schermate Home Casa Profilo della PWA',()=>{
  const app=read('src/app.js'),html=read('index.html');
- assert.match(app,/function collegamentoMusicBox\(\)/);
- assert.match(app,/function vistaHome\([\s\S]*?zona\.appendChild\(collegamentoMusicBox\(\)\)/);
+ assert.match(app,/function collegamentoMusicBox\(\{ compatto = false \} = \{\}\)/);
+ assert.match(app,/function vistaHome\([\s\S]*?collegamentoMusicBox\(\{ compatto: true \}\)/);
  assert.match(app,/function vistaCasa\([\s\S]*?zona\.appendChild\(collegamentoMusicBox\(\)\)/);
  assert.match(app,/async function vistaProfilo\([\s\S]*?zona\.appendChild\(collegamentoMusicBox\(\)\)/);
  assert.match(app,/https:\/\/stefanovillaggio8-dot\.github\.io\/music-box\/\?modo=gym/);
