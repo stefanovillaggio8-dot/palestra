@@ -63,11 +63,21 @@ function trovaUnita(testo,unita) {
    if(!unitaPrecedente)return true;
    return /\d(?:\.\d+)?\s*$/.test(prefisso.slice(0,unitaPrecedente.index));
  });
+ const categoria=(x)=>{
+   if(/^(?:kg|kili|chili|chilo|chilogrammi|chilogrammo|kilo|kilos|peso|zavorra|zavorre|assistenza)$/.test(x))
+     return 'peso';
+   if(/^(?:ripetizioni|ripetizione|rip|reps|rep|ripetute)$/.test(x))return 'rip';
+   return 'minuti';
+ };
  const dopoValidi=[...testo.matchAll(dopo)].filter(m=>{
    const prefisso=testo.slice(0,m.index).trim();
    const ultimoNumero=prefisso.match(/\d+(?:\.\d+)?$/);
    if(!ultimoNumero)return true;
-   return qualunqueUnita.test(prefisso.slice(0,ultimoNumero.index).trim());
+   const primaNumero=prefisso.slice(0,ultimoNumero.index).trim();
+   const precedente=primaNumero.match(qualunqueUnita);
+   if(!precedente)return false;
+   const tipoOra=categoria(m[0].trim().split(/\s+/)[0]);
+   return categoria(precedente[0])!==tipoOra;
  });
  const trovato=[...primaValidi,...dopoValidi].map(m=>Number(m[1]));
  const diversi=[...new Set(trovato)];
