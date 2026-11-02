@@ -96,12 +96,12 @@ test('voce v411: fatto e fatta segnano la serie, anche da soli',()=>{
  }
  const completa=parse('seconda serie 25 chili e mezzo 8 rep fatta con spotter');
  assert.equal(completa.numeroSerie,2);
- assert.deepEqual(completa.campi,{peso:25.5,ripetizioni:8,spotter:true});
+ assert.deepEqual(completa.campi,{peso:25.5,ripetizioni:8,spotter:true,rip_assistite:1});
  assert.equal(parse('serie 2 25 chili 8 rep').tipo,'dati');
  assert.equal(parse('serie 2 non fatta').ok,false);
 });
 test('voce v411: spotter e ripetizioni assistite preservano il carico',()=>{
- assert.deepEqual(parse('spotter').campi,{spotter:true});
+ assert.deepEqual(parse('spotter').campi,{spotter:true,rip_assistite:1});
  assert.deepEqual(parse('senza spotter').campi,{spotter:false});
  const p=parse('seconda serie 25 chili 8 rep 2 assistite con spotter');
  assert.deepEqual(p.campi,{peso:25,ripetizioni:8,spotter:true,rip_assistite:2});
@@ -130,7 +130,7 @@ test('voce v412: 8 euro/euri equivale a 8 rep nel contesto di una serie',()=>{
  assert.deepEqual(parse('seconda serie 25 chili e mezzo 8 euro').campi,
   {peso:25.5,ripetizioni:8});
  assert.deepEqual(parse('seconda serie, 25 chili e mezzo, otto euri, fatta con spotter').campi,
-  {peso:25.5,ripetizioni:8,spotter:true});
+  {peso:25.5,ripetizioni:8,spotter:true,rip_assistite:1});
  assert.equal(parse('8 euro').tipo,'dati'); // Non spunta per sbaglio.
 });
 test('voce v412: nessuna conversione da euro a minuti nel cardio',()=>{
@@ -153,4 +153,24 @@ test('voce v412: sceglie la variante rep solo se gli stessi dati coincidono',()=
  assert.match(ui,/scegliTrascrizioneVocale\(alternative/);
  assert.match(ui,/normalizzaDettaturaSerie\(trascrizione/);
  assert.match(ui,/await suConferma\(p,target\)/);
+});
+
+test('voce v412: con lo spotter senza numero equivale a una rip assistita',()=>{
+ for(const comando of [
+   '37 chili 7 ripetizioni con lo spotter',
+   '37 chili 7 rep con lo spotter',
+   '37 chili 7 euro con lo spotter'
+ ]) {
+   const p=parse(comando);
+   assert.equal(p.ok,true,comando);
+   assert.deepEqual(p.campi,{peso:37,ripetizioni:7,spotter:true,rip_assistite:1},comando);
+ }
+ assert.deepEqual(parse('37 chili 7 rep 2 assistite con spotter').campi,
+   {peso:37,ripetizioni:7,spotter:true,rip_assistite:2});
+ assert.deepEqual(parse('7 rep 0 assistite con spotter').campi,
+   {ripetizioni:7,spotter:true,rip_assistite:0});
+ assert.deepEqual(parse('37 chili 7 rep senza spotter').campi,
+   {peso:37,ripetizioni:7,spotter:false});
+ assert.equal(parse('37 chili 0 rip con spotter').ok,false);
+ assert.deepEqual(parse('con lo spotter').campi,{spotter:true,rip_assistite:1});
 });
