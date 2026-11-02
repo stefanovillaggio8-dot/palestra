@@ -20,7 +20,7 @@ test('Hall of Fame nel tab Progressi senza modifiche al database',()=>{
  const app=source('src/app.js');
  const view=app.slice(app.indexOf('function cardHallOfFame()'),app.indexOf('function vistaProgressi('));
  assert.match(view,/ordinaRecordRank\(statoMio\(\)\.recordValidi \|\| \[\]\)\.slice\(0, 5\)/);
- assert.match(app,/zona\.appendChild\(cardHallOfFame\(\)\)/);
+ assert.match(app,/extraDentro\.appendChild\(cardHallOfFame\(\)\)/);
  assert.doesNotMatch(view,/db\.salva\(|sb\.scrivi\(|sync\.sincronizza\(/);
  assert.match(source('stile-premium.css'),/\.hall-of-fame-riga/);
 });

@@ -70,6 +70,7 @@ export function graficoLinea(punti, { chiaveY, titoloY, etichette = [], larghezz
     svg.appendChild(svgTag('polyline', {
       points: puntiXY.map((q) => `${q.x},${q.y}`).join(' '),
       class: 'linea-grafico linea-' + colore,
+      pathLength: 1,
       fill: 'none',
     }));
   }
@@ -94,7 +95,7 @@ export function graficoLinea(punti, { chiaveY, titoloY, etichette = [], larghezz
   scatola.appendChild(svg);
   scatola.appendChild(dettaglio);
 
-  const tabella = el('div', { class: 'grafico-dati' });
+  const tabella = el('details', { class: 'grafico-dati' }, [el('summary', { testo: 'Mostra tutti i valori' })]);
   const voci = buoni.map((q) => `${q.etichetta || ''}: ${formattaNumero(q[chiaveY])}`);
   tabella.appendChild(el('p', { class: 'grafico-dati-txt', testo: 'Numeri usati: ' + voci.join(' · ') }));
   if (nota) tabella.appendChild(el('p', { class: 'grafico-nota', testo: nota }));

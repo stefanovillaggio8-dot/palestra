@@ -4603,8 +4603,14 @@ function vistaProgressi(zona) {
   // guarda per primo, e sta in alto anche nel Profilo e nelle Impostazioni.
   const cardRiepilogo = cardRiepilogoMio();
   if (cardRiepilogo) zona.appendChild(cardRiepilogo);
-  zona.appendChild(cardHallOfFame());
-  zona.appendChild(cardCoachProgressi());
+  // I dettagli non interrompono la lettura del riepilogo e dei grafici.
+  const extra = el('details', { class: 'progressi-extra' }, [
+    el('summary', { testo: 'Record, Coach e analisi approfondite' }),
+  ]);
+  const extraDentro = el('div', { class: 'progressi-extra-corpo' });
+  extra.appendChild(extraDentro);
+  extraDentro.appendChild(cardHallOfFame());
+  extraDentro.appendChild(cardCoachProgressi());
 
   // Ste (04/10/2026): "voglio il rapporto peso potenza quindi in base al peso
   // corporeo". E poi: "con kg intendo il peso che alzo in più rispetto al mio
@@ -4655,7 +4661,7 @@ function vistaProgressi(zona) {
           + 'Restano visibili uno per uno, però.',
       }));
     }
-    zona.appendChild(boxForza);
+    extraDentro.appendChild(boxForza);
 
     // Ste (04/10/2026): "voglio che dica chi in generale È più forte, facendo
     // una media, e sia che si vedano tutti gli esercizi facendo vedere chi fa di
@@ -4682,7 +4688,7 @@ function vistaProgressi(zona) {
         }
         boxTabella.appendChild(righe);
       }
-      zona.appendChild(boxTabella);
+      extraDentro.appendChild(boxTabella);
     }
   }
 
@@ -4706,6 +4712,7 @@ function vistaProgressi(zona) {
   const conDati = [...new Set([...eserciziNellaScheda, ...mieSerie.map(x => x.esercizio_id)])]
     .filter((id) => mieSerie.some((x) => x.esercizio_id === id && !x.eliminata));
   if (!conDati.length) {
+    zona.appendChild(extra);
     zona.appendChild(el('p', { class: 'nota', testo: 'Nessun dato registrato. Chiudi un allenamento e qui compaiono i tuoi progressi.' }));
     return;
   }
@@ -4739,12 +4746,22 @@ function vistaProgressi(zona) {
       classe: 'chip' + (p.k === 'tutto' ? ' attivo' : ''),
     })));
 
-  zona.appendChild(el('label', { class: 'nota', testo: 'Esercizio' }));
-  zona.appendChild(selettoreEsercizio);
-  zona.appendChild(el('div', { class: 'nota', testo: 'Periodo' }));
-  zona.appendChild(selettorePeriodo);
-  zona.appendChild(contenitoreTesto);
-  zona.appendChild(contenitoreGrafici);
+  const graficiPanel = el('section', { class: 'progressi-grafici-panel' }, [
+    el('div', { class: 'progressi-intro' }, [
+      el('h2', { testo: 'Grafici del tuo allenamento' }),
+      el('p', { class: 'nota', testo: 'Scegli un esercizio e un periodo. Tocca i punti per leggere i valori.' }),
+    ]),
+  ]);
+  const filtriGrafici = el('div', { class: 'progressi-filtri' });
+  filtriGrafici.appendChild(el('label', { class: 'nota', testo: 'Esercizio' }));
+  filtriGrafici.appendChild(selettoreEsercizio);
+  filtriGrafici.appendChild(el('div', { class: 'nota', testo: 'Periodo' }));
+  filtriGrafici.appendChild(selettorePeriodo);
+  graficiPanel.appendChild(filtriGrafici);
+  graficiPanel.appendChild(contenitoreTesto);
+  graficiPanel.appendChild(contenitoreGrafici);
+  zona.appendChild(graficiPanel);
+  zona.appendChild(extra);
 
   function storicoDi(esercizioId) {
     // ordino per data E per ora d'inizio: se due sedute cadono lo stesso
