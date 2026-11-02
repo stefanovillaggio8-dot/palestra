@@ -8,6 +8,7 @@ function testoSerie(s, {assistito=false,cardio=false}={}) {
   if (!s) return '—';
   if (cardio) {
     if (!valido(s.ripetizioni)) return '—';
+    if (!['minuti','secondi'].includes(s.durata_unita)) return 'durata da verificare';
     const m = s.durata_unita === 'secondi' ? Number(s.ripetizioni)/60 : Number(s.ripetizioni);
     return numero(m) + ' min';
   }
@@ -16,8 +17,10 @@ function testoSerie(s, {assistito=false,cardio=false}={}) {
   return numero(peso) + ' kg × ' + numero(s.ripetizioni);
 }
 function sfidaSerie(attuale, passata, {assistito=false,cardio=false}={}) {
-  if (!attuale || !passata) return 'non_confrontabile';
+  if (!attuale || !passata || attuale.stato!=='fatta' || passata.stato!=='fatta') return 'non_confrontabile';
   if (cardio) {
+    if (!['minuti','secondi'].includes(attuale.durata_unita) ||
+        !['minuti','secondi'].includes(passata.durata_unita)) return 'non_confrontabile';
     if (!valido(attuale.ripetizioni) || !valido(passata.ripetizioni)) return 'non_confrontabile';
     const m = s => s.durata_unita === 'secondi' ? Number(s.ripetizioni)/60 : Number(s.ripetizioni);
     return m(attuale) > m(passata) ? 'vinta' : m(attuale) < m(passata) ? 'persa' : 'pari';
@@ -27,6 +30,10 @@ function sfidaSerie(attuale, passata, {assistito=false,cardio=false}={}) {
   const kgB = assistito ? passata.peso_assistenza : passata.peso;
   if (!valido(kgA) || !valido(kgB)) return 'non_confrontabile';
   if (!!attuale.spotter !== !!passata.spotter || !!attuale.dropset !== !!passata.dropset) return 'non_confrontabile';
+  if (attuale.spotter && (
+    !valido(attuale.rip_assistite) || !valido(passata.rip_assistite) ||
+    Number(attuale.rip_assistite)!==Number(passata.rip_assistite)
+  )) return 'non_confrontabile';
   const forza = assistito ? Number(kgB)-Number(kgA) : Number(kgA)-Number(kgB);
   const rip = Number(attuale.ripetizioni)-Number(passata.ripetizioni);
   if (forza === 0 && rip === 0) return 'pari';
@@ -42,7 +49,10 @@ export function confrontoGhost({sedute=[],serie=[],sedutaAttivaId,esercizioId,as
   const ultimo=candidati.find(s=>serie.some(r=>r && !r.eliminata && r.stato==='fatta'
     && r.seduta_id===s.id && r.esercizio_id===esercizioId));
   if (!ultimo) return {disponibile:false, motivo:'Nessuna seduta precedente completata'};
-  const passate=fatte(serie.filter(r=>r.seduta_id===ultimo.id && r.esercizio_id===esercizioId));
+  // Mantieni anche le serie saltate per non spostare il confronto
+  // (serie 3 di oggi NON deve essere confrontata con serie 4 del Ghost).
+  const passate=serie.filter(r=>r && !r.eliminata && r.seduta_id===ultimo.id &&
+    r.esercizio_id===esercizioId).sort((a,b)=>(Number(a.ordine)||0)-(Number(b.ordine)||0));
   const risultati={vinta:0,persa:0,pari:0,mista:0,non_confrontabile:0};
   const complete=fatte(attuale);
   for (let i=0;i<complete.length;i++) {
@@ -52,7 +62,7 @@ export function confrontoGhost({sedute=[],serie=[],sedutaAttivaId,esercizioId,as
   }
   const prossima=attuale.findIndex(s=>s.stato!=='fatta');
   const indice=prossima<0 ? Math.max(0,attuale.length-1) : prossima;
-  const riferimento=passate[indice]||passate[passate.length-1]||null;
+  const riferimento=passate[indice]?.stato==='fatta' ? passate[indice] : null;
   const tuaSerie=attuale[indice]||null;
   const comparate=risultati.vinta+risultati.persa+risultati.pari;
   const stato=comparate===0 ? 'inizia' : risultati.vinta>risultati.persa ? 'vinci'
