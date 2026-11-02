@@ -6,6 +6,7 @@ on:
       - 'sw.js'
       - 'src/update-via-sw.js'
       - 'tests/sicurezza-release.mjs'
+      - 'tests/sincronizzazione-sicura.mjs'
       - '.github/workflows/pwa-safety.yml'
   push:
     branches: [main]
@@ -23,4 +24,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Check PWA release invariants
-        run: node tests/sicurezza-release.mjs
+        run: |
+          node tests/sicurezza-release.mjs
+          node tests/sincronizzazione-sicura.mjs
