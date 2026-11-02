@@ -47,7 +47,7 @@ test('mese: sessioni distinte, giorni, serie e PR dal passato',()=>{
  assert.equal(result.serie,4);assert.equal(result.esercizi,2);
  assert.equal(result.record,3,'due nuovi massimi lat e un nuovo massimo dips dopo il primo risultato');
  assert.equal(result.durataMinuti,90);
- assert.equal(result.esercizioPiuAllenato.nome,'Lat Machine');
+ assert.equal(result.esercizioPiuAllenato.nome,'Dips zavorrati','in caso di pari frequenza decide il nome in ordine alfabetico');
 });
 test('mese febbraio non inventa record per carichi sotto 5 ripetizioni o serie spotter',()=>{
  const r=calcolaRecapPalestra({...base(),anno:2026,mese:2});
