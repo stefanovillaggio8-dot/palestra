@@ -32,9 +32,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<link rel="stylesheet" href="./stile.css?v=395">
-<link rel="stylesheet" href="./stile-rpg.css?v=395">
-<link rel="stylesheet" href="./stile-premium.css?v=395">
+<link rel="stylesheet" href="./stile.css?v=396">
+<link rel="stylesheet" href="./stile-rpg.css?v=396">
+<link rel="stylesheet" href="./stile-premium.css?v=396">
 <!--
   LA VERSIONE NEL COLLEGAMENTO AL FOGLIO DI STILE.
 
@@ -66,25 +66,67 @@
      insieme, su 11 righe su 20: il bonus spingeva gli LP senza ricalcolare la
      divisione. Trovato leggendo il telefono. Il numero di versione sta in DUE
      file, questo e sw.js: i test I2 e I3 lo controllano. -->
-<script>window.PALESTRA_VERSIONE = 'palestra-v395';</script>
+<script>window.PALESTRA_VERSIONE = 'palestra-v396';</script>
 <script>
-window.addEventListener('error', function (e) {
-  var app = document.getElementById('app');
-  if (!app || !app.querySelector('.caricamento')) return;
-  app.innerHTML = '<div class="caricamento" style="padding:24px;text-align:left;white-space:pre-wrap">Avvio bloccato: ' +
-    String(e.message || 'errore JavaScript').replace(/[&<>]/g, function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];}) +
-    '\\nRiapri la pagina con internet. I tuoi allenamenti salvati non sono stati cancellati.</div>';
-});
-window.addEventListener('unhandledrejection', function (e) {
-  var app = document.getElementById('app');
-  if (!app || !app.querySelector('.caricamento')) return;
-  var r = e.reason;
-  app.innerHTML = '<div class="caricamento" style="padding:24px;text-align:left;white-space:pre-wrap">Caricamento interrotto: ' +
-    String(r && (r.message || r) || 'errore sconosciuto').replace(/[&<>]/g, function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];}) +
-    '\\nI tuoi allenamenti salvati non sono stati cancellati.</div>';
-});
+/* Protezione autonoma: funziona anche se il modulo principale non arriva mai.
+ * Prima su iPhone rimaneva "Avvio... / Carico i tuoi dati..." senza messaggi.
+ * Non tocca database, cache, sessione o allenamenti. */
+(function () {
+  var boot = { fase: 'caricamento degli script', pronto: false };
+  window.PALESTRA_AVVIO = boot;
+  function caricaAncora() { window.location.reload(); }
+  function mostraProblema(titolo, motivo) {
+    var app = document.getElementById('app');
+    if (!app || boot.pronto || !app.querySelector('.caricamento')) return;
+    while (app.firstChild) app.removeChild(app.firstChild);
+    var box = document.createElement('div');
+    box.className = 'caricamento avvio-aiuto';
+    var h = document.createElement('h2');
+    h.textContent = titolo;
+    var p = document.createElement('p');
+    p.textContent = motivo;
+    var nota = document.createElement('p');
+    nota.className = 'nota';
+    nota.textContent = 'I tuoi allenamenti locali non sono stati cancellati.';
+    var pulsante = document.createElement('button');
+    pulsante.type = 'button';
+    pulsante.className = 'bot principale';
+    pulsante.textContent = 'Riprova apertura';
+    pulsante.addEventListener('click', caricaAncora);
+    box.appendChild(h); box.appendChild(p);
+    box.appendChild(nota); box.appendChild(pulsante);
+    app.appendChild(box);
+  }
+  // Se perfino lo script JS non viene caricato, un solo nuovo tentativo
+  // automatico. Niente loop e niente pulizia delle cache.
+  var chiave = 'palestra-avvio-automatico-v396';
+  setTimeout(function () {
+    var app = document.getElementById('app');
+    if (boot.pronto || !app || !app.querySelector('.caricamento')) return;
+    if (boot.fase === 'caricamento degli script') {
+      var giaRiprovatO = false;
+      try { giaRiprovatO = sessionStorage.getItem(chiave) === '1'; } catch (_) {}
+      if (!giaRiprovatO) {
+        try { sessionStorage.setItem(chiave, '1'); } catch (_) {}
+        caricaAncora();
+        return;
+      }
+    }
+    mostraProblema('Non riesco a completare l’avvio',
+      'Fase: ' + boot.fase + '. Puoi riprovare da qui senza chiudere l’app.');
+  }, 16000);
+  window.addEventListener('error', function (e) {
+    mostraProblema('Errore durante l’avvio',
+      String(e && e.message || 'Errore JavaScript, controllo la connessione.'));
+  });
+  window.addEventListener('unhandledrejection', function (e) {
+    var r = e && e.reason;
+    mostraProblema('Caricamento interrotto',
+      String(r && (r.message || r) || 'Operazione non riuscita.'));
+  });
+})();
 </script>
-<script type="module" src="./src/app.js?v=395"></script>
+<script type="module" src="./src/app.js?v=396"></script>
 </body>
 </html>
 

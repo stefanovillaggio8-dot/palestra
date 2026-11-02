@@ -367,12 +367,21 @@ async function avvia() {
   let faseAvvio = 'inizializzazione';
   const aggiornaFaseAvvio = (testo) => {
     faseAvvio = testo;
-    if (statoAvvio && statoAvvio.isConnected) statoAvvio.textContent = 'Carico i tuoi dati...\\n' + testo;
+    if (window.PALESTRA_AVVIO) window.PALESTRA_AVVIO.fase = testo;
+    // Safari prima nascondeva la seconda riga: usare una frase leggibile.
+    if (statoAvvio && statoAvvio.isConnected) {
+      statoAvvio.textContent = 'Carico i tuoi dati… · ' + testo;
+    }
   };
   const controlloAvvio = setTimeout(() => {
     if (statoAvvio && statoAvvio.isConnected) {
-      statoAvvio.textContent = 'Avvio bloccato durante: ' + faseAvvio +
-        '. Ricarica la pagina una volta con internet. I tuoi allenamenti salvati non sono stati cancellati.';
+      svuota(statoAvvio);
+      statoAvvio.appendChild(el('p', { testo: 'L’app impiega troppo tempo durante: ' + faseAvvio + '.' }));
+      statoAvvio.appendChild(el('p', { class: 'nota', testo: 'Puoi riprovare senza cancellare gli allenamenti salvati.' }));
+      statoAvvio.appendChild(bottone('Riprova apertura', {
+        onClick: () => window.location.reload(),
+        classe: 'principale',
+      }));
     }
   }, 12000);
 
@@ -399,34 +408,45 @@ async function avvia() {
     ascoltaScorrimento();
 
     aggiornaFaseAvvio('lettura di esercizi e allenamenti salvati');
-    await ricaricaTutto();
+    await ricaricaTutto({ caricaAmiciOnline: false });
 
     aggiornaFaseAvvio('controllo dei dati salvati');
     // Una volta sola: gli esercizi con i zavorri salvati come assistenza passano
     // a zavorri. Solo l'etichetta, nessun numero viene toccato. Vedi la funzione.
     const sistematiZavorri = await sistemaZavorriComeZavorri();
-    if (sistematiZavorri.length) await ricaricaTutto();
+    if (sistematiZavorri.length) await ricaricaTutto({ caricaAmiciOnline: false });
 
     // Il One Arm Overhead Tricep Extension è un normale cavo, non assistenza.
     const tricipiteCavoCorretto = await correggiOneArmTricepExtension();
-    if (tricipiteCavoCorretto) await ricaricaTutto();
+    if (tricipiteCavoCorretto) await ricaricaTutto({ caricaAmiciOnline: false });
 
     // Un esercizio ha cambiato nome (Ste, 21/10/2026). Solo il nome: l'id resta,
     // cosi le serie vecchie restano attaccate all'esercizio giusto.
     const convenzioni = await sistemaConvenzioniEsercizi();
-    if (convenzioni.length) await ricaricaTutto();
+    if (convenzioni.length) await ricaricaTutto({ caricaAmiciOnline: false });
 
     // Il Face Pull ora è un solo esercizio: la carrucola si sceglie nella sua configurazione.
     const facePullUnificato = await unificaFacePullDoppia();
-    if (facePullUnificato) await ricaricaTutto();
+    if (facePullUnificato) await ricaricaTutto({ caricaAmiciOnline: false });
 
     const rinominati = await rinominaEserciziCambiati();
     if (rinominati.length) {
-      await ricaricaTutto();
+      await ricaricaTutto({ caricaAmiciOnline: false });
       avviso(rinominati.map((r) => r.a).join(' e ') + ': adesso l\'app lo chiama cosi\'. '
         + 'I tuoi numeri non sono cambiati.', { tipo: 'ok' });
     }
 
+    // Prima i dati salvati sul dispositivo: la rete NON deve bloccare la scheda.
+    // Le migrazioni locali sono finite; ora si può navigare anche offline.
+    aggiornaFaseAvvio('preparazione delle statistiche locali');
+    await aggiornaPesoInMemoria();
+    await caricaLivelliImparati();
+    window.addEventListener('hashchange', () => disegna());
+    disegna();
+    if (window.PALESTRA_AVVIO) window.PALESTRA_AVVIO.pronto = true;
+    clearTimeout(controlloAvvio);
+
+    // Quando il cloud finisce, ricarichiamo i dati e ridisegniamo normalmente.
     aggiornaFaseAvvio('preparazione della sincronizzazione online');
     // La prima sincronizzazione non deve partire prima della relazione d'amicizia:
     // dopo un invito valido il server autorizza il download dei dati condivisi.
@@ -471,8 +491,6 @@ async function avvia() {
     aggiornaCreditoStreakOnline().then((cambiata) => {
       if (cambiata) disegna();
     }).catch(() => {});
-    window.addEventListener('hashchange', () => disegna());
-
     // LE SEZIONI CHE ENTRANO A CASCATA (22/10/2026).
     //
     // Ste: "le sezioni entrano a cascata solo quando cambi schermata, non a
@@ -525,7 +543,12 @@ if ('serviceWorker' in navigator) {
     }
   } catch (errore) {
     clearTimeout(controlloAvvio);
-    mostraErrore(radice, errore);
+    if (window.PALESTRA_AVVIO && window.PALESTRA_AVVIO.pronto) {
+      console.error('Avvio online non terminato:', errore);
+      avviso('Connessione online non riuscita. Puoi usare i dati locali; riproveremo.', { tipo: 'errore', durata: 9000 });
+    } else {
+      mostraErrore(radice, errore);
+    }
   }
 }
 
@@ -645,23 +668,14 @@ function mostraErrore(radice, errore) {
     el('p', { class: 'nota', testo: 'Motore scelto per i dati: ' + db.MOTORE_SCELTO.tipo + '. Browser: ' + navigator.userAgent }),
     el('div', { class: 'riga-pulsanti' }, [
       bottone('Riprova', { onClick: () => location.reload(), classe: 'principale grande' }),
-      bottone('Prova con la memoria del browser', {
-        onClick: async () => {
-          try {
-            await db.svuotaTutto();
-            for (const t of TABELLE) { try { localStorage.removeItem('palestra-mem-' + t); } catch { /* pazienza */ } }
-            try { localStorage.removeItem('palestra-mem-meta'); } catch { /* pazienza */ }
-            location.reload();
-          } catch (e) { avviso('Non sono riuscito a cancellare: ' + e.message, { tipo: 'errore' }); }
-        },
-        classe: 'fantasma',
-      }),
+      // Recupero mai distruttivo: non cancellare IndexedDB o dati offline.
+
     ]),
   ]));
 }
 
 /** Ricarica tutto quello che serve per la vista corrente. */
-async function ricaricaTutto() {
+async function ricaricaTutto({ caricaAmiciOnline = true } = {}) {
   V.esercizi = await db.tutti('esercizi');
   V.schede = await db.tutti('schede');
   V.versi = await db.tutti('versioni');
@@ -673,7 +687,8 @@ async function ricaricaTutto() {
   // arrivano da una RPC limitata e non entrano mai nella coda di sincronizzazione.
   const idMio = accountAttivo();
   V.profili = (await db.tutti('profili')).filter((p) => p && p.id === idMio);
-  if (sb.collegato()) {
+  // All'avvio leggere il cloud qui può bloccare anche l'IndexedDB già pronto.
+  if (caricaAmiciOnline && sb.collegato()) {
     try {
       const amiciOnline = await sb.profiliAmici();
       const visti = new Set(V.profili.map((p) => p.id));
@@ -9428,7 +9443,10 @@ function disegnaBarraGioco(contenitore) {
 
 /* ===================== avvio app ===================== */
 
-avvia();
+avvia().catch((errore) => {
+  const radice = document.getElementById('app');
+  if (radice) mostraErrore(radice, errore);
+});
 
 // Esportato solo per i test: serve a riavviare l'app e verificare che le correzioni
 // al nome della scheda vengano applicate anche a chi l'ha già installata.

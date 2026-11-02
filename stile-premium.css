@@ -1070,3 +1070,39 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-aura-divina-premium {animati
   #stato-salvataggio .barra-gioco{gap:3px;}
   #stato-salvataggio .barra-gioco .chip-gioco{font-size:.59rem;padding:4px 5px;}
 }
+
+
+/* v396: avvio lento — diagnostica e riapertura sicura, anche su iPhone. */
+#app .caricamento.avvio-aiuto{
+  max-width:520px;
+  margin:clamp(22px,8vh,70px) auto;
+  padding:23px 19px;
+  text-align:left;
+  white-space:normal;
+  border:1px solid rgba(255,192,111,.34);
+  border-radius:19px;
+  background:linear-gradient(150deg,rgba(35,43,57,.95),rgba(16,29,40,.97));
+}
+#app .avvio-aiuto h2{margin:0 0 10px;font-size:1.15rem;color:#f7e9d1}
+#app .avvio-aiuto p{margin:9px 0;line-height:1.55;overflow-wrap:break-word}
+#app .avvio-aiuto button{min-height:44px;width:100%;margin-top:14px;border-radius:12px}
+#app .caricamento>p{margin:8px auto;line-height:1.5}
+#app .caricamento>button{min-height:44px;margin-top:12px}
+
+
+/* v396 — avvio leggibile e recupero sicuro, anche su iPhone. */
+.avvio-aiuto,.caricamento:has(> button){
+  max-width:470px;
+  margin:30px auto;
+  padding:20px 18px;
+  text-align:left;
+  border-radius:17px;
+  border:1px solid rgba(151,201,217,.26);
+  background:linear-gradient(135deg,rgba(29,48,64,.96),rgba(18,30,44,.97));
+  box-shadow:0 12px 30px rgba(0,0,0,.2);
+  line-height:1.55;
+}
+.avvio-aiuto h2,.avvio-aiuto strong{display:block;font-size:1.14rem;margin:0 0 12px;color:#ebf9f7}
+.avvio-aiuto p,.caricamento:has(> button) p{margin:9px 0;color:#c6d8e2;font-size:.9rem}
+.avvio-aiuto button,.caricamento:has(> button) button{min-height:44px;margin-top:10px}
+@media(max-width:480px){.avvio-aiuto,.caricamento:has(> button){margin:22px 12px;padding:16px}}
