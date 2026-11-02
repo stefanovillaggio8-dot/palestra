@@ -160,3 +160,86 @@ export function calcolaRecapPalestra({
     meseMigliore:attivi.slice().sort((a,b)=>b.allenamenti-a.allenamenti || a.mese-b.mese)[0]||null,
   };
 }
+
+
+/**
+ * Miglior serie DI OGNI ESERCIZIO PER MESE: mostra il risultato assoluto,
+ * non variazioni percentuali o "kg guadagnati".
+ * Il peso corporeo è il valore salvato nella serie/seduta o l'ultima pesata
+ * registrata entro quel giorno; mai una pesata futura o il peso attuale.
+ * Non modifica record, rank, XP o dati storici.
+ */
+export function tabellaEserciziAnnuale({
+  sedute = [], serie = [], esercizi = [], pesi = [], anno, oggi = null,
+} = {}) {
+  const year = Number(anno);
+  if (!Number.isInteger(year) || year < 2000 || year > 2100) throw new RangeError('Anno non valido');
+  const dataOggi = dataValida(oggi) || (() => {
+    const d = new Date();
+    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  })();
+  const storico = confrontiStorici(sedute, serie, esercizi, dataOggi);
+  const misure = (pesi || [])
+    .filter(p => p && !p.eliminata && dataValida(p.data) && numero(p.kg) !== null &&
+      numero(p.kg) >= 25 && numero(p.kg) <= 300 && dataValida(p.data) <= dataOggi)
+    .slice().sort((a,b) => String(a.data).localeCompare(String(b.data)));
+  const mensile = Array.from({length:12},(_,i)=>({
+    mese:i+1, nome:mesi[i], esercizi:[],
+  }));
+  const migliori = Array.from({length:12},()=>new Map());
+
+  function pesoCorpoAllaSerie(set, sessione) {
+    const diretto = [set.peso_corpo, set.peso_corporeo, sessione.peso_corpo, sessione.peso_corporeo]
+      .map(numero).find(n=>n !== null && n >= 25 && n <= 300);
+    if(diretto !== undefined) return diretto;
+    let ultimo = null;
+    for(const p of misure) {
+      if (String(p.data).slice(0,10) <= sessione._data) ultimo = numero(p.kg);
+      else break;
+    }
+    return ultimo;
+  }
+  for(const sessione of storico.sedute) {
+    if(Number(sessione._data.slice(0,4)) !== year) continue;
+    const index = Number(sessione._data.slice(5,7))-1;
+    for(const set of storico.perSeduta.get(sessione.id)) {
+      if (set.spotter || set.assistito || (numero(set.rip_assistite) || 0)>0) continue;
+      const esercizio = storico.catalogo.get(set.esercizio_id);
+      if(!esercizio) continue;
+      const conv = esercizio.convenzione;
+      const rip = numero(set.ripetizioni);
+      if(rip === null || rip <= 0) continue;
+      const corpoLibero = conv === CONVENZIONI.CORPO_LIBERO;
+      const zavorre = conv === CONVENZIONI.ZAVORRI;
+      const assistenza = conv === CONVENZIONI.ASSISTENZA;
+      const caricoRegistrato = corpoLibero ? null : numero(
+        zavorre || assistenza ? set.peso_assistenza : set.peso);
+      if(!corpoLibero && (caricoRegistrato === null || caricoRegistrato < 0)) continue;
+      const p = { peso: caricoRegistrato, ripetizioni:rip };
+      const vecchio = migliori[index].get(esercizio.id);
+      const misurazione = pesoCorpoAllaSerie(set,sessione);
+      const candidato = {
+        esercizio_id:esercizio.id, nome:String(esercizio.nome || 'Esercizio'),
+        convenzione:conv || '', peso:caricoRegistrato,
+        ripetizioni:rip, pesoCorporeo:misurazione,
+        data:sessione._data, ora:String(sessione.ora_inizio || ''),
+      };
+      let migliore = !vecchio;
+      if(vecchio) {
+        if(corpoLibero) migliore = rip > vecchio.ripetizioni;
+        else migliore = confrontaSet(p,vecchio,conv) > 0;
+        if(!migliore && rip === vecchio.ripetizioni && caricoRegistrato === vecchio.peso) {
+          // A parità di prestazione, usa quella più recente dello stesso mese.
+          migliore = sessione._data > vecchio.data ||
+            (sessione._data === vecchio.data && candidato.ora > vecchio.ora);
+        }
+      }
+      if(migliore) migliori[index].set(esercizio.id,candidato);
+    }
+  }
+  for(let i=0;i<12;i++) {
+    mensile[i].esercizi=[...migliori[i].values()]
+      .sort((a,b)=>a.nome.localeCompare(b.nome,'it') || a.esercizio_id.localeCompare(b.esercizio_id));
+  }
+  return mensile;
+}
