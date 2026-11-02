@@ -3295,6 +3295,8 @@ function rigaSerie(serie, numero, confronto, seduta, pesoRigaSorella = null) {
       const tondo = Math.round(valore * 100) / 100;
       peso.value = String(tondo).replace('.', ',');
       perView[chiave] = tondo;
+      GHOST_BOZZE.add(serie.id);
+      aggiornaGhostDalForm(serie.seduta_id,serie.esercizio_id,serie.id);
       aggiornaSerie(serie, { [chiave]: tondo });
     };
     const rigaPeso = el('div', { class: 'gruppo-peso' }, [
@@ -3487,7 +3489,7 @@ const rip = campoNumero(serieCardio ? valoreMinutiCardioNelCampo(serie) : serie.
     if (!ev.target?.classList?.contains('campo-peso') &&
         !ev.target?.classList?.contains('campo-rip')) return;
     GHOST_BOZZE.add(serie.id);
-    aggiornaGhostDalForm(serie.seduta_id,serie.esercizio_id);
+    aggiornaGhostDalForm(serie.seduta_id,serie.esercizio_id,serie.id);
   });
   return riga;
 }
@@ -3650,7 +3652,7 @@ function mostraErroreBreve(testo) {
 // non li modifica o non spunta la serie.
 const GHOST_BOZZE = new Set();
 
-function aggiornaGhostDalForm(sedutaId, esercizioId) {
+function aggiornaGhostDalForm(sedutaId, esercizioId, serieFocusId=null) {
   if (!ghostAttivoPerAccount() || typeof document==='undefined') return;
   const pannelli=[...document.querySelectorAll('.ghost-inline')]
     .filter(n=>n.dataset?.ghostSeduta===sedutaId &&
@@ -3680,7 +3682,7 @@ function aggiornaGhostDalForm(sedutaId, esercizioId) {
   const ghost=confrontoGhost({
     sedute:seduteDellaPersona(),serie:copie,sedutaAttivaId:sedutaId,
     esercizioId,assistito:!convenzioneMisuraCarico(esercizio.convenzione),
-    cardio:eCardio(esercizio),bozzaIds:[...GHOST_BOZZE],
+    cardio:eCardio(esercizio),bozzaIds:[...GHOST_BOZZE],serieFocusId,
   });
   if (!ghost.disponibile) return;
   for(const pannello of pannelli) {
@@ -3735,7 +3737,7 @@ async function aggiornaSerie(serie, campi) {
   const idx = V.serie.findIndex((x) => x.id === serie.id);
   if (idx >= 0) V.serie[idx] = salvata;
   if(campi.stato==='fatta') GHOST_BOZZE.delete(serie.id);
-  aggiornaGhostDalForm(serie.seduta_id,serie.esercizio_id);
+  aggiornaGhostDalForm(serie.seduta_id,serie.esercizio_id,serie.id);
   disegnaStatoSalvataggio();
   return salvata;
 }
