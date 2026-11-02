@@ -3729,7 +3729,7 @@ function mostraErroreBreve(testo) {
   console.error(testo);
 }
 
-// Una bozza e' distinta da una serie gia' completata. I numeri copiati
+// Una bozza e' distinta da una serie già completata. I numeri copiati
 // dalla scheda precedente restano invisibili nel confronto finche' l'utente
 // non li modifica o non spunta la serie.
 const GHOST_BOZZE = new Set();
@@ -4106,11 +4106,11 @@ async function eliminaSeduteEGuadagni(ids) {
     ricompense:ricompenseMie(),
   });
   // Le ricompense vengono eliminate con lo stesso meccanismo dello storico,
-  // quindi il sync non potra' farle riapparire dopo l'aggiornamento.
+  // quindi il sync non potrà farle riapparire dopo l'aggiornamento.
   const serieCestinate=V.serie.filter(x=>!x.eliminata && mie.some(s=>s.id===x.seduta_id))
     .map(x=>x.id);
   // Il registro va scritto PRIMA di cestinare: anche se una scrittura si
-  // interrompe, l'utente puo' recuperare le righe gia' eliminate.
+  // interrompe, l'utente può recuperare le righe già eliminate.
   await registraVoceCronologia({
     tipo:'sedute_eliminate',
     titolo:mie.length===1?'Seduta eliminata':'Eliminate '+mie.length+' sedute',
@@ -6716,7 +6716,7 @@ async function assegnaRicompense(sedutaId) {
     if (!nuove.length) return [];
     for (const r of nuove) await db.salva('ricompense', {
       ...collegaPremioASeduta(r, sedutaId),
-      // Un premio gia' cestinato puo' essere riottenuto con un'altra seduta.
+      // Un premio già cestinato può essere riottenuto con un'altra seduta.
       eliminata:false, eliminata_il:null,
       quando:r.quando || adesso(),
     });
