@@ -3938,6 +3938,117 @@ async function eliminaSeduteEGuadagni(ids) {
   };
 }
 
+// La Cronologia usa la stessa tabella note sincronizzata dell'app, quindi
+// funziona anche offline e non richiede un secondo database.
+async function annullaEventoCronologia(voce) {
+  await aspettaSalvataggi();
+  const nota=await db.prendi('note',voce.id);
+  const evento=eventoDaNota(nota,accountAttivo());
+  if (!evento || evento.annullato) throw new Error('Questa azione è già stata annullata o non è più disponibile.');
+  if (evento.tipo==='serie_modificata') {
+    const serie=await db.prendi('serie',evento.serieId);
+    if (!modificheAncoraAttuali(serie,evento)) {
+      throw new Error('La serie è stata modificata di nuovo: non sovrascrivo i valori più recenti.');
+    }
+    await cambiaSerie(evento.serieId,evento.prima);
+  } else if (evento.tipo==='serie_eliminata') {
+    const serie=await db.prendi('serie',evento.serieId);
+    if (!serie || !serie.eliminata) {
+      throw new Error('La serie è già presente oppure non è più recuperabile.');
+    }
+    const seduta=await db.prendi('sedute',serie.seduta_id);
+    if (!seduta || seduta.eliminata) {
+      throw new Error('Ripristina prima la seduta a cui apparteneva la serie.');
+    }
+    await db.recupera('serie',evento.serieId);
+  } else if (evento.tipo==='sedute_eliminate') {
+    // Ripristiniamo esattamente gli identificativi messi nel cestino con
+    // quell'azione. Non creiamo nuove ricompense e non duplicheremo XP/Aura.
+    let recuperate=0;
+    for (const id of evento.sedute||[]) {
+      const r=await db.prendi('sedute',id);
+      if (r?.eliminata) { await db.recupera('sedute',id); recuperate++; }
+    }
+    for (const id of evento.serie||[]) {
+      const r=await db.prendi('serie',id);
+      if (r?.eliminata) { await db.recupera('serie',id); recuperate++; }
+    }
+    for (const id of evento.ricompense||[]) {
+      const r=await db.prendi('ricompense',id);
+      if (r?.eliminata) { await db.recupera('ricompense',id); recuperate++; }
+    }
+    if (!recuperate) throw new Error('I dati sono già stati ripristinati oppure non sono disponibili.');
+  } else {
+    throw new Error('Questa voce è informativa e non si può annullare.');
+  }
+  await db.salva('note',annullaVoce(nota,evento));
+  await ricaricaTutto();
+  disegna();
+  avviso('Azione annullata. Dati, statistiche e ricompense disponibili aggiornati.',{tipo:'ok',durata:6000});
+}
+
+let filtroCronologia='tutte';
+function vistaCronologia(zona) {
+  zona.appendChild(el('a',{href:'#/storico',class:'indietro',testo:'← Storico'}));
+  zona.appendChild(el('h1',{testo:'Cronologia e Annulla'}));
+  zona.appendChild(el('p',{class:'nota',testo:'Le modifiche vengono registrate da questa versione in poi. Le azioni reversibili possono essere ripristinate anche dopo il riavvio.'}));
+  const eventi=storicoCronologia(V.note,accountAttivo());
+  zona.appendChild(el('div',{class:'cronologia-filtri'},[
+    bottone('Tutte',{classe:filtroCronologia==='tutte'?'principale piccolo-b':'fantasma piccolo-b',
+      onClick:()=>{filtroCronologia='tutte';disegna();}}),
+    bottone('Cestino',{classe:filtroCronologia==='cestino'?'principale piccolo-b':'fantasma piccolo-b',
+      onClick:()=>{filtroCronologia='cestino';disegna();}}),
+  ]));
+  const mostrate=eventi.filter(e=>filtroCronologia!=='cestino' ||
+    e.tipo==='sedute_eliminate'||e.tipo==='serie_eliminata');
+  if (!mostrate.length) {
+    zona.appendChild(el('p',{class:'cronologia-vuota',testo:filtroCronologia==='cestino'
+      ? 'Nessuna eliminazione registrata da questa versione.'
+      : 'Ancora nessuna modifica registrata. Inizia un allenamento e la cronologia comparirà qui.'}));
+    return;
+  }
+  const lista=el('div',{class:'cronologia-lista'});
+  for (const ev of mostrate) {
+    const ripristinabile=['serie_modificata','serie_eliminata','sedute_eliminate'].includes(ev.tipo);
+    const serie=ev.serieId ? V.serie.find(x=>x.id===ev.serieId) : null;
+    const possibile=ev.tipo==='serie_modificata' ? modificheAncoraAttuali(serie,ev)
+      : ev.tipo==='serie_eliminata' ? !serie : true;
+    const icona=ev.tipo==='sedute_eliminate'||ev.tipo==='serie_eliminata' ? '🗑' :
+      ev.tipo==='serie_modificata' ? '✏' : '🏅';
+    const ora=new Date(ev.quando);
+    const etichettaOra=Number.isFinite(ora.getTime())
+      ? ora.toLocaleString('it-IT',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})
+      : '';
+    const card=el('section',{class:'cronologia-evento'+(ev.annullato?' annullato':'')},[
+      el('span',{class:'cronologia-icona',testo:icona}),
+      el('div',{class:'cronologia-contenuto'},[
+        el('div',{class:'cronologia-titolo'},[
+          el('strong',{testo:ev.titolo}),
+          el('small',{testo:etichettaOra}),
+        ]),
+        ev.dettaglio ? el('p',{testo:ev.dettaglio,class:'cronologia-dettaglio'}) : null,
+        ev.annullato ? el('span',{class:'cronologia-stato',testo:'✓ Azione annullata'}) : null,
+        ripristinabile&&!ev.annullato ? bottone('↶ Annulla',{
+          classe:'fantasma piccolo-b cronologia-annulla',
+          disabilitato:!possibile,
+          titolo:possibile?'Ripristina la modifica senza cancellare le altre':
+            'Questa modifica è stata superata da cambiamenti successivi',
+          onClick:async()=>{
+            const ok=await chiediConferma('Annullare questa azione?',
+              'Ripristinerò soltanto i dati collegati a questa voce. Le modifiche più recenti non saranno sovrascritte.',
+              {testoOk:'Ripristina',testoAnnulla:'Lascia così'});
+            if (!ok) return;
+            try { await annullaEventoCronologia(ev); }
+            catch(e) { avviso('Ripristino non riuscito: '+e.message,{tipo:'errore',durata:8500}); }
+          },
+        }) : null,
+      ]),
+    ]);
+    lista.appendChild(card);
+  }
+  zona.appendChild(lista);
+}
+
 const selezioneStorico = { attiva: false, ids: new Set() };
 
 function vistaStorico(zona) {
