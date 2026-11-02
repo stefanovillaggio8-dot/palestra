@@ -38,6 +38,7 @@ import { apriRegolazioniMacchina } from './regolazioni-ui.js';
 import { riassuntoFinaleAllenamento } from './finale-allenamento.js';
 import { collegaPremioASeduta, premiDaAnnullare } from './ricompense-sedute.js';
 import { confrontoGhost } from './ghost-mode.js';
+import { apriModaleComandoVocale } from './comandi-vocali-ui.js';
 import { nuovaVoceCronologia, eventoDaNota, storicoCronologia, variazioniSerie, modificheAncoraAttuali, annullaVoce } from './cronologia.js';
 import { mostraFinaleCinematico } from './finale-allenamento-ui.js';
 import { calcolaAvatar, CLASSI, classeConsigliata, eCardio, minutiDiCardio, nomePremio, statoVisivo, percorsoStato, schedaProgressione, STATI_IMMAGINE } from './avatar-rpg.js';
@@ -3159,6 +3160,69 @@ function valoreMinutiCardioNelCampo(serie) {
   return minutiDiCardio(n, serie.durata_unita || 'legacy');
 }
 
+// Riconoscimento solo su richiesta: conferma obbligatoria prima di cambiare i dati.
+function apriComandoSerieAllenamento(serie,numero) {
+ const seduta=seduteDellaPersona().find(s=>s.id===serie.seduta_id&&s.stato==='in_corso'&&!s.eliminata);
+ const esercizio=esercizioPerId(serie.esercizio_id);
+ if(!seduta||!esercizio)return;
+ const righe=()=>serieDellaPersona().filter(s=>s.seduta_id===seduta.id&&
+   s.esercizio_id===serie.esercizio_id&&!s.eliminata)
+   .sort((a,b)=>(Number(a.ordine)||0)-(Number(b.ordine)||0));
+ apriModaleComandoVocale({
+  numero,cardio:eCardio(esercizio),righe,
+  suConferma:async(comando,b)=>{
+   const live=await db.prendi('sedute',seduta.id);
+   if(!live||live.eliminata||live.stato!=='in_corso')
+     throw new Error('La seduta non è più attiva.');
+   if(comando.tipo==='recupero_avvia'||comando.tipo==='recupero_stop'){
+     inizioRecuperoSerie=comando.tipo==='recupero_avvia'?Date.now():null;
+     try{
+       const key='palestra-recupero:'+seduta.id;
+       if(inizioRecuperoSerie)localStorage.setItem(key,String(inizioRecuperoSerie));
+       else localStorage.removeItem(key);
+     }catch{}
+     for(const id of ['cronometro-fine','cronometro-recupero-alto']){
+       const n=document.getElementById(id);
+       if(n)n.textContent='Recupero 00:00';
+     }
+     avviso(comando.tipo==='recupero_avvia'?'Recupero avviato':'Recupero fermato',
+       {tipo:'ok',durata:2200});
+     return;
+   }
+   const target=b&&await db.prendi('serie',b.id);
+   if(!target||target.eliminata||target.seduta_id!==seduta.id||
+     target.esercizio_id!==esercizio.id)throw new Error('Questa serie non è disponibile.');
+   if(comando.tipo==='completa_serie'){
+     if(eFatta(target)){avviso('Serie già completata.',{tipo:'ok'});return;}
+     const row=[...document.querySelectorAll('.riga-serie[data-serie-id]')]
+       .find(x=>x.dataset.serieId===target.id);
+     const spunta=row?.querySelector('.bottone-spunta');
+     if(spunta) spunta.click(); // suono, timer e salvataggio del flusso originale
+     else {
+       inizioRecuperoSerie=Date.now();
+       try{localStorage.setItem('palestra-recupero:'+seduta.id,String(inizioRecuperoSerie))}catch{}
+       const campi={stato:'fatta'};
+       if(pesoCorporeoOra()!==null)campi.peso_corpo=pesoCorporeoOra();
+       await aggiornaSerie(target,campi);disegna();
+     }
+     return;
+   }
+   if(comando.tipo!=='dati')throw new Error('Comando non riconosciuto.');
+   if(eFatta(target))throw new Error('Togli prima la spunta per modificare questa serie.');
+   const campi={
+     ...(comando.campi.peso!==undefined?{
+       [convenzioneMisuraCarico(esercizio.convenzione)?'peso':'peso_assistenza']:comando.campi.peso
+     }:{}),
+     ...(comando.campi.ripetizioni!==undefined?{ripetizioni:comando.campi.ripetizioni}:{}),
+     ...(eCardio(esercizio)?{durata_unita:'minuti'}:{}),
+   };
+   await aggiornaSerie(target,campi);
+   disegna();
+   avviso('Serie aggiornata. Spuntala dopo averla eseguita.',{tipo:'ok',durata:3300});
+  },
+ });
+}
+
 function rigaSerie(serie, numero, confronto, seduta, pesoRigaSorella = null) {
   const e = esercizioPerId(serie.esercizio_id);
   const assistenza = e && !convenzioneMisuraCarico(e.convenzione);
@@ -3266,6 +3330,12 @@ function rigaSerie(serie, numero, confronto, seduta, pesoRigaSorella = null) {
         .catch((err) => { registra({ cosa: 'salvataggio FALLITO', errore: String((err && err.message) || err) }); });
     },
   }, [el('span', { testo: String(numero) })]));
+
+  riga.appendChild(bottone('🎙', {
+    classe:'fantasma voce-serie-pulsante',
+    titolo:'Detta peso, ripetizioni o recupero per la serie '+numero,
+    onClick:()=>apriComandoSerieAllenamento(serie,numero),
+  }));
 
 // IL PESO. Sul cardio non lo disegno: vedi la spiegazione di `serieCardio` sopra.
   if (!serieCardio) {
