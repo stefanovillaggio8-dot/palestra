@@ -406,7 +406,10 @@ self.addEventListener('fetch', (evento) => {
     // I CSS/JS locali sono precaricati senza query, mentre index.html li
     // richiede con ?v=VERSIONE. Offline bisogna trovare lo stesso asset,
     // senza ignorare query arbitrarie o accettare una release diversa.
-    if (/\.(?:css|js)$/i.test(url.pathname) &&
+    // Anche i manifest e l'icona Home hanno ?v=407 per evitare vecchie
+    // icone iPhone/Android: offline devono usare le copie gia' precaricate.
+    if ((/\.(?:css|js|webmanifest)$/i.test(url.pathname) ||
+         /\/img\/icon-palestra-v407-192\.png$/i.test(url.pathname)) &&
         url.searchParams.size === 1 &&
         url.searchParams.get('v') === NUMERO) {
       const precaricata = await cache.match(richiesta, { ignoreSearch: true });
