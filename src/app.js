@@ -3671,7 +3671,7 @@ function aggiornaGhostDalForm(sedutaId, esercizioId) {
       const input=riga.querySelector(selettore);
       if (!input) continue;
       const valore=String(input.value||'').trim().replace(',','.');
-      if (valore==='' || /^[+-]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)$/.test(valore))
+      if (valore==='' || /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(valore))
         copia[campo]=valore===''?null:Number(valore);
     }
     if(eCardio(esercizio)) copia.durata_unita='minuti';
