@@ -78,12 +78,18 @@ export function confrontoGhost({sedute=[],serie=[],sedutaAttivaId,esercizioId,as
     disponibile:true, data:ultimo.data, sedutaId:ultimo.id, risultati,
     comparate, completate:complete.length, totale:attuale.length,
     stato,
+    statoVisuale:bozza?'bozza':stato,
     bozza, anteprima,
     oggi: tuaSerie && (tuaSerie.stato==='fatta' || bozza)
       ? testoSerie(tuaSerie,{assistito,cardio}) : '— Da segnare',
     ghost:testoSerie(riferimento,{assistito,cardio}),
     indice:indice+1,
-    etichetta:stato==='vinci'?'Sei avanti sul Ghost':stato==='insegui'?'Il Ghost è avanti':
+    etichetta:bozza ? (
+      anteprima==='vinta'?'Bozza migliore · da completare':
+      anteprima==='persa'?'Bozza sotto al Ghost · da completare':
+      anteprima==='pari'?'Bozza pari · da completare':
+      'Bozza da completare'
+    ) : stato==='vinci'?'Sei avanti sul Ghost':stato==='insegui'?'Il Ghost è avanti':
       stato==='pari'?'Sfida in parità':'Il tuo avversario è pronto',
     messaggioBozza: !bozza ? '' :
       anteprima==='vinta'?'Bozza: se completi così, superi il Ghost':
