@@ -1,6 +1,6 @@
 // Dialogo accessibile e non invasivo per dettare UNA sola serie.
 // Non registra audio né salva trascrizioni. La conferma è obbligatoria.
-import { analizzaComandoVocale, supportoComandiVocali } from './comandi-vocali.js';
+import { analizzaComandoVocale, supportoComandiVocali, normalizzaDettaturaSerie, scegliTrascrizioneVocale } from './comandi-vocali.js';
 import { el, bottone } from './ui.js';
 
 let modaleAttiva=null;
@@ -78,19 +78,28 @@ export function apriModaleComandoVocale({ numero=1, cardio=false, righe, suConfe
      riconoscitore?.abort();
      const r=new supporto.costruttore();
      riconoscitore=r;
-     r.lang='it-IT';r.continuous=false;r.interimResults=false;r.maxAlternatives=1;
+     r.lang='it-IT';r.continuous=false;r.interimResults=false;r.maxAlternatives=5;
      r.onstart=()=>{if(!chiuso){stato.textContent='🎙 Ti ascolto, parla ora.';ascolto.disabled=true;}};
      r.onresult=(event)=>{
        if(chiuso)return;
        const parole=[];
        for(let i=event.resultIndex||0;i<event.results.length;i++) {
          const x=event.results[i];
-         if(x?.isFinal && x[0]?.transcript)parole.push(x[0].transcript);
+         if(!x?.isFinal)continue;
+         const alternative=[];
+         for(let j=0;j<x.length;j++)if(x[j]?.transcript)alternative.push(x[j].transcript);
+         const scelta=scegliTrascrizioneVocale(alternative,{cardio,maxSerie:righe().length});
+         if(scelta)parole.push(scelta);
        }
        if(parole.length) {
-         input.value=parole.join(' ').trim();
+         const trascrizione=parole.join(' ').trim();
+         input.value=normalizzaDettaturaSerie(trascrizione,{cardio});
          aggiorna();
-         stato.textContent='Ho capito: «'+input.value+'». Controlla prima di confermare.';
+         const euroCorretto=!cardio&&/\b\d+\s+eur(?:o|i|os)\b/i.test(trascrizione)&&
+           /\bripetizioni\b/.test(input.value);
+         stato.textContent=euroCorretto
+           ? 'Il microfono ha scritto «euro»: intendevo ripetizioni. Controlla il numero prima di confermare.'
+           : 'Ho capito: «'+input.value+'». Controlla prima di confermare.';
        }
      };
      r.onerror=(ev)=>{
