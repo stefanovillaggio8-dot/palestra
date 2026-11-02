@@ -30,7 +30,7 @@ test('coach gestisce dati assenti senza errori',()=>{
 });
 test('coach visibile e disponibile offline senza modificare la scheda',()=>{
  const app=read('src/app.js'),sw=read('sw.js');
- assert.match(app,/zona\.appendChild\(cardCoachProgressi\(\)\)/);
+ assert.match(app,/extraDentro\.appendChild\(cardCoachProgressi\(\)\)/);
  assert.match(sw,/src\/analisi-progressi\.js/);
  const body=app.slice(app.indexOf('function cardCoachProgressi()'),app.indexOf('function vistaProgressi('));
  assert.doesNotMatch(body,/db\.salva\(|sb\.scrivi\(/);
