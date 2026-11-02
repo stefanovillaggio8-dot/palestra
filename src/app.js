@@ -2284,7 +2284,10 @@ function vistaHome(zona) {
   }
   const giorni = (v.snapshot && v.snapshot.giorni) || [];
 
-  const indiceProssimaGiornata = indiceProssimoGiorno(v, seduteDellaPersona(), versioniDellaPersona());
+  const indiceProssimaGiornata = indiceProssimoGiorno(
+    v, seduteDellaPersona(), versioniDellaPersona(),
+    profiloAttivo().privacy?.ripartenza_giro || null,
+  );
 
   zona.appendChild(el('div', { id: 'zona-avviso' }));
   zona.appendChild(el('div',{class:'app-page-kicker'},[
@@ -2360,7 +2363,7 @@ function vistaHome(zona) {
         // il nome del giorno si può toccare per vedere la scheda senza allenarsi
         el('a', { href: '#/giorno/' + g.id, class: 'titolo-collegabile', testo: g.nome }),
         indiceProssimaGiornata >= 0 && giorni[indiceProssimaGiornata].id === g.id
-          ? el('span', { class: 'tag-prossimo-giorno', testo: 'Prossimo nel giro' })
+          ? el('span', { class: 'tag-prossimo-giorno', testo: 'Prossimo giorno' })
           : null,
         el('span', { class: 'conteggio', testo: `${g.esercizi.length} esercizi · ${serie} serie` + (opzionali ? ` · ${opzionali} opzionali` : '') }),
       ]),
@@ -6078,6 +6081,7 @@ function profiloDi(idAccount) {
 
 // Solo lettura: nessuna seduta fittizia, nessuna scrittura al DB.
 const RETTIFICHE_STREAK_ONLINE = new Map();
+const RIPARTENZE_GIRO_ONLINE = new Map();
 async function aggiornaCreditoStreakOnline() {
   if (!sb.collegato()) return false;
   const id = accountAttivo();
@@ -6085,9 +6089,18 @@ async function aggiornaCreditoStreakOnline() {
     const remoto = await sb.leggiUno('profili', id);
     if (!remoto || remoto.id !== id) return false;
     const credito = validaCreditoStreakOnline(remoto);
+    const nuovaRipartenza=remoto?.privacy?.ripartenza_giro;
+    const ripartenza = nuovaRipartenza && typeof nuovaRipartenza==='object' &&
+      typeof nuovaRipartenza.giorno_id==='string' &&
+      typeof nuovaRipartenza.scheda_id==='string' &&
+      Number.isFinite(Date.parse(nuovaRipartenza.attivato_il || ''))
+      ? nuovaRipartenza : null;
     const precedente = RETTIFICHE_STREAK_ONLINE.get(id) || null;
-    if (JSON.stringify(precedente) === JSON.stringify(credito)) return false;
-    RETTIFICHE_STREAK_ONLINE.set(id, credito);
+    const precedenteRipartenza=RIPARTENZE_GIRO_ONLINE.get(id) || null;
+    if (JSON.stringify(precedente)===JSON.stringify(credito) &&
+        JSON.stringify(precedenteRipartenza)===JSON.stringify(ripartenza)) return false;
+    RETTIFICHE_STREAK_ONLINE.set(id,credito);
+    RIPARTENZE_GIRO_ONLINE.set(id,ripartenza);
     return true;
   } catch {
     // Connessione assente: la streak può usare normalmente il profilo locale.
@@ -6123,10 +6136,14 @@ function profiloAttivo() {
     // questo flag continua a dire che la scelta c'è stata e l'app non te la fa
     // rifare. Vedi `personaggio_creato` in src/avatar-stato.js.
     personaggio_creato: !!(salvato && (salvato.personaggio_creato || salvato.classe_rpg)),
-    privacy: profiloConCreditoStreak(
-      { privacy: privacyDi(salvato || {}) },
-      RETTIFICHE_STREAK_ONLINE.get(accountAttivo()) || null
-    ).privacy,
+    privacy: {
+      ...profiloConCreditoStreak(
+        { privacy: privacyDi(salvato || {}) },
+        RETTIFICHE_STREAK_ONLINE.get(accountAttivo()) || null
+      ).privacy,
+      ...(RIPARTENZE_GIRO_ONLINE.get(accountAttivo())
+        ? {ripartenza_giro:RIPARTENZE_GIRO_ONLINE.get(accountAttivo())} : {}),
+    },
   };
 }
 
