@@ -16,6 +16,11 @@ function testoSerie(s, {assistito=false,cardio=false}={}) {
   if (!valido(peso) || !valido(s.ripetizioni)) return 'dati incompleti';
   return numero(peso) + ' kg × ' + numero(s.ripetizioni);
 }
+function testoCompattoSerie(s,config) {
+  if (!s || s.stato!=='fatta') return '—';
+  const esteso=testoSerie(s,config);
+  return esteso.replace(' kg × ','×').replace(' min','′');
+}
 function sfidaSerie(attuale, passata, {assistito=false,cardio=false,zavorri=false}={}) {
   if (!attuale || !passata || attuale.stato!=='fatta' || passata.stato!=='fatta') return 'non_confrontabile';
   if (cardio) {
@@ -83,11 +88,25 @@ export function confrontoGhost({sedute=[],serie=[],sedutaAttivaId,esercizioId,as
   const anteprima=bozza && riferimento
     ? sfidaSerie({...tuaSerie,stato:'fatta'},riferimento,{assistito,cardio,zavorri})
     : null;
+  const serieStoriche=passate.map((r,i)=>{
+    const oggi=attuale[i] || null;
+    const risultato=oggi?.stato==='fatta'
+      ? sfidaSerie(oggi,r,{assistito,cardio,zavorri}) : null;
+    return {
+      numero:i+1,
+      testo:testoCompattoSerie(r,{assistito,cardio}),
+      dettaglio:testoSerie(r,{assistito,cardio}),
+      fatta:oggi?.stato==='fatta',
+      prossima:i===prossima && oggi?.stato!=='fatta',
+      attiva:i===indice,
+      risultato,
+    };
+  });
   const comparate=risultati.vinta+risultati.persa+risultati.pari;
   const stato=comparate===0 ? 'inizia' : risultati.vinta>risultati.persa ? 'vinci'
     : risultati.vinta<risultati.persa ? 'insegui' : 'pari';
   return {
-    disponibile:true, data:ultimo.data, sedutaId:ultimo.id, risultati,
+    disponibile:true, data:ultimo.data, sedutaId:ultimo.id, risultati, serieStoriche,
     comparate, completate:complete.length, totale:attuale.length,
     stato,
     statoVisuale:bozza?'bozza':stato,
