@@ -41,7 +41,7 @@ function sfidaSerie(attuale, passata, {assistito=false,cardio=false}={}) {
   if (forza <= 0 && rip <= 0) return 'persa';
   return 'mista';
 }
-export function confrontoGhost({sedute=[],serie=[],sedutaAttivaId,esercizioId,assistito=false,cardio=false}={}) {
+export function confrontoGhost({sedute=[],serie=[],sedutaAttivaId,esercizioId,assistito=false,cardio=false,bozzaIds=[]}={}) {
   const attuale=serie.filter(s=>s && !s.eliminata && s.seduta_id===sedutaAttivaId
     && s.esercizio_id===esercizioId).sort((a,b)=>(Number(a.ordine)||0)-(Number(b.ordine)||0));
   const candidati=sedute.filter(s=>s && !s.eliminata && s.stato==='completata' && s.id!==sedutaAttivaId)
@@ -64,16 +64,32 @@ export function confrontoGhost({sedute=[],serie=[],sedutaAttivaId,esercizioId,as
   const indice=prossima<0 ? Math.max(0,attuale.length-1) : prossima;
   const riferimento=passate[indice]?.stato==='fatta' ? passate[indice] : null;
   const tuaSerie=attuale[indice]||null;
+  // I valori copiati dalla scheda precedente NON rappresentano una serie fatta.
+  // Una bozza che l'utente ha cambiato si puo' mostrare come anteprima,
+  // ma non incrementa vittorie, record o premi finche' non viene spuntata.
+  const bozza=!!tuaSerie && tuaSerie.stato!=='fatta' && bozzaIds.includes(tuaSerie.id);
+  const anteprima=bozza && riferimento
+    ? sfidaSerie({...tuaSerie,stato:'fatta'},riferimento,{assistito,cardio})
+    : null;
   const comparate=risultati.vinta+risultati.persa+risultati.pari;
   const stato=comparate===0 ? 'inizia' : risultati.vinta>risultati.persa ? 'vinci'
     : risultati.vinta<risultati.persa ? 'insegui' : 'pari';
   return {
     disponibile:true, data:ultimo.data, sedutaId:ultimo.id, risultati,
     comparate, completate:complete.length, totale:attuale.length,
-    stato, oggi:testoSerie(tuaSerie,{assistito,cardio}),
+    stato,
+    bozza, anteprima,
+    oggi: tuaSerie && (tuaSerie.stato==='fatta' || bozza)
+      ? testoSerie(tuaSerie,{assistito,cardio}) : '— Da segnare',
     ghost:testoSerie(riferimento,{assistito,cardio}),
     indice:indice+1,
     etichetta:stato==='vinci'?'Sei avanti sul Ghost':stato==='insegui'?'Il Ghost è avanti':
       stato==='pari'?'Sfida in parità':'Il tuo avversario è pronto',
+    messaggioBozza: !bozza ? '' :
+      anteprima==='vinta'?'Bozza: se completi così, superi il Ghost':
+      anteprima==='persa'?'Bozza: il Ghost farebbe meglio':
+      anteprima==='pari'?'Bozza: stesso risultato del Ghost':
+      anteprima==='mista'?'Bozza: più kg ma meno rip, o viceversa':
+      'Bozza: confronto non disponibile',
   };
 }
