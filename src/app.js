@@ -3060,8 +3060,7 @@ async function vistaSeduta(zona, sedutaId) {
              ' · sotto '+ghost.risultati.persa+(ghost.risultati.mista?' · diverse '+ghost.risultati.mista:''))
           : 'Completa una serie per iniziare la sfida. I kg copiati dalla scheda non contano.'}),
         el('p',{class:'ghost-inline-bozza',testo:ghost.messaggioBozza}),
-        el('p',{class:'ghost-inline-prossima',testo:ghost.prossimaSerie
-          ? 'Prossima da segnare: serie '+ghost.prossimaSerie : ''}),
+        creaMiniSerieGhost(ghost),
       ]));
     }
 
@@ -3705,13 +3704,41 @@ function aggiornaGhostDalForm(sedutaId, esercizioId, serieFocusId=null) {
         (ghost.risultati.mista?' · diverse '+ghost.risultati.mista:'')
       : 'Completa una serie per iniziare la sfida. I kg copiati dalla scheda non contano.');
     scrivi('.ghost-inline-bozza',ghost.messaggioBozza);
-    scrivi('.ghost-inline-prossima',ghost.prossimaSerie
-      ? 'Prossima da segnare: serie '+ghost.prossimaSerie : '');
+    const mini=pannello.querySelector('.ghost-serie-mini');
+    if(mini) aggiornaMiniSerieGhost(mini,ghost);
     const stato=pannello.querySelector('.ghost-inline-stato');
     if(stato) stato.className='ghost-inline-stato '+ghost.statoVisuale;
   }
 }
 
+// Una riga orizzontale nello STESSO riquadro Ghost. Non cresce in altezza
+// quando ci sono molte serie: su iPhone si scorre soltanto in orizzontale.
+function creaMiniSerieGhost(ghost) {
+  const nodo=el('div',{class:'ghost-serie-mini',aria:{label:'Serie dell’ultima volta'}});
+  aggiornaMiniSerieGhost(nodo,ghost);
+  return nodo;
+}
+function aggiornaMiniSerieGhost(nodo,ghost) {
+  svuota(nodo);
+  const righe=ghost.serieStoriche || [];
+  if(!righe.length) return;
+  nodo.appendChild(el('span',{class:'ghost-mini-label',testo:'ULTIMA VOLTA · TUTTE LE SERIE'}));
+  const fila=el('div',{class:'ghost-mini-riga'});
+  for(const s of righe) {
+    const classe=['ghost-mini-pill',s.fatta?'completata':'',s.prossima?'prossima':'',
+      s.attiva?'attiva':'',s.risultato==='vinta'?'vinta':'',
+      s.risultato==='persa'?'persa':''].filter(Boolean).join(' ');
+    const prefisso=s.fatta?'✓':s.prossima?'›':'';
+    fila.appendChild(el('span',{
+      class:classe, titolo:'Serie '+s.numero+' · '+s.dettaglio +
+        (s.fatta?' · fatta oggi':s.prossima?' · prossima da segnare':''),
+    },[
+      el('small',{testo:(prefisso?prefisso+' ':'')+'S'+s.numero}),
+      el('strong',{testo:s.testo}),
+    ]));
+  }
+  nodo.appendChild(fila);
+}
 function ghostAttivoPerAccount() {
   try { return localStorage.getItem('palestra-ghost:'+accountAttivo())!=='0'; }
   catch { return true; }
