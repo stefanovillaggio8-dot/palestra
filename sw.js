@@ -264,9 +264,9 @@ const FILE = [
   // offline: il file non e' in cache, e il Profilo non si disegna. Il test di
   // integrita' controlla che ogni file che app.js importa sia qui dentro.
   './src/avatar-rpg.js',
-  './img/icon-palestra-v410-192.png',
-  './img/icon-palestra-v410.svg',
-  './img/icon-palestra-v410-maskable.svg',
+  './img/icon-palestra-v407-192.png',
+  './img/icon-palestra-v407.svg',
+  './img/icon-palestra-v407-maskable.svg',
   './img/logo.png',
   './img/logo-512.png',
 ];
@@ -411,7 +411,7 @@ self.addEventListener('fetch', (evento) => {
     // Anche i manifest e l'icona Home hanno ?v=413 per evitare vecchie
     // icone iPhone/Android: offline devono usare le copie gia' precaricate.
     if ((/\.(?:css|js|webmanifest)$/i.test(url.pathname) ||
-         /\/img\/icon-palestra-v410-192\.png$/i.test(url.pathname)) &&
+         /\/img\/icon-palestra-v407-192\.png$/i.test(url.pathname)) &&
         url.searchParams.size === 1 &&
         url.searchParams.get('v') === NUMERO) {
       const precaricata = await cache.match(richiesta, { ignoreSearch: true });
