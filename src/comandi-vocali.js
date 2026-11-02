@@ -131,8 +131,10 @@ export function analizzaComandoVocale(testo,{cardio=false,maxSerie=0}={}) {
  // Le ripetizioni assistite sono facoltative: "8 rep, 2 assistite, spotter".
  const assistiteMatch=normalizzato.match(/\b(\d+)\s+assistite\b|\bassistite\s+(\d+)\b/);
  const ripAssistite=assistiteMatch?Number(assistiteMatch[1]||assistiteMatch[2]):null;
- const peso=trovaUnita(normalizzato,UNIT_PESO);
- const rip=trovaUnita(normalizzato,cardio?UNIT_MIN:UNIT_RIP);
+ // "8 rep, 2 assistite": il 2 NON va scambiato per "ripetizioni 2".
+ const senzaAssistite=normalizzato.replace(/\b\d+\s+assistite\b|\bassistite\s+\d+\b/g,' ');
+ const peso=trovaUnita(senzaAssistite,UNIT_PESO);
+ const rip=trovaUnita(senzaAssistite,cardio?UNIT_MIN:UNIT_RIP);
  if(peso.errore||rip.errore)return {ok:false,messaggio:peso.errore||rip.errore};
  if(cardio&&(peso.valore!==null||menzionaSpotter||ripAssistite!==null))
   return {ok:false,messaggio:'Nel cardio indica soltanto i minuti.'};
