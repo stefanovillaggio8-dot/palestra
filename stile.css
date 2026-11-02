@@ -3484,13 +3484,24 @@ html.animazioni-mai .barra-piena::after { animation: none; }
   overflow-wrap:anywhere; font-variant-numeric:tabular-nums; }
 .ghost-inline-versus { color:#c29aff; font-size:.7rem; font-weight:900; }
 .ghost-inline-punteggio { font-size:.7rem; color:var(--testo-2); line-height:1.4; }
+/* Accesso rapido alla cronologia: non una card a tutta altezza. */
 .cronologia-accesso {
-  display:flex; align-items:center; justify-content:space-between; gap:12px;
-  background:var(--card); border:1px solid #4a376f; border-radius:12px;
-  padding:11px 13px; margin:11px 0 14px;
+  display:flex; align-items:center; justify-content:flex-start;
+  min-height:0; padding:0; margin:7px 0 10px;
+  border:0; background:transparent;
 }
-.cronologia-accesso span { font-size:.78rem; color:var(--testo-2); line-height:1.4; }
-.cronologia-accesso .bot { flex-shrink:0; }
+.cronologia-accesso .bot.cronologia-accesso-bottone {
+  flex:0 1 auto; width:auto; max-width:100%;
+  padding:7px 11px; min-height:37px;
+  border-radius:11px; font-size:.76rem; line-height:1.25;
+  font-weight:750; letter-spacing:0; white-space:normal;
+  background:rgba(120,89,190,.09);
+  border:1px solid rgba(149,105,218,.46);
+  color:var(--testo);
+}
+.storico-conteggio {
+  font-size:.78rem; line-height:1.4; margin:3px 0 8px;
+}
 .cronologia-filtri { display:flex; gap:8px; margin:14px 0; }
 .cronologia-filtri .bot { flex:1; }
 .cronologia-lista { display:flex; flex-direction:column; gap:10px; padding:0 0 20px; }
@@ -3520,8 +3531,10 @@ html.animazioni-mai .barra-piena::after { animation: none; }
   .ghost-inline { padding:9px; gap:7px; }
   .ghost-inline-valore { padding:7px 8px; }
   .ghost-inline-valore strong { font-size:.82rem; }
-  .cronologia-accesso { flex-wrap:wrap; }
-  .cronologia-accesso .bot { margin-left:auto; }
+  .cronologia-accesso { margin:6px 0 8px; }
+  .cronologia-accesso .bot.cronologia-accesso-bottone {
+    margin:0; padding:7px 10px; min-height:36px; font-size:.74rem;
+  }
 }
 @media (prefers-reduced-motion:reduce) {
   .ghost-inline, .cronologia-evento { animation:none!important; transition:none!important; }
