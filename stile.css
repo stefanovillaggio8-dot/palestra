@@ -3544,3 +3544,32 @@ html.animazioni-mai .barra-piena::after { animation: none; }
   margin:0; padding:0;
 }
 .ghost-inline-prossima:empty { display:none; }
+
+/* Ghost compatto: serie della volta precedente nello STESSO riquadro.
+   Mai una seconda card verticale; il contenuto lungo scorre lateralmente. */
+.ghost-serie-mini { min-width:0; display:grid; gap:4px; margin-top:1px; }
+.ghost-mini-label { font-size:.61rem; letter-spacing:.055em; font-weight:750;
+  color:var(--testo-3); }
+.ghost-mini-riga { display:flex; flex-wrap:nowrap; align-items:center; gap:5px;
+  width:100%; min-width:0; overflow-x:auto; overscroll-behavior-x:contain;
+  scrollbar-width:thin; -webkit-overflow-scrolling:touch; padding:1px 0 3px; }
+.ghost-mini-pill { flex:0 0 auto; display:flex; align-items:center; gap:5px;
+  padding:5px 7px; min-height:26px; border-radius:8px; white-space:nowrap;
+  color:var(--testo-2); background:rgba(255,255,255,.035);
+  border:1px solid rgba(190,175,222,.2);
+  font-variant-numeric:tabular-nums; }
+.ghost-mini-pill small { font-size:.64rem; font-weight:800; color:#c8b0ff; }
+.ghost-mini-pill strong { font-size:.7rem; color:inherit; font-weight:720; }
+.ghost-mini-pill.attiva { border-color:rgba(188,145,255,.7);
+  background:rgba(126,87,191,.2); }
+.ghost-mini-pill.completata { background:rgba(40,173,111,.09); }
+.ghost-mini-pill.vinta { border-color:rgba(72,220,143,.62); }
+.ghost-mini-pill.persa { border-color:rgba(240,150,89,.55); }
+.ghost-mini-pill.prossima:not(.completata) { border-color:rgba(188,145,255,.85);
+  color:#f1e4ff; }
+@media(max-width:430px) {
+ .ghost-serie-mini { gap:3px; }
+ .ghost-mini-pill { padding:4px 6px; gap:4px; min-height:24px; }
+ .ghost-mini-pill small { font-size:.6rem; }
+ .ghost-mini-pill strong { font-size:.66rem; }
+}
