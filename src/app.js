@@ -36,6 +36,7 @@ import { vistaRecapPalestra } from './recap-ui.js';
 import { idRegolazioni, leggiRegolazioni, riepilogoRegolazioni } from './regolazioni-macchina.js';
 import { apriRegolazioniMacchina } from './regolazioni-ui.js';
 import { riassuntoFinaleAllenamento } from './finale-allenamento.js';
+import { collegaPremioASeduta, premiDaAnnullare } from './ricompense-sedute.js';
 import { mostraFinaleCinematico } from './finale-allenamento-ui.js';
 import { calcolaAvatar, CLASSI, classeConsigliata, eCardio, minutiDiCardio, nomePremio, statoVisivo, percorsoStato, schedaProgressione, STATI_IMMAGINE } from './avatar-rpg.js';
 import { haSigillo, creaSigillo, verificaSigillo } from './sigillo-classe.js';
@@ -3805,6 +3806,39 @@ export function annunciaCambioPeso(prima, dopo, nuovoPeso) {
  * a ogni salvataggio, e se la lista di scelte vivesse qui si perderebbe a ogni
  * ridisegno (e il conteggio "3 selezionate" ripartirebbe da zero).
  */
+/**
+ * Eliminazione coerente dello storico: anche le righe di ricompensa generate
+ * da queste sedute diventano tombstone e si sincronizzano sugli altri dispositivi.
+ * Shop, missioni e premi di altre persone non vengono toccati.
+ */
+async function eliminaSeduteEGuadagni(ids) {
+  await aspettaSalvataggi();
+  const mie = seduteDellaPersona().filter(s => s && !s.eliminata && ids.includes(s.id));
+  if (!mie.length) return { numero:0, aura:0, xp:0 };
+  const premi = premiDaAnnullare({
+    account:accountAttivo(),
+    ids:mie.map(s => s.id),
+    sedute:seduteDellaPersona(),
+    serie:serieDellaPersona(),
+    ricompense:ricompenseMie(),
+  });
+  // Le ricompense vengono eliminate con lo stesso meccanismo dello storico,
+  // quindi il sync non potra' farle riapparire dopo l'aggiornamento.
+  for (const s of mie) {
+    for (const x of V.serie.filter(x => x.seduta_id === s.id && !x.eliminata)) {
+      await db.cestino('serie', x.id);
+    }
+    await db.cestino('sedute', s.id);
+  }
+  for (const r of premi) await db.cestino('ricompense', r.id);
+  await ricaricaTutto();
+  return {
+    numero:mie.length,
+    aura:premi.reduce((v,r)=>v+(Number(r.aura)||0),0),
+    xp:premi.reduce((v,r)=>v+(Number(r.xp)||0),0),
+  };
+}
+
 const selezioneStorico = { attiva: false, ids: new Set() };
 
 function vistaStorico(zona) {
@@ -3834,19 +3868,21 @@ function vistaStorico(zona) {
       if (!ids.length) return;
       const ok = await chiediConferma(
         `Eliminare ${ids.length} sedut${ids.length === 1 ? 'a' : 'e'}?`,
-        'Le sedute e tutte le loro serie vanno nel cestino. Puoi recuperarle.',
+        'Le sedute e le serie vanno nel cestino. Verranno tolti anche XP, Aura, record-premio e bonus streak ottenuti da queste sedute. Gli acquisti e le missioni indipendenti rimangono.',
         { testoOk: 'Nel cestino', pericolo: true },
       );
       if (!ok) return;
-      for (const id of ids) {
-        for (const serie of V.serie.filter((x) => x.seduta_id === id)) await db.cestino('serie', serie.id);
-        await db.cestino('sedute', id);
+      try {
+        const tolto = await eliminaSeduteEGuadagni(ids);
+        selezioneStorico.attiva = false;
+        selezioneStorico.ids.clear();
+        disegna();
+        avviso(`Eliminate ${tolto.numero} sedute. Annullati ${formattaAura(tolto.aura)} Aura e ${formattaNumero(tolto.xp)} XP relativi.`, { tipo:'ok', durata:7500 });
+      } catch(e) {
+        await ricaricaTutto();
+        disegna();
+        avviso('Eliminazione incompleta: ' + e.message + '. Controlla lo storico e riprova.', { tipo:'errore', durata:10000 });
       }
-      selezioneStorico.attiva = false;
-      selezioneStorico.ids.clear();
-      await ricaricaTutto();
-      disegna();
-      avviso(`Eliminata${ids.length === 1 ? '' : 'e'} ${ids.length} sedut${ids.length === 1 ? 'a' : 'e'}. Nel cestino, se ti serve tornare indietro.`, { tipo: 'ok' });
     };
     rigaComandi.appendChild(contaSelezione);
     rigaComandi.appendChild(bottone('Elimina scelte', {
@@ -4011,12 +4047,17 @@ async function vistaSedutaPassata(zona, sedutaId) {
     }),
     bottone('Elimina la seduta', {
       onClick: async () => {
-        const ok = await chiediConferma('Eliminare tutta la seduta?', 'La seduta e tutte le sue serie vanno nel cestino. Puoi recuperarle.', { testoOk: 'Nel cestino', pericolo: true });
+        const ok = await chiediConferma('Eliminare tutta la seduta?', 'La seduta e le serie vanno nel cestino. Verranno annullati anche XP, Aura e gli altri premi guadagnati con questo allenamento.', { testoOk: 'Nel cestino', pericolo: true });
         if (!ok) return;
-        for (const serie of V.serie.filter((x) => x.seduta_id === s.id)) await db.cestino('serie', serie.id);
-        await db.cestino('sedute', s.id);
-        await ricaricaTutto();
-        vai('/storico');
+        try {
+          const tolto = await eliminaSeduteEGuadagni([s.id]);
+          vai('/storico');
+          avviso(`Seduta eliminata. Tolti ${formattaAura(tolto.aura)} Aura e ${formattaNumero(tolto.xp)} XP.`, { tipo:'ok', durata:7500 });
+        } catch(e) {
+          await ricaricaTutto();
+          disegna();
+          avviso('Eliminazione incompleta: '+e.message+'. Controlla lo storico e riprova.', {tipo:'errore',durata:10000});
+        }
       },
       classe: 'fantasma pericolo-b',
     }),
@@ -6248,7 +6289,12 @@ async function assegnaRicompense(sedutaId) {
       profilo: profiloAttivo(),
     });
     if (!nuove.length) return [];
-    for (const r of nuove) await db.salva('ricompense', { ...r, quando: r.quando || adesso() });
+    for (const r of nuove) await db.salva('ricompense', {
+      ...collegaPremioASeduta(r, sedutaId),
+      // Un premio gia' cestinato puo' essere riottenuto con un'altra seduta.
+      eliminata:false, eliminata_il:null,
+      quando:r.quando || adesso(),
+    });
     await ricaricaTutto();
     const aura = nuove.reduce((a, r) => a + (r.aura || 0), 0);
     const xp = nuove.reduce((a, r) => a + (r.xp || 0), 0);
