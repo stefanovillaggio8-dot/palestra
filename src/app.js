@@ -3032,12 +3032,13 @@ async function vistaSeduta(zona, sedutaId) {
       sedute:seduteDellaPersona(), serie:serieDellaPersona(),
       sedutaAttivaId:s.id, esercizioId:e.id,
       assistito:!convenzioneMisuraCarico(e.convenzione), cardio:eCardio(e),
+      zavorri:convenzioneConCorpo(e.convenzione),
       bozzaIds:[...GHOST_BOZZE],
     }) : null;
     if (ghost && ghost.disponibile) {
       blocco.appendChild(el('div',{class:'ghost-inline',dati:{ghostEsercizio:e.id,ghostSeduta:s.id},'aria-label':'Confronto Ghost con la seduta precedente'},[
         el('div',{class:'ghost-inline-top'},[
-          el('strong',{testo:'👻 GHOST · '+dataLeggibile(ghost.data)}),
+          el('strong',{testo:'👻 TU DEL '+dataLeggibile(ghost.data)}),
           el('span',{class:'ghost-inline-stato '+ghost.statoVisuale,testo:ghost.etichetta}),
         ]),
         el('div',{class:'ghost-inline-duello'},[
@@ -3047,7 +3048,7 @@ async function vistaSeduta(zona, sedutaId) {
           ]),
           el('span',{class:'ghost-inline-versus',testo:'VS'}),
           el('div',{class:'ghost-inline-valore passato'},[
-            el('small',{testo:'ULTIMA VOLTA'}),
+            el('small',{testo:'TE · ULTIMA VOLTA'}),
             el('strong',{testo:ghost.ghost}),
           ]),
         ]),
@@ -3056,6 +3057,8 @@ async function vistaSeduta(zona, sedutaId) {
              ' · sotto '+ghost.risultati.persa+(ghost.risultati.mista?' · diverse '+ghost.risultati.mista:''))
           : 'Completa una serie per iniziare la sfida. I kg copiati dalla scheda non contano.'}),
         el('p',{class:'ghost-inline-bozza',testo:ghost.messaggioBozza}),
+        el('p',{class:'ghost-inline-prossima',testo:ghost.prossimaSerie
+          ? 'Prossima da segnare: serie '+ghost.prossimaSerie : ''}),
       ]));
     }
 
@@ -3682,7 +3685,8 @@ function aggiornaGhostDalForm(sedutaId, esercizioId, serieFocusId=null) {
   const ghost=confrontoGhost({
     sedute:seduteDellaPersona(),serie:copie,sedutaAttivaId:sedutaId,
     esercizioId,assistito:!convenzioneMisuraCarico(esercizio.convenzione),
-    cardio:eCardio(esercizio),bozzaIds:[...GHOST_BOZZE],serieFocusId,
+    cardio:eCardio(esercizio),zavorri:convenzioneConCorpo(esercizio.convenzione),
+    bozzaIds:[...GHOST_BOZZE],serieFocusId,
   });
   if (!ghost.disponibile) return;
   for(const pannello of pannelli) {
@@ -3698,6 +3702,8 @@ function aggiornaGhostDalForm(sedutaId, esercizioId, serieFocusId=null) {
         (ghost.risultati.mista?' · diverse '+ghost.risultati.mista:'')
       : 'Completa una serie per iniziare la sfida. I kg copiati dalla scheda non contano.');
     scrivi('.ghost-inline-bozza',ghost.messaggioBozza);
+    scrivi('.ghost-inline-prossima',ghost.prossimaSerie
+      ? 'Prossima da segnare: serie '+ghost.prossimaSerie : '');
     const stato=pannello.querySelector('.ghost-inline-stato');
     if(stato) stato.className='ghost-inline-stato '+ghost.statoVisuale;
   }
