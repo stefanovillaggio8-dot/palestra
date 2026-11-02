@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { analizzaComandoVocale, supportoComandiVocali } from '../src/comandi-vocali.js';
+import { analizzaComandoVocale, supportoComandiVocali, normalizzaDettaturaSerie, scegliTrascrizioneVocale } from '../src/comandi-vocali.js';
 
 const parse=(s,options={maxSerie:4})=>analizzaComandoVocale(s,options);
 test('voce: numeri semplici 22 kg e 7 ripetizioni',()=>{
@@ -117,4 +117,40 @@ test('voce v411: richiede ancora la conferma della UI e recupero da ogni spunta'
  assert.match(app,/impostaRecuperoSerie\(serie\.seduta_id, fatta\)/);
  assert.match(app,/impostaRecuperoSerie\(seduta\.id,true\)/);
  assert.match(app, /await aggiornaSerie\(target,\{\.\.\.campi,stato:'fatta'\}\)/);
+});
+
+test('voce v412: 8 euro/euri equivale a 8 rep nel contesto di una serie',()=>{
+ for(const parola of ['8 euro','otto euro','8 euri','8 euros']){
+  const p=parse(parola);
+  assert.equal(p.ok,true,parola);
+  assert.equal(p.tipo,'dati',parola);
+  assert.deepEqual(p.campi,{ripetizioni:8},parola);
+  assert.equal(normalizzaDettaturaSerie(parola),'8 ripetizioni');
+ }
+ assert.deepEqual(parse('seconda serie 25 chili e mezzo 8 euro').campi,
+  {peso:25.5,ripetizioni:8});
+ assert.deepEqual(parse('seconda serie, 25 chili e mezzo, otto euri, fatta con spotter').campi,
+  {peso:25.5,ripetizioni:8,spotter:true});
+ assert.equal(parse('8 euro').tipo,'dati'); // Non spunta per sbaglio.
+});
+test('voce v412: nessuna conversione da euro a minuti nel cardio',()=>{
+ assert.equal(parse('8 euro',{cardio:true}).ok,false);
+ assert.deepEqual(parse('8 minuti',{cardio:true}).campi,{ripetizioni:8});
+ assert.equal(normalizzaDettaturaSerie('8 euro',{cardio:true}),'8 euro');
+});
+test('voce v412: sceglie la variante rep solo se gli stessi dati coincidono',()=>{
+ const opts={maxSerie:4};
+ assert.equal(scegliTrascrizioneVocale([
+  'seconda serie 25 chili 8 euro','seconda serie 25 chili 8 rep'
+ ],opts),'seconda serie 25 chili 8 rep');
+ assert.equal(scegliTrascrizioneVocale([
+  'seconda serie 25 chili 8 euro','seconda serie 25 chili 9 rep'
+ ],opts),'seconda serie 25 chili 8 euro');
+ assert.equal(scegliTrascrizioneVocale(['rumore','8 ripetizioni'],opts),'8 ripetizioni');
+ assert.equal(scegliTrascrizioneVocale([] ,opts),'');
+ const ui=readFileSync(new URL('../src/comandi-vocali-ui.js',import.meta.url),'utf8');
+ assert.match(ui,/maxAlternatives=5/);
+ assert.match(ui,/scegliTrascrizioneVocale\(alternative/);
+ assert.match(ui,/normalizzaDettaturaSerie\(trascrizione/);
+ assert.match(ui,/await suConferma\(p,target\)/);
 });
