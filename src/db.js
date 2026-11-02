@@ -340,15 +340,23 @@ export async function perIndice(tabella, indice, valore) {
 export async function cestino(tabella, id) {
   const riga = await prendi(tabella, id);
   if (!riga) return null;
-  return salva(tabella, { ...riga, eliminata: true, eliminata_il: adesso() });
+  // Una riga letta dal database porta sync:'pulito'/'in_corso' e updated_at
+  // vecchio. Non copiarli nel nuovo salvataggio: altrimenti il tombstone
+  // non entra nella coda di invio e la seduta/ricompensa ricompare sul PC.
+  return salva(tabella, {
+    ...riga, sync: undefined, updated_at: undefined,
+    eliminata: true, eliminata_il: adesso(),
+  });
 }
 
 export async function recupera(tabella, id) {
   const riga = await prendi(tabella, id);
   if (!riga) return null;
-  // metto false esplicitamente: se si "cancellassero" le chiavi, la versione
-  // più vecchia (eliminata = true) ricomparirebbe e la riga resterebbe nel cestino
-  return salva(tabella, { ...riga, eliminata: false, eliminata_il: null });
+  // Anche il recupero e' una nuova modifica da sincronizzare.
+  return salva(tabella, {
+    ...riga, sync: undefined, updated_at: undefined,
+    eliminata: false, eliminata_il: null,
+  });
 }
 
 /**
