@@ -1177,3 +1177,89 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-aura-divina-premium {animati
 }
 @media(max-width:480px){.finale-cine-card{padding:14px 12px;gap:6px}.finale-cine-personaggio{height:clamp(145px,24vh,230px)}
   .finale-cine-numeri strong{font-size:1.3rem}.finale-cine-numeri span{font-size:.65rem}}
+
+
+/* v409 · Rank della sola CASA: una fascia sottile anziche' la quinta card
+   alta quanto le statistiche. Tutte le altre medaglie restano invariate. */
+.app-vista-casa .riga-teschio > .teschio-rank.casa-rank-compatto {
+  grid-column:1/-1;
+  display:grid;
+  grid-template-columns:max-content max-content minmax(0,1fr);
+  align-items:center;
+  justify-content:stretch;
+  gap:9px;
+  flex-wrap:nowrap;
+  min-height:0;
+  width:100%;
+  padding:6px 11px;
+  border-radius:12px;
+  box-sizing:border-box;
+  overflow:hidden;
+}
+.app-vista-casa .riga-teschio > .casa-rank-compatto .simbolo {
+  font-size:.61rem;
+  white-space:nowrap;
+  letter-spacing:.06em;
+}
+.app-vista-casa .riga-teschio > .casa-rank-compatto .badge-rank-con-stemma {
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  width:auto;
+  min-width:0;
+  max-width:100%;
+  min-height:0;
+  padding:2px 8px 2px 3px;
+  border-radius:9px;
+  margin:0;
+  white-space:nowrap;
+  font-size:.63rem;
+}
+.app-vista-casa .riga-teschio > .casa-rank-compatto .badge-rank-con-stemma .rank-stemma-icona {
+  flex:0 0 auto;
+  width:34px;
+  height:38px;
+}
+.app-vista-casa .riga-teschio > .casa-rank-compatto .badge-rank-testo {
+  min-width:0;
+  font-size:.65rem;
+  letter-spacing:.02em;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.app-vista-casa .riga-teschio > .casa-rank-compatto .nota.casa-rank-esercizio {
+  min-width:0;
+  max-width:100%;
+  margin:0;
+  font-size:.69rem;
+  line-height:1.2;
+  text-align:right;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+@media (max-width:480px) {
+  .app-vista-casa .riga-teschio > .teschio-rank.casa-rank-compatto {
+    grid-template-columns:max-content minmax(0,1.4fr) minmax(0,1fr);
+    gap:6px;
+    padding:6px 8px;
+    min-height:0;
+  }
+  .app-vista-casa .riga-teschio > .casa-rank-compatto .badge-rank-con-stemma {
+    width:fit-content;
+    max-width:100%;
+    padding:2px 5px 2px 2px;
+  }
+  .app-vista-casa .riga-teschio > .casa-rank-compatto .badge-rank-con-stemma .rank-stemma-icona {
+    width:30px;
+    height:34px;
+  }
+  .app-vista-casa .riga-teschio > .casa-rank-compatto .badge-rank-testo {
+    font-size:.59rem;
+    letter-spacing:0;
+  }
+  .app-vista-casa .riga-teschio > .casa-rank-compatto .nota.casa-rank-esercizio {
+    font-size:.62rem;
+  }
+}
