@@ -53,3 +53,37 @@ test('una seduta eliminata o di altro esercizio non diventa Ghost',()=>{
   const g=confrontoGhost({sedute:old,serie:[row('a','next','lat',1,70,10)],sedutaAttivaId:'now',esercizioId:'lat'});
   assert.equal(g.disponibile,false);
 });
+
+
+test('serie precompilata ma non spuntata: OGGI non conta come allenamento',()=>{
+  const serie=[row('old1','next','dips',1,20,7),
+    row('today1','now','dips',1,20,7,{stato:'da_fare'})];
+  const g=confrontoGhost({sedute,serie,sedutaAttivaId:'now',esercizioId:'dips'});
+  assert.equal(g.oggi,'— Da segnare');
+  assert.equal(g.risultati.pari,0);
+  assert.equal(g.bozza,false);
+});
+test('bozza 22 x 7 visibile subito, possibile vittoria ma nessun record finche non spunti',()=>{
+  const serie=[row('old1','next','dips',1,20,7),
+    row('today1','now','dips',1,22,7,{stato:'da_fare'})];
+  const g=confrontoGhost({sedute,serie,sedutaAttivaId:'now',
+    esercizioId:'dips',bozzaIds:['today1'],serieFocusId:'today1'});
+  assert.equal(g.oggi,'22 kg × 7');
+  assert.equal(g.anteprima,'vinta');
+  assert.equal(g.statoVisuale,'bozza');
+  assert.match(g.etichetta,/Bozza migliore/);
+  assert.equal(g.risultati.vinta,0);
+  const fatta=confrontoGhost({sedute,serie:serie.map(s=>s.id==='today1'?{...s,stato:'fatta'}:s),
+    sedutaAttivaId:'now',esercizioId:'dips'});
+  assert.equal(fatta.risultati.vinta,1);
+});
+test('Ghost segue la serie che sto modificando, non la prima ancora vuota',()=>{
+  const serie=[row('p1','next','lat',1,40,7),row('p2','next','lat',2,45,7),
+    row('a1','now','lat',1,40,7,{stato:'da_fare'}),
+    row('a2','now','lat',2,50,7,{stato:'da_fare'})];
+  const g=confrontoGhost({sedute,serie,sedutaAttivaId:'now',
+    esercizioId:'lat',serieFocusId:'a2',bozzaIds:['a2']});
+  assert.equal(g.indice,2);
+  assert.equal(g.oggi,'50 kg × 7');
+  assert.equal(g.ghost,'45 kg × 7');
+});
