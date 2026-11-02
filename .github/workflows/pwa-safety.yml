@@ -1,0 +1,26 @@
+name: PWA safety checks
+on:
+  pull_request:
+    paths:
+      - 'index.html'
+      - 'sw.js'
+      - 'src/update-via-sw.js'
+      - 'tests/sicurezza-release.mjs'
+      - '.github/workflows/pwa-safety.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'sw.js'
+      - 'src/update-via-sw.js'
+      - 'tests/sicurezza-release.mjs'
+      - '.github/workflows/pwa-safety.yml'
+permissions:
+  contents: read
+jobs:
+  release-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check PWA release invariants
+        run: node tests/sicurezza-release.mjs
