@@ -29,7 +29,7 @@ export function adesso() { return new Date().toISOString(); }
 /**
  * Un telefono nuovo o una PWA vecchia potrebbe salvare tutto il profilo con
  * privacy priva della rettifica 31/10 e della ripartenza del giro. Il profilo
- * online e' autorevole per queste impostazioni gia' confermate: preservale
+ * online e' autorevole per queste impostazioni già confermate: preservale
  * durante l'UPSERT, senza toccare avatar, preferenze, missioni o allenamenti.
  * E' una protezione aggiuntiva al trigger server, utile anche nei test offline.
  */
