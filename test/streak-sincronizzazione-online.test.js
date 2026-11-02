@@ -6,12 +6,12 @@ import {calcolaStreak} from '../src/streak.js';
 const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 test('online 15 streak overrides stale local 0 without inventing sessions',()=>{
  const local={id:'account-1',giorni_allenamento:[2,3,5,6],privacy:{profilo:'pubblico'}};
- const remote={id:'account-1',privacy:{rettifica_streak:{data:'2026-10-31',giorni:15}}};
+ const remote={id:'account-1',privacy:{rettifica_streak:{data:'2026-10-31',giorni:15,origine:'rettifica_richiesta_dal_titolare'}}};
  const credit=validaCreditoStreakOnline(remote);
- assert.deepEqual(credit,{data:'2026-10-31',giorni:15});
+ assert.deepEqual(credit,{data:'2026-10-31',giorni:15,origine:'rettifica_richiesta_dal_titolare'});
  const p=profiloConCreditoStreak(local,credit);
  const st=calcolaStreak([{data:'2026-10-30',stato:'completata'}],'2026-11-01',p);
- assert.equal(st.giorni,15);assert.equal(st.record,15);
+ assert.equal(st.giorni,2);assert.equal(st.record,2);
  assert.equal(calcolaStreak([], '2026-11-01',local).giorni,0);
  assert.deepEqual(local.privacy,{profilo:'pubblico'});
 });
