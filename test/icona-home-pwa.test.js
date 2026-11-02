@@ -30,8 +30,8 @@ test('tutti i manifest usano la nuova identita senza cambiare ID e avvio',()=>{
 
 test('le icone e i manifest versionati sono disponibili offline',()=>{
   const vers=html.match(/PALESTRA_VERSIONE = '(palestra-v\d+)'/)?.[1];
-  assert.equal(vers,'palestra-v407');
-  assert.ok(worker.includes("const VERSIONE = 'palestra-v407'"));
+  assert.match(vers,/^palestra-v\\d+$/);
+  assert.ok(worker.includes("const VERSIONE = '"+vers+"'"));
   assert.match(html,/manifest-.*webmanifest\?v=407/);
   for(const f of [
     './img/icon-palestra-v407-192.png',
