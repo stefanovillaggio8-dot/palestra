@@ -6740,7 +6740,7 @@ export function bloccoCalendario(profilo, st) {
 
   box.appendChild(el('div', { class: 'legenda-calendario' }, [
     el('span', { class: 'pastiglia legenda-fatto', testo: 'allenato' }),
-    el('span', { class: 'pastiglia legenda-fatto', testo: 'giorno accreditato' }),
+    el('span', { class: 'pastiglia legenda-accreditato', testo: 'giorno accreditato' }),
     el('span', { class: 'pastiglia legenda-saltato', testo: 'saltato' }),
     el('span', { class: 'pastiglia legenda-recupero', testo: 'giorno di recupero' }),
     el('span', { class: 'pastiglia legenda-atteso', testo: 'ti tocca' }),
