@@ -31,6 +31,19 @@ NUMERI.set('trecento',300);
 NUMERI.set('quattrocento',400);
 NUMERI.set('cinquecento',500);
 
+// Ordinali: "seconda serie", "terza serie", "serie quarta", ecc.
+const NOMI_ORDINALI = [
+ 'prima','seconda','terza','quarta','quinta','sesta','settima','ottava',
+ 'nona','decima','undicesima','dodicesima','tredicesima','quattordicesima',
+ 'quindicesima','sedicesima','diciassettesima','diciottesima','diciannovesima','ventesima'
+];
+const ORDINALI = new Map();
+NOMI_ORDINALI.forEach((nome,i)=>{
+ ORDINALI.set(nome,i+1);
+ ORDINALI.set(nome.slice(0,-1)+'o',i+1);
+});
+const PATTERN_ORDINALE = [...ORDINALI.keys()].join('|');
+
 function convertiNumeri(testo) {
  const t=String(testo||'').toLowerCase()
   .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
@@ -46,7 +59,10 @@ function convertiNumeri(testo) {
   (_m,d,u)=>String(Number(d)+Number(u)));
  return normalizzato
   .replace(/\b(\d+)\s+(?:virgola|punto)\s+(\d+)\b/g,(_m,a,b)=>a+'.'+b)
-  .replace(/\b(\d+)\s+e\s+mezzo\b/g,(_m,a)=>String(Number(a)+0.5))
+  // "25 chili e mezzo" va interpretato come 25,5 kg, non 25 kg.
+  .replace(/\b(\d+(?:\.\d+)?)\s+(kg|kili|chili|chilo|chilogrammi|chilogrammo|kilo|kilos)\s+e\s+mezz[oa]\b/g,
+   (_m,a,unita)=>String(Number(a)+0.5)+' '+unita)
+  .replace(/\b(\d+(?:\.\d+)?)\s+e\s+mezz[oa]\b/g,(_m,a)=>String(Number(a)+0.5))
   .replace(/\s+/g,' ').trim();
 }
 function trovaUnita(testo,unita) {
@@ -86,8 +102,14 @@ function trovaUnita(testo,unita) {
 }
 
 export function analizzaComandoVocale(testo,{cardio=false,maxSerie=0}={}) {
- const normalizzato=convertiNumeri(testo);
+ let normalizzato=convertiNumeri(testo);
  if(!normalizzato) return {ok:false,messaggio:'Non ho sentito parole. Riprova.'};
+ // Rende equivalenti "serie 2", "seconda serie" e "serie seconda".
+ normalizzato=normalizzato
+  .replace(new RegExp('\\b('+PATTERN_ORDINALE+')\\s+(?:serie|set)\\b','g'),
+   (_m,ord)=>'serie '+ORDINALI.get(ord))
+  .replace(new RegExp('\\b(?:serie|set)\\s+('+PATTERN_ORDINALE+')\\b','g'),
+   (_m,ord)=>'serie '+ORDINALI.get(ord));
  const serie=normalizzato.match(/\b(?:serie|set)\s*(\d+)\b/);
  const numeroSerie=serie?Number(serie[1]):null;
  if(numeroSerie!==null && (!Number.isInteger(numeroSerie)||numeroSerie<1||
@@ -99,22 +121,38 @@ export function analizzaComandoVocale(testo,{cardio=false,maxSerie=0}={}) {
   return {...base,tipo:'recupero_stop'};
  if(/\b(?:avvia|inizia|parti|fai partire)\b.*\brecupero\b/.test(normalizzato))
   return {...base,tipo:'recupero_avvia'};
- if(/\b(?:segna|completa|spunta|conferma)\b.*\b(?:serie|fatta|fatto)\b/.test(normalizzato))
-  return {...base,tipo:'completa_serie'};
+ const completa=(
+  /\b(?:segna|completa|spunta|conferma)\b(?:\s+\w+){0,3}\s+serie\b/.test(normalizzato)
+  || (/\b(?:fatta|fatto)\b/.test(normalizzato) &&
+      !/\b(?:non|da)\s+(?:ancora\s+)?(?:fatta|fatto)\b/.test(normalizzato))
+ );
+ const menzionaSpotter=/\bspotter\b/.test(normalizzato);
+ const senzaSpotter=/\b(?:senza|no|non)\s+(?:lo\s+)?spotter\b/.test(normalizzato);
+ // Le ripetizioni assistite sono facoltative: "8 rep, 2 assistite, spotter".
+ const assistiteMatch=normalizzato.match(/\b(\d+)\s+assistite\b|\bassistite\s+(\d+)\b/);
+ const ripAssistite=assistiteMatch?Number(assistiteMatch[1]||assistiteMatch[2]):null;
  const peso=trovaUnita(normalizzato,UNIT_PESO);
  const rip=trovaUnita(normalizzato,cardio?UNIT_MIN:UNIT_RIP);
  if(peso.errore||rip.errore)return {ok:false,messaggio:peso.errore||rip.errore};
- if(cardio&&peso.valore!==null) return {ok:false,messaggio:'Nel cardio indica soltanto i minuti.'};
- if(peso.valore===null&&rip.valore===null) return {ok:false,messaggio:cardio
+ if(cardio&&(peso.valore!==null||menzionaSpotter||ripAssistite!==null))
+  return {ok:false,messaggio:'Nel cardio indica soltanto i minuti.'};
+ if(peso.valore===null&&rip.valore===null&&!menzionaSpotter&&ripAssistite===null&&!completa) return {ok:false,messaggio:cardio
     ? 'Prova: «30 minuti» oppure «avvia recupero».'
     : 'Prova: «22 chili 7 ripetizioni» oppure «avvia recupero».'};
  if(peso.valore!==null && (!Number.isFinite(peso.valore)||peso.valore<0||peso.valore>600))
   return {ok:false,messaggio:'Controlla il carico riconosciuto.'};
  if(rip.valore!==null && (!Number.isFinite(rip.valore)||rip.valore<0||
     rip.valore>(cardio?600:200)))return {ok:false,messaggio:'Controlla il numero riconosciuto.'};
- return {...base,tipo:'dati',
-   campi:{...(peso.valore!==null?{peso:peso.valore}:{}),
-          ...(rip.valore!==null?{ripetizioni:rip.valore}:{})}};
+ if(ripAssistite!==null && (ripAssistite>200||
+     (rip.valore!==null&&ripAssistite>rip.valore)))
+   return {ok:false,messaggio:'Le ripetizioni assistite non possono superare quelle totali.'};
+ const campi={
+   ...(peso.valore!==null?{peso:peso.valore}:{}),
+   ...(rip.valore!==null?{ripetizioni:rip.valore}:{}),
+   ...(menzionaSpotter?{spotter:!senzaSpotter}:{}),
+   ...(ripAssistite!==null?{spotter:true,rip_assistite:ripAssistite}:{})
+ };
+ return {...base,tipo:completa?'completa_serie':'dati',campi};
 }
 
 export function supportoComandiVocali(ambiente=typeof window!=='undefined'?window:{}) {
