@@ -159,11 +159,16 @@ export function analizzaComandoVocale(testo,{cardio=false,maxSerie=0}={}) {
  const senzaSpotter=/\b(?:senza|no|non)\s+(?:lo\s+)?spotter\b/.test(normalizzato);
  // Le ripetizioni assistite sono facoltative: "8 rep, 2 assistite, spotter".
  const assistiteMatch=normalizzato.match(/\b(\d+)\s+assistite\b|\bassistite\s+(\d+)\b/);
- const ripAssistite=assistiteMatch?Number(assistiteMatch[1]||assistiteMatch[2]):null;
+ // Quando si dice soltanto "con lo spotter", si intende una ripetizione assistita.
+ // Se viene detto un numero esplicito (anche zero), quello ha la precedenza.
+ const ripAssistite=assistiteMatch?Number(assistiteMatch[1]||assistiteMatch[2]):
+  (menzionaSpotter&&!senzaSpotter?1:null);
  // "8 rep, 2 assistite": il 2 NON va scambiato per "ripetizioni 2".
  const senzaAssistite=normalizzato.replace(/\b\d+\s+assistite\b|\bassistite\s+\d+\b/g,' ');
  const peso=trovaUnita(senzaAssistite,UNIT_PESO);
  const rip=trovaUnita(senzaAssistite,cardio?UNIT_MIN:UNIT_RIP);
+ // Una serie a zero ripetizioni non può includere una ripetizione assistita.
+ // I numeri espliciti assistiti vengono comunque validati più sotto.
  if(peso.errore||rip.errore)return {ok:false,messaggio:peso.errore||rip.errore};
  if(cardio&&(peso.valore!==null||menzionaSpotter||ripAssistite!==null))
   return {ok:false,messaggio:'Nel cardio indica soltanto i minuti.'};
