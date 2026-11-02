@@ -738,3 +738,41 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-aura-divina-premium {animati
   .recap-barra{height:112px}
   .recap-grafico,.recap-sottocard,.recap-dettagli{padding:14px}
 }
+
+
+/* Recap annuale v393: tabella mensile di kg, ripetizioni e peso corporeo. */
+.recap-esercizi-annuali{margin-top:18px;border:1px solid rgba(157,195,208,.25);border-radius:22px;
+  background:linear-gradient(145deg,rgba(22,37,52,.96),rgba(14,24,35,.97));padding:clamp(13px,3vw,22px)}
+.recap-esercizi-annuali>h3{margin:0 0 7px;font-size:clamp(1.12rem,3vw,1.4rem);font-weight:850;letter-spacing:-.02em}
+.recap-esercizi-annuali>.nota{margin:0 0 15px;line-height:1.55}
+.recap-mese-esercizi{border:1px solid rgba(157,197,212,.19);border-radius:13px;
+  background:rgba(15,31,42,.64);overflow:hidden;margin:9px 0}
+.recap-mese-esercizi[open]{border-color:rgba(109,228,173,.34)}
+.recap-mese-titolo{display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;
+  padding:13px 15px;min-height:47px;list-style:none;color:#ebfff5}
+.recap-mese-titolo::-webkit-details-marker{display:none}
+.recap-mese-titolo::before{content:'▸';color:#8beec3;transition:transform .2s ease}
+.recap-mese-esercizi[open]>.recap-mese-titolo::before{transform:rotate(90deg)}
+.recap-mese-titolo strong{flex:1;font-size:.95rem}
+.recap-mese-titolo .nota{font-size:.78rem;color:#b4cecd}
+.recap-tabella-scroll{overflow-x:auto;max-width:100%;-webkit-overflow-scrolling:touch;
+  border-top:1px solid rgba(155,193,201,.19)}
+.recap-tabella-esercizi{width:100%;min-width:460px;border-collapse:collapse;font-size:.85rem;
+  font-variant-numeric:tabular-nums}
+.recap-tabella-esercizi th,.recap-tabella-esercizi td{padding:12px 12px;text-align:left;
+  border-bottom:1px solid rgba(157,187,201,.12);vertical-align:middle}
+.recap-tabella-esercizi thead{background:rgba(60,116,104,.17)}
+.recap-tabella-esercizi thead th{font-size:.72rem;color:#a7eac8;font-weight:800;
+  text-transform:none;white-space:nowrap}
+.recap-tabella-esercizi tbody tr:nth-child(even){background:rgba(131,182,195,.035)}
+.recap-tabella-esercizi tbody tr:last-child th,.recap-tabella-esercizi tbody tr:last-child td{border-bottom:0}
+.recap-tabella-esercizi tbody th{font-weight:700;color:#eef7f7;max-width:210px;overflow-wrap:anywhere}
+.recap-tabella-esercizi .recap-risultato{color:#baf6d7;font-weight:750;white-space:nowrap}
+.recap-tabella-esercizi .recap-peso-corporeo{white-space:nowrap;color:#d2dfeb}
+.recap-mese-titolo:focus-visible{outline:2px solid #7cf1bd;outline-offset:-2px}
+@media(prefers-reduced-motion:reduce){.recap-mese-titolo::before{transition:none}}
+@media(max-width:520px){
+ .recap-tabella-esercizi{min-width:420px;font-size:.79rem}
+ .recap-tabella-esercizi th,.recap-tabella-esercizi td{padding:10px 8px}
+ .recap-mese-titolo{padding:12px}
+}
