@@ -55,6 +55,7 @@ test('avvio locale disegnato PRIMA della preparazione cloud',()=>{
 test('nessuna opzione avvio può cancellare il database locale',()=>{
   const codiceErrore=blocco(appSource,'function mostraErrore(radice, errore)', 'async function ricaricaTutto(');
   assert.doesNotMatch(codiceErrore,/svuotaTutto|localStorage\.removeItem|indexedDB\.deleteDatabase/);
+  assert.doesNotMatch(codiceErrore,/caches\.delete|sessionStorage\.clear/);
   assert.match(codiceErrore,/Riprova/);
   assert.match(appSource,/Riprova apertura/);
 });
