@@ -1,4 +1,4 @@
-// Cronologia dei cambiamenti: gli eventi vivono nella tabella note gia'
+// Cronologia dei cambiamenti: gli eventi vivono nella tabella note già
 // sincronizzata. Non vengono inserite nuove tabelle o colonne server.
 export const LIVELLO_CRONOLOGIA = 'cronologia_app';
 export function nuovaVoceCronologia({id, account, tipo, titolo, dettaglio='', serieId=null,

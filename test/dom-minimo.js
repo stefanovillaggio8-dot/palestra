@@ -147,10 +147,9 @@ function creaNodo(tag, ns) {
     return evt;
   };
   nodo.scrollIntoView = function () { scroller.scrollIntoViewChiamate++; scroller.y += 40; };
-  nodo.querySelectorAll = (selettore) => {
-    const classe = String(selettore || '').replace(/^\./, '');
-    return trova(nodo, (x) => (typeof x.className === 'string') && x.className.split(/\s+/).includes(classe));
-  };
+  // Una piccola implementazione di selettori CSS reali: anche il codice Ghost
+  // usa document.querySelectorAll, non soltanto la ricerca in un nodo.
+  nodo.querySelectorAll = (selettore) => trova(nodo, (x) => x !== nodo && corrispondeSelettore(x, selettore));
   nodo.querySelector = (selettore) => nodo.querySelectorAll(selettore)[0] || null;
   nodo.dispatch = async (tipo, evento = {}) => {
     const evt = {
@@ -165,6 +164,24 @@ function creaNodo(tag, ns) {
   };
 
   return nodo;
+}
+
+/** Selettori semplici usati dall'app nei test: classe, id, tag e attributo. */
+function corrispondeSelettore(nodo, selettore) {
+ const sel=String(selettore||'').trim();
+ if(!sel||/[ >+~,]/.test(sel))return false;
+ const tag=sel.match(/^[a-z][\w-]*/i)?.[0];
+ if(tag&&nodo.tagName!==tag.toUpperCase())return false;
+ for(const classe of sel.matchAll(/\.([\w-]+)/g))
+   if(!nodo.classList?.contains(classe[1]))return false;
+ for(const id of sel.matchAll(/#([\w-]+)/g))
+   if(nodo.id!==id[1])return false;
+ for(const attr of sel.matchAll(/\[([\w-]+)(?:=(["']?)(.*?)\2)?\]/g)){
+   const val=nodo.getAttribute(attr[1]);
+   if(val===null && !(nodo.dataset && attr[1].startsWith('data-') && nodo.dataset[attr[1].slice(5).replace(/-([a-z])/g,(_,c)=>c.toUpperCase())]!==undefined))return false;
+   if(attr[3]!==undefined&&val!==attr[3])return false;
+ }
+ return true;
 }
 
 const registro = {};
@@ -244,6 +261,8 @@ export function montaDom() {
     createElementNS: (ns, tag) => creaNodo(tag, ns),
     createTextNode: testo,
     getElementById: (id) => registro[id] || null,
+    querySelectorAll: (selector) => trova(body, n => corrispondeSelettore(n,selector)),
+    querySelector: (selector) => trova(body, n => corrispondeSelettore(n,selector))[0] || null,
     addEventListener() {}, removeEventListener() {},
   };
 

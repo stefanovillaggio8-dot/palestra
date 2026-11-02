@@ -282,7 +282,7 @@ function applicaRettificaStreak(stato, oggi, profilo) {
 
 /**
  * Giorni riconosciuti esplicitamente dall'utente, ma senza seduta.
- * Il 31 ottobre e' gia' conservato online nel profilo: la v402 lo aveva
+ * Il 31 ottobre e' già conservato online nel profilo: la v402 lo aveva
  * ignorato per errore. Vale come UNA data nel calendario/streak, non come
  * 15 allenamenti virtuali e non genera serie, record o XP/Aura.
  * I giorni futuri e le date impossibili non vengono mai accettati.
@@ -292,7 +292,7 @@ export function giorniStreakAccreditati(profilo, oggi = isoGiorno(new Date())) {
   const giorni = Array.isArray(privacy.giorni_streak_accreditati)
     ? [...privacy.giorni_streak_accreditati]
     : [];
-  // Compatibilita' con la rettifica richiesta e gia' sincronizzata online.
+  // Compatibilita' con la rettifica richiesta e già sincronizzata online.
   const precedente = privacy.rettifica_streak;
   if (precedente && typeof precedente === 'object' &&
       precedente.origine === 'rettifica_richiesta_dal_titolare') {
