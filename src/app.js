@@ -2266,12 +2266,6 @@ function vistaHome(zona) {
     el('span',{class:'app-page-kicker-dot',aria:{hidden:'true'}}),
     el('span',{testo:'IL TUO PERCORSO · WORKOUT HUB'}),
   ]));
-  zona.appendChild(el('a', { href: '#/recap', class: 'recap-casa-link' }, [
-    el('span', { testo: '✦' }),
-    el('strong', { testo: 'Guarda il Recap del mese e dell’anno' }),
-    el('span', { 'aria-hidden': 'true', testo: '→' }),
-  ]));
-  zona.appendChild(collegamentoMusicBox());
 
   // Ogni persona usa il proprio link: non mostrare un selettore che fa sembrare
   // l'account di Andrea parte del profilo di Stefano. Gli amici si aprono da Amici.
@@ -2296,11 +2290,19 @@ function vistaHome(zona) {
     ]));
   });
 
-  zona.appendChild(el('div', { class: 'riga-titoli' }, [
+  zona.appendChild(el('div', { class: 'riga-titoli workout-titolo' }, [
     el('h1', { testo: scheda() ? scheda().nome : 'Palestra' }),
-    bottone('Modifica scheda', { onClick: () => vai('/scheda'), classe: 'fantasma' }),
+    bottone('✎ Modifica', { onClick: () => vai('/scheda'), classe: 'fantasma workout-edit-btn', titolo: 'Modifica scheda' }),
   ]));
-  zona.appendChild(el('p', { class: 'nota', testo: `Versione della scheda numero ${v.numero}. Se la modifichi le sedute passate non cambiano mai.` }));
+  zona.appendChild(el('p', { class: 'nota workout-versione', testo: `Scheda v${v.numero} · Le sedute già completate non cambiano.` }));
+  zona.appendChild(el('nav', { class: 'workout-hub-actions', 'aria-label': 'Scorciatoie allenamento' }, [
+    el('a', { href: '#/recap', class: 'recap-casa-link workout-hub-action workout-hub-recap',
+      title: 'Apri Recap mensile e annuale' }, [
+      el('span', { class: 'workout-hub-icon', testo: '✦', 'aria-hidden': 'true' }),
+      el('strong', { testo: 'Recap' }),
+    ]),
+    collegamentoMusicBox({ compatto: true }),
+  ]));
 
   // Soltanto l'ordine VISIVO cambia: il giorno prossimo viene presentato
   // per primo, tutti gli altri seguono il giro. La scheda e i suoi ID
@@ -7485,17 +7487,17 @@ function rigaPillole(st, profilo) {
 
 /** Music Box è una PWA esterna: il link deve stare nel contenuto dell'app,
  * non flottare sopra la safe area dei telefoni. */
-function collegamentoMusicBox() {
+function collegamentoMusicBox({ compatto = false } = {}) {
   return el('a', {
     href: 'https://stefanovillaggio8-dot.github.io/music-box/?modo=gym',
-    class: 'musicbox-palestra-link',
+    class: 'musicbox-palestra-link' + (compatto ? ' workout-hub-action workout-hub-music' : ''),
     target: '_blank',
     rel: 'noopener noreferrer',
     title: 'Apri Music Box con la playlist Gym',
   }, [
     el('span',{class:'musicbox-palestra-icon',testo:'♫','aria-hidden':'true'}),
     el('span',{class:'musicbox-palestra-copy'},[
-      el('strong',{testo:'Music Box · Gym'}),
+      el('strong',{testo: compatto ? 'Music Box' : 'Music Box · Gym'}),
       el('small',{testo:'Apri la tua musica per allenarti'}),
     ]),
     el('span',{class:'musicbox-palestra-arrow',testo:'↗','aria-hidden':'true'}),
@@ -9412,9 +9414,9 @@ function disegnaBarraGioco(contenitore) {
   el('a', {
   href: '#/profilo', class: 'cerchio-profilo', title: 'Il tuo profilo',
   }, [avatarNodo(profilo, { dimensione: 30 })]),
-  el('span', { class: 'chip-gioco', title: 'Streak: giorni di fila', testo: `streak ${st.fuoco.acceso ? st.fuoco.giorni : '0'}` }),
-  el('span', { class: 'chip-gioco', testo: `aura ${formattaAura(st.aura)}` }),
-  el('span', { class: 'chip-gioco', title: 'Livello account, basato sulle ricompense', testo: `livello account ${st.livello.livello}` }),
+  el('span', { class: 'chip-gioco chip-gioco-streak', title: 'Streak: giorni di fila', testo: `streak ${st.fuoco.acceso ? st.fuoco.giorni : '0'}` }),
+  el('span', { class: 'chip-gioco chip-gioco-aura', title: 'Aura disponibile', testo: `aura ${formattaAura(st.aura)}` }),
+  el('span', { class: 'chip-gioco chip-gioco-livello', title: 'Livello account, basato sulle ricompense', testo: `livello account ${st.livello.livello}` }),
   ]);
     riga.children[0].setAttribute('style', `--fuoco:${st.fuoco.colore}`);
     contenitore.appendChild(riga);
