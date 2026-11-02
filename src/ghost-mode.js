@@ -4,6 +4,18 @@ const valido = x => x !== '' && x !== null && x !== undefined && Number.isFinite
 const numero = x => Number(x).toLocaleString('it-IT', {maximumFractionDigits:2});
 const fatte = xs => xs.filter(s => s && !s.eliminata && s.stato === 'fatta')
   .sort((a,b) => (Number(a.ordine)||0)-(Number(b.ordine)||0));
+function dettaglioSpotter(s) {
+  if (!s?.spotter) return '';
+  return valido(s.rip_assistite) && Number(s.rip_assistite) >= 0
+    ? ' · S'+numero(Number(s.rip_assistite)) : ' · S';
+}
+function ripSenzaSpotter(s) {
+  if (!valido(s?.ripetizioni)) return null;
+  if (!s.spotter) return Number(s.ripetizioni);
+  if (!valido(s.rip_assistite)) return null;
+  const assistite=Number(s.rip_assistite),totale=Number(s.ripetizioni);
+  return assistite>=0 && assistite<=totale ? totale-assistite : null;
+}
 function testoSerie(s, {assistito=false,cardio=false}={}) {
   if (!s) return '—';
   if (cardio) {
@@ -14,7 +26,7 @@ function testoSerie(s, {assistito=false,cardio=false}={}) {
   }
   const peso = assistito ? s.peso_assistenza : s.peso;
   if (!valido(peso) || !valido(s.ripetizioni)) return 'dati incompleti';
-  return numero(peso) + ' kg × ' + numero(s.ripetizioni);
+  return numero(peso) + ' kg × ' + numero(s.ripetizioni) + dettaglioSpotter(s);
 }
 function testoCompattoSerie(s,config) {
   if (!s || s.stato!=='fatta') return '—';
@@ -34,17 +46,21 @@ function sfidaSerie(attuale, passata, {assistito=false,cardio=false,zavorri=fals
   const kgA = assistito ? attuale.peso_assistenza : attuale.peso;
   const kgB = assistito ? passata.peso_assistenza : passata.peso;
   if (!valido(kgA) || !valido(kgB)) return 'non_confrontabile';
-  if (!!attuale.spotter !== !!passata.spotter || !!attuale.dropset !== !!passata.dropset) return 'non_confrontabile';
-  if (attuale.spotter && (
-    !valido(attuale.rip_assistite) || !valido(passata.rip_assistite) ||
-    Number(attuale.rip_assistite)!==Number(passata.rip_assistite)
-  )) return 'non_confrontabile';
+  if (!!attuale.dropset !== !!passata.dropset) return 'non_confrontabile';
+  // Le serie con spotter contano. Se le ripetizioni assistite sono note,
+  // confrontiamo quelle eseguite SENZA aiuto: non facciamo passare
+  // 7 rip con 2 aiutate per 7 rip pulite.
+  const ripPuliteA=ripSenzaSpotter(attuale);
+  const ripPuliteB=ripSenzaSpotter(passata);
+  if (ripPuliteA===null || ripPuliteB===null) {
+    return (attuale.spotter || passata.spotter) ? 'assistita' : 'non_confrontabile';
+  }
   // Solo le macchine di ASSISTENZA sono inverse: meno kg = meglio.
   // Le ZAVORRE per trazioni e dips usano lo stesso campo peso_assistenza
   // per compatibilita' storica, ma piu' kg aggiunti = PIU' lavoro.
   const forza = assistito && !zavorri
     ? Number(kgB)-Number(kgA) : Number(kgA)-Number(kgB);
-  const rip = Number(attuale.ripetizioni)-Number(passata.ripetizioni);
+  const rip = ripPuliteA-ripPuliteB;
   if (forza === 0 && rip === 0) return 'pari';
   if (forza >= 0 && rip >= 0) return 'vinta';
   if (forza <= 0 && rip <= 0) return 'persa';
@@ -62,12 +78,13 @@ export function confrontoGhost({sedute=[],serie=[],sedutaAttivaId,esercizioId,as
   // (serie 3 di oggi NON deve essere confrontata con serie 4 del Ghost).
   const passate=serie.filter(r=>r && !r.eliminata && r.seduta_id===ultimo.id &&
     r.esercizio_id===esercizioId).sort((a,b)=>(Number(a.ordine)||0)-(Number(b.ordine)||0));
-  const risultati={vinta:0,persa:0,pari:0,mista:0,non_confrontabile:0};
+  const risultati={vinta:0,persa:0,pari:0,mista:0,assistita:0,non_confrontabile:0};
   const complete=fatte(attuale);
   for (let i=0;i<complete.length;i++) {
     const originalIndex=attuale.findIndex(s=>s.id===complete[i].id);
     const passata=passate[originalIndex]||null;
     risultati[sfidaSerie(complete[i],passata,{assistito,cardio,zavorri})]++;
+    // Fatta e' fatta anche con lo spotter, con o senza rip assistite indicate.
   }
   const prossima=attuale.findIndex(s=>s.stato!=='fatta');
   const inFocus=serieFocusId ? attuale.findIndex(s=>s.id===serieFocusId) : -1;
@@ -97,6 +114,8 @@ export function confrontoGhost({sedute=[],serie=[],sedutaAttivaId,esercizioId,as
       testo:testoCompattoSerie(r,{assistito,cardio}),
       dettaglio:testoSerie(r,{assistito,cardio}),
       fatta:oggi?.stato==='fatta',
+      spotter:!!r.spotter,
+      spotterOggi:!!oggi?.spotter && oggi?.stato==='fatta',
       prossima:i===prossima && oggi?.stato!=='fatta',
       attiva:i===indice,
       risultato,
@@ -110,6 +129,7 @@ export function confrontoGhost({sedute=[],serie=[],sedutaAttivaId,esercizioId,as
     comparate, completate:complete.length, totale:attuale.length,
     stato,
     statoVisuale:bozza?'bozza':stato,
+    spotterFatte:complete.filter(s=>s.spotter).length,
     bozza, anteprima,
     oggi: tuaSerie && (tuaSerie.stato==='fatta' || bozza)
       ? testoSerie(tuaSerie,{assistito,cardio}) : '— Da segnare',
@@ -122,12 +142,14 @@ export function confrontoGhost({sedute=[],serie=[],sedutaAttivaId,esercizioId,as
       anteprima==='pari'?'Bozza pari · da completare':
       'Bozza da completare'
     ) : stato==='vinci'?'Sei avanti sul Ghost':stato==='insegui'?'Il Ghost è avanti':
-      stato==='pari'?'Sfida in parità':'Il tuo avversario è pronto',
+      stato==='pari'?'Sfida in parità':risultati.assistita>0
+        ? 'Serie con spotter registrata':'Il tuo avversario è pronto',
     messaggioBozza: !bozza ? '' :
       anteprima==='vinta'?'Bozza: se completi così, superi il Ghost':
       anteprima==='persa'?'Bozza: il Ghost farebbe meglio':
       anteprima==='pari'?'Bozza: stesso risultato del Ghost':
       anteprima==='mista'?'Bozza: più kg ma meno rip, o viceversa':
+      anteprima==='assistita'?'Bozza con spotter: indica le rip assistite per confrontarla':
       'Bozza: confronto non disponibile',
   };
 }
