@@ -290,7 +290,7 @@ function applicaRettificaStreak(stato, oggi, profilo) {
 export function giorniStreakAccreditati(profilo, oggi = isoGiorno(new Date())) {
   const privacy = profilo?.privacy || {};
   const giorni = Array.isArray(privacy.giorni_streak_accreditati)
-    ? privacy.giorni_streak_accreditati
+    ? [...privacy.giorni_streak_accreditati]
     : [];
   // Compatibilita' con la rettifica richiesta e gia' sincronizzata online.
   const precedente = privacy.rettifica_streak;
