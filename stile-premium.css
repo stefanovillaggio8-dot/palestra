@@ -776,3 +776,147 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-aura-divina-premium {animati
  .recap-tabella-esercizi th,.recap-tabella-esercizi td{padding:10px 8px}
  .recap-mese-titolo{padding:12px}
 }
+
+
+/* v394 — statistiche RPG e testo nelle card: nessuna parola spezzata a metà. */
+.app-vista-profilo .righe-stat {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  align-items:stretch;
+  gap:12px;
+  margin:14px 0 17px;
+}
+.app-vista-profilo .righe-stat > .riga-stat-spiegata {
+  display:block;
+  flex:none;
+  min-width:0;
+  width:auto;
+  padding:16px;
+  border-radius:17px;
+}
+.app-vista-profilo .riga-stat-spiegata.stat-livello{grid-column:1/-1}
+.app-vista-profilo .riga-stat-spiegata .testo-stat {
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  min-width:0;
+  width:100%;
+}
+.app-vista-profilo .stat-intestazione {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap:8px 12px;
+  min-width:0;
+}
+.app-vista-profilo .stat-intestazione .nome-stat{
+  font-size:clamp(.98rem,2.1vw,1.18rem);
+  font-weight:800;
+  line-height:1.25;
+  min-width:0;
+  word-break:normal;
+  overflow-wrap:normal;
+}
+.app-vista-profilo .stat-intestazione .valore-stat {
+  flex:0 0 auto;
+  margin-left:auto;
+  font-size:clamp(1.6rem,3.2vw,2rem);
+  font-weight:900;
+  line-height:1.1;
+  white-space:nowrap;
+  font-variant-numeric:tabular-nums;
+}
+.app-vista-profilo .riga-stat-spiegata .stat-riassunto{
+  margin:0;
+  line-height:1.48;
+  font-size:.86rem;
+  color:#c3d2df;
+  overflow-wrap:normal;
+  word-break:normal;
+  hyphens:auto;
+}
+.app-vista-profilo .stat-dettagli {
+  margin-top:auto;
+  padding-top:7px;
+  border-top:1px solid rgba(151,188,208,.18);
+  min-width:0;
+}
+.app-vista-profilo .stat-dettagli > summary{
+  cursor:pointer;
+  font-size:.82rem;
+  font-weight:750;
+  color:#9bdfc9;
+  padding:3px 0;
+  list-style-position:inside;
+}
+.app-vista-profilo .stat-dettagli > p{
+  margin:8px 0 0;
+  font-size:.83rem;
+  line-height:1.55;
+  overflow-wrap:normal;
+  word-break:normal;
+  hyphens:auto;
+}
+.app-vista-profilo .stat-dettagli > summary:focus-visible{
+  outline:2px solid #91ebc8;
+  outline-offset:4px;
+  border-radius:4px;
+}
+/* Altre card: rispetta le parole italiane nei paragrafi, senza separarle
+   arbitrariamente in minuscole colonne. Conserva il wrapping dei link lunghi. */
+.contenuto :is(.blocco,.riga-stat,.numero-grande,.progressi-grafici-panel,
+  .recap-pagina,.card-rank,.aura-shop-card) :is(p,.nota,.nota-piccola){
+  word-break:normal;
+  overflow-wrap:break-word;
+  hyphens:auto;
+}
+.app-vista-profilo .riga-classi.riga-bonus > .nota{
+  line-height:1.5;
+  word-break:normal;
+  overflow-wrap:normal;
+  hyphens:auto;
+}
+@media(max-width:900px){
+  .app-vista-profilo .righe-stat{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+}
+@media(max-width:630px){
+  .app-vista-profilo .righe-stat{
+    grid-template-columns:minmax(0,1fr);
+    gap:10px;
+  }
+  .app-vista-profilo .righe-stat > .riga-stat-spiegata{
+    padding:15px 16px;
+  }
+  .app-vista-profilo .riga-stat-spiegata.stat-livello{
+    grid-column:auto;
+  }
+  .app-vista-profilo .riga-classi{
+    display:grid;
+    grid-template-columns:minmax(0,1fr);
+    gap:8px;
+  }
+  .app-vista-profilo .riga-classi .classe-rpg{
+    min-width:0;
+    width:100%;
+  }
+  .app-vista-profilo .riga-classi.riga-bonus > .nota {
+    display:block;
+    padding:8px 11px;
+    background:rgba(122,164,186,.06);
+    border:1px solid rgba(151,188,208,.15);
+    border-radius:10px;
+    margin:0;
+  }
+  .app-vista-profilo .griglia-numeri{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:9px;
+  }
+}
+@media(max-width:340px){
+  .app-vista-profilo .griglia-numeri{
+    grid-template-columns:minmax(0,1fr);
+  }
+}

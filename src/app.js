@@ -7207,15 +7207,18 @@ function bloccoGiorniAllenamento() {
 const SPIEGAZIONE_STAT = {
   forza: {
     nome: 'Forza',
-    cosa: 'I kg che hai spostato in totale sui movimenti grossi: 1 punto ogni 500 kg (carico × ripetizioni). Parte da 1.',
+    breve: 'Kg e ripetizioni negli esercizi principali.',
+    cosa: 'Conta il lavoro svolto nei movimenti principali: carico × ripetizioni. Ottieni 1 punto ogni 500 kg spostati. Parti da 1.',
   },
   agilita: {
     nome: 'Agilità',
-    cosa: 'I minuti di cardio: 1 punto ogni 5 minuti di tapis, corsa o corda. Parte da 1.',
+    breve: 'Minuti di cardio che hai fatto.',
+    cosa: 'Ogni 5 minuti di tapis roulant, corsa o corda ottieni 1 punto. Parti da 1.',
   },
   stamina: {
     nome: 'Stamina',
-    cosa: 'Cardio e costanza: 1 punto ogni 8 minuti di cardio, più 1 ogni 2 giorni in cui ti alleni. Parte da 1.',
+    breve: 'Cardio e costanza negli allenamenti.',
+    cosa: 'Ottieni 1 punto ogni 8 minuti di cardio e 1 punto ogni 2 giorni in cui ti alleni. Parti da 1.',
   },
 };
 
@@ -7397,25 +7400,33 @@ const grigliaClassi = el('div', { class: 'riga-classi' });
     const inRilievo = rpg.classe && rpg.classe.bonus === chiave;
     righe.appendChild(el('div', { class: 'riga-stat riga-stat-spiegata' + (inRilievo ? ' rilievo' : '') }, [
       el('div', { class: 'testo-stat' }, [
-        el('span', { class: 'nome-stat', testo: etichette[chiave] + (inRilievo ? ' +20%' : '') }),
-        el('span', { class: 'nota nota-piccola', testo: SPIEGAZIONE_STAT[chiave].cosa }),
+        el('div', { class: 'stat-intestazione' }, [
+          el('span', { class: 'nome-stat', testo: etichette[chiave] + (inRilievo ? ' +20%' : '') }),
+          el('strong', { class: 'valore-stat', testo: String(valore) }),
+        ]),
+        el('p', { class: 'nota nota-piccola stat-riassunto', testo: SPIEGAZIONE_STAT[chiave].breve }),
+        el('details', { class: 'stat-dettagli' }, [
+          el('summary', { testo: 'Come si calcola' }),
+          el('p', { class: 'nota nota-piccola', testo: SPIEGAZIONE_STAT[chiave].cosa }),
+        ]),
       ]),
-      el('strong', { class: 'valore-stat', testo: String(valore) }),
     ]));
   }
-  // IL LIVELLO non è "quanto sei forte": è quanto hai allenato in tutto. La
-  // frase lo dice, perché è la confusione più probabile: si vede "Livello 3" accanto
-  // a "Forza 10" e sembrano la stessa cosa misurata due volte.
-  righe.appendChild(el('div', { class: 'riga-stat riga-stat-spiegata' }, [
+  // Il livello misura la pratica totale, non il valore della forza.
+  righe.appendChild(el('div', { class: 'riga-stat riga-stat-spiegata stat-livello' }, [
     el('div', { class: 'testo-stat' }, [
-      el('span', { class: 'nome-stat', testo: 'Livello' }),
-      el('span', {
-        class: 'nota nota-piccola',
-        testo: 'È il livello del personaggio: Quanta pratica hai fatto in tutto, non quanto sei forte. Sale con i kg '
-          + 'spostati e i minuti di cardio. Per misurare quanto sei forte, guarda il Rank.',
-      }),
+      el('div', { class: 'stat-intestazione' }, [
+        el('span', { class: 'nome-stat', testo: 'Livello' }),
+        el('strong', { class: 'valore-stat', testo: String(rpg.livello) }),
+      ]),
+      el('p', { class: 'nota nota-piccola stat-riassunto', testo: 'Quanto hai allenato il tuo personaggio.' }),
+      el('details', { class: 'stat-dettagli' }, [
+        el('summary', { testo: 'Come si calcola' }),
+        el('p', { class: 'nota nota-piccola',
+          testo: 'Il livello del personaggio cresce con i kg spostati e con i minuti di cardio. Non misura quanto sei forte: per quello guarda il Rank.',
+        }),
+      ]),
     ]),
-    el('strong', { class: 'valore-stat', testo: String(rpg.livello) }),
   ]));
   box.appendChild(righe);
   box.appendChild(el('div', { class: 'blocco-progresso-livello' }, [
