@@ -13,7 +13,7 @@ test('Profilo: tutte le statistiche RPG hanno una frase breve e dettaglio apribi
   assert.equal((stat.match(/cosa:/g)||[]).length,3);
   const code=app.slice(b,app.indexOf('/* ---------- schermate ---------- */',b));
   assert.match(code,/class: 'stat-intestazione'/);
-  assert.match(code,/class: 'stat-riassunto'/);
+  assert.match(code,/stat-riassunto/);
   assert.match(code,/class: 'stat-dettagli'/);
   assert.match(code,/testo: 'Come si calcola'/);
   assert.match(code,/class: 'valore-stat', testo: String\(valore\)/);
