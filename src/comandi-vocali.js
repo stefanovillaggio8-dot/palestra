@@ -65,6 +65,35 @@ function convertiNumeri(testo) {
   .replace(/\b(\d+(?:\.\d+)?)\s+e\s+mezz[oa]\b/g,(_m,a)=>String(Number(a)+0.5))
   .replace(/\s+/g,' ').trim();
 }
+// I servizi di dettatura italiani possono trascrivere "otto rep" come "8 euro".
+// Qui "euro" segue un numero e nel contesto di una serie NON rappresenta denaro.
+// La correzione è visibile prima della conferma e non si applica al cardio.
+export function normalizzaDettaturaSerie(testo,{cardio=false}={}) {
+ const parole=convertiNumeri(testo);
+ return cardio?parole:parole.replace(/\b(\d+(?:\.\d+)?)\s+eur(?:o|i|os)\b/g,
+  (_m,n)=>n+' ripetizioni');
+}
+
+// Rispetta la prima ipotesi del microfono, salvo alternative equivalenti più chiare
+// o quando la prima ipotesi non è un comando di palestra valido.
+export function scegliTrascrizioneVocale(alternative,opzioni={}) {
+ const v=(Array.isArray(alternative)?alternative:[])
+  .map(t=>String(t||'').trim()).filter(Boolean).slice(0,5);
+ if(!v.length)return '';
+ const prima=analizzaComandoVocale(v[0],opzioni);
+ if(!prima.ok) {
+  return v.find(t=>analizzaComandoVocale(t,opzioni).ok)||v[0];
+ }
+ if(opzioni.cardio || !/\b\d+(?:\.\d+)?\s+eur(?:o|i|os)\b/.test(convertiNumeri(v[0])))return v[0];
+ const precisa=v.slice(1).find(t=>{
+  if(!/\b\d+\s*(?:ripetizioni|ripetizione|rip|reps|rep|ripetute)\b/.test(convertiNumeri(t)))return false;
+  const p=analizzaComandoVocale(t,opzioni);
+  return p.ok&&p.tipo===prima.tipo&&p.numeroSerie===prima.numeroSerie&&
+   JSON.stringify(p.campi||{})===JSON.stringify(prima.campi||{});
+ });
+ return precisa||v[0];
+}
+
 function trovaUnita(testo,unita) {
  const n='(\\d+(?:\\.\\d+)?)';
  const prima=new RegExp('\\b'+n+'\\s*'+unita+'\\b','g');
@@ -102,7 +131,7 @@ function trovaUnita(testo,unita) {
 }
 
 export function analizzaComandoVocale(testo,{cardio=false,maxSerie=0}={}) {
- let normalizzato=convertiNumeri(testo);
+ let normalizzato=normalizzaDettaturaSerie(testo,{cardio});
  if(!normalizzato) return {ok:false,messaggio:'Non ho sentito parole. Riprova.'};
  // Rende equivalenti "serie 2", "seconda serie" e "serie seconda".
  normalizzato=normalizzato
