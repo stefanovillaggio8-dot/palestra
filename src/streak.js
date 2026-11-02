@@ -280,12 +280,39 @@ function applicaRettificaStreak(stato, oggi, profilo) {
   return stato;
 }
 
+/**
+ * Giorni riconosciuti esplicitamente dall'utente, ma senza seduta.
+ * Il 31 ottobre e' gia' conservato online nel profilo: la v402 lo aveva
+ * ignorato per errore. Vale come UNA data nel calendario/streak, non come
+ * 15 allenamenti virtuali e non genera serie, record o XP/Aura.
+ * I giorni futuri e le date impossibili non vengono mai accettati.
+ */
+export function giorniStreakAccreditati(profilo, oggi = isoGiorno(new Date())) {
+  const privacy = profilo?.privacy || {};
+  const giorni = Array.isArray(privacy.giorni_streak_accreditati)
+    ? privacy.giorni_streak_accreditati
+    : [];
+  // Compatibilita' con la rettifica richiesta e gia' sincronizzata online.
+  const precedente = privacy.rettifica_streak;
+  if (precedente && typeof precedente === 'object' &&
+      precedente.origine === 'rettifica_richiesta_dal_titolare') {
+    giorni.push(precedente.data);
+  }
+  return [...new Set(giorni.filter((g) => typeof g === 'string' &&
+    dataPossibile(g) && g <= oggi))].sort((a,b) => b.localeCompare(a));
+}
+
 export function calcolaStreak(sedute, oggi = isoGiorno(new Date()), profilo = null) {
   // Si passa `oggi` a `giorniAllenati`: senza, il filtro sulle sedute future usa la
   // data vera del computer e non quella che il chiamante sta usando. In un test, o
   // con un backup importato, il conto cambia e la streak dice una cosa diversa da
   // quella che l'app mostra.
-  const giorni = giorniAllenati(sedute, oggi);
+  const fatti = giorniAllenati(sedute, oggi);
+  const giorniAccreditati = giorniStreakAccreditati(profilo, oggi);
+  // Una data accreditata conta una volta sola, anche se esiste una seduta vera
+  // nello stesso giorno. Questa e' la stessa lista usata dal calendario.
+  const giorni = [...new Set([...fatti, ...giorniAccreditati])]
+    .sort((a,b) => b.localeCompare(a));
   const previsti = giorniPrevistiDa(profilo);
   // IL CASO SENZA SEDUTE HA TUTTI I CAMPI, COME QUELLO CON LE SEDUTE.
   //
@@ -298,7 +325,7 @@ export function calcolaStreak(sedute, oggi = isoGiorno(new Date()), profilo = nu
   if (!giorni.length) {
     return applicaRettificaStreak({
       giorni: 0, attiva: false, interrotta: false, fattoOggi: false,
-      giorniAllenati: [], ultimoGiorno: null, giorniPrevisti: previsti,
+      giorniAllenati: [], giorniAccreditati, ultimoGiorno: null, giorniPrevisti: previsti,
       prossimoGiorno: null, record: 0,
       prossimoObiettivo: prossimoMilestone(0),
       testo: 'Non hai ancora finito un allenamento: la streak parte dal primo allenamento.',
@@ -346,6 +373,7 @@ export function calcolaStreak(sedute, oggi = isoGiorno(new Date()), profilo = nu
     interrotta: !viva,
     fattoOggi,
     giorniAllenati: giorni,
+    giorniAccreditati,
     ultimoGiorno: ultimo,
     giorniPrevisti: previsti,
     prossimoGiorno,
