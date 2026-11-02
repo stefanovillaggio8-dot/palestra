@@ -3055,10 +3055,7 @@ async function vistaSeduta(zona, sedutaId) {
             el('strong',{testo:ghost.ghost}),
           ]),
         ]),
-        el('div',{class:'ghost-inline-punteggio',testo:ghost.comparate
-          ? ('Serie vinte '+ghost.risultati.vinta+' · pari '+ghost.risultati.pari+
-             ' · sotto '+ghost.risultati.persa+(ghost.risultati.mista?' · diverse '+ghost.risultati.mista:''))
-          : 'Completa una serie per iniziare la sfida. I kg copiati dalla scheda non contano.'}),
+        el('div',{class:'ghost-inline-punteggio',testo:riepilogoPunteggioGhost(ghost)}),
         el('p',{class:'ghost-inline-bozza',testo:ghost.messaggioBozza}),
         creaMiniSerieGhost(ghost),
       ]));
@@ -3699,16 +3696,24 @@ function aggiornaGhostDalForm(sedutaId, esercizioId, serieFocusId=null) {
     scrivi('.ghost-inline-label-oggi',(ghost.bozza?'BOZZA':'OGGI')+' · serie '+ghost.indice);
     scrivi('.ghost-inline-oggi',ghost.oggi);
     scrivi('.ghost-inline-stato',ghost.etichetta);
-    scrivi('.ghost-inline-punteggio',ghost.comparate
-      ? 'Serie vinte '+ghost.risultati.vinta+' · pari '+ghost.risultati.pari+' · sotto '+ghost.risultati.persa+
-        (ghost.risultati.mista?' · diverse '+ghost.risultati.mista:'')
-      : 'Completa una serie per iniziare la sfida. I kg copiati dalla scheda non contano.');
+    scrivi('.ghost-inline-punteggio',riepilogoPunteggioGhost(ghost));
     scrivi('.ghost-inline-bozza',ghost.messaggioBozza);
     const mini=pannello.querySelector('.ghost-serie-mini');
     if(mini) aggiornaMiniSerieGhost(mini,ghost);
     const stato=pannello.querySelector('.ghost-inline-stato');
     if(stato) stato.className='ghost-inline-stato '+ghost.statoVisuale;
   }
+}
+
+function riepilogoPunteggioGhost(ghost) {
+  if (!ghost.completate) return 'Completa una serie per iniziare la sfida.';
+  const r=ghost.risultati;
+  return 'Fatte '+ghost.completate+'/'+ghost.totale+
+    ' · vinte '+r.vinta+' · pari '+r.pari+' · sotto '+r.persa+
+    (r.mista?' · miste '+r.mista:'')+
+    (ghost.spotterFatte?' · spotter '+ghost.spotterFatte:'')+
+    (r.assistita?' · da dettagliare '+r.assistita:'')+
+    (r.non_confrontabile?' · non confrontabili '+r.non_confrontabile:'');
 }
 
 // Una riga orizzontale nello STESSO riquadro Ghost. Non cresce in altezza
@@ -3727,10 +3732,12 @@ function aggiornaMiniSerieGhost(nodo,ghost) {
   for(const s of righe) {
     const classe=['ghost-mini-pill',s.fatta?'completata':'',s.prossima?'prossima':'',
       s.attiva?'attiva':'',s.risultato==='vinta'?'vinta':'',
-      s.risultato==='persa'?'persa':''].filter(Boolean).join(' ');
+      s.risultato==='persa'?'persa':'',s.spotter?'spotter':''].filter(Boolean).join(' ');
     const prefisso=s.fatta?'✓':s.prossima?'›':'';
     fila.appendChild(el('span',{
       class:classe, titolo:'Serie '+s.numero+' · '+s.dettaglio +
+        (s.spotter?' · con spotter la scorsa volta':'')+
+        (s.spotterOggi?' · con spotter oggi':'')+
         (s.fatta?' · fatta oggi':s.prossima?' · prossima da segnare':''),
     },[
       el('small',{testo:(prefisso?prefisso+' ':'')+'S'+s.numero}),
