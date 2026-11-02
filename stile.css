@@ -3518,3 +3518,12 @@ html.animazioni-mai .barra-piena::after { animation: none; }
 @media (prefers-reduced-motion:reduce) {
   .ghost-inline, .cronologia-evento { animation:none!important; transition:none!important; }
 }
+
+/* Ghost: un valore copiato non equivale a una serie eseguita. */
+.ghost-inline-stato.bozza { color:var(--giallo); }
+.ghost-inline-bozza {
+  color:var(--giallo); font-size:.73rem; line-height:1.4;
+  padding:7px 9px; margin:2px 0 0; border-radius:8px;
+  background:rgba(255,209,102,.08); border:1px solid rgba(255,209,102,.18);
+}
+.ghost-inline-bozza:empty { display:none; }
