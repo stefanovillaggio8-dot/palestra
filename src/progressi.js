@@ -375,7 +375,7 @@ export function riepilogoGenerale(esercizi) {
       // nuovo hai fatto almeno 5 ripetizioni. Se le ripetizioni sono meno di 5
       // non sei migliorato: e siccome non sei nemmeno andato indietro, resti
       // com'eri (il gruppo degli "invariati").
-      const rip = miglioriRipetizioniCon(punti[punti.length - 1].serie, a, assistito);
+      const rip = miglioriRipetizioniCon(punti[punti.length - 1].serie, a, !convenzioneMisuraCarico(e.convenzione));
       if (rip === null || rip < 5) {
         migliore = 0;
         delta = 0;
