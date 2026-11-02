@@ -421,7 +421,7 @@ function isoGiorno(data) {
 
 export { isoGiorno, adesso };
 /** Ricostruisce il giro dai dati persistenti, senza contatori locali da sincronizzare. */
-export function indiceProssimoGiorno(versione, sedute = [], versioni = []) {
+export function indiceProssimoGiorno(versione, sedute = [], versioni = [], ripartenza = null) {
   const giorni = versione?.snapshot?.giorni || [];
   if (!giorni.length) return -1;
   const nome = (v) => String(v || '').trim().toLocaleLowerCase('it');
@@ -440,6 +440,28 @@ export function indiceProssimoGiorno(versione, sedute = [], versioni = []) {
     .sort((a, b) => data(b) - data(a)
       || String(b.ora_inizio || '').localeCompare(String(a.ora_inizio || ''))
       || String(b.id || '').localeCompare(String(a.id || '')));
+
+  // Ripartenza esplicitamente richiesta dal proprietario della scheda.
+  // Vale SOLO per questa scheda, e non cancella/crea sedute o influenza streak.
+  // Il giorno scelto resta il prossimo fino a quando non viene completata
+  // una NUOVA seduta DOPO il momento della ripartenza. Poi il giro continua.
+  if (ripartenza && ripartenza.scheda_id === versione.scheda_id) {
+    const indiceRipartenza = giorni.findIndex(g => g.id === ripartenza.giorno_id);
+    const istante = Date.parse(ripartenza.attivato_il || '');
+    if (indiceRipartenza >= 0 && Number.isFinite(istante)) {
+      const successive = valide.filter(s => {
+        const fine = Date.parse(s.ora_fine || '');
+        // Quando si conosce la chiusura della seduta si usa quella, non la
+        // data (che può essere stata retrodatata manualmente).
+        return Number.isFinite(fine) && fine > istante;
+      });
+      if (!successive.length) return indiceRipartenza;
+      // La rotazione riprende dall'ultima seduta successiva alla ripartenza.
+      valide.splice(0, valide.length, ...successive.sort((a,b) =>
+        Date.parse(b.ora_fine) - Date.parse(a.ora_fine)));
+    }
+  }
+
   for (const s of valide) {
     let indice = giorni.findIndex(g => g.id && g.id === s.giorno_id);
     if (indice < 0) {
