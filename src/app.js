@@ -4164,9 +4164,14 @@ const selezioneStorico = { attiva: false, ids: new Set() };
 
 function vistaStorico(zona) {
   zona.appendChild(el('h1', { testo: 'Storico' }));
+  // Un solo comando sottile: prima questo blocco occupava quasi
+  // quanto una seduta intera sullo schermo dell'iPhone.
   zona.appendChild(el('div',{class:'cronologia-accesso'},[
-    el('span',{testo:'Ripristina modifiche, serie e allenamenti cancellati'}),
-    bottone('↶ Cronologia e Annulla',{classe:'fantasma piccolo-b',onClick:()=>vai('/cronologia')}),
+    bottone('↶ Cronologia e Annulla',{
+      classe:'fantasma piccolo-b cronologia-accesso-bottone',
+      titolo:'Apri la cronologia per annullare modifiche ed eliminazioni',
+      onClick:()=>vai('/cronologia'),
+    }),
   ]));
   const completate = seduteDellaPersona().filter((s) => s.stato === 'completata' && !s.eliminata)
     .sort((a, b) => String(b.data).localeCompare(String(a.data)));
@@ -4174,7 +4179,8 @@ function vistaStorico(zona) {
     zona.appendChild(el('p', { class: 'nota', testo: 'Nessuna seduta registrata. Quando finisci il primo allenamento lo troverai qui.' }));
     return;
   }
-  zona.appendChild(el('p', { class: 'nota', testo: `${completate.length} sedute. Nessun dato inventato: qui ci sono solo allenamenti che hai chiuso davvero.` }));
+  zona.appendChild(el('p', { class: 'nota storico-conteggio', testo:
+    `${completate.length} ${completate.length === 1 ? 'seduta completata' : 'sedute completate'}` }));
 
   // Il bottone per scegliere le sedute da togliere. Fuori dalla lista, in alto:
   // se stai in mezzo a trenta sedute e devi cercarlo, è la stessa impresa di prima.
