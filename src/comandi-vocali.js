@@ -100,7 +100,7 @@ function trovaUnita(testo,unita) {
  const dopo=new RegExp('\\b'+unita+'\\s*(?:di\\s*)?'+n+'\\b','g');
  // In "22 chili 7 ripetizioni", "chili 7" NON significa 7 chili.
  // Un'unita' seguita da un numero vale come "peso 22" soltanto quando
- // non segue gia' un numero della misura precedente.
+ // non segue già un numero della misura precedente.
  const qualunqueUnita=/(?:kg|kili|chili|chilo|chilogrammi|chilogrammo|kilo|kilos|peso|zavorra|zavorre|assistenza|ripetizioni|ripetizione|rip|reps|rep|ripetute|minuti|minuto|min)$/;
  const primaValidi=[...testo.matchAll(prima)].filter(m=>{
    const prefisso=testo.slice(0,m.index).trim();
