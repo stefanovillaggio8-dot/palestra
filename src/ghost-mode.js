@@ -57,7 +57,7 @@ function sfidaSerie(attuale, passata, {assistito=false,cardio=false,zavorri=fals
   }
   // Solo le macchine di ASSISTENZA sono inverse: meno kg = meglio.
   // Le ZAVORRE per trazioni e dips usano lo stesso campo peso_assistenza
-  // per compatibilita' storica, ma piu' kg aggiunti = PIU' lavoro.
+  // per compatibilita' storica, ma più kg aggiunti = PIU' lavoro.
   const forza = assistito && !zavorri
     ? Number(kgB)-Number(kgA) : Number(kgA)-Number(kgB);
   const rip = ripPuliteA-ripPuliteB;
@@ -99,7 +99,7 @@ export function confrontoGhost({sedute=[],serie=[],sedutaAttivaId,esercizioId,as
   const riferimento=passate[indice]?.stato==='fatta' ? passate[indice] : null;
   const tuaSerie=attuale[indice]||null;
   // I valori copiati dalla scheda precedente NON rappresentano una serie fatta.
-  // Una bozza che l'utente ha cambiato si puo' mostrare come anteprima,
+  // Una bozza che l'utente ha cambiato si può mostrare come anteprima,
   // ma non incrementa vittorie, record o premi finche' non viene spuntata.
   const bozza=!!tuaSerie && tuaSerie.stato!=='fatta' && bozzaIds.includes(tuaSerie.id);
   const anteprima=bozza && riferimento
