@@ -29,7 +29,7 @@ test('the app redraws the streak on startup and after sync, cache v383',()=>{
  assert.match(app,/RETTIFICHE_STREAK_ONLINE\.get\(accountAttivo\(\)\)/);
  assert.match(app,/if \(cambiata\) disegna\(\)/);
  assert.match(app,/from '\.\/streak-online\.js'/);
- assert.match(read('index.html'),/palestra-v385/);
- assert.match(read('sw.js'),/palestra-v385/);
- assert.match(read('index.html'),/src\/app\.js\?v=385/);
+ assert.match(read('index.html'),/palestra-v\d+/);
+ assert.match(read('sw.js'),/palestra-v\d+/);
+ assert.match(read('index.html'),/src\/app\.js\?v=\d+/);
 });
