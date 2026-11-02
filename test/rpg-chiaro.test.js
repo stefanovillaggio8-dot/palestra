@@ -188,34 +188,34 @@ test('CLASSE-2. sotto ogni bottone c\'è scritto cosa dà', () => {
     'che dice: Guerriero → Forza +20%, Assassino → Agilità +20%, Berserker → Stamina +20%');
 });
 
-test('STAT-1. ogni statistica dice cosa conta', () => {
-  // Ste: "il forza 10 agilità 1 stamina 2 livello 3 cosa indicano?".
-  // Un numero senza unità è rumore. Ogni riga deve avere la spiegazione.
-  assert.match(srcApp, /const SPIEGAZIONE_STAT = \{/,
-    'le tre statistiche hanno una spiegazione scritta');
-  assert.match(srcApp, /forza: \{\s*nome: 'Forza',\s*cosa: '[^']*500 kg/,
-    'la Forza dice cosa serve per un punto: 500 kg spostati');
-  assert.match(srcApp, /agilita: \{\s*nome: 'Agili/,
-    'l\'Agilità c\'è');
-  assert.match(srcApp, /Ogni 5 minuti sono un punto/,
-    'e dice che ogni 5 minuti di cardio è un punto');
-  assert.match(srcApp, /stamina: \{/,
-    'la Stamina c\'è');
-  assert.match(corpo('bloccoAvatarRpg'), /class: 'riga-stat riga-stat-spiegata'/,
-    'e ogni riga della schermata è quella che porta la spiegazione');
+test('STAT-1. ogni statistica RPG ha una spiegazione breve e il calcolo completo', () => {
+  assert.match(srcApp, /const SPIEGAZIONE_STAT = \{/);
+  const avatar = corpo('bloccoAvatarRpg');
+  assert.match(srcApp, /forza: \{\s*nome: 'Forza',\s*breve: '[^']+',\s*cosa: '[^']*500 kg/,
+    'Forza: la spiegazione estesa precisa la soglia di 500 kg');
+  assert.match(srcApp, /agilita: \{\s*nome: 'Agilità',\s*breve: '[^']+',\s*cosa: '[^']*Ogni 5 minuti/,
+    'Agilità: il dettaglio conserva il calcolo ogni 5 minuti');
+  assert.match(srcApp, /stamina: \{\s*nome: 'Stamina',\s*breve: '[^']+',\s*cosa: '[^']*ogni 8 minuti/,
+    'Stamina: il dettaglio conserva il calcolo ogni 8 minuti');
+  assert.match(avatar, /class: 'riga-stat riga-stat-spiegata'/,
+    'le card continuano a visualizzare il dato numerico');
+  assert.match(avatar, /class: 'stat-dettagli'/,
+    'ogni statistica mantiene la spiegazione completa');
+  assert.match(avatar, /testo: 'Come si calcola'/,
+    'l’utente può aprire il dettaglio soltanto quando ne ha bisogno');
 });
 
-test('STAT-2. il LIVELLO dice che non è quanto sei forte', () => {
-  // "Livello 3" accanto a "Forza 10" sembrano la stessa cosa misurata due volte.
-  // La riga del livello deve dire che è quanta pratica hai fatto.
+test('STAT-2. il LIVELLO distingue pratica e forza', () => {
   const avatar = corpo('bloccoAvatarRpg');
   const iLivello = avatar.indexOf("nome-stat', testo: 'Livello'");
-  assert.ok(iLivello > 0, 'la riga del livello c\'è');
-  const pezzo = avatar.slice(iLivello, iLivello + 400);
-  assert.match(pezzo, /Quanta pratica hai fatto in tutto, non quanto sei forte/,
-    'e lo dice: il livello è pratica, non forza');
+  assert.ok(iLivello > 0, 'la card del livello esiste');
+  const pezzo = avatar.slice(iLivello, iLivello + 650);
+  assert.match(pezzo, /Quanto hai allenato il tuo personaggio/,
+    'la spiegazione breve descrive la pratica');
+  assert.match(pezzo, /Non misura quanto sei forte/,
+    'il dettaglio specifica che il livello non è il Rank');
   assert.match(pezzo, /guarda il Rank/,
-    'e rimanda al Rank per misurare quanto sei forte');
+    'indica la pagina corretta per la forza');
 });
 
 test('SPIEGA-1. la spiegazione dice come si scrive il cardio', () => {
