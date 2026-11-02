@@ -14,7 +14,7 @@ export function apriModaleComandoVocale({ numero=1, cardio=false, righe, suConfe
   : 'Microfono Web non disponibile: usa la dettatura della tastiera iPhone nel campo qui sotto.'});
  const input=el('input',{type:'text',class:'voce-comando-input',autocomplete:'off',
   autocapitalize:'none',spellcheck:'false',
-  placeholder:cardio?'Esempio: 30 minuti':'Esempio: 22 chili 7 ripetizioni',
+  placeholder:cardio?'Esempio: 30 minuti':'Esempio: seconda serie 25 chili e mezzo 8 rep',
   aria:{label:'Parole riconosciute o scritte'}});
  const preview=el('div',{class:'voce-comando-anteprima',aria:{live:'polite'}});
  function bersaglio(p) {
@@ -27,10 +27,14 @@ export function apriModaleComandoVocale({ numero=1, cardio=false, righe, suConfe
   if(p.tipo==='recupero_stop') return 'Fermerò il timer di recupero.';
   const s=bersaglio(p);
   if(!s)return 'Serie indicata non trovata.';
-  if(p.tipo==='completa_serie')return 'Segnerò come fatta la serie '+s.ordine+'.';
+  const campi=p.campi||{};
   const dati=[];
-  if(p.campi.peso!==undefined)dati.push(p.campi.peso+' kg');
-  if(p.campi.ripetizioni!==undefined)dati.push(p.campi.ripetizioni+(cardio?' minuti':' ripetizioni'));
+  if(campi.peso!==undefined)dati.push(campi.peso+' kg');
+  if(campi.ripetizioni!==undefined)dati.push(campi.ripetizioni+(cardio?' minuti':' ripetizioni'));
+  if(campi.spotter!==undefined)dati.push(campi.spotter?'con spotter':'senza spotter');
+  if(campi.rip_assistite!==undefined)dati.push(campi.rip_assistite+' ripetizioni assistite');
+  if(p.tipo==='completa_serie')return 'Segnerò come fatta la serie '+s.ordine+
+    (dati.length?' · '+dati.join(' · '):'')+'. Partirà il recupero automatico.';
   return 'Serie '+s.ordine+' · '+dati.join(' · ')+' — da confermare';
  }
  let corrente=null;
@@ -120,7 +124,7 @@ export function apriModaleComandoVocale({ numero=1, cardio=false, righe, suConfe
    ]),
    el('p',{class:'voce-comando-esempi',testo:cardio
      ? 'Di’: «30 minuti» oppure «avvia recupero».'
-     : 'Di’: «22 chili 7 ripetizioni», «segna serie» oppure «avvia recupero».'}),
+     : 'Di’: «seconda serie, 25 chili e mezzo, 8 rep», «fatta» o «spotter». Segnando la serie parte il recupero.'}),
    ascolto,
    stato,
    input,
