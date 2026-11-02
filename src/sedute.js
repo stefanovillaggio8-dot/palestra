@@ -258,16 +258,27 @@ export function aspettaSalvataggi() {
 }
 
 /** Cambia i campi di una serie esistente. */
-export async function cambiaSerie(idSerie, campi) {
+export async function cambiaSerie(idSerie, campi, { onSalvata = null } = {}) {
   const precedente = codeSerie.get(idSerie) || Promise.resolve();
   const lavoro = precedente.then(async () => {
     const esistente = await db.prendi('serie', idSerie);
-    if (!esistente) {
+    if (!esistente || esistente.eliminata) {
       const errore = new Error('Questa serie non esiste piu\'. Ricarico la pagina.');
       errore.codice = 'serie_inesistente';
       throw errore;
     }
-    return db.salva('serie', { ...esistente, ...campi });
+    // Una modifica dell'utente e' sempre nuova: non copiare lo stato di
+    // sincronizzazione e il timestamp della vecchia riga.
+    const salvata = await db.salva('serie', {
+      ...esistente, ...campi, sync:undefined, updated_at:undefined,
+    });
+    // L'osservatore riceve i valori PRIMA e DOPO all'interno della stessa
+    // coda seriale. Cosi' la cronologia non perde i campi modificati a raffica.
+    if (typeof onSalvata === 'function') {
+      try { await onSalvata(esistente, salvata); }
+      catch (e) { console.warn('Cronologia della serie non disponibile:', e); }
+    }
+    return salvata;
   });
   inVolo.add(lavoro);
   const pulito = () => { inVolo.delete(lavoro); };
