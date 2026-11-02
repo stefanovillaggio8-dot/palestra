@@ -227,7 +227,7 @@ async function manda() {
       const utenteSupabase = utenteVerificato && utenteVerificato.id;
       if (!utenteSupabase) throw new Error('Supabase non ha confermato l’utente autenticato: accedi di nuovo e riprova.');
       // L'UPSERT e' una sostituzione JSON completa del profilo, non un PATCH
-      // campo-per-campo. Mantieni accrediti e ripartenze gia' sul server quando
+      // campo-per-campo. Mantieni accrediti e ripartenze già sul server quando
       // questa PWA locale non li conosce ancora (es. reinstallazione iPhone).
       const daInviare = tabella === 'profili'
         ? preservaMetadatiProfiloLocaleSuRemoto(rigaPerInvio(riga,tabella), remoto)
