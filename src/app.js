@@ -22,7 +22,7 @@ import {
   MODALITA, raccogliPerEsercizio, proposta as propostaAggiornamento, notaSulNumeroSerie,
   riassuntoSpotter,
 } from './aggiornamento.js';
-import { testoProgresso, serieARipetizioniCostanti, riepilogoGenerale } from './progressi.js';
+import { testoProgresso, serieARipetizioniCostanti, riepilogoGenerale, serieRiferimentoProgressi, confrontoCompattoProgressi } from './progressi.js';
 import { prestazione, mediaPrestazioni, classificaGenerale } from './forza-generale.js';
 import { creaPacchetto, validaPacchetto, unisci, csvSerie, csvSedute, csvEsercizi, soloMiaScheda } from './backup.js';
 import { ESERCIZI, SCHEDA_ID, SCHEDA_NOME, PERSONE, accountId, chiSei, personaDaMemoria, costruisciSnapshot, eserciziMancanti } from './dati-iniziali.js';
@@ -4476,12 +4476,12 @@ function cardRiepilogoMio() {
         return;
       }
       for (const v of voci) {
-        dettaglio.appendChild(el('p', { class: 'riga-variazione ' + (colori[chiave] || 'neutro'), testo: v.migliore === 0
-          ? v.nome + ': nessun miglioramento confermato.'
-          : v.nome + ': ' + (v.assistito
-            ? (v.migliore > 0 ? 'meno aiuto' : 'più aiuto')
-            : (v.migliore > 0 ? 'più peso' : 'meno peso'))
-            + ' rispetto a prima.' }));
+        dettaglio.appendChild(el('p', { class: 'riga-variazione ' + (colori[chiave] || 'neutro'), testo: v.nome + ': ' + (
+            v.migliore === 0 ? 'nessun miglioramento confermato' :
+            v.zavorre ? (v.migliore > 0 ? 'più zavorra aggiunta al corpo' : 'meno zavorra aggiunta al corpo') :
+            v.assistito ? (v.migliore > 0 ? 'meno aiuto' : 'più aiuto') :
+            (v.migliore > 0 ? 'più peso' : 'meno peso')
+          ) + ' rispetto a prima ' + confrontoCompattoProgressi(v) + '.' }));
       }
     });
     return b;
@@ -4791,25 +4791,34 @@ function aggiorna() {
 
     const res = testoProgresso(e.nome, e, punti, descrizionePeriodo);
 
-    const assistito = !convenzioneMisuraCarico(e.convenzione);
-    const chiave = assistito ? 'assistenza' : 'pesoMassimo';
-    const valori = res.dati.filter((d) => d[chiave] !== null && Number.isFinite(Number(d[chiave])));
+    const zavorre = e.convenzione === CONVENZIONI.ZAVORRI;
+    const assistito = e.convenzione === CONVENZIONI.ASSISTENZA;
+    const corpoLibero = e.convenzione === CONVENZIONI.CORPO_LIBERO;
+    const chiave = zavorre || assistito || corpoLibero ? 'assistenza' : 'pesoMassimo';
+    const riferimenti = punti.map((p) => serieRiferimentoProgressi(p.serie, e)).filter(Boolean);
     let spiegazione = 'Per capire se stai migliorando, registra almeno due allenamenti di questo esercizio.';
-    if (valori.length >= 2) {
-      const prima = Number(valori[0][chiave]);
-      const dopo = Number(valori[valori.length - 1][chiave]);
-      if (dopo === prima) {
-        spiegazione = assistito
-          ? 'Hai usato lo stesso aiuto di prima. Guarda anche le ripetizioni.'
-          : 'Il peso è rimasto uguale. Potresti aver fatto più ripetizioni.';
-      } else if ((assistito && dopo < prima) || (!assistito && dopo > prima)) {
-        spiegazione = assistito
-          ? 'Hai avuto bisogno di meno aiuto: è un buon segnale.'
-          : 'Hai usato più peso rispetto alla prima volta. Contano anche ripetizioni e tecnica.';
+    if (corpoLibero) spiegazione = 'A corpo libero conta soprattutto quante ripetizioni riesci a fare.';
+    if (riferimenti.length >= 2) {
+      const prima = riferimenti[0], ultima = riferimenti[riferimenti.length - 1];
+      const confronto = confrontoCompattoProgressi({
+        da: prima.peso, a: ultima.peso, ripDa: prima.ripetizioni,
+        ripA: ultima.ripetizioni, zavorre,
+      });
+      if (ultima.peso === prima.peso) {
+        spiegazione = zavorre ? 'Hai usato la stessa zavorra' :
+          assistito ? 'Hai usato lo stesso aiuto' : 'Hai usato lo stesso peso';
+        spiegazione += '. Guarda anche le ripetizioni ' + confronto + '.';
+      } else if (zavorre) {
+        spiegazione = (ultima.peso > prima.peso
+          ? 'Hai aggiunto più peso al tuo corpo ' : 'Hai aggiunto meno peso al tuo corpo ')
+          + confronto + '.';
+      } else if (assistito) {
+        spiegazione = (ultima.peso < prima.peso
+          ? 'Hai avuto bisogno di meno aiuto ' : 'Hai avuto bisogno di più aiuto ')
+          + confronto + '.';
       } else {
-        spiegazione = assistito
-          ? 'Hai usato più aiuto: non significa per forza che stai peggiorando.'
-          : 'Hai usato meno peso. Potrebbe dipendere anche dalla stanchezza.';
+        spiegazione = (ultima.peso > prima.peso ? 'Hai usato più peso ' : 'Hai usato meno peso ')
+          + confronto + '.';
       }
     }
     const box = el('div', { class: 'spiegazione progressi-lettura' });
@@ -4819,8 +4828,12 @@ function aggiorna() {
       el('summary', { testo: 'Leggi la spiegazione completa' }),
     ]);
     spiegazioneCompleta.appendChild(el('p', { class: 'nota',
-      testo: assistito
-        ? 'Questo grafico mostra quanto ti ha aiutato la macchina. Quando l’aiuto diminuisce, stai facendo più lavoro da solo.'
+      testo: zavorre
+        ? 'Nei dips e nelle trazioni zavorrate i kg indicano il peso aggiunto al tuo corpo, non un aiuto della macchina.'
+        : assistito
+        ? 'Questo grafico mostra quanto ti ha aiutato la macchina. Meno aiuto significa più lavoro da solo.'
+        : corpoLibero
+        ? 'A corpo libero sono importanti le ripetizioni fatte.'
         : 'Questo grafico mostra il peso più alto registrato in ogni allenamento, non tutta la forza che hai.',
     }));
     spiegazioneCompleta.appendChild(el('p', { class: 'nota',
@@ -4835,17 +4848,19 @@ function aggiorna() {
       const x = new Date(d + 'T12:00:00');
       return x.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' });
     };
-    contenitoreGrafici.appendChild(el('h3', { testo: assistito ? 'Quanto aiuto ti è servito' : 'Il peso che hai usato' }));
+    contenitoreGrafici.appendChild(el('h3', { testo: zavorre ? 'Peso aggiunto al tuo corpo' : assistito ? 'Quanto aiuto ti è servito' : 'Il peso che hai usato' }));
     contenitoreGrafici.appendChild(graficoLinea(
       res.dati.map((d) => ({ etichetta: etichettaBreve(d.data), ...d })),
       {
         chiaveY: chiave,
-        titoloY: assistito ? 'Aiuto (kg)' : 'Peso (kg)',
+        titoloY: zavorre ? 'Zavorra (kg)' : assistito ? 'Aiuto (kg)' : 'Peso (kg)',
         larghezza: 680,
         altezza: 220,
-        nota: assistito
-          ? 'Con il corpo libero questo numero non e\' un record: piu\' assistenza = lavoro piu\' leggero.'
-          : 'Il carico massimo di ogni seduta. Ricorda che piu\' kg non vuol dire automaticamente meglio.',
+        nota: zavorre
+          ? 'Questi sono kg in più rispetto al tuo peso corporeo. Contano anche le ripetizioni.'
+          : assistito
+          ? 'Meno aiuto vuol dire più lavoro da solo.'
+          : 'Il peso massimo di ogni allenamento. Contano anche le ripetizioni.',
       },
     ));
 
