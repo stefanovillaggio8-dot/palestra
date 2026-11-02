@@ -3535,3 +3535,12 @@ html.animazioni-mai .barra-piena::after { animation: none; }
   background:rgba(255,209,102,.08); border:1px solid rgba(255,209,102,.18);
 }
 .ghost-inline-bozza:empty { display:none; }
+
+
+/* Ghost: mostra il risultato della serie appena spuntata e, sotto,
+   la successiva ancora da fare. */
+.ghost-inline-prossima {
+  color:var(--testo-3); font-size:.72rem; line-height:1.35;
+  margin:0; padding:0;
+}
+.ghost-inline-prossima:empty { display:none; }
