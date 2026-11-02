@@ -47,6 +47,8 @@ export function apriModaleComandoVocale({ numero=1, cardio=false, righe, suConfe
        stato.textContent='Questa serie non esiste.';return;
      }
      conferma.disabled=true;
+     // Ferma subito il microfono: anche durante il salvataggio non deve ascoltare.
+     fermaAscolto();
      try{
        await suConferma(p,target);
        chiudi();
@@ -65,23 +67,47 @@ export function apriModaleComandoVocale({ numero=1, cardio=false, righe, suConfe
  };
  input.addEventListener('input',aggiorna);
  let ascolto=null;
+ function fermaAscolto() {
+   const r=riconoscitore;
+   riconoscitore=null;
+   if(!r)return;
+   // Nessuna trascrizione o callback tardiva deve modificare un pannello chiuso.
+   r.onresult=null;
+   r.onerror=null;
+   r.onend=null;
+   // Se start arriva dopo la chiusura, abortisce anche quella sessione tardiva.
+   r.onstart=()=>{try{r.abort()}catch{}};
+   try{r.abort()}catch{try{r.stop()}catch{}}
+   if(ascolto)ascolto.disabled=false;
+ }
+ function quandoNascosta() {
+   if(document.hidden===true||document.visibilityState==='hidden')chiudi();
+ }
  function chiudi() {
    if(chiuso)return;
    chiuso=true;
-   try{riconoscitore?.abort()}catch{}
+   fermaAscolto();
+   // Stop anche se si cambia schermata, si lascia la tab o si chiude la PWA.
+   window.removeEventListener?.('pagehide',chiudi);
+   window.removeEventListener?.('beforeunload',chiudi);
+   window.removeEventListener?.('hashchange',chiudi);
+   document.removeEventListener?.('visibilitychange',quandoNascosta);
    sfondo.remove();
    if(modaleAttiva===chiudi)modaleAttiva=null;
  }
  function ascolta() {
-   if(!supporto.disponibile||chiuso)return;
+   if(!supporto.disponibile||chiuso||document.hidden===true)return;
    try{
-     riconoscitore?.abort();
+     fermaAscolto();
      const r=new supporto.costruttore();
      riconoscitore=r;
      r.lang='it-IT';r.continuous=false;r.interimResults=false;r.maxAlternatives=5;
-     r.onstart=()=>{if(!chiuso){stato.textContent='🎙 Ti ascolto, parla ora.';ascolto.disabled=true;}};
+     r.onstart=()=>{
+       if(chiuso||riconoscitore!==r){try{r.abort()}catch{};return;}
+       stato.textContent='🎙 Ti ascolto, parla ora.';ascolto.disabled=true;
+     };
      r.onresult=(event)=>{
-       if(chiuso)return;
+       if(chiuso||riconoscitore!==r)return;
        const parole=[];
        for(let i=event.resultIndex||0;i<event.results.length;i++) {
          const x=event.results[i];
@@ -103,7 +129,7 @@ export function apriModaleComandoVocale({ numero=1, cardio=false, righe, suConfe
        }
      };
      r.onerror=(ev)=>{
-       if(chiuso)return;
+       if(chiuso||riconoscitore!==r)return;
        const cause={
          'not-allowed':'Microfono bloccato: controlla i permessi di Safari.',
          'service-not-allowed':'Servizio vocale non disponibile in questa modalità.',
@@ -115,11 +141,16 @@ export function apriModaleComandoVocale({ numero=1, cardio=false, righe, suConfe
        if(ev.error!=='aborted')stato.textContent=(cause[ev.error]||'Ascolto non riuscito.')+
          ' Riprova oppure usa la dettatura della tastiera.';
      };
-     r.onend=()=>{if(!chiuso)ascolto.disabled=false;};
+     r.onend=()=>{
+       if(chiuso||riconoscitore!==r)return;
+       riconoscitore=null;
+       ascolto.disabled=false;
+     };
      r.start();
    }catch(e) {
-     stato.textContent='Impossibile avviare il microfono qui. Usa la tastiera e il suo pulsante dettatura.';
-     ascolto.disabled=false;
+     fermaAscolto();
+     if(!chiuso)stato.textContent='Impossibile avviare il microfono qui. Usa la tastiera e il suo pulsante dettatura.';
+     if(ascolto)ascolto.disabled=false;
    }
  }
  ascolto=bottone(supporto.disponibile?'🎙 Ascolta':'Microfono Web non disponibile',{
@@ -146,6 +177,10 @@ export function apriModaleComandoVocale({ numero=1, cardio=false, righe, suConfe
  sfondo.addEventListener('click',ev=>{if(ev.target===sfondo)chiudi();});
  document.body.appendChild(sfondo);
  modaleAttiva=chiudi;
+ window.addEventListener?.('pagehide',chiudi);
+ window.addEventListener?.('beforeunload',chiudi);
+ window.addEventListener?.('hashchange',chiudi);
+ document.addEventListener?.('visibilitychange',quandoNascosta);
  // Il primo ascolto parte direttamente dal click sul tasto della serie.
  if(supporto.disponibile)ascolta();
  else input.focus();
