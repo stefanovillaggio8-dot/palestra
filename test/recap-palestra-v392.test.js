@@ -45,7 +45,7 @@ test('mese: sessioni distinte, giorni, serie e PR dal passato',()=>{
  assert.equal(result.tipo,'mese');assert.equal(result.nome,'Gennaio');
  assert.equal(result.allenamenti,2);assert.equal(result.giorni,2);
  assert.equal(result.serie,4);assert.equal(result.esercizi,2);
- assert.equal(result.record,2,'due record lat rispetto a dicembre, primo dip senza storico non e record battuto');
+ assert.equal(result.record,3,'due nuovi massimi lat e un nuovo massimo dips dopo il primo risultato');
  assert.equal(result.durataMinuti,90);
  assert.equal(result.esercizioPiuAllenato.nome,'Lat Machine');
 });
@@ -58,7 +58,7 @@ test('anno: somma mesi, zero nei mesi senza sedute, futuro ignorato',()=>{
  const r=calcolaRecapPalestra({...base(),anno:2026});
  assert.equal(r.tipo,'anno');assert.equal(r.mesi.length,12);
  assert.equal(r.allenamenti,3);assert.equal(r.giorni,3);
- assert.equal(r.record,3);assert.equal(r.serie,7);
+ assert.equal(r.record,4);assert.equal(r.serie,7);
  assert.equal(r.mesi[10].allenamenti,0);
  assert.equal(r.meseMigliore.nome,'Gennaio');
  assert.equal(NOMI_MESI_RECAP[0],'Gennaio');
