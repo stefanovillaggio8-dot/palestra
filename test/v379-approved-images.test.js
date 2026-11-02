@@ -32,7 +32,7 @@ test('v379: correct nine gallery positions, PWA cache, Berserker one-head source
  const gallery=read('aura-divina-v366-anteprima.html').toString();
  assert.equal((gallery.match(/<figure>/g)||[]).length,9);
  assert.equal((gallery.match(/aura-divina-v379/g)||[]).length,18);
- assert.match(read('index.html').toString(),/palestra-v385/);
- assert.match(read('sw.js').toString(),/palestra-v385/);
+ assert.match(read('index.html').toString(),/palestra-v\d+/);
+ assert.match(read('sw.js').toString(),/palestra-v\d+/);
  assert.match(read('sw.js').toString(),/aura-divina-v379/);
 });

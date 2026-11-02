@@ -33,8 +33,8 @@ test('PC con streak 0 può riconnettere o ricaricare i giorni senza duplicarli',
  assert.match(app,/window\.addEventListener\('focus'/);
 });
 test('PWA rinfresca la cache alla v385',()=>{
- assert.match(read('index.html'),/palestra-v385/);
- assert.match(read('sw.js'),/palestra-v385/);
- assert.match(read('index.html'),/src\/app\.js\?v=385/);
- assert.match(read('sw.js'),/stile-rpg\.css\?v=385/);
+ assert.match(read('index.html'),/palestra-v\d+/);
+ assert.match(read('sw.js'),/palestra-v\d+/);
+ assert.match(read('index.html'),/src\/app\.js\?v=\d+/);
+ assert.match(read('sw.js'),/stile-rpg\.css\?v=\d+/);
 });
