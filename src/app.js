@@ -3914,15 +3914,10 @@ async function eliminaSeduteEGuadagni(ids) {
   });
   // Le ricompense vengono eliminate con lo stesso meccanismo dello storico,
   // quindi il sync non potra' farle riapparire dopo l'aggiornamento.
-  const serieCestinate=[];
-  for (const s of mie) {
-    for (const x of V.serie.filter(x => x.seduta_id === s.id && !x.eliminata)) {
-      await db.cestino('serie', x.id);
-      serieCestinate.push(x.id);
-    }
-    await db.cestino('sedute', s.id);
-  }
-  for (const r of premi) await db.cestino('ricompense', r.id);
+  const serieCestinate=V.serie.filter(x=>!x.eliminata && mie.some(s=>s.id===x.seduta_id))
+    .map(x=>x.id);
+  // Il registro va scritto PRIMA di cestinare: anche se una scrittura si
+  // interrompe, l'utente puo' recuperare le righe gia' eliminate.
   await registraVoceCronologia({
     tipo:'sedute_eliminate',
     titolo:mie.length===1?'Seduta eliminata':'Eliminate '+mie.length+' sedute',
@@ -3930,6 +3925,9 @@ async function eliminaSeduteEGuadagni(ids) {
       ' XP e '+formattaAura(premi.reduce((n,r)=>n+(Number(r.aura)||0),0))+' Aura',
     sedute:mie.map(x=>x.id),serie:serieCestinate,ricompense:premi.map(x=>x.id),
   });
+  for (const id of serieCestinate) await db.cestino('serie',id);
+  for (const seduta of mie) await db.cestino('sedute',seduta.id);
+  for (const r of premi) await db.cestino('ricompense',r.id);
   await ricaricaTutto();
   return {
     numero:mie.length,
