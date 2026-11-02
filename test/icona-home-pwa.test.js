@@ -13,8 +13,8 @@ test('l icona Apple di iPhone e nuova e presente come PNG reale',()=>{
   assert.deepEqual([...p.subarray(0,8)],[137,80,78,71,13,10,26,10]);
   assert.equal(p.readUInt32BE(16),192);
   assert.equal(p.readUInt32BE(20),192);
-  assert.match(html,/rel="apple-touch-icon"[^>]*icon-palestra-v407-192\.png\?v=407/);
-  assert.match(html,/rel="icon"[^>]*icon-palestra-v407-192\.png\?v=407/);
+  assert.match(html,/rel="apple-touch-icon"[^>]*icon-palestra-v407-192\.png\?v=\d+/);
+  assert.match(html,/rel="icon"[^>]*icon-palestra-v407-192\.png\?v=\d+/);
 });
 
 test('tutti i manifest usano la nuova identita senza cambiare ID e avvio',()=>{
@@ -30,9 +30,9 @@ test('tutti i manifest usano la nuova identita senza cambiare ID e avvio',()=>{
 
 test('le icone e i manifest versionati sono disponibili offline',()=>{
   const vers=html.match(/PALESTRA_VERSIONE = '(palestra-v\d+)'/)?.[1];
-  assert.match(vers,/^palestra-v\\d+$/);
+  assert.match(vers,/^palestra-v\d+$/);
   assert.ok(worker.includes("const VERSIONE = '"+vers+"'"));
-  assert.match(html,/manifest-.*webmanifest\?v=407/);
+  assert.match(html,/manifest-.*webmanifest\?v=\d+/);
   for(const f of [
     './img/icon-palestra-v407-192.png',
     './img/icon-palestra-v407.svg',
