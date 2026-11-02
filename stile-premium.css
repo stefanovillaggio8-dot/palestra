@@ -920,3 +920,153 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-aura-divina-premium {animati
     grid-template-columns:minmax(0,1fr);
   }
 }
+
+
+/* v395 — Allenamento: la scheda è protagonista; scorciatoie piccole, utili. */
+.app-vista-allenamento .workout-hub-actions{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:9px;
+  margin:9px 0 13px;
+  width:100%;
+}
+.app-vista-allenamento .workout-hub-action{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  min-width:0;
+  min-height:45px;
+  width:100%;
+  padding:9px 12px;
+  margin:0;
+  border:1px solid rgba(140,198,194,.28);
+  border-radius:13px;
+  background:linear-gradient(130deg,rgba(29,66,62,.72),rgba(18,38,55,.87));
+  color:#e5fff4;
+  text-decoration:none;
+  font-size:.87rem;
+  font-weight:800;
+  letter-spacing:.005em;
+  line-height:1.2;
+  box-shadow:0 4px 13px rgba(0,0,0,.12);
+}
+.app-vista-allenamento .workout-hub-action strong{font-size:inherit;flex:0 1 auto;min-width:0;white-space:nowrap;}
+.app-vista-allenamento .workout-hub-music{
+  background:linear-gradient(130deg,rgba(58,39,82,.72),rgba(25,36,55,.84));
+  border-color:rgba(175,135,224,.29);
+  color:#eadcfb;
+}
+.app-vista-allenamento .workout-hub-icon,
+.app-vista-allenamento .workout-hub-action .musicbox-palestra-icon{
+  font-size:1.1rem;
+  line-height:1;
+  flex:0 0 auto;
+  width:auto;height:auto;
+  padding:0;margin:0;
+  background:none;border:0;box-shadow:none;
+}
+.app-vista-allenamento .workout-hub-music .musicbox-palestra-copy{
+  display:flex;min-width:0;gap:0;align-items:center;
+}
+.app-vista-allenamento .workout-hub-music .musicbox-palestra-copy small,
+.app-vista-allenamento .workout-hub-music .musicbox-palestra-arrow{display:none;}
+.app-vista-allenamento .workout-hub-action:focus-visible{
+  outline:2px solid #8cf2be;outline-offset:3px;
+}
+@media(hover:hover){
+  .app-vista-allenamento .workout-hub-action:hover{border-color:rgba(148,240,199,.58);filter:brightness(1.08);}
+}
+/* Il titolo non è più una card alta; il comando di modifica resta a destra. */
+.app-vista-allenamento > .workout-titolo{
+  margin:9px 0 3px;
+  padding:11px 13px;
+  border-radius:15px;
+  min-height:65px;
+  gap:9px;
+}
+.app-vista-allenamento > .workout-titolo h1{
+  margin:0;
+  min-width:0;
+  font-size:clamp(1.65rem,4.5vw,2.2rem);
+}
+.app-vista-allenamento .workout-edit-btn{
+  min-height:39px;
+  padding:8px 11px;
+  border-radius:11px;
+  font-size:.82rem;
+  font-weight:750;
+  flex:0 0 auto;
+  white-space:nowrap;
+}
+.app-vista-allenamento > .workout-versione{
+  margin:4px 3px 0;
+  font-size:.78rem;
+  line-height:1.4;
+}
+/* Barra sempre visibile: piccoli tocchi di colore, non una riga in più. */
+#stato-salvataggio .barra-gioco{
+  display:flex;
+  align-items:center;
+  flex-wrap:nowrap;
+  max-width:100%;
+  gap:clamp(4px,.9vw,8px);
+}
+#stato-salvataggio .barra-gioco .cerchio-profilo{
+  width:35px;height:35px;
+  background:linear-gradient(145deg,rgba(132,85,207,.18),rgba(65,206,173,.1));
+  border:1px solid rgba(153,126,241,.36);
+  box-shadow:0 0 0 2px rgba(114,93,195,.13),0 0 14px rgba(121,79,215,.22);
+}
+#stato-salvataggio .barra-gioco .chip-gioco{
+  box-sizing:border-box;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+  min-width:0;
+  padding:5px clamp(6px,1vw,11px);
+  border-radius:999px;
+  border:1px solid rgba(134,189,198,.22);
+  background:linear-gradient(145deg,rgba(31,49,61,.94),rgba(18,32,43,.95));
+  color:#d9e8f3;
+  font-weight:800;
+  line-height:1.15;
+  white-space:nowrap;
+  text-shadow:none;
+  box-shadow:inset 0 1px rgba(255,255,255,.045),0 3px 9px rgba(0,0,0,.12);
+}
+#stato-salvataggio .barra-gioco .chip-gioco-streak{
+  border-color:rgba(255,176,102,.32);
+  color:#ffd3a0;
+  background:linear-gradient(145deg,rgba(81,56,30,.68),rgba(47,36,31,.83));
+  box-shadow:inset 0 1px rgba(255,235,208,.08),0 0 11px rgba(245,144,56,.09);
+}
+#stato-salvataggio .barra-gioco .chip-gioco-aura{
+  border-color:rgba(185,138,246,.35);
+  color:#e6d0ff;
+  background:linear-gradient(145deg,rgba(71,46,96,.73),rgba(37,34,63,.87));
+  box-shadow:inset 0 1px rgba(238,215,255,.09),0 0 11px rgba(146,95,224,.10);
+}
+#stato-salvataggio .barra-gioco .chip-gioco-livello{
+  border-color:rgba(94,216,181,.36);
+  color:#baf4df;
+  background:linear-gradient(145deg,rgba(35,89,80,.65),rgba(27,49,59,.88));
+  box-shadow:inset 0 1px rgba(210,255,237,.09),0 0 11px rgba(86,227,182,.09);
+}
+@media(min-width:700px){
+  #stato-salvataggio .barra-gioco .chip-gioco-streak::before{content:'🔥';font-size:.7rem;}
+  #stato-salvataggio .barra-gioco .chip-gioco-aura::before{content:'✦';font-size:.79rem;}
+  #stato-salvataggio .barra-gioco .chip-gioco-livello::before{content:'⬡';font-size:.78rem;}
+}
+@media(max-width:420px){
+  .app-vista-allenamento .workout-hub-actions{gap:7px;margin:8px 0 11px;}
+  .app-vista-allenamento .workout-hub-action{min-height:44px;padding:9px 7px;font-size:.8rem;}
+  .app-vista-allenamento > .workout-titolo{padding:10px 11px;min-height:59px;}
+  .app-vista-allenamento .workout-edit-btn{min-height:36px;padding:7px 9px;font-size:.76rem;}
+  #stato-salvataggio .barra-gioco .chip-gioco{font-size:.64rem;padding:5px 6px;letter-spacing:0;}
+}
+@media(max-width:340px){
+  #stato-salvataggio .barra-gioco{gap:3px;}
+  #stato-salvataggio .barra-gioco .chip-gioco{font-size:.59rem;padding:4px 5px;}
+}
