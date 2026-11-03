@@ -3688,6 +3688,11 @@ html.animazioni-mai .barra-piena::after { animation: none; }
 .conflitti-campo:last-child {border-bottom:0;}
 .conflitti-campo dt {font-weight:700;color:var(--testo-2);}
 .conflitti-campo dd {margin:0;overflow-wrap:anywhere;white-space:pre-wrap;}
+.conflitto-campo-dettagli {margin-top:5px;}
+.conflitto-campo-dettagli > summary {cursor:pointer;color:var(--viola);font-size:.74rem;font-weight:650;}
+.conflitto-campo-pre {margin:6px 0 0;padding:8px;max-height:210px;overflow:auto;
+  border:1px solid var(--bordo);border-radius:8px;background:var(--nero-2);
+  white-space:pre-wrap;word-break:break-word;font:11px/1.4 ui-monospace,monospace;}
 .conflitti-scelta {width:100%;margin-top:8px;min-height:39px;}
 .conflitti-azioni {margin-top:10px;}
 .conflitti-compatti summary:focus-visible {outline:2px solid var(--viola);outline-offset:-2px;}
