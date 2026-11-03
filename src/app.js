@@ -11,6 +11,7 @@ import * as db from './db.js';
 import * as sb from './supabase.js';
 import * as sync from './sync.js';
 import { el, svuota, campoNumero, campoTesto, bottone, chiediConferma, chiediTesto, avviso, numeroCambiato, schedaEvento, oraLocale, dataLeggibile, conRitardo, bottoneSu } from './ui.js';
+import { valutaCampiSerieInsoliti } from './validazione-serie.js';
 import { graficoLinea, graficoBarre } from './grafici.js';
 import {
   formattaNumero, formattaPeso, formattaRipetizioni, formattaCronometro, formattaDurata,
@@ -3217,7 +3218,8 @@ function apriComandoSerieAllenamento(serie,numero) {
      if(eFatta(target)){avviso('Serie già completata.',{tipo:'ok'});return;}
      if(pesoCorporeoOra()!==null)campi.peso_corpo=pesoCorporeoOra();
      // Carico, rip, spotter e spunta sono salvati insieme.
-     await aggiornaSerie(target,{...campi,stato:'fatta'});
+     const salvataConVoce=await aggiornaSerie(target,{...campi,stato:'fatta'});
+     if(!salvataConVoce)return;
      impostaRecuperoSerie(seduta.id,true);
      suona('serie');
      pulsa();
@@ -3227,7 +3229,7 @@ function apriComandoSerieAllenamento(serie,numero) {
    }
    if(eFatta(target)&&(dati.peso!==undefined||dati.ripetizioni!==undefined))
      throw new Error('Togli prima la spunta per cambiare peso o ripetizioni.');
-   await aggiornaSerie(target,campi);
+   if(!(await aggiornaSerie(target,campi)))return;
    disegna();
    avviso('Serie aggiornata.',{tipo:'ok',durata:2300});
   },
@@ -3839,6 +3841,34 @@ async function registraVoceCronologia(dati) {
 }
 
 async function aggiornaSerie(serie, campi) {
+  // Protezione contro errori di battitura enormi (es. 80 -> 800 kg), valida
+  // per campi digitati, dropset e comandi vocali. Non corregge numeri di nascosto.
+  // La conferma è chiesta SOLO se un numero è anomalo, mai per un record normale.
+  const esercizioGuardia = esercizioPerId(serie.esercizio_id);
+  const serieAttuale = V.serie.find(s => s.id === serie.id) || serie;
+  const comparabili = serieDellaPersona().filter(s =>
+    s && !s.eliminata && s.id !== serie.id &&
+    s.esercizio_id === serie.esercizio_id && eFatta(s));
+  const controlli = valutaCampiSerieInsoliti(campi, serieAttuale, comparabili, {
+    cardio: eCardio(esercizioGuardia),
+  });
+  for (const controllo of controlli) {
+    if (controllo.tipo === 'non_valido') {
+      avviso(controllo.messaggio, {tipo:'errore',durata:6000});
+      disegna(); // Ripristina nel campo il valore effettivamente salvato.
+      return null;
+    }
+    const accettato = await chiediConferma(
+      'Controlla peso o ripetizioni',
+      controllo.messaggio,
+      {testoOk:'Sì, salva il valore',testoAnnulla:'Correggo'},
+    );
+    if (!accettato) {
+      avviso('Numero non salvato. Puoi correggerlo nella serie.', {tipo:'info',durata:3500});
+      disegna();
+      return null;
+    }
+  }
   // cambiaSerie rilegge la serie dal database e mette in fila i cambiamenti
   // della stessa serie: È quello che impedisce a un campo salvato in ritardo
   // di cancellare la spunta o lo spotter appena messi.
