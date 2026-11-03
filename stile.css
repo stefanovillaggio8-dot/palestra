@@ -3658,6 +3658,45 @@ html.animazioni-mai .barra-piena::after { animation: none; }
 }
 @media(max-width:440px) {.guida-rank-dettaglio {padding:11px;}.campo-report-diagnostica {font-size:12px;}}
 
+/* v416 · Conflitti compatti. Niente elenchi infiniti nelle Impostazioni. */
+.conflitti-compatti {margin:11px 0;padding:0;overflow:hidden;}
+.conflitti-intestazione {
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  flex-wrap:wrap;cursor:pointer;padding:12px 14px;
+}
+.conflitti-intestazione h2 {font-size:1rem;margin:0;}
+.conflitti-contatore {display:inline-flex;align-items:center;flex-shrink:0;
+  padding:4px 8px;border-radius:999px;font-size:.72rem;font-weight:750;
+  color:var(--testo-2);background:var(--nero-2);
+}
+.conflitti-in-attesa {color:#f8d89d;background:rgba(163,113,18,.18);}
+.conflitti-compatti > .conflitti-contenuto {padding:5px 13px 13px;}
+.conflitti-compatti .nota {overflow-wrap:anywhere;}
+.conflitto-voce {border:1px solid var(--bordo);border-radius:10px;margin:7px 0;
+  overflow:hidden;background:var(--nero-2);}
+.conflitto-riassunto {padding:11px 12px;cursor:pointer;display:flex;flex-direction:column;
+  gap:3px;line-height:1.3;}
+.conflitto-riassunto strong {font-size:.88rem;}
+.conflitto-riassunto .nota {font-size:.75rem;margin:0;}
+.conflitto-voce[open] > .conflitto-riassunto {border-bottom:1px solid var(--bordo);}
+.conflitto-voce > p {padding:5px 12px 0;margin:8px 0;}
+.conflitto-voce .versione-conflitto-compatta {margin:8px 10px;padding:10px;}
+.conflitti-campi {margin:9px 0;max-height:210px;overflow-y:auto;
+  border:1px solid var(--bordo);border-radius:8px;}
+.conflitti-campo {display:grid;grid-template-columns:minmax(80px,35%) 1fr;
+  gap:10px;padding:7px 9px;border-bottom:1px solid var(--bordo);font-size:.78rem;}
+.conflitti-campo:last-child {border-bottom:0;}
+.conflitti-campo dt {font-weight:700;color:var(--testo-2);}
+.conflitti-campo dd {margin:0;overflow-wrap:anywhere;white-space:pre-wrap;}
+.conflitti-scelta {width:100%;margin-top:8px;min-height:39px;}
+.conflitti-azioni {margin-top:10px;}
+.conflitti-compatti summary:focus-visible {outline:2px solid var(--viola);outline-offset:-2px;}
+@media(max-width:440px) {
+  .conflitti-intestazione {padding:10px 12px;gap:7px;}
+  .conflitti-intestazione h2 {font-size:.93rem;}
+  .conflitti-campo {grid-template-columns:1fr;gap:3px;}
+}
+
 /* Ultima regola: include anche effetti e armature aggiunti dopo il tema base. */
 @media (prefers-reduced-motion: reduce) {
   html:not(.animazioni-sempre) *,
