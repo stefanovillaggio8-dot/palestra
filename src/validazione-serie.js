@@ -77,13 +77,16 @@ export function valutaNumeroInsolito({ campo, valore, precedente = null, storico
 }
 
 /** Rileva anche i valori delle serie aggiuntive dropset. */
-export function valutaCampiSerieInsoliti(campi = {}, serie = {}, storico = [], { cardio = false } = {}) {
+export function valutaCampiSerieInsoliti(campi = {}, serie = {}, storico = [], { cardio = false, alCompletamento = false } = {}) {
   const controlli = [];
   for (const campo of ['peso','peso_assistenza','ripetizioni','rip_assistite']) {
     if (!Object.prototype.hasOwnProperty.call(campi,campo)) continue;
     const altre = storico.map(s => s && s[campo]).filter(v => v !== null && v !== undefined);
     const trovato = valutaNumeroInsolito({
-      campo, valore:campi[campo], precedente:serie[campo], storico:altre,
+      campo, valore:campi[campo],
+      // Quando la serie viene spuntata, i valori sono già una bozza salvata.
+      // Non confrontarli con se stessi: usa le serie precedenti dello stesso esercizio.
+      precedente:alCompletamento ? null : serie[campo], storico:altre,
       cardio, ripetizioni:campi.ripetizioni ?? serie.ripetizioni,
     });
     if (trovato) controlli.push(trovato);
@@ -95,12 +98,12 @@ export function valutaCampiSerieInsoliti(campi = {}, serie = {}, storico = [], {
       for (const campo of ['peso','ripetizioni']) {
         // Non riesaminare i giri lasciati identici quando si modifica un altro
         // campo: una sola nuova digitazione deve produrre al massimo un avviso.
-        if (String(g[campo] ?? '') === String(vecchio[campo] ?? '')) continue;
+        if (!alCompletamento && String(g[campo] ?? '') === String(vecchio[campo] ?? '')) continue;
         // Il dropset può avere anche valori vuoti; il peso della serie principale
         // dà un riferimento quando il singolo giro non è mai stato compilato.
         const trovato = valutaNumeroInsolito({
           campo, valore:g[campo],
-          precedente:vecchio[campo] ?? (campo === 'peso' ? serie.peso : serie.ripetizioni),
+          precedente:alCompletamento ? null : (vecchio[campo] ?? (campo === 'peso' ? serie.peso : serie.ripetizioni)),
           storico:[],
         });
         if (trovato) controlli.push({...trovato, messaggio:`Dropset, giro ${i+2}. ${trovato.messaggio}`});
