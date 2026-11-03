@@ -35,7 +35,11 @@ function mediana(valori) {
  */
 export function valutaNumeroInsolito({ campo, valore, precedente = null, storico = [], cardio = false, ripetizioni = null } = {}) {
   const n = numero(valore);
-  if (n === null) return null; // svuotare un campo è una scelta valida
+  // I campi possono essere svuotati, ma una stringa non numerica non deve
+  // mai passare nemmeno se un domani un'altra UI salta il filtro della tastiera.
+  if (n === null && valore !== null && valore !== undefined && valore !== '')
+    return {tipo:'non_valido',campo,valore,messaggio:'Questo campo accetta soltanto numeri. Scrivi le parole nelle note.'};
+  if (n === null) return null;
   const assistite = campo === 'rip_assistite';
   const carico = campo === 'peso' || campo === 'peso_assistenza';
   const rip = campo === 'ripetizioni' || assistite;
@@ -89,6 +93,9 @@ export function valutaCampiSerieInsoliti(campi = {}, serie = {}, storico = [], {
       if (!g) return;
       const vecchio = Array.isArray(serie.giri_extra) ? serie.giri_extra[i] || {} : {};
       for (const campo of ['peso','ripetizioni']) {
+        // Non riesaminare i giri lasciati identici quando si modifica un altro
+        // campo: una sola nuova digitazione deve produrre al massimo un avviso.
+        if (String(g[campo] ?? '') === String(vecchio[campo] ?? '')) continue;
         // Il dropset può avere anche valori vuoti; il peso della serie principale
         // dà un riferimento quando il singolo giro non è mai stato compilato.
         const trovato = valutaNumeroInsolito({
