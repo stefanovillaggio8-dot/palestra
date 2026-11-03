@@ -3236,6 +3236,40 @@ function apriComandoSerieAllenamento(serie,numero) {
  });
 }
 
+/** Legge anche l'ultima cifra non ancora arrivata nel DB (debounce 400 ms).
+ * Vale solo quando si preme la spunta: durante la scrittura non c'è conferma. */
+function valoriDigitatiDellaSerie(riga, serie, chiave, cardio) {
+  const campi = {};
+  const leggi = (input) => {
+    if (!input) return undefined;
+    const testo = String(input.value ?? '').trim();
+    return testo === '' ? null : numeroOppureNull(testo);
+  };
+  const peso = riga.querySelector?.('.campo-peso');
+  const rip = riga.querySelector?.('.campo-rip');
+  if (peso) campi[chiave] = leggi(peso);
+  if (rip) {
+    campi.ripetizioni = leggi(rip);
+    if (cardio) campi.durata_unita = 'minuti';
+  }
+  const assistite = riga.querySelector?.('.gruppo-assistite');
+  const campoAssistite = assistite?.querySelector?.('input');
+  if (campoAssistite) campi.rip_assistite = leggi(campoAssistite);
+
+  // La stessa protezione vale anche per i tre giri del dropset, persino quando
+  // premi la spunta subito dopo aver scritto un numero.
+  const giri = riga.querySelectorAll?.('.riga-dropset') || [];
+  if (giri.length) {
+    const originali = Array.isArray(serie.giri_extra) ? serie.giri_extra : [];
+    campi.giri_extra = Array.from(giri, (g, i) => {
+      const inputs = g.querySelectorAll?.('input') || [];
+      return {...(originali[i] || {}), peso: leggi(inputs[0]) ?? null,
+        ripetizioni: leggi(inputs[1]) ?? null};
+    });
+  }
+  return campi;
+}
+
 function rigaSerie(serie, numero, confronto, seduta, pesoRigaSorella = null) {
   const e = esercizioPerId(serie.esercizio_id);
   const assistenza = e && !convenzioneMisuraCarico(e.convenzione);
@@ -3267,81 +3301,61 @@ function rigaSerie(serie, numero, confronto, seduta, pesoRigaSorella = null) {
   // la spunta: segna che la serie l'hai fatta. Premendola di nuovo la togli.
   // Nota: cambio l'aspetto SUBITO e con stili scritti direttamente sul nodo,
   // così non dipende dal ridisegno della pagina ne' dai nomi delle classi CSS.
+  let spuntaOccupata = false;
+  const eseguiSpunta = async (origine) => {
+    if (spuntaOccupata) return;
+    spuntaOccupata = true;
+    try {
+      registra({cosa: origine === 'numero' ? 'numero premuto' : 'spunta premuta',
+        serie: serie.id, ordine: numero, esercizio: e && e.nome});
+      const fatta = !eFatta(serie);
+      const campi = {stato: fatta ? 'fatta' : 'da_fare'};
+      if (fatta) {
+        Object.assign(campi, valoriDigitatiDellaSerie(riga, serie, chiave, serieCardio));
+        if (pesoCorporeoOra() !== null) campi.peso_corpo = pesoCorporeoOra();
+      }
+      // Prima salva e, se necessario, chiede conferma. Solo DOPO segna la
+      // spunta, avvia il recupero e assegna il suono di serie completata.
+      const salvata = await aggiornaSerie(serie, campi);
+      if (!salvata) return;
+      impostaRecuperoSerie(serie.seduta_id, fatta);
+      if (fatta) {
+        avviso('Recupero avviato automaticamente.', {tipo:'ok',durata:1800});
+        pulsa();
+      }
+      segnaAspettoFatto(riga, spunta, fatta, etichettaFatta);
+      suona(fatta ? 'serie' : 'togli');
+      if (fatta) {
+        riga.classList.remove('serie-fatta-adesso');
+        if (typeof getComputedStyle === 'function' && globalThis.window) {
+          try { getComputedStyle(riga); } catch {}
+        }
+        riga.classList.add('serie-fatta-adesso');
+      }
+      disegna();
+    } catch (err) {
+      registra({cosa:'salvataggio FALLITO',errore:String(err?.message||err)});
+      mostraErroreBreve('Non sono riuscito a salvare la spunta: '+(err?.message||err));
+    } finally {
+      spuntaOccupata = false;
+    }
+  };
+
   const spunta = el('button', {
     type: 'button',
     class: 'bottone-spunta' + (eFatta(serie) ? ' attiva' : ''),
     title: eFatta(serie) ? 'Serie fatta: tocca per togliere la spunta' : 'Segna questa serie come fatta',
     'aria-pressed': eFatta(serie) ? 'true' : 'false',
-    onClick: (ev) => {
-      registra({ cosa: 'spunta premuta', serie: serie.id, ordine: numero, esercizio: e && e.nome });
-      const fatta = !eFatta(serie);
-      // Parte da solo quando segni la serie.
-      impostaRecuperoSerie(serie.seduta_id, fatta);
-      if (fatta) avviso('Recupero avviato automaticamente.', { tipo: 'ok', durata: 1800 });
-      segnaAspettoFatto(riga, spunta, fatta, etichettaFatta);
-      if (fatta) pulsa();
-      // IL SUONO DELLA SERIA FATTA.
-      //
-      // È il suono più importante dell'app: in palestra le mani sono occupate e gli
-      // occhi guardano il bilanciere, non lo schermo. Un suono breve e secco dice
-      // "registrato" senza dover guardare. Toglierla ha un suono diverso, più basso:
-      // non è un errore, ma è un'altra azione.
-      suona(fatta ? 'serie' : 'togli');
-      // L'ACCENDERSI DELLA SERIE.
-      // È l'unica animazione che parte da una tua azione e dice cosa è successo:
-      // hai premuto la spunta e la riga si illumina per mezzo secondo. Sparisce
-      // subito, quindi non resta una decorazione attaccata alla schermata.
-      if (fatta) {
-        // forza il ricalcolo dell'animazione: senza questo, togliere e rimettere la
-        // classe nella stessa sessione non riparte e la seconda volta non si vede.
-        // Lo si fa chiedendo al browser un ricalcolo, ma NON con `offsetWidth`:
-        // nei test il DOM finto non ce l'ha, e un difetto di layout non deve
-        // poter far cadere un test che non c'entra niente. Un ricalcolo di stile è
-        // esattamente quello che serve, ed esiste in ogni browser.
-        riga.classList.remove('serie-fatta-adesso');
-        if (typeof getComputedStyle === 'function' && globalThis.window) {
-          try { getComputedStyle(riga); } catch { /* il DOM finto non lo sa fare: pazienza */ }
-        }
-        riga.classList.add('serie-fatta-adesso');
-      }
-      const campi = { stato: fatta ? 'fatta' : 'da_fare' };
-      // Salvo dentro il peso che avevo quando l'ho fatta: così il record resta
-      // legato al peso giusto anche se poi mi peso diversamente.
-      if (fatta && pesoCorporeoOra() !== null) campi.peso_corpo = pesoCorporeoOra();
-      aggiornaSerie(serie, campi)
-        .then((salvata) => {
-          registra({ cosa: 'salvataggio ok', stato: salvata && salvata.stato });
-          disegna();
-        })
-        .catch((err) => {
-          registra({ cosa: 'salvataggio FALLITO', errore: String((err && err.message) || err) });
-          mostraErroreBreve('Non sono riuscito a salvare la spunta: ' + (err && err.message ? err.message : err));
-        });
-    },
-  }, [el('span', { class: 'segno-spunta', testo: eFatta(serie) ? '✓' : '' })]);
+    onClick: () => eseguiSpunta('spunta'),
+  }, [el('span', {class:'segno-spunta',testo:eFatta(serie) ? '✓' : ''})]);
   riga.appendChild(spunta);
 
-  // anche il numero della serie si può toccare: area più grande col dito
   riga.appendChild(el('button', {
-    type: 'button',
-    class: 'numero-serie numero-serie-bottone',
+    type:'button', class:'numero-serie numero-serie-bottone',
     title: eFatta(serie) ? 'Segnata come fatta: tocca per toglierla' : 'Segna come fatta',
-    'aria-pressed': eFatta(serie) ? 'true' : 'false',
-    onClick: () => {
-      registra({ cosa: 'numero premuto', serie: serie.id });
-      const fatta = !eFatta(serie);
-      impostaRecuperoSerie(serie.seduta_id, fatta);
-      if (fatta) avviso('Recupero avviato automaticamente.', { tipo: 'ok', durata: 1800 });
-      segnaAspettoFatto(riga, spunta, fatta, etichettaFatta);
-      if (fatta) { pulsa(); suona('serie'); }
-      else suona('togli');
-      const campi = { stato: fatta ? 'fatta' : 'da_fare' };
-      if (fatta && pesoCorporeoOra() !== null) campi.peso_corpo = pesoCorporeoOra();
-      aggiornaSerie(serie, campi)
-        .then(() => { registra({ cosa: 'salvataggio ok da numero' }); disegna(); })
-        .catch((err) => { registra({ cosa: 'salvataggio FALLITO', errore: String((err && err.message) || err) }); });
-    },
-  }, [el('span', { testo: String(numero) })]));
+    'aria-pressed':eFatta(serie) ? 'true' : 'false',
+    onClick: () => eseguiSpunta('numero'),
+  }, [el('span', {testo:String(numero)})]));
 
   riga.appendChild(bottone('🎙', {
     classe:'fantasma voce-serie-pulsante',
@@ -3841,32 +3855,33 @@ async function registraVoceCronologia(dati) {
 }
 
 async function aggiornaSerie(serie, campi) {
-  // Protezione contro errori di battitura enormi (es. 80 -> 800 kg), valida
-  // per campi digitati, dropset e comandi vocali. Non corregge numeri di nascosto.
-  // La conferma è chiesta SOLO se un numero è anomalo, mai per un record normale.
-  const esercizioGuardia = esercizioPerId(serie.esercizio_id);
-  const serieAttuale = V.serie.find(s => s.id === serie.id) || serie;
-  const comparabili = serieDellaPersona().filter(s =>
-    s && !s.eliminata && s.id !== serie.id &&
-    s.esercizio_id === serie.esercizio_id && eFatta(s));
-  const controlli = valutaCampiSerieInsoliti(campi, serieAttuale, comparabili, {
-    cardio: eCardio(esercizioGuardia),
-  });
-  for (const controllo of controlli) {
-    if (controllo.tipo === 'non_valido') {
-      avviso(controllo.messaggio, {tipo:'errore',durata:6000});
-      disegna(); // Ripristina nel campo il valore effettivamente salvato.
-      return null;
-    }
-    const accettato = await chiediConferma(
-      'Controlla peso o ripetizioni',
-      controllo.messaggio,
-      {testoOk:'Sì, salva il valore',testoAnnulla:'Correggo'},
-    );
-    if (!accettato) {
-      avviso('Numero non salvato. Puoi correggerlo nella serie.', {tipo:'info',durata:3500});
-      disegna();
-      return null;
+  // v415: durante la digitazione i valori sono BOZZE e si salvano senza pop-up.
+  // Il controllo anti-errori si esegue SOLO quando si completa la serie:
+  // digitare il primo "3" di "37" non deve mai aprire una conferma.
+  if (campi.stato === 'fatta') {
+    const esercizioGuardia = esercizioPerId(serie.esercizio_id);
+    const serieAttuale = V.serie.find(s => s.id === serie.id) || serie;
+    const comparabili = serieDellaPersona().filter(s =>
+      s && !s.eliminata && s.id !== serie.id &&
+      s.esercizio_id === serie.esercizio_id && eFatta(s));
+    const completi = {...serieAttuale,...campi};
+    const controlli = valutaCampiSerieInsoliti(completi, serieAttuale, comparabili, {
+      cardio: eCardio(esercizioGuardia), alCompletamento: true,
+    });
+    for (const controllo of controlli) {
+      if (controllo.tipo === 'non_valido') {
+        avviso(controllo.messaggio, {tipo:'errore',durata:6000});
+        return null;
+      }
+      const accettato = await chiediConferma(
+        'Controlla questa serie',
+        controllo.messaggio,
+        {testoOk:'Sì, salva la serie',testoAnnulla:'Correggo'},
+      );
+      if (!accettato) {
+        avviso('Serie non completata. Puoi correggere i numeri.', {tipo:'info',durata:3500});
+        return null;
+      }
     }
   }
   // cambiaSerie rilegge la serie dal database e mette in fila i cambiamenti
