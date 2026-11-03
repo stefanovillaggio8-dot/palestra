@@ -1,3 +1,5 @@
+import { testoNumericoAmmesso, numeroCompleto } from './validazione-serie.js';
+
 // ui.js -- mattoni piccoli per costruire l'interfaccia senza librerie.
 
 export function el(tag, attributi = {}, figli = []) {
@@ -49,51 +51,73 @@ export function campoNumero(valore, { onCambio, onInvalido, id, etichetta, extra
     'data-etichetta': etichetta || '',
     ...extra,
   });
-  // il valore va impostato come PROPRIETA' del campo, non come attributo:
-  // È il modo giusto, e così il bottone "+" o "come sopra" parte sempre dal
-  // numero giusto invece di trovare il campo vuoto.
+  // La tastiera è numerica, ma anche un incolla o una tastiera esterna non
+  // devono poter mettere parole in kg, ripetizioni, minuti o rip assistite.
   const iniziale = (extra && extra.value !== undefined)
     ? extra.value
     : (valore === null || valore === undefined ? '' : String(valore).replace('.', ','));
   input.value = iniziale === null || iniziale === undefined ? '' : String(iniziale);
   if (id) input.id = id;
+  let ultimaDigitazioneValida = testoNumericoAmmesso(input.value) ? input.value : '';
+  let ultimoNumeroCompleto = numeroCompleto(input.value) ? input.value : '';
+
+  // Blocca subito il carattere, ove il browser espone beforeinput. L'evento
+  // input sottostante protegge anche paste, autofill e dettatura della tastiera.
+  input.addEventListener('beforeinput', (ev) => {
+    if (!ev || !ev.data || typeof ev.preventDefault !== 'function') return;
+    if (ev.isComposing) return;
+    const value = String(input.value || '');
+    const da = typeof input.selectionStart === 'number' ? input.selectionStart : value.length;
+    const a = typeof input.selectionEnd === 'number' ? input.selectionEnd : da;
+    const proposta = value.slice(0, da) + ev.data + value.slice(a);
+    if (!testoNumericoAmmesso(proposta)) ev.preventDefault();
+  });
   input.addEventListener('input', () => {
-    const grezzo = input.value;
-    if (grezzo === '') { if (onCambio) onCambio(null, input); return; }
-    if (/^[+-]?[0-9]*([.,][0-9]*)?$/.test(grezzo.replace(/\s/g, ''))) {
-      if (onCambio) onCambio(grezzo, input);
-    } else {
+    const grezzo = String(input.value || '');
+    if (!testoNumericoAmmesso(grezzo)) {
+      // Non estrarre automaticamente un numero da "80kg" o "otto": sarebbe
+      // una correzione silenziosa dei carichi. Resta il valore valido di prima.
+      input.value = ultimaDigitazioneValida;
       input.classList.add('errore');
       if (onInvalido) onInvalido(grezzo, input);
+      return;
     }
+    input.classList.remove('errore');
+    ultimaDigitazioneValida = grezzo;
+    if (grezzo === '') {
+      ultimoNumeroCompleto = '';
+      if (onCambio) onCambio(null, input);
+      return;
+    }
+    // Un meno, un più o una virgola da soli non sono ancora un valore:
+    // non inviarli al database mentre la persona sta scrivendo.
+    if (!numeroCompleto(grezzo)) return;
+    ultimoNumeroCompleto = grezzo;
+    if (onCambio) onCambio(grezzo, input);
   });
   input.addEventListener('blur', () => {
     input.classList.remove('errore');
     if (input.value === '') return;
-    const n = Number(input.value.replace(',', '.'));
-    if (Number.isFinite(n)) input.value = String(Math.round(n * 100) / 100).replace('.', ',');
+    if (!numeroCompleto(input.value)) {
+      input.value = ultimoNumeroCompleto;
+      ultimaDigitazioneValida = input.value;
+      return;
+    }
+    const n = Number(String(input.value).replace(',', '.'));
+    if (Number.isFinite(n)) {
+      input.value = String(Math.round(n * 100) / 100).replace('.', ',');
+      ultimaDigitazioneValida = input.value;
+      ultimoNumeroCompleto = input.value;
+    }
   });
 
-  // IL CAMPO CHE DICE "QUESTO NUMERO È QUELLO CHE HAI SCRITTO".
-  //
-  // Ste (10/10/2026): "aggiungi più animazioni".
-  //
-  // Non qui: l'evento `input` parte a ogni tasto premuto, e far lampeggiare il
-  // campo a ogni cifra diventa una cosa fastidiosa che non dice niente.
-  //
-  // Qui, quando esci dal campo: il numero è finito, e il campo lo conferma con
-  // una luce verde che passa in mezzo secondo. È la regola della skill: il
-  // movimento risponde a un'azione e mostra che cosa è cambiato. Prima scrivevi
-  // 85 e non sapevi se era finito li' o se mancava ancora qualcosa.
   input.addEventListener('change', () => {
-    if (input.value === '') return;
-    const n = Number(input.value.replace(',', '.'));
+    if (!numeroCompleto(input.value)) return;
+    const n = Number(String(input.value).replace(',', '.'));
     if (!Number.isFinite(n)) return;
     input.classList.remove('campo-confermato');
-    // senza forzare il ricalcolo, togliere e rimettere la classe nello stesso
-    // momento non riparte e la seconda volta non si vede
     if (typeof globalThis.getComputedStyle === 'function') {
-      try { globalThis.getComputedStyle(input); } catch { /* il DOM finito non lo sa fare */ }
+      try { globalThis.getComputedStyle(input); } catch { /* DOM finto dei test */ }
     }
     input.classList.add('campo-confermato');
   });
