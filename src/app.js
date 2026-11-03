@@ -12,6 +12,8 @@ import * as sb from './supabase.js';
 import * as sync from './sync.js';
 import { el, svuota, campoNumero, campoTesto, bottone, chiediConferma, chiediTesto, avviso, numeroCambiato, schedaEvento, oraLocale, dataLeggibile, conRitardo, bottoneSu } from './ui.js';
 import { valutaCampiSerieInsoliti } from './validazione-serie.js';
+import { presentaRank, regoleRankChiare } from './rank-spiegato.js';
+import { registraProblema, generaReport, paginaGenerica, elencoProblemi } from './diagnostica-rapida.js';
 import { graficoLinea, graficoBarre } from './grafici.js';
 import {
   formattaNumero, formattaPeso, formattaRipetizioni, formattaCronometro, formattaDurata,
@@ -569,12 +571,14 @@ function installaSpiaErrori() {
   if (typeof window === 'undefined') return;
   window.addEventListener('error', (e) => {
     const testo = (e && (e.message || (e.error && e.error.message))) || 'errore sconosciuto';
+    registraProblema(testo, 'browser');
     console.error('Errore:', testo, e && e.error && e.error.stack);
     avviso('Qualcosa e\' andato storto: ' + testo + ' (non e\' successo nessun danno ai tuoi dati, prova a rifare la stessa cosa)', { tipo: 'errore', durata: 12000 });
   });
   window.addEventListener('unhandledrejection', (e) => {
     const r = e && (e.reason || e);
     const testo = (r && (r.message || r.codice)) || 'operazione non riuscita';
+    registraProblema(testo, 'salvataggio');
     console.error('Promessa non riuscita:', testo, r && r.stack);
     avviso('Non sono riuscito a salvare: ' + testo + '. I tuoi dati sono al sicuro, prova di nuovo.', { tipo: 'errore', durata: 12000 });
   });
@@ -3236,6 +3240,40 @@ function apriComandoSerieAllenamento(serie,numero) {
  });
 }
 
+/** Legge anche l'ultima cifra non ancora arrivata nel DB (debounce 400 ms).
+ * Vale solo quando si preme la spunta: durante la scrittura non c'è conferma. */
+function valoriDigitatiDellaSerie(riga, serie, chiave, cardio) {
+  const campi = {};
+  const leggi = (input) => {
+    if (!input) return undefined;
+    const testo = String(input.value ?? '').trim();
+    return testo === '' ? null : numeroOppureNull(testo);
+  };
+  const peso = riga.querySelector?.('.campo-peso');
+  const rip = riga.querySelector?.('.campo-rip');
+  if (peso) campi[chiave] = leggi(peso);
+  if (rip) {
+    campi.ripetizioni = leggi(rip);
+    if (cardio) campi.durata_unita = 'minuti';
+  }
+  const assistite = riga.querySelector?.('.gruppo-assistite');
+  const campoAssistite = assistite?.querySelector?.('input');
+  if (campoAssistite) campi.rip_assistite = leggi(campoAssistite);
+
+  // La stessa protezione vale anche per i tre giri del dropset, persino quando
+  // premi la spunta subito dopo aver scritto un numero.
+  const giri = riga.querySelectorAll?.('.riga-dropset') || [];
+  if (giri.length) {
+    const originali = Array.isArray(serie.giri_extra) ? serie.giri_extra : [];
+    campi.giri_extra = Array.from(giri, (g, i) => {
+      const inputs = g.querySelectorAll?.('input') || [];
+      return {...(originali[i] || {}), peso: leggi(inputs[0]) ?? null,
+        ripetizioni: leggi(inputs[1]) ?? null};
+    });
+  }
+  return campi;
+}
+
 function rigaSerie(serie, numero, confronto, seduta, pesoRigaSorella = null) {
   const e = esercizioPerId(serie.esercizio_id);
   const assistenza = e && !convenzioneMisuraCarico(e.convenzione);
@@ -3267,81 +3305,68 @@ function rigaSerie(serie, numero, confronto, seduta, pesoRigaSorella = null) {
   // la spunta: segna che la serie l'hai fatta. Premendola di nuovo la togli.
   // Nota: cambio l'aspetto SUBITO e con stili scritti direttamente sul nodo,
   // così non dipende dal ridisegno della pagina ne' dai nomi delle classi CSS.
+  let spuntaOccupata = false;
+  const eseguiSpunta = async (origine) => {
+    if (spuntaOccupata) return;
+    spuntaOccupata = true;
+    const eraFatta = eFatta(serie);
+    // Ottimistica solo la grafica: la serie è verde subito come nella v414.
+    // Se l'utente annulla un avviso o il salvataggio fallisce, la ripristiniamo.
+    segnaAspettoFatto(riga, spunta, !eraFatta, etichettaFatta);
+    try {
+      registra({cosa: origine === 'numero' ? 'numero premuto' : 'spunta premuta',
+        serie: serie.id, ordine: numero, esercizio: e && e.nome});
+      const fatta = !eFatta(serie);
+      const campi = {stato: fatta ? 'fatta' : 'da_fare'};
+      if (fatta) {
+        Object.assign(campi, valoriDigitatiDellaSerie(riga, serie, chiave, serieCardio));
+        if (pesoCorporeoOra() !== null) campi.peso_corpo = pesoCorporeoOra();
+      }
+      // La grafica è già aggiornata, ma effetti e timer aspettano il salvataggio.
+      const salvata = await aggiornaSerie(serie, campi);
+      if (!salvata) {
+        segnaAspettoFatto(riga, spunta, eraFatta, etichettaFatta);
+        return;
+      }
+      impostaRecuperoSerie(serie.seduta_id, fatta);
+      if (fatta) {
+        avviso('Recupero avviato automaticamente.', {tipo:'ok',durata:1800});
+        pulsa();
+      }
+      segnaAspettoFatto(riga, spunta, fatta, etichettaFatta);
+      suona(fatta ? 'serie' : 'togli');
+      if (fatta) {
+        riga.classList.remove('serie-fatta-adesso');
+        if (typeof getComputedStyle === 'function' && globalThis.window) {
+          try { getComputedStyle(riga); } catch {}
+        }
+        riga.classList.add('serie-fatta-adesso');
+      }
+      disegna();
+    } catch (err) {
+      segnaAspettoFatto(riga, spunta, eraFatta, etichettaFatta);
+      registra({cosa:'salvataggio FALLITO',errore:String(err?.message||err)});
+      mostraErroreBreve('Non sono riuscito a salvare la spunta: '+(err?.message||err));
+    } finally {
+      spuntaOccupata = false;
+    }
+  };
+
   const spunta = el('button', {
     type: 'button',
     class: 'bottone-spunta' + (eFatta(serie) ? ' attiva' : ''),
     title: eFatta(serie) ? 'Serie fatta: tocca per togliere la spunta' : 'Segna questa serie come fatta',
     'aria-pressed': eFatta(serie) ? 'true' : 'false',
-    onClick: (ev) => {
-      registra({ cosa: 'spunta premuta', serie: serie.id, ordine: numero, esercizio: e && e.nome });
-      const fatta = !eFatta(serie);
-      // Parte da solo quando segni la serie.
-      impostaRecuperoSerie(serie.seduta_id, fatta);
-      if (fatta) avviso('Recupero avviato automaticamente.', { tipo: 'ok', durata: 1800 });
-      segnaAspettoFatto(riga, spunta, fatta, etichettaFatta);
-      if (fatta) pulsa();
-      // IL SUONO DELLA SERIA FATTA.
-      //
-      // È il suono più importante dell'app: in palestra le mani sono occupate e gli
-      // occhi guardano il bilanciere, non lo schermo. Un suono breve e secco dice
-      // "registrato" senza dover guardare. Toglierla ha un suono diverso, più basso:
-      // non è un errore, ma è un'altra azione.
-      suona(fatta ? 'serie' : 'togli');
-      // L'ACCENDERSI DELLA SERIE.
-      // È l'unica animazione che parte da una tua azione e dice cosa è successo:
-      // hai premuto la spunta e la riga si illumina per mezzo secondo. Sparisce
-      // subito, quindi non resta una decorazione attaccata alla schermata.
-      if (fatta) {
-        // forza il ricalcolo dell'animazione: senza questo, togliere e rimettere la
-        // classe nella stessa sessione non riparte e la seconda volta non si vede.
-        // Lo si fa chiedendo al browser un ricalcolo, ma NON con `offsetWidth`:
-        // nei test il DOM finto non ce l'ha, e un difetto di layout non deve
-        // poter far cadere un test che non c'entra niente. Un ricalcolo di stile è
-        // esattamente quello che serve, ed esiste in ogni browser.
-        riga.classList.remove('serie-fatta-adesso');
-        if (typeof getComputedStyle === 'function' && globalThis.window) {
-          try { getComputedStyle(riga); } catch { /* il DOM finto non lo sa fare: pazienza */ }
-        }
-        riga.classList.add('serie-fatta-adesso');
-      }
-      const campi = { stato: fatta ? 'fatta' : 'da_fare' };
-      // Salvo dentro il peso che avevo quando l'ho fatta: così il record resta
-      // legato al peso giusto anche se poi mi peso diversamente.
-      if (fatta && pesoCorporeoOra() !== null) campi.peso_corpo = pesoCorporeoOra();
-      aggiornaSerie(serie, campi)
-        .then((salvata) => {
-          registra({ cosa: 'salvataggio ok', stato: salvata && salvata.stato });
-          disegna();
-        })
-        .catch((err) => {
-          registra({ cosa: 'salvataggio FALLITO', errore: String((err && err.message) || err) });
-          mostraErroreBreve('Non sono riuscito a salvare la spunta: ' + (err && err.message ? err.message : err));
-        });
-    },
-  }, [el('span', { class: 'segno-spunta', testo: eFatta(serie) ? '✓' : '' })]);
+    onClick: () => eseguiSpunta('spunta'),
+  }, [el('span', {class:'segno-spunta',testo:eFatta(serie) ? '✓' : ''})]);
   riga.appendChild(spunta);
 
-  // anche il numero della serie si può toccare: area più grande col dito
   riga.appendChild(el('button', {
-    type: 'button',
-    class: 'numero-serie numero-serie-bottone',
+    type:'button', class:'numero-serie numero-serie-bottone',
     title: eFatta(serie) ? 'Segnata come fatta: tocca per toglierla' : 'Segna come fatta',
-    'aria-pressed': eFatta(serie) ? 'true' : 'false',
-    onClick: () => {
-      registra({ cosa: 'numero premuto', serie: serie.id });
-      const fatta = !eFatta(serie);
-      impostaRecuperoSerie(serie.seduta_id, fatta);
-      if (fatta) avviso('Recupero avviato automaticamente.', { tipo: 'ok', durata: 1800 });
-      segnaAspettoFatto(riga, spunta, fatta, etichettaFatta);
-      if (fatta) { pulsa(); suona('serie'); }
-      else suona('togli');
-      const campi = { stato: fatta ? 'fatta' : 'da_fare' };
-      if (fatta && pesoCorporeoOra() !== null) campi.peso_corpo = pesoCorporeoOra();
-      aggiornaSerie(serie, campi)
-        .then(() => { registra({ cosa: 'salvataggio ok da numero' }); disegna(); })
-        .catch((err) => { registra({ cosa: 'salvataggio FALLITO', errore: String((err && err.message) || err) }); });
-    },
-  }, [el('span', { testo: String(numero) })]));
+    'aria-pressed':eFatta(serie) ? 'true' : 'false',
+    onClick: () => eseguiSpunta('numero'),
+  }, [el('span', {testo:String(numero)})]));
 
   riga.appendChild(bottone('🎙', {
     classe:'fantasma voce-serie-pulsante',
@@ -3727,6 +3752,7 @@ function mettiInEvidenza(idSerie) {
 
 /** Errore breve ma sempre visibile: niente più errori che spariscono. */
 function mostraErroreBreve(testo) {
+  registraProblema(testo, 'salvataggio');
   avviso(testo, { tipo: 'errore', durata: 9000 });
   console.error(testo);
 }
@@ -3841,32 +3867,33 @@ async function registraVoceCronologia(dati) {
 }
 
 async function aggiornaSerie(serie, campi) {
-  // Protezione contro errori di battitura enormi (es. 80 -> 800 kg), valida
-  // per campi digitati, dropset e comandi vocali. Non corregge numeri di nascosto.
-  // La conferma è chiesta SOLO se un numero è anomalo, mai per un record normale.
-  const esercizioGuardia = esercizioPerId(serie.esercizio_id);
-  const serieAttuale = V.serie.find(s => s.id === serie.id) || serie;
-  const comparabili = serieDellaPersona().filter(s =>
-    s && !s.eliminata && s.id !== serie.id &&
-    s.esercizio_id === serie.esercizio_id && eFatta(s));
-  const controlli = valutaCampiSerieInsoliti(campi, serieAttuale, comparabili, {
-    cardio: eCardio(esercizioGuardia),
-  });
-  for (const controllo of controlli) {
-    if (controllo.tipo === 'non_valido') {
-      avviso(controllo.messaggio, {tipo:'errore',durata:6000});
-      disegna(); // Ripristina nel campo il valore effettivamente salvato.
-      return null;
-    }
-    const accettato = await chiediConferma(
-      'Controlla peso o ripetizioni',
-      controllo.messaggio,
-      {testoOk:'Sì, salva il valore',testoAnnulla:'Correggo'},
-    );
-    if (!accettato) {
-      avviso('Numero non salvato. Puoi correggerlo nella serie.', {tipo:'info',durata:3500});
-      disegna();
-      return null;
+  // v415: durante la digitazione i valori sono BOZZE e si salvano senza pop-up.
+  // Il controllo anti-errori si esegue SOLO quando si completa la serie:
+  // digitare il primo "3" di "37" non deve mai aprire una conferma.
+  if (campi.stato === 'fatta') {
+    const esercizioGuardia = esercizioPerId(serie.esercizio_id);
+    const serieAttuale = V.serie.find(s => s.id === serie.id) || serie;
+    const comparabili = serieDellaPersona().filter(s =>
+      s && !s.eliminata && s.id !== serie.id &&
+      s.esercizio_id === serie.esercizio_id && eFatta(s));
+    const completi = {...serieAttuale,...campi};
+    const controlli = valutaCampiSerieInsoliti(completi, serieAttuale, comparabili, {
+      cardio: eCardio(esercizioGuardia), alCompletamento: true,
+    });
+    for (const controllo of controlli) {
+      if (controllo.tipo === 'non_valido') {
+        avviso(controllo.messaggio, {tipo:'errore',durata:6000});
+        return null;
+      }
+      const accettato = await chiediConferma(
+        'Controlla questa serie',
+        controllo.messaggio,
+        {testoOk:'Sì, salva la serie',testoAnnulla:'Correggo'},
+      );
+      if (!accettato) {
+        avviso('Serie non completata. Puoi correggere i numeri.', {tipo:'info',durata:3500});
+        return null;
+      }
     }
   }
   // cambiaSerie rilegge la serie dal database e mette in fila i cambiamenti
@@ -5767,6 +5794,68 @@ function vistaImpostazioni(zona) {
   ]));
   sync.stato().then((s) => { lineaStato.textContent = `${s.testo} — ${s.dettaglio}`; });
   zona.appendChild(statoBox);
+
+  // Il report non contiene nomi, ID, email, URL, allenamenti o stack.
+  // Gli errori vengono registrati esclusivamente come categorie in memoria.
+  const boxDiagnostica=el('section',{class:'blocco diagnostica-palestra'});
+  boxDiagnostica.appendChild(el('h2',{testo:'Diagnostica · trova i problemi'}));
+  boxDiagnostica.appendChild(el('p',{class:'nota',testo:
+    'Se qualcosa non funziona su iPhone o PC, genera un report e copialo qui in chat. Non serve aprire F12. Il report non contiene i tuoi allenamenti né informazioni di accesso.'}));
+  const reportCampo=el('textarea',{
+    class:'campo-testo campo-report-diagnostica',rows:10,readonly:'readonly',
+    placeholder:'Premi “Prepara report” per vedere il risultato.',
+    'aria-label':'Report diagnostico senza dati personali',
+  });
+  const preparaReport=async()=>{
+    let statoSync='non disponibile',nCoda=0,nErrori=0;
+    try {
+      if(sb.collegato()) {
+        const [stat,coda,errori]=await Promise.all([
+          sync.stato(),db.codaDiInvio(),db.contaErrori()]);
+        statoSync=stat.colore==='ok'?'ok':stat.colore==='errore'?'errore':
+          stat.colore==='attesa'?'attesa':stat.colore==='attenzione'?'offline':'non disponibile';
+        nCoda=Array.isArray(coda)?coda.length:0;
+        nErrori=Number(errori)||0;
+      }
+    }catch(err){registraProblema(err,'sincronizzazione');}
+    const agente=typeof navigator!=='undefined'?String(navigator.userAgent||''):'';
+    const dispositivo=/iPhone|iPad|iPod/i.test(agente)?'iPhone/iPad':
+      /Android/i.test(agente)?'Android':agente?'Computer':'Altro';
+    const autonoma=!!(window.navigator?.standalone ||
+      (typeof window.matchMedia==='function' &&
+        window.matchMedia('(display-mode: standalone)').matches));
+    reportCampo.value=generaReport({
+      versione:String(window.PALESTRA_VERSIONE||'').replace(/^palestra-/,''),
+      dispositivo,
+      online:typeof navigator!=='undefined'?navigator.onLine!==false:null,
+      installata:autonoma,
+      serviceWorker:!!(typeof navigator!=='undefined'&&navigator.serviceWorker?.controller),
+      cloud:sb.collegato()?'collegato':'non collegato',
+      sincronizzazione:statoSync,
+      inAttesa:nCoda,erroriSync:nErrori,conflitti:V.conflitti.length,
+      schermata:paginaGenerica(window.location.hash),
+      errori:elencoProblemi(),
+    });
+    avviso('Report pronto. Puoi copiarlo senza condividere dati personali.',{tipo:'ok'});
+  };
+  boxDiagnostica.appendChild(el('div',{class:'riga-pulsanti'},[
+    bottone('Prepara report',{classe:'principale',onClick:preparaReport}),
+    bottone('Copia report',{classe:'fantasma',onClick:async()=>{
+      const testo=String(reportCampo.value||'');
+      if(!testo){avviso('Prima prepara il report.',{tipo:'attenzione'});return;}
+      try {
+        if(!navigator?.clipboard?.writeText)throw new Error('Copia non disponibile');
+        await navigator.clipboard.writeText(testo);
+        avviso('Report copiato. Incollalo nella chat.',{tipo:'ok'});
+      }catch {
+        reportCampo.focus?.();
+        reportCampo.select?.();
+        avviso('Seleziona il testo del report e usa Copia.',{tipo:'attenzione',durata:6000});
+      }
+    }}),
+  ]));
+  boxDiagnostica.appendChild(reportCampo);
+  zona.appendChild(boxDiagnostica);
 
   const conflittiBox = el('section', { class: 'blocco' });
   conflittiBox.appendChild(el('h2', { testo: 'Conflitti fra dispositivi' }));
@@ -8369,6 +8458,7 @@ function vistaRank(zona) {
   const bottoni = el('div', { class: 'chip-scelte' });
   const voci = [
     ['miei', 'MY RANKS'],
+    ['spiega', 'SPIEGAMI IL RANK'],
     ['stemmi', 'STEMMI'],
     ['classifica', 'LEADERBOARD'],
     ['amici', 'FRIENDS'],
@@ -8390,10 +8480,40 @@ function vistaRank(zona) {
   function disegnaSezione() {
     svuota(contenitore);
     if (scheda === 'miei') sezioneMieiRank(st);
+    else if (scheda === 'spiega') sezioneSpiegaRank(st);
     else if (scheda === 'stemmi') sezioneStemmi();
     else if (scheda === 'classifica') sezioneClassifica(st);
     else if (scheda === 'prova') sezioneProvaRank(st);
     else sezioneConfronto(st);
+  }
+
+  function sezioneSpiegaRank(stato) {
+    contenitore.appendChild(el('h2',{testo:'Il tuo Rank, spiegato semplice'}));
+    contenitore.appendChild(el('p',{class:'nota',testo:
+      'Non servono formule: guarda da dove arriva il tuo grado e cosa devi migliorare per salire.'}));
+    const regole=el('section',{class:'blocco guida-rank-regole'});
+    regole.appendChild(el('h3',{testo:'Come funziona in pratica'}));
+    for (const frase of regoleRankChiare()) {
+      regole.appendChild(el('p',{class:'nota',testo:'• '+frase}));
+    }
+    contenitore.appendChild(regole);
+    const registrati = ordinaRecordRank((stato.record||[]).filter(r=>r && r.valido));
+    if (!registrati.length) {
+      contenitore.appendChild(el('p',{class:'nota',testo:
+        'Non hai ancora un record valido. Finisci un allenamento per vedere spiegati qui i tuoi risultati.'}));
+      return;
+    }
+    contenitore.appendChild(el('h3',{testo:'Perché hai questi Rank'}));
+    contenitore.appendChild(el('p',{class:'nota',testo:'Tocca un esercizio per leggere la spiegazione. I dati sono i tuoi, non esempi inventati.'}));
+    for(const r of registrati) {
+      const guida = presentaRank(r);
+      const pannello=el('details',{class:'blocco guida-rank-dettaglio'},[
+        el('summary',{class:'guida-rank-titolo',testo:guida.titolo}),
+        ...guida.frasi.map(frase=>el('p',{class:'nota',testo:frase})),
+        el('a',{href:'#/esercizio/'+r.esercizio?.id,class:'bottone-guarda',testo:'Vedi il risultato completo'}),
+      ]);
+      contenitore.appendChild(pannello);
+    }
   }
 
   function sezioneStemmi() {

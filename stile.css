@@ -3640,6 +3640,24 @@ html.animazioni-mai .barra-piena::after { animation: none; }
   .riga-serie .bot.voce-serie-pulsante {min-width:38px;min-height:40px;padding:5px;}
 }
 
+/* Rank spiegato in parole semplici: pannelli leggibili anche su iPhone. */
+.guida-rank-regole {display:grid;gap:7px;}
+.guida-rank-regole .nota {margin:0;line-height:1.52;}
+.guida-rank-dettaglio {padding:13px 15px; margin:10px 0;}
+.guida-rank-dettaglio summary {
+  cursor:pointer; font-size:.95rem; font-weight:750; line-height:1.5;
+  color:var(--testo); padding:4px 0;
+}
+.guida-rank-dettaglio summary:focus-visible {outline:2px solid #b49ff9;outline-offset:3px;}
+.guida-rank-dettaglio[open] summary {margin-bottom:10px;}
+.guida-rank-dettaglio .nota {margin:7px 0;line-height:1.52;}
+.diagnostica-palestra .riga-pulsanti {margin:11px 0;flex-wrap:wrap;}
+.campo-report-diagnostica {display:block;width:100%;font-size:12px;line-height:1.45;
+  min-height:180px;max-height:320px;resize:vertical;overflow:auto;
+  font-family:ui-monospace, Menlo, Consolas, monospace;white-space:pre-wrap;
+}
+@media(max-width:440px) {.guida-rank-dettaglio {padding:11px;}.campo-report-diagnostica {font-size:12px;}}
+
 /* Ultima regola: include anche effetti e armature aggiunti dopo il tema base. */
 @media (prefers-reduced-motion: reduce) {
   html:not(.animazioni-sempre) *,
