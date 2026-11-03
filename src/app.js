@@ -5917,9 +5917,28 @@ function vistaImpostazioni(zona) {
           else {
             const righe = el('dl',{class:'conflitti-campi'});
             for(const chiave of chiavi) {
+              const v = versione[chiave];
+              const valore = el('dd',{testo:valoreConflitto(v)});
+              // Le schede e i dropset contengono elenchi interi: "3 elementi"
+              // non basta per scegliere quale versione è corretta.
+              // Il dettaglio completo resta facoltativo e dentro un box scrollabile.
+              if(v && typeof v==='object') {
+                const dettagli=el('details',{class:'conflitto-campo-dettagli'});
+                dettagli.appendChild(el('summary',{testo:'Vedi i valori del dettaglio'}));
+                let pronto=false;
+                dettagli.addEventListener('toggle',()=>{
+                  if(!dettagli.open||pronto)return;
+                  pronto=true;
+                  let testo='';
+                  try{testo=JSON.stringify(v,null,2)||'';}catch{testo='Dettaglio non visualizzabile';}
+                  const max=16000;
+                  dettagli.appendChild(el('pre',{class:'conflitto-campo-pre',
+                    testo:testo.slice(0,max)+(testo.length>max?'\n… anteprima abbreviata':'')}));
+                });
+                valore.appendChild(dettagli);
+              }
               righe.appendChild(el('div',{class:'conflitti-campo'},[
-                el('dt',{testo:nomeCampoConflitto(chiave)}),
-                el('dd',{testo:valoreConflitto(versione[chiave])}),
+                el('dt',{testo:nomeCampoConflitto(chiave)}),valore,
               ]));
             }
             copia.appendChild(righe);
