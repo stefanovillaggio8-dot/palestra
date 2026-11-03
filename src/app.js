@@ -14,6 +14,7 @@ import { el, svuota, campoNumero, campoTesto, bottone, chiediConferma, chiediTes
 import { valutaCampiSerieInsoliti } from './validazione-serie.js';
 import { presentaRank, regoleRankChiare } from './rank-spiegato.js';
 import { registraProblema, generaReport, paginaGenerica, elencoProblemi } from './diagnostica-rapida.js';
+import { descriviConflitto, nomeCampoConflitto, valoreConflitto } from './conflitti-compatti.js';
 import { graficoLinea, graficoBarre } from './grafici.js';
 import {
   formattaNumero, formattaPeso, formattaRipetizioni, formattaCronometro, formattaDurata,
@@ -5857,33 +5858,140 @@ function vistaImpostazioni(zona) {
   boxDiagnostica.appendChild(reportCampo);
   zona.appendChild(boxDiagnostica);
 
-  const conflittiBox = el('section', { class: 'blocco' });
-  conflittiBox.appendChild(el('h2', { testo: 'Conflitti fra dispositivi' }));
-  if (!V.conflitti.length) {
-    conflittiBox.appendChild(el('p', { class: 'nota', testo: 'Nessun conflitto. Se lo stesso esercizio viene modificato su due dispositivi senza che si parlino, qui trovi le due versioni e scegli tu quale tenere.' }));
-  } else {
-    for (const c of V.conflitti) {
-      const riga = el('div', { class: 'riga-conflitto' });
-      riga.appendChild(el('p', { class: 'nota', testo: `${c.tabella} · ${c.riga_id} · scelta fatta il ${dataLeggibile(c.creato_il)}` }));
-      for (const lato of ['locale', 'remoto']) {
-        const v = c[lato];
-        const campi = Object.entries(v).filter(([k]) => !k.startsWith('_') && !['rev', 'updated_at', 'device_id', 'tabella', 'base_rev'].includes(k))
-          .map(([k, val]) => `${k}: ${val === null ? '—' : val}`).join(', ');
-        riga.appendChild(el('div', { class: 'versione-conflitto' }, [
-          el('strong', { testo: v._etichetta || lato }),
-          el('p', { class: 'nota', testo: campi || '(nessun dato)' }),
-          bottone('Teni questa', {
-            onClick: async () => {
-              await sync.risolvi(c.id, lato);
-              await ricaricaTutto();
-              disegna();
-            },
-            classe: 'fantasma',
-          }),
-        ]));
+  // v416: la sezione resta chiusa di base e occupa una sola riga, anche
+  // quando ci sono tanti conflitti. I dati dettagliati sono creati soltanto
+  // quando li apri: su iPhone niente pagina infinita né migliaia di nodi.
+  const conflitti = Array.isArray(V.conflitti) ? V.conflitti : [];
+  const conflittiBox = el('details', {class:'blocco blocco-chiuso conflitti-compatti'});
+  conflittiBox.appendChild(el('summary', {class:'conflitti-intestazione'}, [
+    el('h2', {testo:'Conflitti fra dispositivi'}),
+    el('span', {class:'conflitti-contatore'+(conflitti.length?' conflitti-in-attesa':''),
+      testo:conflitti.length ? conflitti.length+' da risolvere' : 'Tutto in ordine'}),
+  ]));
+  if (conflitti.length) {
+    const contenuto = el('div',{class:'conflitti-contenuto'});
+    let mostrati = 0;
+    let popolato = false;
+    const lista = el('div',{class:'conflitti-elenco'});
+    const azioni = el('div',{class:'riga-pulsanti conflitti-azioni'});
+    contenuto.appendChild(el('p',{class:'nota',testo:
+      'Hai modifiche diverse tra due dispositivi. Nessun dato viene cancellato finché non scegli tu quale copia tenere.'}));
+    contenuto.appendChild(lista);
+    contenuto.appendChild(azioni);
+
+    const elementoConflitto = (c) => {
+      const descrizione = descriviConflitto(c);
+      const riferimento = c.locale || c.remoto || {};
+      // Il nome vero è molto più utile di un UUID: se due serie hanno
+      // conflitti contemporaneamente devi capire QUALE esercizio stai guardando.
+      let contesto = '';
+      if (c.tabella === 'serie') {
+        const esercizio = esercizioPerId(riferimento.esercizio_id);
+        if (esercizio) contesto = esercizio.nome +
+          (Number.isInteger(Number(riferimento.ordine)) && Number(riferimento.ordine)>0
+            ? ' · serie ' + riferimento.ordine : '');
+      } else if (['schede','sedute','esercizi','profili'].includes(c.tabella)) {
+        contesto = String(riferimento.nome || riferimento.nome_giorno ||
+          riferimento.username || '').slice(0,65);
       }
-      conflittiBox.appendChild(riga);
-    }
+      const titolo = contesto ? contesto + ' · ' + descrizione.titolo : descrizione.titolo;
+      const item = el('details',{class:'conflitto-voce'});
+      item.appendChild(el('summary',{class:'conflitto-riassunto'},[
+        el('strong',{testo:titolo}),
+        el('span',{class:'nota nota-piccola',testo:descrizione.sintesi}),
+      ]));
+      // Il contenuto di ciascun conflitto è ancora chiuso: mostra
+      // soprattutto le DIFFERENZE, non gli ID e i metadati tecnici.
+      let creato = false;
+      item.addEventListener('toggle',()=>{
+        if(!item.open||creato)return;
+        creato = true;
+        item.appendChild(el('p',{class:'nota nota-piccola',testo:
+          'Confronta le due versioni. Tocca “Usa questa versione” soltanto dopo aver deciso.'}));
+        for(const lato of ['locale','remoto']) {
+          const versione = c[lato] || {};
+          const copia = el('div',{class:'versione-conflitto versione-conflitto-compatta'});
+          copia.appendChild(el('strong',{testo:lato==='locale'?'Questo dispositivo':'Altro dispositivo / online'}));
+          const chiavi = descrizione.campi;
+          if(!chiavi.length)copia.appendChild(el('p',{class:'nota',testo:'Nessuna differenza nei dati principali.'}));
+          else {
+            const righe = el('dl',{class:'conflitti-campi'});
+            for(const chiave of chiavi) {
+              const v = versione[chiave];
+              const valore = el('dd',{testo:valoreConflitto(v)});
+              // Le schede e i dropset contengono elenchi interi: "3 elementi"
+              // non basta per scegliere quale versione è corretta.
+              // Il dettaglio completo resta facoltativo e dentro un box scrollabile.
+              if(v && typeof v==='object') {
+                const dettagli=el('details',{class:'conflitto-campo-dettagli'});
+                dettagli.appendChild(el('summary',{testo:'Vedi i valori del dettaglio'}));
+                let pronto=false;
+                dettagli.addEventListener('toggle',()=>{
+                  if(!dettagli.open||pronto)return;
+                  pronto=true;
+                  let testo='';
+                  try{testo=JSON.stringify(v,null,2)||'';}catch{testo='Dettaglio non visualizzabile';}
+                  const max=16000;
+                  dettagli.appendChild(el('pre',{class:'conflitto-campo-pre',
+                    testo:testo.slice(0,max)+(testo.length>max?'\n… anteprima abbreviata':'')}));
+                });
+                valore.appendChild(dettagli);
+              }
+              righe.appendChild(el('div',{class:'conflitti-campo'},[
+                el('dt',{testo:nomeCampoConflitto(chiave)}),valore,
+              ]));
+            }
+            copia.appendChild(righe);
+          }
+          let occupato = false;
+          copia.appendChild(bottone('Usa questa versione', {
+            classe:'fantasma conflitti-scelta',
+            onClick:async()=>{
+              if(occupato)return;
+              const ok=await chiediConferma(
+                'Quale copia vuoi tenere?',
+                'Vuoi tenere i dati di '+(lato==='locale'?'questo dispositivo':'quello online')+
+                  ' per questo elemento? L’altra versione non verrà usata come principale.',
+                {testoOk:'Sì, usa questa',testoAnnulla:'Controllo ancora'});
+              if(!ok)return;
+              occupato=true;
+              try {
+                await sync.risolvi(c.id,lato);
+                await ricaricaTutto();
+                disegna();
+                avviso('Conflitto risolto. Le altre modifiche sono rimaste intatte.',{tipo:'ok'});
+              }catch(err){
+                occupato=false;
+                mostraErroreBreve('Non sono riuscito a risolvere il conflitto: '+(err?.message||err));
+              }
+            },
+          }));
+          item.appendChild(copia);
+        }
+      });
+      return item;
+    };
+    const aggiungiConflitti = () => {
+      const fino=Math.min(conflitti.length,mostrati+5);
+      for(let i=mostrati;i<fino;i++)lista.appendChild(elementoConflitto(conflitti[i]));
+      mostrati=fino;
+      svuota(azioni);
+      if(mostrati<conflitti.length) {
+        azioni.appendChild(bottone('Mostra altri 5 ('+(conflitti.length-mostrati)+' rimanenti)',{
+          onClick:aggiungiConflitti,classe:'fantasma',
+        }));
+      }
+    };
+    conflittiBox.addEventListener('toggle',()=>{
+      if(!conflittiBox.open||popolato)return;
+      popolato=true;
+      aggiungiConflitti();
+    });
+    conflittiBox.appendChild(contenuto);
+  } else {
+    conflittiBox.appendChild(el('div',{},[
+      el('p',{class:'nota',testo:'Nessun conflitto da risolvere. Le modifiche fra telefono e PC sono allineate per quanto risulta all’app.'}),
+    ]));
   }
   zona.appendChild(conflittiBox);
 
