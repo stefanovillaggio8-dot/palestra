@@ -12,7 +12,8 @@ const sw=readFileSync(new URL('../sw.js',import.meta.url),'utf8');
 test('v415: nessun popup durante la digitazione, controllo soltanto al completamento',()=>{
  assert.match(app,/async function aggiornaSerie\(serie, campi\)[\s\S]*?if \(campi\.stato === 'fatta'\) \{/);
  assert.match(app,/Object\.assign\(campi, valoriDigitatiDellaSerie\(riga, serie, chiave, serieCardio\)\)/);
- assert.match(app,/const salvata = await aggiornaSerie\(serie, campi\);\s*if \(!salvata\) return;/);
+ assert.match(app,/const salvata = await aggiornaSerie\(serie, campi\);\s*if \(!salvata\) \{/);
+ assert.match(app,/segnaAspettoFatto\(riga, spunta, eraFatta, etichettaFatta\)/);
  assert.match(app,/impostaRecuperoSerie\(serie\.seduta_id, fatta\)/);
  assert.match(app,/const controlli = valutaCampiSerieInsoliti\(completi, serieAttuale, comparabili, \{/);
  assert.match(app,/alCompletamento: true/);
