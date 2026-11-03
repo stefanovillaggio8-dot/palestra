@@ -12,6 +12,8 @@ import * as sb from './supabase.js';
 import * as sync from './sync.js';
 import { el, svuota, campoNumero, campoTesto, bottone, chiediConferma, chiediTesto, avviso, numeroCambiato, schedaEvento, oraLocale, dataLeggibile, conRitardo, bottoneSu } from './ui.js';
 import { valutaCampiSerieInsoliti } from './validazione-serie.js';
+import { presentaRank, regoleRankChiare } from './rank-spiegato.js';
+import { registraProblema, generaReport, paginaGenerica, elencoProblemi } from './diagnostica-rapida.js';
 import { graficoLinea, graficoBarre } from './grafici.js';
 import {
   formattaNumero, formattaPeso, formattaRipetizioni, formattaCronometro, formattaDurata,
@@ -569,12 +571,14 @@ function installaSpiaErrori() {
   if (typeof window === 'undefined') return;
   window.addEventListener('error', (e) => {
     const testo = (e && (e.message || (e.error && e.error.message))) || 'errore sconosciuto';
+    registraProblema(testo, 'browser');
     console.error('Errore:', testo, e && e.error && e.error.stack);
     avviso('Qualcosa e\' andato storto: ' + testo + ' (non e\' successo nessun danno ai tuoi dati, prova a rifare la stessa cosa)', { tipo: 'errore', durata: 12000 });
   });
   window.addEventListener('unhandledrejection', (e) => {
     const r = e && (e.reason || e);
     const testo = (r && (r.message || r.codice)) || 'operazione non riuscita';
+    registraProblema(testo, 'salvataggio');
     console.error('Promessa non riuscita:', testo, r && r.stack);
     avviso('Non sono riuscito a salvare: ' + testo + '. I tuoi dati sono al sicuro, prova di nuovo.', { tipo: 'errore', durata: 12000 });
   });
@@ -3741,6 +3745,7 @@ function mettiInEvidenza(idSerie) {
 
 /** Errore breve ma sempre visibile: niente più errori che spariscono. */
 function mostraErroreBreve(testo) {
+  registraProblema(testo, 'salvataggio');
   avviso(testo, { tipo: 'errore', durata: 9000 });
   console.error(testo);
 }
@@ -5782,6 +5787,68 @@ function vistaImpostazioni(zona) {
   ]));
   sync.stato().then((s) => { lineaStato.textContent = `${s.testo} — ${s.dettaglio}`; });
   zona.appendChild(statoBox);
+
+  // Il report non contiene nomi, ID, email, URL, allenamenti o stack.
+  // Gli errori vengono registrati esclusivamente come categorie in memoria.
+  const boxDiagnostica=el('section',{class:'blocco diagnostica-palestra'});
+  boxDiagnostica.appendChild(el('h2',{testo:'Diagnostica · trova i problemi'}));
+  boxDiagnostica.appendChild(el('p',{class:'nota',testo:
+    'Se qualcosa non funziona su iPhone o PC, genera un report e copialo qui in chat. Non serve aprire F12. Il report non contiene i tuoi allenamenti né informazioni di accesso.'}));
+  const reportCampo=el('textarea',{
+    class:'campo-testo campo-report-diagnostica',rows:10,readonly:'readonly',
+    placeholder:'Premi “Prepara report” per vedere il risultato.',
+    'aria-label':'Report diagnostico senza dati personali',
+  });
+  const preparaReport=async()=>{
+    let statoSync='non disponibile',nCoda=0,nErrori=0;
+    try {
+      if(sb.collegato()) {
+        const [stat,coda,errori]=await Promise.all([
+          sync.stato(),db.codaDiInvio(),db.contaErrori()]);
+        statoSync=stat.colore==='ok'?'ok':stat.colore==='errore'?'errore':
+          stat.colore==='attesa'?'attesa':stat.colore==='attenzione'?'offline':'non disponibile';
+        nCoda=Array.isArray(coda)?coda.length:0;
+        nErrori=Number(errori)||0;
+      }
+    }catch(err){registraProblema(err,'sincronizzazione');}
+    const agente=typeof navigator!=='undefined'?String(navigator.userAgent||''):'';
+    const dispositivo=/iPhone|iPad|iPod/i.test(agente)?'iPhone/iPad':
+      /Android/i.test(agente)?'Android':agente?'Computer':'Altro';
+    const autonoma=!!(window.navigator?.standalone ||
+      (typeof window.matchMedia==='function' &&
+        window.matchMedia('(display-mode: standalone)').matches));
+    reportCampo.value=generaReport({
+      versione:String(window.PALESTRA_VERSIONE||'').replace(/^palestra-/,''),
+      dispositivo,
+      online:typeof navigator!=='undefined'?navigator.onLine!==false:null,
+      installata:autonoma,
+      serviceWorker:!!(typeof navigator!=='undefined'&&navigator.serviceWorker?.controller),
+      cloud:sb.collegato()?'collegato':'non collegato',
+      sincronizzazione:statoSync,
+      inAttesa:nCoda,erroriSync:nErrori,conflitti:V.conflitti.length,
+      schermata:paginaGenerica(window.location.hash),
+      errori:elencoProblemi(),
+    });
+    avviso('Report pronto. Puoi copiarlo senza condividere dati personali.',{tipo:'ok'});
+  };
+  boxDiagnostica.appendChild(el('div',{class:'riga-pulsanti'},[
+    bottone('Prepara report',{classe:'principale',onClick:preparaReport}),
+    bottone('Copia report',{classe:'fantasma',onClick:async()=>{
+      const testo=String(reportCampo.value||'');
+      if(!testo){avviso('Prima prepara il report.',{tipo:'attenzione'});return;}
+      try {
+        if(!navigator?.clipboard?.writeText)throw new Error('Copia non disponibile');
+        await navigator.clipboard.writeText(testo);
+        avviso('Report copiato. Incollalo nella chat.',{tipo:'ok'});
+      }catch {
+        reportCampo.focus?.();
+        reportCampo.select?.();
+        avviso('Seleziona il testo del report e usa Copia.',{tipo:'attenzione',durata:6000});
+      }
+    }}),
+  ]));
+  boxDiagnostica.appendChild(reportCampo);
+  zona.appendChild(boxDiagnostica);
 
   const conflittiBox = el('section', { class: 'blocco' });
   conflittiBox.appendChild(el('h2', { testo: 'Conflitti fra dispositivi' }));
@@ -8384,6 +8451,7 @@ function vistaRank(zona) {
   const bottoni = el('div', { class: 'chip-scelte' });
   const voci = [
     ['miei', 'MY RANKS'],
+    ['spiega', 'SPIEGAMI IL RANK'],
     ['stemmi', 'STEMMI'],
     ['classifica', 'LEADERBOARD'],
     ['amici', 'FRIENDS'],
@@ -8405,10 +8473,40 @@ function vistaRank(zona) {
   function disegnaSezione() {
     svuota(contenitore);
     if (scheda === 'miei') sezioneMieiRank(st);
+    else if (scheda === 'spiega') sezioneSpiegaRank(st);
     else if (scheda === 'stemmi') sezioneStemmi();
     else if (scheda === 'classifica') sezioneClassifica(st);
     else if (scheda === 'prova') sezioneProvaRank(st);
     else sezioneConfronto(st);
+  }
+
+  function sezioneSpiegaRank(stato) {
+    contenitore.appendChild(el('h2',{testo:'Il tuo Rank, spiegato semplice'}));
+    contenitore.appendChild(el('p',{class:'nota',testo:
+      'Non servono formule: guarda da dove arriva il tuo grado e cosa devi migliorare per salire.'}));
+    const regole=el('section',{class:'blocco guida-rank-regole'});
+    regole.appendChild(el('h3',{testo:'Come funziona in pratica'}));
+    for (const frase of regoleRankChiare()) {
+      regole.appendChild(el('p',{class:'nota',testo:'• '+frase}));
+    }
+    contenitore.appendChild(regole);
+    const registrati = ordinaRecordRank((stato.record||[]).filter(r=>r && r.valido));
+    if (!registrati.length) {
+      contenitore.appendChild(el('p',{class:'nota',testo:
+        'Non hai ancora un record valido. Finisci un allenamento per vedere spiegati qui i tuoi risultati.'}));
+      return;
+    }
+    contenitore.appendChild(el('h3',{testo:'Perché hai questi Rank'}));
+    contenitore.appendChild(el('p',{class:'nota',testo:'Tocca un esercizio per leggere la spiegazione. I dati sono i tuoi, non esempi inventati.'}));
+    for(const r of registrati) {
+      const guida = presentaRank(r);
+      const pannello=el('details',{class:'blocco guida-rank-dettaglio'},[
+        el('summary',{class:'guida-rank-titolo',testo:guida.titolo}),
+        ...guida.frasi.map(frase=>el('p',{class:'nota',testo:frase})),
+        el('a',{href:'#/esercizio/'+r.esercizio?.id,class:'bottone-guarda',testo:'Vedi il risultato completo'}),
+      ]);
+      contenitore.appendChild(pannello);
+    }
   }
 
   function sezioneStemmi() {
