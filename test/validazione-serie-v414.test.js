@@ -90,6 +90,8 @@ test('v414: ripetizioni, minuti cardio e assistite controllati separatamente',()
  assert.equal(valutaNumeroInsolito({campo:'rip_assistite',valore:10,ripetizioni:8})?.tipo,'non_valido');
  assert.equal(valutaNumeroInsolito({campo:'rip_assistite',valore:1,ripetizioni:8}),null);
  assert.equal(valutaNumeroInsolito({campo:'peso_assistenza',valore:-10})?.tipo,'non_valido');
+ assert.equal(valutaNumeroInsolito({campo:'peso',valore:'ottanta'})?.tipo,'non_valido');
+ assert.equal(valutaNumeroInsolito({campo:'ripetizioni',valore:'8 rep'})?.tipo,'non_valido');
 });
 
 test('v414: anche i giri dropset sono protetti, senza falsi allarmi su dati invariati',()=>{
