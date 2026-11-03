@@ -93,5 +93,5 @@ test('v415: Rank e diagnostica accessibili da UI e presenti nella cache offline'
  assert.match(app,/bottone\('Copia report'/);
  assert.match(sw,/\.\/src\/rank-spiegato\.js/);
  assert.match(sw,/\.\/src\/diagnostica-rapida\.js/);
- assert.match(sw,/const VERSIONE = 'palestra-v\\d+'/);
+ assert.match(sw,/const VERSIONE = 'palestra-v\d+'/);
 });
