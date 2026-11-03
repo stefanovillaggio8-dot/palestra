@@ -49,6 +49,9 @@ test('v416: i conflitti si aprono soltanto a richiesta e caricano 5 per volta',(
  assert.match(app,/const item = el\('details',\{class:'conflitto-voce'\}\)/);
  assert.match(app,/if\(!item\.open\|\|creato\)return/);
  assert.match(app,/Mostra altri 5/);
+ assert.match(app,/class:'conflitto-campo-dettagli'/);
+ assert.match(app,/if\(!dettagli\.open\|\|pronto\)return/);
+ assert.match(css,/max-height:210px/);
  assert.doesNotMatch(app,/bottone\('Teni questa'/);
 });
 test('v416: la scelta resta esplicita, nessun dato cambia aprendo la sezione',()=>{
