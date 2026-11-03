@@ -1,5 +1,5 @@
 // Spiegazioni del Rank per chi usa l'app, senza formule o termini matematici.
-// Usa soltanto i numeri gia' calcolati dal motore: non assegna LP o nuovi gradi.
+// Usa soltanto i numeri già calcolati dal motore: non assegna LP o nuovi gradi.
 import { DIVISIONI } from './rank-config.js';
 
 function n(v) { const x = Number(v); return Number.isFinite(x) ? x : null; }
