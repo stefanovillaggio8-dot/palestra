@@ -3309,6 +3309,10 @@ function rigaSerie(serie, numero, confronto, seduta, pesoRigaSorella = null) {
   const eseguiSpunta = async (origine) => {
     if (spuntaOccupata) return;
     spuntaOccupata = true;
+    const eraFatta = eFatta(serie);
+    // Ottimistica solo la grafica: la serie è verde subito come nella v414.
+    // Se l'utente annulla un avviso o il salvataggio fallisce, la ripristiniamo.
+    segnaAspettoFatto(riga, spunta, !eraFatta, etichettaFatta);
     try {
       registra({cosa: origine === 'numero' ? 'numero premuto' : 'spunta premuta',
         serie: serie.id, ordine: numero, esercizio: e && e.nome});
@@ -3318,10 +3322,12 @@ function rigaSerie(serie, numero, confronto, seduta, pesoRigaSorella = null) {
         Object.assign(campi, valoriDigitatiDellaSerie(riga, serie, chiave, serieCardio));
         if (pesoCorporeoOra() !== null) campi.peso_corpo = pesoCorporeoOra();
       }
-      // Prima salva e, se necessario, chiede conferma. Solo DOPO segna la
-      // spunta, avvia il recupero e assegna il suono di serie completata.
+      // La grafica è già aggiornata, ma effetti e timer aspettano il salvataggio.
       const salvata = await aggiornaSerie(serie, campi);
-      if (!salvata) return;
+      if (!salvata) {
+        segnaAspettoFatto(riga, spunta, eraFatta, etichettaFatta);
+        return;
+      }
       impostaRecuperoSerie(serie.seduta_id, fatta);
       if (fatta) {
         avviso('Recupero avviato automaticamente.', {tipo:'ok',durata:1800});
@@ -3338,6 +3344,7 @@ function rigaSerie(serie, numero, confronto, seduta, pesoRigaSorella = null) {
       }
       disegna();
     } catch (err) {
+      segnaAspettoFatto(riga, spunta, eraFatta, etichettaFatta);
       registra({cosa:'salvataggio FALLITO',errore:String(err?.message||err)});
       mostraErroreBreve('Non sono riuscito a salvare la spunta: '+(err?.message||err));
     } finally {
