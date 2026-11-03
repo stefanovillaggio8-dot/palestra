@@ -106,7 +106,7 @@ test('v414: anche i giri dropset sono protetti, senza falsi allarmi su dati inva
 test('v414: UI e salvataggi condividono la protezione, anche con comandi vocali',()=>{
  const app=readFileSync(new URL('../src/app.js',import.meta.url),'utf8');
  const ui=readFileSync(new URL('../src/ui.js',import.meta.url),'utf8');
- assert.match(app,/const controlli = valutaCampiSerieInsoliti\(campi, serieAttuale, comparabili/);
+ assert.match(app,/const controlli = valutaCampiSerieInsoliti\((?:campi|completi), serieAttuale, comparabili/);
  assert.match(app,/const accettato = await chiediConferma\(/);
  assert.match(app,/if\(!salvataConVoce\)throw/);
  assert.match(ui,/if \(!testoNumericoAmmesso\(grezzo\)\)/);
