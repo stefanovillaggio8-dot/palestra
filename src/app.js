@@ -5881,9 +5881,23 @@ function vistaImpostazioni(zona) {
 
     const elementoConflitto = (c) => {
       const descrizione = descriviConflitto(c);
+      const riferimento = c.locale || c.remoto || {};
+      // Il nome vero è molto più utile di un UUID: se due serie hanno
+      // conflitti contemporaneamente devi capire QUALE esercizio stai guardando.
+      let contesto = '';
+      if (c.tabella === 'serie') {
+        const esercizio = esercizioPerId(riferimento.esercizio_id);
+        if (esercizio) contesto = esercizio.nome +
+          (Number.isInteger(Number(riferimento.ordine)) && Number(riferimento.ordine)>0
+            ? ' · serie ' + riferimento.ordine : '');
+      } else if (['schede','sedute','esercizi','profili'].includes(c.tabella)) {
+        contesto = String(riferimento.nome || riferimento.nome_giorno ||
+          riferimento.username || '').slice(0,65);
+      }
+      const titolo = contesto ? contesto + ' · ' + descrizione.titolo : descrizione.titolo;
       const item = el('details',{class:'conflitto-voce'});
       item.appendChild(el('summary',{class:'conflitto-riassunto'},[
-        el('strong',{testo:descrizione.titolo}),
+        el('strong',{testo:titolo}),
         el('span',{class:'nota nota-piccola',testo:descrizione.sintesi}),
       ]));
       // Il contenuto di ciascun conflitto è ancora chiuso: mostra
