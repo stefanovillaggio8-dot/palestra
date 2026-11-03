@@ -979,7 +979,8 @@ test('33. la parte tecnica del database online e\' chiusa e spiegata', async () 
   globalThis.window.location.hash = '#/impostazioni';
   await attendiChe(() => perClasse(app, 'blocco').length >= 3);
 
-  const chiusa = perClasse(app, 'blocco-chiuso')[0];
+  const chiusa = perClasse(app, 'blocco-chiuso')
+    .find(n => /opzione avanzata/i.test(n.textContent || ''));
   assert.ok(chiusa, 'la sezione tecnica c\'e\' ma in una sezione a parte');
   assert.equal(chiusa.getAttribute('open'), null, 'e non e\' aperta: non ti mette in confusione');
 
