@@ -108,6 +108,6 @@ test('v414: UI e salvataggi condividono la protezione, anche con comandi vocali'
  const ui=readFileSync(new URL('../src/ui.js',import.meta.url),'utf8');
  assert.match(app,/const controlli = valutaCampiSerieInsoliti\(campi, serieAttuale, comparabili/);
  assert.match(app,/const accettato = await chiediConferma\(/);
- assert.match(app,/if\(!salvataConVoce\)return/);
+ assert.match(app,/if\(!salvataConVoce\)throw/);
  assert.match(ui,/if \(!testoNumericoAmmesso\(grezzo\)\)/);
 });
