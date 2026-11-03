@@ -3219,7 +3219,7 @@ function apriComandoSerieAllenamento(serie,numero) {
      if(pesoCorporeoOra()!==null)campi.peso_corpo=pesoCorporeoOra();
      // Carico, rip, spotter e spunta sono salvati insieme.
      const salvataConVoce=await aggiornaSerie(target,{...campi,stato:'fatta'});
-     if(!salvataConVoce)return;
+     if(!salvataConVoce)throw new Error('Numero non salvato: correggilo e conferma nuovamente.');
      impostaRecuperoSerie(seduta.id,true);
      suona('serie');
      pulsa();
@@ -3229,7 +3229,7 @@ function apriComandoSerieAllenamento(serie,numero) {
    }
    if(eFatta(target)&&(dati.peso!==undefined||dati.ripetizioni!==undefined))
      throw new Error('Togli prima la spunta per cambiare peso o ripetizioni.');
-   if(!(await aggiornaSerie(target,campi)))return;
+   if(!(await aggiornaSerie(target,campi)))throw new Error('Numero non salvato: correggilo e conferma nuovamente.');
    disegna();
    avviso('Serie aggiornata.',{tipo:'ok',durata:2300});
   },
