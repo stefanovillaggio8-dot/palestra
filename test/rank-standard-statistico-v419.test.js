@@ -6,7 +6,7 @@ import { rankDaScore } from '../src/rank-v2/scalata.js';
 import {
   PREACHER_PERCENTILI_1RM, interpolaPercentiliPerPeso,
   estendiPercentiliAlti, standardPerMovimento, soglieNormalizzate,
-  fattoreCorpo, stimaMassimale,
+  fattoreCorpo, FATTORE_8_RIP, stimaMassimale,
 } from '../src/rank-v3/modello.js';
 import { valutaPrestazione, soglieLegibiliNuove } from '../src/rank-v3/valutazione.js';
 
@@ -39,18 +39,25 @@ test('v419: Titan e Olympian sono extrapolazioni z-logaritmiche con intervallo r
   assert.equal(estendiPercentiliAlti([7, 12, 18, 25, 25]), null);
 });
 
-test('v419: Epley a 1 rip coincide con il carico; 22 x 8 = 27,87 kg stimati', () => {
-  assert.equal(stimaMassimale(22, 1)?.valore, 22);
+test('v420: il Rank valuta 22 x 8 come serie reale e non stima un massimale', () => {
+  // Epley resta disponibile come utility separata ma NON entra nel Rank.
   assert.ok(Math.abs(stimaMassimale(22, 8)?.valore - 27.87) <= .01);
-  assert.equal(prova(preacher, 22, 8).metodoMassimale, 'epley');
-  assert.equal(prova(preacher, 22, 8).massimaleAffidabile, true);
+  const r = prova(preacher, 22, 8);
+  assert.equal(r.metodoMassimale, null);
+  assert.equal(r.massimale, null);
+  assert.equal(r.massimaleAffidabile, null);
+  assert.equal(r.caricoReale, 22);
+  assert.equal(r.ripetizioni, 8);
+  assert.equal(r.kgEquivalenti, 22);
+  assert.equal(r.rank.id, 'platinum');
 });
 
-test('v419: stessi riferimenti, non promuovere 22kg ad Elite per accontentare utente', () => {
-  for (const rip of [5, 6, 8, 10, 12]) {
-    const r = prova(preacher, 22, rip);
+test('v420: stesso peso, differenze nelle ripetizioni e livelli realistici', () => {
+  const attesi = { 5: 'gold', 6: 'platinum', 8: 'platinum', 10: 'platinum', 12: 'platinum' };
+  for (const [rip, rank] of Object.entries(attesi)) {
+    const r = prova(preacher, 22, Number(rip));
     assert.equal(r.valido, true);
-    assert.equal(r.rank.id, 'platinum', `22kg x${rip}: ${r.rank?.id}`);
+    assert.equal(r.rank.id, rank, `22kg x${rip}: ${r.rank?.id}`);
   }
   assert.equal(prova(preacher, 30, 8).rank.id, 'diamond');
   assert.equal(prova(preacher, 32, 8).rank.id, 'titan');
@@ -61,7 +68,8 @@ test('v419: serie lunghe non possono comprarsi Olympian da rep impossibili', () 
   const r12 = prova(preacher, 20, 12);
   const r100 = prova(preacher, 20, 100);
   assert.equal(r12.rank.id, r100.rank.id);
-  assert.equal(r100.massimaleAffidabile, false);
+  assert.equal(r100.score, r12.score);
+  assert.equal(r100.massimale, null);
 });
 
 test('v419: soglie visibili, score e rank della serie concordano per tutti i livelli', () => {
@@ -103,5 +111,5 @@ test('v419: variante Scott monobraccio uguale; EZ curl e altri movimenti invaria
   const q = soglieNormalizzate({ standard: std, pesoCorporeo: 66, meccanica: 1 });
   const src = estendiPercentiliAlti(interpolaPercentiliPerPeso(PREACHER_PERCENTILI_1RM, 66));
   for (let i = 0; i < 7; i++)
-    assert.ok(Math.abs(q[i] * fattoreCorpo(66) - src[i]) < .1);
+    assert.ok(Math.abs(q[i] * fattoreCorpo(66) * FATTORE_8_RIP - src[i]) < .1);
 });
