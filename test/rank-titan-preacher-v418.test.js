@@ -74,8 +74,8 @@ test('v419: 22 kg per un braccio non viene sovrastimato come Diamond',()=>{
  for(const reps of [5,6,8,10]){
   const r=evalua(preacher,22,reps);
   assert.equal(r.valido,true);
-  assert.equal(r.rankId,'platinum',
-   `22kg x ${reps}: ${r.rank?.nome} (atteso Platinum da dati esterni)`);
+  assert.equal(r.rankId,reps===5?'gold':'platinum',
+   `22kg x ${reps}: ${r.rank?.nome} (contano anche le ripetizioni reali)`);
   assert.equal(r.motore,'nuovo');
  }
 });
