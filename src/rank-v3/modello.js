@@ -19,11 +19,11 @@
 // LA CATENA, in quattro passi
 // ---------------------------------------------------------------------------
 //
-//   carico + ripetizioni  ->  stimaMassimale()   : il 1RM stimato (Epley)
-//   1RM + peso corporeo   ->  punteggioNormalizzato() : 1RM / peso^0,67
-//   esercizio             ->  soglieNormalizzate() : la scala di QUEL esercizio
-//   punteggio + soglie    ->  il Rank (in `valutazione.js`, con la scala di v2)
-//
+//   kg e ripetizioni  ->  punteggio della serie realmente fatta
+//   peso corporeo     ->  normalizzazione della forza relativa
+//   esercizio         ->  soglieNormalizzate() per il movimento
+//   migliore serie    ->  Rank, senza 1RM ipotetico
+
 // IL PERCHE' DI QUESTA FORMA, e la cosa da non dimenticare:
 //
 //  1) IL PESO CORPOReO NON DECIDE IL RANK DA SOLO.
@@ -33,25 +33,20 @@
 //     peso possono avere livelli diversi, e chi pesa di piu' non e' chiuso
 //     fuori perche' pesa di piu'.
 //
-//  2) LA STIMA DEL MASSIMALE (Epley) Serve A CONFRONTARE, NON A MOSTRARE.
+//  2) IL RANK DIPENDE DALLA MIGLIORE SERIE (V420).
 //
-//     Ste (07/10/2026) aveva scritto il contrario: "non voglio che l'app
-//     trasformi quella prestazione in un ipotetico 1RM e poi assegni il Rank in
-//     base a quello". Il 22/10 la richiesta e' cambiata: "utilizza inizialmente
-//     la formula di Epley per stimare il massimale teorico... questa stima deve
-//     essere utilizzata per valutare la prestazione". Quindi: il 1RM stimato
-//     ENTRA nel calcolo del Rank, ma nella schermata resta chiaro che e' una
-//     stima (vedi `metodo` e `affidabile` qui sotto, e la scritta nella scheda).
+//     Il motore usa kg realmente caricati, ripetizioni completate e peso
+//     corporeo. NON applica Epley ai numeri dell'atleta.
+//     La funzione stimaMassimale resta disponibile per analisi opzionali,
+//     ma non decide il Rank.
 //
-//  3) LE SOGLIE SONO STANDARD 1RM, E NON FINGONO CHE IL RANK SIA LO STESSO.
+//  3) GLI STANDARD PUBBLICI CALIBRANO LE SOGLIE, NON LA SERIE.
 //
-//     I numeri per esercizio sono standard di forza realistici, nel formato
-//     "1RM / peso corporeo" (vedi `STANDARD_1RM`). Non sono i vecchi tetti
-//     usati come se fossero carichi da 8 ripetizioni: quella confusione
-//     rimetteva Epley due volte e teneva i Rank fermi. Quindi una stessa serie
-//     puo' cambiare Rank rispetto al motore vecchio: e' voluto, ed e' la
-//     conseguenza di misurare la prestazione in 1RM normalizzato. I casi con i
-//     carichi veri di Ste restano comunque sotto il vertice (V35).
+//     Strength Level pubblica i percentili del preacher in 1RM. Per ottenere
+//     soglie confrontabili con una SERIE da 8 ripetizioni, si convertono
+//     i riferimenti una volta, dividendo per 1+8/30. Il massimale dell'atleta
+//     NON viene mai stimato per assegnare il Rank. Questa conversione
+//     degli standard e' un'approssimazione dichiarata.
 //
 //  4) IL MODELLO NON INVENTA NULLA.
 //
