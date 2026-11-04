@@ -28,14 +28,13 @@ export function presentaRank(record) {
     frasi.push(`Il Rank viene dalla tua migliore prestazione valida in questo esercizio.`);
   }
   frasi.push('Non contano solo i kg: vengono considerate anche le ripetizioni, il tipo di esercizio e, quando disponibile, il tuo peso corporeo.');
-  // Qui esistono 5 standard empirici di 1RM per peso corporeo (Strength Level).
-  // Non si dichiara come percentile misurato una coda che e' solo stimata.
-  if (r.metodoMassimale === 'epley' && r.movimento === 'bicipiti_panca') {
-    const massimale = n(r.massimale);
-    if (massimale !== null)
-      frasi.push(`Per confrontarti uso un 1RM stimato di ${numeroIt(massimale)} kg (formula di Epley). Non significa che tu abbia realmente sollevato quel peso.`);
-    frasi.push('Nel curl Scott con un manubrio uso i cinque riferimenti statistici per peso corporeo: principiante 5%, novizio 20%, intermedio 50%, avanzato 80%, elite 95% (community maschile Strength Level).');
-    frasi.push('Diamond corrisponde alla soglia Elite di questa scala. Titan e Olympian sono stime matematiche oltre il 95%, non percentili verificati.');
+  // Il punteggio viene dalla serie reale, mentre i riferimenti esterni
+  // del preacher in formato 1RM sono convertiti SOLO per calibrare le soglie.
+  if (r.movimento === 'bicipiti_panca' &&
+      ['ex-one-arm-preacher-curl', 'ex-scott-bench-curl'].includes(r.esercizio?.id)) {
+    frasi.push('Il Rank usa la tua migliore serie effettiva: kg realmente usati e ripetizioni completate. NON stima un massimale a partire dalla tua serie.');
+    frasi.push('Nel curl Scott con un manubrio, le soglie sono tarate sui riferimenti statistici per peso corporeo: principiante 5%, novizio 20%, intermedio 50%, avanzato 80%, elite 95% (community maschile Strength Level).');
+    frasi.push('Le soglie esterne, pubblicate in formato massimale, sono convertite a serie da 8 ripetizioni: e solo una calibrazione. Diamond corrisponde al livello Elite; Titan e Olympian sono stime oltre il 95%, non percentili misurati.');
     frasi.push('Il confronto presuppone ripetizioni controllate, complete e vicine al limite; l’app non può misurare da sola l’allungamento o l’aiuto ricevuto.');
   }
   if (r.rankId === 'olympian' || r.inTop) {
@@ -65,7 +64,7 @@ export function presentaRank(record) {
 
 export function regoleRankChiare() {
   return [
-    'Il Rank di un esercizio usa la tua migliore prestazione valida, non semplicemente l’ultima serie.',
+    'Il Rank di un esercizio usa la tua migliore serie valida, valutando insieme kg reali e ripetizioni, non un massimale teorico.',
     '37 kg alla chest press e 37 kg alle alzate laterali non valgono lo stesso: ogni esercizio ha un confronto diverso.',
     'Più peso o più ripetizioni possono farti salire, ma non c’è una quantità di kg identica per tutti gli esercizi.',
     'I risultati entrano nel Rank quando termini l’allenamento.',
