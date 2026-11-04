@@ -104,6 +104,10 @@ export function valutaPrestazione({ esercizio, serie = [], pesoCorporeo = null, 
   for (const s of serie) {
     if (!s || s.eliminata) continue;
     if (s.esercizio_id && esercizio.id && s.esercizio_id !== esercizio.id) continue;
+    // Ogni record storico usa il proprio peso corporeo salvato quando la
+    // serie e' stata fatta, non quello della migliore serie scelta dal vecchio
+    // sistema e non quello attuale. Il fallback vale solo se manca la misura.
+    const pesoDellaSerie = numero(s.peso_corpo) ?? numero(pesoCorporeo);
     const zavorri = cfg.modello === 'corpo_libero';
     // I KG DI ZAVORRI: nei dip e nelle trazioni il numero che Ste scrive sta
     // nel campo dell'assistenza (vedi `caricoEffettivo`). Il fallback su `peso`
@@ -119,7 +123,7 @@ export function valutaPrestazione({ esercizio, serie = [], pesoCorporeo = null, 
     const controllo = controllaIngresso({
       peso: pesoScritto,
       ripetizioni: s.ripetizioni,
-      pesoCorporeo,
+      pesoCorporeo: pesoDellaSerie,
       spotter: s.spotter === true,
       consentiCaricoZero: zavorri,
     });
@@ -127,13 +131,13 @@ export function valutaPrestazione({ esercizio, serie = [], pesoCorporeo = null, 
     for (const a of controllo.allarmi) {
       if (!allarmi.includes(a)) allarmi.push(a);
     }
-    const eff = caricoEffettivo(s, cfg, { pesoCorporeo, esercizio: esercizio || {} });
+    const eff = caricoEffettivo(s, cfg, { pesoCorporeo: pesoDellaSerie, esercizio: esercizio || {} });
     if (eff.carico === null) continue;
     // PER ZAVORRI (dip/trazioni): lo score usa il TOTALE, corpo + zavorra.
     // A corpo libero stai sollevando 66 kg, non zero.
     const caricoPerScore = eff.carico;
     const meccanica = fattoreMeccanica(esercizio || {});
-    const fattore = fattoreCorpo(pesoCorporeo);
+    const fattore = fattoreCorpo(pesoDellaSerie);
     if (fattore === null) continue;
     // LO SCORE E' LA SERIE VERA, NON IL MASSIMALE (22/10/2026).
     //
@@ -168,6 +172,7 @@ export function valutaPrestazione({ esercizio, serie = [], pesoCorporeo = null, 
       spotter: s.spotter === true,
       meccanica,
       standardPercentili,
+      pesoCorporeoSerie: pesoDellaSerie,
     });
   }
 
@@ -192,6 +197,8 @@ export function valutaPrestazione({ esercizio, serie = [], pesoCorporeo = null, 
     return b.ripetizioni > a.ripetizioni ? b : a;
   });
 
+  const pesoDelRecord = migliore.pesoCorporeoSerie ?? pesoCorporeo;
+
   // LE SOGLIE: gli standard del movimento, convertiti a serie da 8 rip.
   // I dati del preacher sono 1RM, ma questa informazione viene usata soltanto
   // per tarare le soglie, non per cambiare i kg della migliore serie.
@@ -203,7 +210,7 @@ export function valutaPrestazione({ esercizio, serie = [], pesoCorporeo = null, 
     difficoltaScala: cfg.difficoltaScala,
     curva: CURVA_SOGLIE,
     meccanica: migliore.meccanica,
-    pesoCorporeo,
+    pesoCorporeo: pesoDelRecord,
   });
   if (!soglie || soglie.length < 2) {
     return { valido: false, motivo: 'soglie incoerenti', movimento, livello, cfg, allarmi };
@@ -212,7 +219,7 @@ export function valutaPrestazione({ esercizio, serie = [], pesoCorporeo = null, 
   // I NUMERI IN KG PER LA SCHERMATA: la soglia normalizzata riportata a 8
   // ripetizioni sul corpo di oggi. Le soglie del calcolo restano costanti; qui
   // si traduce solo per far leggere un peso che esiste davvero.
-  const fattoreOggi = fattoreCorpo(pesoCorporeo);
+  const fattoreOggi = fattoreCorpo(pesoDelRecord);
   if (fattoreOggi === null) {
     return { valido: false, motivo: 'peso corporeo non disponibile', movimento, livello, cfg, allarmi };
   }
@@ -242,7 +249,7 @@ export function valutaPrestazione({ esercizio, serie = [], pesoCorporeo = null, 
     indice: rank.indice,
     carico: migliore.carico,
     ripetizioni: migliore.ripetizioni,
-    pesoCorporeo,
+    pesoCorporeo: pesoDelRecord,
     meccanica: migliore.meccanica,
     limiteRipetizioni: standardPercentili ? 12 : null,
     pesiDisponibili: standardPercentili && cfg.caricamento === 'manubri' ? PESI_GOLERIA : null,
@@ -266,7 +273,7 @@ export function valutaPrestazione({ esercizio, serie = [], pesoCorporeo = null, 
     // IL PESO CORPOReO CON CUI E' STATA VALUTATA LA SERIE: quello del giorno in
     // cui l'hai fatta, se c'era (vedi `pesoPerSerie` in rank.js). E' quello che
     // rende un record storico un record: non si ricalcola col peso di adesso.
-    pesoCorporeo: numero(pesoCorporeo),
+    pesoCorporeo: numero(pesoDelRecord),
     spotter: !!migliore.spotter,
     ripetizioni: migliore.ripetizioni,
     ripetizioniPiene: migliore.ripetizioniPiene,
@@ -286,7 +293,7 @@ export function valutaPrestazione({ esercizio, serie = [], pesoCorporeo = null, 
     tetto: vertice,
     tettoRaggiunto: false,
     // I KG EQUIVALENTI: che peso, a 8 ripetizioni, darebbe la stessa prestazione.
-    kgEquivalenti: kgEquivalenti(migliore.score, pesoCorporeo, migliore.meccanica),
+    kgEquivalenti: kgEquivalenti(migliore.score, pesoDelRecord, migliore.meccanica),
     ...rank,
     sogliePer8Rip: true,
     ripetizioniRiferimento: RIPETIZIONI_RIFERIMENTO,
