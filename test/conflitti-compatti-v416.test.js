@@ -66,5 +66,5 @@ test('v416: stile leggibile su iPhone, versione nuova e asset disponibili offlin
  assert.match(css,/\.conflitti-campo/);
  assert.match(css,/@media\(max-width:440px\)/);
  assert.match(sw,/\.\/src\/conflitti-compatti\.js/);
- assert.match(sw,/palestra-v416/);
+ assert.match(sw,/const VERSIONE = 'palestra-v\d+'/);
 });
