@@ -28,6 +28,16 @@ export function presentaRank(record) {
     frasi.push(`Il Rank viene dalla tua migliore prestazione valida in questo esercizio.`);
   }
   frasi.push('Non contano solo i kg: vengono considerate anche le ripetizioni, il tipo di esercizio e, quando disponibile, il tuo peso corporeo.');
+  // Qui esistono 5 standard empirici di 1RM per peso corporeo (Strength Level).
+  // Non si dichiara come percentile misurato una coda che e' solo stimata.
+  if (r.metodoMassimale === 'epley' && r.movimento === 'bicipiti_panca') {
+    const massimale = n(r.massimale);
+    if (massimale !== null)
+      frasi.push(`Per confrontarti uso un 1RM stimato di ${numeroIt(massimale)} kg (formula di Epley). Non significa che tu abbia realmente sollevato quel peso.`);
+    frasi.push('Nel curl Scott con un manubrio uso i cinque riferimenti statistici per peso corporeo: principiante 5%, novizio 20%, intermedio 50%, avanzato 80%, elite 95% (community maschile Strength Level).');
+    frasi.push('Diamond corrisponde alla soglia Elite di questa scala. Titan e Olympian sono stime matematiche oltre il 95%, non percentili verificati.');
+    frasi.push('Il confronto presuppone ripetizioni controllate, complete e vicine al limite; l’app non può misurare da sola l’allungamento o l’aiuto ricevuto.');
+  }
   if (r.rankId === 'olympian' || r.inTop) {
     frasi.push('Sei già nel grado più alto: Olympian non ha divisioni I, II o III.');
   } else if (!r.rank || r.sottoSoglia) {
