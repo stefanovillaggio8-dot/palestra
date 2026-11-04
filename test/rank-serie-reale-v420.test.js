@@ -105,6 +105,17 @@ test('v420: pesi leggibili e scheda spiegano serie reale, non 1RM ipotetico', ()
   assert.ok(!p.frasi.some(x => x.includes('Per confrontarti uso un 1RM')));
 });
 
+test('v420: una serie storica conserva il peso corporeo del proprio giorno', () => {
+  const vecchia = { ...serie(22, 8, false, 1), peso_corpo: 66 };
+  const recente = { ...serie(22, 8, false, 2), peso_corpo: 80 };
+  const r = valuta([vecchia, recente], 80);
+  assert.equal(r.pesoCorporeo, 66);
+  assert.equal(r.caricoReale, 22);
+  assert.equal(r.ripetizioni, 8);
+  assert.equal(r.rank.id, 'platinum');
+  assert.equal(r.kgEquivalenti, 22);
+});
+
 test('v420: il riferimento empirico e esclusivo del curl Scott con un manubrio', () => {
   assert.ok(standardPerMovimento('bicipiti_panca', scott).soglie1RMPerPeso);
   const press = esercizioTest('Chest Press');
