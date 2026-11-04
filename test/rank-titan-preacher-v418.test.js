@@ -28,7 +28,7 @@ test('v418: Titan non è stato eliminato, compare anche con I/II/III nelle grafi
 
 test('v418: il motore può assegnare Titan III e Titan I tra Diamond e Olympian',()=>{
  const std=standardPerMovimento('bicipiti_panca',preacher);
- const soglie=soglieNormalizzate({standard:std,meccanica:1.05});
+ const soglie=soglieNormalizzate({standard:std,meccanica:1.05,pesoCorporeo:66});
  assert.equal(soglie.length,7);
  for(let i=1;i<7;i++)assert.ok(soglie[i]>soglie[i-1],`soglia ${i}`);
  const q1=soglie[5]+(soglie[6]-soglie[5])*.1;
@@ -43,17 +43,17 @@ test('v418: il motore può assegnare Titan III e Titan I tra Diamond e Olympian'
 });
 
 test('v418: prova end-to-end: una serie può davvero ricevere Titan dal motore v3',()=>{
- const titan=evalua(preacher,30,6);
+ const titan=evalua(preacher,32,8);
  assert.equal(titan.motore,'nuovo');
- assert.equal(titan.rankId,'titan',`30kg x6: ${titan.rank?.nome}`);
+ assert.equal(titan.rankId,'titan',`32kg x8: ${titan.rank?.nome}`);
  assert.ok(['I','II','III'].includes(titan.divisione?.nome));
- const oltre=evalua(preacher,30,8);
+ const oltre=evalua(preacher,40,8);
  assert.equal(oltre.rankId,'olympian');
 });
 
 test('v418: Titan non è garantito per ogni incremento di kg perché la fascia è stretta',()=>{
  const std=standardPerMovimento('bicipiti_panca',preacher);
- const soglie=soglieNormalizzate({standard:std});
+ const soglie=soglieNormalizzate({standard:std,pesoCorporeo:66});
  assert.ok(soglie[6]-soglie[5]>0);
  assert.ok(soglie[6]-soglie[5]<soglie[5]-soglie[4]);
  // Questo test documenta il comportamento, senza alterare Diamond né Olympian.
@@ -70,12 +70,12 @@ test('v418: il Preacher Curl ha una classificazione dedicata, manubrio singolo',
  assert.equal(standardPerMovimento('bicipiti_panca',scott).vertice,.50);
 });
 
-test('v418: 22 kg per un braccio non viene sottostimato come semplice Gold',()=>{
+test('v419: 22 kg per un braccio non viene sovrastimato come Diamond',()=>{
  for(const reps of [5,6,8,10]){
   const r=evalua(preacher,22,reps);
   assert.equal(r.valido,true);
-  assert.ok(r.rank&&r.rank.indice>=RANK.findIndex(x=>x.id==='platinum'),
-   `22kg x ${reps} è ${r.rank?.nome}, il riferimento dedicato è troppo alto`);
+  assert.equal(r.rankId,'platinum',
+   `22kg x ${reps}: ${r.rank?.nome} (atteso Platinum da dati esterni)`);
   assert.equal(r.motore,'nuovo');
  }
 });
@@ -104,5 +104,5 @@ test('v418: la sola variante Scott a un braccio è calibrata con dati di riferim
  assert.equal(sample.valido,true);
  assert.equal(sample.movimento,'bicipiti_panca');
  assert.equal(sample.soglie.length,7);
- assert.equal(sample.rank.id,'diamond');
+ assert.equal(sample.rank.id,'platinum');
 });
