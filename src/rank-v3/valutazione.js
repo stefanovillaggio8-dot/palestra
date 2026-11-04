@@ -156,7 +156,10 @@ export function valutaPrestazione({ esercizio, serie = [], pesoCorporeo = null, 
     if (s.spotter === true) score = score * PENALITA_SPOTTER;
     valutabili.push({
       serie: s,
-      score: arrotonda(score),
+      // Precisione interna: arrotondare a due decimali PRIMA della scelta
+      // della migliore serie falsava gli 8 rep (22 kg -> 21,99 kg equivalenti)
+      // e poteva cambiare Rank vicino alla soglia.
+      score: arrotonda(score, 6),
       carico: eff.carico,
       zavorra: eff.zavorra,
       corpo: eff.corpo,
