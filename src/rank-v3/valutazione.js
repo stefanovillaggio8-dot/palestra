@@ -37,7 +37,7 @@ import {
 } from '../rank-v2/curve.js';
 import {
   configEsercizio, controllaIngresso, fattoreCorpo, numero, arrotonda,
-  caricoEffettivo, soglieNormalizzate, standardPerMovimento, stimaMassimale, FATTORE_8_RIP,
+  caricoEffettivo, soglieNormalizzate, standardPerMovimento,
 } from './modello.js';
 
 /**
@@ -141,17 +141,18 @@ export function valutaPrestazione({ esercizio, serie = [], pesoCorporeo = null, 
     // entrano i kg che ha davvero spostato e le ripetizioni che ha davvero
     // fatto, con la curva delle ripetizioni che c'e' gia' in v2. La soglia e'
     // riportata a 8 ripetizioni una volta sola (vedi `soglieNormalizzate`).
-    const piene = ripetizioniPiene(s.ripetizioni);
-    // Gli standard empirici sono 1RM: per questi soli esercizi convertiamo
-    // la prestazione con Epley, non con la vecchia potenza sulle ripetizioni.
-    // Oltre 12 rip non estrapoliamo automaticamente un 1RM sempre più alto:
-    // il valore rimane prudenzialmente quello calcolato a 12 rip.
-    const stima = standardPercentili
-      ? stimaMassimale(caricoPerScore, Math.min(12, Math.floor(Number(s.ripetizioni))))
-      : null;
-    const forzaDellaSerie = standardPercentili ? stima?.valore : caricoPerScore * piene;
-    if (!Number.isFinite(forzaDellaSerie)) continue;
-    let score = (forzaDellaSerie / fattore) * meccanica;
+    // Tutti gli esercizi usano la SERIE realmente eseguita.
+    // A 8 ripetizioni il fattore e' 1; piu' ripetizioni aumentano lo score
+    // con rendimenti decrescenti, senza simulare un massimale.
+    // I riferimenti del preacher sono in 1RM, ma SOLO le soglie sono
+    // convertite al formato 8 rip in modello.js; MAI il carico dell'utente.
+    // Per il preacher si limita il contributo delle serie oltre 12 rip:
+    // i dati pubblicati descrivono soprattutto serie a bassa/media ripetizione.
+    const ripPerScore = standardPercentili
+      ? Math.min(12, Math.floor(Number(s.ripetizioni)))
+      : s.ripetizioni;
+    const piene = ripetizioniPiene(ripPerScore);
+    let score = (caricoPerScore * piene / fattore) * meccanica;
     if (s.spotter === true) score = score * PENALITA_SPOTTER;
     valutabili.push({
       serie: s,
@@ -164,7 +165,6 @@ export function valutaPrestazione({ esercizio, serie = [], pesoCorporeo = null, 
       spotter: s.spotter === true,
       meccanica,
       standardPercentili,
-      massimaleStimato: stima ? stima.valore : null,
     });
   }
 
@@ -176,25 +176,22 @@ export function valutaPrestazione({ esercizio, serie = [], pesoCorporeo = null, 
     };
   }
 
-  // LA MIGLIORE SERIE: IL PESO PIU' ALTO, SE HA FATTO ALMENO 5 RIPETIZIONI.
+  // LA MIGLIORE SERIE: il punteggio piu' alto (kg e ripetizioni reali),
+  // dando precedenza alle serie con almeno 5 ripetizioni come da impostazioni
+  // storiche dell'app. Lo spotter e' gia' considerato nel punteggio.
   const serieConRip = valutabili.filter((v) => v.ripetizioni >= RIP_MINIME_PER_PESO);
   const pool = serieConRip.length ? serieConRip : valutabili;
   const migliore = pool.reduce((a, b) => {
-    // Quando il riferimento statistico e' il 1RM, la serie migliore e'
-    // quella col 1RM stimato piu' alto, non necessariamente coi kg piu' alti.
-    // Gli altri movimenti mantengono la regola storica della serie piu' pesante.
-    if (standardPercentili) {
-      if (b.score > a.score) return b;
-      if (b.score < a.score) return a;
-    }
+    if (b.score > a.score) return b;
+    if (b.score < a.score) return a;
     if (b.carico > a.carico) return b;
     if (b.carico < a.carico) return a;
     return b.ripetizioni > a.ripetizioni ? b : a;
   });
 
-  // LE SOGLIE: lo standard 1RM del movimento, convertito in unita' normalizzata.
-  // Vedi `soglieNormalizzate` in `modello.js`: qui il peso NON entra, entra una
-  // volta sola nello score. Se entrasse in entrambi, si semplificherebbe.
+  // LE SOGLIE: gli standard del movimento, convertiti a serie da 8 rip.
+  // I dati del preacher sono 1RM, ma questa informazione viene usata soltanto
+  // per tarare le soglie, non per cambiare i kg della migliore serie.
   if (!standard) {
     return { valido: false, motivo: 'standard di forza mancante per questo movimento', movimento, livello, cfg, allarmi };
   }
@@ -217,7 +214,7 @@ export function valutaPrestazione({ esercizio, serie = [], pesoCorporeo = null, 
     return { valido: false, motivo: 'peso corporeo non disponibile', movimento, livello, cfg, allarmi };
   }
   const kgDaNormalizzato = (s) => arrotonda(
-    (s * fattoreOggi) / (migliore.meccanica * (standardPercentili ? FATTORE_8_RIP : 1)),
+    (s * fattoreOggi) / migliore.meccanica,
   );
   const ingresso = kgDaNormalizzato(soglie[0]);
   const vertice = kgDaNormalizzato(soglie[soglie.length - 1]);
@@ -244,7 +241,7 @@ export function valutaPrestazione({ esercizio, serie = [], pesoCorporeo = null, 
     ripetizioni: migliore.ripetizioni,
     pesoCorporeo,
     meccanica: migliore.meccanica,
-    modello1RM: standardPercentili,
+    limiteRipetizioni: standardPercentili ? 12 : null,
     pesiDisponibili: standardPercentili && cfg.caricamento === 'manubri' ? PESI_GOLERIA : null,
   });
 
@@ -270,14 +267,11 @@ export function valutaPrestazione({ esercizio, serie = [], pesoCorporeo = null, 
     spotter: !!migliore.spotter,
     ripetizioni: migliore.ripetizioni,
     ripetizioniPiene: migliore.ripetizioniPiene,
-    // NIENTE MASSIMALE: il Rank nasce dalla serie vera. I campi restano null
-    // perche' le schermate li leggono e non devono mostrare una stima che non
-    // entra piu' nel calcolo.
-    // Mostriamo la stima solo quando il confronto e' davvero contro
-    // standard pubblicati in 1RM. Non e' un massimale misurato.
-    massimale: standardPercentili ? migliore.massimaleStimato : null,
-    metodoMassimale: standardPercentili ? 'epley' : null,
-    massimaleAffidabile: standardPercentili ? migliore.ripetizioni <= 12 : null,
+    // Il Rank non dipende da un 1RM ipotetico: i kg e le ripetizioni
+    // della migliore serie sono gli unici dati di prestazione usati.
+    massimale: null,
+    metodoMassimale: null,
+    massimaleAffidabile: null,
     // LA FORZA RELATIVA: la serie vera rapportata al peso corporeo.
     forzaRelativa: arrotonda(migliore.score),
     meccanica: fattoreMeccanica(esercizio || {}),
@@ -289,7 +283,7 @@ export function valutaPrestazione({ esercizio, serie = [], pesoCorporeo = null, 
     tetto: vertice,
     tettoRaggiunto: false,
     // I KG EQUIVALENTI: che peso, a 8 ripetizioni, darebbe la stessa prestazione.
-    kgEquivalenti: kgEquivalenti(migliore.score, pesoCorporeo, migliore.meccanica, { modello1RM: standardPercentili }),
+    kgEquivalenti: kgEquivalenti(migliore.score, pesoCorporeo, migliore.meccanica),
     ...rank,
     sogliePer8Rip: true,
     ripetizioniRiferimento: RIPETIZIONI_RIFERIMENTO,
@@ -308,7 +302,7 @@ export function valutaPrestazione({ esercizio, serie = [], pesoCorporeo = null, 
  * A 8 ripetizioni `ripetizioniPiene` vale 1, quindi il carico equivalente e':
  *   kg = score x peso^0,67 / meccanica
  */
-export function kgEquivalenti(score, pesoCorporeo, meccanica = 1, { modello1RM = false } = {}) {
+export function kgEquivalenti(score, pesoCorporeo, meccanica = 1) {
   if (!Number.isFinite(score) || score <= 0) return null;
   const m = Number(meccanica);
   const mec = Number.isFinite(m) && m > 0 ? m : 1;
@@ -318,7 +312,7 @@ export function kgEquivalenti(score, pesoCorporeo, meccanica = 1, { modello1RM =
   // calcolo (l'avviso del peso e `distanzaAllaSogliaNuova`), non un peso da
   // caricare. Arrotondarlo al kg appiattisce due soglie vicine sullo stesso
   // numero. Il kg intero si arrotonda solo quando si scrive "carica N kg".
-  return Math.round((score / mec) * fattore / (modello1RM ? FATTORE_8_RIP : 1) * 100) / 100;
+  return Math.round((score / mec) * fattore * 100) / 100;
 }
 
 /**
@@ -328,7 +322,7 @@ export function kgEquivalenti(score, pesoCorporeo, meccanica = 1, { modello1RM =
  * ripetizioni che servono sono troppe, si dice solo il peso. E il peso sale
  * sempre al kg intero successivo: un manubrio non si compra a 18,08 kg.
  */
-export function distanzaAllaSogliaNuova({ score, soglie, indice, carico, ripetizioni, pesoCorporeo, meccanica = 1, modello1RM = false, pesiDisponibili = null }) {
+export function distanzaAllaSogliaNuova({ score, soglie, indice, carico, ripetizioni, pesoCorporeo, meccanica = 1, limiteRipetizioni = null, pesiDisponibili = null }) {
   const sog = Array.isArray(soglie) ? soglie : [];
   if (!sog.length) return null;
   const fattore = fattoreCorpo(pesoCorporeo);
@@ -347,9 +341,9 @@ export function distanzaAllaSogliaNuova({ score, soglie, indice, carico, ripetiz
   // score = kg x ripetizioniPiene x meccanica / P^0,67, quindi:
   //   kg = soglia x P^0,67 / (meccanica x ripetizioniPiene)
   const ripFatte = Math.floor(Number(ripetizioni) || 0);
-  const pieneFatte = modello1RM
-    ? (ripFatte <= 1 ? 1 : 1 + Math.min(12, ripFatte) / 30)
-    : ripetizioniPiene(ripFatte);
+  const pieneFatte = ripetizioniPiene(limiteRipetizioni
+    ? Math.min(limiteRipetizioni, ripFatte)
+    : ripFatte);
   const kgGrezzo = (bersaglio * fattore) / (mec * pieneFatte);
   // Con un manubrio si suggerisce il primo peso REALMENTE disponibile.
   // Il calcolo usa kg esatti; l'arrotondamento e' solo per la schermata.
@@ -364,15 +358,13 @@ export function distanzaAllaSogliaNuova({ score, soglie, indice, carico, ripetiz
   if (Number.isFinite(carico) && carico > 0) {
     const pieneNecessarie = (bersaglio * fattore) / (mec * carico);
     if (Number.isFinite(pieneNecessarie) && pieneNecessarie > pieneFatte) {
-      ripTotali = modello1RM
-        ? Math.max(1, Math.ceil(30 * (pieneNecessarie - 1)))
-        : Math.max(1, Math.ceil(8 * Math.pow(pieneNecessarie, 5)));
+      ripTotali = Math.max(1, Math.ceil(8 * Math.pow(pieneNecessarie, 5)));
     }
   }
   const LIMITE_RIP = 12;
   const ripInPiu = ripTotali !== null ? Math.max(0, ripTotali - ripFatte) : null;
   const ripUtili = ripInPiu !== null && ripInPiu <= LIMITE_RIP
-    && (!modello1RM || ripTotali <= LIMITE_RIP) ? ripInPiu : null;
+    && (!limiteRipetizioni || ripTotali <= limiteRipetizioni) ? ripInPiu : null;
 
   const sottoPrima = indice < 0;
   const fraseRip = ripUtili === null
@@ -427,8 +419,6 @@ export function soglieLegibiliNuove(soglie, { esercizio = {}, pesoCorporeo = nul
   const config = cfg || configEsercizio({ esercizio });
   const pesi = config.caricamento === 'manubri' ? PESI_GOLERIA : pesiCaricabili(passo);
   const corpo = numero(pesoCorporeo);
-  const standard = standardPerMovimento(config.movimento, esercizio);
-  const usa1RM = Array.isArray(standard && standard.soglie1RMPerPeso);
   const punteggioDi = (kg) => {
     const carico = config.modello === 'corpo_libero'
       ? (corpo === null ? null : corpo + kg)
@@ -439,8 +429,7 @@ export function soglieLegibiliNuove(soglie, { esercizio = {}, pesoCorporeo = nul
     // A 8 ripetizioni `ripetizioniPiene` vale 1: lo score e' il carico diviso
     // per il fattore corporeo. Le soglie contengono gia' la meccanica, quindi
     // lo score deve contenerla anche lui.
-    return (carico / fattore) * fattoreMeccanica(esercizio)
-      * (usa1RM ? FATTORE_8_RIP : 1);
+    return (carico / fattore) * fattoreMeccanica(esercizio);
   };
   return soglie.map((s) => {
     const trovato = pesi.find((kg) => {
