@@ -245,6 +245,7 @@ export function valutaPrestazione({ esercizio, serie = [], pesoCorporeo = null, 
     pesoCorporeo,
     meccanica: migliore.meccanica,
     modello1RM: standardPercentili,
+    pesiDisponibili: standardPercentili && cfg.caricamento === 'manubri' ? PESI_GOLERIA : null,
   });
 
   return {
@@ -327,7 +328,7 @@ export function kgEquivalenti(score, pesoCorporeo, meccanica = 1, { modello1RM =
  * ripetizioni che servono sono troppe, si dice solo il peso. E il peso sale
  * sempre al kg intero successivo: un manubrio non si compra a 18,08 kg.
  */
-export function distanzaAllaSogliaNuova({ score, soglie, indice, carico, ripetizioni, pesoCorporeo, meccanica = 1, modello1RM = false }) {
+export function distanzaAllaSogliaNuova({ score, soglie, indice, carico, ripetizioni, pesoCorporeo, meccanica = 1, modello1RM = false, pesiDisponibili = null }) {
   const sog = Array.isArray(soglie) ? soglie : [];
   if (!sog.length) return null;
   const fattore = fattoreCorpo(pesoCorporeo);
@@ -350,7 +351,12 @@ export function distanzaAllaSogliaNuova({ score, soglie, indice, carico, ripetiz
     ? (ripFatte <= 1 ? 1 : 1 + Math.min(12, ripFatte) / 30)
     : ripetizioniPiene(ripFatte);
   const kgGrezzo = (bersaglio * fattore) / (mec * pieneFatte);
-  const kgNecessari = kgRealizzabile(kgGrezzo, carico);
+  // Con un manubrio si suggerisce il primo peso REALMENTE disponibile.
+  // Il calcolo usa kg esatti; l'arrotondamento e' solo per la schermata.
+  const pesoCaricabile = Array.isArray(pesiDisponibili)
+    ? pesiDisponibili.find((p) => p >= kgGrezzo - 1e-8 && p > carico)
+    : null;
+  const kgNecessari = pesoCaricabile ?? kgRealizzabile(kgGrezzo, carico);
 
   // LE RIPETIZIONI NECESSARIE, al carico che hai.
   // piene(rip) = (rip / 8)^0,20, quindi rip = 8 x piene^5.
@@ -380,8 +386,8 @@ export function distanzaAllaSogliaNuova({ score, soglie, indice, carico, ripetiz
       : `per sbloccare il primo livello: ${fraseRip}`
         + (kgNecessari ? `, oppure circa ${kgNecessari} kg` : ''))
     : (fraseRip === null
-      ? (kgNecessari ? `circa ${kgNecessari} kg in piu' con le ripetizioni che hai` : 'serve piu\' carico')
-      : `${fraseRip} a questo carico, o circa ${kgNecessari} kg con le ripetizioni che hai`);
+      ? (kgNecessari ? `circa ${kgNecessari} kg totali con le ripetizioni che hai` : 'serve piu\' carico')
+      : `${fraseRip} a questo carico, oppure ${kgNecessari} kg totali con le ripetizioni che hai`);
 
   return {
     sottoPrimaSoglia: sottoPrima,
