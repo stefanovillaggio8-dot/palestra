@@ -123,14 +123,14 @@ test('C10. premi un giorno e vedi cosa ci hai fatto', () => {
   assert.match(mese, /onClick: \(\) => \{/, 'i giorni sono premibili');
   assert.match(mese, /statoCalendario\.giorno = eraAperto \? null : isoCell;/,
     'e premere lo stesso giorno lo richiude');
-  assert.match(cal, /dettaglioGiorno\(statoCalendario\.giorno, giorniAccreditati\)/, 'sotto compare cosa hai fatto');
+  assert.match(cal, /dettaglioGiorno\(statoCalendario\.giorno, giorniFatti\)/, 'sotto compare cosa hai fatto');
   assert.match(corpo('dettaglioGiorno'), /Qui non hai allenato/, 'anche quando non hai allenato');
 });
 
 test('C11. ogni casella ha un\'etichetta per chi non vede i colori', () => {
   // Tre stati comunicati solo col colore sono inaccessibili a chi non distingue il
   // verde dal rosso, e sul telefono in piena luce non si vedono.
-  assert.match(mese, /aria: \{ label: accreditato \? [^:]+ : ariaGiorno/, 'ogni casella ha un\'etichetta');
+  assert.match(mese, /aria: \{ label: ariaGiorno/, 'ogni casella ha un\'etichetta');
   assert.match(corpo('ariaGiorno'), /giorno di recupero/, 'che dice se è recupero');
   assert.match(corpo('ariaGiorno'), /giorno che ti toccava/, 'e se è saltato');
 });
