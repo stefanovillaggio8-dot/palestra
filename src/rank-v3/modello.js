@@ -474,6 +474,69 @@ export const CONFIG_ESERCIZI = {};
 // SOLO qui. La conversione in unita' normalizzata e' in `normalizzaStandard`.
 export const PESO_RIFERIMENTO_1RM = PESO_ALLOMETRICO_RIFERIMENTO;
 
+/**
+ * STANDARD STATISTICI DEL ONE ARM DUMBBELL PREACHER CURL (maschili, kg 1RM).
+ * Strength Level, 23.015 risultati qualificati, dati fino al 05/03/2026:
+ * https://strengthlevel.com/strength-standards/one-arm-dumbbell-preacher-curl/kg
+ * Colonne: peso corporeo, p5, p20, p50, p80, p95.
+ * I riferimenti sono della community e presuppongono un'esecuzione corretta.
+ * Non sono pesi da 8 ripetizioni; la conversione si fa nel motore.
+ */
+export const PREACHER_PERCENTILI_1RM = Object.freeze([
+  [50, 5, 8, 14, 20, 28], [55, 5, 10, 15, 22, 30],
+  [60, 6, 11, 16, 24, 32], [65, 7, 12, 18, 25, 34],
+  [70, 8, 13, 19, 27, 35], [75, 9, 14, 20, 28, 37],
+  [80, 9, 15, 21, 30, 39], [85, 10, 16, 23, 31, 40],
+  [90, 11, 17, 24, 32, 42], [95, 12, 17, 25, 33, 43],
+  [100, 12, 18, 26, 35, 44], [105, 13, 19, 27, 36, 46],
+  [110, 14, 20, 28, 37, 47], [115, 14, 21, 29, 38, 48],
+  [120, 15, 22, 30, 39, 49], [125, 16, 22, 31, 40, 50],
+  [130, 16, 23, 31, 41, 52], [135, 17, 24, 32, 42, 53],
+  [140, 17, 24, 33, 43, 54],
+]);
+
+/**
+ * Interpolazione lineare tra i pesi corporei effettivamente pubblicati.
+ * Solo fuori dall'intervallo pubblicato si ricorre all'esponente allometrico
+ * 0,67: e' una STIMA, non un dato osservato.
+ */
+export function interpolaPercentiliPerPeso(righe, pesoCorporeo) {
+  const peso = Number(pesoCorporeo);
+  if (!Array.isArray(righe) || righe.length < 2 || !Number.isFinite(peso) || peso <= 0) return null;
+  const primo = righe[0], ultimo = righe[righe.length - 1];
+  if (peso <= primo[0]) return primo.slice(1).map((x) => x * Math.pow(peso / primo[0], ESPONENTE_ALLOMETRICO));
+  if (peso >= ultimo[0]) return ultimo.slice(1).map((x) => x * Math.pow(peso / ultimo[0], ESPONENTE_ALLOMETRICO));
+  for (let i = 1; i < righe.length; i++) {
+    if (peso > righe[i][0]) continue;
+    const a = righe[i - 1], b = righe[i];
+    const t = (peso - a[0]) / (b[0] - a[0]);
+    return a.slice(1).map((x, j) => x + (b[j + 1] - x) * t);
+  }
+  return null;
+}
+
+/**
+ * Solo 5 percentili sono MISURATI nella fonte. I successivi 98% e 99,5%
+ * non sono pubblicati: vengono STIMATI con una coda log-normale.
+ *
+ * Interpolando il logaritmo del carico rispetto allo z-score della normale
+ * fra p80 (z=.84162) e p95 (z=1.64485), si estrapolano i punti p98
+ * (z=2.05375) e p99.5 (z=2.57583). Non e' una misura empirica delle code
+ * e non garantisce un percentile esatto.
+ */
+export function estendiPercentiliAlti(ancore) {
+  if (!Array.isArray(ancore) || ancore.length !== 5
+      || !ancore.every((x, i) => Number.isFinite(x) && x > 0 && (i === 0 || x > ancore[i - 1])))
+    return null;
+  const z80 = 0.8416212335729143;
+  const z95 = 1.6448536269514722;
+  const z98 = 2.053748910631823;
+  const z995 = 2.5758293035489004;
+  const logSlope = Math.log(ancore[4] / ancore[3]) / (z95 - z80);
+  return [...ancore, ancore[4] * Math.exp((z98 - z95) * logSlope),
+    ancore[4] * Math.exp((z995 - z95) * logSlope)];
+}
+
 export const STANDARD_1RM = {
   // LEG PRESS: standard mantenuto, ma ora riservato alla pressa.
   // I dati OpenPowerlifting non validano la leg press; il valore resta quindi
@@ -590,7 +653,8 @@ export const STANDARD_1RM = {
         // 9/75=0,12 e 37/75=0,493: approssimiamo Elite a 0,50.
         // Fonte: https://strengthlevel.com/strength-standards/one-arm-dumbbell-preacher-curl/kg
         ingresso: 0.12, vertice: 0.50,
-        nota: 'Curl Scott con un manubrio: standard specifico 1RM della community Strength Level (a 75 kg: 9 kg principiante, 37 kg Elite). Valore per un solo braccio; riferimento stimato, non un massimale certificato.',
+        soglie1RMPerPeso: PREACHER_PERCENTILI_1RM,
+        nota: 'Curl Scott a un braccio: soglie p5/p20/p50/p80/p95 da Strength Level per peso corporeo, kg di 1RM per un solo manubrio. Titan e Olympian sono extrapolazioni matematiche della coda p80-p95, non percentili misurati.',
       },
     },
   },
@@ -688,6 +752,7 @@ export function standardPerMovimento(movimento, esercizio = {}) {
   return {
     ingresso: Number(scelto.ingresso),
     vertice: Number(scelto.vertice),
+    soglie1RMPerPeso: scelto.soglie1RMPerPeso || null,
     curvaRank: scelto.curvaRank || base.curvaRank || null,
     nota: scelto.nota || base.nota || '',
     fonte: 'standard_1rm',
@@ -880,8 +945,25 @@ export function soglieNormalizzate({
   difficoltaScala = 1,
   curva = null,
   meccanica = 1,
+  pesoCorporeo = null,
 } = {}) {
   if (!standard) return null;
+  // Per i movimenti con cinque soglie empiriche NON inventiamo una curva dai
+  // soli valori minimo e massimo. Usiamo i cinque percentili pubblicati,
+  // interpolati sul corpo, e una coda alta modellata per gli ultimi due rank.
+  if (Array.isArray(standard.soglie1RMPerPeso)) {
+    const ancore = interpolaPercentiliPerPeso(standard.soglie1RMPerPeso, pesoCorporeo);
+    const sette = estendiPercentiliAlti(ancore);
+    const corpo = fattoreCorpo(pesoCorporeo);
+    if (!sette || corpo === null) return null;
+    const d = Number(difficoltaScala);
+    const diff = Number.isFinite(d) && d > 0 ? d : 1;
+    const m = Number(meccanica);
+    const mec = Number.isFinite(m) && m > 0 ? m : 1;
+    // Lo score di questi movimenti e' il 1RM Epley / peso^0.67:
+    // la soglia deve essere nella medesima unita', non /1.267 una seconda volta.
+    return sette.map((kg1rm) => arrotonda(kg1rm * diff * mec / corpo));
+  }
   const ingresso = numero(standard.ingresso);
   const vertice = numero(standard.vertice);
   if (ingresso === null || vertice === null || vertice <= ingresso) return null;
