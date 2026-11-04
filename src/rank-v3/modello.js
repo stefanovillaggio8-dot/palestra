@@ -960,9 +960,14 @@ export function soglieNormalizzate({
     const diff = Number.isFinite(d) && d > 0 ? d : 1;
     const m = Number(meccanica);
     const mec = Number.isFinite(m) && m > 0 ? m : 1;
-    // Lo score di questi movimenti e' il 1RM Epley / peso^0.67:
-    // la soglia deve essere nella medesima unita', non /1.267 una seconda volta.
-    return sette.map((kg1rm) => arrotonda(kg1rm * diff * mec / corpo));
+    // La prestazione dell'atleta rimane la SERIE REALMENTE ESEGUITA:
+    // kg * (rip/8)^0.20. I dati pubblicati sono invece 1RM. Convertiamo
+    // SOLO la soglia al carico indicativo di una serie da 8 ripetizioni.
+    // Questo ponte fisso (/1.2667) non stima il massimale dell'atleta e non
+    // sostituisce la sua migliore serie. E' una calibrazione approssimata.
+    return sette.map((kg1rm) => arrotonda(
+      (kg1rm / FATTORE_8_RIP) * diff * mec / corpo,
+    ));
   }
   const ingresso = numero(standard.ingresso);
   const vertice = numero(standard.vertice);
