@@ -498,12 +498,13 @@ test('C14c. i bicipiti sulla PANCA hanno una scala loro, non quella del cavo', a
   const standardCavo = standardPerMovimento('bicipiti', cavo);
   assert.ok(standardPanca.vertice < standardCavo.vertice,
     `il riferimento base della panca deve restare più basso: ${standardPanca.vertice} contro ${standardCavo.vertice}`);
-  // 46 kg per braccio non bastano da soli per TITAN: il vertice Elite non è più
-  // il tetto del Rank più alto. La coda superiore è calibrata più severamente.
+  // 46 kg x 8 con UN manubrio sono nettamente sopra il riferimento Elite
+  // pubblicato per questo esercizio (circa 34 kg 1RM a 65 kg corporei).
+  // Il vecchio test pretendeva DIAMOND con 46 kg, ma quello era proprio
+  // l'effetto del riferimento sbagliato 0,85x. Non falsare il risultato.
   const assurdo = recordEsercizio([{ id: 's', peso: 46, ripetizioni: 8, stato: 'fatta' }], pre, null, 66);
-  assert.ok(assurdo.rank && assurdo.rank.id === 'diamond',
-    `46 kg per braccio col manubrio in panca restano DIAMOND sotto la soglia TITAN ` 
-    + `(tetto ${assurdo.vertice}, score ${assurdo.score})`);
+  assert.equal(assurdo.rank?.id, 'olympian',
+    `46 kg per braccio sul preacher curl, sopra Elite: ${assurdo.rank?.nome||'nessuno'}`);
 
   // IL PEZZO CHE CONTA, e che non si vede guardando un solo corpo.
   //

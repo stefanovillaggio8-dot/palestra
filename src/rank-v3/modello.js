@@ -579,8 +579,20 @@ export const STANDARD_1RM = {
     nota: 'Curl al cavo e coi manubri PER LATO: 0,15x-0,95x. Con la doppia carrucola i kg letti sono gia\' la meta\'.',
   },
   bicipiti_panca: {
+    // Standard precedente conservato per gli attrezzi diversi dal manubrio
+    // singolo: non si devono cambiare in blocco i record del curl EZ bar.
     ingresso: 0.15, vertice: 0.85,
-    nota: 'Curl alla panca Scott PER BRACCIO: 0,15x-0,85x. La leva e\' peggiore del cavo, quindi il vertice e\' piu\' basso.',
+    nota: 'Standard generico precedente per la panca Scott: non vale come riferimento specifico per un manubrio singolo.',
+    varianti: {
+      one_arm_dumbbell: {
+        // Strength Level, One Arm Dumbbell Preacher Curl (per singolo manubrio):
+        // a 75 kg corpo, Beginner 9 kg e Elite 37 kg di 1RM (agg. 05/03/2026).
+        // 9/75=0,12 e 37/75=0,493: approssimiamo Elite a 0,50.
+        // Fonte: https://strengthlevel.com/strength-standards/one-arm-dumbbell-preacher-curl/kg
+        ingresso: 0.12, vertice: 0.50,
+        nota: 'Curl Scott con un manubrio: standard specifico 1RM della community Strength Level (a 75 kg: 9 kg principiante, 37 kg Elite). Valore per un solo braccio; riferimento stimato, non un massimale certificato.',
+      },
+    },
   },
   tricipiti: {
     ingresso: 0.10, vertice: 0.48,
@@ -655,6 +667,15 @@ export function standardPerMovimento(movimento, esercizio = {}) {
         || nome.includes('smith') || nome.includes('multipower') || nome.includes('multigym');
       if (guidata) scelto = base.varianti.guidata || base;
       else if (e.convenzione === 'bilanciere') scelto = base.varianti.bilanciere || base;
+    } else if (movimento === 'bicipiti_panca') {
+      const id = String(e.id || '').toLowerCase();
+      const nome = String(e.nome || '').toLowerCase();
+      // Solo la variante con UN manubrio (non EZ bar / bilanciere / cavo).
+      // Entrambi questi ID del catalogo rappresentano il curl Scott a un braccio.
+      const unBraccio = id === 'ex-one-arm-preacher-curl' || id === 'ex-scott-bench-curl'
+        || /(?:one|single)[ -]?arm.*(?:preacher|scott)|scott bench curl seduto al contrario/.test(nome);
+      if (unBraccio && e.convenzione === 'per_manubrio')
+        scelto = base.varianti.one_arm_dumbbell || base;
     } else if (movimento === 'polpacci') {
       const id = String(e.id || '').toLowerCase();
       const nome = String(e.nome || '').toLowerCase();
