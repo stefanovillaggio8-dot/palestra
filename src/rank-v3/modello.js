@@ -654,7 +654,7 @@ export const STANDARD_1RM = {
         // Fonte: https://strengthlevel.com/strength-standards/one-arm-dumbbell-preacher-curl/kg
         ingresso: 0.12, vertice: 0.50,
         soglie1RMPerPeso: PREACHER_PERCENTILI_1RM,
-        nota: 'Curl Scott a un braccio: soglie p5/p20/p50/p80/p95 da Strength Level per peso corporeo, kg di 1RM per un solo manubrio. Titan e Olympian sono extrapolazioni matematiche della coda p80-p95, non percentili misurati.',
+        nota: 'Curl Scott a un solo braccio: soglie p5/p20/p50/p80/p95 da Strength Level per peso corporeo, kg di 1RM per un solo manubrio. Titan e Olympian sono extrapolazioni matematiche della coda p80-p95, non percentili misurati.',
       },
     },
   },
