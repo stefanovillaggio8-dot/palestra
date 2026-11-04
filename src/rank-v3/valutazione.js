@@ -107,7 +107,10 @@ export function valutaPrestazione({ esercizio, serie = [], pesoCorporeo = null, 
     // Ogni record storico usa il proprio peso corporeo salvato quando la
     // serie e' stata fatta, non quello della migliore serie scelta dal vecchio
     // sistema e non quello attuale. Il fallback vale solo se manca la misura.
-    const pesoDellaSerie = numero(s.peso_corpo) ?? numero(pesoCorporeo);
+    const pesoSalvato = numero(s.peso_corpo);
+    const pesoDellaSerie = pesoSalvato !== null && pesoSalvato >= 25 && pesoSalvato <= 300
+      ? pesoSalvato
+      : numero(pesoCorporeo);
     const zavorri = cfg.modello === 'corpo_libero';
     // I KG DI ZAVORRI: nei dip e nelle trazioni il numero che Ste scrive sta
     // nel campo dell'assistenza (vedi `caricoEffettivo`). Il fallback su `peso`
