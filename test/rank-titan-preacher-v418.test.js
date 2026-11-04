@@ -51,12 +51,12 @@ test('v418: prova end-to-end: una serie può davvero ricevere Titan dal motore v
  assert.equal(oltre.rankId,'olympian');
 });
 
-test('v418: Titan non è garantito per ogni incremento di kg perché la fascia è stretta',()=>{
+test('v419: Titan ha spazio sufficiente grazie a un riferimento statistico dedicato',()=>{
  const std=standardPerMovimento('bicipiti_panca',preacher);
  const soglie=soglieNormalizzate({standard:std,pesoCorporeo:66});
  assert.ok(soglie[6]-soglie[5]>0);
- assert.ok(soglie[6]-soglie[5]<soglie[5]-soglie[4]);
- // Questo test documenta il comportamento, senza alterare Diamond né Olympian.
+ assert.ok(soglie[6]-soglie[5] > soglie[5]-soglie[4]);
+ // La vecchia curva generica resta invariata per gli altri esercizi.
  assert.deepEqual(CURVA_SOGLIE,[0,.10,.24,.42,.60,1.05,1.075]);
 });
 
