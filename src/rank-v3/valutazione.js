@@ -164,6 +164,7 @@ export function valutaPrestazione({ esercizio, serie = [], pesoCorporeo = null, 
       spotter: s.spotter === true,
       meccanica,
       standardPercentili,
+      massimaleStimato: stima ? stima.valore : null,
     });
   }
 
@@ -179,6 +180,13 @@ export function valutaPrestazione({ esercizio, serie = [], pesoCorporeo = null, 
   const serieConRip = valutabili.filter((v) => v.ripetizioni >= RIP_MINIME_PER_PESO);
   const pool = serieConRip.length ? serieConRip : valutabili;
   const migliore = pool.reduce((a, b) => {
+    // Quando il riferimento statistico e' il 1RM, la serie migliore e'
+    // quella col 1RM stimato piu' alto, non necessariamente coi kg piu' alti.
+    // Gli altri movimenti mantengono la regola storica della serie piu' pesante.
+    if (standardPercentili) {
+      if (b.score > a.score) return b;
+      if (b.score < a.score) return a;
+    }
     if (b.carico > a.carico) return b;
     if (b.carico < a.carico) return a;
     return b.ripetizioni > a.ripetizioni ? b : a;
@@ -266,9 +274,7 @@ export function valutaPrestazione({ esercizio, serie = [], pesoCorporeo = null, 
     // entra piu' nel calcolo.
     // Mostriamo la stima solo quando il confronto e' davvero contro
     // standard pubblicati in 1RM. Non e' un massimale misurato.
-    massimale: standardPercentili
-      ? arrotonda(migliore.score * fattoreOggi / migliore.meccanica)
-      : null,
+    massimale: standardPercentili ? migliore.massimaleStimato : null,
     metodoMassimale: standardPercentili ? 'epley' : null,
     massimaleAffidabile: standardPercentili ? migliore.ripetizioni <= 12 : null,
     // LA FORZA RELATIVA: la serie vera rapportata al peso corporeo.
