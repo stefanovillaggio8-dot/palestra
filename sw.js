@@ -203,6 +203,15 @@ const FILE = [
   './src/update-via-sw.js',
   './src/rank-config.js',
   './src/rank.js',
+  // I motori dei Rank sono importati dinamicamente: precaricarli garantisce
+  // il calcolo anche offline, incluso il nuovo modello statistico.
+  './src/rank-v2/index.js',
+  './src/rank-v2/curve.js',
+  './src/rank-v2/scalata.js',
+  './src/rank-v2/valori.js',
+  './src/rank-v2/misura.js',
+  './src/rank-v3/modello.js',
+  './src/rank-v3/valutazione.js',
 './src/streak.js',
   './src/streak-online.js',
   './src/rank-stemmi.js',
