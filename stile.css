@@ -2722,13 +2722,6 @@ html.animazioni-mai .aura-colonna { animation: none; }
   font-weight: 700;
 }
 /* previsto e saltato: ROSSO. È il giorno perso */
-/* Credito esplicito: verde come un giorno valido, con un bordo tratteggiato
-   per distinguerlo da una seduta realmente registrata. */
-.cella-calendario.accreditato {
-  background: color-mix(in srgb, var(--verde) 52%, var(--card-2));
-  border: 2px dashed color-mix(in srgb, var(--verde) 90%, var(--bordo));
-  font-weight: 700;
-}
 .cella-calendario.saltato {
   background: color-mix(in srgb, var(--rosso) 48%, var(--card-2));
   border-color: color-mix(in srgb, var(--rosso) 76%, var(--bordo));
@@ -2752,7 +2745,6 @@ html.animazioni-mai .aura-colonna { animation: none; }
   border: 1px solid var(--bordo); background: var(--card-2);
 }
 .legenda-fatto { border-color: color-mix(in srgb, var(--verde) 60%, var(--bordo)); }
-.legenda-accreditato { border: 1px dashed var(--verde); color:var(--verde); }
 .legenda-saltato { border-color: color-mix(in srgb, var(--rosso) 60%, var(--bordo)); }
 .legenda-recupero { border-color: color-mix(in srgb, var(--viola) 45%, var(--bordo)); }
 .legenda-atteso { border-color: color-mix(in srgb, var(--giallo) 60%, var(--bordo)); }
