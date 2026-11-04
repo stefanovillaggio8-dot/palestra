@@ -42,6 +42,15 @@ test('v418: il motore può assegnare Titan III e Titan I tra Diamond e Olympian'
  assert.equal(rankDaScore(soglie[6]+1,soglie).rank.id,'olympian');
 });
 
+test('v418: prova end-to-end: una serie può davvero ricevere Titan dal motore v3',()=>{
+ const titan=evalua(preacher,30,6);
+ assert.equal(titan.motore,'nuovo');
+ assert.equal(titan.rankId,'titan',`30kg x6: ${titan.rank?.nome}`);
+ assert.ok(['I','II','III'].includes(titan.divisione?.nome));
+ const oltre=evalua(preacher,30,8);
+ assert.equal(oltre.rankId,'olympian');
+});
+
 test('v418: Titan non è garantito per ogni incremento di kg perché la fascia è stretta',()=>{
  const std=standardPerMovimento('bicipiti_panca',preacher);
  const soglie=soglieNormalizzate({standard:std});
