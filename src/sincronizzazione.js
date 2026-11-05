@@ -141,6 +141,10 @@ export function applicaRemote(locale, remoto) {
   if (!locale) {
     return { azione: 'applica', riga: { ...remoto, sync: 'pulito', base_rev: Number(remoto.rev || 0) } };
   }
+  // Un conflitto gia' aperto e' una SCELTA DA FARE. Se un nuovo pull
+  // sovrascrive la riga prima che l'utente scelga, si perde la copia locale
+  // e il conflitto rimane nella lista senza una riga da proteggere.
+  if (locale.sync === 'conflitto') return { azione: 'ignora', riga: locale };
   const inCoda = locale.sync === 'da_salvare' || locale.sync === 'in_corso' || locale.sync === 'errore';
   const base = Number(locale.base_rev || 0);
   const revLocale = Number(locale.rev || 0);
