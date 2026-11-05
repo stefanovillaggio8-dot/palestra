@@ -8731,14 +8731,26 @@ function vistaRank(zona) {
         esito.appendChild(el('p', { class: 'nota', testo: 'Scegli un esercizio dall\'elenco.' }));
         return;
       }
-      const peso = Number(pesoCampo.value);
+      const pesoInserito = String(pesoCampo.value ?? '').trim();
+      const peso = Number(pesoInserito.replace(',', '.'));
       const rip = Number(repCampo.value);
       const corp = Number(corpCampo.value);
-      if (!(peso > 0) || !(rip > 0)) {
-        esito.appendChild(el('p', { class: 'nota', testo: 'Metti il peso e le ripetizioni.' }));
+      const eZavorra = e.convenzione === 'zavorri';
+      // Nei dips e nelle trazioni ZERO e' una prestazione a corpo libero,
+      // non un peso mancante. Il campo resta obbligatorio (scrivi 0).
+      if (!pesoInserito || !Number.isFinite(peso)
+          || (eZavorra ? peso < 0 : peso <= 0) || !(rip > 0)) {
+        esito.appendChild(el('p', { class: 'nota',
+          testo: eZavorra
+            ? 'Inserisci la zavorra (0 kg per corpo libero) e le ripetizioni.'
+            : 'Metti il peso e le ripetizioni.' }));
         return;
       }
-      const serie = [{ peso, ripetizioni: rip, stato: 'fatta', ordine: 1 }];
+      const serie = [{
+        peso: eZavorra ? null : peso,
+        ...(eZavorra ? { peso_assistenza: peso } : {}),
+        ripetizioni: rip, stato: 'fatta', ordine: 1,
+      }];
       const record = recordEsercizio(serie, e, null, corp > 0 ? corp : null);
       const rango = record && record.rank ? record.rank : null;
       const divisione = record && record.divisione ? record.divisione : null;
@@ -8764,10 +8776,15 @@ function vistaRank(zona) {
               + ' (' + kgReali + ' kg x ' + rip + ' rip su ' + corpPerForza + ' kg^0,67)'
             : '',
         e.nome,
-        peso + ' kg x ' + rip + (corp > 0 ? ' | peso corporeo ' + corp + ' kg' : ''),
+        (eZavorra ? (peso === 0 ? 'Corpo libero' : peso + ' kg di zavorra') : peso + ' kg')
+          + ' x ' + rip + (corp > 0 ? ' | peso corporeo ' + corp + ' kg' : ''),
         rango ? rango.nome + (divisione ? ' ' + divisione.nome : '') : (record && record.motivo ? record.motivo : 'Non valutabile'),
         record && record.lp ? 'LP: ' + Math.round(record.lp) : '',
-        kgReali !== peso ? 'il peso che conta è ' + kgReali + ' kg' : '',
+        kgReali !== peso
+          ? (eZavorra
+            ? 'Carico totale con il corpo: ' + kgReali + ' kg'
+            : 'Carico effettivo considerato: ' + kgReali + ' kg')
+          : '',
         record && record.testo ? record.testo : '',
         record && record.calibrazione ? record.calibrazione.titolo + ' · ' + record.calibrazione.origine : '',
         record && record.calibrazione ? record.calibrazione.attrezzatura : '',
