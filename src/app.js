@@ -85,6 +85,7 @@ import {
   serveAggiornare, PESO_RIFERIMENTO,
 } from './peso-corporeo.js';
 import { avvisoPesoEsercizio } from './avviso-peso.js';
+import { ripristinaRegistrazioneInvitata } from './inviti-registrazione.js';
 import { personaggioSvg } from './personaggio-svg.js';
 
 // Il peso corporeo sta in una variabile semplice per non rileggerlo dal database
@@ -183,12 +184,89 @@ function schedaAttivaId() { return personaAttiva().schedaId; }
  * cosa di questo dispositivo ("questo telefono È di Luca"), non un fatto da
  * condividere.
  */
-async function risolviPersona() {
+async function risolviPersona({ daConfermaEmail = false } = {}) {
   let ricerca = (typeof window !== 'undefined' && window.location && window.location.search) || '';
   // Il link d'invito sopravvive alla scelta iniziale del nome e all'eventuale
   // conferma email: non deve perdersi durante il cambio URL.
-  const invito = invitoPendente();
-  const memoria = await db.leggiMeta('persona', null);
+  let invito = invitoPendente();
+  let memoria = await db.leggiMeta('persona', null);
+  let nuovoAccountSenzaProfilo = false;
+
+  // La conferma email puo' aprirsi in Safari/PWA senza la memoria della pagina
+  // usata per registrarsi. Recupera token e identita' dai propri metadata Auth;
+  // la RPC del database dovra' comunque verificare il vero invito.
+  if (daConfermaEmail && sb.collegato()) {
+    try {
+      const utente = await sb.utenteCorrente();
+      const ripresa = ripristinaRegistrazioneInvitata(utente);
+      if (ripresa) {
+        if (!invitoDallaUrl()) {
+          localStorage.setItem(CHIAVE_INVITO_PENDENTE, ripresa.invito);
+          invito = ripresa.invito;
+        }
+        if (ripresa.memoria) {
+          memoria = ripresa.memoria;
+          await db.scriviMeta('persona', memoria);
+          const qs = new URLSearchParams(ricerca.replace(/^\?/, ''));
+          if (memoria.n && memoria.k) {
+            qs.delete('p');
+            qs.set('n', memoria.n);
+            qs.set('k', memoria.k);
+          } else if (memoria.p === 2) {
+            qs.set('p', '2');
+            qs.delete('n');
+            qs.delete('k');
+          }
+          if (invito) qs.set('inv', invito);
+          ricerca = '?' + qs.toString();
+          try {
+            window.history.replaceState({}, '', window.location.pathname + ricerca + (window.location.hash || ''));
+          } catch { /* vecchio browser */ }
+        }
+      } else if (!memoria) {
+        const propri = await sb.leggi('profili');
+        if (!propri.length) {
+          nuovoAccountSenzaProfilo = true;
+          // La vecchia conferma email portava tutti su ?p=1, anche gli amici.
+          if (!invito) ricerca = '';
+        } else if (propri.length === 1 && propri[0].scheda_id) {
+          const profilo = propri[0];
+          memoria = profilo.id === 'account-1' ? { p: 1 }
+            : profilo.id === 'account-2' ? { p: 2 }
+            : profilo.id.startsWith('account-') && profilo.scheda_id === 'scheda-' + profilo.id.slice(8)
+              ? { n: profilo.username || 'Amico', k: profilo.id.slice(8) }
+              : null;
+          if (memoria) {
+            await db.scriviMeta('persona', memoria);
+            const qs = new URLSearchParams();
+            if (memoria.n) { qs.set('n', memoria.n); qs.set('k', memoria.k); }
+            else qs.set('p', String(memoria.p));
+            if (invito) qs.set('inv', invito);
+            ricerca = '?' + qs.toString();
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('Ripristino account dopo email non riuscito:', e?.message);
+    }
+  }
+
+  // Recupero per chi si e' gia' registrato prima della correzione: basta
+  // riaprire il link originale con lo stesso account, non crearne un altro.
+  if (invito && sb.collegato() && !/[?&](?:n=|p=2(?:&|$))/.test(ricerca)) {
+    try {
+      const propri = await sb.leggi('profili');
+      if (!propri.length && (!memoria || memoria.p === 1)) {
+        nuovoAccountSenzaProfilo = true;
+        memoria = null;
+        const qs = new URLSearchParams(ricerca.replace(/^\?/, ''));
+        qs.delete('p');
+        ricerca = '?' + qs.toString();
+      }
+    } catch (e) {
+      console.warn('Controllo profilo account:', e?.message);
+    }
+  }
 
   // Supabase usa l'URL di conferma già autorizzato (?p=1). Se la conferma
   // arriva dopo la registrazione di un nuovo profilo, non deve sostituire
@@ -225,11 +303,12 @@ async function risolviPersona() {
     installata = window.navigator.standalone === true ||
       (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
   } catch { /* browser senza rilevamento modalità installata */ }
-  if (installata && !/[?&](?:p=\d+|n=)/.test(ricerca) && !memoria) {
+  if (installata && !invito && !/[?&](?:p=\d+|n=)/.test(ricerca) && !memoria && !nuovoAccountSenzaProfilo) {
     ricerca = '?p=1';
   }
 
-  const schede = (await db.tutti('schede')).map((s) => s && s.id).filter(Boolean);
+  const schede = nuovoAccountSenzaProfilo ? []
+    : (await db.tutti('schede')).map((s) => s && s.id).filter(Boolean);
   const esito = chiSei({ ricerca, memoria, schede });
   if (esito.persona) {
     persona = esito.persona;
@@ -352,7 +431,7 @@ async function avvia() {
   const radice = document.getElementById('app');
   installaSpiaErrori();
   // Una conferma email può restituire i token nel frammento dell'URL.
-  sb.ripristinaSessioneDaUrl();
+  const daConfermaEmail = sb.ripristinaSessioneDaUrl();
 
   // LE ANIMAZIONI, PRIMA DI DISEGNARE.
   //
@@ -411,7 +490,7 @@ async function avvia() {
     // link non lo dice, si chiede il nome: meglio una domanda che trovarsi dentro la
     // scheda di un altro.
     aggiornaFaseAvvio('lettura del profilo su questo dispositivo');
-    const chi = await risolviPersona();
+    const chi = await risolviPersona({ daConfermaEmail });
     if (chi.daChiedere) {
       const risposto = await chiediNome();
       if (!risposto) {
@@ -1372,7 +1451,9 @@ function bloccoAccountOnlineProfilo() {
           return;
         }
         try {
-          const risultato = await sb.registrati(email, password);
+          const risultato = await sb.registrati(email, password, {
+            invito: invitoPendente(), persona: personaAttiva(),
+          });
           if (risultato && risultato.access_token) {
             const pronto = invitoPendente()
               ? await completaInvitoPendente()
@@ -6161,7 +6242,9 @@ function vistaImpostazioni(zona) {
               return;
             }
             try {
-              const risultato = await sb.registrati(email, password);
+              const risultato = await sb.registrati(email, password, {
+            invito: invitoPendente(), persona: personaAttiva(),
+          });
               if (risultato && risultato.access_token) {
                 avviso('Account creato e accesso effettuato.', { tipo: 'ok', durata: 7000 });
                 await ricaricaTutto();
