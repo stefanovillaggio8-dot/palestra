@@ -253,9 +253,15 @@ export function valutaPrestazione({ esercizio, serie = [], pesoCorporeo = null, 
     soglie,
     indice: rank.indice,
     carico: migliore.carico,
+    caricoRegistrato: cfg.modello === 'corpo_libero'
+      ? migliore.zavorra
+      : numero(migliore.serie.peso),
     ripetizioni: migliore.ripetizioni,
     pesoCorporeo: pesoDelRecord,
     meccanica: migliore.meccanica,
+    spotter: migliore.spotter,
+    esercizio,
+    cfg,
     modelloRipetizioni: modelloReps,
     pesiDisponibili: standardPercentili && cfg.caricamento === 'manubri' ? PESI_GOLERIA : null,
   });
@@ -275,6 +281,12 @@ export function valutaPrestazione({ esercizio, serie = [], pesoCorporeo = null, 
     serieFatte: n,
     serieTotali: nTotali,
     caricoReale: migliore.carico,
+    // Identifica senza ambiguita' la serie che ha davvero vinto. Il numero
+    // scritto sul carrello puo' differire dal carico al cavo 2:1.
+    caricoRegistrato: cfg.modello === 'corpo_libero'
+      ? migliore.zavorra
+      : numero(migliore.serie.peso),
+    serieId: migliore.serie.id ?? null,
     zavorra: migliore.zavorra,
     corpo: migliore.corpo,
     // IL PESO CORPOReO CON CUI E' STATA VALUTATA LA SERIE: quello del giorno in
@@ -401,44 +413,70 @@ export function kgEquivalenti(score, pesoCorporeo, meccanica = 1) {
  * ripetizioni che servono sono troppe, si dice solo il peso. E il peso sale
  * sempre al kg intero successivo: un manubrio non si compra a 18,08 kg.
  */
-export function distanzaAllaSogliaNuova({ score, soglie, indice, carico, ripetizioni, pesoCorporeo, meccanica = 1, limiteRipetizioni = null, modelloRipetizioni = null, pesiDisponibili = null }) {
+/**
+ * Il prossimo obiettivo usa i KG DA DIGITARE nell'app, non il carico
+ * meccanicamente effettivo: 2:1 ai cavi, zavorra nei dips, kg per manubrio.
+ * Anche l'assistenza dello spotter resta applicata, altrimenti si suggerisce
+ * un carico che in realta' non fa superare la soglia.
+ */
+export function distanzaAllaSogliaNuova({
+  score, soglie, indice, carico, caricoRegistrato = null, ripetizioni,
+  pesoCorporeo, meccanica = 1, spotter = false, esercizio = {},
+  cfg = null, limiteRipetizioni = null, modelloRipetizioni = null,
+  pesiDisponibili = null,
+}) {
   const sog = Array.isArray(soglie) ? soglie : [];
   if (!sog.length) return null;
   const fattore = fattoreCorpo(pesoCorporeo);
   if (fattore === null) return null;
-  const m = Number(meccanica);
-  const mec = Number.isFinite(m) && m > 0 ? m : 1;
+  const mec = Number(meccanica);
+  const m = Number.isFinite(mec) && mec > 0 ? mec : 1;
   const valore = Number(score);
   if (!Number.isFinite(valore)) return null;
-
-  const bersaglio = indice < 0 ? sog[0] : (indice >= sog.length - 1 ? null : sog[indice + 1]);
+  const bersaglio = indice < 0 ? sog[0]
+    : (indice >= sog.length - 1 ? null : sog[indice + 1]);
   if (bersaglio === null) return null;
   const manca = bersaglio - valore;
   if (!Number.isFinite(manca) || manca <= 0) return null;
 
-  // IL KG NECESSARIO, con le ripetizioni che hai fatto.
-  // score = kg x ripetizioniPiene x meccanica / P^0,67, quindi:
-  //   kg = soglia x P^0,67 / (meccanica x ripetizioniPiene)
   const ripFatte = Math.floor(Number(ripetizioni) || 0);
   const modello = modelloRipetizioni || modelloRipetizioniRank(null);
   const pieneFatte = ripetizioniPieneRank(ripFatte, modello);
-  const kgGrezzo = (bersaglio * fattore) / (mec * pieneFatte);
-  // Con un manubrio si suggerisce il primo peso REALMENTE disponibile.
-  // Il calcolo usa kg esatti; l'arrotondamento e' solo per la schermata.
-  const pesoCaricabile = Array.isArray(pesiDisponibili)
-    ? pesiDisponibili.find((p) => p >= kgGrezzo - 1e-8 && p > carico)
-    : null;
-  const kgNecessari = pesoCaricabile ?? kgRealizzabile(kgGrezzo, carico);
+  if (!(pieneFatte > 0)) return null;
+  const penalty = spotter ? PENALITA_SPOTTER : 1;
+  const e = esercizio || {};
+  const corpoLibero = cfg?.modello === 'corpo_libero';
+  const doppiaCarrucola = !corpoLibero && e.carrucola === 'carrucola_doppia';
+  const numeroRegistrato = numero(caricoRegistrato);
+  const pesoAttuale = numeroRegistrato !== null ? numeroRegistrato
+    : corpoLibero ? Math.max(0, Number(carico) - Number(pesoCorporeo))
+      : doppiaCarrucola ? Number(carico) * 2 : Number(carico);
 
-  // Niente inversione con un esponente fisso: in v422 la curva e' a tratti
-  // e dipende dal movimento. Proviamo le ripetizioni intere CONSENTITE dal
-  // modello reale, trovando la prima che raggiunge la soglia.
+  // Carico effettivo richiesto dallo score, poi inverso del sistema
+  // dichiarato sul dispositivo. Con spotter si richiede piu' carico.
+  const caricoEffettivoNecessario =
+    (bersaglio * fattore) / (m * penalty * pieneFatte);
+  const kgGrezzo = corpoLibero
+    ? Math.max(0, caricoEffettivoNecessario - Number(pesoCorporeo))
+    : doppiaCarrucola ? caricoEffettivoNecessario * 2
+      : caricoEffettivoNecessario;
+
+  const pesoCaricabile = Array.isArray(pesiDisponibili)
+    ? pesiDisponibili.find(p => p >= kgGrezzo - 1e-8 && p > pesoAttuale)
+    : null;
+  // Quando la lista limitata dei manubri termina a 60 kg, NON si puo'
+  // mostrare un peso inesistente o un punteggio come se fosse un peso.
+  const kgNecessari = Array.isArray(pesiDisponibili)
+    ? (pesoCaricabile ?? null)
+    : kgRealizzabile(kgGrezzo, pesoAttuale);
+
+  // Anche il calcolo delle ripetizioni tiene conto dell'aiuto ricevuto.
   let ripTotali = null;
   const massimo = Math.max(1, Math.min(40, modello.massimo || limiteRipetizioni || 20));
   if (Number.isFinite(carico) && carico > 0) {
     for (let r = ripFatte + 1; r <= massimo; r++) {
       const p = ripetizioniPieneRank(r, modello);
-      if (carico * p * mec / fattore >= bersaglio) {
+      if (carico * p * m * penalty / fattore >= bersaglio - 1e-8) {
         ripTotali = r;
         break;
       }
@@ -446,28 +484,31 @@ export function distanzaAllaSogliaNuova({ score, soglie, indice, carico, ripetiz
   }
   const ripInPiu = ripTotali !== null ? Math.max(0, ripTotali - ripFatte) : null;
   const ripUtili = ripInPiu !== null && ripInPiu <= 12 ? ripInPiu : null;
-
-  const sottoPrima = indice < 0;
-  const fraseRip = ripUtili === null
-    ? null
-    : ripUtili === 1
-      ? '1 ripetizione in piu\''
+  const nomeUnita = corpoLibero ? 'kg di zavorra'
+    : doppiaCarrucola ? 'kg sul carrello'
+      : e.convenzione === 'per_manubrio' ? 'kg per manubrio'
+        : e.convenzione === 'per_braccio' ? 'kg per lato'
+          : e.convenzione === 'per_gamba' ? 'kg per gamba'
+            : e.convenzione === 'bilanciere' ? 'kg sul bilanciere'
+              : 'kg registrati';
+  const frasePeso = kgNecessari !== null
+    ? `circa ${kgNecessari} ${nomeUnita} con le ripetizioni che hai`
+    : 'il peso richiesto non e disponibile fra i carichi elencati';
+  const fraseRip = ripUtili === null ? null
+    : ripUtili === 1 ? '1 ripetizione in piu'
       : `${ripUtili} ripetizioni in piu'`;
-  const frase = sottoPrima
-    ? (fraseRip === null
-      ? (kgNecessari ? `per sbloccare il primo livello: circa ${kgNecessari} kg` : 'serve piu\' carico')
-      : `per sbloccare il primo livello: ${fraseRip}`
-        + (kgNecessari ? `, oppure circa ${kgNecessari} kg` : ''))
-    : (fraseRip === null
-      ? (kgNecessari ? `circa ${kgNecessari} kg totali con le ripetizioni che hai` : 'serve piu\' carico')
-      : `${fraseRip} a questo carico, oppure ${kgNecessari} kg totali con le ripetizioni che hai`);
-
+  const sottoPrima = indice < 0;
+  const frase = (sottoPrima ? 'per sbloccare Bronze: ' : '')
+    + (fraseRip === null ? frasePeso : `${fraseRip} a questo carico, oppure ${frasePeso}`);
   return {
     sottoPrimaSoglia: sottoPrima,
     mancaScore: arrotonda(manca),
     ripetizioniNecessarie: ripTotali,
     ripetizioniInPiu: ripUtili,
     kgNecessari,
+    unitaCarico: nomeUnita,
+    caricoRegistrato: pesoAttuale,
+    spotterConsiderato: !!spotter,
     frase,
   };
 }
@@ -518,8 +559,10 @@ export function soglieLegibiliNuove(soglie, { esercizio = {}, pesoCorporeo = nul
       return p !== null && p >= s;
     });
     if (trovato !== undefined) return trovato;
-    // nessun peso della lista arriva: si lascia il numero piu' vicino
-    return pesoPiuVicino(s, { passo });
+    // Nessun carico DISPONIBILE raggiunge la soglia. In precedenza la
+    // soglia NORMALIZZATA veniva interpretata come kg e visualizzata
+    // come un manubrio arbitrario: molto fuorviante.
+    return null;
   });
 }
 
