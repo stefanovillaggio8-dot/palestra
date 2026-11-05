@@ -288,7 +288,7 @@ export async function salva(tabella, riga, { segna = true, seguiErrore = false }
     // Lo stato sync copiato dalla riga precedente NON e' un'istruzione: il
     // chiamante può aver passato {...profilo, equipaggiamento: prossimo} con
     // sync:'pulito'. Quel cambiamento DEVE entrare in coda.
-    // Solo il codice di sync puo' mantenere uno stato esplicito con
+    // Solo il codice di sync può mantenere uno stato esplicito con
     // seguiErrore:true, oppure passare 'da_salvare'.
     // SE IL CHIAMANTE DICE UNO STATO DI SINCRONIZZAZIONE, QUELLO VINCE.
     //
@@ -303,14 +303,18 @@ export async function salva(tabella, riga, { segna = true, seguiErrore = false }
     // La regola adesso È semplice: se il chiamante ha passato uno stato di
     // sincronizzazione esplicito, quello vale; altrimenti la riga si mette in coda
     // come prima. E gli errori si azzerano solo se il chiamante NON li sta scrivendo.
-    const statoEsplicito = riga.sync;
-    const hoStato = typeof statoEsplicito === 'string' && statoEsplicito !== '';
     const mantieneConflitto = esistente?.sync === 'conflitto'
-      && statoEsplicito !== 'da_salvare' && !seguiErrore;
-    const mantieniStato = hoStato && (seguiErrore || statoEsplicito === 'da_salvare');
-    completa.sync = mantieneConflitto ? 'conflitto'
-      : mantieniStato ? statoEsplicito : 'da_salvare';
-    if (!seguiErrore && !mantieniStato) {
+      && riga.sync !== 'da_salvare' && !seguiErrore;
+    const statoEsplicito = mantieneConflitto ? 'conflitto' : riga.sync;
+    // 'pulito' e 'in_corso' possono essere ereditati da {...riga}:
+    // non autorizzano a saltare la coda su una nuova modifica locale.
+    // I veri eventi di sync passano seguiErrore:true oppure uno stato
+    // 'errore'/'conflitto' che deve comunque restare visibile.
+    const hoStato = typeof statoEsplicito === 'string' && (
+      seguiErrore || ['da_salvare', 'errore', 'conflitto'].includes(statoEsplicito)
+    );
+    completa.sync = hoStato ? statoEsplicito : 'da_salvare';
+    if (!seguiErrore && !hoStato) {
       completa.ultimo_errore = null;
       completa.tentativi = 0;
     } else {
