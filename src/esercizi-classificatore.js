@@ -151,7 +151,7 @@ const MOVIMENTI = [
     // Quindi qui: scala propria, ragionata sul corpo (0,4x tetto, 0,15x ingresso).
     // Vedi la nota lunga in valori.js.
     id: 'bicipiti_panca', livello: 'isolamento', gruppo: 'bicipiti',
-    parole: ['preacher', 'scott bench', 'panca scott', 'scott', 'incline curl',
+    parole: ['cad curl', 'cad curls', 'preacher', 'scott bench', 'panca scott', 'scott', 'incline curl',
       'panchina', 'preacher curl',
       // Il nome vero del tuo esercizio È "Scott Bench Curl seduto al contrario":
       // le parole sono separate dal "curl" in mezzo, quindi "scott bench" da solo
