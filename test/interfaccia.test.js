@@ -1052,8 +1052,8 @@ test('35. c\'e\' il tasto per cancellare tutto lo storico, con conferma', async 
   bottone.clickNonAspettando();
   await attendiChe(() => perClasse(document.body, 'dialogo').length === 1);
   const testo = perClasse(document.body, 'dialogo')[0].textContent || '';
-  assert.match(testo, /Cancellare tutto lo storico/, 'chiede conferma');
-  assert.match(testo, /NON viene toccata/, 'e dice che la scheda resta');
+  assert.match(testo, /Cancellare lo storico del tuo account/, 'chiede conferma per il profilo corretto');
+  assert.match(testo, /La scheda resta/, 'e dice che la scheda resta');
   pulsanti(perClasse(document.body, 'dialogo')[0]).find((b) => /Lascia tutto com/.test(b.textContent || '')).click();
   await new Promise((r) => setTimeout(r, 200));
   assert.equal((await db.tutti('sedute')).filter((s) => !s.eliminata).length, sedutePrima,
