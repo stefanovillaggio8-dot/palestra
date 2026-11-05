@@ -9486,7 +9486,7 @@ function vistaAmici(zona) {
         el('div', { class: 'cresci' }, [
           el('strong', { testo: (speciale ? 'Trasferimento Andrea' : 'Invito normale') + ' · ' + stato }),
           el('span', { class: 'nota', testo: data
-            + (speciale ? ' · trasferisce la vecchia scheda di Andrea' : ' · destinatario non registrato') }),
+            + (speciale ? ' · trasferisce la vecchia scheda di Andrea' : ' · il link non memorizza il nome del destinatario') }),
         ]),
       ]);
       if (!invito.accettato && !invito.scaduto && invito.token) {
