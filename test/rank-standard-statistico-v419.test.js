@@ -101,7 +101,8 @@ test('v419: livelli monotoni per carico/reps e peso corporeo, senza ricompense d
 });
 
 test('v419: variante Scott monobraccio uguale; EZ curl e altri movimenti invariati', () => {
-  assert.deepEqual(standardPerMovimento('bicipiti_panca', scott).soglie1RMPerPeso, PREACHER_PERCENTILI_1RM);
+  assert.equal(standardPerMovimento('bicipiti_panca', scott).soglie1RMPerPeso, null);
+  assert.equal(standardPerMovimento('bicipiti_panca', scott).affidabilitaBase, 'bassa');
   assert.equal(standardPerMovimento('bicipiti_panca', ez).soglie1RMPerPeso, null);
   assert.equal(standardPerMovimento('bicipiti', preacher).soglie1RMPerPeso, null);
   assert.equal(standardPerMovimento('spinta_orizzontale', {
