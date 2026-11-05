@@ -103,9 +103,9 @@ test('v419: livelli monotoni per carico/reps e peso corporeo, senza ricompense d
 test('v419: variante Scott monobraccio uguale; EZ curl e altri movimenti invariati', () => {
   const cad = standardPerMovimento('bicipiti_panca', scott);
   assert.ok(Array.isArray(cad.soglie1RMPerPeso));
-  assert.equal(cad.fonte,'modello_tecnica_cad_curl');
+  assert.equal(cad.fonte,'proxy_cad_non_validato');
   assert.equal(cad.affidabilitaBase,'bassa');
-  assert.match(cad.limite,/stima provvisoria/);
+  assert.match(cad.limite,/NON validato/);
   assert.equal(standardPerMovimento('bicipiti_panca', ez).soglie1RMPerPeso, null);
   assert.equal(standardPerMovimento('bicipiti', preacher).soglie1RMPerPeso, null);
   assert.equal(standardPerMovimento('spinta_orizzontale', {

@@ -70,9 +70,9 @@ test('v418: il Preacher Curl ha una classificazione dedicata, manubrio singolo',
  // Il CAD Curl usa due manubri e busto arretrato: scala propria stimata,
  // distinta dal Preacher Curl a UN manubrio e dai percentili specifici.
  assert.equal(scott.nome,'CAD Curl');
- assert.ok(Math.abs(standardPerMovimento('bicipiti_panca',scott).ingresso - 8*.85/75)<1e-8);
- assert.ok(Math.abs(standardPerMovimento('bicipiti_panca',scott).vertice - 41*.85/75)<1e-8);
- assert.equal(standardPerMovimento('bicipiti_panca',scott).fonte,'modello_tecnica_cad_curl');
+ assert.ok(Math.abs(standardPerMovimento('bicipiti_panca',scott).ingresso - 8/75)<1e-8);
+ assert.ok(Math.abs(standardPerMovimento('bicipiti_panca',scott).vertice - 41/75)<1e-8);
+ assert.equal(standardPerMovimento('bicipiti_panca',scott).fonte,'proxy_cad_non_validato');
  assert.match(standardPerMovimento('bicipiti_panca',scott).nota,/CAD Curl/);
 });
 
