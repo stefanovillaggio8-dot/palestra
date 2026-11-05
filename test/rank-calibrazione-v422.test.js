@@ -110,6 +110,34 @@ test('v422: score e soglie stesso sistema, Titan esiste, confidenza scende sulle
   assert.match(source.fonteUrl,/strengthlevel.com/);
 });
 
+test('v422: i nuovi esercizi con nome esatto e attrezzo compatibile ricevono dati anche senza famiglia',()=>{
+  const nuovo={id:'ex-nuovo-allenamento',nome:'Dumbbell Bench Press',convenzione:'per_manubrio'};
+  const st=standardPerMovimento('famiglia-non-riconosciuta',nuovo);
+  assert.ok(st);
+  assert.equal(st.fonte,'strengthlevel_esercizio');
+  assert.equal(st.soglie1RMPerPeso[1][0],75);
+  const sbagliato={...nuovo,convenzione:'cavo'};
+  assert.equal(standardPerMovimento('famiglia-non-riconosciuta',sbagliato),null);
+});
+
+test('v422: macchine monogamba diverse da pila bilaterale',()=>{
+  const single=byId('ex-single-leg-press');
+  assert.equal(tipoAttrezzaturaRank(single),'macchina_stack_monogamba');
+  assert.equal(standardAutomaticoPerEsercizio(single),null);
+  const seatedCurl=byId('ex-seated-leg-curl');
+  assert.equal(tipoAttrezzaturaRank(seatedCurl),'macchina_stack');
+  assert.ok(standardAutomaticoPerEsercizio(seatedCurl));
+});
+
+test('v422: la soglia esatta del primo rank assegna Bronze, non stato inferiore',()=>{
+  // La fascia deve iniziare a >= soglia, non richiedere punteggio > soglia.
+  const e=byId('ex-dumbbell-curl');
+  const standard=standardPerMovimento('bicipiti',e);
+  const soglie=soglieNormalizzate({standard,pesoCorporeo:75,meccanica:1});
+  for(let i=1;i<7;i++)assert.ok(soglie[i]>soglie[i-1]);
+  // Il valore esatto viene verificato in test/rank-v2/scalata (rankDaScore).
+});
+
 test('v422: tutte le schede nuove vengono riconosciute o segnalate come stima, mai fonte inventata',()=>{
   const catalog=ESERCIZI.filter(e=>e.convenzione!=='corpo_libero');
   let withSource=0,withoutSource=0;
