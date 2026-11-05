@@ -300,7 +300,7 @@ const FOTO = [
   './img/esercizi/dumbbell-bench-pull.png',
   './img/esercizi/seated-dumbbell-shoulder-press.png',
   './img/esercizi/cable-fly.png',
-  './img/esercizi/scott-bench-curl.png',
+  './img/esercizi/cad-curl-app.jpg',
   './img/esercizi/single-arm-tricep-pushdown.png',
   './img/esercizi/seated-leg-curl.png',
   './img/esercizi/smith-machine-incline-bench-press.png',
