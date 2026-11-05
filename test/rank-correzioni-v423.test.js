@@ -92,7 +92,7 @@ test('v423: due serie con stessa zavorra ma giorni diversi: data della vera migl
   ];
   const r=recordEsercizio(ss,e,null,66);
   assert.equal(r.serieId,'best-older');
-  assert.match(r.testo,/del 22\\/10/);
+  assert.ok(r.testo.includes('del 22/10'));
 });
 
 test('v423: dips corpo libero a 0 kg di zavorra senza input di peso fittizio',()=>{
@@ -110,7 +110,7 @@ test('v423: dips corpo libero a 0 kg di zavorra senza input di peso fittizio',()
   assert.ok(guida.frasi.some(x=>x.includes('a corpo libero')));
   assert.ok(!guida.frasi.some(x=>x.includes('66 kg di zavorra')));
   const code=readFileSync(new URL('../src/app.js',import.meta.url),'utf8');
-  assert.match(code,/eZavorra \\? peso < 0 : peso <= 0/);
+  assert.ok(code.includes('eZavorra ? peso < 0 : peso <= 0'));
   assert.match(code,/peso_assistenza: peso/);
 });
 
