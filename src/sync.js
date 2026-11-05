@@ -52,6 +52,13 @@ export function avvisa() {
 
 export function inEsecuzione() { return inCorso; }
 
+/** Dopo una nuova amicizia scarica anche le sedute vecchie dell'amico.
+ * Non cancella dati né il cursore incrementale: forza soltanto un pull completo sicuro.
+ */
+export function richiediPullCompleto() {
+  try { localStorage.removeItem(CHIAVE_ULTIMO_PULL_COMPLETO); } catch { /* browser senza memoria */ }
+}
+
 /** Il testo da mostrare in alto nell'app. */
 export async function stato() {
   const cfg = sb.leggiConfig();
