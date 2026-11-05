@@ -193,7 +193,7 @@ async function risolviPersona({ daConfermaEmail = false } = {}) {
   let memoria = await db.leggiMeta('persona', null);
   let nuovoAccountSenzaProfilo = false;
 
-  // La conferma email puo' aprirsi in Safari/PWA senza la memoria della pagina
+  // La conferma email può aprirsi in Safari/PWA senza la memoria della pagina
   // usata per registrarsi. Recupera token e identita' dai propri metadata Auth;
   // la RPC del database dovra' comunque verificare il vero invito.
   if (daConfermaEmail && sb.collegato()) {
@@ -252,7 +252,7 @@ async function risolviPersona({ daConfermaEmail = false } = {}) {
     }
   }
 
-  // Recupero per chi si e' gia' registrato prima della correzione: basta
+  // Recupero per chi si è già registrato prima della correzione: basta
   // riaprire il link originale con lo stesso account, non crearne un altro.
   if (invito && sb.collegato() && !/[?&](?:n=|p=2(?:&|$))/.test(ricerca)) {
     try {
@@ -4243,7 +4243,7 @@ export function annunciaCambioPeso(prima, dopo, nuovoPeso) {
   if (scesi.length) righe.push('Sei sceso: ' + scesi.join(' · '));
   if (comparsi.length) righe.push('Primo livello sbloccato: ' + comparsi.join(' · '));
   if (!saliti.length && !scesi.length && !comparsi.length) {
-    righe.push('Nessun Rank storico cambia: le serie conservano il peso corporeo del giorno in cui le hai fatte.');
+    righe.push('Nessun Rank cambia: le serie storiche conservano il peso corporeo del giorno in cui le hai fatte.');
   }
   return avviso(righe.join(' '), { tipo: 'ok', durata: 9000 });
 }
