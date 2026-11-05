@@ -5994,6 +5994,10 @@ function vistaImpostazioni(zona) {
                 }
               }catch(err){
                 occupato=false;
+                // Se i dati locali sono cambiati, il motore ha aggiornato la
+                // fotografia del conflitto. Ridisegniamola immediatamente:
+                // non costringere a chiudere e riaprire l'app per vederla.
+                try { await ricaricaTutto(); disegna(); } catch (_) { /* nessuna perdita di dati */ }
                 mostraErroreBreve('Non sono riuscito a risolvere il conflitto: '+(err?.message||err));
               }
             },
