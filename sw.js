@@ -41,6 +41,7 @@ const FILE = [
   './src/ghost-mode.js',
   './src/cronologia.js',
   './src/ricompense-sedute.js',
+  './src/reset-storico.js',
   './src/regolazioni-macchina.js',
   './src/regolazioni-ui.js',
   './src/finale-allenamento.js',
