@@ -196,11 +196,20 @@ async function risolviPersona({ daConfermaEmail = false } = {}) {
   // La conferma email può aprirsi in Safari/PWA senza la memoria della pagina
   // usata per registrarsi. Recupera token e identita' dai propri metadata Auth;
   // la RPC del database dovra' comunque verificare il vero invito.
-  if (daConfermaEmail && sb.collegato()) {
+  if (sb.collegato() && (daConfermaEmail || !invito)) {
     try {
       const utente = await sb.utenteCorrente();
       const ripresa = ripristinaRegistrazioneInvitata(utente);
-      if (ripresa) {
+      // Anche se la conferma email è stata aperta altrove, il token conservato
+      // nell'account si recupera al successivo login. Un invito già completato
+      // non deve tornare ad ogni avvio; un nuovo link esplicito vince sempre.
+      const giaCollegato = ripresa && (() => {
+        try { return localStorage.getItem(
+          'palestra-invito-completato:' + utente.id + ':' + ripresa.invito) === '1'; }
+        catch { return false; }
+      })();
+      if (ripresa && !giaCollegato
+          && (!invitoDallaUrl() || invitoDallaUrl() === ripresa.invito)) {
         if (!invitoDallaUrl()) {
           localStorage.setItem(CHIAVE_INVITO_PENDENTE, ripresa.invito);
           invito = ripresa.invito;
@@ -249,6 +258,19 @@ async function risolviPersona({ daConfermaEmail = false } = {}) {
       }
     } catch (e) {
       console.warn('Ripristino account dopo email non riuscito:', e?.message);
+    }
+  }
+
+  // Il link normale è per un AMICO, mai per il profilo Stefano predefinito.
+  // Anche se l'iPhone ha già i dati della PWA installata, senza account online
+  // ancora autenticato chiedi il nome nuovo, senza usare account-1.
+  if (invito && !sb.collegato() && !/[?&](?:n=|p=2(?:&|$))/.test(ricerca)) {
+    if (!memoria || memoria.p === 1) {
+      memoria = null;
+      nuovoAccountSenzaProfilo = true;
+      const qs = new URLSearchParams(ricerca.replace(/^\?/, ''));
+      qs.delete('p');
+      ricerca = '?' + qs.toString();
     }
   }
 
