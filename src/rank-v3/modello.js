@@ -643,6 +643,15 @@ export const STANDARD_1RM = {
     ingresso: 0.15, vertice: 0.85,
     nota: 'Standard generico precedente per la panca Scott: non vale come riferimento specifico per un manubrio singolo.',
     varianti: {
+      // CAD Curl: seduto al contrario sulla panca Scott, gomiti appoggiati
+      // e busto inclinato all'indietro. Carico di UN manubrio, due braccia
+      // simultanee. Non usare lo standard per lo Scott tradizionale o
+      // i percentili dell'One Arm Preacher: la leva e' diversa.
+      cad_dumbbell: {
+        ingresso: 0.12,
+        vertice: 0.46,
+        nota: 'CAD Curl con due manubri, ciascuno registrato per mano. Scala provvisoria derivata dalla famiglia preacher/incline curl con busto arretrato; NON ci sono percentili pubblicati per questa specifica tecnica.',
+      },
       one_arm_dumbbell: {
         // Strength Level, One Arm Dumbbell Preacher Curl (per singolo manubrio):
         // a 75 kg corpo, Beginner 9 kg e Elite 37 kg di 1RM (agg. 05/03/2026).
@@ -758,8 +767,13 @@ export function standardPerMovimento(movimento, esercizio = {}) {
       // validato nella fonte specifica One Arm Preacher.
       const unBraccio = id === 'ex-one-arm-preacher-curl'
         || /(?:one|single)[ -]?arm.*(?:preacher|scott)/.test(nome);
-      if (unBraccio && e.convenzione === 'per_manubrio')
+      // ID stabile: anche il vecchio nome salvato nel DB viene valutato
+      // come CAD Curl, senza staccare lo storico. Non influisce su altri curl.
+      if (id === 'ex-scott-bench-curl' && e.convenzione === 'per_manubrio') {
+        scelto = base.varianti.cad_dumbbell || base;
+      } else if (unBraccio && e.convenzione === 'per_manubrio') {
         scelto = base.varianti.one_arm_dumbbell || base;
+      }
     } else if (movimento === 'polpacci') {
       const id = String(e.id || '').toLowerCase();
       const nome = String(e.nome || '').toLowerCase();
@@ -784,7 +798,8 @@ export function standardPerMovimento(movimento, esercizio = {}) {
     nota: scelto.nota || base.nota || '',
     fonte: oneArm ? 'strengthlevel_esercizio' : 'modello_famiglia',
     fonteUrl: eFonte,
-    riferimentoNome: oneArm ? 'one arm dumbbell preacher curl' : movimento,
+    riferimentoNome: oneArm ? 'one arm dumbbell preacher curl'
+      : (e.id === 'ex-scott-bench-curl' ? 'CAD Curl' : movimento),
     affidabilitaBase: oneArm ? 'media' : 'bassa',
     limite: oneArm
       ? 'Standard di una community, non una prova tecnica controllata.'
