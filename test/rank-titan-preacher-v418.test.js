@@ -67,7 +67,9 @@ test('v418: il Preacher Curl ha una classificazione dedicata, manubrio singolo',
  assert.equal(std.ingresso,.12);
  assert.equal(std.vertice,.50);
  assert.match(std.nota,/singolo braccio|un solo braccio/i);
- assert.equal(standardPerMovimento('bicipiti_panca',scott).vertice,.50);
+ // Scott seduto al contrario usa DUE manubri; non e' uno standard monobraccio.
+ assert.equal(standardPerMovimento('bicipiti_panca',scott).vertice,.85);
+ assert.equal(standardPerMovimento('bicipiti_panca',scott).fonte,'modello_famiglia');
 });
 
 test('v419: 22 kg per un braccio non viene sovrastimato come Diamond',()=>{
