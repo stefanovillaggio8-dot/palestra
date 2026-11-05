@@ -9,7 +9,7 @@ import * as db from './db.js';
 import * as sb from './supabase.js';
 import {
   TABELLE, rigaPerInvio, preservaMetadatiProfiloLocaleSuRemoto, decidiPush, dopoInvioRiuscito, applicaRemote,
-  costruisciConflitto, risolviConflitto, attesaRiprovo, statoSalvataggio, adesso, nuovoId,
+  costruisciConflitto, scegliConflittoAggiornato, attesaRiprovo, statoSalvataggio, adesso, nuovoId,
 } from './sincronizzazione.js';
 
 const CHIAVE_ULTIMO_PULL = 'palestra-ultimo-pull';
@@ -372,10 +372,22 @@ async function tira() {
 /** Ste sceglie quale versione tenere. */
 export async function risolvi(idConflitto, scelta) {
   const c = await db.prendi('conflitti', idConflitto);
-  if (!c) return null;
-  const esito = risolviConflitto(c, scelta);
+  if (!c || c.stato !== 'da_scegliere') return null;
+  const attuale = await db.prendi(c.tabella, c.riga_id);
+  // Due dispositivi o due schede possono aver risolto già lo stesso
+  // conflitto. Non riportare una vecchia fotografia sopra i dati nuovi.
+  if (!attuale || attuale.sync !== 'conflitto') {
+    await db.salva('conflitti',
+      { ...c, stato:'superato', risolto_il:adesso() }, { segna:false });
+    avvisa();
+    return null;
+  }
+  const esito = scegliConflittoAggiornato(c, attuale, scelta);
   await db.salva(c.tabella, esito.riga);
-  await db.salva('conflitti', { ...c, stato: scelta === 'remoto' ? 'scelta_remota' : 'scelta_locale', risolto_il: adesso(), scartato: esito.perso });
+  await db.salva('conflitti', {
+    ...c, stato: scelta === 'remoto' ? 'scelta_remota' : 'scelta_locale',
+    risolto_il: adesso(), scartato: esito.perso,
+  });
   avvisa();
   return esito;
 }
