@@ -925,7 +925,7 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-aura-divina-premium {animati
 /* v395 — Allenamento: la scheda è protagonista; scorciatoie piccole, utili. */
 .app-vista-allenamento .workout-hub-actions{
   display:grid;
-  grid-template-columns:repeat(2,minmax(0,1fr));
+  grid-template-columns:minmax(0,1fr);
   gap:9px;
   margin:9px 0 13px;
   width:100%;
