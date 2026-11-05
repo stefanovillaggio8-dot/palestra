@@ -37,7 +37,39 @@ const TABELLE_SINCRONIZZATE = ['esercizi', 'schede', 'versioni', 'sedute', 'seri
 
 let inCorso = false;
 let avvioRegistrato = false;
+let promessaSincronizzazione = null;
+let timerRiprovo = null;
+let erroriConsecutivi = 0;
 const ascoltatori = new Set();
+
+// Il recupero avviene SOLO quando la PWA è aperta. Non si riscrivono revisioni,
+// non si eliminano sedute e non si crea una seconda coda: sono gli stessi UPSERT
+// già protetti da decidiPush e dalla lettura del remoto.
+function programmaRiprovo() {
+  if (!avvioRegistrato || timerRiprovo !== null || !sb.collegato()
+      || (typeof navigator !== 'undefined' && navigator.onLine === false)) return;
+  const pausa = attesaRiprovo(Math.min(erroriConsecutivi, 4));
+  timerRiprovo = setTimeout(() => {
+    timerRiprovo = null;
+    if (sb.collegato() && (typeof navigator === 'undefined' || navigator.onLine !== false)) {
+      void sincronizza();
+    }
+  }, pausa);
+}
+
+function fermaRiprovo() {
+  if (timerRiprovo !== null) clearTimeout(timerRiprovo);
+  timerRiprovo = null;
+  erroriConsecutivi = 0;
+}
+
+function erroreTransitorio(e) {
+  const stato = Number(e?.stato || 0);
+  if ([408, 425, 429, 500, 502, 503, 504, 520, 522, 524].includes(stato)) return true;
+  if (stato >= 400 && stato < 500) return false; // RLS/constraint: segnalare, non nascondere.
+  const s = String(e?.message || e || '').toLowerCase();
+  return stato === 0 && /rete|network|connessione|timeout|non ha risposto|failed to fetch|load failed|abort|offline|temporan/.test(s);
+}
 
 export function iscriviti(fn) {
   ascoltatori.add(fn);
@@ -132,9 +164,13 @@ export async function riprovaOra() {
   return sincronizza();
 }
 
-/** Un giro di sincronizzazione. Non parte se un giro È ancora in corso. */
-export async function sincronizza() {
-  if (inCorso) return { fatto: false, motivo: 'gia-in-corso' };
+/** Un giro di sincronizzazione. Se richiesto, condivide il giro già partito. */
+export async function sincronizza({ attendiSeInCorso = false } = {}) {
+  if (inCorso) {
+    return attendiSeInCorso && promessaSincronizzazione
+      ? promessaSincronizzazione
+      : { fatto: false, motivo: 'gia-in-corso' };
+  }
   if (!sb.collegato()) return { fatto: false, motivo: 'non-collegato' };
   if (typeof navigator !== 'undefined' && navigator.onLine === false) {
     return { fatto: false, motivo: 'offline' };
@@ -142,27 +178,54 @@ export async function sincronizza() {
   inCorso = true;
   avvisa();
   const esito = { inviati: 0, ricevuti: 0, conflitti: 0, errori: 0 };
+  const lavoro = (async () => {
+    // Se il download fallisce, prova comunque gli invii: manda() controlla
+    // la revisione di OGNI riga remota prima di scrivere, quindi non sovrascrive
+    // versioni più recenti. Il pull incompleto non avanza il cursore locale.
+    try {
+      try {
+        const scaricati = await tira();
+        esito.ricevuti = scaricati.ricevuti;
+        esito.conflitti += scaricati.conflitti;
+      } catch (e) {
+        esito.errori++;
+        esito.messaggio = e?.message || String(e);
+      }
+      const inviati = await manda();
+      esito.inviati = inviati.inviati;
+      esito.conflitti += inviati.conflitti;
+      esito.errori += inviati.errori;
+      if (inviati.messaggio) {
+        esito.messaggio = [esito.messaggio, inviati.messaggio].filter(Boolean).join(' · ');
+      }
+    } catch (e) {
+      esito.errori++;
+      esito.messaggio = e?.message || String(e);
+    } finally {
+      inCorso = false;
+      avvisa();
+    }
+    esito.fatto = esito.errori === 0;
+    return esito;
+  })();
+  promessaSincronizzazione = lavoro;
   try {
-    const scaricati = await tira();
-    esito.ricevuti = scaricati.ricevuti;
-    esito.conflitti += scaricati.conflitti;
-    const inviati = await manda();
-    esito.inviati = inviati.inviati;
-    esito.conflitti += inviati.conflitti;
-    esito.errori += inviati.errori;
-  } catch (e) {
-    esito.errori++;
-    esito.messaggio = e && e.message ? e.message : String(e);
+    const risultato = await lavoro;
+    if (risultato.errori) {
+      erroriConsecutivi++;
+      programmaRiprovo();
+    } else {
+      fermaRiprovo();
+    }
+    return risultato;
   } finally {
-    inCorso = false;
-    avvisa();
+    if (promessaSincronizzazione === lavoro) promessaSincronizzazione = null;
   }
-  return esito;
 }
 
 /** Manda in alto le modifiche pendenti, una alla volta. */
 async function manda() {
-  const esito = { inviati: 0, conflitti: 0, errori: 0 };
+  const esito = { inviati: 0, conflitti: 0, errori: 0, messaggio: '' };
   const coda = await db.codaDiInvio();
   for (const { tabella, riga } of coda) {
     // Gli esercizi del catalogo condiviso non appartengono alla tabella privata
@@ -257,10 +320,17 @@ async function manda() {
         (attuale) => attuale && attuale.sync === 'in_corso'
           && Number(attuale.rev || 0) === Number(riga.rev || 0)
           && attuale.updated_at === riga.updated_at,
-        (attuale) => ({ ...attuale, sync: 'errore', ultimo_errore: messaggio }),
+        (attuale) => ({
+          ...attuale,
+          // Rete instabile: la modifica resta da inviare. Non trasformare un
+          // timeout in un errore permanente che sembra richiedere un riavvio.
+          sync: erroreTransitorio(e) ? 'da_salvare' : 'errore',
+          ultimo_errore: messaggio,
+        }),
         { seguiErrore: true },
       );
       esito.errori++;
+      esito.messaggio = messaggio;
       // Se la rete o il database non rispondono, non provare subito tutte le
       // altre righe in errore: possono essercene centinaia e ogni richiesta
       // ha un timeout. Fermarsi qui evita che l'interfaccia resti in
@@ -423,8 +493,9 @@ export function avvia() {
   // account: un solo listener/timer evita pull duplicati e lag progressivi.
   if (avvioRegistrato) return;
   avvioRegistrato = true;
-  const online = () => { avvisa(); if (navigator.onLine !== false) sincronizza(); };
+  const online = () => { avvisa(); if (navigator.onLine !== false) void sincronizza(); };
   window.addEventListener('online', online);
+  window.addEventListener('focus', online);
   window.addEventListener('offline', () => avvisa());
   setInterval(() => {
     if (typeof navigator === 'undefined' || navigator.onLine === false) return;

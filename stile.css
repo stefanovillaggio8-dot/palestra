@@ -139,6 +139,17 @@ a { color: var(--blu); text-decoration: none; }
 .pallino-errore { background: var(--rosso); }
 .pallino-neutro { background: var(--testo-3); }
 .testo-stato { color: var(--testo-2); }
+/* Recupero della sincronizzazione direttamente dalla barra: niente riavvio.
+   Resta compatto anche con la Dynamic Island e i bordi sicuri di iPhone. */
+.stato-save .bot.sync-riprova {
+  min-height: 24px;
+  min-width: 28px;
+  padding: 2px 7px;
+  border-radius: 9px;
+  font-size: .97rem;
+  line-height: 1.15;
+  background: rgba(120, 120, 160, .15);
+}
 .versione-app {
   margin-left: auto; color: var(--testo-3);
   font-size: .7rem; font-weight: 800; letter-spacing: .04em;

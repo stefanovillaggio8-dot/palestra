@@ -557,7 +557,11 @@ async function avvia() {
         if (pronto === false) return;
         await ricaricaTutto();
       } catch (e) {
-        avviso('Account online: ' + e.message, { tipo: 'errore', durata: 9000 });
+        // La schermata locale è già utilizzabile. Un errore cloud non deve
+        // obbligare a chiudere la PWA: sync.avvia() ritenta in automatico.
+        avviso('Sincronizzazione online sospesa: ' + e.message
+          + ' Le serie restano salvate sul telefono e riproverò senza riavviare.',
+          { tipo: 'attenzione', durata: 9000 });
       }
     }
 
@@ -1209,9 +1213,15 @@ async function preparaAccountOnline() {
     await accodaDatiAndreaMancanti(await datiLocaliSchedaDaTrasferire(idScheda, idProfilo));
   }
 
-  const risultato = await sync.sincronizza();
-  if (risultato && risultato.errori) {
-    throw new Error(risultato.messaggio || 'Non sono riuscito a sincronizzare la scheda iniziale.');
+  const risultato = await sync.sincronizza({ attendiSeInCorso: true });
+  // "già in corso", offline o download parziale NON significano che la scheda
+  // iniziale sia stata salvata. Non segnare lo storico di Andrea come completo:
+  // la coda resta locale e il motore riprova alla connessione successiva.
+  if (!risultato || risultato.fatto === false || risultato.errori) {
+    const dettaglio = risultato?.messaggio
+      || (risultato?.motivo === 'offline' ? 'Sei offline, riproverò quando torna la rete.'
+        : 'Il salvataggio è in attesa. Riproverò automaticamente.');
+    throw new Error(dettaglio);
   }
   if (controllaStoricoAndrea) await db.scriviMeta(chiaveStoricoAndrea, true);
   return utente;
@@ -2369,6 +2379,32 @@ function disegnaStatoSalvataggio() {
     svuota(contenitore);
     contenitore.appendChild(el('span', { class: 'pallino-stato pallino-' + s.colore }));
     contenitore.appendChild(el('span', { class: 'testo-stato', testo: s.testo }));
+    if (s.colore === 'errore' || (s.colore === 'attenzione'
+        && typeof navigator !== 'undefined' && navigator.onLine !== false
+        && sb.collegato())) {
+      const riprova = bottone('↻', {
+        classe: 'sync-riprova',
+        titolo: 'Riprova la sincronizzazione senza riavviare e senza perdere i dati',
+        onClick: async () => {
+          try {
+            const esito = await sync.sincronizza({ attendiSeInCorso: true });
+            if (esito.messaggio) {
+              avviso('Sincronizzazione: ' + esito.messaggio, { tipo: 'attenzione', durata: 8000 });
+            } else if (esito.motivo === 'offline') {
+              avviso('La rete non è disponibile: riproverò automaticamente.', { tipo: 'attenzione' });
+            } else if (esito.fatto) {
+              await ricaricaTutto({ caricaAmiciOnline: false });
+              avviso('Salvataggio online recuperato.', { tipo: 'ok', durata: 3000 });
+            }
+          } catch (e) {
+            avviso('Non riesco ancora a sincronizzare: ' + e.message, { tipo: 'attenzione' });
+          }
+          void aggiornaStatoSalvataggio();
+        },
+      });
+      riprova.setAttribute('aria-label', 'Riprova salvataggio online');
+      contenitore.appendChild(riprova);
+    }
     // la versione sempre in vista: se non cambia, il telefono ha la copia vecchia
     contenitore.appendChild(el('span', { class: 'versione-app', testo: String(window.PALESTRA_VERSIONE || 'v?').replace(/^palestra-/, ''), title: 'Se la spunta non ti parte, chiudi l\'app e la riapri' }));
     contenitore.title = s.dettaglio;
