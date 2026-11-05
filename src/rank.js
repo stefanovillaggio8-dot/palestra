@@ -597,16 +597,27 @@ function giorniDelRecord(serie, record) {
 // calcola il Rank sul carico TOTALE (corpo + zavorra), ma il numero che Ste scrive
 // e' la zavorra. Quindi il confronto va fatto sui kg AGGIUNTI, altrimenti il giorno
 // del record non si trova più e la scheda smette di dire WHEN hai fatto la serie.
-  const caricoConfrontato = (record.zavorra !== undefined && record.zavorra !== null)
+  // Cerca PRIMA per identificatore della serie migliore reale, non
+  // confrontando il carico effettivo con i kg digitati: con un cavo 2:1
+  // 40 kg sulla pila diventano 20 kg allo score, e la data spariva.
+  const idRecord = record.serieId === null || record.serieId === undefined
+    ? null : String(record.serieId);
+  const giornoDaId = idRecord === null ? null
+    : (serie || []).find(s => s && !s.eliminata
+      && String(s.id) === idRecord && String(s._giorno || ''));
+  const caricoConfrontato = record.zavorra !== undefined && record.zavorra !== null
     ? Number(record.zavorra)
-    : Number(record.caricoReale);
-  const stesse = (serie || []).filter((s) => s
-    && Number(s.peso_assistenza !== undefined && s.peso_assistenza !== null ? s.peso_assistenza : s.peso) === caricoConfrontato
+    : Number(record.caricoRegistrato ?? record.caricoReale);
+  const stesse = (serie || []).filter(s => s && !s.eliminata
+    && Number(record.zavorra !== undefined && record.zavorra !== null
+      ? (s.peso_assistenza ?? s.peso) : s.peso) === caricoConfrontato
     && Number(s.ripetizioni) === Number(record.ripetizioni)
     && String(s._giorno || '') !== '');
-  const giornoRecord = stesse.length
-    ? stesse.map((s) => String(s._giorno)).sort((a, b) => b.localeCompare(a))[0]
-    : null;
+  const giornoRecord = giornoDaId
+    ? String(giornoDaId._giorno)
+    : stesse.length
+      ? stesse.map(s => String(s._giorno)).sort((a, b) => b.localeCompare(a))[0]
+      : null;
   return { giorni, giornoRecord };
 }
 
@@ -668,7 +679,11 @@ const testoSerie = testoSerieChiaro({ ...r, giornoRecord: giorni && giorni.giorn
       return `${base} kg di zavorri x ${r.ripetizioni}${testoSerie}`
         + ` = ${r.caricoReale} kg totali con il tuo corpo`;
     })()
-    : `${r.caricoReale} kg x ${r.ripetizioni}${testoSerie}`;
+    : (esercizio.carrucola === 'carrucola_doppia'
+      && Number.isFinite(r.caricoRegistrato)
+      && r.caricoRegistrato !== r.caricoReale
+      ? `${r.caricoRegistrato} kg sul carrello (cavo 2:1 dichiarato: ${r.caricoReale} kg) x ${r.ripetizioni}${testoSerie}`
+      : `${r.caricoReale} kg x ${r.ripetizioni}${testoSerie}`);
 return {
     esercizio,
     profilo: res.profilo,
@@ -726,6 +741,8 @@ return {
     // il carico che entra nel calcolo (la doppia carrucola dimezzata): serve a
     // chi vuole sapere "quanto ho spinto davvero" e non "quanto leggevo"
     caricoReale: r.caricoReale,
+    caricoRegistrato: r.caricoRegistrato ?? null,
+    serieId: r.serieId ?? null,
     soglie: r.soglie,
     ingresso: r.ingresso,
     vertice: r.vertice,
