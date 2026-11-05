@@ -377,6 +377,28 @@ export async function risolvi(idConflitto, scelta) {
   }
   const c = await db.prendi('conflitti', idConflitto);
   if (!c || c.stato !== 'da_scegliere') return null;
+  const localeCorrente = await db.prendi(c.tabella, c.riga_id);
+  if (!localeCorrente || localeCorrente.sync !== 'conflitto') {
+    throw new Error('Il conflitto non riguarda più una modifica locale in attesa. Aggiorna la schermata.');
+  }
+  // Tra apertura della finestra e scelta si può ancora correggere la serie.
+  // In quel caso aggiorniamo la copia locale DEL CONFLITTO e chiediamo di
+  // confermare di nuovo: mai cancellare una correzione appena inserita.
+  const localeFotografata = c.locale || {};
+  if (Number(localeCorrente.rev || 0) !== Number(localeFotografata.rev || 0)
+      || localeCorrente.updated_at !== localeFotografata.updated_at) {
+    await db.aggiornaSe(
+      'conflitti', idConflitto,
+      (attuale) => !!attuale && attuale.stato === 'da_scegliere'
+        && Number(attuale.locale?.rev || 0) === Number(localeFotografata.rev || 0)
+        && attuale.locale?.updated_at === localeFotografata.updated_at,
+      (attuale) => ({
+        ...attuale,
+        locale: { ...localeCorrente, _etichetta: 'Questo dispositivo' },
+      }),
+    );
+    throw new Error('Hai modificato questa serie dopo la comparsa del conflitto. Riapri il confronto e conferma quale versione tenere.');
+  }
   const esito = risolviConflitto(c, scelta);
 
   // Non usare db.salva(..., segna:true): incrementerebbe di nuovo
