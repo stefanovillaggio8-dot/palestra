@@ -93,7 +93,7 @@ test('v432: mostra studi reali ma afferma che NON quantificano la variante CAD',
   assert.equal(rec.calibrazione.livello,'bassa');
   assert.equal(rec.calibrazione.origine,'CAD Curl: calibrazione scientifica non disponibile');
   assert.match(rec.calibrazione.descrizione,/Scott al contrario/);
-  assert.match(rec.calibrazione.descrizione,/nessun bonus percentuale/i);
+  assert.match(rec.calibrazione.descrizione,/senza alcun bonus percentuale/i);
   assert.match(rec.calibrazione.descrizione,/Nessuno confronta direttamente il CAD Curl/);
   for(const pmid of ['24150552','40082069','42829982']) {
     assert.ok(rec.calibrazione.descrizione.includes(pmid));
