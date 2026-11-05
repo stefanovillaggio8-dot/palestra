@@ -36,7 +36,7 @@ test('T1. ogni pagina chiede il CSS con lo stesso numero di versione', async () 
   assert.ok(versioneApp, 'index.html deve chiedere il CSS con un numero di versione');
 
   // ...e l'anteprima deve chiedere LO STESSO numero, non uno qualsiasi.
-  const versioneAnteprima = anteprima.match(/stile\.css\?v=(\d+)/)?.[1];
+  const versioneAnteprima = anteprima.match(/href="\.\/stile\.css\?v=(\d+)"/)?.[1];
   assert.ok(
     versioneAnteprima,
     'anteprima-aura.html DEVE chiedere il CSS con un numero: senza, il browser ' +
@@ -117,7 +117,7 @@ test('T4. la lista di immagini del service worker usa la versione dichiarata', a
   for (const n of [...(await LEGGI('index.html')).matchAll(/stile\.css\?v=(\d+)/g)].map((m) => m[1])) {
     numeri.add(n);
   }
-  for (const n of [...(await LEGGI('anteprima-aura.html')).matchAll(/stile\.css\?v=(\d+)/g)].map((m) => m[1])) {
+  for (const n of [...(await LEGGI('anteprima-aura.html')).matchAll(/href="\.\/stile\.css\?v=(\d+)"/g)].map((m) => m[1])) {
     numeri.add(n);
   }
   for (const n of [...sw.matchAll(/stile\.css\?v=(\d+)/g)].map((m) => m[1])) {
