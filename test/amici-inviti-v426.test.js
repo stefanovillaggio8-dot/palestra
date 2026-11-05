@@ -52,7 +52,7 @@ test('v426: nuovo amico forza recupero storico senza cancellare il cursore incre
     else globalThis.localStorage = old;
   }
   assert.match(app, /sync\.richiediPullCompleto\(\)/);
-  assert.match(app, /const syncDopoInvito = await sync\.sincronizza\(\)/);
+  assert.match(app, /const syncDopoInvito = await sync\.sincronizza\(\{ attendiSeInCorso: true \}\)/);
 });
 
 test('v426: gli inviti non vengono scritti in IndexedDB o copiati negli account altrui', () => {
