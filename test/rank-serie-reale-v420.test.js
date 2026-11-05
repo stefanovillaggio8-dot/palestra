@@ -117,7 +117,12 @@ test('v420: una serie storica conserva il peso corporeo del proprio giorno', () 
 });
 
 test('v423: il riferimento monobraccio non viene attribuito allo Scott con due manubri', () => {
-  assert.equal(standardPerMovimento('bicipiti_panca', scott).soglie1RMPerPeso, null);
+  const cad = standardPerMovimento('bicipiti_panca', scott);
+  assert.ok(Array.isArray(cad.soglie1RMPerPeso));
+  assert.equal(cad.fonte,'modello_tecnica_cad_curl');
+  assert.notDeepEqual(cad.soglie1RMPerPeso,
+    standardPerMovimento('bicipiti_panca',preacher).soglie1RMPerPeso,
+    'lo standard Scott monobraccio non si puo riusare sul CAD Curl');
   assert.ok(standardPerMovimento('bicipiti_panca', preacher).soglie1RMPerPeso);
   const press = esercizioTest('Chest Press');
   assert.ok(press);
