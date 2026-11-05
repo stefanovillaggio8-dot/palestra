@@ -295,9 +295,13 @@ export function preparaRigaDopoSceltaConflitto(conflitto, esito, attuale) {
   const revRemota = Number(conflitto?.remoto?.rev || 0);
   const revLocale = Number(attuale?.rev || 0);
   const revScelta = Number(esito?.riga?.rev || 0);
+  // _etichetta esiste SOLO nel confronto visivo delle due copie: non e'
+  // una colonna Supabase. Persisterla farebbe fallire l'UPSERT con PGRST204.
+  const { _etichetta, _scartato, ...sceltaPulita } = esito.riga;
+  void _etichetta; void _scartato;
   return {
     ...attuale,
-    ...esito.riga,
+    ...sceltaPulita,
     id: conflitto.riga_id,
     rev: Math.max(revRemota, revLocale, revScelta - 1) + 1,
     base_rev: revRemota,
