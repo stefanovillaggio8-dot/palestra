@@ -6650,8 +6650,7 @@ function badgeRank(rankId, lp, divisione) {
  * soglia di circa l'1,5%, quindi se ti manca lo 0,3% la risposta onesta non È "ti
  * manca così poco", È "non lo so ancora". Questa frase È quella risposta.
  */
-const AVVERTIMENTO_STIMA_SOGLIA = 'Numero stimato: il massimale e\' calcolato, non '
-  + 'misurato, e il peso corporeo muove la soglia. Non fidarti di decimali.';
+const AVVERTIMENTO_STIMA_SOGLIA = 'Rank stimato dalla migliore serie reale, non da un massimale ipotetico. Macchina, tecnica e limiti dei dati influenzano il confronto.';
 
 /** La distanza alla prossima soglia, in percentuale. Vedi distanzaAllaSoglia. */
 function distanzaObiettivo(record) {
@@ -6924,6 +6923,10 @@ el('div', { class: 'card-rank-basso' }, [
     barraLp(r),
       el('span', { class: 'nota', testo: verso }),
       r.spiegaBonus ? el('span', { class: 'nota nota-piccola', testo: r.spiegaBonus }) : null,
+      r.calibrazione ? el('span', {
+        class: 'nota nota-piccola attendibilita-rank',
+        testo: r.calibrazione.titolo + ' · ' + r.calibrazione.origine,
+      }) : null,
       el('span', { class: 'nota nota-piccola', testo: AVVERTIMENTO_STIMA_SOGLIA }),
       el('a', { href: '#/esercizio/' + (r.esercizio ? r.esercizio.id : ''), class: 'bottone-guarda', testo: 'Dettaglio' }),
     ]),
@@ -8629,6 +8632,7 @@ function vistaRank(zona) {
       const pannello=el('details',{class:'blocco guida-rank-dettaglio'},[
         el('summary',{class:'guida-rank-titolo',testo:guida.titolo}),
         ...guida.frasi.map(frase=>el('p',{class:'nota',testo:frase})),
+        ...(guida.fonteUrl ? [el('a',{href:guida.fonteUrl,target:'_blank',rel:'noopener noreferrer',class:'bottone-guarda',testo:'Apri la fonte degli standard'})] : []),
         el('a',{href:'#/esercizio/'+r.esercizio?.id,class:'bottone-guarda',testo:'Vedi il risultato completo'}),
       ]);
       contenitore.appendChild(pannello);
@@ -8765,6 +8769,8 @@ function vistaRank(zona) {
         record && record.lp ? 'LP: ' + Math.round(record.lp) : '',
         kgReali !== peso ? 'il peso che conta è ' + kgReali + ' kg' : '',
         record && record.testo ? record.testo : '',
+        record && record.calibrazione ? record.calibrazione.titolo + ' · ' + record.calibrazione.origine : '',
+        record && record.calibrazione ? record.calibrazione.attrezzatura : '',
         record && record.distanza && record.distanza.frase
           ? 'Per il prossimo Rank: ' + record.distanza.frase : '',
       ].filter(Boolean);
@@ -9195,6 +9201,10 @@ async function vistaEsercizio(zona, esercizioId) {
             : `Prossimo obiettivo: ${(record.prossimoObiettivo || {}).etichetta || (record.prossimoRank ? record.prossimoRank.nome : 'il prossimo rank')}`
               + (distanzaObiettivo(record) ? ` (ti manca lo ${formattaNumero(distanzaObiettivo(record).percentuale)}%)` : '')),
       }),
+      record.calibrazione ? el('span', {
+        class: 'nota nota-piccola attendibilita-rank',
+        testo: record.calibrazione.titolo + ' · ' + record.calibrazione.origine,
+      }) : null,
       el('span', { class: 'nota nota-piccola', testo: AVVERTIMENTO_STIMA_SOGLIA }),
       record.spiegaBonus ? el('span', { class: 'nota nota-piccola', testo: record.spiegaBonus }) : null,
     ]),
