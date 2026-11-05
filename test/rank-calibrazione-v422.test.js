@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { ESERCIZI } from '../src/dati-iniziali.js';
+import { rankDaScore } from '../src/rank-v2/scalata.js';
 import { standardPerMovimento, soglieNormalizzate, fattoreCorpo } from '../src/rank-v3/modello.js';
 import { valutaPrestazione, soglieLegibiliNuove } from '../src/rank-v3/valutazione.js';
 import { STANDARD_CALIBRAZIONE_ESTERNI, standardAutomaticoPerEsercizio,
@@ -135,7 +136,8 @@ test('v422: la soglia esatta del primo rank assegna Bronze, non stato inferiore'
   const standard=standardPerMovimento('bicipiti',e);
   const soglie=soglieNormalizzate({standard,pesoCorporeo:75,meccanica:1});
   for(let i=1;i<7;i++)assert.ok(soglie[i]>soglie[i-1]);
-  // Il valore esatto viene verificato in test/rank-v2/scalata (rankDaScore).
+  assert.equal(rankDaScore(soglie[0],soglie).rank.id,'bronze');
+  assert.equal(rankDaScore(soglie[0]-0.0001,soglie).rank,null);
 });
 
 test('v422: tutte le schede nuove vengono riconosciute o segnalate come stima, mai fonte inventata',()=>{
