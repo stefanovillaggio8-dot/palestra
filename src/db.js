@@ -281,6 +281,15 @@ export async function salva(tabella, riga, { segna = true, seguiErrore = false }
     const segnata = segnaDaSalvare(esistente || completa);
     completa.rev = segnata.rev;
     completa.base_rev = Number((esistente && esistente.base_rev) || 0);
+    // Ogni MODIFICA LOCALE deve ricevere un updated_at nuovo, anche se chi
+    // salva ha fatto spread della riga precedente che conteneva il vecchio
+    // timestamp. Senza, il pull incrementale su telefono/PC non la vede.
+    completa.updated_at = segnata.updated_at;
+    // Lo stato sync copiato dalla riga precedente NON e' un'istruzione: il
+    // chiamante può aver passato {...profilo, equipaggiamento: prossimo} con
+    // sync:'pulito'. Quel cambiamento DEVE entrare in coda.
+    // Solo il codice di sync puo' mantenere uno stato esplicito con
+    // seguiErrore:true, oppure passare 'da_salvare'.
     // SE IL CHIAMANTE DICE UNO STATO DI SINCRONIZZAZIONE, QUELLO VINCE.
     //
     // Prima qui finiva sempre `sync = 'da_salvare'`, comunque il chiamante avesse
@@ -296,8 +305,12 @@ export async function salva(tabella, riga, { segna = true, seguiErrore = false }
     // come prima. E gli errori si azzerano solo se il chiamante NON li sta scrivendo.
     const statoEsplicito = riga.sync;
     const hoStato = typeof statoEsplicito === 'string' && statoEsplicito !== '';
-    completa.sync = hoStato ? statoEsplicito : 'da_salvare';
-    if (!seguiErrore && !hoStato) {
+    const mantieneConflitto = esistente?.sync === 'conflitto'
+      && statoEsplicito !== 'da_salvare' && !seguiErrore;
+    const mantieniStato = hoStato && (seguiErrore || statoEsplicito === 'da_salvare');
+    completa.sync = mantieneConflitto ? 'conflitto'
+      : mantieniStato ? statoEsplicito : 'da_salvare';
+    if (!seguiErrore && !mantieniStato) {
       completa.ultimo_errore = null;
       completa.tentativi = 0;
     } else {
