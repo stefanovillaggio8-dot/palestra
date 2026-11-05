@@ -713,20 +713,20 @@ export const STANDARD_1RM = {
  * hanno un campo dedicato.
  */
 /**
- * CAD Curl: parametro di MODELLO, NON differenza misurata in uno studio.
+ * Non esiste una percentuale di differenza di carico scientificamente
+ * VALIDATA per il CAD Curl sulla Scott al contrario con gomiti appoggiati
+ * e busto arretrato. I lavori su incline/preacher/Bayesian curl analizzano
+ * altri esercizi e non consentono una conversione universale in kg.
  *
- * Il busto arretrato (maggiore allungamento nella posizione iniziale), i gomiti
- * appoggiati sul lato opposto della Scott e il movimento stretto senza slancio
- * rendono questa variante piu' impegnativa del curl libero a pari kg.
- * Usiamo 0,85 della soglia del DUMBBELL CURL tradizionale a ogni percentile,
- * peso corporeo e ripetizioni: cosi' una serie da 18 kg x 8 e' valutata come
- * una prova difficile, senza moltiplicare i kg reali o fingere un 1RM.
+ * Fattore neutro: NESSUN bonus arbitrario finché non si dispone di misure
+ * dirette comparabili. Il CAD mantiene comunque un Rank e uno storico separati.
  *
- * Il 15% e' volutamente PRUDENTE E PROVVISORIO, non una misura biomeccanica
- * certificata e non un percentile CAD Curl (non pubblicato). Non aggiungere
- * un ulteriore bonus a meccanica o difficoltaScala: sarebbe doppio conteggio.
+ * Ricerche rilevanti:
+ * Oliveira et al., J Sports Sci Med 2009, PMID 24150552 (EMG e posizione)
+ * Attarieh et al., Eur J Sport Sci 2025, PMID 40082069 (profilo torcente)
+ * Kobayashi et al., J Sports Sci 2026, PMID 42829982 (adattamenti specifici)
  */
-export const CAD_CURL_FATTORE_SOGLIE = 0.85;
+export const CAD_CURL_FATTORE_SOGLIE = 1;
 
 export function standardPerMovimento(movimento, esercizio = {}) {
   const e = esercizio || {};
@@ -750,17 +750,15 @@ export function standardPerMovimento(movimento, esercizio = {}) {
       tipoAttrezzatura: specifico.tipoAttrezzatura,
     };
   }
-  // CAD Curl: la difficolta' e' la conseguenza COMBINATA delle tre condizioni
-  // dichiarate: panca Scott usata al contrario, gomiti fissi al cuscinetto e
-  // busto inclinato indietro (preallungamento). Il confronto si fa con il
-  // Dumbbell Curl, con la STESSA unita' per manubrio.
+  // CAD Curl: mancano dati comparativi sull'ESATTA variante (Scott
+  // al contrario, gomiti fissi, busto reclinato). Esercizi con posizione
+  // diversa della spalla mostrano profili di momento e adattamenti diversi,
+  // ma nessuno studio ha misurato un rapporto di forza CAD/curl libero.
   //
-  // Prendiamo i cinque percentili pubblicati solo per il CURL NORMALE, poi
-  // applichiamo a ciascuna soglia un coefficiente prudente di 0,85. Cosi'
-  // il Rank CAD non puo' risultare piu' basso del curl normale alla stessa
-  // prestazione: la scala e' traslata, non deformata o "regalata" a caso.
-  // Questi numeri NON sono percentili osservati per il CAD Curl; il campo
-  // fonte rimane di modello e l'attendibilita' e' bassa.
+  // Solo per mantenere un Rank personale funzionante, usa come PROXY le soglie
+  // osservate per il Dumbbell Curl. NON applicare un malus/bonus percentuale:
+  // non equivale a dimostrare che i due esercizi richiedano la stessa forza.
+  // La differenza reale potra' essere calcolata solo con test controllati.
   if (movimento === 'bicipiti_panca'
       && e.id === 'ex-scott-bench-curl'
       && e.convenzione === 'per_manubrio') {
@@ -768,20 +766,22 @@ export function standardPerMovimento(movimento, esercizio = {}) {
       id: 'ex-dumbbell-curl', nome: 'Dumbbell Curl', convenzione: 'per_manubrio',
     });
     if (riferimento?.soglie1RMPerPeso) {
-      const soglieStimate = riferimento.soglie1RMPerPeso.map(([corpo, ...valori]) =>
-        [corpo, ...valori.map(v => Math.round(v * CAD_CURL_FATTORE_SOGLIE * 1000) / 1000)]);
-      const rif75 = soglieStimate.find(r => r[0] === 75);
+      const soglieProxy = riferimento.soglie1RMPerPeso.map(([corpo,...valori]) =>
+        [corpo,...valori.map(v => v * CAD_CURL_FATTORE_SOGLIE)]);
+      const rif75 = soglieProxy.find(r => r[0] === 75);
       return {
         ingresso: rif75[1] / 75,
         vertice: rif75[5] / 75,
-        soglie1RMPerPeso: soglieStimate,
+        soglie1RMPerPeso: soglieProxy,
         curvaRank: null,
-        nota: 'CAD Curl: panca Scott al contrario, gomiti fermi sul cuscinetto e busto arretrato per il preallungamento. Due manubri, kg PER SINGOLO MANUBRIO. Scala tecnica provvisoria: soglie del curl con manubri ridotte del 15% per la maggiore difficolta; la riduzione non e una percentuale validata sperimentalmente.',
-        fonte: 'modello_tecnica_cad_curl',
+        nota: 'CAD Curl: panca Scott al contrario, gomiti sul cuscinetto e busto arretrato. La posizione della spalla e il momento torcente possono modificare la difficolta, ma non e scientificamente accertato un aumento fisso. Carico: kg di UN manubrio. Nessun bonus percentuale non dimostrato. Studi: Oliveira 2009 (PMID 24150552), Attarieh 2025 (PMID 40082069), Kobayashi 2026 (PMID 42829982).',
+        fonte: 'proxy_cad_non_validato',
+        // La pagina seguente documenta solo i percentili del CURL NORMALE:
+        // NON e' una fonte di percentili misurati per il CAD Curl.
         fonteUrl: riferimento.fonteUrl,
-        riferimentoNome: 'CAD Curl (stima a partire dal Dumbbell Curl)',
+        riferimentoNome: 'Dumbbell Curl (riferimento provvisorio; non CAD Curl)',
         affidabilitaBase: 'bassa',
-        limite: 'I percentili pubblicati si riferiscono SOLO al Dumbbell Curl normale; il 15% di difficolta aggiuntiva e una stima provvisoria per la tecnica CAD Curl, non uno standard misurato.',
+        limite: 'Nessuno studio disponibile quantifica la differenza di forza nella variante CAD Curl rispetto al curl normale. Le soglie sono un riferimento provvisorio NON validato per questo movimento: nessuna percentuale scientifica di maggiore difficolta puo essere assegnata. Per stimarla servono ripetute prove comparabili di entrambi gli esercizi a pari tecnica, ripetizioni e sforzo.',
         tipoAttrezzatura: tipoAttrezzaturaRank(e),
       };
     }
