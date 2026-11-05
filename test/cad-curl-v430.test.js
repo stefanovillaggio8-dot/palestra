@@ -77,7 +77,8 @@ test('v430: serie migliori e ripetizioni contano senza trasformarle in massimali
   ];
   const valutato = valutaPrestazione({esercizio:cad,serie:s,pesoCorporeo:66});
   assert.equal(valutato.valido,true);
-  assert.equal(valutato.migliore.serie.id,'b');
+  assert.equal(valutato.serieId,'b');
+  assert.equal(valutato.massimale,null);
 });
 
 test('v430: non si duplicano esercizi e il vecchio gruppo non viene riutilizzato', () => {
