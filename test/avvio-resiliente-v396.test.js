@@ -15,7 +15,9 @@ test('la scheda appare usando il database locale senza attendere il cloud',()=>{
   assert.doesNotMatch(primaRete,/await preparaAccountOnline\(\)/);
 });
 test('ricaricaTutto può evitare la RPC amici durante il primo caricamento',()=>{
- const match=app.slice(app.indexOf('async function ricaricaTutto('),app.indexOf('async function ricaricaTutto(')+900);
+ const from=app.indexOf('async function ricaricaTutto(');
+ const to=app.indexOf('/**\n * I ZAVORRI',from);
+ const match=app.slice(from,to);
  assert.match(match,/caricaAmiciOnline = true/);
  assert.match(match,/if \(caricaAmiciOnline && sb\.collegato\(\)\)/);
 });
