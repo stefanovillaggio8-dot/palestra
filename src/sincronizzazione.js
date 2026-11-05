@@ -141,7 +141,7 @@ export function applicaRemote(locale, remoto) {
   if (!locale) {
     return { azione: 'applica', riga: { ...remoto, sync: 'pulito', base_rev: Number(remoto.rev || 0) } };
   }
-  // Un conflitto ancora da scegliere ha gia' conservato le due versioni.
+  // Un conflitto ancora da scegliere ha già conservato le due versioni.
   // Lasciarlo attraversare il pull successivo farebbe rimpiazzare la copia
   // locale oppure aprire altri conflitti per lo stesso identico elemento.
   if (locale.sync === 'conflitto') return { azione: 'ignora', riga: locale };
