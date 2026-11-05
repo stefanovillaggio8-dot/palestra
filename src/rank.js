@@ -704,6 +704,10 @@ return {
     // la usa per tradurre le soglie in pesi che si caricano, e per dire COME si
     // conta quell'esercizio.
     cfg: r.cfg || null,
+    // Origine dei riferimenti, attrezzatura e limiti reali del modello.
+    // Stessi metadati in scheda, Prova Rank, storico e Rank personale.
+    calibrazione: r.calibrazione || null,
+    modelloRipetizioni: r.modelloRipetizioni || null,
     // i pezzi nuovi, per la schermata che li vuole mostrare
     ripetizioniPiene: r.ripetizioniPiene !== undefined ? r.ripetizioniPiene : null,
     meccanica: r.meccanica,
