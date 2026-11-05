@@ -330,7 +330,7 @@ export function descriviAffidabilitaRank(standard, cfg, rank, migliore, pesoCorp
   const s = standard || {};
   const macchina = String(cfg?.tipoAttrezzatura || '');
   const specifico = s.fonte === 'strengthlevel_esercizio';
-  const cadStimato = s.fonte === 'modello_tecnica_cad_curl';
+  const cadNonValidato = s.fonte === 'proxy_cad_non_validato';
   const estremo = (rank?.indice ?? -1) >= 5;
   const ripLunghe = Number(migliore?.ripetizioni) > 12;
   const fuoriDati = Array.isArray(s.soglie1RMPerPeso) && (
@@ -342,13 +342,14 @@ export function descriviAffidabilitaRank(standard, cfg, rank, migliore, pesoCorp
   let livello = specifico ? (s.affidabilitaBase || 'media') : 'bassa';
   if (specifico) {
     motivi.push('Riferimenti pubblicati da una community di sollevatori, non tecnica verificata da giudici');
-  } else if (cadStimato) {
-    motivi.push('CAD Curl: più impegnativo del curl normale per busto arretrato, gomiti fissi sulla panca Scott al contrario e maggiore allungamento dei bicipiti');
-    motivi.push('Soglie del Dumbbell Curl ridotte del 15% come STIMA tecnica provvisoria: nessuno studio ha misurato quel 15% per questa variante');
+  } else if (cadNonValidato) {
+    motivi.push('Il CAD Curl si esegue sulla Scott al contrario, con gomiti appoggiati e busto arretrato: posizione muscolare e momento torcente cambiano, ma non è dimostrata una percentuale universale di maggiore difficoltà');
+    motivi.push('Riferimento numerico temporaneo: Dumbbell Curl, senza alcun bonus percentuale. Questi NON sono percentili scientifici del CAD Curl');
+    motivi.push('Studi sull’influenza della posizione: Oliveira 2009 (PMID 24150552), Attarieh 2025 (PMID 40082069), Kobayashi 2026 (PMID 42829982). Nessuno confronta direttamente il CAD Curl con il curl normale');
   } else {
     motivi.push('Soglie derivate da un modello di movimento, senza cinque percentili specifici per questa variante');
   }
-  if (s.limite && (specifico || cadStimato)) motivi.push(s.limite);
+  if (s.limite && (specifico || cadNonValidato)) motivi.push(s.limite);
   if (s.nota && specifico && s.affidabilitaBase === 'indicativa') motivi.push(s.nota);
   if (estremo) {
     livello = 'bassa';
@@ -378,7 +379,7 @@ export function descriviAffidabilitaRank(standard, cfg, rank, migliore, pesoCorp
     titolo: livello === 'media' ? 'Attendibilita media' :
       livello === 'indicativa' ? 'Attendibilita indicativa' : 'Attendibilita limitata',
     origine: specifico ? 'Riferimento statistico specifico'
-      : cadStimato ? 'Stima tecnica specifica CAD Curl'
+      : cadNonValidato ? 'CAD Curl: calibrazione scientifica non disponibile'
         : 'Modello provvisorio per famiglia',
     fonteUrl: s.fonteUrl || null,
     riferimentoNome: s.riferimentoNome || null,
