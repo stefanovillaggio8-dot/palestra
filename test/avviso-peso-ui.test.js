@@ -109,7 +109,7 @@ test('2. l\'avviso sta vicino alla riga delle soglie, non nascosto in fondo', as
   globalThis.window.location.hash = '#/esercizio/' + esercizio;
   await new Promise((r) => setTimeout(r, 120));
   const testoSchermata = (app.textContent || '');
-  const iSoglie = testoSchermata.indexOf('Soglie:');
+  const iSoglie = testoSchermata.indexOf('Soglie a 8 ripetizioni senza spotter:');
   const iAvviso = testoSchermata.indexOf('Questo vale per');
   assert.ok(iSoglie >= 0, 'c\'e\' la riga delle soglie');
   assert.ok(iAvviso > iSoglie,
