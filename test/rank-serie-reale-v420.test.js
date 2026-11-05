@@ -116,8 +116,9 @@ test('v420: una serie storica conserva il peso corporeo del proprio giorno', () 
   assert.equal(r.kgEquivalenti, 22);
 });
 
-test('v420: il riferimento empirico e esclusivo del curl Scott con un manubrio', () => {
-  assert.ok(standardPerMovimento('bicipiti_panca', scott).soglie1RMPerPeso);
+test('v423: il riferimento monobraccio non viene attribuito allo Scott con due manubri', () => {
+  assert.equal(standardPerMovimento('bicipiti_panca', scott).soglie1RMPerPeso, null);
+  assert.ok(standardPerMovimento('bicipiti_panca', preacher).soglie1RMPerPeso);
   const press = esercizioTest('Chest Press');
   assert.ok(press);
   assert.equal(standardPerMovimento('spinta_orizzontale', press).soglie1RMPerPeso, null);
