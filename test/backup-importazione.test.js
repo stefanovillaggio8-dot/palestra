@@ -142,7 +142,9 @@ test('B6. gli errori di sincronizzazione non vengono azzerati subito', async () 
   const syncSrc = await readFile(new URL('../src/sync.js', import.meta.url), 'utf8');
   // la sync registra gli errori e i conflitti: ogni scrittura di quei due stati
   // deve passare seguiErrore, altrimenti db.salva li azzera subito dopo
-  const scriveErrore = syncSrc.match(/sync: 'errore'/g) || [];
+  // Da v428 gli errori temporanei restano da_salvare e si ritentano;
+  // quelli permanenti conservano 'errore' e ultimo_errore.
+  const scriveErrore = syncSrc.match(/sync: erroreTransitorio\(e\) \? 'da_salvare' : 'errore'/g) || [];
   const scriveConflitto = syncSrc.match(/sync: 'conflitto'/g) || [];
   const scriveInCorso = syncSrc.match(/sync: 'in_corso'/g) || [];
   assert.ok(scriveErrore.length >= 1, 'la sync registra gli errori');
