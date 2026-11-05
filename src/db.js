@@ -302,7 +302,7 @@ export async function salva(tabella, riga, { segna = true, seguiErrore = false }
     // Copiare ...riga da IndexedDB porta anche il VECCHIO sync='pulito' o
     // 'in_corso'. Non e' un ordine esplicito: una modifica utente deve
     // essere SEMPRE messa in coda. Soltanto il retry (da_salvare), oppure
-    // una transizione amministrativa seguiErrore, puo' conservare uno stato.
+    // una transizione amministrativa seguiErrore, può conservare uno stato.
     const hoStato = statoEsplicito === 'da_salvare'
       || (seguiErrore && ['errore','in_corso','conflitto'].includes(statoEsplicito));
     completa.sync = hoStato ? statoEsplicito : 'da_salvare';
