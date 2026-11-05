@@ -389,6 +389,13 @@ export async function profiliAmici() {
   return Array.isArray(dati) ? dati : [];
 }
 
+/** Inviti creati dal profilo autenticato: RPC protetta, mai elenco globale. */
+export async function invitiAmiciStato(profiloId) {
+  if (!collegato()) return [];
+  const dati = await rpc('inviti_amici_stato', { p_profilo_id: profiloId });
+  return Array.isArray(dati) ? dati : [];
+}
+
 export async function creaInvitoAmico(profiloId, trasferisciAndrea = false) {
   return rpc('crea_invito_amico', {
     p_profilo_id: profiloId,
