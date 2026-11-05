@@ -397,7 +397,10 @@ function progressoDentro(valore, soglie, indice) {
 
 /** In quale fascia cade questo punteggio, e a quanti LP sei dentro. */
 function bandaDaValore(valore, soglie) {
-  if (valore <= soglie[0]) {
+  // L'uguaglianza con la soglia SBLOCCA il Rank: prima il primo gradino
+  // usava <= e poteva mostrare "sotto Bronze" a chi aveva esattamente
+  // il punteggio richiesto. Tutti gli altri gradini usano >=.
+  if (valore < soglie[0]) {
     return {
       indice: -1, rank: null, divisione: null, lp: 0, progresso: 0, sottoSoglia: true,
       mancaAllaPrima: Math.round((soglie[0] - valore) * 100) / 100,
