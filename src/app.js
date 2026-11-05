@@ -6196,21 +6196,47 @@ function vistaImpostazioni(zona) {
   zonaPericolo.appendChild(el('div', { class: 'riga-pulsanti' }, [
     bottone('Cancella tutto lo storico (la scheda resta)', {
       onClick: async () => {
-        const sedute = (await db.tutti('sedute')).filter((s) => !s.eliminata);
-        const serie = (await db.tutti('serie')).filter((x) => !x.eliminata);
+        // MAI usare db.tutti('sedute') per un reset personale: quel comando
+        // comprende anche Andrea e ogni altro account presente sul dispositivo.
+        const sedute = seduteDellaPersona().filter(x => x && !x.eliminata);
+        const serie = serieDellaPersona().filter(x => x && !x.eliminata);
+        const ids = new Set(sedute.map(x => x.id));
+        const notePersonali = (V.note || []).filter(n => n && !n.eliminata && (
+          (n.seduta_id && ids.has(n.seduta_id))
+          || [...ids].some(id => String(n.id || '').startsWith('nota-' + id + '-'))
+          || !!eventoDaNota(n,accountAttivo())
+        ));
+        // Con l'azzeramento totale dello storico personale, anche premi legacy
+        // non collegati a una singola seduta vanno annullati. NON toccare le
+        // missioni o gli acquisti, che non dipendono dagli allenamenti.
+        const premiAllenamenti = ricompenseMie().filter(r =>
+          r && !r.eliminata && ['allenamento','record','promozione','traguardo'].includes(r.tipo));
+        if (!sedute.length && !serie.length && !premiAllenamenti.length) {
+          avviso('Non ci sono allenamenti da cancellare.',{tipo:'attenzione'});
+          return;
+        }
         const ok = await chiediConferma(
-          'Cancellare tutto lo storico?',
-          `${sedute.length} sedute e ${serie.length} serie vanno via. La scheda con i tuoi 4 giorni NON viene toccata, e i progressi ripartono da zero. Non si puo\' annullare: se vuoi, scarica prima un backup.`,
-          { testoOk: 'Cancella lo storico', testoAnnulla: 'Lascia tutto com\'e\'', pericolo: true },
+          'Cancellare lo storico del tuo account?',
+          `${sedute.length} sedute e ${serie.length} serie del tuo account vanno nel cestino. La scheda resta, i Rank e le ricompense degli allenamenti vengono ricalcolati. Gli altri account, le missioni e gli acquisti non vengono toccati. Scarica prima un backup se vuoi conservarli.`,
+          { testoOk: 'Cancella il mio storico', testoAnnulla: 'Lascia tutto com\'e\'', pericolo: true },
         );
         if (!ok) return;
-        // serie, sedute e note di seduta: la scheda e gli esercizi restano
-        for (const x of serie) await db.cestino('serie', x.id);
-        for (const x of sedute) await db.cestino('sedute', x.id);
-        for (const n of V.note) await db.cestino('note', n.id);
+        await aspettaSalvataggi();
+        const esito = await eliminaSeduteEGuadagni([...ids]);
+        // Anche il premio legacy non attribuibile a una seduta precisa va
+        // annullato in un RESET TOTALE (non nelle cancellazioni parziali).
+        for (const r of premiAllenamenti) {
+          const attuale = await db.prendi('ricompense',r.id);
+          if (attuale && !attuale.eliminata) await db.cestino('ricompense',r.id);
+        }
+        for (const n of notePersonali) {
+          const attuale = await db.prendi('note',n.id);
+          if (attuale && !attuale.eliminata) await db.cestino('note',n.id);
+        }
         await db.scriviMeta('aggiornamento_scheda', MODALITA.CHIEDI);
         await ricaricaTutto();
-        avviso(`Cancellate ${sedute.length} sedute. La scheda e\' rimasta.`, { tipo: 'ok', durata: 6000 });
+        avviso(`Cancellate ${esito.numero} sedute del tuo account. Scheda, altri profili e acquisti conservati.`,
+          { tipo: 'ok', durata: 6000 });
         vai('/storico');
         disegna();
       },
