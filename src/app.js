@@ -42,6 +42,7 @@ import { idRegolazioni, leggiRegolazioni, riepilogoRegolazioni } from './regolaz
 import { apriRegolazioniMacchina } from './regolazioni-ui.js';
 import { riassuntoFinaleAllenamento } from './finale-allenamento.js';
 import { collegaPremioASeduta, premiDaAnnullare } from './ricompense-sedute.js';
+import { preparaAzzeramentoStorico } from './reset-storico.js';
 import { confrontoGhost } from './ghost-mode.js';
 import { apriModaleComandoVocale } from './comandi-vocali-ui.js';
 import { nuovaVoceCronologia, eventoDaNota, storicoCronologia, variazioniSerie, modificheAncoraAttuali, annullaVoce } from './cronologia.js';
@@ -5973,10 +5974,14 @@ function vistaImpostazioni(zona) {
               if(!ok)return;
               occupato=true;
               try {
-                await sync.risolvi(c.id,lato);
+                const risolto = await sync.risolvi(c.id,lato);
                 await ricaricaTutto();
                 disegna();
-                avviso('Conflitto risolto. Le altre modifiche sono rimaste intatte.',{tipo:'ok'});
+                if (!risolto) {
+                  avviso('Conflitto già risolto o non più disponibile. Elenco aggiornato.',{tipo:'attenzione'});
+                } else {
+                  avviso('Conflitto risolto. Le altre modifiche sono rimaste intatte.',{tipo:'ok'});
+                }
               }catch(err){
                 occupato=false;
                 mostraErroreBreve('Non sono riuscito a risolvere il conflitto: '+(err?.message||err));
@@ -6192,21 +6197,51 @@ function vistaImpostazioni(zona) {
   zonaPericolo.appendChild(el('div', { class: 'riga-pulsanti' }, [
     bottone('Cancella tutto lo storico (la scheda resta)', {
       onClick: async () => {
-        const sedute = (await db.tutti('sedute')).filter((s) => !s.eliminata);
-        const serie = (await db.tutti('serie')).filter((x) => !x.eliminata);
+        const selezionati = preparaAzzeramentoStorico({
+          account: accountAttivo(),
+          sedute: seduteDellaPersona(),
+          serie: serieDellaPersona(),
+          note: V.note,
+          ricompense: ricompenseMie(),
+        });
+        const { sedute, serie, premiAllenamenti } = selezionati;
+        if (!sedute.length && !serie.length
+            && !premiAllenamenti.length && !selezionati.notePersonali.length) {
+          avviso('Non ci sono allenamenti da cancellare.',{tipo:'attenzione'});
+          return;
+        }
         const ok = await chiediConferma(
-          'Cancellare tutto lo storico?',
-          `${sedute.length} sedute e ${serie.length} serie vanno via. La scheda con i tuoi 4 giorni NON viene toccata, e i progressi ripartono da zero. Non si puo\' annullare: se vuoi, scarica prima un backup.`,
-          { testoOk: 'Cancella lo storico', testoAnnulla: 'Lascia tutto com\'e\'', pericolo: true },
+          'Cancellare lo storico del tuo account?',
+          `${sedute.length} sedute e ${serie.length} serie del tuo account vanno nel cestino. La scheda resta, i Rank e le ricompense degli allenamenti vengono ricalcolati. Gli altri account, le missioni e gli acquisti non vengono toccati. Scarica prima un backup se vuoi conservarli.`,
+          { testoOk: 'Cancella il mio storico', testoAnnulla: 'Lascia tutto com\'e\'', pericolo: true },
         );
         if (!ok) return;
-        // serie, sedute e note di seduta: la scheda e gli esercizi restano
-        for (const x of serie) await db.cestino('serie', x.id);
-        for (const x of sedute) await db.cestino('sedute', x.id);
-        for (const n of V.note) await db.cestino('note', n.id);
+        // Non cancellare sedute create mentre la conferma era aperta.
+        const confermate = new Set(sedute.map(x => x.id));
+        await aspettaSalvataggi();
+        await ricaricaTutto();
+        const aggiornati = preparaAzzeramentoStorico({
+          account: accountAttivo(),
+          sedute: seduteDellaPersona().filter(x => confermate.has(x.id)),
+          serie: serieDellaPersona(),
+          note: V.note,
+          ricompense: ricompenseMie(),
+        });
+        const esito = await eliminaSeduteEGuadagni(aggiornati.sedute.map(x => x.id));
+        // Anche i premi legacy non attribuibili a una seduta vanno annullati
+        // nel reset completo (NON nelle cancellazioni parziali).
+        for (const r of aggiornati.premiAllenamenti) {
+          const attuale = await db.prendi('ricompense',r.id);
+          if (attuale && !attuale.eliminata) await db.cestino('ricompense',r.id);
+        }
+        for (const n of aggiornati.notePersonali) {
+          const attuale = await db.prendi('note',n.id);
+          if (attuale && !attuale.eliminata) await db.cestino('note',n.id);
+        }
         await db.scriviMeta('aggiornamento_scheda', MODALITA.CHIEDI);
         await ricaricaTutto();
-        avviso(`Cancellate ${sedute.length} sedute. La scheda e\' rimasta.`, { tipo: 'ok', durata: 6000 });
+        avviso(`Cancellate ${esito.numero} sedute del tuo account. Scheda, altri profili e acquisti conservati.`,
+          { tipo: 'ok', durata: 6000 });
         vai('/storico');
         disegna();
       },

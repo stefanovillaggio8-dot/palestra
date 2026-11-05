@@ -141,6 +141,10 @@ export function applicaRemote(locale, remoto) {
   if (!locale) {
     return { azione: 'applica', riga: { ...remoto, sync: 'pulito', base_rev: Number(remoto.rev || 0) } };
   }
+  // Un conflitto ancora da scegliere ha già conservato le due versioni.
+  // Lasciarlo attraversare il pull successivo farebbe rimpiazzare la copia
+  // locale oppure aprire altri conflitti per lo stesso identico elemento.
+  if (locale.sync === 'conflitto') return { azione: 'ignora', riga: locale };
   const inCoda = locale.sync === 'da_salvare' || locale.sync === 'in_corso' || locale.sync === 'errore';
   const base = Number(locale.base_rev || 0);
   const revLocale = Number(locale.rev || 0);
@@ -277,6 +281,35 @@ export function risolviConflitto(conflitto, scelta) {
       base_rev: Math.max(Number(conflitto.locale.base_rev || 0), Number(conflitto.remoto.rev || 0)),
     },
     perso: { ...perso, _scartato: true },
+  };
+}
+
+/**
+ * Dopo una scelta, la revisione di partenza deve diventare quella della
+ * versione REMOTA appena confrontata. Se resta la vecchia base_rev, il
+ * prossimo invio creera' di nuovo lo stesso conflitto all'infinito.
+ * Questa funzione non salva: deve essere chiamata dentro aggiornaSe() per
+ * non sovrascrivere modifiche fatte mentre la scelta era aperta.
+ */
+export function preparaRigaDopoSceltaConflitto(conflitto, esito, attuale) {
+  const revRemota = Number(conflitto?.remoto?.rev || 0);
+  const revLocale = Number(attuale?.rev || 0);
+  const revScelta = Number(esito?.riga?.rev || 0);
+  // _etichetta esiste SOLO nel confronto visivo delle due copie: non e'
+  // una colonna Supabase. Persisterla farebbe fallire l'UPSERT con PGRST204.
+  const { _etichetta, _scartato, ...sceltaPulita } = esito.riga;
+  void _etichetta; void _scartato;
+  return {
+    ...attuale,
+    ...sceltaPulita,
+    id: conflitto.riga_id,
+    rev: Math.max(revRemota, revLocale, revScelta - 1) + 1,
+    base_rev: revRemota,
+    sync: 'da_salvare',
+    updated_at: adesso(),
+    ultimo_errore: null,
+    tentativi: 0,
+    in_flight: false,
   };
 }
 

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import {
   decidiPush, dopoInvioRiuscito, segnaDaSalvare, applicaRemote, risolviConflitto,
-  costruisciConflitto, attesaRiprovo, contaDaSincronizzare, statoSalvataggio,
+  costruisciConflitto, preparaRigaDopoSceltaConflitto, attesaRiprovo, contaDaSincronizzare, statoSalvataggio,
   nuovoId, rigaPerInvio, CAMPI_CARICO, riallineaEsercizi,
 } from '../src/sincronizzazione.js';
 
@@ -373,4 +373,54 @@ test('l’equipaggiamento Aura resta nella riga profilo inviata al server', () =
     Armatura: 'armatura-guerriero-braci',
     Effetto: 'effetto-ambra',
   });
+});
+
+test('v424: un conflitto non risolto non e sovrascritto dal prossimo pull', () => {
+  const locale = riga({rev:3,base_rev:1,peso:45,sync:'conflitto'});
+  const remoto = riga({rev:3,base_rev:3,peso:40,device_id:'pc'});
+  const esito = applicaRemote(locale, remoto);
+  assert.equal(esito.azione, 'ignora');
+  assert.equal(esito.riga.peso, 45);
+  assert.equal(esito.riga.sync, 'conflitto');
+});
+
+test('v424: scegliere il locale aggiorna base_rev remoto e non rigenera il conflitto', () => {
+  const locale = riga({rev:3,base_rev:1,peso:45,sync:'da_salvare'});
+  const remoto = riga({rev:2,base_rev:2,peso:40,device_id:'pc'});
+  const conflitto = costruisciConflitto('c-test', 'serie', locale, remoto);
+  const scelta = risolviConflitto(conflitto, 'locale');
+  const ripristinata = preparaRigaDopoSceltaConflitto(conflitto, scelta,
+    {...locale,sync:'conflitto'});
+  assert.equal(ripristinata.peso,45);
+  assert.equal(ripristinata.base_rev,2);
+  assert.equal(ripristinata.rev,4);
+  assert.equal(ripristinata.sync,'da_salvare');
+  assert.equal(ripristinata.tentativi,0);
+  assert.equal(decidiPush(ripristinata,remoto),'aggiorna');
+});
+
+test('v424: scegliere il remoto mantiene i dati remoti e la revisione attuale', () => {
+  const locale = riga({rev:3,base_rev:1,peso:45,sync:'da_salvare',
+    configurazioneCavoPersonalizzata:true});
+  const remoto = riga({rev:5,base_rev:5,peso:40,device_id:'pc'});
+  const conflitto = costruisciConflitto('c-remoto', 'serie', locale, remoto);
+  const scelta = risolviConflitto(conflitto, 'remoto');
+  const ripristinata = preparaRigaDopoSceltaConflitto(conflitto, scelta,
+    {...locale,sync:'conflitto'});
+  assert.equal(ripristinata.peso,40);
+  assert.equal(ripristinata.base_rev,5);
+  assert.equal(ripristinata.rev,6);
+  assert.equal(ripristinata.configurazioneCavoPersonalizzata,true);
+  assert.ok(!Object.prototype.hasOwnProperty.call(ripristinata,'_etichetta'),
+    'Il confronto visivo non deve creare una colonna inesistente su Supabase');
+  assert.ok(!Object.prototype.hasOwnProperty.call(rigaPerInvio(ripristinata,'serie'),'_etichetta'));
+  assert.equal(decidiPush(ripristinata,remoto),'aggiorna');
+});
+
+test('v424: la funzione UI di risoluzione usa scrittura condizionale, non salva con rev vecchia', async () => {
+  const fs = await readFile(new URL('../src/sync.js', import.meta.url), 'utf8');
+  const part = fs.slice(fs.indexOf('export async function risolvi('),fs.indexOf('export async function conflittiDaScegliere'));
+  assert.match(part,/db\.aggiornaSe\(/);
+  assert.doesNotMatch(part,/db\.salva\(c\.tabella,\s*esito\.riga\)/);
+  assert.match(part,/c\.stato !== 'da_scegliere'/);
 });

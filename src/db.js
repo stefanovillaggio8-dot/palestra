@@ -274,7 +274,11 @@ export async function salva(tabella, riga, { segna = true, seguiErrore = false }
     ...esistente,
     ...riga,
     id: base,
-    updated_at: riga.updated_at || adesso(),
+    // Una modifica LOCALE ha sempre un timestamp nuovo, anche quando
+    // ...riga porta quello del vecchio salvataggio. Altrimenti il pull
+    // incrementale non vede la modifica su un altro dispositivo.
+    // I download (segna:false) devono invece conservare la data del server.
+    updated_at: segna ? adesso() : (riga.updated_at || adesso()),
     device_id: riga.device_id || idDispositivo(),
   };
   if (segna) {
@@ -295,7 +299,12 @@ export async function salva(tabella, riga, { segna = true, seguiErrore = false }
     // sincronizzazione esplicito, quello vale; altrimenti la riga si mette in coda
     // come prima. E gli errori si azzerano solo se il chiamante NON li sta scrivendo.
     const statoEsplicito = riga.sync;
-    const hoStato = typeof statoEsplicito === 'string' && statoEsplicito !== '';
+    // Copiare ...riga da IndexedDB porta anche il VECCHIO sync='pulito' o
+    // 'in_corso'. Non e' un ordine esplicito: una modifica utente deve
+    // essere SEMPRE messa in coda. Soltanto il retry (da_salvare), oppure
+    // una transizione amministrativa seguiErrore, può conservare uno stato.
+    const hoStato = statoEsplicito === 'da_salvare'
+      || (seguiErrore && ['errore','in_corso','conflitto'].includes(statoEsplicito));
     completa.sync = hoStato ? statoEsplicito : 'da_salvare';
     if (!seguiErrore && !hoStato) {
       completa.ultimo_errore = null;

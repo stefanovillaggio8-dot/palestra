@@ -9,7 +9,8 @@ import * as db from './db.js';
 import * as sb from './supabase.js';
 import {
   TABELLE, rigaPerInvio, preservaMetadatiProfiloLocaleSuRemoto, decidiPush, dopoInvioRiuscito, applicaRemote,
-  costruisciConflitto, risolviConflitto, attesaRiprovo, statoSalvataggio, adesso, nuovoId,
+  costruisciConflitto, risolviConflitto, preparaRigaDopoSceltaConflitto,
+  attesaRiprovo, statoSalvataggio, adesso, nuovoId,
 } from './sincronizzazione.js';
 
 const CHIAVE_ULTIMO_PULL = 'palestra-ultimo-pull';
@@ -370,11 +371,35 @@ async function tira() {
 
 /** Ste sceglie quale versione tenere. */
 export async function risolvi(idConflitto, scelta) {
+  if (scelta !== 'locale' && scelta !== 'remoto') {
+    throw new Error('Scelta del conflitto non valida.');
+  }
   const c = await db.prendi('conflitti', idConflitto);
-  if (!c) return null;
+  if (!c || c.stato !== 'da_scegliere') return null;
   const esito = risolviConflitto(c, scelta);
-  await db.salva(c.tabella, esito.riga);
-  await db.salva('conflitti', { ...c, stato: scelta === 'remoto' ? 'scelta_remota' : 'scelta_locale', risolto_il: adesso(), scartato: esito.perso });
+
+  // Non usare db.salva(..., segna:true): incrementerebbe di nuovo
+  // la revisione locale e RIPORTEREBBE base_rev alla versione vecchia.
+  // Il giro successivo creerebbe lo stesso conflitto una seconda volta.
+  // La transazione condizionale protegge anche gli edit fatti in un'altra
+  // scheda fra l'apertura della finestra e il click dell'utente.
+  const aggiornata = await db.aggiornaSe(
+    c.tabella,
+    c.riga_id,
+    (attuale) => !!attuale && attuale.sync === 'conflitto'
+      && Number(attuale.rev || 0) === Number(c.locale?.rev || 0)
+      && attuale.updated_at === c.locale?.updated_at,
+    (attuale) => preparaRigaDopoSceltaConflitto(c, esito, attuale),
+  );
+  if (!aggiornata) {
+    throw new Error('Questi dati sono cambiati dopo il conflitto. Riapri la schermata e controlla le due versioni.');
+  }
+  await db.salva('conflitti', {
+    ...c,
+    stato: scelta === 'remoto' ? 'scelta_remota' : 'scelta_locale',
+    risolto_il: adesso(),
+    scartato: esito.perso,
+  });
   avvisa();
   return esito;
 }

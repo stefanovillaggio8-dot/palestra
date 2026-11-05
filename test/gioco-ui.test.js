@@ -230,7 +230,7 @@ test('7. i Rank mostrano le card con rank e LP', async () => {
 test('8. la scheda del singolo esercizio mostra record, soglie e progressi', async () => {
   await vai('#/esercizio/ex-chest-press', () => app.textContent.includes('Chest Press'));
   assert.match(app.textContent, /Record personale/);
-  assert.match(app.textContent, /BRONZE da|SILVER da|GOLD da/);
+  assert.match(app.textContent, /BRONZE: da|SILVER: da|GOLD: da/);
   assert.ok(perClasse(app, 'barra-progresso').length >= 1, 'la barra degli LP c\'e\'');
   assert.match(app.textContent, /Storico dei miglioramenti/);
 });
