@@ -952,13 +952,7 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-aura-divina-premium {animati
   box-shadow:0 4px 13px rgba(0,0,0,.12);
 }
 .app-vista-allenamento .workout-hub-action strong{font-size:inherit;flex:0 1 auto;min-width:0;white-space:nowrap;}
-.app-vista-allenamento .workout-hub-music{
-  background:linear-gradient(130deg,rgba(58,39,82,.72),rgba(25,36,55,.84));
-  border-color:rgba(175,135,224,.29);
-  color:#eadcfb;
-}
-.app-vista-allenamento .workout-hub-icon,
-.app-vista-allenamento .workout-hub-action .musicbox-palestra-icon{
+.app-vista-allenamento .workout-hub-icon{
   font-size:1.1rem;
   line-height:1;
   flex:0 0 auto;
@@ -966,11 +960,6 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-aura-divina-premium {animati
   padding:0;margin:0;
   background:none;border:0;box-shadow:none;
 }
-.app-vista-allenamento .workout-hub-music .musicbox-palestra-copy{
-  display:flex;min-width:0;gap:0;align-items:center;
-}
-.app-vista-allenamento .workout-hub-music .musicbox-palestra-copy small,
-.app-vista-allenamento .workout-hub-music .musicbox-palestra-arrow{display:none;}
 .app-vista-allenamento .workout-hub-action:focus-visible{
   outline:2px solid #8cf2be;outline-offset:3px;
 }
