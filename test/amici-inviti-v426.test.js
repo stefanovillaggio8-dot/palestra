@@ -26,7 +26,7 @@ test('v426: pagina amici mostra inviti pendenti e stato senza dichiararli amici'
   assert.match(app, /Stato degli inviti/);
   assert.match(app, /inviti\.filter\(\(i\) => !i\.accettato && !i\.scaduto\)/);
   assert.match(app, /invito\.accettato \? 'Accettato'/);
-  assert.match(app, /destinatario non registrato/);
+  assert.match(app, /il link non memorizza il nome del destinatario/);
   assert.match(app, /aggiornaStatoAmici\(\{ forza: true \}\)/);
   assert.match(app, /urlInvito\(invito\.token, speciale\)/);
 });
