@@ -71,6 +71,7 @@
 import { ESPONENTE_ALLOMETRICO, PESO_ALLOMETRICO_RIFERIMENTO, pesoAllometrico } from '../rank-v2/valori.js';
 import { caricoReale, fattoreMeccanica, RIPETIZIONI_RIFERIMENTO } from '../rank-v2/curve.js';
 import { CURVA_PERCENTILI_SQUAT, CURVA_PERCENTILI_STACCO } from '../rank-v2/scalata.js';
+import { standardAutomaticoPerEsercizio, tipoAttrezzaturaRank, descriviAttrezzaturaRank } from './standard-automatici.js';
 
 export { ESPONENTE_ALLOMETRICO, PESO_ALLOMETRICO_RIFERIMENTO, pesoAllometrico, RIPETIZIONI_RIFERIMENTO };
 
@@ -712,9 +713,28 @@ export const STANDARD_1RM = {
  * hanno un campo dedicato.
  */
 export function standardPerMovimento(movimento, esercizio = {}) {
+  const e = esercizio || {};
   const base = STANDARD_1RM[movimento];
   if (!base) return null;
-  const e = esercizio || {};
+  // Prima la corrispondenza automatica ESATTA per nome/id e attrezzatura:
+  // fonte originale con p5/p20/p50/p80/p95 del movimento specifico.
+  const specifico = standardAutomaticoPerEsercizio(e);
+  if (specifico) {
+    const rif75 = specifico.soglie1RMPerPeso.find(r => r[0] === 75);
+    return {
+      ingresso: rif75[1] / 75, vertice: rif75[5] / 75,
+      soglie1RMPerPeso: specifico.soglie1RMPerPeso,
+      curvaRank: null,
+      nota: specifico.nota,
+      fonte: specifico.fonte,
+      fonteUrl: specifico.fonteUrl,
+      riferimentoNome: specifico.riferimentoNome,
+      affidabilitaBase: specifico.affidabilitaBase,
+      dataFonte: specifico.dataFonte,
+      limite: specifico.limite,
+      tipoAttrezzatura: specifico.tipoAttrezzatura,
+    };
+  }
   let scelto = base;
 
   if (base.varianti) {
@@ -730,9 +750,11 @@ export function standardPerMovimento(movimento, esercizio = {}) {
       const id = String(e.id || '').toLowerCase();
       const nome = String(e.nome || '').toLowerCase();
       // Solo la variante con UN manubrio (non EZ bar / bilanciere / cavo).
-      // Entrambi questi ID del catalogo rappresentano il curl Scott a un braccio.
-      const unBraccio = id === 'ex-one-arm-preacher-curl' || id === 'ex-scott-bench-curl'
-        || /(?:one|single)[ -]?arm.*(?:preacher|scott)|scott bench curl seduto al contrario/.test(nome);
+      // Solo l'id monobraccio: lo Scott "seduto al contrario" del catalogo
+      // e' descritto come DUE braccia con due manubri, non lo stesso movimento
+      // validato nella fonte specifica One Arm Preacher.
+      const unBraccio = id === 'ex-one-arm-preacher-curl'
+        || /(?:one|single)[ -]?arm.*(?:preacher|scott)/.test(nome);
       if (unBraccio && e.convenzione === 'per_manubrio')
         scelto = base.varianti.one_arm_dumbbell || base;
     } else if (movimento === 'polpacci') {
@@ -744,13 +766,27 @@ export function standardPerMovimento(movimento, esercizio = {}) {
     }
   }
 
+  // Quando non esiste una fonte per ESATTAMENTE questa variante,
+  // si mantiene il vecchio modello di famiglia, segnalato come stima.
+  // Non lo si promuove a percentile verificato.
+  const oneArm = Array.isArray(scelto.soglie1RMPerPeso);
+  const eFonte = oneArm
+    ? 'https://strengthlevel.com/strength-standards/one-arm-dumbbell-preacher-curl/kg'
+    : null;
   return {
     ingresso: Number(scelto.ingresso),
     vertice: Number(scelto.vertice),
     soglie1RMPerPeso: scelto.soglie1RMPerPeso || null,
     curvaRank: scelto.curvaRank || base.curvaRank || null,
     nota: scelto.nota || base.nota || '',
-    fonte: 'standard_1rm',
+    fonte: oneArm ? 'strengthlevel_esercizio' : 'modello_famiglia',
+    fonteUrl: eFonte,
+    riferimentoNome: oneArm ? 'one arm dumbbell preacher curl' : movimento,
+    affidabilitaBase: oneArm ? 'media' : 'bassa',
+    limite: oneArm
+      ? 'Standard di una community, non una prova tecnica controllata.'
+      : 'Scala stimata dalla famiglia del movimento: NON sono percentili misurati per questo esercizio.',
+    tipoAttrezzatura: tipoAttrezzaturaRank(e),
   };
 }
 
@@ -814,6 +850,8 @@ export function configEsercizio({ esercizio = null, movimento = null, livello = 
   cfg.livello = livello || null;
   cfg.id = (esercizio && esercizio.id) || '';
   cfg.nome = (esercizio && esercizio.nome) || '';
+  cfg.tipoAttrezzatura = tipoAttrezzaturaRank(esercizio || {});
+  cfg.notaAttrezzatura = descriviAttrezzaturaRank(esercizio || {});
   // LA MODALITA' DI CARICAMENTO, che dipende da COME l'esercizio e' fatto.
   cfg.caricamento = modoDiCaricamento(cfg, esercizio);
   return cfg;
