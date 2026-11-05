@@ -23,7 +23,12 @@ export function presentaRank(record) {
   const peso = n(r.serie?.peso), rip = n(r.serie?.ripetizioni);
   if (r.serie && peso !== null && rip !== null) {
     const unita = String(r.profilo?.unita || 'kg');
-    frasi.push(`La prestazione che conta: ${numeroIt(peso)} ${unita} per ${numeroIt(rip)} ripetizioni.`);
+    const registrato = n(r.caricoRegistrato);
+    const cavoDoppio = r.cfg?.tipoAttrezzatura === 'cavo_2a1_dichiarato'
+      && registrato !== null && registrato !== peso;
+    frasi.push(cavoDoppio
+      ? `La prestazione che conta: ${numeroIt(registrato)} kg sul carrello (rapporto 2:1 dichiarato: ${numeroIt(peso)} kg al cavo) per ${numeroIt(rip)} ripetizioni.`
+      : `La prestazione che conta: ${numeroIt(peso)} ${unita} per ${numeroIt(rip)} ripetizioni.`);
   } else if (r.testo) {
     frasi.push(`Il Rank viene dalla tua migliore prestazione valida in questo esercizio.`);
   }
