@@ -56,13 +56,16 @@ export function tipoAttrezzaturaRank(esercizio = {}) {
     ? 'cavo_stack_1a1_dichiarato' : 'cavo_1a1_dichiarato';
   if (cv === 'cavo') return 'cavo_rapporto_ignoto';
   if (/smith|multipower/.test(idNome)) return 'smith_dischi_senza_barra';
+  // La monogamba NON e' uno stack bilaterale: riconoscerla prima dello stack
+  // impedisce di applicare automaticamente standard a due gambe.
+  if (cv === 'per_gamba') return e.attrezzatura === 'macchina_stack'
+    ? 'macchina_stack_monogamba' : 'per_gamba';
   if (e.attrezzatura === 'macchina_dischi') return cv === 'per_braccio' ? 'macchina_dischi_per_braccio' : 'macchina_dischi';
   if (e.attrezzatura === 'macchina_stack') return 'macchina_stack';
   if (cv === 'per_manubrio') return /(?:^|\b)(?:ez bar|bilanciere ez)(?:\b|$)/.test(idNome)
     ? 'convenzione_da_verificare' : 'manubri';
   if (cv === 'per_braccio') return 'per_braccio_attrezzo_non_noto';
   if (cv === 'bilanciere') return 'bilanciere';
-  if (cv === 'per_gamba') return e.attrezzatura === 'macchina_stack' ? 'macchina_stack_monogamba' : 'per_gamba';
   return e.attrezzatura || 'non_identificato';
 }
 
