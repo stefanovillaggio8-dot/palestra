@@ -42,6 +42,7 @@ import { idRegolazioni, leggiRegolazioni, riepilogoRegolazioni } from './regolaz
 import { apriRegolazioniMacchina } from './regolazioni-ui.js';
 import { riassuntoFinaleAllenamento } from './finale-allenamento.js';
 import { collegaPremioASeduta, premiDaAnnullare } from './ricompense-sedute.js';
+import { preparaAzzeramentoStorico } from './reset-storico.js';
 import { confrontoGhost } from './ghost-mode.js';
 import { apriModaleComandoVocale } from './comandi-vocali-ui.js';
 import { nuovaVoceCronologia, eventoDaNota, storicoCronologia, variazioniSerie, modificheAncoraAttuali, annullaVoce } from './cronologia.js';
@@ -6196,22 +6197,16 @@ function vistaImpostazioni(zona) {
   zonaPericolo.appendChild(el('div', { class: 'riga-pulsanti' }, [
     bottone('Cancella tutto lo storico (la scheda resta)', {
       onClick: async () => {
-        // MAI usare db.tutti('sedute') per un reset personale: quel comando
-        // comprende anche Andrea e ogni altro account presente sul dispositivo.
-        const sedute = seduteDellaPersona().filter(x => x && !x.eliminata);
-        const serie = serieDellaPersona().filter(x => x && !x.eliminata);
-        const ids = new Set(sedute.map(x => x.id));
-        const notePersonali = (V.note || []).filter(n => n && !n.eliminata && (
-          (n.seduta_id && ids.has(n.seduta_id))
-          || [...ids].some(id => String(n.id || '').startsWith('nota-' + id + '-'))
-          || !!eventoDaNota(n,accountAttivo())
-        ));
-        // Con l'azzeramento totale dello storico personale, anche premi legacy
-        // non collegati a una singola seduta vanno annullati. NON toccare le
-        // missioni o gli acquisti, che non dipendono dagli allenamenti.
-        const premiAllenamenti = ricompenseMie().filter(r =>
-          r && !r.eliminata && ['allenamento','record','promozione','traguardo'].includes(r.tipo));
-        if (!sedute.length && !serie.length && !premiAllenamenti.length) {
+        const selezionati = preparaAzzeramentoStorico({
+          account: accountAttivo(),
+          sedute: seduteDellaPersona(),
+          serie: serieDellaPersona(),
+          note: V.note,
+          ricompense: ricompenseMie(),
+        });
+        const { sedute, serie, premiAllenamenti } = selezionati;
+        if (!sedute.length && !serie.length
+            && !premiAllenamenti.length && !selezionati.notePersonali.length) {
           avviso('Non ci sono allenamenti da cancellare.',{tipo:'attenzione'});
           return;
         }
@@ -6221,15 +6216,25 @@ function vistaImpostazioni(zona) {
           { testoOk: 'Cancella il mio storico', testoAnnulla: 'Lascia tutto com\'e\'', pericolo: true },
         );
         if (!ok) return;
+        // Non cancellare sedute create mentre la conferma era aperta.
+        const confermate = new Set(sedute.map(x => x.id));
         await aspettaSalvataggi();
-        const esito = await eliminaSeduteEGuadagni([...ids]);
-        // Anche il premio legacy non attribuibile a una seduta precisa va
-        // annullato in un RESET TOTALE (non nelle cancellazioni parziali).
-        for (const r of premiAllenamenti) {
+        await ricaricaTutto();
+        const aggiornati = preparaAzzeramentoStorico({
+          account: accountAttivo(),
+          sedute: seduteDellaPersona().filter(x => confermate.has(x.id)),
+          serie: serieDellaPersona(),
+          note: V.note,
+          ricompense: ricompenseMie(),
+        });
+        const esito = await eliminaSeduteEGuadagni(aggiornati.sedute.map(x => x.id));
+        // Anche i premi legacy non attribuibili a una seduta vanno annullati
+        // nel reset completo (NON nelle cancellazioni parziali).
+        for (const r of aggiornati.premiAllenamenti) {
           const attuale = await db.prendi('ricompense',r.id);
           if (attuale && !attuale.eliminata) await db.cestino('ricompense',r.id);
         }
-        for (const n of notePersonali) {
+        for (const n of aggiornati.notePersonali) {
           const attuale = await db.prendi('note',n.id);
           if (attuale && !attuale.eliminata) await db.cestino('note',n.id);
         }
