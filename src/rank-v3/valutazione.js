@@ -92,7 +92,10 @@ export function valutaPrestazione({ esercizio, serie = [], pesoCorporeo = null, 
   const standardPercentili = Array.isArray(standard && standard.soglie1RMPerPeso);
   const modelloReps = modelloRipetizioniRank(movimento, esercizio || {}, standard);
 
-  if (!valori || valori.multiplo === 0) {
+  // Una fonte specifica con attrezzatura compatibile puo' riconoscere
+  // automaticamente anche un esercizio nuovo non ancora presente nei valori v2.
+  // Se non c'e' quella fonte, si usa il fallback precedente senza inventare Rank.
+  if ((!valori || valori.multiplo === 0) && !standardPercentili) {
     return {
       valido: false,
       motivo: 'questo esercizio si conta in ripetizioni, non in kg',
@@ -263,8 +266,8 @@ export function valutaPrestazione({ esercizio, serie = [], pesoCorporeo = null, 
     livello,
     cfg,
     allarmi,
-    fonte: standard.fonte || valori.fonte,
-    nota: standard.nota || valori.nota,
+    fonte: standard.fonte || valori?.fonte || 'non_verificata',
+    nota: standard.nota || valori?.nota || '',
     calibrazione: descriviAffidabilitaRank(standard, cfg, rank, migliore, pesoDelRecord, modelloReps),
     modelloRipetizioni: modelloReps,
     score: migliore.score,
