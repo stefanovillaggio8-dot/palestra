@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import * as db from '../src/db.js';
-import { applicaRemote } from '../src/sincronizzazione.js';
+import { applicaRemote, scegliConflittoAggiornato, decidiPush } from '../src/sincronizzazione.js';
 
 const stamp = () => 'audit-v424-' + Math.random().toString(36).slice(2);
 
@@ -76,4 +76,51 @@ test('v424: sincronizzazione avviata piu volte non accumula timer/listener', () 
   assert.match(src,/let avvioRegistrato = false;/);
   assert.match(src,/if \(avvioRegistrato\) return;/);
   assert.match(src,/avvioRegistrato = true;/);
+});
+
+test('v424: scegliere la versione locale non cancella correzioni fatte dopo il conflitto', async () => {
+  const id = stamp();
+  const iniziale = await db.salva('serie', {
+    id, peso:40, ripetizioni:8, rev:3, base_rev:1,
+    sync:'conflitto', updated_at:'2026-10-30T10:00:00.000Z',
+  }, { segna:false });
+  const nuovaLocale = await db.salva('serie', {...iniziale,peso:45});
+  const remoto = {
+    id, peso:35, ripetizioni:6, rev:6, base_rev:6,
+    updated_at:'2026-11-04T10:00:00.000Z',
+  };
+  const conflitto = {
+    id:'conf-'+id, tabella:'serie', riga_id:id, stato:'da_scegliere',
+    locale:{...iniziale,_etichetta:'Questo dispositivo'},
+    remoto:{...remoto,_etichetta:'Altro dispositivo'},
+  };
+  const scelto = scegliConflittoAggiornato(conflitto, nuovaLocale, 'locale');
+  assert.equal(scelto.riga.peso,45);
+  assert.equal(scelto.riga.base_rev,6);
+  const salvato = await db.salva('serie', scelto.riga);
+  assert.equal(salvato.peso,45);
+  assert.equal(salvato.base_rev,6);
+  assert.ok(salvato.rev > 6, 'la revisione risolta supera quella remota');
+  assert.equal(salvato.sync,'da_salvare');
+  assert.equal(decidiPush(salvato, remoto),'aggiorna',
+    'la scelta non deve generare di nuovo lo stesso conflitto');
+});
+
+test('v424: scegliere il server mantiene la base remota aggiornata', async () => {
+  const id=stamp();
+  const locale=await db.salva('serie', {
+    id,peso:30,ripetizioni:8,rev:4,base_rev:1,
+    sync:'conflitto',updated_at:'2026-10-30T10:00:00.000Z',
+  },{segna:false});
+  const remoto={id,peso:42,ripetizioni:6,rev:9,base_rev:9,
+    updated_at:'2026-11-04T11:00:00.000Z'};
+  const conflitto={
+    riga_id:id,locale:{...locale},remoto:{...remoto},stato:'da_scegliere',
+  };
+  const scelta=scegliConflittoAggiornato(conflitto,locale,'remoto');
+  const salvato=await db.salva('serie',scelta.riga);
+  assert.equal(salvato.peso,42);
+  assert.equal(salvato.base_rev,9);
+  assert.ok(salvato.rev>9);
+  assert.equal(decidiPush(salvato,remoto),'aggiorna');
 });
