@@ -709,23 +709,38 @@ async function ricaricaTutto({ caricaAmiciOnline = true } = {}) {
   V.serie = await db.tutti('serie');
   V.note = await db.tutti('note');
 
-  // Il database locale contiene il profilo attivo; i profili degli amici
-  // arrivano da una RPC limitata e non entrano mai nella coda di sincronizzazione.
+  // Gli amici sono cache di sola lettura autorizzata dall'RPC, MAI record locali.
+  // Non farli sparire durante un refresh che salta apposta le chiamate online.
   const idMio = accountAttivo();
+  const chiaveAmici = sb.collegato()
+    ? String(sb.sessione()?.user?.id || '') + ':' + idMio : '';
+  if (!chiaveAmici || chiaveAmici !== V.chiaveAmiciOnline) {
+    V.amiciOnline = [];
+    V.invitiAmici = null;
+    V.chiaveAmiciOnline = chiaveAmici;
+  }
   V.profili = (await db.tutti('profili')).filter((p) => p && p.id === idMio);
-  // All'avvio leggere il cloud qui può bloccare anche l'IndexedDB già pronto.
+  // All'avvio il primo caricamento è locale: il cloud non deve bloccare l'app.
   if (caricaAmiciOnline && sb.collegato()) {
     try {
-      const amiciOnline = await sb.profiliAmici();
-      const visti = new Set(V.profili.map((p) => p.id));
-      for (const p of amiciOnline || []) {
-        if (!p || !p.id || visti.has(p.id) || !p.scheda_id) continue;
-        V.profili.push(p);
-        visti.add(p.id);
+      const precedenti = new Set((V.amiciOnline || []).map((p) => p.id));
+      const ricevuti = await sb.profiliAmici();
+      if (chiaveAmici === V.chiaveAmiciOnline) {
+        V.amiciOnline = (ricevuti || []).filter((p) => p && p.id
+          && p.id !== idMio && p.scheda_id);
+        if (V.amiciOnline.some((p) => !precedenti.has(p.id))) {
+          sync.richiediPullCompleto(); // recupera anche gli allenamenti antecedenti all'invito
+        }
       }
     } catch (e) {
       console.warn('Non ho potuto aggiornare l’elenco amici:', e && e.message);
     }
+  }
+  const visti = new Set(V.profili.map((p) => p.id));
+  for (const p of V.amiciOnline || []) {
+    if (!p || !p.id || visti.has(p.id)) continue;
+    V.profili.push(p);
+    visti.add(p.id);
   }
   V.missioni = await db.tutti('missioni');
   V.ricompense = await db.tutti('ricompense');
@@ -1231,6 +1246,9 @@ async function completaInvitoPendente() {
     }
   }
 
+  // Un'amiciazione nuova deve rendere leggibile anche lo storico precedente,
+  // non soltanto le sedute create dopo l'accettazione.
+  sync.richiediPullCompleto();
   const syncDopoInvito = await sync.sincronizza();
   if (syncDopoInvito && syncDopoInvito.errori) {
     throw new Error(syncDopoInvito.messaggio || 'Invito accettato, ma la sincronizzazione deve essere riprovata.');
@@ -1268,6 +1286,8 @@ async function creaECopiaInvito(trasferisciAndrea = false) {
     } catch {
       window.prompt('Copia questo link da mandare al tuo amico:', link);
     }
+    // Rendi immediatamente visibile il nuovo invito nella schermata Amici.
+    void aggiornaStatoAmici({ forza: true });
   } catch (e) {
     avviso('Non sono riuscito a creare l’invito: ' + e.message, { tipo: 'errore', durata: 9000 });
   }
@@ -6527,7 +6547,13 @@ function profiloAttivo() {
     amministratore: salvato && salvato.amministratore !== undefined
       ? !!salvato.amministratore
       : !!p.amministratore,
-    amici: (salvato && salvato.amici) || (p.amici || []).map((n) => accountId(n)),
+    // La lista online confermata è autorevole anche se il profilo locale
+    // contiene una copia vecchia dell'array "amici".
+    amici: [...new Set([
+      ...(Array.isArray(salvato && salvato.amici)
+        ? salvato.amici : (p.amici || []).map((n) => accountId(n))),
+      ...(V.amiciOnline || []).map((amico) => amico.id),
+    ])],
     // I giorni in cui questa persona va in palestra. Ognuno ha i suoi, perchÈ
     // Ste (08/10/2026) deve dare l'app anche ai suoi compagni e loro non fanno i
     // suoi stessi giorni: senza questo, la streak di chi allena lun/mar/mer/ven si
@@ -9349,12 +9375,61 @@ async function vistaEsercizio(zona, esercizioId) {
   }));
 }
 
+// Evita fetch ripetuti a ogni ridisegno, ma consenti il controllo manuale.
+let aggiornamentoAmiciInCorso = null;
+let ultimoAggiornamentoAmici = 0;
+let chiaveUltimoAggiornamentoAmici = '';
+
+async function aggiornaStatoAmici({ forza = false } = {}) {
+  if (!sb.collegato()) return;
+  const profiloId = accountAttivo();
+  const chiave = String(sb.sessione()?.user?.id || '') + ':' + profiloId;
+  if (aggiornamentoAmiciInCorso) return aggiornamentoAmiciInCorso;
+  if (!forza && chiave === chiaveUltimoAggiornamentoAmici
+      && Date.now() - ultimoAggiornamentoAmici < 30000) return;
+  chiaveUltimoAggiornamentoAmici = chiave;
+  ultimoAggiornamentoAmici = Date.now();
+  aggiornamentoAmiciInCorso = (async () => {
+    try {
+      const precedenti = new Set((V.amiciOnline || []).map((p) => p.id));
+      const [profili, inviti] = await Promise.all([
+        sb.profiliAmici(), sb.invitiAmiciStato(profiloId),
+      ]);
+      if (accountAttivo() !== profiloId || !sb.collegato()
+          || chiave !== String(sb.sessione()?.user?.id || '') + ':' + accountAttivo()) return;
+      V.chiaveAmiciOnline = chiave;
+      V.amiciOnline = profili.filter((p) => p && p.id
+        && p.id !== profiloId && p.scheda_id);
+      V.invitiAmici = inviti;
+      V.erroreAmici = '';
+      const nuovi = V.amiciOnline.some((p) => !precedenti.has(p.id));
+      await ricaricaTutto({ caricaAmiciOnline: false });
+      if (nuovi) {
+        sync.richiediPullCompleto();
+        const esito = await sync.sincronizza();
+        if (esito && esito.errori) {
+          V.erroreAmici = 'Amici collegati, ma non sono riuscito a scaricare tutto lo storico. Riprova la sincronizzazione.';
+        }
+        await ricaricaTutto({ caricaAmiciOnline: false });
+      }
+    } catch (e) {
+      if (chiave === String(sb.sessione()?.user?.id || '') + ':' + accountAttivo()) {
+        V.erroreAmici = 'Non riesco ad aggiornare gli inviti: ' + (e?.message || 'errore di rete');
+      }
+    }
+    if ((window.location.hash || '').replace(/^#/, '') === '/amici') disegna();
+  })();
+  try { await aggiornamentoAmiciInCorso; }
+  finally { aggiornamentoAmiciInCorso = null; }
+}
+
 function vistaAmici(zona) {
   zona.appendChild(el('h1', { testo: 'Amici' }));
 
   // Tutto ciò che riguarda inviti, condivisione e accesso online sta qui,
   // non in cima al Profilo: il Profilo deve aprirsi sui dati personali.
   const profilo = profiloAttivo();
+  if (sb.collegato()) void aggiornaStatoAmici();
   const boxLink = el('section', { class: 'blocco' }, [
     el('h2', { testo: 'Amici e condivisione' }),
     el('p', {
@@ -9379,6 +9454,56 @@ function vistaAmici(zona) {
   }
   zona.appendChild(boxLink);
   zona.appendChild(bloccoAccountOnlineProfilo());
+  const statoInviti = el('section', { class: 'blocco' }, [
+    el('h2', { testo: 'Stato degli inviti' }),
+    el('p', { class: 'nota', testo: 'Inviare il link non basta: l’amico deve aprirlo, creare o accedere al suo account e accettarlo. Solo dopo apparirà tra gli amici.' }),
+    bottone('Aggiorna amici e inviti', {
+      classe: 'fantasma',
+      onClick: () => aggiornaStatoAmici({ forza: true }),
+    }),
+  ]);
+  if (!sb.collegato()) {
+    statoInviti.appendChild(el('p', { class: 'nota', testo: 'Accedi al tuo account online per vedere gli inviti.' }));
+  } else if (V.erroreAmici) {
+    statoInviti.appendChild(el('p', { class: 'nota', testo: V.erroreAmici }));
+  }
+  if (sb.collegato() && !Array.isArray(V.invitiAmici)) {
+    statoInviti.appendChild(el('p', { class: 'nota', testo: 'Controllo gli inviti registrati...' }));
+  } else if (sb.collegato()) {
+    const inviti = V.invitiAmici;
+    const inAttesa = inviti.filter((i) => !i.accettato && !i.scaduto);
+    statoInviti.appendChild(el('p', { class: 'nota', testo:
+      inAttesa.length + ' in attesa · '
+      + inviti.filter((i) => i.accettato).length + ' accettati · '
+      + inviti.filter((i) => i.scaduto).length + ' scaduti' }));
+    for (const invito of inviti) {
+      const speciale = invito.tipo === 'andrea';
+      const quando = new Date(invito.creato);
+      const data = Number.isFinite(quando.getTime())
+        ? quando.toLocaleString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '';
+      const stato = invito.accettato ? 'Accettato' : invito.scaduto ? 'Scaduto' : 'In attesa';
+      const riga = el('div', { class: 'riga-amico' }, [
+        el('div', { class: 'cresci' }, [
+          el('strong', { testo: (speciale ? 'Trasferimento Andrea' : 'Invito normale') + ' · ' + stato }),
+          el('span', { class: 'nota', testo: data
+            + (speciale ? ' · trasferisce la vecchia scheda di Andrea' : ' · destinatario non registrato') }),
+        ]),
+      ]);
+      if (!invito.accettato && !invito.scaduto && invito.token) {
+        riga.appendChild(bottone('Ricopia link', { classe: 'fantasma', onClick: async () => {
+          const link = urlInvito(invito.token, speciale);
+          try {
+            await navigator.clipboard.writeText(link);
+            avviso('Link di invito copiato.', { tipo: 'ok' });
+          } catch {
+            window.prompt('Copia il link da inviare:', link);
+          }
+        } }));
+      }
+      statoInviti.appendChild(riga);
+    }
+  }
+  zona.appendChild(statoInviti);
 
   const voci = vociPerClassifica();
   const amici = amiciDi(profilo, voci.map((v) => ({ ...v.profilo, id: v.account })));
