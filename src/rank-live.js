@@ -1,4 +1,4 @@
-// Classifica personale in tempo reale: include le serie gia' spuntate
+// Classifica personale in tempo reale: include le serie già spuntate
 // nell'allenamento in corso senza considerarle sedute completate per XP/Aura.
 // Non altera mai il database e non anticipa ricompense o streak.
 import { gruppiDaSerie } from './gioco.js';
