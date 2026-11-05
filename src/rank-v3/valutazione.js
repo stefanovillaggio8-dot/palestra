@@ -330,6 +330,7 @@ export function descriviAffidabilitaRank(standard, cfg, rank, migliore, pesoCorp
   const s = standard || {};
   const macchina = String(cfg?.tipoAttrezzatura || '');
   const specifico = s.fonte === 'strengthlevel_esercizio';
+  const cadStimato = s.fonte === 'modello_tecnica_cad_curl';
   const estremo = (rank?.indice ?? -1) >= 5;
   const ripLunghe = Number(migliore?.ripetizioni) > 12;
   const fuoriDati = Array.isArray(s.soglie1RMPerPeso) && (
@@ -341,10 +342,13 @@ export function descriviAffidabilitaRank(standard, cfg, rank, migliore, pesoCorp
   let livello = specifico ? (s.affidabilitaBase || 'media') : 'bassa';
   if (specifico) {
     motivi.push('Riferimenti pubblicati da una community di sollevatori, non tecnica verificata da giudici');
+  } else if (cadStimato) {
+    motivi.push('CAD Curl: più impegnativo del curl normale per busto arretrato, gomiti fissi sulla panca Scott al contrario e maggiore allungamento dei bicipiti');
+    motivi.push('Soglie del Dumbbell Curl ridotte del 15% come STIMA tecnica provvisoria: nessuno studio ha misurato quel 15% per questa variante');
   } else {
     motivi.push('Soglie derivate da un modello di movimento, senza cinque percentili specifici per questa variante');
   }
-  if (s.limite && specifico) motivi.push(s.limite);
+  if (s.limite && (specifico || cadStimato)) motivi.push(s.limite);
   if (s.nota && specifico && s.affidabilitaBase === 'indicativa') motivi.push(s.nota);
   if (estremo) {
     livello = 'bassa';
@@ -373,7 +377,9 @@ export function descriviAffidabilitaRank(standard, cfg, rank, migliore, pesoCorp
     livello,
     titolo: livello === 'media' ? 'Attendibilita media' :
       livello === 'indicativa' ? 'Attendibilita indicativa' : 'Attendibilita limitata',
-    origine: specifico ? 'Riferimento statistico specifico' : 'Modello provvisorio per famiglia',
+    origine: specifico ? 'Riferimento statistico specifico'
+      : cadStimato ? 'Stima tecnica specifica CAD Curl'
+        : 'Modello provvisorio per famiglia',
     fonteUrl: s.fonteUrl || null,
     riferimentoNome: s.riferimentoNome || null,
     fonteData: s.dataFonte || null,
