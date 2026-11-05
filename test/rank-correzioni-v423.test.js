@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import { ESERCIZI } from '../src/dati-iniziali.js';
 import { valutaPrestazione, soglieLegibiliNuove } from '../src/rank-v3/valutazione.js';
 import { recordEsercizio } from '../src/rank.js';
+import { presentaRank } from '../src/rank-spiegato.js';
 
 const ex = id => ESERCIZI.find(e => e.id === id);
 function prova(esercizio, peso, rep=8, {corpo=70, spotter=false, giorno='2026-11-04', assistenza}={}) {
@@ -81,6 +82,36 @@ test('v423: data migliore serie su doppia carrucola verificata per ID e registra
   assert.equal(r.caricoReale,14);
   assert.match(r.testo,/del 04\/11/);
   assert.match(r.testo,/28 kg sul carrello/);
+});
+
+test('v423: due serie con stessa zavorra ma giorni diversi: data della vera migliore',()=>{
+  const e=ex('ex-cable-lateral-raise');
+  const ss=[
+    {id:'best-older',esercizio_id:e.id,seduta_id:'finita',stato:'fatta',peso:28,ripetizioni:8,_giorno:'2026-10-22'},
+    {id:'same-newer',esercizio_id:e.id,seduta_id:'finita2',stato:'fatta',peso:28,ripetizioni:8,_giorno:'2026-11-04'},
+  ];
+  const r=recordEsercizio(ss,e,null,66);
+  assert.equal(r.serieId,'best-older');
+  assert.match(r.testo,/del 22\\/10/);
+});
+
+test('v423: dips corpo libero a 0 kg di zavorra senza input di peso fittizio',()=>{
+  const e=ex('ex-dips');
+  const r=prova(e,null,8,{corpo:66,assistenza:0});
+  assert.equal(r.valido,true);
+  assert.equal(r.zavorra,0);
+  assert.equal(r.caricoReale,66);
+  assert.equal(r.caricoRegistrato,0);
+  const guida=presentaRank({
+    ...r,esercizio:e,rankId:r.rank?.id,
+    serie:{peso:r.caricoReale,ripetizioni:8},
+    profilo:{unita:'kg di zavorra'},
+  });
+  assert.ok(guida.frasi.some(x=>x.includes('a corpo libero')));
+  assert.ok(!guida.frasi.some(x=>x.includes('66 kg di zavorra')));
+  const code=readFileSync(new URL('../src/app.js',import.meta.url),'utf8');
+  assert.match(code,/eZavorra \\? peso < 0 : peso <= 0/);
+  assert.match(code,/peso_assistenza: peso/);
 });
 
 test('v423: ricerca unica usata anche nella prova e dettagli non mostrano soglie false',()=>{
