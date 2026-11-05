@@ -1306,14 +1306,17 @@ test('R20. le serie contano solo da seduta completata, e la pagina lo dice', asy
     + 'prima di finire e non si potrebbe piu\' tornare indietro');
   assert.equal(conta(chiusa), 1, 'una seduta COMPLETATA deve contare');
 
-  // e il testo dell'avviso non puo' stare dentro il ramo "nessun rank"
+  // Il motore definitivo continua a contare solo le sedute concluse.
+  // La preview delle serie confermate deve essere visibile anche quando
+  // esistono gia' Rank ottenuti in allenamenti precedenti.
   const app = await readFile(join(dirname(fileURLToPath(import.meta.url)), '..', 'src', 'app.js'), 'utf8');
-  const iAperta = app.indexOf('Hai un allenamento APERTO');
-  const iRecord = app.indexOf('if (!stato.record.length)');
-  assert.ok(iAperta >= 0 && iRecord >= 0, 'devono esserci sia l\'avviso sia il ramo dei rank vuoti');
-  assert.ok(iAperta < iRecord,
-    'l\'avviso sulla seduta aperta deve stare PRIMA del ramo "nessun rank": se sta '
-    + 'dentro, compare solo quando non hai nessun Rank ed e\' il difetto di Ste');
+  const iSezione = app.indexOf('function sezioneMieiRank(stato)');
+  const iAperta = app.indexOf('const aperta = seduteMie().find', iSezione);
+  const iRecord = app.indexOf('if (!stato.record.length)', iSezione);
+  assert.ok(iSezione >= 0 && iAperta > iSezione && iRecord > iAperta,
+    'l\'avviso sulla seduta aperta resta prima del ramo senza Rank');
+  assert.match(app, /Rank provvisorio aggiornato con/);
+  assert.match(app, /serieAperte\.filter\(\(s\) => s\.stato === 'fatta'\)/);
 });
 
 // ---------------------------------------------------------------------------

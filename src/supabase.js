@@ -7,6 +7,8 @@
 // I tuoi dati sono protetti dal database stesso: le regole che ci metto in
 // schema.sql dicono che ogni utente vede solo le proprie righe.
 
+import { preparaRegistrazioneInvitata } from './inviti-registrazione.js';
+
 const CHIAVE_CONFIG = 'palestra-config';
 
 // Configurazione pubblica dell'app: la publishable key è progettata per stare
@@ -216,19 +218,20 @@ export async function accedi(email, password) {
   return corpo;
 }
 
-export async function registrati(email, password) {
+export async function registrati(email, password, contesto = {}) {
   const cfg = leggiConfig();
-  const corpo = await richiesta(cfg, '/auth/v1/signup', {
+  const { redirectTo, data } = preparaRegistrazioneInvitata(contesto);
+  // Auth GoTrue REST legge redirect_to nella QUERY, non in body.options.
+  // Conserva il token anche nei metadata per il caso in cui il link della mail
+  // venga aperto in Safari/PWA su un dispositivo con memoria locale separata.
+  const endpoint = '/auth/v1/signup?redirect_to=' + encodeURIComponent(redirectTo);
+  const corpo = await richiesta(cfg, endpoint, {
     method: 'POST',
     headers: intestazioniPubbliche(cfg),
     body: JSON.stringify({
       email,
       password,
-      options: {
-        // Usa l'URL di conferma già configurato su Supabase. La memoria locale
-        // dell'identità e l'eventuale invito ripristinano il profilo corretto dopo il click.
-        emailRedirectTo: 'https://stefanovillaggio8-dot.github.io/palestra/index.html?p=1',
-      },
+      ...(Object.keys(data).length ? { data } : {}),
     }),
   });
   if (corpo && corpo.access_token) salvaSessione(corpo);

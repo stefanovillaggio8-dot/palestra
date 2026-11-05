@@ -35,6 +35,7 @@ import { nuovoId, adesso, TABELLE, riallineaEsercizi } from './sincronizzazione.
 import { statoAccount, ricompenseAllenamento, gruppiDaSerie } from './gioco.js';
 import { percorsoStemma, nomeStemma, tutteLeGraficheRank } from './rank-stemmi.js';
 import { ordinaRecordRank } from './rank-ordina.js';
+import { gruppiRankInTempoReale, haSerieRankProvvisorie } from './rank-live.js';
 import { corrispondeRicercaEsercizi } from './ricerca-esercizi.js';
 import { segnaliProgressione } from './analisi-progressi.js';
 import { vistaRecapPalestra } from './recap-ui.js';
@@ -56,7 +57,7 @@ import { bloccoGlossario } from './glossario-app.js';
 import {
   SCELTE_ANIMAZIONI, sceltaAnimazioni, impostaSceltaAnimazioni, pocoMovimento, avviaAnimazioni,
 } from './animazioni.js';
-import { recordEsercizio, recordAccount, classificaEsercizio, storicoMiglioramenti, giudizioPerformance, giudizioPerformanceRecord, distanzaAllaSoglia, soglieLegibili, scoreSerie } from './rank.js';
+import { recordEsercizio, recordAccount, rankPrincipale, distribuzioneRank, classificaEsercizio, storicoMiglioramenti, giudizioPerformance, giudizioPerformanceRecord, distanzaAllaSoglia, soglieLegibili, scoreSerie } from './rank.js';
 // IL MODELLO NUOVO DEL RANK (22/10/2026): la traduzione delle soglie in pesi che
 // si caricano la fa il motore, non una formula scritta qui.
 import { soglieLegibiliNuove } from './rank-v3/valutazione.js';
@@ -85,6 +86,7 @@ import {
   serveAggiornare, PESO_RIFERIMENTO,
 } from './peso-corporeo.js';
 import { avvisoPesoEsercizio } from './avviso-peso.js';
+import { ripristinaRegistrazioneInvitata } from './inviti-registrazione.js';
 import { personaggioSvg } from './personaggio-svg.js';
 
 // Il peso corporeo sta in una variabile semplice per non rileggerlo dal database
@@ -183,12 +185,89 @@ function schedaAttivaId() { return personaAttiva().schedaId; }
  * cosa di questo dispositivo ("questo telefono È di Luca"), non un fatto da
  * condividere.
  */
-async function risolviPersona() {
+async function risolviPersona({ daConfermaEmail = false } = {}) {
   let ricerca = (typeof window !== 'undefined' && window.location && window.location.search) || '';
   // Il link d'invito sopravvive alla scelta iniziale del nome e all'eventuale
   // conferma email: non deve perdersi durante il cambio URL.
-  const invito = invitoPendente();
-  const memoria = await db.leggiMeta('persona', null);
+  let invito = invitoPendente();
+  let memoria = await db.leggiMeta('persona', null);
+  let nuovoAccountSenzaProfilo = false;
+
+  // La conferma email può aprirsi in Safari/PWA senza la memoria della pagina
+  // usata per registrarsi. Recupera token e identita' dai propri metadata Auth;
+  // la RPC del database dovra' comunque verificare il vero invito.
+  if (daConfermaEmail && sb.collegato()) {
+    try {
+      const utente = await sb.utenteCorrente();
+      const ripresa = ripristinaRegistrazioneInvitata(utente);
+      if (ripresa) {
+        if (!invitoDallaUrl()) {
+          localStorage.setItem(CHIAVE_INVITO_PENDENTE, ripresa.invito);
+          invito = ripresa.invito;
+        }
+        if (ripresa.memoria) {
+          memoria = ripresa.memoria;
+          await db.scriviMeta('persona', memoria);
+          const qs = new URLSearchParams(ricerca.replace(/^\?/, ''));
+          if (memoria.n && memoria.k) {
+            qs.delete('p');
+            qs.set('n', memoria.n);
+            qs.set('k', memoria.k);
+          } else if (memoria.p === 2) {
+            qs.set('p', '2');
+            qs.delete('n');
+            qs.delete('k');
+          }
+          if (invito) qs.set('inv', invito);
+          ricerca = '?' + qs.toString();
+          try {
+            window.history.replaceState({}, '', window.location.pathname + ricerca + (window.location.hash || ''));
+          } catch { /* vecchio browser */ }
+        }
+      } else if (!memoria) {
+        const propri = await sb.leggi('profili');
+        if (!propri.length) {
+          nuovoAccountSenzaProfilo = true;
+          // La vecchia conferma email portava tutti su ?p=1, anche gli amici.
+          if (!invito) ricerca = '';
+        } else if (propri.length === 1 && propri[0].scheda_id) {
+          const profilo = propri[0];
+          memoria = profilo.id === 'account-1' ? { p: 1 }
+            : profilo.id === 'account-2' ? { p: 2 }
+            : profilo.id.startsWith('account-') && profilo.scheda_id === 'scheda-' + profilo.id.slice(8)
+              ? { n: profilo.username || 'Amico', k: profilo.id.slice(8) }
+              : null;
+          if (memoria) {
+            await db.scriviMeta('persona', memoria);
+            const qs = new URLSearchParams();
+            if (memoria.n) { qs.set('n', memoria.n); qs.set('k', memoria.k); }
+            else qs.set('p', String(memoria.p));
+            if (invito) qs.set('inv', invito);
+            ricerca = '?' + qs.toString();
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('Ripristino account dopo email non riuscito:', e?.message);
+    }
+  }
+
+  // Recupero per chi si è già registrato prima della correzione: basta
+  // riaprire il link originale con lo stesso account, non crearne un altro.
+  if (invito && sb.collegato() && !/[?&](?:n=|p=2(?:&|$))/.test(ricerca)) {
+    try {
+      const propri = await sb.leggi('profili');
+      if (!propri.length && (!memoria || memoria.p === 1)) {
+        nuovoAccountSenzaProfilo = true;
+        memoria = null;
+        const qs = new URLSearchParams(ricerca.replace(/^\?/, ''));
+        qs.delete('p');
+        ricerca = '?' + qs.toString();
+      }
+    } catch (e) {
+      console.warn('Controllo profilo account:', e?.message);
+    }
+  }
 
   // Supabase usa l'URL di conferma già autorizzato (?p=1). Se la conferma
   // arriva dopo la registrazione di un nuovo profilo, non deve sostituire
@@ -225,11 +304,12 @@ async function risolviPersona() {
     installata = window.navigator.standalone === true ||
       (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
   } catch { /* browser senza rilevamento modalità installata */ }
-  if (installata && !/[?&](?:p=\d+|n=)/.test(ricerca) && !memoria) {
+  if (installata && !invito && !/[?&](?:p=\d+|n=)/.test(ricerca) && !memoria && !nuovoAccountSenzaProfilo) {
     ricerca = '?p=1';
   }
 
-  const schede = (await db.tutti('schede')).map((s) => s && s.id).filter(Boolean);
+  const schede = nuovoAccountSenzaProfilo ? []
+    : (await db.tutti('schede')).map((s) => s && s.id).filter(Boolean);
   const esito = chiSei({ ricerca, memoria, schede });
   if (esito.persona) {
     persona = esito.persona;
@@ -352,7 +432,7 @@ async function avvia() {
   const radice = document.getElementById('app');
   installaSpiaErrori();
   // Una conferma email può restituire i token nel frammento dell'URL.
-  sb.ripristinaSessioneDaUrl();
+  const daConfermaEmail = sb.ripristinaSessioneDaUrl();
 
   // LE ANIMAZIONI, PRIMA DI DISEGNARE.
   //
@@ -411,7 +491,7 @@ async function avvia() {
     // link non lo dice, si chiede il nome: meglio una domanda che trovarsi dentro la
     // scheda di un altro.
     aggiornaFaseAvvio('lettura del profilo su questo dispositivo');
-    const chi = await risolviPersona();
+    const chi = await risolviPersona({ daConfermaEmail });
     if (chi.daChiedere) {
       const risposto = await chiediNome();
       if (!risposto) {
@@ -1372,7 +1452,9 @@ function bloccoAccountOnlineProfilo() {
           return;
         }
         try {
-          const risultato = await sb.registrati(email, password);
+          const risultato = await sb.registrati(email, password, {
+            invito: invitoPendente(), persona: personaAttiva(),
+          });
           if (risultato && risultato.access_token) {
             const pronto = invitoPendente()
               ? await completaInvitoPendente()
@@ -4161,7 +4243,7 @@ export function annunciaCambioPeso(prima, dopo, nuovoPeso) {
   if (scesi.length) righe.push('Sei sceso: ' + scesi.join(' · '));
   if (comparsi.length) righe.push('Primo livello sbloccato: ' + comparsi.join(' · '));
   if (!saliti.length && !scesi.length && !comparsi.length) {
-    righe.push('Nessun Rank cambia: i tuoi kg sono gli stessi su tutta la scala.');
+    righe.push('Nessun Rank cambia: le serie storiche conservano il peso corporeo del giorno in cui le hai fatte.');
   }
   return avviso(righe.join(' '), { tipo: 'ok', durata: 9000 });
 }
@@ -6139,8 +6221,12 @@ function vistaImpostazioni(zona) {
           onClick: async () => {
             try {
               await sb.accedi(mail.value.trim(), pass.value);
-              avviso('Accesso riuscito.', { tipo: 'ok' });
+              const pronto = invitoPendente()
+                ? await completaInvitoPendente()
+                : await preparaAccountOnline();
+              if (pronto === false) return;
               await ricaricaTutto();
+              avviso('Accesso riuscito e profilo online collegato.', { tipo: 'ok' });
               disegna();
             } catch (e) {
               avviso('Accesso non riuscito: ' + e.message, { tipo: 'errore', durata: 8000 });
@@ -6161,10 +6247,16 @@ function vistaImpostazioni(zona) {
               return;
             }
             try {
-              const risultato = await sb.registrati(email, password);
+              const risultato = await sb.registrati(email, password, {
+            invito: invitoPendente(), persona: personaAttiva(),
+          });
               if (risultato && risultato.access_token) {
-                avviso('Account creato e accesso effettuato.', { tipo: 'ok', durata: 7000 });
+                const pronto = invitoPendente()
+                  ? await completaInvitoPendente()
+                  : await preparaAccountOnline();
+                if (pronto === false) return;
                 await ricaricaTutto();
+                avviso('Account creato e profilo collegato.', { tipo: 'ok', durata: 7000 });
                 disegna();
               } else {
                 avviso('Registrazione inviata. Controlla la posta e conferma l\'email, poi torna qui e premi Accedi.', { tipo: 'ok', durata: 10000 });
@@ -6604,7 +6696,7 @@ function mieiGruppi() {
 
 /** Lo stato di gioco completo, ricalcolato da zero (niente valori salvati a mano). */
 function statoMio(oggi = null) {
-  return statoAccount({
+  const statoDefinitivo = statoAccount({
     account: accountAttivo(),
     sedute: seduteMie(),
     serie: serieMie(),
@@ -6620,6 +6712,22 @@ function statoMio(oggi = null) {
   profilo: profiloAttivo(),
     oggi,
   });
+  // Solo la PRESENTAZIONE personale si aggiorna appena una serie e' fatta.
+  // XP, Aura, streak, missioni e classifiche amici restano sulle sedute finite.
+  const sedute = seduteMie();
+  const serie = serieMie();
+  if (!haSerieRankProvvisorie(sedute, serie)) return statoDefinitivo;
+  const record = recordAccount(V.esercizi,
+    gruppiRankInTempoReale(sedute, serie, V.esercizi), {
+      soloConDati: true, pesoAttuale: pesoCorporeoOra(),
+    });
+  return {
+    ...statoDefinitivo,
+    record,
+    rankPrincipale: rankPrincipale(record),
+    distribuzione: distribuzioneRank(record),
+    rankProvvisorio: true,
+  };
 }
 
 /** I record di ogni account che ha allenato qualcosa su questo dispositivo. */
@@ -8881,34 +8989,16 @@ function vistaRank(zona) {
 
   function sezioneMieiRank(stato) {
     contenitore.appendChild(el('p', { class: 'nota', testo: 'Il rank di ogni esercizio e\' tuo e basta: le soglie sono diverse per ogni esercizio, quindi 50 kg di una cosa non valgono 50 kg di un\'altra.' }));
-    // LE SERIE DI UNA SEDUTA APERTA NON CONTANO NEI RANK, E ADESSO LO DICE (16/10/2026).
-  //
-  // Ste, sui dip: "di dip ho fatto 40 kg, ho aggiornato oggi, ma non spuntano
-  // aggiornati nei rank, anche gli altri esercizi". Il calcolo era giusto: 40 kg di
-  // zavorri più il suo corpo a 8 ripetizioni davano OLYMPIAN 10 LP. Il problema è
-  // che la pagina glielo nascondeva.
-  //
-  // IL DIFETTO: la spiegazione ("Hai un allenamento APERTO, le serie contano solo
-  // quando finisci la seduta") stava dentro `if (!stato.record.length)`, cioè compariva
-  // SOLO se non avevi nessun Rank. Chi ha già dei Rank da altri esercizi non vedeva
-  // nulla: la lista restava quella vecchia e sembrava che l'app ignorasse il peso.
-  //
-  // La regola è giusta e si tiene: le serie contano solo da seduta `completata`
-  // (`gruppiDaSerie` filtra, e filmano anche i Rank personali che la classifica degli
-  // amici: è la stessa cosa, quindi non è un bug di calcolo). Quello che mancava
-  // era l'avviso.
-  //
-  // Nota: qui si vede anche perché il difetto era invisibile. I dip hanno `movimento`
-  // undefined e passano dal motore vecchio, quindi hanno nomi di campo diversi
-  // (`soglie`, `score`, `caricoReale` non ci sono): ma il Rank lo calcola lo stesso e
-  // qui sotto si vede solo il risultato.
+    // Il Rank personale mostra immediatamente la migliore serie FATTA durante
+    // l'allenamento aperto. E' una preview: niente ricompense prima di finire.
   const aperta = seduteMie().find((s) => s && !s.eliminata && s.stato !== 'completata');
   if (aperta) {
     const serieAperte = (V.serie || []).filter((x) => x && !x.eliminata && x.seduta_id === aperta.id);
     const box = el('div', { class: 'tape tape-viola' });
-    box.appendChild(el('span', { testo: serieAperte.length
-      ? `Hai un allenamento APERTO (${aperta.nome_giorno || 'in corso'}) con ${serieAperte.length} serie scritte: non contano ancora nei Rank.`
-      : `Hai un allenamento APERTO (${aperta.nome_giorno || 'in corso'}). I Rank si aggiornano quando lo finisci.` }));
+    const confermate = serieAperte.filter((s) => s.stato === 'fatta');
+    box.appendChild(el('span', { testo: confermate.length
+      ? `Rank provvisorio aggiornato con ${confermate.length} serie confermate. Diventa definitivo quando finisci l'allenamento.`
+      : `Allenamento aperto (${aperta.nome_giorno || 'in corso'}): conferma una serie per aggiornare subito i Rank provvisori.` }));
     box.appendChild(bottone('Vai e chiudilo', { onClick: () => vai('/seduta/' + aperta.id), classe: 'principale' }));
     contenitore.appendChild(box);
   }
@@ -8924,7 +9014,7 @@ function vistaRank(zona) {
 
       const box = el('div', { class: 'blocco' });
       if (aperta) {
-        box.appendChild(el('p', { class: 'nota', testo: `Hai un allenamento APERTO (${aperta.nome_giorno || 'in corso'}). Le serie contano solo quando finisci la seduta con "Allenamento finito".` }));
+        box.appendChild(el('p', { class: 'nota', testo: `Hai un allenamento APERTO (${aperta.nome_giorno || 'in corso'}). I Rank provvisori compaiono per le serie confermate valide; quando finisci diventano definitivi.` }));
         box.appendChild(el('a', { href: '#/', class: 'bottone-guarda', testo: 'Vai e chiudi l\'allenamento' }));
       } else if (finite > 0) {
         box.appendChild(el('p', { class: 'nota', testo: `Hai ${finite} allenamenti finiti, ma nessuna serie valida. Probabilmente le serie sono fatte col solo spotter: quelle non contano come record, perché non è una prestazione tua.` }));
