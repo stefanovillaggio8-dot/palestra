@@ -821,6 +821,14 @@ function mostraErrore(radice, errore) {
 /** Ricarica tutto quello che serve per la vista corrente. */
 async function ricaricaTutto({ caricaAmiciOnline = true } = {}) {
   V.esercizi = await db.tutti('esercizi');
+  // Se arriva dal cloud una vecchia revisione, non mostrare di nuovo
+  // il nome/scala Scott precedente prima del prossimo giro di sync.
+  const cad = ESERCIZI.find(e => e.id === 'ex-scott-bench-curl');
+  if (cad) V.esercizi = V.esercizi.map(e => e.id === cad.id
+    ? { ...e, nome: cad.nome, gruppo: cad.gruppo, foto: cad.foto,
+      nota_permanente: cad.nota_permanente, convenzione: cad.convenzione,
+      usoBraccia: cad.usoBraccia }
+    : e);
   V.schede = await db.tutti('schede');
   V.versi = await db.tutti('versioni');
   V.sedute = await db.tutti('sedute');
@@ -1034,7 +1042,25 @@ async function seminaSeVuoto() {
   await riallineaCatalogo(gia);
   await sistemaNomeScheda();
   await risistemaCampiCarico(await db.tutti('esercizi'));
+  await aggiornaCadCurlSalvato();
   await seminaPersona();
+}
+
+/** Mantiene lo stesso ID di tutte le vecchie serie. Aggiorna SOLO
+ * nome, immagine, gruppo e tecnica; MAI pesi, ripetizioni, sedute o Rank
+ * di altri esercizi. Lo marca per la sync come ogni modifica normale.
+ */
+async function aggiornaCadCurlSalvato() {
+  const ufficiale = ESERCIZI.find(e => e.id === 'ex-scott-bench-curl');
+  const locale = await db.prendi('esercizi', 'ex-scott-bench-curl');
+  if (!ufficiale || !locale) return false;
+  const campi = ['nome', 'gruppo', 'foto', 'nota_permanente', 'convenzione', 'usoBraccia'];
+  const cambiati = campi.some(k => locale[k] !== ufficiale[k]);
+  if (cambiati) {
+    const novita = Object.fromEntries(campi.map(k => [k, ufficiale[k]]));
+    await db.salva('esercizi', { ...locale, ...novita });
+  }
+  return cambiati;
 }
 
 /**
