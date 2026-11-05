@@ -6221,8 +6221,12 @@ function vistaImpostazioni(zona) {
           onClick: async () => {
             try {
               await sb.accedi(mail.value.trim(), pass.value);
-              avviso('Accesso riuscito.', { tipo: 'ok' });
+              const pronto = invitoPendente()
+                ? await completaInvitoPendente()
+                : await preparaAccountOnline();
+              if (pronto === false) return;
               await ricaricaTutto();
+              avviso('Accesso riuscito e profilo online collegato.', { tipo: 'ok' });
               disegna();
             } catch (e) {
               avviso('Accesso non riuscito: ' + e.message, { tipo: 'errore', durata: 8000 });
@@ -6247,8 +6251,12 @@ function vistaImpostazioni(zona) {
             invito: invitoPendente(), persona: personaAttiva(),
           });
               if (risultato && risultato.access_token) {
-                avviso('Account creato e accesso effettuato.', { tipo: 'ok', durata: 7000 });
+                const pronto = invitoPendente()
+                  ? await completaInvitoPendente()
+                  : await preparaAccountOnline();
+                if (pronto === false) return;
                 await ricaricaTutto();
+                avviso('Account creato e profilo collegato.', { tipo: 'ok', durata: 7000 });
                 disegna();
               } else {
                 avviso('Registrazione inviata. Controlla la posta e conferma l\'email, poi torna qui e premi Accedi.', { tipo: 'ok', durata: 10000 });
