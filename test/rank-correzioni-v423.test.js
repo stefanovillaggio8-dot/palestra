@@ -33,7 +33,9 @@ test('v423: obiettivo spotter: il peso suggerito raggiunge davvero il rank anche
   assert.equal(originale.distanza.unitaCarico,'kg per manubrio');
   verificaObiettivo(originale,e,22,8,{corpo:66,spotter:true});
   const pulita = prova(e,22,8,{corpo:66});
-  assert.ok(originale.distanza.kgNecessari >= pulita.distanza.kgNecessari);
+  // Con lo spotter la fascia attuale puo' essere inferiore: confrontare
+  // i due obiettivi successivi direttamente sarebbe matematicamente scorretto.
+  assert.ok(originale.score < pulita.score);
 });
 
 test('v423: doppia carrucola: soglia in kg da leggere sul carrello, non forza per cavo', () => {
