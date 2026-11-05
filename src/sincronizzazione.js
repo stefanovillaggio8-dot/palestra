@@ -285,6 +285,23 @@ export function risolviConflitto(conflitto, scelta) {
 }
 
 /**
+ * Risolvi il conflitto sullo stato LOCALE PIU' RECENTE, non sulla vecchia
+ * fotografia acquisita al momento del conflitto. Se nell'attesa l'utente
+ * ha corretto i kg o le ripetizioni, scegliere "questo dispositivo" deve
+ * tenere anche quelle correzioni.
+ */
+export function scegliConflittoAggiornato(conflitto, rigaAttuale, scelta) {
+  if (!conflitto) return null;
+  const attualeCompatibile = scelta === 'locale'
+    && rigaAttuale && rigaAttuale.sync === 'conflitto'
+    && String(rigaAttuale.id) === String(conflitto.riga_id);
+  const daRisolvere = attualeCompatibile
+    ? { ...conflitto, locale: { ...conflitto.locale, ...rigaAttuale } }
+    : conflitto;
+  return risolviConflitto(daRisolvere, scelta);
+}
+
+/**
  * Backoff per i ritentativi. Nessuna dipendenza da Date.now: restituisce i
  * millisecondi da aspettare, così resta testabile.
  */
