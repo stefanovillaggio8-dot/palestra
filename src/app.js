@@ -288,6 +288,17 @@ async function risolviPersona({ daConfermaEmail = false } = {}) {
       }
     } catch (e) {
       console.warn('Controllo profilo account:', e?.message);
+      // Se la verifica online fallisce, NON usare il profilo p=1 del telefono
+      // per un invito: potrebbe essere la scheda del proprietario precedente.
+      // L'amico sceglie il suo nome; quando torna la rete il suo account viene
+      // verificato dal server prima di creare la relazione.
+      if (!memoria || memoria.p === 1) {
+        nuovoAccountSenzaProfilo = true;
+        memoria = null;
+        const qs = new URLSearchParams(ricerca.replace(/^\?/, ''));
+        qs.delete('p');
+        ricerca = '?' + qs.toString();
+      }
     }
   }
 
