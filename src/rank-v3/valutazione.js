@@ -342,6 +342,10 @@ export function descriviAffidabilitaRank(standard, cfg, rank, migliore, pesoCorp
     livello = 'bassa';
     motivi.push('Oltre 12 ripetizioni il punteggio e piu incerto e la curva viene attenuata o limitata');
   }
+  if (Number(migliore?.ripetizioni) < 5) {
+    livello = 'bassa';
+    motivi.push('Una serie con meno di 5 ripetizioni non permette un confronto robusto con i record di allenamento abituali');
+  }
   if (fuoriDati) {
     livello = 'bassa';
     motivi.push('Peso corporeo fuori dall intervallo pubblicato: riferimento extrapolato');
