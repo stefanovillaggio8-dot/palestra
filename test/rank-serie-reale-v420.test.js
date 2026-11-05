@@ -119,7 +119,7 @@ test('v420: una serie storica conserva il peso corporeo del proprio giorno', () 
 test('v423: il riferimento monobraccio non viene attribuito allo Scott con due manubri', () => {
   const cad = standardPerMovimento('bicipiti_panca', scott);
   assert.ok(Array.isArray(cad.soglie1RMPerPeso));
-  assert.equal(cad.fonte,'modello_tecnica_cad_curl');
+  assert.equal(cad.fonte,'proxy_cad_non_validato');
   assert.notDeepEqual(cad.soglie1RMPerPeso,
     standardPerMovimento('bicipiti_panca',preacher).soglie1RMPerPeso,
     'lo standard Scott monobraccio non si puo riusare sul CAD Curl');
