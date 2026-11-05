@@ -15,7 +15,7 @@ test('ogni esercizio ha foto, convenzione e gruppo', () => {
     assert.ok(e.nome, `esercizio senza nome: ${e.id}`);
     assert.ok(e.gruppo, `esercizio senza gruppo: ${e.id}`);
     assert.ok(valori.includes(e.convenzione), `convenzione sconosciuta in ${e.id}: ${e.convenzione}`);
-    assert.match(e.foto, /^img\/esercizi\/[a-z0-9-]+\.png$/, `foto non valida in ${e.id}: ${e.foto}`);
+    assert.match(e.foto, /^img\/esercizi\/[a-z0-9-]+\.(?:png|jpg)$/, `foto non valida in ${e.id}: ${e.foto}`);
   }
 });
 
