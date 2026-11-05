@@ -343,6 +343,11 @@ function ascoltaScorrimento() {
   aggiorna();
 }
 
+// I listener della sync sono condivisi: non crearne una copia per ogni avvio.
+let disiscriviSyncAvvio = null;
+let timerCreditoStreakAvvio = null;
+let gestoreFocusSyncRegistrato = false;
+
 async function avvia() {
   const radice = document.getElementById('app');
   installaSpiaErrori();
@@ -478,13 +483,15 @@ async function avvia() {
 
     // A fine sincronizzazione il profilo cloud può contenere una rettifica
     // che non era disponibile al primo disegno: aggiorna la card live.
-    let timerCreditoStreak = null;
-    sync.iscriviti(() => {
+    if (disiscriviSyncAvvio) disiscriviSyncAvvio();
+    if (timerCreditoStreakAvvio !== null) clearTimeout(timerCreditoStreakAvvio);
+    timerCreditoStreakAvvio = null;
+    disiscriviSyncAvvio = sync.iscriviti(() => {
       aggiornaStatoSalvataggio();
       if (sync.inEsecuzione()) return;
-      if (timerCreditoStreak !== null) clearTimeout(timerCreditoStreak);
-      timerCreditoStreak = setTimeout(async () => {
-        timerCreditoStreak = null;
+      if (timerCreditoStreakAvvio !== null) clearTimeout(timerCreditoStreakAvvio);
+      timerCreditoStreakAvvio = setTimeout(async () => {
+        timerCreditoStreakAvvio = null;
         const account = accountAttivo();
         if (await aggiornaCreditoStreakOnline() && accountAttivo() === account) disegna();
       }, 200);
@@ -497,10 +504,13 @@ async function avvia() {
     await caricaLivelliImparati();
     sync.avvia();
     // Se si ritorna dall'altra PWA, recupera subito la rettifica autentica.
-    window.addEventListener('focus', () => {
-      if (!sb.collegato()) return;
-      aggiornaCreditoStreakOnline().then((cambiata) => { if (cambiata) disegna(); }).catch(() => {});
-    });
+    if (!gestoreFocusSyncRegistrato) {
+      window.addEventListener('focus', () => {
+        if (!sb.collegato()) return;
+        aggiornaCreditoStreakOnline().then((cambiata) => { if (cambiata) disegna(); }).catch(() => {});
+      });
+      gestoreFocusSyncRegistrato = true;
+    }
     // Non aspettare una nuova navigazione per mostrare l'accredito remoto.
     aggiornaCreditoStreakOnline().then((cambiata) => {
       if (cambiata) disegna();
