@@ -86,9 +86,14 @@ export function standardAutomaticoPerEsercizio(esercizio = {}) {
   const e = esercizio || {};
   const tipo = tipoAttrezzaturaRank(e);
   const nome = normalizzaNomeStandard(e.nome);
+  // Il nome rimane un vincolo: un ID antico riutilizzato per un movimento
+  // rinominato NON deve ereditare silenziosamente percentili sbagliati.
+  // Le tre varianti lat mantengono lo stesso movimento "Lat Pulldown", ma
+  // l'attrezzo deve comunque essere una pila compatibile.
   const profilo = STANDARD_SPECIFICI.find(s =>
     compatibile(tipo, s.attrezzo)
-    && (s.ids.includes(e.id) || s.nomi.some(n => normalizzaNomeStandard(n) === nome)));
+    && (s.nomi.some(n => normalizzaNomeStandard(n) === nome)
+      || (s.slug === 'lat_pulldown' && s.ids.includes(e.id) && nome.startsWith('lat pulldown'))));
   if (!profilo) return null;
   // Le prese diverse, le camme e le pile a peso nominale non consentono di
   // fingere una precisione uguale ai manubri liberi.
