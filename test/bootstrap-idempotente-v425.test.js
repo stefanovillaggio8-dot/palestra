@@ -23,7 +23,7 @@ test('v425: doppio avvio registra un solo gruppo di eventi e un solo timer di sy
     avvia();
     avvia();
     avvia();
-    assert.deepEqual(eventiWindow,['online','offline']);
+    assert.deepEqual(eventiWindow,['online','focus','offline']);
     assert.deepEqual(eventiDocument,['visibilitychange']);
     assert.equal(timers,1,'nessun timer nuovo al secondo avvio');
   } finally {
