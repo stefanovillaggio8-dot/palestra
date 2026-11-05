@@ -5978,7 +5978,7 @@ function vistaImpostazioni(zona) {
                 await ricaricaTutto();
                 disegna();
                 if (!risolto) {
-                  avviso('Conflitto gia risolto o non piu disponibile. Elenco aggiornato.',{tipo:'attenzione'});
+                  avviso('Conflitto già risolto o non più disponibile. Elenco aggiornato.',{tipo:'attenzione'});
                 } else {
                   avviso('Conflitto risolto. Le altre modifiche sono rimaste intatte.',{tipo:'ok'});
                 }
