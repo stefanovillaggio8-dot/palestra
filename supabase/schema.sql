@@ -128,10 +128,13 @@ create index if not exists note_esercizio on public.note (user_id, esercizio_id)
 create index if not exists note_seduta   on public.note (user_id, seduta_id);
 create index if not exists versioni_scheda on public.versi (user_id, scheda_id);
 
--- regola che Ste ha chiesto: una sola seduta attiva per volta, garantita dal
--- database e non solo dall'app.
-create unique index if not exists una_seduta_in_corso
-  on public.sedute (user_id) where stato = 'in_corso' and eliminata = false;
+-- Una seduta vecchia rimasta aperta non deve bloccare le nuove sedute:
+-- l'unicita' e' per proprietario, scheda e giorno, non globale per utente.
+-- La regola per evitare due allenamenti contemporanei nella stessa scheda
+-- resta nel client (sedutaInCorso seleziona la piu' recente).
+create unique index if not exists una_seduta_in_corso_per_giorno
+  on public.sedute (user_id, scheda_id, data)
+  where stato = 'in_corso' and eliminata = false;
 
 -- sicurezza: via a tutti, accendiamo le regole una per una
 alter table public.esercizi enable row level security;
