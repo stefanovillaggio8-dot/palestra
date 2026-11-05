@@ -298,12 +298,18 @@ export async function salva(tabella, riga, { segna = true, seguiErrore = false }
     // La regola adesso È semplice: se il chiamante ha passato uno stato di
     // sincronizzazione esplicito, quello vale; altrimenti la riga si mette in coda
     // come prima. E gli errori si azzerano solo se il chiamante NON li sta scrivendo.
-    const statoEsplicito = riga.sync;
+    // Se una serie e' ancora in CONFLITTO, un edit locale non deve
+    // spedirla al server prima della scelta: la versione remota potrebbe
+    // essere cambiata nel frattempo e si produrrebbero conflitti duplicati.
+    // La serie aggiornata resta conservata e il dialogo verra' ricaricato.
+    const conflittoAncoraAperto = esistente?.sync === 'conflitto'
+      && !seguiErrore
+      && (riga.sync === 'conflitto' || riga.sync === 'pulito' || !riga.sync);
+    const statoEsplicito = conflittoAncoraAperto ? 'conflitto' : riga.sync;
     // Copiare ...riga da IndexedDB porta anche il VECCHIO sync='pulito' o
-    // 'in_corso'. Non e' un ordine esplicito: una modifica utente deve
-    // essere SEMPRE messa in coda. Soltanto il retry (da_salvare), oppure
-    // una transizione amministrativa seguiErrore, può conservare uno stato.
-    const hoStato = statoEsplicito === 'da_salvare'
+    // 'in_corso': non devono saltare la coda sulle modifiche ordinarie.
+    const hoStato = conflittoAncoraAperto
+      || statoEsplicito === 'da_salvare'
       || (seguiErrore && ['errore','in_corso','conflitto'].includes(statoEsplicito));
     completa.sync = hoStato ? statoEsplicito : 'da_salvare';
     if (!seguiErrore && !hoStato) {
