@@ -715,7 +715,6 @@ export const STANDARD_1RM = {
 export function standardPerMovimento(movimento, esercizio = {}) {
   const e = esercizio || {};
   const base = STANDARD_1RM[movimento];
-  if (!base) return null;
   // Prima la corrispondenza automatica ESATTA per nome/id e attrezzatura:
   // fonte originale con p5/p20/p50/p80/p95 del movimento specifico.
   const specifico = standardAutomaticoPerEsercizio(e);
@@ -735,6 +734,10 @@ export function standardPerMovimento(movimento, esercizio = {}) {
       tipoAttrezzatura: specifico.tipoAttrezzatura,
     };
   }
+  // Per esercizi appena creati il classificatore potrebbe non conoscere
+  // ancora la famiglia: la corrispondenza ESATTA con fonte e attrezzo
+  // autorizza comunque lo standard; senza fonte specifica non si inventa.
+  if (!base) return null;
   let scelto = base;
 
   if (base.varianti) {
