@@ -24,11 +24,19 @@ export function presentaRank(record) {
   if (r.serie && peso !== null && rip !== null) {
     const unita = String(r.profilo?.unita || 'kg');
     const registrato = n(r.caricoRegistrato);
+    const zavorra = n(r.zavorra);
     const cavoDoppio = r.cfg?.tipoAttrezzatura === 'cavo_2a1_dichiarato'
       && registrato !== null && registrato !== peso;
-    frasi.push(cavoDoppio
-      ? `La prestazione che conta: ${numeroIt(registrato)} kg sul carrello (rapporto 2:1 dichiarato: ${numeroIt(peso)} kg al cavo) per ${numeroIt(rip)} ripetizioni.`
-      : `La prestazione che conta: ${numeroIt(peso)} ${unita} per ${numeroIt(rip)} ripetizioni.`);
+    if (r.esercizio?.convenzione === 'zavorri' && zavorra !== null) {
+      const corpo = n(r.pesoCorporeo);
+      frasi.push(zavorra > 0
+        ? `La prestazione che conta: ${numeroIt(zavorra)} kg di zavorra${corpo === null ? '' : ' + ' + numeroIt(corpo) + ' kg del corpo'} per ${numeroIt(rip)} ripetizioni.`
+        : `La prestazione che conta: ${numeroIt(rip)} ripetizioni a corpo libero${corpo === null ? '' : ' con ' + numeroIt(corpo) + ' kg corporei'}.`);
+    } else {
+      frasi.push(cavoDoppio
+        ? `La prestazione che conta: ${numeroIt(registrato)} kg sul carrello (rapporto 2:1 dichiarato: ${numeroIt(peso)} kg al cavo) per ${numeroIt(rip)} ripetizioni.`
+        : `La prestazione che conta: ${numeroIt(peso)} ${unita} per ${numeroIt(rip)} ripetizioni.`);
+    }
   } else if (r.testo) {
     frasi.push(`Il Rank viene dalla tua migliore prestazione valida in questo esercizio.`);
   }
