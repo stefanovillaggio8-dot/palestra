@@ -5973,10 +5973,14 @@ function vistaImpostazioni(zona) {
               if(!ok)return;
               occupato=true;
               try {
-                await sync.risolvi(c.id,lato);
+                const risolto = await sync.risolvi(c.id,lato);
                 await ricaricaTutto();
                 disegna();
-                avviso('Conflitto risolto. Le altre modifiche sono rimaste intatte.',{tipo:'ok'});
+                if (!risolto) {
+                  avviso('Conflitto gia risolto o non piu disponibile. Elenco aggiornato.',{tipo:'attenzione'});
+                } else {
+                  avviso('Conflitto risolto. Le altre modifiche sono rimaste intatte.',{tipo:'ok'});
+                }
               }catch(err){
                 occupato=false;
                 mostraErroreBreve('Non sono riuscito a risolvere il conflitto: '+(err?.message||err));
