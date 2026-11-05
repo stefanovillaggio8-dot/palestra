@@ -9113,7 +9113,7 @@ async function vistaEsercizio(zona, esercizioId) {
   //
   // Un piatto da 1 sopra uno da 5 fa esistere quel numero: quindi 1 kg alla volta si
   // arriva su tutto, macchine comprese. Sotto i 50 kg vale la lista dei manubri.
-  zona.appendChild(el('p', { class: 'nota', testo: `${rigaSoglie.join(' · ')}. Soglie: ${soglieDaLeggere.map((s, i) =>
+  zona.appendChild(el('p', { class: 'nota', testo: `${rigaSoglie.join(' · ')}. Soglie a 8 ripetizioni senza spotter: ${soglieDaLeggere.map((s, i) =>
     `${RANK[i].nome}: ${s === null || !Number.isFinite(Number(s)) ? 'oltre i carichi elencati' : 'da ' + formattaNumero(s) + ' kg'}`).join(' · ')}` }));
 
   // L'AVVISO DEL PESO. Ste (07/10/2026): "il peso corporeo È l'ultima cosa
