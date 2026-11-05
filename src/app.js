@@ -6894,7 +6894,7 @@ function cardRank(record, { compatta = false } = {}) {
   const verso = r.inTop
     ? `Sei nel rank più alto: non cÈ un passo dopo, e ogni LP È un punto di percentuale sopra la soglia dell'OLYMPIAN (+${r.lp}% adesso).`
     : (kgPerIlProssimo
-      ? `${formattaNumero(kgPerIlProssimo)} ${profilo.unita} per ${prossimoNome}`
+      ? `${formattaNumero(kgPerIlProssimo)} ${r.distanza?.unitaCarico || profilo.unita} per ${prossimoNome}`
         + (distanza && distanza.inGioco ? `, con le ripetizioni che hai` : '')
       : `${prossimoNome} o ${(r.prossimoObiettivo || {}).etichetta ? 'prossimo livello' : 'prossimo rank'}`
         + (distanza && distanza.inGioco ? ` (ti manca lo ${formattaNumero(distanza.percentuale)}%)` : ''));
@@ -9096,7 +9096,8 @@ async function vistaEsercizio(zona, esercizioId) {
   //
   // Un piatto da 1 sopra uno da 5 fa esistere quel numero: quindi 1 kg alla volta si
   // arriva su tutto, macchine comprese. Sotto i 50 kg vale la lista dei manubri.
-  zona.appendChild(el('p', { class: 'nota', testo: `${rigaSoglie.join(' · ')}. Soglie: ${soglieDaLeggere.map((s, i) => `${RANK[i].nome} da ${formattaNumero(s)}`).join(' · ')}` }));
+  zona.appendChild(el('p', { class: 'nota', testo: `${rigaSoglie.join(' · ')}. Soglie: ${soglieDaLeggere.map((s, i) =>
+    `${RANK[i].nome}: ${s === null || !Number.isFinite(Number(s)) ? 'oltre i carichi elencati' : 'da ' + formattaNumero(s) + ' kg'}`).join(' · ')}` }));
 
   // L'AVVISO DEL PESO. Ste (07/10/2026): "il peso corporeo È l'ultima cosa
   // fragile: È l'unico numero digitato a mano che muove tutti i Rank".
@@ -9197,7 +9198,7 @@ async function vistaEsercizio(zona, esercizioId) {
           // gli stessi KG GIUSTI della card (vedi la spiegazione li' sopra): il
           // punteggio interno non È un peso e non va mostrato come se lo fosse
           : (record.distanza && record.distanza.kgNecessari
-            ? `${formattaNumero(record.distanza.kgNecessari)} ${profilo.unita} per ${(record.prossimoObiettivo || {}).etichetta || (record.prossimoRank ? record.prossimoRank.nome : 'il prossimo rank')}, con le ripetizioni che hai`
+            ? `${formattaNumero(record.distanza.kgNecessari)} ${record.distanza.unitaCarico || profilo.unita} per ${(record.prossimoObiettivo || {}).etichetta || (record.prossimoRank ? record.prossimoRank.nome : 'il prossimo rank')}, con le ripetizioni che hai`
             : `Prossimo obiettivo: ${(record.prossimoObiettivo || {}).etichetta || (record.prossimoRank ? record.prossimoRank.nome : 'il prossimo rank')}`
               + (distanzaObiettivo(record) ? ` (ti manca lo ${formattaNumero(distanzaObiettivo(record).percentuale)}%)` : '')),
       }),
