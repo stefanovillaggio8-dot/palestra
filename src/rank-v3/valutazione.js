@@ -539,7 +539,10 @@ function kgRealizzabile(g, caricoAttuale) {
 export function soglieLegibiliNuove(soglie, { esercizio = {}, pesoCorporeo = null, cfg = null, passo = 1 } = {}) {
   if (!Array.isArray(soglie)) return soglie;
   const config = cfg || configEsercizio({ esercizio });
-  const pesi = config.caricamento === 'manubri' ? PESI_GOLERIA : pesiCaricabili(passo);
+  const basePesi = config.caricamento === 'manubri' ? PESI_GOLERIA : pesiCaricabili(passo);
+  // Dip e trazioni: la prima soglia puo' essere gia' raggiunta senza
+  // aggiungere dischi. 0 kg di zavorra e' un peso caricabile REALE.
+  const pesi = config.modello === 'corpo_libero' ? [0, ...basePesi] : basePesi;
   const corpo = numero(pesoCorporeo);
   const punteggioDi = (kg) => {
     const carico = config.modello === 'corpo_libero'
