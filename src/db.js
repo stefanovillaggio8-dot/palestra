@@ -279,8 +279,17 @@ export async function salva(tabella, riga, { segna = true, seguiErrore = false }
   };
   if (segna) {
     const segnata = segnaDaSalvare(esistente || completa);
-    completa.rev = segnata.rev;
-    completa.base_rev = Number((esistente && esistente.base_rev) || 0);
+    // Nella risoluzione di un conflitto, la nuova base è la revisione
+    // REMOTA che abbiamo appena scelto: non tornare alla base locale vecchia,
+    // altrimenti nasce subito un altro conflitto identico.
+    const basePrima = Number((esistente && esistente.base_rev) || 0);
+    const baseRichiesta = Number(riga.base_rev || 0);
+    const baseConflittoRisolto = riga.sync === 'da_salvare'
+      && Number.isFinite(baseRichiesta) && baseRichiesta > basePrima;
+    completa.base_rev = baseConflittoRisolto ? baseRichiesta : basePrima;
+    // La revisione inviata deve essere SUPERIORE alla base remota.
+    completa.rev = Math.max(segnata.rev, completa.base_rev + 1,
+      Number(riga.rev || 0));
     // Ogni MODIFICA LOCALE deve ricevere un updated_at nuovo, anche se chi
     // salva ha fatto spread della riga precedente che conteneva il vecchio
     // timestamp. Senza, il pull incrementale su telefono/PC non la vede.
