@@ -609,6 +609,7 @@ async function avvia() {
     // altrimenti per qualche secondo mostrerebbe il livello vecchio
     await caricaLivelliImparati();
     sync.avvia();
+    attivaInvitiAutomatici();
     // Se si ritorna dall'altra PWA, recupera subito la rettifica autentica.
     if (!gestoreFocusSyncRegistrato) {
       window.addEventListener('focus', () => {
@@ -1324,7 +1325,10 @@ async function accodaDatiAndreaMancanti(dati) {
 }
 
 /** Accetta il link una sola volta e ricarica i dati condivisi da entrambi. */
+let completamentoInvitoInCorso = null;
 async function completaInvitoPendente() {
+  if (completamentoInvitoInCorso) return completamentoInvitoInCorso;
+  const lavoro = (async () => {
   const token = invitoPendente();
   if (!token || !sb.collegato()) return false;
 
@@ -1339,6 +1343,13 @@ async function completaInvitoPendente() {
   if (!trasferimentoAndrea && await preparaAccountOnline() === false) return false;
 
   const esito = await sb.accettaInvitoAmico(token, idProfilo);
+  // Da questo momento l'amicizia e' confermata dal SERVER, anche se il
+  // download dello storico fallisce subito dopo. Non ripresentare il token
+  // al prossimo avvio (su un altro dispositivo la RPC resta idempotente).
+  try {
+    const uid = sb.sessione()?.user?.id;
+    if (uid) localStorage.setItem('palestra-invito-completato:' + uid + ':' + token, '1');
+  } catch { /* memoria non disponibile */ }
   consumaInvitoPendente();
   if (datiAndrea) await accodaDatiAndreaMancanti(datiAndrea);
 
@@ -1361,16 +1372,57 @@ async function completaInvitoPendente() {
   // Un'amiciazione nuova deve rendere leggibile anche lo storico precedente,
   // non soltanto le sedute create dopo l'accettazione.
   sync.richiediPullCompleto();
-  const syncDopoInvito = await sync.sincronizza();
+  const syncDopoInvito = await sync.sincronizza({ attendiSeInCorso: true });
   if (syncDopoInvito && syncDopoInvito.errori) {
-    throw new Error(syncDopoInvito.messaggio || 'Invito accettato, ma la sincronizzazione deve essere riprovata.');
+    V.erroreAmici = 'Amicizia attivata: lo storico si aggiornerà alla prossima sincronizzazione.';
   }
-  if (trasferimentoAndrea) await db.scriviMeta('account-2-storico-caricato-v1', true);
+  if (trasferimentoAndrea && syncDopoInvito?.fatto) {
+    await db.scriviMeta('account-2-storico-caricato-v1', true);
+  }
   await ricaricaTutto();
   avviso(trasferimentoAndrea
     ? 'Profilo storico di Andrea trasferito: ora appartiene al suo account personale.'
     : 'Amicizia attivata. Ora potete vedere gli allenamenti che avete condiviso.', { tipo: 'ok', durata: 7000 });
   return esito || true;
+  })();
+  completamentoInvitoInCorso = lavoro;
+  try { return await lavoro; }
+  finally {
+    if (completamentoInvitoInCorso === lavoro) completamentoInvitoInCorso = null;
+  }
+}
+
+let listenerInvitiAutomaticiAttivo = false;
+let prossimoTentativoAmici = 0;
+
+/** Con il token di invito l'accettazione è automatica, senza pulsanti.
+ * Se l'utente apre la PWA con poca rete, al focus/online o al timer riprende.
+ * La RPC verifica token, scadenza e proprietario autenticato: nessun link,
+ * nessuna amicizia.
+ */
+function attivaInvitiAutomatici() {
+  if (listenerInvitiAutomaticiAttivo) return;
+  listenerInvitiAutomaticiAttivo = true;
+  const prova = () => {
+    if (!sb.collegato() || !invitoPendente() || Date.now() < prossimoTentativoAmici) return;
+    prossimoTentativoAmici = Date.now() + 15000;
+    void completaInvitoPendente().catch((e) => {
+      const testo = String(e?.message || e || '');
+      if (/scadut|già stato utilizzato|non valido|stesso account|già il tuo profilo/i.test(testo)) {
+        prossimoTentativoAmici = Date.now() + 10 * 60 * 1000;
+      }
+      V.erroreAmici = 'Invito in attesa: ' + testo;
+      console.warn('Collegamento amici da riprovare:', testo);
+      if (window.location.hash === '#/amici') disegna();
+    });
+  };
+  window.addEventListener('focus', prova);
+  window.addEventListener('online', prova);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') prova();
+  });
+  setInterval(prova, 45000);
+  prova();
 }
 
 function urlInvito(token, trasferisciAndrea = false) {
@@ -1418,21 +1470,9 @@ function bloccoAccountOnlineProfilo() {
   if (s && s.access_token) {
     const email = s.user && s.user.email ? s.user.email : 'account collegato';
     box.appendChild(el('p', { class: 'nota', testo: 'Connesso come ' + email }));
-    const invito = invitoPendente();
-    if (invito) {
-      box.appendChild(bottone('Accetta invito in sospeso', {
-        onClick: async () => {
-          try {
-            const pronto = await completaInvitoPendente();
-            if (pronto === false) return;
-            await ricaricaTutto();
-            disegna();
-          } catch (e) {
-            avviso('Invito non completato: ' + e.message, { tipo: 'errore', durata: 10000 });
-          }
-        },
-        classe: 'principale',
-      }));
+    if (invitoPendente()) {
+      box.appendChild(el('p', { class: 'nota',
+        testo: 'Invito rilevato. Ti collegherò automaticamente all’amico che ti ha invitato, senza altri pulsanti. In assenza di rete riproverò.' }));
     }
     box.appendChild(bottone('Esci dall’account online', {
       onClick: async () => {
@@ -2508,7 +2548,6 @@ function vistaHome(zona) {
       el('span', { class: 'workout-hub-icon', testo: '✦', 'aria-hidden': 'true' }),
       el('strong', { testo: 'Recap' }),
     ]),
-    collegamentoMusicBox({ compatto: true }),
   ]));
 
   // Soltanto l'ordine VISIVO cambia: il giorno prossimo viene presentato
@@ -8507,25 +8546,6 @@ function rigaPillole(st, profilo) {
 }
 
 
-/** Music Box è una PWA esterna: il link deve stare nel contenuto dell'app,
- * non flottare sopra la safe area dei telefoni. */
-function collegamentoMusicBox({ compatto = false } = {}) {
-  return el('a', {
-    href: 'https://stefanovillaggio8-dot.github.io/music-box/?modo=gym',
-    class: 'musicbox-palestra-link' + (compatto ? ' workout-hub-action workout-hub-music' : ''),
-    target: '_blank',
-    rel: 'noopener noreferrer',
-    title: 'Apri Music Box con la playlist Gym',
-  }, [
-    el('span',{class:'musicbox-palestra-icon',testo:'♫','aria-hidden':'true'}),
-    el('span',{class:'musicbox-palestra-copy'},[
-      el('strong',{testo: compatto ? 'Music Box' : 'Music Box · Gym'}),
-      el('small',{testo:'Apri la tua musica per allenarti'}),
-    ]),
-    el('span',{class:'musicbox-palestra-arrow',testo:'↗','aria-hidden':'true'}),
-  ]);
-}
-
 /** Un PC senza sessione online non deve far sembrare persi i giorni salvati. */
 function avvisoStreakDaSincronizzare(st) {
   if (accountAttivo() !== 'account-1' || !st || st.streak?.giorni !== 0) return null;
@@ -8591,7 +8611,6 @@ function vistaCasa(zona) {
       el('span',{testo:'Aura Shop'}),
     ]),
   ]));
-  zona.appendChild(collegamentoMusicBox());
   // Il progresso XP si trova ora nella tessera accanto a Streak, Aura e livello.
 
   // --- ultimo allenamento ---
@@ -9582,7 +9601,7 @@ function vistaAmici(zona) {
     el('h2', { testo: 'Amici e condivisione' }),
     el('p', {
       class: 'nota',
-      testo: 'Crea un link diverso per ogni amico. Quando lo apre, crea il suo account e accetta l’invito; poi potete vedere i vostri allenamenti condivisi. Non mandare mai a nessuno la tua password.',
+      testo: 'Crea un link diverso per ogni amico. Aprendo il link e accedendo al proprio account, diventate amici automaticamente. Per i nuovi account serve confermare l’email. Non mandare mai a nessuno la tua password.',
     }),
     bottone('Crea link invito per un amico', {
       onClick: () => creaECopiaInvito(false),
@@ -9604,7 +9623,7 @@ function vistaAmici(zona) {
   zona.appendChild(bloccoAccountOnlineProfilo());
   const statoInviti = el('section', { class: 'blocco' }, [
     el('h2', { testo: 'Stato degli inviti' }),
-    el('p', { class: 'nota', testo: 'Inviare il link non basta: l’amico deve aprirlo, creare o accedere al suo account e accettarlo. Solo dopo apparirà tra gli amici.' }),
+    el('p', { class: 'nota', testo: 'Il collegamento è automatico quando l’amico apre il suo link ed entra nel proprio account. Se ha già creato un account in passato, deve soltanto riaprire il link mentre è connesso.' }),
     bottone('Aggiorna amici e inviti', {
       classe: 'fantasma',
       onClick: () => aggiornaStatoAmici({ forza: true }),
@@ -9788,7 +9807,6 @@ async function vistaProfilo(zona) {
     el('div', { class: 'riga-teschio piccolo' }, [teschioStreak(st)]),
   ]);
   zona.appendChild(testa);
-  zona.appendChild(collegamentoMusicBox());
   // Prima l'identità e il personaggio, poi l'ingresso allo Shop.
   zona.appendChild(el('a',{href:'#/aura-shop',class:'aura-shop-open'},[
     el('span',{testo:'✦'}),
