@@ -15,15 +15,14 @@ test('rettifica 15 letta su PC anche senza sedute locali, se il profilo è sincr
  assert.equal(calcolaStreak([], '2026-11-01',local).giorni,0);
  assert.equal(calcolaStreak([], '2026-11-01',{id:'account-2'}).giorni,0);
 });
-test('Musica disponibile nelle schermate Home Casa Profilo della PWA',()=>{
+test('v429: nessuna scorciatoia Music Box in Allenamento, Casa e Profilo',()=>{
  const app=read('src/app.js'),html=read('index.html');
- assert.match(app,/function collegamentoMusicBox\(\{ compatto = false \} = \{\}\)/);
- assert.match(app,/function vistaHome\([\s\S]*?collegamentoMusicBox\(\{ compatto: true \}\)/);
- assert.match(app,/function vistaCasa\([\s\S]*?zona\.appendChild\(collegamentoMusicBox\(\)\)/);
- assert.match(app,/async function vistaProfilo\([\s\S]*?zona\.appendChild\(collegamentoMusicBox\(\)\)/);
- assert.match(app,/https:\/\/stefanovillaggio8-dot\.github\.io\/music-box\/\?modo=gym/);
+ assert.doesNotMatch(app,/collegamentoMusicBox|musicbox-palestra-link|https:\/\/stefanovillaggio8-dot\.github\.io\/music-box/);
+ assert.doesNotMatch(read('stile-rpg.css'),/\.musicbox-palestra-link/);
+ assert.doesNotMatch(read('stile-premium.css'),/workout-hub-music/);
  assert.doesNotMatch(html,/id="apri-musicbox-gym"/);
- assert.match(read('stile-rpg.css'),/\.musicbox-palestra-link\s*\{/);
+ assert.match(app,/workout-hub-actions/);
+ assert.match(read('stile-premium.css'),/grid-template-columns:minmax\(0,1fr\)/);
 });
 test('PC con streak 0 può riconnettere o ricaricare i giorni senza duplicarli',()=>{
  const app=read('src/app.js');
