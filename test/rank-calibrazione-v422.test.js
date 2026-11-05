@@ -44,8 +44,11 @@ test('v422: nessuno standard di pila va sulla chest press per braccio o sullo Sc
   assert.equal(standardAutomaticoPerEsercizio(chest),null);
   const scott=byId('ex-scott-bench-curl'),one=byId('ex-one-arm-preacher-curl');
   const s=standardPerMovimento('bicipiti_panca',scott);
-  assert.equal(s.fonte,'modello_famiglia');
-  assert.equal(s.soglie1RMPerPeso,null);
+  assert.equal(s.fonte,'modello_tecnica_cad_curl');
+  assert.equal(s.affidabilitaBase,'bassa');
+  assert.ok(Array.isArray(s.soglie1RMPerPeso));
+  assert.equal(standardAutomaticoPerEsercizio(scott),null,
+    'i percentili adattati non sono dati misurati per il CAD Curl');
   assert.equal(standardPerMovimento('bicipiti_panca',one).fonte,'strengthlevel_esercizio');
 });
 

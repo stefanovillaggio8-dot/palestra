@@ -44,13 +44,14 @@ test('v430: la foto scelta è un JPEG valido realmente incluso nella cache offli
 test('v430: CAD Curl usa una propria scala stimata distinta da preacher monobraccio', () => {
   assert.equal(movimentoDi(cad).movimento, 'bicipiti_panca');
   const standard = standardPerMovimento('bicipiti_panca', cad);
-  assert.equal(standard.ingresso, 0.12);
-  assert.equal(standard.vertice, 0.46);
-  assert.equal(standard.fonte, 'modello_famiglia');
+  assert.ok(Math.abs(standard.ingresso - 8 * 0.85 / 75) < 1e-8);
+  assert.ok(Math.abs(standard.vertice - 41 * 0.85 / 75) < 1e-8);
+  assert.equal(standard.fonte, 'modello_tecnica_cad_curl');
   assert.equal(standard.affidabilitaBase, 'bassa');
-  assert.equal(standard.soglie1RMPerPeso, null);
+  assert.equal(standard.soglie1RMPerPeso.length, 3);
   assert.match(standard.nota, /CAD Curl/);
-  assert.match(standard.limite, /NON sono percentili misurati/);
+  assert.match(standard.nota, /panca Scott al contrario/);
+  assert.match(standard.limite, /non uno standard misurato/);
   assert.equal(standardPerMovimento('bicipiti_panca', preacher).fonte, 'strengthlevel_esercizio');
   assert.equal(standardPerMovimento('bicipiti_panca', ez).vertice, 0.85);
   assert.equal(configEsercizio({esercizio:cad,movimento:'bicipiti_panca'}).caricamento,'manubri');
@@ -58,7 +59,8 @@ test('v430: CAD Curl usa una propria scala stimata distinta da preacher monobrac
 
 test('v430: anche il vecchio nome locale mantiene il nuovo standard grazie all’ID', () => {
   const legacy = { ...cad, nome: 'Scott Bench Curl seduto al contrario' };
-  assert.equal(standardPerMovimento('bicipiti_panca',legacy).vertice, 0.46);
+  assert.ok(Math.abs(standardPerMovimento('bicipiti_panca',legacy).vertice
+    - 41 * 0.85 / 75) < 1e-8);
   const app = readFileSync(new URL('../src/app.js', import.meta.url), 'utf8');
   assert.match(app, /async function aggiornaCadCurlSalvato\(\)/);
   assert.match(app, /await aggiornaCadCurlSalvato\(\)/);

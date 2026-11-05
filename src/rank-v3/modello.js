@@ -643,15 +643,6 @@ export const STANDARD_1RM = {
     ingresso: 0.15, vertice: 0.85,
     nota: 'Standard generico precedente per la panca Scott: non vale come riferimento specifico per un manubrio singolo.',
     varianti: {
-      // CAD Curl: seduto al contrario sulla panca Scott, gomiti appoggiati
-      // e busto inclinato all'indietro. Carico di UN manubrio, due braccia
-      // simultanee. Non usare lo standard per lo Scott tradizionale o
-      // i percentili dell'One Arm Preacher: la leva e' diversa.
-      cad_dumbbell: {
-        ingresso: 0.12,
-        vertice: 0.46,
-        nota: 'CAD Curl con due manubri, ciascuno registrato per mano. Scala provvisoria derivata dalla famiglia preacher/incline curl con busto arretrato; NON ci sono percentili pubblicati per questa specifica tecnica.',
-      },
       one_arm_dumbbell: {
         // Strength Level, One Arm Dumbbell Preacher Curl (per singolo manubrio):
         // a 75 kg corpo, Beginner 9 kg e Elite 37 kg di 1RM (agg. 05/03/2026).
@@ -721,6 +712,22 @@ export const STANDARD_1RM = {
  * carico. Non si guarda il nome dell'esercizio se non per le macchine che non
  * hanno un campo dedicato.
  */
+/**
+ * CAD Curl: parametro di MODELLO, NON differenza misurata in uno studio.
+ *
+ * Il busto arretrato (maggiore allungamento nella posizione iniziale), i gomiti
+ * appoggiati sul lato opposto della Scott e il movimento stretto senza slancio
+ * rendono questa variante piu' impegnativa del curl libero a pari kg.
+ * Usiamo 0,85 della soglia del DUMBBELL CURL tradizionale a ogni percentile,
+ * peso corporeo e ripetizioni: cosi' una serie da 18 kg x 8 e' valutata come
+ * una prova difficile, senza moltiplicare i kg reali o fingere un 1RM.
+ *
+ * Il 15% e' volutamente PRUDENTE E PROVVISORIO, non una misura biomeccanica
+ * certificata e non un percentile CAD Curl (non pubblicato). Non aggiungere
+ * un ulteriore bonus a meccanica o difficoltaScala: sarebbe doppio conteggio.
+ */
+export const CAD_CURL_FATTORE_SOGLIE = 0.85;
+
 export function standardPerMovimento(movimento, esercizio = {}) {
   const e = esercizio || {};
   const base = STANDARD_1RM[movimento];
@@ -742,6 +749,42 @@ export function standardPerMovimento(movimento, esercizio = {}) {
       limite: specifico.limite,
       tipoAttrezzatura: specifico.tipoAttrezzatura,
     };
+  }
+  // CAD Curl: la difficolta' e' la conseguenza COMBINATA delle tre condizioni
+  // dichiarate: panca Scott usata al contrario, gomiti fissi al cuscinetto e
+  // busto inclinato indietro (preallungamento). Il confronto si fa con il
+  // Dumbbell Curl, con la STESSA unita' per manubrio.
+  //
+  // Prendiamo i cinque percentili pubblicati solo per il CURL NORMALE, poi
+  // applichiamo a ciascuna soglia un coefficiente prudente di 0,85. Cosi'
+  // il Rank CAD non puo' risultare piu' basso del curl normale alla stessa
+  // prestazione: la scala e' traslata, non deformata o "regalata" a caso.
+  // Questi numeri NON sono percentili osservati per il CAD Curl; il campo
+  // fonte rimane di modello e l'attendibilita' e' bassa.
+  if (movimento === 'bicipiti_panca'
+      && e.id === 'ex-scott-bench-curl'
+      && e.convenzione === 'per_manubrio') {
+    const riferimento = standardAutomaticoPerEsercizio({
+      id: 'ex-dumbbell-curl', nome: 'Dumbbell Curl', convenzione: 'per_manubrio',
+    });
+    if (riferimento?.soglie1RMPerPeso) {
+      const soglieStimate = riferimento.soglie1RMPerPeso.map(([corpo, ...valori]) =>
+        [corpo, ...valori.map(v => Math.round(v * CAD_CURL_FATTORE_SOGLIE * 1000) / 1000)]);
+      const rif75 = soglieStimate.find(r => r[0] === 75);
+      return {
+        ingresso: rif75[1] / 75,
+        vertice: rif75[5] / 75,
+        soglie1RMPerPeso: soglieStimate,
+        curvaRank: null,
+        nota: 'CAD Curl: panca Scott al contrario, gomiti fermi sul cuscinetto e busto arretrato per il preallungamento. Due manubri, kg PER SINGOLO MANUBRIO. Scala tecnica provvisoria: soglie del curl con manubri ridotte del 15% per la maggiore difficolta; la riduzione non e una percentuale validata sperimentalmente.',
+        fonte: 'modello_tecnica_cad_curl',
+        fonteUrl: riferimento.fonteUrl,
+        riferimentoNome: 'CAD Curl (stima a partire dal Dumbbell Curl)',
+        affidabilitaBase: 'bassa',
+        limite: 'I percentili pubblicati si riferiscono SOLO al Dumbbell Curl normale; il 15% di difficolta aggiuntiva e una stima provvisoria per la tecnica CAD Curl, non uno standard misurato.',
+        tipoAttrezzatura: tipoAttrezzaturaRank(e),
+      };
+    }
   }
   // Per esercizi appena creati il classificatore potrebbe non conoscere
   // ancora la famiglia: la corrispondenza ESATTA con fonte e attrezzo
@@ -767,11 +810,9 @@ export function standardPerMovimento(movimento, esercizio = {}) {
       // validato nella fonte specifica One Arm Preacher.
       const unBraccio = id === 'ex-one-arm-preacher-curl'
         || /(?:one|single)[ -]?arm.*(?:preacher|scott)/.test(nome);
-      // ID stabile: anche il vecchio nome salvato nel DB viene valutato
-      // come CAD Curl, senza staccare lo storico. Non influisce su altri curl.
-      if (id === 'ex-scott-bench-curl' && e.convenzione === 'per_manubrio') {
-        scelto = base.varianti.cad_dumbbell || base;
-      } else if (unBraccio && e.convenzione === 'per_manubrio') {
+      // Il CAD Curl viene gestito prima, confrontandolo con il normale curl
+      // per mano; qui resta solo il vero preacher MONOBRACCIO.
+      if (unBraccio && e.convenzione === 'per_manubrio') {
         scelto = base.varianti.one_arm_dumbbell || base;
       }
     } else if (movimento === 'polpacci') {
