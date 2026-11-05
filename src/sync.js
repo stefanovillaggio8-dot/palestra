@@ -36,6 +36,7 @@ const TABELLE_SINCRONIZZATE = ['esercizi', 'schede', 'versioni', 'sedute', 'seri
   'profili', 'missioni', 'ricompense', 'pesi'];
 
 let inCorso = false;
+let avvioRegistrato = false;
 const ascoltatori = new Set();
 
 export function iscriviti(fn) {
@@ -411,6 +412,10 @@ export async function conflittiDaScegliere() {
 
 /** Avvio: collega gli eventi di rete e i ritentativi automatici. */
 export function avvia() {
+  // La stessa PWA può richiamare il bootstrap più volte dopo errori o cambio
+  // account: un solo listener/timer evita pull duplicati e lag progressivi.
+  if (avvioRegistrato) return;
+  avvioRegistrato = true;
   const online = () => { avvisa(); if (navigator.onLine !== false) sincronizza(); };
   window.addEventListener('online', online);
   window.addEventListener('offline', () => avvisa());
