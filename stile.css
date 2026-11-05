@@ -817,6 +817,23 @@ body.scorso .banda-cronometro .bot.grande {
 }
 .lista-scelte .nota { margin: 6px 2px; }
 
+/* Prova Rank usa ora esattamente il catalogo della modifica scheda.
+   La lista resta scrollabile anche su iPhone senza occupare tutta la pagina. */
+.selettore-esercizi-condiviso { min-width: 0; }
+.selettore-esercizi-condiviso .lista-scelte { max-height: min(44vh, 380px); }
+.selettore-esercizi-condiviso .voce-scelta { margin-top: 2px; }
+.esercizio-prova-scelto {
+  margin: 8px 0 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--bordo);
+  border-radius: 12px;
+  background: var(--card-2);
+}
+.esercizio-prova-scelto .nota { margin: 0; }
+.riga-esercizio-selezionato { display: flex; gap: 12px; align-items: center; }
+.riga-esercizio-selezionato strong { min-width: 0; overflow-wrap: anywhere; }
+
+
 /* --- tutorial amministratore dentro il dialogo "crea esercizio" --- */
 .tutorial {
   margin: 14px 0 16px; border: 1px solid var(--bordo); border-radius: 13px;
