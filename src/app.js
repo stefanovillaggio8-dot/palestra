@@ -35,6 +35,7 @@ import { nuovoId, adesso, TABELLE, riallineaEsercizi } from './sincronizzazione.
 import { statoAccount, ricompenseAllenamento, gruppiDaSerie } from './gioco.js';
 import { percorsoStemma, nomeStemma, tutteLeGraficheRank } from './rank-stemmi.js';
 import { ordinaRecordRank } from './rank-ordina.js';
+import { corrispondeRicercaEsercizi } from './ricerca-esercizi.js';
 import { segnaliProgressione } from './analisi-progressi.js';
 import { vistaRecapPalestra } from './recap-ui.js';
 import { idRegolazioni, leggiRegolazioni, riepilogoRegolazioni } from './regolazioni-macchina.js';
@@ -4835,13 +4836,13 @@ const FILTRO_GENERALE = {
   spalle: 'spalle',
 };
 
-function scegliEsercizio(bozza, g) {
-  const usati = new Set(g.esercizi.map((x) => x.esercizio_id));
-  const liberi = V.esercizi.filter((e) => !usati.has(e.id));
-  if (!liberi.length) { avviso('In questo giorno ci sono gia\' tutti gli esercizi.'); return; }
-  const box = el('div', { class: 'sfondo-dialogo' });
-  const lista = el('div', { class: 'dialogo dialogo-largo' }, [el('h3', { testo: 'Aggiungi a ' + g.nome })]);
-
+/**
+ * Catalogo condiviso da "modifica scheda" e "Prova un esercizio".
+ * Stessi filtri, nomi dei muscoli, miniature e ricerca per parole ovunque
+ * nel nome, senza richiedere che la parola sia all'inizio.
+ */
+function costruisciSelettoreEsercizi(esercizi, onScelta) {
+  const contenitoreElenco = el('div', { class: 'selettore-esercizi-condiviso' });
   // LA RICERCA E I FILTRI (Ste, 21/10/2026)
   //
   // "aggiungi una barra di ricerca nella lista degli esercizi da aggiungere alla scheda
@@ -4850,7 +4851,7 @@ function scegliEsercizio(bozza, g) {
   //
   // Ogni esercizio sa già quale muscolo lavora (è il classificatore), quindi i filtri
   // non sono un elenco scritto a mano: sono quello che l'app sa davvero.
-  const voci = liberi.map((e) => {
+  const voci = esercizi.map((e) => {
     const p = parteDiMuscolo({ nome: e.nome, descrizione: e.nota_permanente || '' });
     const trovato = !!(p && p.trovata);
     return {
@@ -4860,7 +4861,7 @@ function scegliEsercizio(bozza, g) {
       // gruppo li aveva tutti insieme, quindi il filtro li mostrava uniti.
       gruppo: trovato ? (ETICHETTE_PARTE[p.parte] || etichettaMuscolo(p.gruppoPrincipale) || '') : '',
       generale: trovato ? (FILTRO_GENERALE[p.muscolo] || '') : '',
-      cerca: ((e.nome || '') + ' ' + (trovato && p.nome ? p.nome : '')).toLowerCase(),
+      nomeMuscolo: trovato && p.nome ? p.nome : '',
     };
   });
 
@@ -4870,12 +4871,13 @@ function scegliEsercizio(bozza, g) {
 
   const campo = campoTesto('', {
     segnaposto: 'Cerca per nome o per muscolo...',
-    onCambio: (v) => { testoRicerca = String(v || '').trim().toLowerCase(); ridisegna(); },
+    onCambio: (v) => { testoRicerca = String(v || ''); ridisegna(); },
   });
-  lista.appendChild(el('div', { class: 'zona-ricerca' }, [campo]));
+  contenitoreElenco.appendChild(el('div', { class: 'zona-ricerca' }, [campo]));
 
   const zonaFiltri = el('div', { class: 'zona-filtri' });
   const zonaScelte = el('div', { class: 'lista-scelte' });
+  const contatore = el('p', { class: 'nota nota-piccola', testo: '' });
 
   // UN SOLO BOTTONE CHE APRE I FILTRI (Ste, 21/10/2026)
   //
@@ -4892,10 +4894,11 @@ function scegliEsercizio(bozza, g) {
     classe: 'bottone-filtri',
   });
   const rigaFiltri = el('div', { class: 'riga-filtri' });
-  lista.appendChild(bottoneFiltri);
-  lista.appendChild(rigaFiltri);
-  lista.appendChild(zonaFiltri);
-  lista.appendChild(zonaScelte);
+  contenitoreElenco.appendChild(bottoneFiltri);
+  contenitoreElenco.appendChild(rigaFiltri);
+  contenitoreElenco.appendChild(zonaFiltri);
+  contenitoreElenco.appendChild(contatore);
+  contenitoreElenco.appendChild(zonaScelte);
 
   const chip = (testo, attivo, onClick) => bottone(testo, {
     onClick,
@@ -4951,30 +4954,44 @@ function scegliEsercizio(bozza, g) {
     const filtrate = voci.filter((v) => {
       if (filtroGenerale && v.generale !== filtroGenerale) return false;
       if (filtroGruppo && v.gruppo !== filtroGruppo) return false;
-      if (testoRicerca && !v.cerca.includes(testoRicerca)) return false;
+      if (!corrispondeRicercaEsercizi(v, testoRicerca)) return false;
       return true;
     });
+    contatore.textContent = filtrate.length === 1
+      ? '1 esercizio trovato'
+      : `${filtrate.length} esercizi trovati`;
     if (!filtrate.length) {
       zonaScelte.appendChild(el('p', { class: 'nota', testo: 'Nessun esercizio con questi filtri.' }));
     }
     for (const v of filtrate) {
       const e = v.e;
       zonaScelte.appendChild(bottone('', {
-        onClick: () => {
-          g.esercizi.push({
-            id: 'es-' + nuovoId(), ordine: g.esercizi.length + 1, esercizio_id: e.id,
-            opzionale: false, nota: '', serie: [{ peso: null, peso_assistenza: null, ripetizioni: null, dropset: false }],
-          });
-          box.remove();
-          disegna();
-        },
+        onClick: () => onScelta(e),
         classe: 'voce-scelta',
         figli: [el('img', { src: e.foto, alt: '', class: 'foto-esercizio' }), el('span', { testo: nomeConMuscolo(e, { soloPrincipale: true }) })],
       }));
     }
   };
   ridisegna();
+  return contenitoreElenco;
+}
 
+function scegliEsercizio(bozza, g) {
+  const usati = new Set(g.esercizi.map((x) => x.esercizio_id));
+  const liberi = V.esercizi.filter((e) => !usati.has(e.id));
+  if (!liberi.length) { avviso('In questo giorno ci sono gia\' tutti gli esercizi.'); return; }
+  const box = el('div', { class: 'sfondo-dialogo' });
+  const lista = el('div', { class: 'dialogo dialogo-largo' }, [
+    el('h3', { testo: 'Aggiungi a ' + g.nome }),
+  ]);
+  lista.appendChild(costruisciSelettoreEsercizi(liberi, (e) => {
+    g.esercizi.push({
+      id: 'es-' + nuovoId(), ordine: g.esercizi.length + 1, esercizio_id: e.id,
+      opzionale: false, nota: '', serie: [{ peso: null, peso_assistenza: null, ripetizioni: null, dropset: false }],
+    });
+    box.remove();
+    disegna();
+  }));
   lista.appendChild(bottone('Annulla', { onClick: () => box.remove(), classe: 'fantasma' }));
   box.appendChild(lista);
   box.addEventListener('click', (ev) => { if (ev.target === box) box.remove(); });
@@ -8658,21 +8675,30 @@ function vistaRank(zona) {
         + 'cambialo se ti sei pesato di nuovo.',
     }));
 
-    // LA RICERCA (Ste, 21/10/2026)
-    //
-    // "quando scrivo le scelte non devono apparire li ma è come una barra di ricerca:
-    // se scrivo la s spuntano quelli che iniziano con la s, se dopo la s scrivo t mi
-    // spuntano quelli che iniziano con st"
-    //
-    // Quindi niente l'elenco del browser (quello che spuntava sotto, con la barretta
-    // "Inserisci info"): qui sotto c’è una lista mia, che si accorcia mentre scrivi.
-    const cerca = el('input', {
-      type: 'text', class: 'campo-testo',
-      placeholder: 'Cerca l\'esercizio (per nome)...', autocomplete: 'off',
-    });
-    const scelte = el('div', { class: 'lista-scelte-suggerite' });
-    contenitore.appendChild(el('div', { class: 'riga-campo' }, [cerca]));
-    contenitore.appendChild(scelte);
+    // Il catalogo e' lo stesso della modifica della scheda:
+    // miniature, filtri muscolari e ricerca per parole OVUNQUE nel nome.
+    let scelto = null;
+    const sceltaAttuale = el('div', { class: 'esercizio-prova-scelto' });
+    const aggiornaScelta = () => {
+      svuota(sceltaAttuale);
+      if (!scelto) {
+        sceltaAttuale.appendChild(el('p', {
+          class: 'nota', testo: 'Scegli un esercizio dalla lista qui sotto.',
+        }));
+        return;
+      }
+      sceltaAttuale.appendChild(el('div', { class: 'riga-esercizio-selezionato' }, [
+        el('img', { src: scelto.foto, alt: '', class: 'foto-esercizio grande' }),
+        el('strong', { testo: nomeConMuscolo(scelto, { soloPrincipale: true }) }),
+      ]));
+    };
+    aggiornaScelta();
+    contenitore.appendChild(sceltaAttuale);
+    contenitore.appendChild(costruisciSelettoreEsercizi(V.esercizi || [], (e) => {
+      scelto = e;
+      aggiornaScelta();
+      svuota(esito);
+    }));
 
     // I CAMPI: con l'etichetta VISTA (il peso, le ripetizioni, il peso corporeo)
     const pesoCampo = campoNumero(null, { etichetta: 'PESO', onCambio: () => { } });
@@ -8688,34 +8714,7 @@ function vistaRank(zona) {
     const esito = el('div');
     contenitore.appendChild(esito);
 
-    let scelto = null;
-    const disegnaScelte = () => {
-      svuota(scelte);
-      const testo = (cerca.value || '').trim().toLowerCase();
-      const nomi = (V.esercizi || []).map((e) => e.nome);
-      // comincia per quello che scrivi: se scrivi "st", spuntano quelli che iniziano con "st"
-      // e se non hai scritto niente non spunta NESSUN esercizio (Ste, 21/10/2026)
-      const trovati = testo
-        ? nomi.filter((n) => n.toLowerCase().startsWith(testo))
-        : [];
-      if (testo && !trovati.length) {
-        scelte.appendChild(el('p', { class: 'nota', testo: 'Nessun esercizio comincia cosi.' }));
-        return;
-      }
-      if (!testo) return;
-      for (const n of trovati.slice(0, 12)) {
-        scelte.appendChild(bottone(n, {
-          onClick: () => {
-            cerca.value = n;
-            scelto = (V.esercizi || []).find((x) => x.nome === n) || null;
-            svuota(scelte);
-          },
-          classe: 'voce-scelta voce-suggerita',
-        }));
-      }
-    };
-    cerca.addEventListener('input', () => { scelto = null; disegnaScelte(); });
-    disegnaScelte();
+
 
     // IL RANK A TUTTO SCHERMO (Ste, 21/10/2026)
     //
@@ -8723,8 +8722,7 @@ function vistaRank(zona) {
     // rank a tutto schermo"
     const calcola = () => {
       svuota(esito);
-      const e = scelto
-        || (V.esercizi || []).find((x) => x.nome.toLowerCase() === (cerca.value || '').trim().toLowerCase());
+      const e = scelto;
       if (!e) {
         esito.appendChild(el('p', { class: 'nota', testo: 'Scegli un esercizio dall\'elenco.' }));
         return;
@@ -8767,8 +8765,8 @@ function vistaRank(zona) {
         record && record.lp ? 'LP: ' + Math.round(record.lp) : '',
         kgReali !== peso ? 'il peso che conta è ' + kgReali + ' kg' : '',
         record && record.testo ? record.testo : '',
-        record && record.sogliaAttuale !== undefined && record.sogliaSuccessiva
-          ? 'la prossima soglia è a ' + record.sogliaSuccessiva + ' kg' : '',
+        record && record.distanza && record.distanza.frase
+          ? 'Per il prossimo Rank: ' + record.distanza.frase : '',
       ].filter(Boolean);
 
       // il pannello a tutto schermo, con l’animazione che c’è già per i dialoghi
