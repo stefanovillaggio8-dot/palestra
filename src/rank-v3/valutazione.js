@@ -39,6 +39,7 @@ import {
   configEsercizio, controllaIngresso, fattoreCorpo, numero, arrotonda,
   caricoEffettivo, soglieNormalizzate, standardPerMovimento,
 } from './modello.js';
+import { modelloRipetizioniRank, ripetizioniPieneRank } from './ripetizioni-rank.js';
 
 /**
  * La penalita' per le serie con lo spotter.
@@ -89,6 +90,7 @@ export function valutaPrestazione({ esercizio, serie = [], pesoCorporeo = null, 
   const cfg = configEsercizio({ esercizio, movimento, livello });
   const standard = standardPerMovimento(movimento, esercizio || {});
   const standardPercentili = Array.isArray(standard && standard.soglie1RMPerPeso);
+  const modelloReps = modelloRipetizioniRank(movimento, esercizio || {}, standard);
 
   if (!valori || valori.multiplo === 0) {
     return {
@@ -155,10 +157,7 @@ export function valutaPrestazione({ esercizio, serie = [], pesoCorporeo = null, 
     // convertite al formato 8 rip in modello.js; MAI il carico dell'utente.
     // Per il preacher si limita il contributo delle serie oltre 12 rip:
     // i dati pubblicati descrivono soprattutto serie a bassa/media ripetizione.
-    const ripPerScore = standardPercentili
-      ? Math.min(12, Math.floor(Number(s.ripetizioni)))
-      : s.ripetizioni;
-    const piene = ripetizioniPiene(ripPerScore);
+    const piene = ripetizioniPieneRank(s.ripetizioni, modelloReps);
     let score = (caricoPerScore * piene / fattore) * meccanica;
     if (s.spotter === true) score = score * PENALITA_SPOTTER;
     valutabili.push({
@@ -254,7 +253,7 @@ export function valutaPrestazione({ esercizio, serie = [], pesoCorporeo = null, 
     ripetizioni: migliore.ripetizioni,
     pesoCorporeo: pesoDelRecord,
     meccanica: migliore.meccanica,
-    limiteRipetizioni: standardPercentili ? 12 : null,
+    modelloRipetizioni: modelloReps,
     pesiDisponibili: standardPercentili && cfg.caricamento === 'manubri' ? PESI_GOLERIA : null,
   });
 
@@ -264,8 +263,10 @@ export function valutaPrestazione({ esercizio, serie = [], pesoCorporeo = null, 
     livello,
     cfg,
     allarmi,
-    fonte: valori.fonte,
-    nota: valori.nota,
+    fonte: standard.fonte || valori.fonte,
+    nota: standard.nota || valori.nota,
+    calibrazione: descriviAffidabilitaRank(standard, cfg, rank, migliore, pesoDelRecord, modelloReps),
+    modelloRipetizioni: modelloReps,
     score: migliore.score,
     scoreConSerie: arrotonda(conVolume),
     serieFatte: n,
@@ -300,8 +301,66 @@ export function valutaPrestazione({ esercizio, serie = [], pesoCorporeo = null, 
     ...rank,
     sogliePer8Rip: true,
     ripetizioniRiferimento: RIPETIZIONI_RIFERIMENTO,
-    limiteRipetizioni: null,
+    limiteRipetizioni: modelloReps.massimo,
     distanza,
+  };
+}
+
+/**
+ * Quanto e' affidabile QUESTO Rank (non la forza della persona).
+ * La qualita' dello standard e la precisione della prestazione sono
+ * cose separate: i percentili estremi NON sono osservati da Strength Level.
+ */
+export function descriviAffidabilitaRank(standard, cfg, rank, migliore, pesoCorporeo, modelloReps) {
+  const s = standard || {};
+  const macchina = String(cfg?.tipoAttrezzatura || '');
+  const specifico = s.fonte === 'strengthlevel_esercizio';
+  const estremo = (rank?.indice ?? -1) >= 5;
+  const ripLunghe = Number(migliore?.ripetizioni) > 12;
+  const fuoriDati = Array.isArray(s.soglie1RMPerPeso) && (
+    pesoCorporeo < s.soglie1RMPerPeso[0][0] ||
+    pesoCorporeo > s.soglie1RMPerPeso[s.soglie1RMPerPeso.length - 1][0]
+  );
+  const attrezzoIncerto = /ignoto|non_identificato|da_verificare/.test(macchina);
+  const motivi = [];
+  let livello = specifico ? (s.affidabilitaBase || 'media') : 'bassa';
+  if (specifico) {
+    motivi.push('Riferimenti pubblicati da una community di sollevatori, non tecnica verificata da giudici');
+  } else {
+    motivi.push('Soglie derivate da un modello di movimento, senza cinque percentili specifici per questa variante');
+  }
+  if (s.limite && specifico) motivi.push(s.limite);
+  if (s.nota && specifico && s.affidabilitaBase === 'indicativa') motivi.push(s.nota);
+  if (estremo) {
+    livello = 'bassa';
+    motivi.push('Titan e Olympian sono estrapolazioni matematiche oltre il percentile 95, non risultati misurati');
+  }
+  if (ripLunghe) {
+    livello = 'bassa';
+    motivi.push('Oltre 12 ripetizioni il punteggio e piu incerto e la curva viene attenuata o limitata');
+  }
+  if (fuoriDati) {
+    livello = 'bassa';
+    motivi.push('Peso corporeo fuori dall intervallo pubblicato: riferimento extrapolato');
+  }
+  if (attrezzoIncerto) {
+    livello = 'bassa';
+    motivi.push('Tipo di carico o rapporto della macchina non verificato');
+  }
+  if (macchina.includes('stack') || macchina.includes('cavo')) {
+    motivi.push('Su cavi e macchine marche, pulegge e camme cambiano la resistenza: confronta soprattutto la stessa macchina');
+  }
+  return {
+    livello,
+    titolo: livello === 'media' ? 'Attendibilita media' :
+      livello === 'indicativa' ? 'Attendibilita indicativa' : 'Attendibilita limitata',
+    origine: specifico ? 'Riferimento statistico specifico' : 'Modello provvisorio per famiglia',
+    fonteUrl: s.fonteUrl || null,
+    riferimentoNome: s.riferimentoNome || null,
+    fonteData: s.dataFonte || null,
+    descrizione: motivi.join('. ') + '.',
+    attrezzatura: cfg?.notaAttrezzatura || '',
+    ripetizioni: modelloReps?.tipo || 'generico',
   };
 }
 
@@ -335,7 +394,7 @@ export function kgEquivalenti(score, pesoCorporeo, meccanica = 1) {
  * ripetizioni che servono sono troppe, si dice solo il peso. E il peso sale
  * sempre al kg intero successivo: un manubrio non si compra a 18,08 kg.
  */
-export function distanzaAllaSogliaNuova({ score, soglie, indice, carico, ripetizioni, pesoCorporeo, meccanica = 1, limiteRipetizioni = null, pesiDisponibili = null }) {
+export function distanzaAllaSogliaNuova({ score, soglie, indice, carico, ripetizioni, pesoCorporeo, meccanica = 1, limiteRipetizioni = null, modelloRipetizioni = null, pesiDisponibili = null }) {
   const sog = Array.isArray(soglie) ? soglie : [];
   if (!sog.length) return null;
   const fattore = fattoreCorpo(pesoCorporeo);
@@ -354,9 +413,8 @@ export function distanzaAllaSogliaNuova({ score, soglie, indice, carico, ripetiz
   // score = kg x ripetizioniPiene x meccanica / P^0,67, quindi:
   //   kg = soglia x P^0,67 / (meccanica x ripetizioniPiene)
   const ripFatte = Math.floor(Number(ripetizioni) || 0);
-  const pieneFatte = ripetizioniPiene(limiteRipetizioni
-    ? Math.min(limiteRipetizioni, ripFatte)
-    : ripFatte);
+  const modello = modelloRipetizioni || modelloRipetizioniRank(null);
+  const pieneFatte = ripetizioniPieneRank(ripFatte, modello);
   const kgGrezzo = (bersaglio * fattore) / (mec * pieneFatte);
   // Con un manubrio si suggerisce il primo peso REALMENTE disponibile.
   // Il calcolo usa kg esatti; l'arrotondamento e' solo per la schermata.
@@ -365,19 +423,22 @@ export function distanzaAllaSogliaNuova({ score, soglie, indice, carico, ripetiz
     : null;
   const kgNecessari = pesoCaricabile ?? kgRealizzabile(kgGrezzo, carico);
 
-  // LE RIPETIZIONI NECESSARIE, al carico che hai.
-  // piene(rip) = (rip / 8)^0,20, quindi rip = 8 x piene^5.
+  // Niente inversione con un esponente fisso: in v422 la curva e' a tratti
+  // e dipende dal movimento. Proviamo le ripetizioni intere CONSENTITE dal
+  // modello reale, trovando la prima che raggiunge la soglia.
   let ripTotali = null;
+  const massimo = Math.max(1, Math.min(40, modello.massimo || limiteRipetizioni || 20));
   if (Number.isFinite(carico) && carico > 0) {
-    const pieneNecessarie = (bersaglio * fattore) / (mec * carico);
-    if (Number.isFinite(pieneNecessarie) && pieneNecessarie > pieneFatte) {
-      ripTotali = Math.max(1, Math.ceil(8 * Math.pow(pieneNecessarie, 5)));
+    for (let r = ripFatte + 1; r <= massimo; r++) {
+      const p = ripetizioniPieneRank(r, modello);
+      if (carico * p * mec / fattore >= bersaglio) {
+        ripTotali = r;
+        break;
+      }
     }
   }
-  const LIMITE_RIP = 12;
   const ripInPiu = ripTotali !== null ? Math.max(0, ripTotali - ripFatte) : null;
-  const ripUtili = ripInPiu !== null && ripInPiu <= LIMITE_RIP
-    && (!limiteRipetizioni || ripTotali <= limiteRipetizioni) ? ripInPiu : null;
+  const ripUtili = ripInPiu !== null && ripInPiu <= 12 ? ripInPiu : null;
 
   const sottoPrima = indice < 0;
   const fraseRip = ripUtili === null
