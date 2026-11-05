@@ -411,6 +411,9 @@ test('v424: scegliere il remoto mantiene i dati remoti e la revisione attuale', 
   assert.equal(ripristinata.base_rev,5);
   assert.equal(ripristinata.rev,6);
   assert.equal(ripristinata.configurazioneCavoPersonalizzata,true);
+  assert.ok(!Object.prototype.hasOwnProperty.call(ripristinata,'_etichetta'),
+    'Il confronto visivo non deve creare una colonna inesistente su Supabase');
+  assert.ok(!Object.prototype.hasOwnProperty.call(rigaPerInvio(ripristinata,'serie'),'_etichetta'));
   assert.equal(decidiPush(ripristinata,remoto),'aggiorna');
 });
 
