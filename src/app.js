@@ -1139,16 +1139,12 @@ function linkPersona(p) {
 }
 
 /**
- * Ogni persona deve avere la sua scheda. Alla prima visita creo la scheda e la
- * versione 1 se non ci sono ancora: NON tocco i dati di nessuno, e la scheda
- * dell'altro parte come punto di partenza (gli esercizi sono gli stessi, poi
- * ognuno la modifica come vuole).
+ * Ogni persona ha la propria scheda. Per chi entra tramite un nuovo invito
+ * la prima versione contiene SOLO giorno 1, 2, 3 e 4 senza esercizi, serie,
+ * pesi o note. Nessun dettaglio della scheda di Stefano va copiato.
  *
- * MA chi si registra col link parte da una copia SENZA le serie. Ste (06/10/2026):
- * "fai una copia della mia e loro la modificano... pero' non deve trovarsi dentro
- * 35 kg alla chest press come se fossero suoi". Le due persone scritte a mano
- * (Ste e Andrea) invece partono con i dati del catalogo, che sono la base su cui
- * sono costruite e hanno senso come esempio.
+ * Le schede gia' create (anche quella storica di Andrea) non si azzerano:
+ * se esistono, si conserva tutta la versione e lo storico precedente.
  */
 async function seminaPersona() {
   const p = personaAttiva();
