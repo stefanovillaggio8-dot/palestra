@@ -30,6 +30,7 @@ import { testoProgresso, serieARipetizioniCostanti, riepilogoGenerale, serieRife
 import { prestazione, mediaPrestazioni, classificaGenerale } from './forza-generale.js';
 import { creaPacchetto, validaPacchetto, unisci, csvSerie, csvSedute, csvEsercizi, soloMiaScheda } from './backup.js';
 import { ESERCIZI, SCHEDA_ID, SCHEDA_NOME, PERSONE, accountId, chiSei, personaDaMemoria, costruisciSnapshot, eserciziMancanti } from './dati-iniziali.js';
+import { creaSchedaVuotaNuovoAmico, aggiungiGiornoVuoto, rimuoviGiornoBozza } from './giorni-scheda.js';
 import { nuovoId, adesso, TABELLE, riallineaEsercizi } from './sincronizzazione.js';
 // --- il gioco: rank, LP, streak, Aura, missioni, amici ---
 import { statoAccount, ricompenseAllenamento, gruppiDaSerie } from './gioco.js';
@@ -1159,8 +1160,15 @@ async function seminaPersona() {
   const versioneId = 'ver-' + p.schedaId + '-1';
   await db.salva('versioni', {
     id: versioneId, scheda_id: p.schedaId, numero: 1,
-    snapshot: costruisciSnapshot({ conSerie: !p.creata }),
-    nota: 'Versione iniziale: punto di partenza, poi ognuno la modifica come vuole.',
+    // Un nuovo amico NON riceve la scheda di Stefano: neppure esercizi,
+    // note, kg o serie. Solo quattro giorni vuoti e la sua scheda personale.
+    // Stefano/Andrea gia' esistenti restano rigorosamente invariati.
+    snapshot: p.creata
+      ? creaSchedaVuotaNuovoAmico(p.schedaId, p.nomeScheda)
+      : costruisciSnapshot({ conSerie: true }),
+    nota: p.creata
+      ? 'Scheda personale iniziale: quattro giorni vuoti.'
+      : 'Versione iniziale: punto di partenza, poi ognuno la modifica come vuole.',
   }, { segna: false });
   await db.salva('schede', {
     id: p.schedaId, nome: p.nomeScheda,
@@ -2595,6 +2603,10 @@ function vistaHome(zona) {
   const giorniVisualizzati = prossimoGiornoId
     ? [...giorni.slice(indiceProssimaGiornata),...giorni.slice(0,indiceProssimaGiornata)]
     : giorni;
+  if (!giorni.length) {
+    zona.appendChild(el('p', { class: 'nota',
+      testo: 'La tua scheda non contiene ancora giorni. Premi Modifica e aggiungi il primo giorno.' }));
+  }
   for (const g of giorniVisualizzati) {
     const ultimo = ultimaSedutaDelGiorno(g.id);
     const opzionali = (g.esercizi || []).filter((e) => e.opzionale).length;
@@ -2624,7 +2636,9 @@ function vistaHome(zona) {
       ]),
       griglia,
       el('div', { class: 'riga-pulsanti' }, [
-        bottone('Inizia allenamento', { onClick: () => iniziaAllenamento(g), classe: 'principale grande' }),
+        (g.esercizi || []).length
+          ? bottone('Inizia allenamento', { onClick: () => iniziaAllenamento(g), classe: 'principale grande' })
+          : el('a', { href: '#/scheda', class: 'bottone-guarda', testo: '+ Aggiungi esercizi' }),
         el('a', { href: '#/giorno/' + g.id, class: 'bottone-guarda', testo: 'Vedi la scheda del giorno' }),
       ]),
       el('div', { class: 'riga-pulsanti piccolo' }, [
@@ -3045,7 +3059,10 @@ function vistaGiorno(zona, giornoId) {
   }
 
   zona.appendChild(el('div', { class: 'riga-pulsanti fisso' }, [
-    bottone('Inizia allenamento', { onClick: () => iniziaAllenamento(g), classe: 'principale grande' }),
+    (g.esercizi || []).length
+      ? bottone('Inizia allenamento', { onClick: () => iniziaAllenamento(g), classe: 'principale grande' })
+      : el('a', { href: '#/scheda', class: 'bottone-guarda',
+        testo: '+ Aggiungi esercizi a questo giorno' }),
     el('span', { class: 'nota', testo: ultimo ? `Ultima volta: ${dataLeggibile(ultimo.data)}` : 'Non hai ancora allenato questo giorno.' }),
   ]));
 }
@@ -4966,7 +4983,24 @@ function vistaScheda(zona) {
   const contenitore = el('div');
   for (const g of bozza.giorni) {
     const sezione = el('section', { class: 'blocco-giorno-modifica' });
-    sezione.appendChild(el('h2', { testo: g.nome }));
+    sezione.appendChild(el('div', { class: 'riga-titoli' }, [
+      el('h2', { testo: g.nome }),
+      bottone('Rimuovi giorno', {
+        onClick: async () => {
+          const ok = await chiediConferma(
+            'Rimuovere ' + g.nome + '?',
+            'Il giorno verra tolto SOLO dalla prossima versione. Gli allenamenti gia registrati non cambiano.',
+            { testoOk: 'Rimuovi giorno', pericolo: true },
+          );
+          if (ok && rimuoviGiornoBozza(bozza, g.id)) disegna();
+        },
+        classe: 'fantasma piccolo-b pericolo-b',
+      }),
+    ]));
+    if (!(g.esercizi || []).length) {
+      sezione.appendChild(el('p', { class: 'nota',
+        testo: 'Giorno vuoto: aggiungi i tuoi esercizi. Nessun peso o ripetizione precompilata.' }));
+    }
     g.esercizi.forEach((es, idx) => {
       const e = esercizioPerId(es.esercizio_id);
       if (!e) return;
@@ -5006,6 +5040,17 @@ function vistaScheda(zona) {
     contenitore.appendChild(sezione);
   }
   zona.appendChild(contenitore);
+  if (!bozza.giorni.length) {
+    zona.appendChild(el('p', { class: 'nota',
+      testo: 'Non ci sono giorni nella scheda. Aggiungine uno per iniziare a organizzarla.' }));
+  }
+  zona.appendChild(bottone('+ Aggiungi giorno', {
+    onClick: () => {
+      aggiungiGiornoVuoto(bozza, 'giorno-' + nuovoId());
+      disegna();
+    },
+    classe: 'fantasma grande',
+  }));
 
   zona.appendChild(el('div', { class: 'riga-pulsanti fisso' }, [
     bottone('Salva come nuova versione', {
