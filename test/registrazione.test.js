@@ -40,46 +40,40 @@ test('R1. il link crea la scheda dell\'amico, non quella di Stefano', async () =
     'la scheda di Stefano NON viene creata su un telefono che non e\' il suo');
 });
 
-test('R2. la scheda dell\'amico e\' la copia della mia: stessi giorni, stessi esercizi', async () => {
-  const v = (await db.tutti('versioni'))[0];
-  assert.equal(v.scheda_id, 'scheda-aa11', 'la versione appartiene alla sua scheda');
-
-  const mia = costruisciSnapshot({ conSerie: true });
-  assert.equal(v.snapshot.giorni.length, mia.giorni.length, 'gli stessi giorni in numero');
-  assert.deepEqual(
-    v.snapshot.giorni.map((g) => g.id),
-    mia.giorni.map((g) => g.id),
-    'e sono gli stessi, giorno per giorno',
-  );
-  assert.deepEqual(
-    v.snapshot.giorni.map((g) => g.esercizi.map((e) => e.esercizio_id)),
-    mia.giorni.map((g) => g.esercizi.map((e) => e.esercizio_id)),
-    'e dentro, gli stessi esercizi: parte dalla mia scheda e poi la modifica come vuole',
-  );
+test('R2. il nuovo amico vede solo giorno 1,2,3,4, senza nessun esercizio', async () => {
+  const v=(await db.tutti('versioni'))[0];
+  assert.equal(v.scheda_id,'scheda-aa11');
+  assert.equal(v.snapshot.scheda_id,'scheda-aa11');
+  const giorni=v.snapshot.giorni;
+  assert.equal(giorni.length,4);
+  assert.deepEqual(giorni.map(g=>g.nome),['giorno 1','giorno 2','giorno 3','giorno 4']);
+  assert.deepEqual(giorni.map(g=>g.ordine),[1,2,3,4]);
+  for(const g of giorni) assert.deepEqual(g.esercizi,[]);
+  assert.deepEqual(giorni.map(g=>g.id),[
+    'giorno-scheda-aa11-1','giorno-scheda-aa11-2',
+    'giorno-scheda-aa11-3','giorno-scheda-aa11-4',
+  ]);
 });
 
-test('R3. le serie sono ZERO: la copia non porta i miei kg', async () => {
-  const v = (await db.tutti('versioni'))[0];
-  const serie = v.snapshot.giorni.flatMap((g) => g.esercizi.map((e) => e.serie));
-  assert.ok(serie.length > 0, 'ci sono esercizi da guardare');
-  for (const s of serie) {
-    assert.equal(s.length, 0,
-      'un esercizio copiato deve avere la lista serie VUOTA, non le mie');
-  }
-  const serieMie = costruisciSnapshot({ conSerie: true })
-    .giorni.flatMap((g) => g.esercizi.map((e) => e.serie.length));
-  assert.ok(serieMie.some((n) => n > 0), 'la mia scheda invece ha serie: il confronto ha senso');
+test('R3. nessun peso, ripetizione, esercizio o nota personale di Stefano arriva col link', async () => {
+  const v=(await db.tutti('versioni'))[0];
+  assert.equal(v.snapshot.giorni.flatMap(g=>g.esercizi).length,0);
+  assert.equal((await db.tutti('sedute')).length,0);
+  assert.equal((await db.tutti('serie')).length,0);
+  const payload=JSON.stringify(v.snapshot);
+  assert.doesNotMatch(payload,/ex-chest-press|ex-scott-bench-curl|es-1-1|"peso"|"ripetizioni"|"nota"/);
+  const mia=costruisciSnapshot({conSerie:true});
+  assert.ok(mia.giorni.some(g=>g.esercizi.length>0),
+    'l esercizio e il peso di Stefano devono restare nella sua scheda originale');
 });
 
-test('R4. le opzionali e le note passano, i numeri no', async () => {
-  const v = (await db.tutti('versioni'))[0];
-  const mia = costruisciSnapshot({ conSerie: true });
-  const suoiEsercizi = v.snapshot.giorni.flatMap((g) => g.esercizi);
-  const mieiEsercizi = mia.giorni.flatMap((g) => g.esercizi);
-  assert.deepEqual(suoiEsercizi.map((e) => e.opzionale), mieiEsercizi.map((e) => e.opzionale),
-    'le opzionali sono parte del programma, quindi restano');
-  assert.deepEqual(suoiEsercizi.map((e) => e.nota), mieiEsercizi.map((e) => e.nota),
-    'e le note spiegano l\'esercizio: restano anche quelle');
+test('R4. le schede create da nuovi inviti sono realmente indipendenti', async () => {
+  const v=(await db.tutti('versioni'))[0];
+  const mia=costruisciSnapshot({conSerie:true});
+  assert.notEqual(v.snapshot.scheda_id,mia.scheda_id);
+  assert.notDeepEqual(v.snapshot.giorni.map(g=>g.id),mia.giorni.map(g=>g.id));
+  assert.equal(v.snapshot.giorni.flatMap(g=>g.esercizi).length,0);
+  assert.ok(mia.giorni.flatMap(g=>g.esercizi).length>0);
 });
 
 test('R5. l\'app si apre sulla sua scheda e non gli mostra la mia', async () => {
