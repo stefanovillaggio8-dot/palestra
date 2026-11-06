@@ -101,6 +101,6 @@ test('v432: mostra studi reali ma afferma che NON quantificano la variante CAD',
   const app=readFileSync(new URL('../src/app.js',import.meta.url),'utf8');
   assert.match(app,/aggiornaCadCurlSalvato/);
   const sw=readFileSync(new URL('../sw.js',import.meta.url),'utf8');
-  assert.match(sw,/palestra-v432/);
+  assert.match(sw,/palestra-v433/);
   assert.match(sw,/cad-curl-app\.jpg/);
 });

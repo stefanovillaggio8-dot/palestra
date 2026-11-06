@@ -60,7 +60,8 @@ export function accountId(numero) {
  * nome e diventare se stesso".
  *
  * Tre regole, decise insieme:
- *   1) la scheda È una COPIA di quella di Ste ma SENZA le sue serie;
+ *   1) un nuovo amico crea la SUA scheda con quattro giorni vuoti, senza
+ *      gli esercizi, i carichi o le serie di Stefano;
  *   2) chi sei si ricorda con dispositivo E url, e l'url vince sempre;
  *   3) nessuno finisce nella lista di Ste se non lo aggiunge lui.
  *
