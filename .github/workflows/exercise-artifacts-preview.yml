@@ -1,0 +1,23 @@
+name: Anteprima foto esercizi da controllare
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/exercise-artifacts-preview.yml'
+permissions:
+  contents: read
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepara foto originali per analisi
+        run: |
+          mkdir -p /tmp/exercise-preview
+          cp img/esercizi/* /tmp/exercise-preview/
+          cp img/esercizi/cad-curl-app.jpg /tmp/exercise-preview/ORIGINALE-CAD-CURL.jpg
+      - uses: actions/upload-artifact@v4
+        with:
+          name: esercizi-originali-foto
+          path: /tmp/exercise-preview/
+          retention-days: 1
