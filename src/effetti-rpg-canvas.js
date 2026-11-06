@@ -106,14 +106,18 @@ export function montaEffettiRpg(elemento,tipo,{corona=false,divina=false,mitica=
     y:casuale(.14,.61),lunghezza:casuale(.20,.40),
     seed:casuale(12,500),
   }));
+  const ios = typeof navigator !== 'undefined'
+    && /iPhone|iPad|iPod/.test(navigator.userAgent || '');
+  const intervalloFrame = ios ? 50 : 33; // iPhone: 20 fps invece di 30, effetti sempre visibili
   let w=0,h=0,dpr=1,frameId=0,last=0,visible=true,ended=false;
   let wasAttached=false,tries=0,observer=null,resizeObs=null;
+  let ultimaMisura=0;
   let motionFirstFrame=true;
 
   function size(){
     const rect=elemento.getBoundingClientRect();
     const width=Math.max(1,Math.round(rect.width)),height=Math.max(1,Math.round(rect.height));
-    const ratio=Math.min(MASSIMO_DPR,window.devicePixelRatio||1);
+    const ratio=Math.min(ios ? 1.25 : MASSIMO_DPR,window.devicePixelRatio||1);
     if(width===w&&height===h&&ratio===dpr)return;
     w=width;h=height;dpr=ratio;
     canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);
@@ -329,36 +333,62 @@ export function montaEffettiRpg(elemento,tipo,{corona=false,divina=false,mitica=
        (mitica&&!tipo)) cancellaCorpo();
     aura(t);
   }
+  function paginaNascosta() {
+    return typeof document !== 'undefined' && document.visibilityState === 'hidden';
+  }
+  function pianifica() {
+    if(!ended && !frameId && visible && !paginaNascosta()) {
+      frameId=requestAnimationFrame(tick);
+    }
+  }
+  function alCambioVisibilita() {
+    if (!paginaNascosta()) pianifica();
+  }
   function cleanup(){
     if(ended)return;
-    ended=true;cancelAnimationFrame(frameId);
+    ended=true;
+    if(frameId)cancelAnimationFrame(frameId);
+    document.removeEventListener?.('visibilitychange',alCambioVisibilita);
     observer?.disconnect();resizeObs?.disconnect();
     canvas.remove();
     if(EFFETTI_ATTIVI.get(elemento)===cleanup)EFFETTI_ATTIVI.delete(elemento);
     elemento.classList?.remove?.('rpg-fx-attiva');
   }
   function tick(ms){
+    frameId=0;
     if(ended)return;
     if(!elemento.isConnected){
       if(wasAttached||++tries>180){cleanup();return;}
+      // Prima dell'inserimento nel DOM si aspetta ancora qualche frame.
       frameId=requestAnimationFrame(tick);return;
     }
     wasAttached=true;
-    if(visible && (ms-last>=33||!last)){
-      last=ms;size();render(riduci?0:ms/1000);
+    if(!visible || paginaNascosta()) return;
+    if(ms-last>=intervalloFrame||!last){
+      last=ms;
+      // ResizeObserver aggiorna le dimensioni: niente reflow forzato
+      // ogni frame sull'iPhone. Fallback periodico per browser vecchi.
+      if(!resizeObs && (ms-ultimaMisura>=1000 || !w) || !w){
+        size();ultimaMisura=ms;
+      }
+      render(riduci?0:ms/1000);
     }
-    if(!riduci)frameId=requestAnimationFrame(tick);
+    if(!riduci)pianifica();
     else {observer?.disconnect();resizeObs?.disconnect();}
   }
   if(typeof IntersectionObserver==='function'){
-    observer=new IntersectionObserver(entries=>{visible=entries.some(e=>e.isIntersecting);},{threshold:0});
+    observer=new IntersectionObserver(entries=>{
+      visible=entries.some(e=>e.isIntersecting);
+      if(visible)pianifica();
+    },{threshold:0});
     observer.observe(elemento);
   }
   if(typeof ResizeObserver==='function'){
     resizeObs=new ResizeObserver(size);resizeObs.observe(elemento);
   }
+  document.addEventListener?.('visibilitychange',alCambioVisibilita);
   elemento.classList?.add?.('rpg-fx-attiva');
   EFFETTI_ATTIVI.set(elemento,cleanup);
-  frameId=requestAnimationFrame(tick);
+  pianifica();
   return cleanup;
 }

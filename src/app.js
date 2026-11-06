@@ -3206,6 +3206,9 @@ async function vistaSeduta(zona, sedutaId) {
   zona.appendChild(barraFine);
 
   const aggiorna = () => {
+    // Durante standby iPhone non ricostruire la schermata in background.
+    // Il cronometro usa Date.now(): al ritorno mostra il tempo corretto.
+    if (document.visibilityState === 'hidden') return;
     const secondi = Math.floor((Date.now() - new Date(s.ora_inizio).getTime()) / 1000);
     const c = document.getElementById('cronometro');
     if (c) c.textContent = formattaCronometro(secondi);
@@ -3222,11 +3225,15 @@ async function vistaSeduta(zona, sedutaId) {
   };
   // Quante serie hai spuntato sul totale di questa seduta. Resta fermo nella
   // banda col cronometro, quindi lo vedi senza scorrere.
+  let ultimoAvanzamento = null;
   const scriviAvanzamento = () => {
     const box = document.getElementById('avanzamento-serie');
     if (!box) return;
     const mie = V.serie.filter((x) => x.seduta_id === s.id && !x.eliminata);
     const fatte = mie.filter((x) => eFatta(x)).length;
+    const nuovaMisura = fatte + '/' + mie.length;
+    if (nuovaMisura === ultimoAvanzamento) return;
+    ultimoAvanzamento = nuovaMisura;
     svuota(box);
     if (!mie.length) return;
     box.appendChild(el('strong', { testo: `${fatte}/${mie.length}` }));
