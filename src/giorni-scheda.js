@@ -21,7 +21,7 @@ export function creaSchedaVuotaNuovoAmico(schedaId, nome = 'Palestra') {
 export function aggiungiGiornoVuoto(bozza, id) {
   if (!Array.isArray(bozza?.giorni)) throw new Error('Bozza della scheda non valida.');
   if (!id || bozza.giorni.some((g) => g.id === id)) throw new Error('ID giorno non disponibile.');
-  const numeri = bozza.giorni.map((g) => /^giorno\\s+(\\d+)$/i.exec(String(g?.nome || '')))
+  const numeri = bozza.giorni.map((g) => /^giorno\s+(\d+)$/i.exec(String(g?.nome || '')))
     .map((m) => m ? Number(m[1]) : 0);
   let numero = Math.max(0, ...numeri) + 1;
   const nomi = new Set(bozza.giorni.map((g) => String(g.nome || '').toLowerCase()));
