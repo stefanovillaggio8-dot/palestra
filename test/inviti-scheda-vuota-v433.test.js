@@ -127,7 +127,8 @@ test('v433: UI gestisce tutti i giorni e non avvia sedute vuote', () => {
 test('v433: modulo disponibile offline e versione PWA aggiornata',()=>{
   const html=readFileSync(new URL('../index.html',import.meta.url),'utf8');
   assert.match(sw,/'\.\/src\/giorni-scheda\.js'/);
-  assert.match(sw,/palestra-v433/);
-  assert.match(html,/v=433/);
-  assert.match(html,/palestra-v433/);
+  const versione=sw.match(/const VERSIONE = 'palestra-v(\d+)'/)?.[1];
+  assert.ok(versione);
+  assert.match(html,new RegExp("palestra-v" + versione));
+  assert.match(html,new RegExp("stile.css\\?v=" + versione));
 });

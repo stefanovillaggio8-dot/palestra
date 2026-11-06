@@ -493,18 +493,29 @@ export function avvia() {
   // account: un solo listener/timer evita pull duplicati e lag progressivi.
   if (avvioRegistrato) return;
   avvioRegistrato = true;
-  const online = () => { avvisa(); if (navigator.onLine !== false) void sincronizza(); };
+  let ultimoRisveglio = 0;
+  const riprendi = () => {
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) return;
+    if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
+    if (!sb.collegato()) return;
+    // Su iPhone focus e visibilitychange arrivano insieme: un solo pull,
+    // senza impedire i salvataggi espliciti e il retry del motore di sync.
+    if (Date.now() - ultimoRisveglio < 3000) return;
+    ultimoRisveglio = Date.now();
+    void sincronizza();
+  };
+  const online = () => { avvisa(); riprendi(); };
   window.addEventListener('online', online);
   window.addEventListener('focus', online);
   window.addEventListener('offline', () => avvisa());
   setInterval(() => {
-    if (typeof navigator === 'undefined' || navigator.onLine === false) return;
-    if (sb.collegato()) sincronizza();
+    if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
+    riprendi();
   }, 45000);
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') { avvisa(); sincronizza(); }
+    if (document.visibilityState === 'visible') { avvisa(); riprendi(); }
   });
-  sincronizza();
+  riprendi();
 }
 
 export function prossimoRiprovo(tentativi) {
