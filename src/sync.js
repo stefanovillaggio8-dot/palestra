@@ -504,8 +504,9 @@ export function avvia() {
     ultimoRisveglio = Date.now();
     void sincronizza();
   };
-  window.addEventListener('online', () => { avvisa(); riprendi(); });
-  window.addEventListener('focus', riprendi);
+  const online = () => { avvisa(); riprendi(); };
+  window.addEventListener('online', online);
+  window.addEventListener('focus', online);
   window.addEventListener('offline', () => avvisa());
   setInterval(() => {
     if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;

@@ -70,8 +70,9 @@ test('v429: the existing invite is consumed only after the server confirms frien
 test('v429: PWA uses fresh cache and contains no external music link', () => {
   const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
   const css = readFileSync(new URL('../stile-rpg.css', import.meta.url), 'utf8');
-  assert.match(html, /palestra-v433/);
-  assert.match(sw, /palestra-v433/);
+  const versione = html.match(/window\.PALESTRA_VERSIONE\s*=\s*'palestra-v(\d+)'/)?.[1];
+  assert.ok(versione, 'la pagina deve dichiarare la versione');
+  assert.match(sw, new RegExp("const VERSIONE = 'palestra-v" + versione + "'"));
   assert.doesNotMatch(app, /collegamentoMusicBox|https:\/\/stefanovillaggio8-dot\.github\.io\/music-box/);
   assert.doesNotMatch(css, /musicbox-palestra-link/);
 });

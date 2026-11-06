@@ -368,7 +368,7 @@ export function montaEffettiRpg(elemento,tipo,{corona=false,divina=false,mitica=
       last=ms;
       // ResizeObserver aggiorna le dimensioni: niente reflow forzato
       // ogni frame sull'iPhone. Fallback periodico per browser vecchi.
-      if(!resizeObs && (ms-ultimaMisura>=1000 || !w) || !w){
+      if(!w || (!resizeObs && ms-ultimaMisura>=1000)){
         size();ultimaMisura=ms;
       }
       render(riduci?0:ms/1000);

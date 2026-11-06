@@ -39,6 +39,7 @@ test('iPhone v434: effetti visibili, fermi sullo sfondo e fuori schermo', () => 
   const names = ['window','document','navigator','IntersectionObserver',
     'requestAnimationFrame','cancelAnimationFrame'];
   const old = Object.fromEntries(names.map(n => [n,globalThis[n]]));
+  const descriptorNavigator = Object.getOwnPropertyDescriptor(globalThis,'navigator');
   const callbacks = new Map();
   const listeners = {};
   let seq=0, observer, draws=0, rimosso=0;
@@ -47,7 +48,8 @@ test('iPhone v434: effetti visibili, fermi sullo sfondo e fuori schermo', () => 
     createRadialGradient(){return {addColorStop(){}};},
   },{get(target,prop){return target[prop] || (() => {});}});
   globalThis.window = {devicePixelRatio: 3};
-  globalThis.navigator = {userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)'};
+  Object.defineProperty(globalThis,'navigator',{configurable:true,writable:true,
+    value:{userAgent:'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)'}});
   globalThis.document = {
     visibilityState: 'visible',
     addEventListener(name,fn){listeners[name]=fn;},
@@ -96,10 +98,12 @@ test('iPhone v434: effetti visibili, fermi sullo sfondo e fuori schermo', () => 
     assert.equal(rimosso,1);
     assert.equal(listeners.visibilitychange,undefined);
   } finally {
-    for (const n of names) {
+    for (const n of names.filter(n => n !== 'navigator')) {
       if(old[n]===undefined)delete globalThis[n];
       else globalThis[n]=old[n];
     }
+    if(descriptorNavigator)Object.defineProperty(globalThis,'navigator',descriptorNavigator);
+    else delete globalThis.navigator;
   }
 });
 
