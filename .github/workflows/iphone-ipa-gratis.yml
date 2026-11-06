@@ -1,0 +1,70 @@
+name: Compila IPA iPhone gratis
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ios/**
+      - .github/workflows/iphone-ipa-gratis.yml
+  pull_request:
+    branches: [main]
+    paths:
+      - ios/**
+      - .github/workflows/iphone-ipa-gratis.yml
+
+permissions:
+  contents: read
+
+jobs:
+  build-ios:
+    name: Genera Palestra-iPhone-unsigned.ipa
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - name: Scarica progetto
+        uses: actions/checkout@v4
+      - name: Controlla codice Swift e plist
+        shell: bash
+        run: |
+          set -euo pipefail
+          xcodebuild -version
+          plutil -lint ios/Info.plist
+          test -f img/icon-palestra-v407-192.png
+      - name: Compila binario ARM64 per iPhone
+        shell: bash
+        run: |
+          set -euo pipefail
+          SDK="$(xcrun --sdk iphoneos --show-sdk-path)"
+          APP="$RUNNER_TEMP/output/Payload/Palestra.app"
+          mkdir -p "$APP"
+          xcrun --sdk iphoneos swiftc \
+            -parse-as-library \
+            -target arm64-apple-ios16.0 \
+            -sdk "$SDK" \
+            -O \
+            -framework SwiftUI \
+            -framework WebKit \
+            -framework UIKit \
+            -Xlinker -rpath \
+            -Xlinker /usr/lib/swift \
+            -o "$APP/Palestra" \
+            ios/PalestraIOS.swift
+          cp ios/Info.plist "$APP/Info.plist"
+          cp img/icon-palestra-v407-192.png "$APP/AppIcon.png"
+          file "$APP/Palestra"
+          plutil -lint "$APP/Info.plist"
+      - name: Crea IPA NON firmato
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/output"
+          zip -qry "$GITHUB_WORKSPACE/Palestra-iPhone-unsigned.ipa" Payload
+          unzip -t "$GITHUB_WORKSPACE/Palestra-iPhone-unsigned.ipa"
+      - name: Scarica IPA dai risultati del workflow
+        uses: actions/upload-artifact@v4
+        with:
+          name: Palestra-iPhone-IPA-da-firmare
+          path: Palestra-iPhone-unsigned.ipa
+          if-no-files-found: error
+          retention-days: 30
