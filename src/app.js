@@ -1143,7 +1143,7 @@ function linkPersona(p) {
  * la prima versione contiene SOLO giorno 1, 2, 3 e 4 senza esercizi, serie,
  * pesi o note. Nessun dettaglio della scheda di Stefano va copiato.
  *
- * Le schede gia' create (anche quella storica di Andrea) non si azzerano:
+ * Le schede già create (anche quella storica di Andrea) non si azzerano:
  * se esistono, si conserva tutta la versione e lo storico precedente.
  */
 async function seminaPersona() {
@@ -1158,7 +1158,7 @@ async function seminaPersona() {
     id: versioneId, scheda_id: p.schedaId, numero: 1,
     // Un nuovo amico NON riceve la scheda di Stefano: neppure esercizi,
     // note, kg o serie. Solo quattro giorni vuoti e la sua scheda personale.
-    // Stefano/Andrea gia' esistenti restano rigorosamente invariati.
+    // Stefano e Andrea già esistenti restano rigorosamente invariati.
     snapshot: p.creata
       ? creaSchedaVuotaNuovoAmico(p.schedaId, p.nomeScheda)
       : costruisciSnapshot({ conSerie: true }),
