@@ -1,0 +1,26 @@
+name: Audit visivo icone esercizi CAD
+on:
+  push:
+    branches:
+      - audit/icone-esercizi-cad-20261107
+    paths:
+      - .github/workflows/audit-icone-esercizi-cad.yml
+permissions:
+  contents: read
+jobs:
+  sample:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Copia foto attuali per confronto visivo
+        run: |
+          set -euo pipefail
+          mkdir -p audit
+          for item in cad-curl-app.jpg cad-curl-originale-v435.jpg ez-bar-preacher-curl.png cable-lateral-raise.png dumbbell-curl.png dumbbell-bench-press.png one-arm-dumbbell-preacher-curl.png neutral-grip-lat-pulldown.png dips.png chest-press.png db-lateral-raise.png; do
+            cp "img/esercizi/$item" "audit/$item"
+          done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: audit-icone-esercizi-originali
+          path: audit/
+          retention-days: 1
