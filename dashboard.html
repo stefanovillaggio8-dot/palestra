@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="mobile-web-app-capable" content="yes"><meta name="theme-color" content="#11111d"><title>Palestra · Dashboard</title>
+<style>
+:root{color-scheme:dark;--bg:#0c0b14;--nav:#11101c;--card:#1a1829;--line:#343048;--text:#f5f1fd;--muted:#aaa4bd;--a:#b58aff;--ok:#75e6bb;--warn:#fbd084;--err:#ff869a}
+*{box-sizing:border-box}body{margin:0;color:var(--text);background:radial-gradient(ellipse at 75% -10%,#302344,transparent 48%),var(--bg);font:14px/1.45 system-ui,-apple-system,Segoe UI,sans-serif}button,input,select{font:inherit}button{cursor:pointer}
+.layout{display:grid;grid-template-columns:225px minmax(0,1fr);min-height:100vh}aside{padding:21px 12px;background:var(--nav);border-right:1px solid var(--line);position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:30px}
+.brand{display:flex;align-items:center;gap:11px;padding:8px}.brand-icon{display:grid;place-items:center;background:#372650;border:1px solid #9670cb;color:#dec6ff;width:40px;height:40px;border-radius:13px;font-size:24px}.brand strong{font-size:18px;letter-spacing:-.5px}.brand small{display:block;font-size:10px;color:var(--a);letter-spacing:1.4px;font-weight:750}
+nav{display:grid;gap:5px}nav button{display:flex;gap:12px;width:100%;align-items:center;text-align:left;background:none;border:0;color:#b5afc7;padding:11px 12px;border-radius:10px;font-weight:650}nav button:hover,nav button.active{background:#322541;color:#fff}nav button.active{box-shadow:inset 3px 0 var(--a)}
+.side-note{margin-top:auto;border:1px solid #473d60;background:#221c32;border-radius:13px;padding:12px;font-size:11px;color:var(--muted)}.side-note b{color:var(--ok)}
+main{width:100%;max-width:1540px;margin:auto;padding:27px clamp(15px,3vw,46px) 60px}.top{display:flex;justify-content:space-between;gap:20px;align-items:center;flex-wrap:wrap;margin-bottom:22px}.eyebrow{font-weight:750;letter-spacing:1.8px;color:var(--a);text-transform:uppercase;font-size:10px}.top h1{font-size:31px;letter-spacing:-1px;margin:3px 0}.muted,.sub{color:var(--muted);font-size:12px}.actions,.row,.filters{display:flex;align-items:center;gap:9px;flex-wrap:wrap}.row{justify-content:space-between}.btn,select,input{border:1px solid #4a435c;background:#242134;color:var(--text);padding:9px 12px;border-radius:10px;min-height:39px}.btn{font-weight:650}.btn:hover{background:#382b4b;border-color:var(--a)}.primary{background:var(--a);border-color:var(--a);color:#18101f}.primary:hover{background:#c7a5ff}.small{font-size:12px;padding:6px 9px;min-height:31px}input:focus,select:focus,button:focus-visible{outline:2px solid #d6baff;outline-offset:2px}
+.grid{display:grid;gap:14px}.stats{grid-template-columns:repeat(4,minmax(0,1fr))}.twocol{grid-template-columns:minmax(0,1.35fr) minmax(270px,1fr)}.three{grid-template-columns:repeat(3,minmax(0,1fr))}.card{min-width:0;border-radius:17px;border:1px solid #383148;padding:19px;background:linear-gradient(145deg,#1d1a2e,#181625 88%)}.card h2{font-size:15px;margin:0 0 15px}.card h3{margin:4px 0 12px}.metric-label{color:#c4bad4;font-size:11px;font-weight:700}.metric{font-size:30px;font-weight:800;letter-spacing:-1px;line-height:1.1;margin:8px 0}.caption{font-size:11px;color:var(--muted)}.spacer{height:15px}.pill{border:1px solid #6d5493;color:#d6bcff;border-radius:60px;padding:4px 9px;font-size:11px;font-weight:750;display:inline-block}.pill.ok{border-color:#3c765e;color:var(--ok)}.pill.warn{border-color:#866039;color:var(--warn)}.pill.err{border-color:#8c445b;color:var(--err)}.hint{padding:13px;border:1px solid #57486e;background:#2a2339;border-radius:11px;font-size:12px;color:#e2d3f7}.empty{border:1px dashed #58506a;border-radius:12px;color:var(--muted);padding:22px 15px;text-align:center}.empty b{display:block;color:var(--text);font-size:13px}.item{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-top:1px solid #373147}.item:first-child{border-top:0}.item strong{font-size:12px;display:block}.item small{font-size:11px;color:var(--muted)}.right{text-align:right}.filters{margin:14px 0}.filters input{flex:1;min-width:140px}.ex-layout{display:grid;grid-template-columns:242px minmax(0,1fr);gap:14px}.ex-list{display:grid;gap:4px;max-height:700px;overflow:auto;align-content:start}.ex-list button{border:1px solid transparent;background:#272238;border-radius:9px;text-align:left;color:#ded6ec;padding:11px}.ex-list button.active{border-color:#a680e6;background:#3a2b52}.ex-title{display:flex;align-items:center;gap:15px}.ex-title img{height:75px;width:75px;border-radius:13px;object-fit:cover;background:#292339;border:1px solid var(--line)}.ex-title h2{font-size:19px;margin:0}.ex-title small{color:var(--muted)}.chart{width:100%;height:190px}.chart text{font-size:10px;fill:#a19ab8}.chart line{stroke:#393449}.chart polyline{fill:none;stroke:#b68aff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}.chart circle{fill:#e0c1ff}.chart polygon{fill:#ad80ff14}.table{overflow-x:auto}table{width:100%;border-collapse:collapse;white-space:nowrap;text-align:left}td,th{border-bottom:1px solid #3b354b;padding:10px 7px;font-size:12px}th{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}.days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}.day{padding:8px 1px;border-radius:7px;border:1px solid #4a435a;text-align:center;font-size:11px}.day.yes{background:#3d2a58;border-color:#9367bc;color:#ead2ff}.day small{display:block;font-size:9px;color:var(--muted)}.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:13px}.formgrid input,.formgrid select{width:100%}label{display:block;font-size:11px;color:var(--muted);margin-bottom:5px}.call{padding:12px 14px;border-left:3px solid var(--warn);border-radius:0 9px 9px 0;background:#282132;margin:7px 0}.call.err{border-color:var(--err)}.call.ok{border-color:var(--ok)}.call strong{display:block;font-size:12px}.call p{font-size:11px;color:#c8bed4;margin:4px 0 0;overflow-wrap:anywhere}.section{font-size:16px;margin:25px 0 13px}.bar{height:8px;border-radius:30px;background:#40344e;overflow:hidden}.bar i{display:block;height:100%;background:linear-gradient(90deg,#8d5fc2,#d8adff)}footer{text-align:center;color:#89829e;font-size:11px;margin-top:36px}#toast{display:none;position:fixed;bottom:16px;right:16px;max-width:350px;background:#362849;color:#fff;padding:14px;border:1px solid #ae85e4;border-radius:12px;box-shadow:0 14px 35px #0009;z-index:20}
+@media(max-width:1050px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.twocol{grid-template-columns:1fr}.ex-layout{grid-template-columns:200px 1fr}}
+@media(max-width:700px){.layout{display:block}aside{position:sticky;height:auto;z-index:5;padding:8px 10px;gap:5px;border-bottom:1px solid var(--line);border-right:0;background:#11101cf0}.brand{padding:0}.brand-icon{height:29px;width:29px;font-size:17px}.brand strong{font-size:15px}.brand small{display:none}nav{display:flex;overflow-x:auto;gap:3px;padding-bottom:4px}nav button{flex-shrink:0;width:auto;font-size:11px;padding:7px 9px}.side-note{display:none}main{padding:17px 12px 40px}.top h1{font-size:25px}.actions{width:100%}.card{padding:14px}.metric{font-size:26px}.ex-layout{grid-template-columns:1fr}.ex-list{display:flex;overflow-x:auto;max-height:none}.ex-list button{min-width:165px}.chart{height:160px}}
+</style></head><body>
+<div class="layout"><aside><div class="brand"><div class="brand-icon">◆</div><div><strong>PALESTRA</strong><small>CONTROL CENTER</small></div></div>
+<nav id="nav"><button class="active" data-page="overview">▦ Panoramica</button><button data-page="exercises">◈ Esercizi</button><button data-page="plans">▤ Schede</button><button data-page="rank">✦ Rank Lab</button><button data-page="diagnostics">◎ Diagnostica</button><button data-page="history">◷ Cronologia</button></nav>
+<div class="side-note"><b>● Solo lettura</b><div>Nessun dato originale, Rank, streak o sincronizzazione viene modificato.</div></div></aside>
+<main><header class="top"><div><div class="eyebrow">Allenamenti • Progressi • Controlli</div><h1 id="title">Panoramica</h1><div id="sourceStatus" class="sub">Lettura locale…</div></div>
+<div class="actions"><select id="source"><option value="local">Questo dispositivo</option><option value="pc">Backup PC</option><option value="iphone">Backup iPhone</option></select><button class="btn" data-action="refresh">↻ Aggiorna</button><button class="btn primary" data-import="pc">+ Backup PC</button><button class="btn" data-import="iphone">+ Backup iPhone</button></div></header>
+<input id="upload" type="file" accept=".json,application/json" hidden><section id="content"></section>
+<footer>Dashboard indipendente · i backup restano in memoria fino alla chiusura della pagina · nessun intervento sul database</footer></main></div><div id="toast" role="status" aria-live="polite"></div>
+<script type="module">
+import * as db from './src/db.js';
+import { ESERCIZI, chiSei, accountId } from './src/dati-iniziali.js';
+import { corrispondeRicercaEsercizi } from './src/ricerca-esercizi.js';
+import { recordEsercizio } from './src/rank.js';
+import { valutaPrestazione } from './src/rank-v3/valutazione.js';
+import { calcolaStreak, giorniAllenati, giorniStreakAccreditati, isoGiorno } from './src/streak.js';
+import { confrontaStreakDispositivi } from './src/streak-confronto.js';
+import { storicoCronologia } from './src/cronologia.js';
+import { valutaNumeroInsolito } from './src/validazione-serie.js';
+const el=s=>document.querySelector(s);
+const safe=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const n=v=>v===null||v===undefined||v===''?null:(Number.isFinite(Number(v))?Number(v):null);
+const fmt=(v,d=0)=>n(v)===null?'—':Number(v).toLocaleString('it-IT',{maximumFractionDigits:d});
+const iso=()=>isoGiorno(new Date());
+const date=d=>d?new Date(String(d).slice(0,10)+'T12:00:00').toLocaleDateString('it-IT',{day:'2-digit',month:'short',year:'numeric'}):'—';
+const isDate=d=>/^\d{4}-\d\d-\d\d$/.test(String(d||''))&&isoGiorno(new Date(d+'T12:00:00'))===d;
+const S={page:'overview',source:'local',data:{local:null,pc:null,iphone:null},person:null,query:'',exercise:null,version:null,day:null,period:'90',issueFilter:'all',preview:{kg:30,reps:8,body:70,spotter:false}};
+const titles={overview:'Panoramica',exercises:'Analisi esercizi',plans:'Schede e giornate',rank:'Rank Lab',diagnostics:'Diagnostica',history:'Cronologia modifiche'};
+function note(msg){el('#toast').textContent=msg;el('#toast').style.display='block';setTimeout(()=>el('#toast').style.display='none',5000)}
+const pill=(t,tone='')=>`<span class="pill ${safe(tone)}">${safe(t)}</span>`;
+const empty=t=>`<div class="empty"><b>Nessun dato disponibile</b>${safe(t)}</div>`;
+const card=(title,body)=>`<div class="card"><h2>${safe(title)}</h2>${body}</div>`;
+const metric=(label,value,desc)=>`<div class="card"><div class="metric-label">${safe(label)}</div><div class="metric">${safe(value)}</div><div class="caption">${safe(desc)}</div></div>`;
+const isDone=s=>s&&!s.eliminata&&s.stato==='completata'&&isDate(String(s.data||'').slice(0,10))&&s.data<=iso();
+function model(d){
+ if(!d)return null;
+ const person=S.person?.persona||chiSei({ricerca:location.search,schede:(d.schede||[]).map(s=>s.id)}).persona;
+ const id=person?.schedaId,account=person?accountId(person.id):null;
+ const schemes=(d.schede||[]).filter(r=>r.id===id&&!r.eliminata);
+ const versions=(d.versioni||[]).filter(r=>r.scheda_id===id&&!r.eliminata).sort((a,b)=>(Number(b.numero)||0)-(Number(a.numero)||0));
+ const current=versions.find(r=>r.id===schemes[0]?.versione_corrente)||versions[0]||null;
+ const versionIds=new Set(versions.map(r=>r.id));
+ const sessions=(d.sedute||[]).filter(r=>r&&(r.scheda_id===id||versionIds.has(r.versione_id))).sort((a,b)=>String(b.data||'').localeCompare(String(a.data||'')));
+ const sessionIds=new Set(sessions.map(r=>r.id));
+ const sets=(d.serie||[]).filter(r=>sessionIds.has(r.seduta_id));
+ const completed=sessions.filter(isDone),doneIds=new Set(completed.map(r=>r.id));
+ const done=sets.filter(r=>!r.eliminata&&r.stato==='fatta'&&doneIds.has(r.seduta_id));
+ const profile=(d.profili||[]).find(r=>r.id===account&&!r.eliminata)||null;
+ const allWeights=(d.pesi||[]).filter(r=>!r.eliminata);
+ const own=allWeights.filter(r=>r.account_id===account);
+ const weights=(own.length?own:allWeights.filter(r=>!r.account_id)).filter(r=>n(r.kg)>=25&&n(r.kg)<=300).sort((a,b)=>String(a.data).localeCompare(String(b.data)));
+ const body=weights.length?n(weights[weights.length-1].kg):null;
+ const catalog=new Map(ESERCIZI.map(e=>[e.id,e]));
+ for(const e of (d.esercizi||[]))if(e&&!e.eliminata&&e.id)catalog.set(e.id,{...(catalog.get(e.id)||{}),...e});
+ const exercises=[...catalog.values()].sort((a,b)=>a.nome.localeCompare(b.nome,'it'));
+ const byId=new Map(exercises.map(e=>[e.id,e])),bySession=new Map(sessions.map(r=>[r.id,r]));
+ const ranked=done.map(s=>{const sd=String(bySession.get(s.seduta_id)?.data||'').slice(0,10);const w=weights.filter(r=>r.data<=sd).at(-1)||weights[0];return {...s,_giorno:sd,peso_corpo:n(s.peso_corpo)??(w?n(w.kg):body)}});
+ const hist=account?storicoCronologia(d.note||[],account):[];
+ return {d,person,id,account,schemes,versions,current,sessions,sets,completed,done,ranked,profile,weights,body,exercises,byId,bySession,hist,streak:calcolaStreak(completed,iso(),profile)};
+}
+const current=()=>model(S.data[S.source]);
+const setsOf=(x,id)=>x.ranked.filter(s=>s.esercizio_id===id);
+function result(x,e,sets){
+ try{return recordEsercizio(sets||setsOf(x,e.id),e,null,x.body)}catch(err){return {valido:false,motivo:err.message}}
+}
+function assessment(x,e,sets,body){
+ try{return valutaPrestazione({esercizio:e,serie:sets||setsOf(x,e.id),pesoCorporeo:body??x.body})}catch(err){return {valido:false,motivo:err.message}}
+}
+function titleRank(r){if(!r?.valido)return 'Non valutato';let t=String(r.rank||r.rankId||'—');if(r.divisione&&!t.toLowerCase().includes('olympian')&&!t.includes(String(r.divisione)))t+=' '+r.divisione;return t}
+const rankPill=r=>pill(titleRank(r),r?.valido?'':'warn');
+const loadValue=(s,e)=>n(['zavorri','corpo_libero'].includes(e?.convenzione)?s.peso_assistenza??s.peso:s.peso);
+function records(x){return x.exercises.map(e=>({e,r:result(x,e)})).filter(v=>v.r.valido).sort((a,b)=>(b.r.indice??-1)-(a.r.indice??-1)||(b.r.lp??0)-(a.r.lp??0))}
+function chart(points){
+ if(!points.length)return empty('Il grafico si riempirà con i tuoi allenamenti.');
+ const W=650,H=190,L=38,B=26,T=12,R=12;const vals=points.map(p=>p.y);let mn=Math.min(...vals),mx=Math.max(...vals);if(mx===mn){mx++;mn=Math.max(0,mn-1)}
+ const xx=i=>L+(W-L-R)*i/Math.max(points.length-1,1),yy=v=>T+(H-B-T)*(1-(v-mn)/(mx-mn));
+ const line=points.map((p,i)=>`${xx(i)},${yy(p.y)}`).join(' ');
+ return `<svg viewBox="0 0 ${W} ${H}" class="chart" role="img" aria-label="Andamento delle prestazioni"><line x1="${L}" y1="${H-B}" x2="${W-R}" y2="${H-B}"/><text x="0" y="${T+8}">${fmt(mx,1)}</text><text x="0" y="${H-B}">${fmt(mn,1)}</text><polygon points="${L},${H-B} ${line} ${xx(points.length-1)},${H-B}"/><polyline points="${line}"/>${points.map((p,i)=>`<circle cx="${xx(i)}" cy="${yy(p.y)}" r="${points.length>30?2:3}"><title>${safe(p.label)}: ${fmt(p.y,1)}</title></circle>`).join('')}<text x="${L}" y="${H-5}">${safe(points[0].label)}</text><text x="${W-R}" y="${H-5}" text-anchor="end">${safe(points.at(-1).label)}</text></svg>`;
+}
+function periodPoints(p){const min=S.period==='all'?'0000':isoGiorno(new Date(Date.now()-Number(S.period)*86400000));return p.filter(v=>v.d>=min)}
+function calendar(x){const set=new Set(giorniAllenati(x.completed,iso())),credits=new Set(giorniStreakAccreditati(x.profile,iso()));return Array.from({length:28},(_,i)=>{const d=new Date();d.setDate(d.getDate()-27+i);const day=isoGiorno(d),done=set.has(day),cred=credits.has(day);return `<div class="day ${done||cred?'yes':''}" title="${safe(day)}">${d.getDate()}<small>${done?'Fatto':cred?'Credito':'·'}</small></div>`}).join('')}
+const sources=()=>['pc','iphone'].map(k=>`<div class="item"><div><strong>${k==='pc'?'Backup PC':'Backup iPhone'}</strong><small>${S.data[k]?'Caricato':'Non caricato'}</small></div><button class="btn small" data-import="${k}">${S.data[k]?'Sostituisci':'Carica JSON'}</button></div>`).join('');
+function overview(x){
+ const top=records(x),recent=x.completed[0],counts=new Map();
+ for(const s of x.completed)counts.set(s.data,(counts.get(s.data)||0)+1);
+ const points=periodPoints([...counts].sort((a,b)=>a[0].localeCompare(b[0])).map(([d,y])=>({d,y,label:date(d)})));
+ return `<div class="grid stats">${metric('Allenamenti',fmt(x.completed.length),'Sedute completate')}${metric('Serie fatte',fmt(x.done.length),'Non cancellate')}${metric('Streak attuale',fmt(x.streak.giorni)+' 🔥','Record: '+fmt(x.streak.record))}${metric('Rank più alto',top.length?titleRank(top[0].r):'—',top[0]?.e.nome||'Nessun Rank')}</div><div class="spacer"></div><div class="grid twocol">
+ ${card('Andamento allenamenti',`<div class="row"><span class="caption">Sedute completate per giorno</span>${periodSelect()}</div>${chart(points)}`)}
+ ${card('Streak · ultimi 28 giorni',`<div class="days">${calendar(x)}</div><div class="spacer"></div><div class="row">${pill(x.streak.attiva?'Attiva':'Non attiva',x.streak.attiva?'ok':'warn')}<small class="muted">Giorni accreditati: ${fmt(x.streak.giorniAccreditati?.length||0)}</small></div><p class="caption">I giorni accreditati valgono per la streak, ma non creano allenamenti fittizi.</p>`)}
+ </div><div class="spacer"></div><div class="grid twocol">
+ ${card('Rank migliori',top.length?top.slice(0,7).map(v=>`<div class="item"><div><strong>${safe(v.e.nome)}</strong><small>${fmt(v.r.lp)} LP · ${fmt(v.r.ripetizioni??v.r.serie?.ripetizioni)} rip.</small></div>${rankPill(v.r)}</div>`).join(''):empty('Le prestazioni valide appariranno qui.'))}
+ ${card('Ultimo allenamento e sorgenti',`<div class="hint"><div class="eyebrow">Ultima seduta</div><h3>${safe(recent?.nome_giorno||'Nessun allenamento')}</h3><small>${recent?date(recent.data):'—'}</small></div><div class="spacer"></div>${sources()}<p class="caption">PC e PWA su iPhone possono usare archivi browser differenti. Il confronto richiede due esportazioni.</p>`)}
+ </div>`;
+}
+function periodSelect(){return `<select id="period"><option value="30" ${S.period==='30'?'selected':''}>30 giorni</option><option value="90" ${S.period==='90'?'selected':''}>90 giorni</option><option value="all" ${S.period==='all'?'selected':''}>Tutto</option></select>`}
+function exerciseList(x){const l=x.exercises.filter(e=>corrispondeRicercaEsercizi(e,S.query)).sort((a,b)=>setsOf(x,b.id).length-setsOf(x,a.id).length||a.nome.localeCompare(b.nome));return l.map(e=>`<button class="${S.exercise===e.id?'active':''}" data-ex="${safe(e.id)}">${safe(e.nome)} <span class="caption">· ${setsOf(x,e.id).length}</span></button>`).join('')||empty('Nessun esercizio corrispondente.')}
+function exerciseDetail(x,e){
+ if(!e)return empty('Scegli un esercizio dalla lista.');
+ const sets=setsOf(x,e.id),r=result(x,e),a=assessment(x,e),g=new Map();
+ for(const s of sets){const key=s._giorno+'|'+s.seduta_id;if(!g.has(key))g.set(key,[]);g.get(key).push(s)}
+ const rows=[...g].sort((a,b)=>b[0].localeCompare(a[0])).map(([key,ss])=>{
+  const best=ss.slice().sort((a,b)=>(loadValue(b,e)||0)-(loadValue(a,e)||0)||(n(b.ripetizioni)||0)-(n(a.ripetizioni)||0))[0];
+  return {d:key.split('|')[0],sets:ss,best,rank:assessment(x,e,ss)};
+ });
+ const points=periodPoints(rows.map(v=>({...v,y:loadValue(v.best,e),label:date(v.d)})).filter(v=>v.y!==null)).reverse();
+ const diff=rows.length>=2&&loadValue(rows[0].best,e)!==null&&loadValue(rows[1].best,e)!==null?loadValue(rows[0].best,e)-loadValue(rows[1].best,e):null;
+ return `<div class="ex-title"><img alt="" src="./${safe(e.foto||'img/esercizi/dumbbell-curl.png')}" loading="lazy"><div><div class="eyebrow">Esercizio</div><h2>${safe(e.nome)}</h2><small>${safe(e.convenzione||'Attrezzo non specificato')} · ${sets.length} serie reali</small></div></div><div class="spacer"></div>
+ <div class="grid three">${metric('Rank',titleRank(r),fmt(r.lp)+' LP')}${metric('Serie migliore',r.valido?fmt(r.caricoRegistrato??r.serie?.peso,1)+' kg × '+fmt(r.ripetizioni??r.serie?.ripetizioni):'—','Serie reale, non 1RM stimato')}${metric('Ultima vs precedente',diff===null?'—':(diff>0?'+':'')+fmt(diff,1)+' kg',rows.length>1?date(rows[0].d)+' / '+date(rows[1].d):'Servono due sedute')}</div><div class="spacer"></div>
+ ${card('Progressione del carico',`<div class="row"><span class="caption">Miglior peso registrato per seduta</span>${periodSelect()}</div>${chart(points)}`)}<div class="spacer"></div>
+ ${card('Confronto delle sessioni',rows.length?`<div class="table"><table><thead><tr><th>Data</th><th>Serie</th><th>Migliore</th><th>Score</th><th>Rank</th></tr></thead><tbody>${rows.slice(0,40).map(v=>`<tr><td>${date(v.d)}</td><td>${v.sets.length}</td><td>${fmt(loadValue(v.best,e),1)} kg × ${fmt(v.best.ripetizioni)} rip.</td><td>${fmt(v.rank.score,2)}</td><td>${titleRank(v.rank)}</td></tr>`).join('')}</tbody></table></div>`:empty('Nessuna seduta completata per questo esercizio.'))}<div class="spacer"></div>
+ ${card('Affidabilità Rank e attrezzatura',a.valido?`<div class="row">${pill(a.calibrazione?.titolo||'Da verificare',a.calibrazione?.livello==='media'?'ok':'warn')}<span class="caption">${safe(a.calibrazione?.origine)}</span></div><p class="muted">${safe(a.calibrazione?.descrizione)}</p><p class="caption"><b>Attrezzatura:</b> ${safe(a.calibrazione?.attrezzatura||a.cfg?.caricamento)}. <b>Serie scelta:</b> ${fmt(a.caricoRegistrato,1)} kg × ${fmt(a.ripetizioni)} rip. · peso corporeo ${fmt(a.pesoCorporeo,1)} kg. ${a.spotter?'Spotter considerato.':''}</p>`:empty(a.motivo||'Manca un dato per il calcolo.'))}`;
+}
+function exercises(x){if(!x.byId.has(S.exercise))S.exercise=x.exercises.find(e=>setsOf(x,e.id).length)?.id||x.exercises[0]?.id;return `<div class="hint">Ricerca bilingue e per parole parziali: “panca scott”, “scrollate”, “lat”, “manubri”, “strict curl”. Le varianti mantengono i propri ID e Rank.</div><div class="filters"><input id="searchEx" type="search" placeholder="Cerca un esercizio…" value="${safe(S.query)}"><small class="muted">${x.exercises.length} nel catalogo</small></div><div class="ex-layout"><div class="card ex-list">${exerciseList(x)}</div><div>${exerciseDetail(x,x.byId.get(S.exercise))}</div></div>`}
+function plans(x){
+ const v=x.versions.find(v=>v.id===S.version)||x.current,days=v?.snapshot?.giorni||[],g=days.find(d=>d.id===S.day)||days[0];
+ return `<div class="filters"><span class="muted">Versione della scheda</span><select id="version">${x.versions.map(t=>`<option value="${safe(t.id)}" ${t.id===v?.id?'selected':''}>Versione ${fmt(t.numero)}</option>`).join('')}</select><span class="muted">Le versioni passate non vengono modificate.</span></div>${days.length?`<div class="grid twocol">
+ ${card('Giornate',days.map(d=>`<div class="item"><div><strong>${safe(d.nome)}</strong><small>${(d.esercizi||[]).length} esercizi · ${x.completed.filter(s=>s.giorno_id===d.id).length} sedute completate</small></div><button class="btn small ${d.id===g.id?'primary':''}" data-day="${safe(d.id)}">Apri</button></div>`).join(''))}
+ ${card(g?.nome||'Giorno',`<div class="caption">${(g?.esercizi||[]).length} esercizi previsti</div>${(g?.esercizi||[]).map(it=>{const e=x.byId.get(it.esercizio_id);const ss=x.done.filter(s=>s.esercizio_id===it.esercizio_id&&x.completed.some(t=>t.id===s.seduta_id&&t.giorno_id===g.id));return `<div class="item"><div><strong>${safe(e?.nome||it.esercizio_id)}</strong><small>${(it.serie||[]).length} serie pianificate ${it.opzionale?'· opzionale':''}</small></div><div class="right"><b>${ss.length} fatte</b><div class="caption">${ss.length?fmt(loadValue(ss[0],e),1)+' kg × '+fmt(ss[0].ripetizioni):'—'}</div></div></div>`}).join('')||empty('Questo giorno è vuoto.')})}
+ </div>`:empty('Non c’è una versione salvata della tua scheda.')}<div class="spacer"></div>${card('Cronologia delle versioni',x.versions.map(t=>`<div class="item"><div><strong>Versione ${fmt(t.numero)}</strong><small>${safe(t.nota||'Nessuna nota')} · ${(t.snapshot?.giorni||[]).length} giorni</small></div>${pill(t.id===x.current?.id?'Attuale':'Archiviata',t.id===x.current?.id?'ok':'')}</div>`).join('')||empty('Nessuna revisione registrata.'))}`;
+}
+function rank(x){
+ if(!x.byId.has(S.exercise))S.exercise=x.exercises[0]?.id;
+ const e=x.byId.get(S.exercise),p=S.preview,ss=e?[{id:'anteprima-1',esercizio_id:e.id,seduta_id:'anteprima',stato:'fatta',peso:p.kg,peso_assistenza:p.kg,ripetizioni:p.reps,peso_corpo:p.body,spotter:p.spotter}]:[];
+ const ev=e?assessment(x,e,ss,p.body):null;
+ return `<div class="hint"><b>Motore Rank originale.</b> Il Rank usa la serie migliore, le ripetizioni, il peso corporeo, l’attrezzatura e lo spotter, non un massimale ipotetico. I percentili estremi sono estrapolazioni, non misure osservate.</div><div class="spacer"></div>
+ <div class="grid twocol">
+ ${card('Prova un esercizio · dati fittizi',`<label for="previewEx">Esercizio</label><select style="width:100%" id="previewEx">${x.exercises.map(v=>`<option value="${safe(v.id)}" ${e?.id===v.id?'selected':''}>${safe(v.nome)}</option>`).join('')}</select><div class="spacer"></div><div class="formgrid">
+ <div><label for="previewKg">Kg registrati / zavorra</label><input type="number" min="0" step=".5" id="previewKg" value="${safe(p.kg)}"></div>
+ <div><label for="previewReps">Ripetizioni</label><input type="number" min="1" max="100" id="previewReps" value="${safe(p.reps)}"></div>
+ <div><label for="previewBody">Peso corporeo di esempio</label><input type="number" min="25" max="300" step=".5" id="previewBody" value="${safe(p.body)}"></div>
+ <div><label for="previewSpotter">Spotter</label><select id="previewSpotter"><option value="false" ${!p.spotter?'selected':''}>No</option><option value="true" ${p.spotter?'selected':''}>Sì</option></select></div></div><p class="caption">I valori di esempio non vengono salvati e non leggono le tue serie personali.</p>
+ ${ev?.valido?`<div class="hint"><div class="eyebrow">Rank simulato</div><div class="metric">${titleRank(ev)}</div><b>${fmt(ev.lp)} LP</b> · ${fmt(ev.caricoReale,1)} kg effettivi · ${fmt(ev.ripetizioni)} rip.</div><p class="caption">Attendibilità: ${safe(ev.calibrazione?.titolo)}. ${safe(ev.calibrazione?.descrizione)}</p>`:empty(ev?.motivo||'Inserisci dati di prova validi.') }`)}
+ ${card('Rank dello storico reale',records(x).slice(0,20).map(v=>`<div class="item"><div><strong>${safe(v.e.nome)}</strong><small>${fmt(v.r.caricoRegistrato??v.r.serie?.peso,1)} kg · ${fmt(v.r.lp)} LP</small></div>${rankPill(v.r)}</div>`).join('')||empty('Nessuna prestazione reale valutabile.'))}
+ </div>`;
+}
+function compare(){
+ const a=model(S.data.pc),b=model(S.data.iphone);
+ if(!a||!b)return `<div class="hint">Per confrontare PC e iPhone devi esportare due backup JSON dall’app: uno da ciascun dispositivo. Non è possibile leggere direttamente da un browser i dati locali di un altro dispositivo.</div>${sources()}`;
+ if(a.account!==b.account)return empty('I backup sono associati a due profili diversi: non vengono combinati.');
+ const res=confrontaStreakDispositivi({seduteLocali:a.sessions,seduteCloud:b.sessions,profiloLocale:a.profile,profiloCloud:b.profile,oggi:iso()});
+ const aSets=new Map(a.sets.map(s=>[s.id,s])),bSets=new Map(b.sets.map(s=>[s.id,s]));
+ const diff=[...aSets.values()].filter(s=>bSets.has(s.id)&&JSON.stringify([s.peso,s.peso_assistenza,s.ripetizioni,s.stato,s.eliminata])!==JSON.stringify([bSets.get(s.id).peso,bSets.get(s.id).peso_assistenza,bSets.get(s.id).ripetizioni,bSets.get(s.id).stato,bSets.get(s.id).eliminata]));
+ const aa=new Set(a.sessions.map(s=>s.id)),bb=new Set(b.sessions.map(s=>s.id));
+ return `<div class="grid three">${metric('Streak PC',fmt(res.locale.giorni),'Dal backup PC')}${metric('Streak iPhone',fmt(res.cloud.giorni),'Dal backup iPhone')}${metric('Serie differenti',fmt(diff.length),'Stesso ID, dati discordanti')}</div><div class="spacer"></div><div class="grid twocol">
+ ${card('Differenze nelle giornate',`<div class="item"><strong>Solo PC</strong><b>${res.soloLocale.length} giorni</b></div><div class="item"><strong>Solo iPhone</strong><b>${res.soloCloud.length} giorni</b></div><div class="item"><strong>Sedute assenti su iPhone</strong><b>${a.sessions.filter(s=>!s.eliminata&&!bb.has(s.id)).length}</b></div><div class="item"><strong>Sedute assenti su PC</strong><b>${b.sessions.filter(s=>!s.eliminata&&!aa.has(s.id)).length}</b></div>${pill(res.differenti?'Differenze rilevate':'Streak coerente',res.differenti?'warn':'ok')}`)}
+ ${card('Giorni da controllare',[...res.soloLocale.map(d=>['PC',d]),...res.soloCloud.map(d=>['iPhone',d])].map(([s,d])=>`<div class="item"><strong>${date(d)}</strong>${pill('Solo '+s,'warn')}</div>`).join('')||empty('Nessun giorno di differenza.'))}
+ </div><div class="spacer"></div>${card('Serie discordanti',diff.length?`<div class="table"><table><thead><tr><th>Esercizio</th><th>PC</th><th>iPhone</th></tr></thead><tbody>${diff.slice(0,35).map(s=>{const e=a.byId.get(s.esercizio_id),t=bSets.get(s.id);return `<tr><td>${safe(e?.nome||s.esercizio_id)}</td><td>${fmt(loadValue(s,e),1)} × ${fmt(s.ripetizioni)}</td><td>${fmt(loadValue(t,e),1)} × ${fmt(t.ripetizioni)}</td></tr>`}).join('')}</tbody></table></div>`:empty('Le serie con lo stesso ID hanno gli stessi valori.'))}`;
+}
+function issues(x){
+ const out=[],add=(type,title,info)=>out.push({type,title,info}),doneIds=new Set(x.completed.map(s=>s.id));
+ if(!x.id){add('err','Identità non trovata','Apri la PWA dell’account corretto.');return out}
+ for(const sess of x.sessions){
+  if(sess.eliminata)continue;
+  const d=String(sess.data||'').slice(0,10);
+  if(!isDate(d))add('err','Data non valida',d+' · seduta '+sess.id);
+  else if(d>iso())add('warn','Seduta datata nel futuro',d);
+  if(sess.stato==='in_corso'&&d<iso())add('warn','Seduta rimasta in corso',d+' · non conta per la streak');
+  if(sess.stato==='completata'&&!x.sets.some(s=>s.seduta_id===sess.id&&s.stato==='fatta'&&!s.eliminata))add('warn','Seduta senza serie effettive',d);
+ }
+ const byExercise=new Map();
+ for(const s of x.done){if(!byExercise.has(s.esercizio_id))byExercise.set(s.esercizio_id,[]);byExercise.get(s.esercizio_id).push(s)}
+ for(const [id,arr] of byExercise){
+  const e=x.byId.get(id),field=['zavorri','corpo_libero'].includes(e?.convenzione)?'peso_assistenza':'peso',before=[];
+  for(const s of arr.slice().sort((a,b)=>String(x.bySession.get(a.seduta_id)?.data).localeCompare(String(x.bySession.get(b.seduta_id)?.data)))){
+   for(const f of [field,'ripetizioni','rip_assistite']){
+    const value=f==='peso_assistenza'?s.peso_assistenza??s.peso:s[f];
+    if((value===null||value===undefined||value==='')&&f==='ripetizioni'){add('warn','Ripetizioni mancanti',(e?.nome||id)+' · '+s.id);continue}
+    if(value===null||value===undefined||value==='')continue;
+    const v=valutaNumeroInsolito({campo:f,valore:value,storico:before.map(t=>f==='peso_assistenza'?t.peso_assistenza??t.peso:t[f]).filter(v=>v!==null&&v!==undefined),ripetizioni:s.ripetizioni});
+    if(v)add(v.tipo==='non_valido'?'err':'warn',e?.nome||id,v.messaggio);
+   }
+   before.push(s);
+  }
+ }
+ for(const c of (x.d.conflitti||[]))if(c&&!c.eliminata&&!['risolto','risolta','chiuso'].includes(String(c.stato||'')))add('err','Conflitto locale non risolto',(c.tabella||'record')+' · '+(c.id||''));
+ for(const [tab,arr] of [['sedute',x.sessions],['serie',x.sets],['schede',x.schemes],['versioni',x.versions],['profili',[x.profile]],['pesi',x.weights]])
+  for(const r of arr)if(r){if(r.sync==='errore')add('err','Errore di sincronizzazione',tab+' · '+String(r.ultimo_errore||r.id).slice(0,160));else if(r.sync==='da_salvare')add('warn','In attesa di sincronizzazione',tab+' · '+r.id)}
+ return out.slice(0,350);
+}
+function diagnostics(x){
+ const all=issues(x),visible=S.issueFilter==='all'?all:all.filter(i=>i.type===S.issueFilter);
+ return `<div class="grid stats">${metric('Segnalazioni',fmt(all.length),'Nessuna correzione automatica')}${metric('Critiche',fmt(all.filter(i=>i.type==='err').length),'Conflitti e dati impossibili')}${metric('Da verificare',fmt(all.filter(i=>i.type==='warn').length),'Possibili errori')}${metric('Backup caricati',fmt(['pc','iphone'].filter(k=>S.data[k]).length)+'/2','PC e iPhone')}</div>
+ <h2 class="section">Confronto tra PC e iPhone</h2>${compare()}
+ <h2 class="section">Anomalie sulla sorgente selezionata</h2>${card('Qualità dati e sincronizzazione',`<div class="row"><span class="caption">Segnalazioni automatiche, mai modifiche</span><select id="issueFilter"><option value="all" ${S.issueFilter==='all'?'selected':''}>Tutte</option><option value="err" ${S.issueFilter==='err'?'selected':''}>Critiche</option><option value="warn" ${S.issueFilter==='warn'?'selected':''}>Da verificare</option></select></div><div class="spacer"></div>
+ ${visible.length?visible.slice(0,80).map(v=>`<div class="call ${safe(v.type)}"><strong>${safe(v.title)}</strong><p>${safe(v.info)}</p></div>`).join(''):`<div class="call ok"><strong>Nessuna anomalia rilevata</strong><p>Il controllo non garantisce che ogni dato sia corretto.</p></div>`}
+ ${visible.length>80?`<p class="caption">Prime 80 di ${visible.length} segnalazioni</p>`:''}<button class="btn small" data-action="report">↓ Esporta report JSON</button>`)}
+ <p class="caption">I backup sono istantanee in tempi diversi: una differenza potrebbe dipendere da modifiche non ancora sincronizzate. La dashboard non risolve automaticamente conflitti o streak.</p>`;
+}
+function history(x){
+ const all=[...x.hist.map(e=>({...e,kind:'evento'})),...x.versions.map(v=>({kind:'scheda',titolo:'Versione '+v.numero+' della scheda',dettaglio:v.nota||'Modifica scheda',quando:v.updated_at||v.created_at||''}))].sort((a,b)=>String(b.quando).localeCompare(String(a.quando)));
+ return card('Eventi e versioni registrati',all.length?all.slice(0,120).map(e=>`<div class="item"><div><strong>${safe(e.titolo)}</strong><small>${safe(e.dettaglio||'')} ${e.annullato?'· annullato':''}</small></div><div class="right">${pill(e.kind)}<div class="caption">${safe(e.quando?new Date(e.quando).toLocaleString('it-IT'):'Data non registrata')}</div></div></div>`).join(''):empty('Questa copia non contiene eventi di modifica. Le versioni disponibili restano consultabili nella sezione Schede.'));
+}
+function render(){
+ const x=current();el('#title').textContent=titles[S.page];el('#source').value=S.source;
+ el('#sourceStatus').textContent=!x?'Sorgente senza dati':x.person?x.person.nome+' · '+(S.source==='local'?'questo dispositivo':S.source==='pc'?'backup PC':'backup iPhone')+' · '+x.completed.length+' sedute':'Identità locale non identificata';
+ document.querySelectorAll('[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===S.page));
+ if(!x){el('#content').innerHTML=empty('Torna ai dati del dispositivo oppure carica un backup JSON.')+sources();return}
+ if(!x.person){el('#content').innerHTML=empty('Profilo non identificato. Apri la dashboard nello stesso browser dell’app o importa i backup del profilo corretto. Non vengono mostrati dati di altri account.');return}
+ el('#content').innerHTML=({overview,exercises,plans,rank,diagnostics,history})[S.page](x);
+}
+async function local(){
+ try{
+  const d=await db.esportaTutto();
+  const memory=await db.leggiMeta('persona',null);
+  const p=chiSei({ricerca:location.search,memoria:memory,schede:(d.schede||[]).map(s=>s.id)});
+  S.person=p.persona?{persona:p.persona}:null;S.data.local=d;
+ }catch(err){S.data.local=null;note('Lettura dati locali non riuscita: '+err.message)}
+ render();
+}
+document.addEventListener('click',async event=>{
+ const b=event.target.closest('[data-page],[data-ex],[data-day],[data-action],[data-import]');if(!b)return;
+ if(b.dataset.page){S.page=b.dataset.page;render();scrollTo({top:0,behavior:'smooth'});return}
+ if(b.dataset.ex){S.exercise=b.dataset.ex;render();return}
+ if(b.dataset.day){S.day=b.dataset.day;render();return}
+ if(b.dataset.import){el('#upload').dataset.source=b.dataset.import;el('#upload').click();return}
+ if(b.dataset.action==='refresh'){await local();note('Dati locali aggiornati in sola lettura.')}
+ if(b.dataset.action==='report'){const x=current();if(!x)return;const payload={formato:'palestra-dashboard-report',data:new Date().toISOString(),sorgente:S.source,profilo:x.account,sedute:x.completed.length,serie:x.done.length,streak:x.streak.giorni,problemi:issues(x)};const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='palestra-diagnostica-'+iso()+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
+});
+document.addEventListener('input',ev=>{if(ev.target.id==='searchEx'){S.query=ev.target.value;const pos=ev.target.selectionStart;render();const n=el('#searchEx');n?.focus();try{n?.setSelectionRange(pos,pos)}catch{}}});
+document.addEventListener('change',ev=>{
+ const t=ev.target;
+ if(t.id==='source'){S.source=t.value;S.exercise=null;S.day=null;S.version=null}
+ if(t.id==='period')S.period=t.value;
+ if(t.id==='version'){S.version=t.value;S.day=null}
+ if(t.id==='issueFilter')S.issueFilter=t.value;
+ if(t.id==='previewEx')S.exercise=t.value;
+ if(t.id==='previewKg')S.preview.kg=n(t.value);
+ if(t.id==='previewReps')S.preview.reps=n(t.value);
+ if(t.id==='previewBody')S.preview.body=n(t.value);
+ if(t.id==='previewSpotter')S.preview.spotter=t.value==='true';
+ render();
+});
+el('#upload').addEventListener('change',async event=>{
+ const file=event.target.files?.[0],target=event.target.dataset.source;if(!file)return;
+ try{
+  if(file.size>30*1024*1024)throw Error('File oltre 30 MB.');
+  const parsed=JSON.parse(await file.text()),d=parsed.tabelle||parsed;
+  if(!['schede','versioni','sedute','serie','esercizi'].every(k=>Array.isArray(d[k])))throw Error('Non è un backup completo della Palestra.');
+  S.data[target]=d;
+  if(!model(d)?.person)throw Error('Backup non associato al profilo attuale.');
+  S.source=target;S.exercise=null;render();note('Backup '+target+' letto. Nessun dato importato nell’app.');
+ }catch(err){S.data[target]=null;render();note('Errore nel backup: '+err.message)}
+ event.target.value='';
+});
+local();
+</script></body></html>
