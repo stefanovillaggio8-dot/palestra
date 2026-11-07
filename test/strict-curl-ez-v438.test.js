@@ -75,11 +75,16 @@ test('v438: migliore serie e non 1RM ipotetico; tutto il carico e peso corporeo 
   assert.ok(perRank(28,66,10).score>perRank(28,66,6).score);
 });
 
-test('v438: panca Scott non propone EZ bar senza richiesta, ma lo trova con EZ/preacher',()=>{
+test('v439: panca Scott include EZ preacher, manubri e CAD Curl, ma non lo Strict Curl',()=>{
   const ids=q=>filtraEserciziPerRicerca(ESERCIZI,q).map(x=>x.id);
   assert.ok(ids('panca scott').includes('ex-one-arm-preacher-curl'));
   assert.ok(ids('panca scott').includes('ex-scott-bench-curl'));
-  assert.ok(!ids('panca scott').includes('ex-ez-bar-preacher-curl'));
+  assert.ok(ids('panca scott').includes('ex-ez-bar-preacher-curl'));
+  assert.ok(ids('PÁNCA SCÓTT').includes('ex-ez-bar-preacher-curl'));
+  assert.ok(!ids('panca scott').includes(STRICT_CURL_ID));
+  assert.ok(!ids('panca scott al contrario').includes('ex-ez-bar-preacher-curl'));
+  assert.ok(!ids('panca scott manubri').includes('ex-ez-bar-preacher-curl'));
+  assert.ok(ids('panca scott bilanciere').includes('ex-ez-bar-preacher-curl'));
   assert.ok(ids('panca scott EZ').includes('ex-ez-bar-preacher-curl'));
   assert.ok(ids('preacher').includes('ex-ez-bar-preacher-curl'));
   assert.ok(ids('curl rigoroso').includes(STRICT_CURL_ID));
@@ -97,8 +102,8 @@ test('v438: il calcolatore salva il TOTALE nellunico campo serie.peso e foto e o
   assert.match(app,/etichetta: strictCurlConBarraInclusa\(e\) \? 'kg TOTALI/);
   assert.match(sw,/'\.\/src\/strict-curl\.js'/);
   assert.match(sw,/'\.\/img\/esercizi\/strict-curl-ez-wall\.jpg'/);
-  assert.match(sw,/const VERSIONE = 'palestra-v438'/);
-  assert.match(html,/window\.PALESTRA_VERSIONE = 'palestra-v438'/);
+  assert.match(sw,/const VERSIONE = 'palestra-v439'/);
+  assert.match(html,/window\.PALESTRA_VERSIONE = 'palestra-v439'/);
   assert.ok(photo.length>2000);
   assert.equal(photo[0],0xff);
   assert.equal(photo[1],0xd8);
