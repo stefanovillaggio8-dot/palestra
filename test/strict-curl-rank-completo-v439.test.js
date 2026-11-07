@@ -57,7 +57,7 @@ test('v439: migliore serie effettiva, esclusione eliminata, minimo 5 ripetizioni
   assert.equal(due.serieId,'pesante');
   assert.equal(due.caricoRegistrato,34);
   const sottoCinque=rank([s('valida',28,8),s('tripla',70,3)]);
-  assert.equal(sottoCinque.serieId,'valida');
+  assert.equal(sottoCinque.serieId,'tripla','nello Strict Curl una tripla realmente piu forte non va scartata');
   const eliminata=rank([s('valida',28,8),s('rimossa',70,8,{eliminata:true})]);
   assert.equal(eliminata.serieId,'valida');
   const soloTre=rank([s('tripla',70,3)]);
