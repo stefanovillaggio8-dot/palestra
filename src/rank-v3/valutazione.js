@@ -247,10 +247,20 @@ export function valutaPrestazione({ esercizio, serie = [], pesoCorporeo = null, 
       : valutabili.length);
   const nTotali = valutabili.length;
   const conVolume = migliore.score * moltiplicatoreSerie(n);
-  const rank = rankDaScore(migliore.score, soglie, { serieFatte: n });
+  // Il riferimento Hyperextension non contiene dati su p98/p99,5. Non
+  // inventare TITAN/OLYMPIAN da un modello in libbre. Mostra il superamento
+  // del livello Elite MODELLATO e ferma il titolo competitivo a DIAMOND III.
+  // Il punteggio vero e i kg registrati non vengono ridotti.
+  const massimoSupportato = Number(standard?.massimoRankSupportato);
+  const fuoriScalaProvvisoria = Number.isInteger(massimoSupportato)
+    && massimoSupportato >= 0 && migliore.score >= soglie[massimoSupportato+1];
+  const scorePerTitolo = fuoriScalaProvvisoria
+    ? Math.max(soglie[massimoSupportato], soglie[massimoSupportato+1] * (1-1e-8))
+    : migliore.score;
+  const rank = rankDaScore(scorePerTitolo, soglie, { serieFatte: n });
 
   // LA DISTANZA ALLA SOGLIA, nel mondo nuovo (kg e ripetizioni veri).
-  const distanza = distanzaAllaSogliaNuova({
+  const distanza = fuoriScalaProvvisoria ? null : distanzaAllaSogliaNuova({
     score: migliore.score,
     soglie,
     indice: rank.indice,
@@ -276,6 +286,7 @@ export function valutaPrestazione({ esercizio, serie = [], pesoCorporeo = null, 
     allarmi,
     fonte: standard.fonte || valori?.fonte || 'non_verificata',
     nota: standard.nota || valori?.nota || '',
+    fuoriScalaProvvisoria,
     calibrazione: descriviAffidabilitaRank(standard, cfg, rank, migliore, pesoDelRecord, modelloReps),
     modelloRipetizioni: modelloReps,
     score: migliore.score,
@@ -333,6 +344,7 @@ export function descriviAffidabilitaRank(standard, cfg, rank, migliore, pesoCorp
   const macchina = String(cfg?.tipoAttrezzatura || '');
   const specifico = s.fonte === 'strengthlevel_esercizio';
   const cadNonValidato = s.fonte === 'proxy_cad_non_validato';
+  const hyperNonValidato = s.fonte === 'modello_hyperextension_non_validato';
   const estremo = (rank?.indice ?? -1) >= 5;
   const ripLunghe = Number(migliore?.ripetizioni) > 12;
   const fuoriDati = Array.isArray(s.soglie1RMPerPeso) && (
@@ -348,10 +360,14 @@ export function descriviAffidabilitaRank(standard, cfg, rank, migliore, pesoCorp
     motivi.push('Il CAD Curl si esegue sulla Scott al contrario, con gomiti appoggiati e busto arretrato: posizione muscolare e momento torcente cambiano, ma non è dimostrata una percentuale universale di maggiore difficoltà');
     motivi.push('Riferimento numerico temporaneo: Dumbbell Curl, senza alcun bonus percentuale. Questi NON sono percentili scientifici del CAD Curl');
     motivi.push('Studi sull’influenza della posizione: Oliveira 2009 (PMID 24150552), Attarieh 2025 (PMID 40082069), Kobayashi 2026 (PMID 42829982). Nessuno confronta direttamente il CAD Curl con il curl normale');
+  } else if (hyperNonValidato) {
+    motivi.push('Hyperextension: kg ESTERNI e ripetizioni della serie migliore. Benchmark FitnessVolt modellato in libbre, non percentile misurato di atleti. Il dato non prova alcun record o titolo agonistico');
+    motivi.push('Panca, ROM e leva del carico cambiano il momento resistente. Petto e braccia tese verso il pavimento sono varianti distinte senza coefficienti sperimentali di conversione');
+    if (rank?.indice === 4 && Number(migliore?.score) >= 0) motivi.push('Se il risultato eccede la fascia modellata, TITAN e OLYMPIAN non vengono assegnati senza standard validati');
   } else {
     motivi.push('Soglie derivate da un modello di movimento, senza cinque percentili specifici per questa variante');
   }
-  if (s.limite && (specifico || cadNonValidato)) motivi.push(s.limite);
+  if (s.limite && (specifico || cadNonValidato || hyperNonValidato)) motivi.push(s.limite);
   if (s.nota && specifico && s.affidabilitaBase === 'indicativa') motivi.push(s.nota);
   if (estremo) {
     livello = 'bassa';
@@ -392,13 +408,15 @@ export function descriviAffidabilitaRank(standard, cfg, rank, migliore, pesoCorp
       livello === 'indicativa' ? 'Attendibilita indicativa' : 'Attendibilita limitata',
     origine: specifico ? 'Riferimento statistico specifico'
       : cadNonValidato ? 'CAD Curl: calibrazione scientifica non disponibile'
-        : 'Modello provvisorio per famiglia',
+        : hyperNonValidato ? 'Hyperextension: benchmark MODELLATO non agonistico'
+          : 'Modello provvisorio per famiglia',
     fonteUrl: s.fonteUrl || null,
     riferimentoNome: s.riferimentoNome || null,
     fonteData: s.dataFonte || null,
     descrizione: motivi.join('. ') + '.',
     attrezzatura: cfg?.notaAttrezzatura || '',
     ripetizioni: modelloReps?.tipo || 'generico',
+    notaHyperextension: hyperNonValidato ? s.nota : null,
     notaMassimale: singolaMassimaleStrict
       ? '1 ripetizione massimale registrata: confronto diretto con lo standard 1RM. Nessuna penalita per la singola; tecnica e presa EZ non certificate da un giudice.'
       : null,
