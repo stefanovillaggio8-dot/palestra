@@ -30,7 +30,18 @@ import { confrontaStreakDispositivi } from './src/streak-confronto.js';
 import { storicoCronologia } from './src/cronologia.js';
 import { valutaNumeroInsolito } from './src/validazione-serie.js';
 const el=s=>document.querySelector(s);
-const safe=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function readable(value){
+ if(value===null||value===undefined)return '';
+ if(typeof value==='object'){
+  if(Array.isArray(value))return value.map(readable).filter(Boolean).join(', ');
+  for(const key of ['nome','titolo','etichetta','messaggio','descrizione','testo','id']){
+   if(typeof value[key]==='string'||typeof value[key]==='number')return String(value[key]);
+  }
+  return '—';
+ }
+ return String(value);
+}
+const safe=s=>readable(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const n=v=>v===null||v===undefined||v===''?null:(Number.isFinite(Number(v))?Number(v):null);
 const fmt=(v,d=0)=>n(v)===null?'—':Number(v).toLocaleString('it-IT',{maximumFractionDigits:d});
 const iso=()=>isoGiorno(new Date());
@@ -78,7 +89,24 @@ function result(x,e,sets){
 function assessment(x,e,sets,body){
  try{return valutaPrestazione({esercizio:e,serie:sets||setsOf(x,e.id),pesoCorporeo:body??x.body})}catch(err){return {valido:false,motivo:err.message}}
 }
-function titleRank(r){if(!r?.valido)return 'Non valutato';let t=String(r.rank||r.rankId||'—');if(r.divisione&&!t.toLowerCase().includes('olympian')&&!t.includes(String(r.divisione)))t+=' '+r.divisione;return t}
+function titleRank(r){
+ if(!r?.valido)return 'Non valutato';
+ // Il motore restituisce rank={id,nome,indice,...} e
+ // divisione={id,nome,min}, non due stringhe.
+ const livello=r.rank;
+ const nome=typeof livello==='string'?livello:(livello?.nome||livello?.id||r.rankId||null);
+ if(!nome)return r.sottoSoglia?'Sotto BRONZE':'Non valutato';
+ let etichetta=String(nome);
+ const divisione=r.divisione;
+ const nomeDivisione=typeof divisione==='string'||typeof divisione==='number'
+   ?String(divisione):(divisione?.nome||(
+    [1,2,3].includes(Number(divisione?.id))?['I','II','III'][Number(divisione.id)-1]:null
+   ));
+ if(nomeDivisione&&!/olympian/i.test(etichetta)&&!etichetta.endsWith(' '+nomeDivisione)){
+  etichetta+=' '+nomeDivisione;
+ }
+ return etichetta;
+}
 const rankPill=r=>pill(titleRank(r),r?.valido?'':'warn');
 const loadValue=(s,e)=>n(['zavorri','corpo_libero'].includes(e?.convenzione)?s.peso_assistenza??s.peso:s.peso);
 function records(x){return x.exercises.map(e=>({e,r:result(x,e)})).filter(v=>v.r.valido).sort((a,b)=>(b.r.indice??-1)-(a.r.indice??-1)||(b.r.lp??0)-(a.r.lp??0))}
