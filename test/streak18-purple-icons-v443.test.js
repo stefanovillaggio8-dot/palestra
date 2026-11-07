@@ -64,15 +64,14 @@ test('v443: la PWA vecchia non sovrascrive mai il valore 18 del cloud',()=>{
   assert.deepEqual(profilo.privacy.streak_ancora_confermata,{data:'2026-11-07',giorni:18,origine:'rettifica_richiesta_dal_titolare'});
 });
 
-test('v443: sfondo viola originario e cerchio, senza screenshot incollati',()=>{
-  const svg=readFileSync(new URL('../img/esercizi/esercizi-viola-v443.svg',import.meta.url),'utf8');
+test('v445: 16 miniature in stile viola sono immagini reali, non vecchi schemi',()=>{
+  const webp=readFileSync(new URL('../img/esercizi/esercizi-illustrati-v445.webp',import.meta.url));
   const css=readFileSync(new URL('../stile.css',import.meta.url),'utf8');
   const sw=readFileSync(new URL('../sw.js',import.meta.url),'utf8');
-  assert.match(svg,/<svg/);
-  assert.equal((svg.match(/<circle cx="104" cy="102" r="86"/g)||[]).length,16);
-  assert.equal((svg.match(/<rect x="4" y="4"/g)||[]).length,16);
-  assert.ok(svg.includes('fill="#241032"')&&svg.includes('fill="#3b1458"'));
-  assert.match(css,/esercizi-viola-v443\.svg/);
-  assert.doesNotMatch(css,/esercizi-illustrati-v442\.webp/);
-  assert.match(sw,/esercizi-viola-v443\.svg/);
+  assert.equal(webp.subarray(0,4).toString('ascii'),'RIFF');
+  assert.equal(webp.subarray(8,12).toString('ascii'),'WEBP');
+  assert.ok(webp.length>3500 && webp.length<100000);
+  assert.match(css,/esercizi-illustrati-v445\\.webp/);
+  assert.doesNotMatch(css,/background-image: url\\('\\.\\/img\\/esercizi\\/esercizi-viola-v443\\.svg/);
+  assert.match(sw,/esercizi-illustrati-v445\\.webp/);
 });
