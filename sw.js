@@ -36,7 +36,7 @@ const FILE = [
   './src/exercise-icons.js',
   './src/hyperextension-rank.js',
   './src/streak-cloud.js',
-  './img/esercizi/esercizi-illustrati-v442.webp',
+  './img/esercizi/esercizi-viola-v443.svg',
   './src/strict-curl.js',
   './img/esercizi/strict-curl-ez-wall.jpg',
   './src/validazione-serie.js',
