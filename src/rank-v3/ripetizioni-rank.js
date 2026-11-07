@@ -24,6 +24,19 @@ const ISOLAMENTI = new Set([
 
 export function modelloRipetizioniRank(movimento, esercizio = {}, standard = null) {
   const e = esercizio || {};
+  // Strict Curl ha soglie di riferimento espresse in 1RM: una singola
+  // ripetizione da 70 kg NON e' equivalente a soli 46 kg x 8 (vecchia
+  // curva (1/8)^0.20). Per le serie 1-8 rip allineiamo il confronto al
+  // medesimo ponte 1RM -> 8 rip utilizzato dalle soglie, senza stimare
+  // un nuovo 1RM dell'atleta e senza toccare i Rank degli altri esercizi.
+  // E' una modellazione del rapporto tra ripetizioni, non una prova
+  // scientifica specifica alla presa interna EZ o un record federale.
+  if (e.id === 'ex-strict-curl-ez-wall' &&
+      Array.isArray(standard?.soglie1RMPerPeso)) return {
+    tipo:'strict_curl_basse_rip', esponente:ESPONENTE_BASE_RANK,
+    massimo:15, oltre12:0.35, fonte:'ponte_statistico_1rm_8rip',
+    avviso:'Tra 1 e 8 ripetizioni le prestazioni sono confrontate usando lo stesso ponte delle soglie da 1RM. Stima tecnica, non certificazione federale; una singola ripetizione e meno affidabile.',
+  };
   const oneArmPreacher = Array.isArray(standard?.soglie1RMPerPeso)
     && /preacher|scott/i.test(String(e.nome || '') + ' ' + String(e.id || ''))
     && (e.id === 'ex-one-arm-preacher-curl' || /one.arm|single.arm/i.test(e.nome || ''));
@@ -56,6 +69,9 @@ export function ripetizioniPieneRank(reps, modello = null) {
   const limite = Number.isFinite(m.massimo) ? Math.min(Math.max(1,m.massimo),40) : 20;
   const rValido = Math.min(r, limite);
   const ex = Number.isFinite(m.esponente) ? m.esponente : ESPONENTE_BASE_RANK;
+  if (m.tipo === 'strict_curl_basse_rip' && rValido <= RIP_RIFERIMENTO_RANK) {
+    return (1 + rValido / 30) / (1 + RIP_RIFERIMENTO_RANK / 30);
+  }
   if (rValido <= 12) return Math.pow(rValido / RIP_RIFERIMENTO_RANK, ex);
   const base = Math.pow(12 / RIP_RIFERIMENTO_RANK, ex);
   return base * Math.pow(rValido / 12, ex * (m.oltre12 ?? .35));
