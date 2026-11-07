@@ -54,6 +54,7 @@ import { calcolaAvatar, CLASSI, classeConsigliata, eCardio, minutiDiCardio, nome
 import { haSigillo, creaSigillo, verificaSigillo } from './sigillo-classe.js';
 import { isoGiorno } from './streak.js';
 import { validaCreditoStreakOnline, profiloConCreditoStreak } from './streak-online.js';
+import { confrontaStreakDispositivi } from './streak-confronto.js';
 import { suona, sbloccaAudio, audioSpento, impostaAudioSpento } from './audio.js';
 import { bloccoGlossario } from './glossario-app.js';
 import {
@@ -612,8 +613,20 @@ async function avvia() {
       timerCreditoStreakAvvio = setTimeout(async () => {
         timerCreditoStreakAvvio = null;
         const account = accountAttivo();
-        if (await aggiornaCreditoStreakOnline() && accountAttivo() === account) disegna();
-      }, 200);
+        try {
+          // Prima veniva aggiornata SOLO la rettifica del profilo: la Home
+          // continuava a leggere V.sedute vecchio anche dopo il pull riuscito.
+          await ricaricaTutto({ caricaAmiciOnline: false });
+          await aggiornaCreditoStreakOnline();
+          if (account !== accountAttivo()) return;
+          // Non perdere i valori non ancora confermati nel form di una serie.
+          const editando = document.activeElement?.matches?.('input, textarea, select, [contenteditable="true"]');
+          const inAllenamento = /^#\/allenamento/.test(location.hash || '');
+          if (!editando && !inAllenamento) disegna();
+        } catch (errore) {
+          console.warn('Non riesco ad aggiornare la vista dopo la sync:', errore?.message);
+        }
+      }, 230);
     });
     aggiornaFaseAvvio('caricamento delle statistiche');
     // il peso corporeo serve al Rank: lo carico in memoria subito all'avvio
@@ -6159,8 +6172,14 @@ function vistaImpostazioni(zona) {
   statoBox.appendChild(lineaStato);
   statoBox.appendChild(el('div', { class: 'riga-pulsanti' }, [
     bottone('Sincronizza adesso', { onClick: async () => {
-      const r = await sync.sincronizza();
+      const account = accountAttivo();
+      const r = await sync.sincronizza({ attendiSeInCorso: true });
+      // La sync modifica IndexedDB, ma non la copia V in memoria usata
+      // da Home e streak: rileggerla senza riavviare (PC/iPhone).
+      await ricaricaTutto({ caricaAmiciOnline: false });
+      await aggiornaCreditoStreakOnline();
       await aggiornaStatoSalvataggio();
+      if (account === accountAttivo()) disegna();
       if (r.messaggio) avviso(r.messaggio, { tipo: 'errore' });
       else if (r.motivo === 'non-collegato') avviso('Sincronizzazione online non configurata: i dati restano su questo dispositivo.', { tipo: 'attenzione' });
       else if (r.motivo === 'offline') avviso('Sei offline: i dati restano salvati e verranno sincronizzati al ritorno della rete.', { tipo: 'attenzione' });
@@ -6172,6 +6191,68 @@ function vistaImpostazioni(zona) {
   ]));
   sync.stato().then((s) => { lineaStato.textContent = `${s.testo} — ${s.dettaglio}`; });
   zona.appendChild(statoBox);
+
+  // Confronto verificabile in sola lettura: NON ripristina sedute eliminate
+  // né attribuisce automaticamente alla streak locale i giorni mancanti cloud.
+  const boxConfrontoStreak = el('section', { class: 'blocco' });
+  boxConfrontoStreak.appendChild(el('h2', { testo: 'Confronto streak tra dispositivi' }));
+  boxConfrontoStreak.appendChild(el('p', { class:'nota', testo:
+    'Confronta il calendario di questo dispositivo con quello online. Se compaiono giorni eliminati o in corso, restano invariati fino a una tua scelta.' }));
+  const esitoConfrontoStreak = el('div', { class:'streak-confronto-esito' });
+  boxConfrontoStreak.appendChild(bottone('Verifica giorni locali e cloud', {
+    classe:'fantasma',
+    onClick: async () => {
+      svuota(esitoConfrontoStreak);
+      esitoConfrontoStreak.appendChild(el('p', { class:'nota', testo:'Sto leggendo il confronto, senza modificare nulla...' }));
+      try {
+        if (!sb.collegato()) throw new Error('Accedi online dal Profilo/Amici per confrontare il cloud.');
+        const account = accountAttivo();
+        const profilo = profiloAttivo();
+        const schedaId = profiloDi(account)?.scheda_id || schedaAttivaId();
+        if (!schedaId) throw new Error('La scheda di questo account non e ancora disponibile.');
+        const [cloudProfilo, righe] = await Promise.all([
+          sb.leggiUno('profili', account),
+          sb.prendiModificate(['sedute'], null),
+        ]);
+        if (accountAttivo() !== account) return;
+        const versioni = new Set((V.versi||[]).filter(v=>v.scheda_id===schedaId).map(v=>v.id));
+        const seduteCloud = (righe.sedute || []).filter(s=>s &&
+          (s.scheda_id===schedaId || (!s.scheda_id && versioni.has(s.versione_id))));
+        const diff = confrontaStreakDispositivi({
+          seduteLocali:seduteMie(), seduteCloud, profiloLocale:profilo,
+          profiloCloud:cloudProfilo || profilo, oggi:isoGiorno(new Date()),
+        });
+        svuota(esitoConfrontoStreak);
+        esitoConfrontoStreak.appendChild(el('p', { testo:
+          'Questo dispositivo: ' + diff.locale.giorni + ' · Cloud: ' + diff.cloud.giorni
+          + ' · Record dispositivo: ' + diff.locale.record + ' · Record cloud: ' + diff.cloud.record }));
+        if (!diff.differenti) {
+          esitoConfrontoStreak.appendChild(el('p', { class:'nota', testo:
+            'Le date accreditate e quelle completate coincidono. Se un altro dispositivo mostra un numero diverso, esegui questo stesso confronto li.' }));
+        } else {
+          const mostraDate = (titolo, elenchi) => {
+            if (!elenchi.length) return;
+            esitoConfrontoStreak.appendChild(el('p', { class:'nota', testo: titolo }));
+            const lista = el('ul', { class:'streak-differenze' });
+            for (const voce of elenchi) lista.appendChild(el('li', { testo:voce }));
+            esitoConfrontoStreak.appendChild(lista);
+          };
+          mostraDate('Giorni riconosciuti qui ma non nel cloud:',
+            diff.dettaglioSoloLocale.map(x=>x.data+' · '+x.stato));
+          mostraDate('Giorni presenti nel cloud ma non su questo dispositivo:',
+            diff.soloCloud);
+        }
+        esitoConfrontoStreak.appendChild(el('p', { class:'nota nota-piccola', testo:
+          'Nessun dato modificato. Le sedute cancellate non si riattivano automaticamente e non viene assegnata una streak artificiale.' }));
+      } catch (errore) {
+        svuota(esitoConfrontoStreak);
+        esitoConfrontoStreak.appendChild(el('p', { class:'nota', testo:
+          'Confronto non disponibile: ' + (errore?.message || String(errore)) }));
+      }
+    },
+  }));
+  boxConfrontoStreak.appendChild(esitoConfrontoStreak);
+  zona.appendChild(boxConfrontoStreak);
 
   // Il report non contiene nomi, ID, email, URL, allenamenti o stack.
   // Gli errori vengono registrati esclusivamente come categorie in memoria.
