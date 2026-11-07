@@ -87,6 +87,7 @@ const FRASI_ESERCIZI = [
   [/\blat pulldown\b/, 'lat machine latmachine'],
   [/\bpreacher curl\b/, 'panca scott'],
   [/\bcad curl\b/, 'panca scott al contrario scott inversa inverso'],
+  [/\bstrict curl\b/, 'curl al muro curl alla parete curl rigoroso barra ez presa stretta'],
   [/\bleg curl\b/, 'flessione flessioni gambe femorali'],
   [/\bleg press\b/, 'pressa gambe'],
   [/\bcalf raise\b/, 'sollevamenti polpacci punte piedi'],
@@ -160,6 +161,12 @@ export function corrispondeRicercaEsercizi(voce, ricerca = '') {
   if (!parole.length) return true;
   const e = voce && (voce.e || voce.esercizio || voce);
   if (!e) return false;
+  // "Panca Scott" senza precisazioni = Scott/CAD con manubrio. Il Curl EZ
+  // Preacher e' tecnicamente un esercizio alla Scott, ma non e' quello che
+  // l'utente cerca qui. Resta trovabile scrivendo "panca scott ez" o "preacher".
+  const r = testoRicercaEsercizi(ricerca);
+  if (/\bpanca scott\b/.test(r) && !/\b(?:ez|bilanciere)\b/.test(r)
+      && e.id === 'ex-ez-bar-preacher-curl') return false;
   const campi = [
     e.nome, e.gruppo,
     voce.gruppo, voce.generale, voce.nomeMuscolo, voce.parte,
