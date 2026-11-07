@@ -9275,6 +9275,7 @@ function vistaRank(zona) {
         record && record.testo ? record.testo : '',
         record && record.calibrazione ? record.calibrazione.titolo + ' · ' + record.calibrazione.origine : '',
         record && record.calibrazione ? record.calibrazione.attrezzatura : '',
+        record && record.calibrazione ? record.calibrazione.notaMassimale : '',
         record && record.distanza && record.distanza.frase
           ? 'Per il prossimo Rank: ' + record.distanza.frase : '',
       ].filter(Boolean);
