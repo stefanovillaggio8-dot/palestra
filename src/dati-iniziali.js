@@ -205,8 +205,8 @@ export const ESERCIZI = [
   // lo stretto, e avrebbe il range sbagliato.
   //
   // Stessa foto apposta: e' lo stesso attrezzo, cambia solo dove tieni le mani.
-  { id: 'ex-wide-grip-lat-pulldown', nome: 'Lat Pulldown presa larga', gruppo: 'Lat Pulldown', attrezzatura: C.MACCHINA_STACK, convenzione: C.MACCHINA, foto: 'img/esercizi/neutral-grip-lat-pulldown.png', tipo: 'standard', nota_permanente: 'Stessa macchina del presa stretta, ma con le braccia aperte. La spalla è in una posizione peggiore, quindi il tetto è un filo più basso.' },
-  { id: 'ex-neutral-grip-lat-pulldown', nome: 'Lat Pulldown presa stretta', gruppo: 'Lat Pulldown', attrezzatura: C.MACCHINA_STACK, convenzione: C.MACCHINA, foto: 'img/esercizi/neutral-grip-lat-pulldown.png', tipo: 'standard', nota_permanente: 'Impugnatura a triangolo, uso gli straps.' },
+  { id: 'ex-wide-grip-lat-pulldown', nome: 'Lat Pulldown presa larga', gruppo: 'Lat Pulldown', attrezzatura: C.MACCHINA_STACK, convenzione: C.MACCHINA, foto: 'img/esercizi/neutral-grip-lat-pulldown.png', tipo: 'standard', nota_permanente: 'Presa larga con barra, palmi avanti (prona). Lo studio Andersen 2014 rileva una differenza media al 6RM fra prese prone: non e validata per tutte le macchine.' },
+  { id: 'ex-neutral-grip-lat-pulldown', nome: 'Lat Pulldown presa stretta', gruppo: 'Lat Pulldown', attrezzatura: C.MACCHINA_STACK, convenzione: C.MACCHINA, foto: 'img/esercizi/neutral-grip-lat-pulldown.png', tipo: 'standard', nota_permanente: 'Presa stretta con triangolo: mani ravvicinate e palmi affrontati, con straps. La calibrazione del Rank e provvisoria e separata dalla presa neutra normale.' },
 
   { id: 'ex-dumbbell-bench-pull', nome: 'Dumbbell Bench Pull', gruppo: 'Bench Press', convenzione: C.PER_MANUBRIO, foto: 'img/esercizi/dumbbell-bench-pull.png', tipo: 'standard', nota_permanente: '26 gradi.' },
   { id: 'ex-seated-db-shoulder-press', nome: 'Seated Dumbbell Shoulder Press', gruppo: 'Shoulder Press', convenzione: C.PER_MANUBRIO, foto: 'img/esercizi/seated-dumbbell-shoulder-press.png', tipo: 'standard', nota_permanente: '3 gancio.' },
@@ -279,7 +279,7 @@ export const ESERCIZI = [
   // Esercizi AGGIUNTI, non ancora messi in nessuna scheda: sono disponibili
   // nella lista così ognuno può aggiungerli quando gli servono.
   { id: 'ex-iso-lateral-row', nome: 'Iso-Lateral Row', gruppo: 'Row', convenzione: C.PER_BRACCIO, attrezzatura: C.MACCHINA_DISCHI, foto: 'img/esercizi/iso-lateral-row.png', tipo: 'standard', nota_permanente: 'Macchina a dischi, e ogni braccio e\' indipendente: se i due lati non sono uguali lo senti subito.' },
-  { id: 'ex-lat-pulldown-lats', nome: 'Lat Pulldown (lats)', gruppo: 'Lat Pulldown', attrezzatura: C.MACCHINA_STACK, convenzione: C.MACCHINA, foto: 'img/esercizi/lat-pulldown-lats.png', tipo: 'standard', nota_permanente: '' },
+  { id: 'ex-lat-pulldown-lats', nome: 'Lat Pulldown presa neutra', gruppo: 'Lat Pulldown', attrezzatura: C.MACCHINA_STACK, convenzione: C.MACCHINA, foto: 'img/esercizi/lat-pulldown-lats.png', tipo: 'standard', nota_permanente: 'Presa neutra normale: palmi affrontati. Distinta dalla presa stretta con triangolo e da quella larga.' },
   // Ste (10/10/2026), audit: questo era `bilanciere` ma si fa coi MANUBRI. Tutti gli
 // altri esercizi coi manubri del catalogo sono `per_manubrio`: bench pull, shoulder
 // press, scott curl, shrug, preacher curl. Qui era l'unico rimasto indietro.
