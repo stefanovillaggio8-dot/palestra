@@ -43,7 +43,7 @@ test('v445: Titan è realmente raggiungibile con migliore serie a soglia',()=>{
   assert.equal(dopo.rank.id,'titan');
   assert.equal(dopo.indice,5);
   // 99 LP non sblocca Titan senza una migliore serie che superi la soglia.
-  const lontano=rankDaScore(59,soglie,{serieFatte:9});
+  const lontano=rankDaScore(59.2,soglie,{serieFatte:9});
   assert.equal(lontano.rank.id,'diamond');
   assert.equal(lontano.lp,99);
 });
