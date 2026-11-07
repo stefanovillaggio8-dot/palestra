@@ -830,6 +830,10 @@ async function ricaricaTutto({ caricaAmiciOnline = true } = {}) {
       nota_permanente: cad.nota_permanente, convenzione: cad.convenzione,
       usoBraccia: cad.usoBraccia }
     : e);
+  // Dopo un pull cloud non lasciare ricomparire il vecchio titolo normale.
+  V.esercizi=V.esercizi.map(e=>e.id==='ex-lat-pulldown-lats'
+    && (e.nome==='Lat Pulldown (lats)'||e.nome==='Lat Pulldown')
+    ? {...e,nome:'Lat Pulldown presa neutra'} : e);
   V.schede = await db.tutti('schede');
   V.versi = await db.tutti('versioni');
   V.sedute = await db.tutti('sedute');
@@ -1044,6 +1048,7 @@ async function seminaSeVuoto() {
   await sistemaNomeScheda();
   await risistemaCampiCarico(await db.tutti('esercizi'));
   await aggiornaCadCurlSalvato();
+  await aggiornaPreseLatSalvate();
   await seminaPersona();
 }
 
@@ -1051,6 +1056,28 @@ async function seminaSeVuoto() {
  * nome, immagine, gruppo e tecnica; MAI pesi, ripetizioni, sedute o Rank
  * di altri esercizi. Lo marca per la sync come ogni modifica normale.
  */
+/** Aggiorna SOLO le etichette ufficiali delle prese, mai pesi, serie o note personali. */
+async function aggiornaPreseLatSalvate() {
+  const ids=['ex-neutral-grip-lat-pulldown','ex-lat-pulldown-lats','ex-wide-grip-lat-pulldown'];
+  const noteLegacy=new Set([
+    '', 'Impugnatura a triangolo, uso gli straps.',
+    'Stessa macchina del presa stretta, ma con le braccia aperte. La spalla è in una posizione peggiore, quindi il tetto è un filo più basso.',
+  ]);
+  for(const id of ids){
+    const ufficiale=ESERCIZI.find(e=>e.id===id);
+    const locale=await db.prendi('esercizi',id);
+    if(!ufficiale||!locale)continue;
+    const cambiaNome=id==='ex-lat-pulldown-lats'
+      && (locale.nome==='Lat Pulldown (lats)'||locale.nome==='Lat Pulldown');
+    const cambiaNota=noteLegacy.has(String(locale.nota_permanente||''))
+      && locale.nota_permanente!==ufficiale.nota_permanente;
+    if(cambiaNome||cambiaNota)await db.salva('esercizi',{
+      ...locale,...(cambiaNome?{nome:ufficiale.nome}:{}),
+      ...(cambiaNota?{nota_permanente:ufficiale.nota_permanente}:{}),
+    });
+  }
+}
+
 async function aggiornaCadCurlSalvato() {
   const ufficiale = ESERCIZI.find(e => e.id === 'ex-scott-bench-curl');
   const locale = await db.prendi('esercizi', 'ex-scott-bench-curl');

@@ -20,6 +20,26 @@ const URL = 'https://strengthlevel.com/strength-standards/';
 const standard = (slug, attrezzo, ids, altriNomi = [], riserva = '') => ({
   slug, attrezzo, ids, nomi: altriNomi, righe: RIGHE[slug], url: URL + slug.replaceAll('_','-') + '/kg', riserva,
 });
+// v436: tre profili distinti, basati su una PROXY dichiarata.
+// Andersen et al. 2014, PMID 24662157, n=15: 6RM pronato stretto 80.3 kg,
+// medio 80.0 kg, largo 77.3 kg. Non ha confrontato neutra e triangolo.
+// Le minuscole differenze neutra/triangolo NON sono significative né validate.
+export const LAT_PULLODOWN_VARIANTI = Object.freeze({
+  'ex-neutral-grip-lat-pulldown': Object.freeze({
+    nome:'presa stretta con triangolo',seiRMProxy:80.3,
+    cautela:'La stretta dello studio era prona, mentre il triangolo e neutro.',
+  }),
+  'ex-lat-pulldown-lats': Object.freeze({
+    nome:'presa neutra normale',seiRMProxy:80.0,
+    cautela:'Riferimento base dello studio su presa media prona, non neutra.',
+  }),
+  'ex-wide-grip-lat-pulldown': Object.freeze({
+    nome:'presa larga',seiRMProxy:77.3,
+    cautela:'Minore 6RM rilevato con barra prona, differenza non validata per ogni macchina.',
+  }),
+});
+const LAT_6RM_PRONA_MEDIA = 80.0;
+const arrotondaLat = x => Math.round(x * 1000) / 1000;
 // Attrezzo richiesto: non applicare il totale di una macchina allo score
 // "per braccio" di una chest press a dischi o a un EZ bar improprio.
 const STANDARD_SPECIFICI = [
@@ -98,14 +118,27 @@ export function standardAutomaticoPerEsercizio(esercizio = {}) {
   // Le prese diverse, le camme e le pile a peso nominale non consentono di
   // fingere una precisione uguale ai manubri liberi.
   const riserva = profilo.riserva;
+  const varianteLat = profilo.slug === 'lat_pulldown' && nome.startsWith('lat pulldown')
+    ? LAT_PULLODOWN_VARIANTI[e.id] : null;
+  // Le soglie base Strength Level non specificano le prese: applicare al
+  // riferimento SOLO una variazione sperimentale, segnalata a bassa fiducia.
+  const fattoreLat = varianteLat ? varianteLat.seiRMProxy / LAT_6RM_PRONA_MEDIA : 1;
   return {
-    soglie1RMPerPeso: profilo.righe,
-    fonte: 'strengthlevel_esercizio',
-    affidabilitaBase: riserva ? 'indicativa' : 'media',
+    soglie1RMPerPeso: varianteLat
+      ? profilo.righe.map(([corpo, ...v]) => [corpo, ...v.map(x => arrotondaLat(x * fattoreLat))])
+      : profilo.righe,
+    fonte: varianteLat ? 'proxy_lat_presa_non_validato' : 'strengthlevel_esercizio',
+    affidabilitaBase: varianteLat ? 'bassa' : (riserva ? 'indicativa' : 'media'),
     fonteUrl: profilo.url,
-    riferimentoNome: profilo.slug.replaceAll('_',' '),
-    limite: 'Standard di una community maschile, non misurazione controllata della tecnica.',
-    nota: riserva || 'Stesso movimento e stessa unita di carico dello standard pubblicato.',
+    riferimentoNome: varianteLat ? 'lat pulldown - ' + varianteLat.nome : profilo.slug.replaceAll('_',' '),
+    limite: varianteLat
+      ? 'Stima NON validata: percentili di base Strength Level e rapporti del 6RM nello studio su prese PRONE. Differenze neutra/triangolo NON misurate direttamente. La tecnica e il rapporto della pila possono cambiare.'
+      : 'Standard di una community maschile, non misurazione controllata della tecnica.',
+    nota: varianteLat
+      ? ('Riferimento distinto per ' + varianteLat.nome + '. ' + varianteLat.cautela
+        + ' Studi Andersen 2014 (PMID 24662157), Buonsenso 2025 (PMID 40981044). '
+        + 'Le soglie sono un proxy, non misure scientifiche delle tre prese; confronta la stessa macchina.')
+      : riserva || 'Stesso movimento e stessa unita di carico dello standard pubblicato.',
     tipoAttrezzatura: tipo,
     dataFonte: '2026-03-05',
   };
