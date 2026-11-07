@@ -23,7 +23,7 @@ test('23 esercizi della scheda + 4 aggiunti dopo, non ancora in nessuna scheda',
   // I primi 23 sono quelli trascritti dalle foto. I 4 successivi sono stati
   // aggiunti dopo: sono disponibili nella lista ma NON devono essere finiti in
   // nessuna scheda, altrimenti gli allenamenti di Ste cambierebbero da soli.
-  assert.equal(ESERCIZI.length, 76);
+  assert.equal(ESERCIZI.length, 77);
   // AGGIUNTI ANCHE QUELLI ARRIVATI DA WHATSAPP (Ste, 21/10/2026): sono
   // disponibili nella lista ma NON in nessuna scheda, altrimenti gli allenamenti di
   // Ste cambierebbero da soli.

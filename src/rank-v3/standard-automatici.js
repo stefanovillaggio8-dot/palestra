@@ -10,6 +10,9 @@ const RIGHE = {
   seated_dumbbell_shoulder_press: [[65,13,19,27,36,46],[75,16,23,32,41,52],[85,19,27,36,46,57]],
   dumbbell_row: [[65,14,23,35,49,65],[75,17,27,40,56,73],[85,21,32,46,62,80]],
   dumbbell_curl: [[65,6,11,19,28,38],[75,8,13,21,30,41],[85,9,15,23,33,44]],
+  // Strength Level 05/03/2026: p5/p20/p50/p80/p95 in kg totali per il Strict Curl.
+  // Il riferimento e' 1RM community, la barra fa parte del carico.
+  strict_curl: [[65,21,30,43,57,73],[75,25,35,49,64,81],[85,29,40,54,70,88]],
   hammer_curl: [[65,8,13,20,28,37],[75,10,15,23,31,41],[85,12,18,25,34,44]],
   dumbbell_lateral_raise: [[65,4,8,14,22,31],[75,5,9,16,24,33],[85,6,10,17,26,35]],
   lat_pulldown: [[65,39,54,73,95,118],[75,44,61,81,104,128],[85,50,67,88,112,137]],
@@ -48,6 +51,8 @@ const STANDARD_SPECIFICI = [
   standard('seated_dumbbell_shoulder_press','manubri',['ex-seated-db-shoulder-press'],['Seated Dumbbell Shoulder Press']),
   standard('dumbbell_row','manubri',['ex-dumbbell-row'],['Dumbbell Row']),
   standard('dumbbell_curl','manubri',['ex-dumbbell-curl'],['Dumbbell Curl']),
+  standard('strict_curl','bilanciere',['ex-strict-curl-ez-wall'],['Strict Curl (EZ Bar)'],
+    'Strict Curl alla parete con EZ a presa interna: i percentili sono community, la tecnica e la presa non sono verificate; peso TOTALE della barra incluso.'),
   standard('hammer_curl','manubri',['ex-hammer-curl-dumbbell'],['Hammer Curl (Dumbbell)','Hammer Curl']),
   standard('dumbbell_lateral_raise','manubri',['ex-db-lateral-raise'],['Dumbbell Lateral Raise']),
   standard('lat_pulldown','stack',['ex-neutral-grip-lat-pulldown','ex-wide-grip-lat-pulldown','ex-lat-pulldown-lats'],
@@ -91,6 +96,7 @@ export function tipoAttrezzaturaRank(esercizio = {}) {
 
 const compatibile = (tipo, attrezzo) => {
   if (attrezzo === 'manubri') return tipo === 'manubri';
+  if (attrezzo === 'bilanciere') return tipo === 'bilanciere';
   if (attrezzo === 'stack') return tipo === 'macchina_stack';
   if (attrezzo === 'cavo_stack') return tipo === 'cavo_stack_1a1_dichiarato';
   return false;
@@ -160,5 +166,8 @@ export function descriviAttrezzaturaRank(esercizio) {
     macchina_stack_monogamba: 'Pila utilizzata su una gamba: non confondere con standard bilaterali.',
     convenzione_da_verificare: 'Attenzione: un esercizio con EZ bar e contrassegnato come per manubrio.',
   };
+  if (esercizio?.id === 'ex-strict-curl-ez-wall' && esercizio.convenzione === 'bilanciere') {
+    return 'Strict Curl: kg TOTALI della barra EZ e di entrambi i lati. Non aggiungere due volte il peso della barra.';
+  }
   return msg[t] || 'Tipo di attrezzo non pienamente identificato: standard soltanto indicativo.';
 }

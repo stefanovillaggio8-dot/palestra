@@ -6,7 +6,7 @@
 <title>Palestra</title>
 <meta name="description" content="La mia scheda di palestra: giorni, serie, pesi, spotter e progressi.">
 <meta name="theme-color" content="#0e1412">
-<link rel="manifest" href="./manifest.webmanifest?v=437">
+<link rel="manifest" href="./manifest.webmanifest?v=438">
 <script>
 // Ogni persona installa la SUA app, quindi ognuna ha il suo manifesto.
 // ?p=2 -> "Palestra A" (Andrea), ?n=nome&k=chiave -> il manifest "nuovo" (chi si
@@ -23,18 +23,18 @@
     var m = /[?&]p=(\d+)/.exec(q);
     var scelto = nome ? 'nuovo' : (m && m[1] === '2' ? 'p2' : 'p1');
     var link = document.querySelector('link[rel="manifest"]');
-    if (link) link.setAttribute('href', './manifest-' + scelto + '.webmanifest?v=437');
+    if (link) link.setAttribute('href', './manifest-' + scelto + '.webmanifest?v=438');
   } catch (e) { /* pazienza: resta il manifesto di base */ }
 })();
 </script>
-<link rel="icon" type="image/png" href="./img/icon-palestra-v407-192.png?v=437">
-<link rel="apple-touch-icon" sizes="192x192" href="./img/icon-palestra-v407-192.png?v=437">
+<link rel="icon" type="image/png" href="./img/icon-palestra-v407-192.png?v=438">
+<link rel="apple-touch-icon" sizes="192x192" href="./img/icon-palestra-v407-192.png?v=438">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<link rel="stylesheet" href="./stile.css?v=437">
-<link rel="stylesheet" href="./stile-rpg.css?v=437">
-<link rel="stylesheet" href="./stile-premium.css?v=437">
+<link rel="stylesheet" href="./stile.css?v=438">
+<link rel="stylesheet" href="./stile-rpg.css?v=438">
+<link rel="stylesheet" href="./stile-premium.css?v=438">
 <!--
   LA VERSIONE NEL COLLEGAMENTO AL FOGLIO DI STILE.
 
@@ -66,7 +66,7 @@
      insieme, su 11 righe su 20: il bonus spingeva gli LP senza ricalcolare la
      divisione. Trovato leggendo il telefono. Il numero di versione sta in DUE
      file, questo e sw.js: i test I2 e I3 lo controllano. -->
-<script>window.PALESTRA_VERSIONE = 'palestra-v437';</script>
+<script>window.PALESTRA_VERSIONE = 'palestra-v438';</script>
 <script>
 /* Protezione autonoma: funziona anche se il modulo principale non arriva mai.
  * Prima su iPhone rimaneva "Avvio... / Carico i tuoi dati..." senza messaggi.
@@ -126,7 +126,7 @@
   });
 })();
 </script>
-<script type="module" src="./src/app.js?v=437"></script>
+<script type="module" src="./src/app.js?v=438"></script>
 </body>
 </html>
 
