@@ -23,7 +23,7 @@ test('v440: 70 kg x 1 rep con bw 72 kg non e Gold III per Strict Curl',()=>{
   assert.equal(risultato.ripetizioni,1);
   assert.equal(risultato.pesoCorporeo,72);
   assert.equal(risultato.massimale,null,'mai inventare il massimale');
-  assert.equal(risultato.calibrazione.livello,'bassa','1 rip ha affidabilita limitata');
+  assert.equal(risultato.calibrazione.livello,'indicativa','il singolo massimale misurato non e un 1RM stimato');
   assert.ok(risultato.indice>=3,'deve essere almeno Platinum, non Gold III');
   assert.ok(risultato.indice<5,'non dare Titan o Olympian con 70kg 1 rep');
 });
@@ -95,6 +95,6 @@ test('v440: la Home rilegge IndexedDB dopo la sync e il confronto non invia modi
   assert.match(css,/\.foto-esercizio \{[\s\S]*?object-fit: contain/);
   assert.match(css,/\.foto-esercizio\.grande \{/);
   assert.match(sw,/'\.\/src\/streak-confronto\.js'/);
-  assert.match(sw,/const VERSIONE = 'palestra-v440'/);
-  assert.match(html,/window\.PALESTRA_VERSIONE = 'palestra-v440'/);
+  assert.match(sw,/const VERSIONE = 'palestra-v441'/);
+  assert.match(html,/window\.PALESTRA_VERSIONE = 'palestra-v441'/);
 });

@@ -783,9 +783,9 @@ test('Z15. ogni foto ha il nome del muscolo accanto, in ogni schermata', async (
   const linee = src.split('\n');
   const foto = linee
     .map((riga, i) => ({ riga, n: i + 1 }))
-    .filter((x) => /class:\s*'foto-esercizio/.test(x.riga));
+    .filter((x) => /miniaturaEsercizio\(/.test(x.riga));
   assert.ok(foto.length >= 6,
-    `i posti che disegnano la foto dovrebbero essere almeno 6, ne trovo ${foto.length}`);
+    `le viste devono richiamare almeno 6 miniature, ne trovo ${foto.length}`);
 
 // La finestra da controllare: dalla riga della foto in giù, finché non finisce il
   // blocco che la contiene. Dodici righe bastano e non si sovrappongono a nessun

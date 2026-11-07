@@ -60,7 +60,8 @@ test('v421: il catalogo completo ha foto, muscolo, filtro e conta i risultati', 
   const end = code.indexOf('function scegliEsercizio(',start);
   assert.ok(start>=0 && end>start);
   const ui = code.slice(start,end);
-  assert.match(ui, /class: 'foto-esercizio'/);
+  assert.match(ui, /miniaturaEsercizio\(e\)/);
+  assert.match(readFileSync(new URL('../src/exercise-icons.js', import.meta.url),'utf8'), /foto-esercizio/);
   assert.match(ui, /nomeConMuscolo\(e, \{ soloPrincipale: true \}\)/);
   assert.match(ui, /class: 'lista-scelte'/);
   assert.match(ui, /filtroGenerale/);

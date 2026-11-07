@@ -189,11 +189,13 @@ export function valutaPrestazione({ esercizio, serie = [], pesoCorporeo = null, 
     };
   }
 
-  // LA MIGLIORE SERIE: il punteggio piu' alto (kg e ripetizioni reali),
-  // dando precedenza alle serie con almeno 5 ripetizioni come da impostazioni
-  // storiche dell'app. Lo spotter e' gia' considerato nel punteggio.
+  // Nello Strict Curl con riferimenti 1RM le singole sono prove massimali
+  // legittime: non escluderle se esiste una serie piu leggera da 5+ rip.
+  // Per gli altri esercizi resta la preferenza storica per 5+ ripetizioni.
+  // Si confronta SEMPRE lo score delle serie REALI; nessuna stima del 1RM.
+  const strictCurlMassimale = esercizio?.id === 'ex-strict-curl-ez-wall' && standardPercentili;
   const serieConRip = valutabili.filter((v) => v.ripetizioni >= RIP_MINIME_PER_PESO);
-  const pool = serieConRip.length ? serieConRip : valutabili;
+  const pool = strictCurlMassimale ? valutabili : (serieConRip.length ? serieConRip : valutabili);
   const migliore = pool.reduce((a, b) => {
     if (b.score > a.score) return b;
     if (b.score < a.score) return a;
@@ -359,9 +361,19 @@ export function descriviAffidabilitaRank(standard, cfg, rank, migliore, pesoCorp
     livello = 'bassa';
     motivi.push('Oltre 12 ripetizioni il punteggio e piu incerto e la curva viene attenuata o limitata');
   }
-  if (Number(migliore?.ripetizioni) < 5) {
+  const singolaMassimaleStrict = modelloReps?.tipo === 'strict_curl_basse_rip'
+    && Number(migliore?.ripetizioni) === 1 && specifico;
+  if (singolaMassimaleStrict) {
+    // La prova massimale da 1 rip NON e una stima. L'incertezza rimasta
+    // e nella conformita tecnica e nella differenza tra EZ a presa interna
+    // e l'esecuzione auto-dichiarata della community, non nel numero di reps.
+    if (livello === 'bassa' && !estremo && !ripLunghe && !fuoriDati && !attrezzoIncerto) {
+      livello = 'indicativa';
+    }
+    motivi.push('Una singola eseguita e un 1RM misurato direttamente, non una stima. La conformita tecnica al regolamento agonistico non e stata verificata');
+  } else if (Number(migliore?.ripetizioni) < 5) {
     livello = 'bassa';
-    motivi.push('Una serie con meno di 5 ripetizioni non permette un confronto robusto con i record di allenamento abituali');
+    motivi.push('Per 2-4 ripetizioni la conversione alle soglie 1RM e indicativa; a 1 ripetizione lo Strict Curl usa il massimale realmente eseguito');
   }
   if (fuoriDati) {
     livello = 'bassa';
@@ -387,6 +399,9 @@ export function descriviAffidabilitaRank(standard, cfg, rank, migliore, pesoCorp
     descrizione: motivi.join('. ') + '.',
     attrezzatura: cfg?.notaAttrezzatura || '',
     ripetizioni: modelloReps?.tipo || 'generico',
+    notaMassimale: singolaMassimaleStrict
+      ? '1 ripetizione massimale registrata: confronto diretto con lo standard 1RM. Nessuna penalita per la singola; tecnica e presa EZ non certificate da un giudice.'
+      : null,
   };
 }
 

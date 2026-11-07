@@ -39,6 +39,7 @@ import { ordinaRecordRank } from './rank-ordina.js';
 import { gruppiRankInTempoReale, haSerieRankProvvisorie } from './rank-live.js';
 import { corrispondeRicercaEsercizi } from './ricerca-esercizi.js';
 import { strictCurlConBarraInclusa, calcolaCaricoStrictCurl } from './strict-curl.js';
+import { miniaturaEsercizio } from './exercise-icons.js';
 import { segnaliProgressione } from './analisi-progressi.js';
 import { vistaRecapPalestra } from './recap-ui.js';
 import { idRegolazioni, leggiRegolazioni, riepilogoRegolazioni } from './regolazioni-macchina.js';
@@ -2653,7 +2654,7 @@ function vistaHome(zona) {
       const e = esercizioPerId(es.esercizio_id);
       if (!e) continue;
       griglia.appendChild(el('div', { class: 'pillola-esercizio' }, [
-        el('img', { src: e.foto, alt: '', class: 'foto-esercizio', loading: 'lazy' }),
+        miniaturaEsercizio(e),
         // il muscolo sta nel nome: qui lo spazio è una pillola col cerchietto da 30 px,
         // e la foto da sola fa leggere il disegno al contrario (vedi `muscoliDiEsercizio`)
         el('span', { testo: nomeConMuscolo(e, { soloPrincipale: true }) }),
@@ -3007,7 +3008,7 @@ function vistaGiorno(zona, giornoId) {
     });
 
     griglia.appendChild(el('div', { class: 'scheda-esercizio' }, [
-      el('img', { src: e.foto, alt: '', class: 'foto-esercizio grande' }),
+      miniaturaEsercizio(e, true),
       el('div', { class: 'cresci' }, [
         el('div', { class: 'riga-convenzione' }, [
           el('h3', { testo: e.nome }),
@@ -3339,7 +3340,7 @@ async function vistaSeduta(zona, sedutaId) {
 
     const blocco = el('section', { class: 'blocco-esercizio' });
     blocco.appendChild(el('div', { class: 'titolo-esercizio' }, [
-      el('img', { src: e.foto, alt: '', class: 'foto-esercizio grande' }),
+      miniaturaEsercizio(e, true),
       el('h2', { testo: nomeConMuscolo(e) }),
       // il rank di questo esercizio: record, LP e progressione
       el('a', { href: '#/esercizio/' + e.id, class: 'bottone-guarda piccolo-b', testo: 'Il suo Rank' }),
@@ -4828,7 +4829,7 @@ async function vistaSedutaPassata(zona, sedutaId) {
     const r = riassuntoEsercizio(serie, e);
     const blocco = el('section', { class: 'blocco-esercizio' });
     blocco.appendChild(el('div', { class: 'titolo-esercizio' }, [
-      el('img', { src: e.foto, alt: '', class: 'foto-esercizio' }),
+      miniaturaEsercizio(e),
       el('h3', { testo: nomeConMuscolo(e) }),
     ]));
     blocco.appendChild(el('div', { class: 'riga-convenzione' }, [
@@ -5087,7 +5088,7 @@ function vistaScheda(zona) {
       if (!e) return;
       const numeroSerie = el('input', { type: 'number', min: '0', max: '12', class: 'campo-serie', value: String(es.serie.length) });
       sezione.appendChild(el('div', { class: 'riga-modifica' }, [
-        el('img', { src: e.foto, alt: '', class: 'foto-esercizio' }),
+        miniaturaEsercizio(e),
         el('div', { class: 'cresci' }, [
           el('strong', { testo: e.nome }),
           (() => {
@@ -5341,7 +5342,7 @@ function costruisciSelettoreEsercizi(esercizi, onScelta) {
       zonaScelte.appendChild(bottone('', {
         onClick: () => onScelta(e),
         classe: 'voce-scelta',
-        figli: [el('img', { src: e.foto, alt: '', class: 'foto-esercizio' }), el('span', { testo: nomeConMuscolo(e, { soloPrincipale: true }) })],
+        figli: [miniaturaEsercizio(e), el('span', { testo: nomeConMuscolo(e, { soloPrincipale: true }) })],
       }));
     }
   };
@@ -9179,7 +9180,7 @@ function vistaRank(zona) {
         return;
       }
       sceltaAttuale.appendChild(el('div', { class: 'riga-esercizio-selezionato' }, [
-        el('img', { src: scelto.foto, alt: '', class: 'foto-esercizio grande' }),
+        miniaturaEsercizio(scelto, true),
         el('strong', { testo: nomeConMuscolo(scelto, { soloPrincipale: true }) }),
       ]));
     };
@@ -9275,6 +9276,7 @@ function vistaRank(zona) {
         record && record.testo ? record.testo : '',
         record && record.calibrazione ? record.calibrazione.titolo + ' · ' + record.calibrazione.origine : '',
         record && record.calibrazione ? record.calibrazione.attrezzatura : '',
+        record && record.calibrazione ? record.calibrazione.notaMassimale : '',
         record && record.distanza && record.distanza.frase
           ? 'Per il prossimo Rank: ' + record.distanza.frase : '',
       ].filter(Boolean);
