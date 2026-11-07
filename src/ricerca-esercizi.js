@@ -126,23 +126,24 @@ const PAROLE_CONNETTIVE = new Set([
  * "rematore manubri" trova "Dumbbell Row", ma "manubri" non fa
  * comparire un esercizio solo con il bilanciere.
  */
-function testoIndicizzatoEsercizio(testo) {
+function testoIndicizzatoEsercizio(testo, nomeOriginale) {
   const normalizzato = testoRicercaEsercizi(testo);
+  const nomeNormalizzato = testoRicercaEsercizi(nomeOriginale);
   const parole = new Set(normalizzato.split(' ').filter(Boolean));
   for (const parola of [...parole]) {
     for (const sinonimo of ALIAS_PER_PAROLA.get(parola) || []) parole.add(sinonimo);
   }
   for (const [pattern, sinonimi] of FRASI_ESERCIZI) {
-    if (pattern.test(normalizzato)) {
+    if (pattern.test(nomeNormalizzato)) {
       for (const parola of sinonimi.split(' ')) parole.add(parola);
     }
   }
   // "Panca piana" solo per il bench press NON inclinato/declinato.
-  if (/\bbench press\b/.test(normalizzato)
-      && !/\b(incline|decline|inclinata|declinata)\b/.test(normalizzato)) {
+  if (/\bbench press\b/.test(nomeNormalizzato)
+      && !/\b(incline|decline|inclinata|declinata)\b/.test(nomeNormalizzato)) {
     parole.add('piana');
     // Senza manubri, cavi o Smith, "Bench Press" indica il bilanciere.
-    if (!/\b(dumbbell|cable|smith)\b/.test(normalizzato)) parole.add('bilanciere');
+    if (!/\b(dumbbell|cable|smith)\b/.test(nomeNormalizzato)) parole.add('bilanciere');
   }
   return [...parole].join(' ');
 }
@@ -165,7 +166,7 @@ export function corrispondeRicercaEsercizi(voce, ricerca = '') {
     // La descrizione del catalogo resta utile per eventuali sinonimi.
     e.descrizione,
   ];
-  const completo = testoIndicizzatoEsercizio(campi.filter(Boolean).join(' '));
+  const completo = testoIndicizzatoEsercizio(campi.filter(Boolean).join(' '), e.nome);
   return parole.every((parola) => completo.includes(parola));
 }
 
