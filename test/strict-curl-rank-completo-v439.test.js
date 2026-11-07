@@ -98,6 +98,6 @@ test('v439: LP, volume, soglia successiva e modello ripetizioni restano quelli c
   assert.ok(tre.distanza && typeof tre.distanza==='object');
   assert.ok(uno.calibrazione);
   const mod=modelloRipetizioniRank(uno.movimento,strict,standardAutomaticoPerEsercizio(strict));
-  assert.equal(mod.tipo,'isolamento_generale');
+  assert.equal(mod.tipo,'strict_curl_basse_rip');
   assert.equal(mod.massimo,15);
 });
