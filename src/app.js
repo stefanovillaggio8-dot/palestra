@@ -6993,7 +6993,7 @@ async function riallineaStreakOnline() {
       if (r.fatto && !r.conflitti) await aggiornaStreakDaCloud({forza:true});
       if (account !== accountAttivo()) return;
       const editando = document.activeElement?.matches?.('input, textarea, select, [contenteditable="true"]');
-      if (!editando && !/^#\\/allenamento/.test(location.hash || '')) disegna();
+      if (!editando && !/^#\/allenamento/.test(location.hash || '')) disegna();
     } catch (err) { console.warn('Riallineamento streak:',err?.message || err); }
     finally { promessaRiallineamentoStreak = null; }
   })();
