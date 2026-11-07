@@ -29,5 +29,5 @@ export function calcolaCaricoStrictCurl(barra, dischiPerLato) {
 
 export function strictCurlConBarraInclusa(esercizio) {
   return !!esercizio && esercizio.id === STRICT_CURL_ID
-    && esercizio.convenzione === 'bilanciere' && esercizio.caricoIncludeBarra === true;
+    && esercizio.convenzione === 'bilanciere';
 }
