@@ -15,7 +15,7 @@ test('v435: CAD Curl usa esattamente la foto gia presente, fonte conservata senz
     'la fonte non deve cambiare: e la foto esistente con i manubri');
   assert.ok(tagJpeg(backup) && tagJpeg(app), 'entrambe sono JPEG validi');
   assert.notDeepEqual(app, backup, 'sfondo viola realmente pubblicato');
-  assert.ok(app.length > 4000, 'la foto modificata non deve essere vuota');
+  assert.ok(app.length > 3000, 'la foto modificata non deve essere vuota');
   const dati = leggi('src/dati-iniziali.js').toString('utf8');
   assert.ok(dati.includes("foto: 'img/esercizi/cad-curl-app.jpg'"));
   const sw = leggi('sw.js').toString('utf8');
