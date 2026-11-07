@@ -722,6 +722,10 @@ return {
     // Origine dei riferimenti, attrezzatura e limiti reali del modello.
     // Stessi metadati in scheda, Prova Rank, storico e Rank personale.
     calibrazione: r.calibrazione || null,
+    // Una fonte non validata termina a Diamond: i 99 LP mostrati NON
+    // rappresentano un requisito noto per Titan. Propaga questo avviso
+    // alla Home, allo storico e alla pagina Rank.
+    fuoriScalaProvvisoria: !!r.fuoriScalaProvvisoria,
     modelloRipetizioni: r.modelloRipetizioni || null,
     // i pezzi nuovi, per la schermata che li vuole mostrare
     ripetizioniPiene: r.ripetizioniPiene !== undefined ? r.ripetizioniPiene : null,
