@@ -166,7 +166,7 @@ export function descriviAttrezzaturaRank(esercizio) {
     macchina_stack_monogamba: 'Pila utilizzata su una gamba: non confondere con standard bilaterali.',
     convenzione_da_verificare: 'Attenzione: un esercizio con EZ bar e contrassegnato come per manubrio.',
   };
-  if (esercizio?.id === 'ex-strict-curl-ez-wall' && esercizio.caricoIncludeBarra === true) {
+  if (esercizio?.id === 'ex-strict-curl-ez-wall' && esercizio.convenzione === 'bilanciere') {
     return 'Strict Curl: kg TOTALI della barra EZ e di entrambi i lati. Non aggiungere due volte il peso della barra.';
   }
   return msg[t] || 'Tipo di attrezzo non pienamente identificato: standard soltanto indicativo.';
