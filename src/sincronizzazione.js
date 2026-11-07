@@ -37,7 +37,7 @@ export function preservaMetadatiProfiloLocaleSuRemoto(locale, remoto) {
   if (!locale || !remoto || !locale.id || locale.id !== remoto.id) return locale;
   const remoti = remoto.privacy && typeof remoto.privacy === 'object' ? remoto.privacy : {};
   const locali = locale.privacy && typeof locale.privacy === 'object' ? locale.privacy : {};
-  const protetti = ['rettifica_streak', 'giorni_streak_accreditati', 'ripartenza_giro'];
+  const protetti = ['rettifica_streak', 'giorni_streak_accreditati', 'streak_ancora_confermata', 'ripartenza_giro'];
   const nuovaPrivacy = { ...locali };
   let cambiata = false;
   for (const chiave of protetti) {
