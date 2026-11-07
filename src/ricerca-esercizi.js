@@ -161,12 +161,10 @@ export function corrispondeRicercaEsercizi(voce, ricerca = '') {
   if (!parole.length) return true;
   const e = voce && (voce.e || voce.esercizio || voce);
   if (!e) return false;
-  // "Panca Scott" senza precisazioni = Scott/CAD con manubrio. Il Curl EZ
-  // Preacher e' tecnicamente un esercizio alla Scott, ma non e' quello che
-  // l'utente cerca qui. Resta trovabile scrivendo "panca scott ez" o "preacher".
-  const r = testoRicercaEsercizi(ricerca);
-  if (/\bpanca scott\b/.test(r) && !/\b(?:ez|bilanciere)\b/.test(r)
-      && e.id === 'ex-ez-bar-preacher-curl') return false;
+  // Il Preacher Curl con barra EZ e' fatto sulla panca Scott: la ricerca
+  // "panca scott" deve includerlo assieme alle altre varianti, senza
+  // nascondere risultati in base all'attrezzo. Le parole aggiunte dall'utente
+  // (es. "EZ" o "manubrio") filtrano poi la variante desiderata.
   const campi = [
     e.nome, e.gruppo,
     voce.gruppo, voce.generale, voce.nomeMuscolo, voce.parte,
