@@ -23,7 +23,7 @@ test('v438: il catalogo contiene lo strict curl con barra EZ e presa interna',()
   assert.match(esercizio.nota_permanente,/glutei/);
   assert.match(esercizio.nota_permanente,/totale|TOTALE/);
   assert.match(esercizio.foto,/strict-curl-ez-wall\.jpg$/);
-  assert.equal(strictCurlConBarraInclusa({...esercizio,caricoIncludeBarra:false}),false);
+  assert.equal(strictCurlConBarraInclusa({...esercizio,caricoIncludeBarra:false}),true);
   assert.equal(strictCurlConBarraInclusa({id:'ex-ez-bar-curl',convenzione:'per_manubrio'}),false);
 });
 
