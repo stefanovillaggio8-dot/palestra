@@ -7092,8 +7092,19 @@ function mieiGruppi() {
 
 /** Lo stato di gioco completo, ricalcolato da zero (niente valori salvati a mano). */
 function statoMio(oggi = null) {
+  const account = accountAttivo();
+  const oggiStreak = oggi || isoGiorno(new Date());
+  const profiloStreak = profiloAttivo();
+  const sedute = seduteMie();
+  const schedaId = schedaAttivaId();
+  const pendenti = sedute.some(x => ['da_salvare','in_corso','conflitto','errore'].includes(x?.sync))
+    || ['da_salvare','in_corso','conflitto','errore'].includes(profiloDi(account)?.sync);
+  const snap = STREAK_CLOUD_VERIFICATA.get(account);
+  const cloudOK = streakCloudUtilizzabile(snap, {
+    account, schedaId, oggi:oggiStreak, localePendenti:pendenti,
+  });
   const statoDefinitivo = statoAccount({
-    account: accountAttivo(),
+    account,
     sedute: seduteMie(),
     serie: serieMie(),
     esercizi: V.esercizi,
@@ -7105,12 +7116,12 @@ function statoMio(oggi = null) {
   pesoCorporeo: pesoCorporeoOra(),
   // e i giorni in cui alleno: senza, la streak contava i giorni di calendario e
   // chi allena quattro volte su sette non poteva superare quattro (vedi streak.js)
-  profilo: profiloAttivo(),
+  profilo: profiloStreak,
+    streakAutorevole: cloudOK ? snap.streak : null,
     oggi,
   });
   // Solo la PRESENTAZIONE personale si aggiorna appena una serie e' fatta.
   // XP, Aura, streak, missioni e classifiche amici restano sulle sedute finite.
-  const sedute = seduteMie();
   const serie = serieMie();
   if (!haSerieRankProvvisorie(sedute, serie)) return statoDefinitivo;
   const record = recordAccount(V.esercizi,
