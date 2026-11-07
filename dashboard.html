@@ -35,7 +35,7 @@ const n=v=>v===null||v===undefined||v===''?null:(Number.isFinite(Number(v))?Numb
 const fmt=(v,d=0)=>n(v)===null?'—':Number(v).toLocaleString('it-IT',{maximumFractionDigits:d});
 const iso=()=>isoGiorno(new Date());
 const date=d=>d?new Date(String(d).slice(0,10)+'T12:00:00').toLocaleDateString('it-IT',{day:'2-digit',month:'short',year:'numeric'}):'—';
-const isDate=d=>/^\d{4}-\d\d-\d\d$/.test(String(d||''))&&isoGiorno(new Date(d+'T12:00:00'))===d;
+const isDate=d=>/^\d{4}-\d\d-\d\d$/.test(String(d||''))&&!Number.isNaN(new Date(d+'T12:00:00').getTime())&&isoGiorno(new Date(d+'T12:00:00'))===d;
 const S={page:'overview',source:'local',data:{local:null,pc:null,iphone:null},person:null,query:'',exercise:null,version:null,day:null,period:'90',issueFilter:'all',preview:{kg:30,reps:8,body:70,spotter:false}};
 const titles={overview:'Panoramica',exercises:'Analisi esercizi',plans:'Schede e giornate',rank:'Rank Lab',diagnostics:'Diagnostica',history:'Cronologia modifiche'};
 function note(msg){el('#toast').textContent=msg;el('#toast').style.display='block';setTimeout(()=>el('#toast').style.display='none',5000)}
@@ -148,7 +148,7 @@ function rank(x){
 function compare(){
  const a=model(S.data.pc),b=model(S.data.iphone);
  if(!a||!b)return `<div class="hint">Per confrontare PC e iPhone devi esportare due backup JSON dall’app: uno da ciascun dispositivo. Non è possibile leggere direttamente da un browser i dati locali di un altro dispositivo.</div>${sources()}`;
- if(a.account!==b.account)return empty('I backup sono associati a due profili diversi: non vengono combinati.');
+ if(!a.schemes.length||!b.schemes.length||a.account!==b.account)return empty('I backup non appartengono entrambi allo stesso profilo: non vengono combinati.');
  const res=confrontaStreakDispositivi({seduteLocali:a.sessions,seduteCloud:b.sessions,profiloLocale:a.profile,profiloCloud:b.profile,oggi:iso()});
  const aSets=new Map(a.sets.map(s=>[s.id,s])),bSets=new Map(b.sets.map(s=>[s.id,s]));
  const diff=[...aSets.values()].filter(s=>bSets.has(s.id)&&JSON.stringify([s.peso,s.peso_assistenza,s.ripetizioni,s.stato,s.eliminata])!==JSON.stringify([bSets.get(s.id).peso,bSets.get(s.id).peso_assistenza,bSets.get(s.id).ripetizioni,bSets.get(s.id).stato,bSets.get(s.id).eliminata]));
@@ -184,7 +184,19 @@ function issues(x){
    before.push(s);
   }
  }
- for(const c of (x.d.conflitti||[]))if(c&&!c.eliminata&&!['risolto','risolta','chiuso'].includes(String(c.stato||'')))add('err','Conflitto locale non risolto',(c.tabella||'record')+' · '+(c.id||''));
+ const ownIds={
+  sedute:new Set(x.sessions.map(s=>s.id)),
+  serie:new Set(x.sets.map(s=>s.id)),
+  schede:new Set(x.schemes.map(s=>s.id)),
+  versioni:new Set(x.versions.map(s=>s.id)),
+  profili:new Set([x.account]),
+  pesi:new Set(x.weights.map(s=>s.id))
+ };
+ for(const c of (x.d.conflitti||[])){
+  if(!c||c.eliminata||c.stato!=='da_scegliere')continue;
+  if(!ownIds[c.tabella]?.has(c.riga_id))continue;
+  add('err','Conflitto locale non risolto',(c.tabella||'record')+' · '+(c.riga_id||''));
+ }
  for(const [tab,arr] of [['sedute',x.sessions],['serie',x.sets],['schede',x.schemes],['versioni',x.versions],['profili',[x.profile]],['pesi',x.weights]])
   for(const r of arr)if(r){if(r.sync==='errore')add('err','Errore di sincronizzazione',tab+' · '+String(r.ultimo_errore||r.id).slice(0,160));else if(r.sync==='da_salvare')add('warn','In attesa di sincronizzazione',tab+' · '+r.id)}
  return out.slice(0,350);
@@ -207,7 +219,10 @@ function render(){
  el('#sourceStatus').textContent=!x?'Sorgente senza dati':x.person?x.person.nome+' · '+(S.source==='local'?'questo dispositivo':S.source==='pc'?'backup PC':'backup iPhone')+' · '+x.completed.length+' sedute':'Identità locale non identificata';
  document.querySelectorAll('[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===S.page));
  if(!x){el('#content').innerHTML=empty('Torna ai dati del dispositivo oppure carica un backup JSON.')+sources();return}
- if(!x.person){el('#content').innerHTML=empty('Profilo non identificato. Apri la dashboard nello stesso browser dell’app o importa i backup del profilo corretto. Non vengono mostrati dati di altri account.');return}
+ if(!x.person||!x.schemes.length){
+  if(S.page==='rank'){el('#content').innerHTML=rank(x);return}
+  el('#content').innerHTML=empty('Profilo non identificato o scheda non presente su questa sorgente. Apri la dashboard nello stesso browser dell’app o carica il backup del profilo corretto. Il Rank Lab è comunque utilizzabile con dati fittizi.');return
+ }
  el('#content').innerHTML=({overview,exercises,plans,rank,diagnostics,history})[S.page](x);
 }
 async function local(){
@@ -249,7 +264,7 @@ el('#upload').addEventListener('change',async event=>{
   const parsed=JSON.parse(await file.text()),d=parsed.tabelle||parsed;
   if(!['schede','versioni','sedute','serie','esercizi'].every(k=>Array.isArray(d[k])))throw Error('Non è un backup completo della Palestra.');
   S.data[target]=d;
-  if(!model(d)?.person)throw Error('Backup non associato al profilo attuale.');
+  if(!model(d)?.schemes.length)throw Error('Backup non associato alla scheda del profilo attuale.');
   S.source=target;S.exercise=null;render();note('Backup '+target+' letto. Nessun dato importato nell’app.');
  }catch(err){S.data[target]=null;render();note('Errore nel backup: '+err.message)}
  event.target.value='';
