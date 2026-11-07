@@ -16,6 +16,9 @@ export function validaCreditoStreakOnline(profiloRemoto) {
     data, giorni,
     ...(r.origine === 'rettifica_richiesta_dal_titolare'
       ? { origine:r.origine } : {}),
+    ...(r.origine === 'rettifica_richiesta_dal_titolare'
+      && r.tipo === 'ripristino_streak_confermato'
+      ? {tipo:r.tipo} : {}),
   };
 }
 export function profiloConCreditoStreak(profilo,credito) {
