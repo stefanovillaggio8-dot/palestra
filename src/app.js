@@ -54,6 +54,7 @@ import { mostraFinaleCinematico } from './finale-allenamento-ui.js';
 import { calcolaAvatar, CLASSI, classeConsigliata, eCardio, minutiDiCardio, nomePremio, statoVisivo, percorsoStato, schedaProgressione, STATI_IMMAGINE } from './avatar-rpg.js';
 import { haSigillo, creaSigillo, verificaSigillo } from './sigillo-classe.js';
 import { isoGiorno } from './streak.js';
+import { calcolaStreakCloud, streakCloudUtilizzabile } from './streak-cloud.js';
 import { validaCreditoStreakOnline, profiloConCreditoStreak } from './streak-online.js';
 import { confrontaStreakDispositivi } from './streak-confronto.js';
 import { suona, sbloccaAudio, audioSpento, impostaAudioSpento } from './audio.js';
@@ -464,6 +465,9 @@ function ascoltaScorrimento() {
 let disiscriviSyncAvvio = null;
 let timerCreditoStreakAvvio = null;
 let gestoreFocusSyncRegistrato = false;
+let promessaRiallineamentoStreak = null;
+let ultimoRiallineamentoStreak = 0;
+const INTERVALLO_FOCUS_STREAK = 30 * 1000;
 
 async function avvia() {
   const radice = document.getElementById('app');
@@ -619,6 +623,7 @@ async function avvia() {
           // continuava a leggere V.sedute vecchio anche dopo il pull riuscito.
           await ricaricaTutto({ caricaAmiciOnline: false });
           await aggiornaCreditoStreakOnline();
+          await aggiornaStreakDaCloud();
           if (account !== accountAttivo()) return;
           // Non perdere i valori non ancora confermati nel form di una serie.
           const editando = document.activeElement?.matches?.('input, textarea, select, [contenteditable="true"]');
@@ -639,9 +644,10 @@ async function avvia() {
     attivaInvitiAutomatici();
     // Se si ritorna dall'altra PWA, recupera subito la rettifica autentica.
     if (!gestoreFocusSyncRegistrato) {
-      window.addEventListener('focus', () => {
-        if (!sb.collegato()) return;
-        aggiornaCreditoStreakOnline().then((cambiata) => { if (cambiata) disegna(); }).catch(() => {});
+      window.addEventListener('focus', () => { void riallineaStreakOnline(); });
+      window.addEventListener('online', () => { void riallineaStreakOnline(); });
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') void riallineaStreakOnline();
       });
       gestoreFocusSyncRegistrato = true;
     }
@@ -6179,6 +6185,7 @@ function vistaImpostazioni(zona) {
       // da Home e streak: rileggerla senza riavviare (PC/iPhone).
       await ricaricaTutto({ caricaAmiciOnline: false });
       await aggiornaCreditoStreakOnline();
+      if (r.fatto && !r.conflitti) await aggiornaStreakDaCloud({forza:true});
       await aggiornaStatoSalvataggio();
       if (account === accountAttivo()) disegna();
       if (r.messaggio) avviso(r.messaggio, { tipo: 'errore' });
@@ -6932,6 +6939,66 @@ function profiloDi(idAccount) {
 // Solo lettura: nessuna seduta fittizia, nessuna scrittura al DB.
 const RETTIFICHE_STREAK_ONLINE = new Map();
 const RIPARTENZE_GIRO_ONLINE = new Map();
+const STREAK_CLOUD_VERIFICATA = new Map();
+const STREAK_CLOUD_PROMESSE = new Map();
+
+// Riferimento UNICO online per la card, le medaglie e lo Shop.
+// Nessuna cancellazione, nessuna seduta fittizia, nessun account di amici.
+async function aggiornaStreakDaCloud({ forza = false } = {}) {
+  if (!sb.collegato() || (typeof navigator !== 'undefined' && navigator.onLine === false)) return false;
+  const account = accountAttivo();
+  const schedaId = profiloDi(account)?.scheda_id || schedaAttivaId();
+  if (!schedaId) return false;
+  const oggi = isoGiorno(new Date());
+  const corrente = STREAK_CLOUD_VERIFICATA.get(account);
+  if (!forza && corrente && corrente.schedaId === schedaId
+      && corrente.oggi === oggi && Date.now()-corrente.verificatoAlle < 45000) return false;
+  if (STREAK_CLOUD_PROMESSE.has(account)) return STREAK_CLOUD_PROMESSE.get(account);
+  const lavoro = (async () => {
+    try {
+      const [cloudProfilo, righe] = await Promise.all([
+        sb.leggiUno('profili', account), sb.prendiModificate(['sedute'], null),
+      ]);
+      const snapshot = calcolaStreakCloud({
+        account, profiloCloud:cloudProfilo, seduteCloud:righe.sedute,
+        schedaId, versioni:V.versi, oggi,
+      });
+      if (!snapshot || accountAttivo() !== account || schedaAttivaId() !== schedaId) return false;
+      const precedente = STREAK_CLOUD_VERIFICATA.get(account);
+      STREAK_CLOUD_VERIFICATA.set(account, {...snapshot, verificatoAlle:Date.now()});
+      return !precedente || precedente.streak.giorni !== snapshot.streak.giorni
+        || precedente.streak.record !== snapshot.streak.record;
+    } catch (err) {
+      console.warn('Streak cloud non verificata; dati locali preservati:', err?.message || err);
+      return false;
+    } finally { STREAK_CLOUD_PROMESSE.delete(account); }
+  })();
+  STREAK_CLOUD_PROMESSE.set(account, lavoro);
+  return lavoro;
+}
+
+// Su focus/online/visibile si esegue un vero pull e push, poi si rilegge
+// la fonte canonica. Richieste concorrenti sono deduplicate e limitate.
+async function riallineaStreakOnline() {
+  if (!sb.collegato() || (typeof navigator !== 'undefined' && navigator.onLine === false)) return;
+  if (promessaRiallineamentoStreak) return promessaRiallineamentoStreak;
+  if (Date.now()-ultimoRiallineamentoStreak < INTERVALLO_FOCUS_STREAK) return;
+  ultimoRiallineamentoStreak = Date.now();
+  const account = accountAttivo();
+  promessaRiallineamentoStreak = (async () => {
+    try {
+      const r = await sync.sincronizza({attendiSeInCorso:true});
+      await ricaricaTutto({caricaAmiciOnline:false});
+      await aggiornaCreditoStreakOnline();
+      if (r.fatto && !r.conflitti) await aggiornaStreakDaCloud({forza:true});
+      if (account !== accountAttivo()) return;
+      const editando = document.activeElement?.matches?.('input, textarea, select, [contenteditable="true"]');
+      if (!editando && !/^#\/allenamento/.test(location.hash || '')) disegna();
+    } catch (err) { console.warn('Riallineamento streak:',err?.message || err); }
+    finally { promessaRiallineamentoStreak = null; }
+  })();
+  return promessaRiallineamentoStreak;
+}
 async function aggiornaCreditoStreakOnline() {
   if (!sb.collegato()) return false;
   const id = accountAttivo();
@@ -7025,8 +7092,19 @@ function mieiGruppi() {
 
 /** Lo stato di gioco completo, ricalcolato da zero (niente valori salvati a mano). */
 function statoMio(oggi = null) {
+  const account = accountAttivo();
+  const oggiStreak = oggi || isoGiorno(new Date());
+  const profiloStreak = profiloAttivo();
+  const sedute = seduteMie();
+  const schedaId = schedaAttivaId();
+  const pendenti = sedute.some(x => ['da_salvare','in_corso','conflitto','errore'].includes(x?.sync))
+    || ['da_salvare','in_corso','conflitto','errore'].includes(profiloDi(account)?.sync);
+  const snap = STREAK_CLOUD_VERIFICATA.get(account);
+  const cloudOK = streakCloudUtilizzabile(snap, {
+    account, schedaId, oggi:oggiStreak, localePendenti:pendenti,
+  });
   const statoDefinitivo = statoAccount({
-    account: accountAttivo(),
+    account,
     sedute: seduteMie(),
     serie: serieMie(),
     esercizi: V.esercizi,
@@ -7038,12 +7116,12 @@ function statoMio(oggi = null) {
   pesoCorporeo: pesoCorporeoOra(),
   // e i giorni in cui alleno: senza, la streak contava i giorni di calendario e
   // chi allena quattro volte su sette non poteva superare quattro (vedi streak.js)
-  profilo: profiloAttivo(),
+  profilo: profiloStreak,
+    streakAutorevole: cloudOK ? snap.streak : null,
     oggi,
   });
   // Solo la PRESENTAZIONE personale si aggiorna appena una serie e' fatta.
   // XP, Aura, streak, missioni e classifiche amici restano sulle sedute finite.
-  const sedute = seduteMie();
   const serie = serieMie();
   if (!haSerieRankProvvisorie(sedute, serie)) return statoDefinitivo;
   const record = recordAccount(V.esercizi,

@@ -91,6 +91,7 @@ export function tipoAttrezzaturaRank(esercizio = {}) {
     ? 'convenzione_da_verificare' : 'manubri';
   if (cv === 'per_braccio') return 'per_braccio_attrezzo_non_noto';
   if (cv === 'bilanciere') return 'bilanciere';
+  if (cv === 'dischi') return 'dischi_esterni';
   return e.attrezzatura || 'non_identificato';
 }
 
@@ -155,6 +156,7 @@ export function descriviAttrezzaturaRank(esercizio) {
   const msg = {
     manubri: 'Chilogrammi di un manubrio, non sommare i due lati.',
     bilanciere: 'Chilogrammi registrati sul bilanciere; verifica se includono o escludono la barra.',
+    dischi_esterni: 'Kg di sovraccarico ESTERNO; peso corporeo e leva del busto non si sommano direttamente al carico.',
     macchina_stack: 'Chilogrammi indicati sulla pila; camme e leve possono cambiare la resistenza.',
     macchina_dischi: 'Chilogrammi di dischi caricati; non equiparare al carico di una pila.',
     macchina_dischi_per_braccio: 'Dischi per braccio, senza sommare due volte i lati.',

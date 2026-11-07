@@ -62,6 +62,9 @@ export function statoAccount({
   // contava i giorni di calendario: chi allena 4 volte su 7 non poteva superare 4.
   // Vedi streak.js per il caso vero.
   profilo = null,
+  // Snapshot verificato dal cloud per questa persona e questo giorno,
+  // facoltativo: nessuna mutazione dei dati delle sedute.
+  streakAutorevole = null,
 } = {}) {
   const giorno = oggi || isoGiorno(new Date());
   const settimana = idSettimana(giorno);
@@ -76,7 +79,7 @@ export function statoAccount({
   const principale = rankPrincipale(record);
   const distribuzione = distribuzioneRank(record);
 
-  const streak = calcolaStreak(completate, giorno, profilo);
+  const streak = streakAutorevole || calcolaStreak(completate, giorno, profilo);
   const fuoco = aspettoStreak(streak);
 
   const totali = totaliDaRicompense(ricompense);

@@ -210,9 +210,16 @@ const MOVIMENTI = [
     id: 'gambe_curl', livello: 'isolamento', gruppo: 'gambe',
     parole: ['leg curl', 'curl gambe', 'seated leg curl', 'prone curl', 'lying leg curl', 'hamstring curl'],
   },
+  // Hyperextension e una estensione della catena posteriore, NON leg extension.
+  // Tiene uno standard a parte: 80 kg esterni non possono essere confrontati
+  // con 80 kg della pila del quadricipite.
+  {
+    id: 'estensione_posteriore', livello: 'composto', gruppo: 'dorso',
+    parole: ['hyperextension', 'iperextensione', 'back extension', 'estensione lombare', 'lombari su panca'],
+  },
   {
     id: 'gambe_isolamento', livello: 'isolamento', gruppo: 'gambe',
-    parole: ['hyperextension', 'iperextensione', 'hip extension', 'back extension', 'leg extension', 'estensioni gambe',
+    parole: ['hip extension', 'leg extension', 'estensioni gambe',
       'leg raise', 'adduzione', 'abduction', 'glute'],
   },
   {
@@ -463,7 +470,7 @@ const SIGLE = [
   { nome: 'push up', movimento: 'spinta_corpo_libero' },
   { nome: 'hip thrust', movimento: 'gambe_stabilizzatore' },
   { nome: 'bench press', movimento: 'spinta_orizzontale' },
-  { nome: 'back extension', movimento: 'tirata_orizzontale' },
+  { nome: 'back extension', movimento: 'estensione_posteriore' },
   { nome: 'biceps curl', movimento: 'bicipiti' },
   { nome: 'preacher curl', movimento: 'bicipiti' },
 ];

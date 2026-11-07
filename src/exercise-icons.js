@@ -1,6 +1,6 @@
 // Miniature corrette: alcune foto storiche erano COPIE IDENTICHE per esercizi
 // completamente diversi (Face Pull -> EZ Bar Curl, row -> Bench Press, ecc.).
-// Spritesheet originale leggera, 4 colonne x 3 righe; non altera i dati esercizi.
+// Illustrazioni 2D, senza sfondo fotografico: spritesheet 4 x 4; nessun dato personale modificato.
 // Gli esercizi non elencati mantengono le proprie immagini e le foto personali.
 import { el } from './ui.js';
 
@@ -17,6 +17,10 @@ export const POSIZIONI_ICONE_CORRETTE = Object.freeze({
   'ex-dumbbell-bench-pull': [1, 2],
   'ex-face-pull': [2, 2],
   'ex-wide-grip-lat-pulldown': [3, 2],
+  'ex-cable-bicep-curl': [0, 3],
+  'ex-ez-bar-lying-tricep-extension': [1, 3],
+  'ex-incline-dumbbell-bench-press': [2, 3],
+  'ex-back-extension-hanging': [3, 3],
 });
 
 export function posizioneIconaCorretta(esercizio) {
@@ -25,7 +29,7 @@ export function posizioneIconaCorretta(esercizio) {
   if (!pos) return null;
   return {
     x: pos[0] * 100 / 3,
-    y: pos[1] * 50,
+    y: pos[1] * 100 / 3,
   };
 }
 

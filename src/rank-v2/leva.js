@@ -365,6 +365,13 @@ export const LEVE = {
     unita: 'sul carico',
     nota: 'Leg press e simili: e\' il movimento con la sezione muscolare piu\' grande del corpo (quadricipiti + glutei + femorali, oltre 170 cm2) e con tre muscoli che tirano insieme. Per questo regge piu\' di ogni altra cosa.',
   },
+  estensione_posteriore: {
+    muscoli: { glutei: 0.6, femorali: 0.4 },
+    dMuscolo: 5.0,
+    dCarico: 40,
+    unita: 'kg di sovraccarico esterno',
+    nota: 'Modello schematico dell estensione d anca su panca. Gli erettori spinali stabilizzano e/o estendono il tronco secondo la tecnica; non vengono trasformati in un coefficiente inventato. Non usare questa leva per assegnare Titan/Olympian o per confrontare petto con braccia verso il pavimento.',
+  },
   gambe_stabilizzatore: {
     muscoli: { glutei: 0.6, femorali: 0.25, quadricipiti: 0.15 },
     dMuscolo: 4.5,
