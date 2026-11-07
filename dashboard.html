@@ -30,7 +30,18 @@ import { confrontaStreakDispositivi } from './src/streak-confronto.js';
 import { storicoCronologia } from './src/cronologia.js';
 import { valutaNumeroInsolito } from './src/validazione-serie.js';
 const el=s=>document.querySelector(s);
-const safe=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function readable(value){
+ if(value===null||value===undefined)return '';
+ if(typeof value==='object'){
+  if(Array.isArray(value))return value.map(readable).filter(Boolean).join(', ');
+  for(const key of ['nome','titolo','etichetta','messaggio','descrizione','testo','id']){
+   if(typeof value[key]==='string'||typeof value[key]==='number')return String(value[key]);
+  }
+  return '—';
+ }
+ return String(value);
+}
+const safe=s=>readable(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const n=v=>v===null||v===undefined||v===''?null:(Number.isFinite(Number(v))?Number(v):null);
 const fmt=(v,d=0)=>n(v)===null?'—':Number(v).toLocaleString('it-IT',{maximumFractionDigits:d});
 const iso=()=>isoGiorno(new Date());
