@@ -51,7 +51,7 @@ test('v442: le varianti hanno registri distinti e nessun bonus percentuale inven
   assert.equal(b.valido,true);
   assert.equal(a.score,b.score);
   assert.equal(a.indice,b.indice);
-  assert.ok(!/somma.*peso corporeo/i.test(a.nota));
+  assert.match(a.nota,/senza sommare il peso corporeo/i);
 });
 
 test('v442: cloud valido uguale su PC/iPhone; cancellati e in corso NON riattivati', () => {
