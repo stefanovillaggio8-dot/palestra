@@ -7246,6 +7246,8 @@ function distanzaObiettivo(record) {
 
 function etichettaLp(record) {
   if (!record || !record.rankId) return '';
+  if (record.fuoriScalaProvvisoria)
+    return 'FUORI SCALA · soglia Titan non validata';
   if (record.inTop) return `TOP · +${record.lp}% sulla soglia`;
   // Quando il bonus È stato fermato, i LP NON sono la posizione nella fascia: sono
   // il posto dove ti hanno portato dentro. Scrivere "/ 100" accanto a una barra
@@ -7477,7 +7479,9 @@ function cardRank(record, { compatta = false } = {}) {
   // sa convertire, o perchÈ sei in cima) si dice cosa si sa, senza inventare un peso.
   const prossimoNome = (r.prossimoObiettivo || {}).etichetta || (r.prossimoRank ? r.prossimoRank.nome : null);
   const kgPerIlProssimo = r.distanza && r.distanza.kgNecessari;
-  const verso = r.inTop
+  const verso = r.fuoriScalaProvvisoria
+    ? 'Sei oltre il massimo del benchmark disponibile. I 99 LP sono il limite della scala provvisoria, NON 1 LP dalla promozione: per questa variante non ci sono soglie Titan misurate. Il carico e le ripetizioni reali restano registrati.'
+    : r.inTop
     ? `Sei nel rank più alto: non cÈ un passo dopo, e ogni LP È un punto di percentuale sopra la soglia dell'OLYMPIAN (+${r.lp}% adesso).`
     : (kgPerIlProssimo
       ? `${formattaNumero(kgPerIlProssimo)} ${r.distanza?.unitaCarico || profilo.unita} per ${prossimoNome}`
@@ -7508,6 +7512,9 @@ el('div', { class: 'card-rank-basso' }, [
     // "quanto mi manca per il Rank dopo" È un'altra barra e sta più in basso
     barraLp(r),
       el('span', { class: 'nota', testo: verso }),
+      !r.fuoriScalaProvvisoria && r.lp >= 99 && r.prossimoRank
+        ? el('span', { class: 'nota nota-piccola', testo:
+            '99 LP è il massimo della fascia, non un passaggio automatico a 100. Per salire devi raggiungere la soglia del prossimo Rank con la tua migliore serie; il bonus delle serie non può promuoverti.' }) : null,
       r.spiegaBonus ? el('span', { class: 'nota nota-piccola', testo: r.spiegaBonus }) : null,
       r.calibrazione ? el('span', {
         class: 'nota nota-piccola attendibilita-rank',
@@ -8902,6 +8909,10 @@ function vistaCasa(zona) {
           ? st.rankPrincipale.esercizio.nome : 'Nessun record ancora',
         testo: st.rankPrincipale && st.rankPrincipale.esercizio
           ? st.rankPrincipale.esercizio.nome : 'Nessun record ancora' }),
+      st.rankPrincipale?.fuoriScalaProvvisoria
+        ? el('span', {class: 'nota nota-piccola',
+            testo: 'Rank indicativo: prestazione oltre il modello. Titan non è valutabile in questo esercizio.'})
+        : null,
     ]),
   ]);
   zona.appendChild(riepilogo);
