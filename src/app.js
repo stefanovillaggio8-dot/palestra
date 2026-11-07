@@ -6939,6 +6939,66 @@ function profiloDi(idAccount) {
 // Solo lettura: nessuna seduta fittizia, nessuna scrittura al DB.
 const RETTIFICHE_STREAK_ONLINE = new Map();
 const RIPARTENZE_GIRO_ONLINE = new Map();
+const STREAK_CLOUD_VERIFICATA = new Map();
+const STREAK_CLOUD_PROMESSE = new Map();
+
+// Riferimento UNICO online per la card, le medaglie e lo Shop.
+// Nessuna cancellazione, nessuna seduta fittizia, nessun account di amici.
+async function aggiornaStreakDaCloud({ forza = false } = {}) {
+  if (!sb.collegato() || (typeof navigator !== 'undefined' && navigator.onLine === false)) return false;
+  const account = accountAttivo();
+  const schedaId = profiloDi(account)?.scheda_id || schedaAttivaId();
+  if (!schedaId) return false;
+  const oggi = isoGiorno(new Date());
+  const corrente = STREAK_CLOUD_VERIFICATA.get(account);
+  if (!forza && corrente && corrente.schedaId === schedaId
+      && corrente.oggi === oggi && Date.now()-corrente.verificatoAlle < 45000) return false;
+  if (STREAK_CLOUD_PROMESSE.has(account)) return STREAK_CLOUD_PROMESSE.get(account);
+  const lavoro = (async () => {
+    try {
+      const [cloudProfilo, righe] = await Promise.all([
+        sb.leggiUno('profili', account), sb.prendiModificate(['sedute'], null),
+      ]);
+      const snapshot = calcolaStreakCloud({
+        account, profiloCloud:cloudProfilo, seduteCloud:righe.sedute,
+        schedaId, versioni:V.versi, oggi,
+      });
+      if (!snapshot || accountAttivo() !== account || schedaAttivaId() !== schedaId) return false;
+      const precedente = STREAK_CLOUD_VERIFICATA.get(account);
+      STREAK_CLOUD_VERIFICATA.set(account, {...snapshot, verificatoAlle:Date.now()});
+      return !precedente || precedente.streak.giorni !== snapshot.streak.giorni
+        || precedente.streak.record !== snapshot.streak.record;
+    } catch (err) {
+      console.warn('Streak cloud non verificata; dati locali preservati:', err?.message || err);
+      return false;
+    } finally { STREAK_CLOUD_PROMESSE.delete(account); }
+  })();
+  STREAK_CLOUD_PROMESSE.set(account, lavoro);
+  return lavoro;
+}
+
+// Su focus/online/visibile si esegue un vero pull e push, poi si rilegge
+// la fonte canonica. Richieste concorrenti sono deduplicate e limitate.
+async function riallineaStreakOnline() {
+  if (!sb.collegato() || (typeof navigator !== 'undefined' && navigator.onLine === false)) return;
+  if (promessaRiallineamentoStreak) return promessaRiallineamentoStreak;
+  if (Date.now()-ultimoRiallineamentoStreak < INTERVALLO_FOCUS_STREAK) return;
+  ultimoRiallineamentoStreak = Date.now();
+  const account = accountAttivo();
+  promessaRiallineamentoStreak = (async () => {
+    try {
+      const r = await sync.sincronizza({attendiSeInCorso:true});
+      await ricaricaTutto({caricaAmiciOnline:false});
+      await aggiornaCreditoStreakOnline();
+      if (r.fatto && !r.conflitti) await aggiornaStreakDaCloud({forza:true});
+      if (account !== accountAttivo()) return;
+      const editando = document.activeElement?.matches?.('input, textarea, select, [contenteditable="true"]');
+      if (!editando && !/^#\\/allenamento/.test(location.hash || '')) disegna();
+    } catch (err) { console.warn('Riallineamento streak:',err?.message || err); }
+    finally { promessaRiallineamentoStreak = null; }
+  })();
+  return promessaRiallineamentoStreak;
+}
 async function aggiornaCreditoStreakOnline() {
   if (!sb.collegato()) return false;
   const id = accountAttivo();
