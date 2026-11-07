@@ -23,7 +23,7 @@ test('v440: 70 kg x 1 rep con bw 72 kg non e Gold III per Strict Curl',()=>{
   assert.equal(risultato.ripetizioni,1);
   assert.equal(risultato.pesoCorporeo,72);
   assert.equal(risultato.massimale,null,'mai inventare il massimale');
-  assert.equal(risultato.calibrazione.livello,'bassa','1 rip ha affidabilita limitata');
+  assert.equal(risultato.calibrazione.livello,'indicativa','il singolo massimale misurato non e un 1RM stimato');
   assert.ok(risultato.indice>=3,'deve essere almeno Platinum, non Gold III');
   assert.ok(risultato.indice<5,'non dare Titan o Olympian con 70kg 1 rep');
 });
