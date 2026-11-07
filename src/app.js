@@ -38,6 +38,7 @@ import { percorsoStemma, nomeStemma, tutteLeGraficheRank } from './rank-stemmi.j
 import { ordinaRecordRank } from './rank-ordina.js';
 import { gruppiRankInTempoReale, haSerieRankProvvisorie } from './rank-live.js';
 import { corrispondeRicercaEsercizi } from './ricerca-esercizi.js';
+import { strictCurlConBarraInclusa, calcolaCaricoStrictCurl } from './strict-curl.js';
 import { segnaliProgressione } from './analisi-progressi.js';
 import { vistaRecapPalestra } from './recap-ui.js';
 import { idRegolazioni, leggiRegolazioni, riepilogoRegolazioni } from './regolazioni-macchina.js';
@@ -3686,7 +3687,7 @@ function rigaSerie(serie, numero, confronto, seduta, pesoRigaSorella = null) {
       ? corpoOggi + Number(serie[chiave] || 0)
       : null;
     const peso = campoNumero(serie[chiave], {
-      etichetta: conZavorri ? 'kg di zavorri' : (assistenza ? 'kg di assistenza' : 'kg'),
+      etichetta: strictCurlConBarraInclusa(e) ? 'kg TOTALI (barra EZ inclusa)' : (conZavorri ? 'kg di zavorri' : (assistenza ? 'kg di assistenza' : 'kg')),
       onCambio: conRitardo((v) => aggiornaSerie(serie, { [chiave]: numeroOppureNull(v) })),
       onInvalido: (v) => avviso('Non riesco a capire il numero "' + v + '". Il campo com\'era com\'era rimane com\'era.', { tipo: 'errore' }),
     });
@@ -3706,7 +3707,7 @@ function rigaSerie(serie, numero, confronto, seduta, pesoRigaSorella = null) {
     };
     const rigaPeso = el('div', { class: 'gruppo-peso' }, [
       peso,
-      el('span', { class: 'sotto-campo', testo: conZavorri ? 'ZAVORRI' : (assistenza ? 'ZAVORRA' : 'KG') }),
+      el('span', { class: 'sotto-campo', testo: strictCurlConBarraInclusa(e) ? 'TOTALE KG' : (conZavorri ? 'ZAVORRI' : (assistenza ? 'ZAVORRA' : 'KG')) }),
       pesoRigaSorella !== null && pesoRigaSorella !== undefined
         ? el('div', { class: 'passi-peso' }, [
           bottone('come sopra', {
@@ -3718,6 +3719,43 @@ function rigaSerie(serie, numero, confronto, seduta, pesoRigaSorella = null) {
         : null,
     ]);
     riga.appendChild(el('label', { class: 'campetto' }, [rigaPeso]));
+    if (strictCurlConBarraInclusa(e)) {
+      // Il campo peso resta il TOTALE e va nel DB. I componenti della
+      // calcolatrice non entrano nella sync, ma soltanto nel calcolo esplicito.
+      const campoBarraEz = campoNumero(null, { etichetta: 'kg barra EZ' });
+      const campoDischiLato = campoNumero(null, { etichetta: 'kg dischi per lato' });
+      campoBarraEz.classList.add('strict-curl-input');
+      campoDischiLato.classList.add('strict-curl-input');
+      const riepilogoCarico = el('p', {
+        class: 'nota nota-piccola',
+        testo: 'Peso totale = barra EZ + dischi sinistra + dischi destra. Verifica la massa reale della barra; non assumere 10/20 kg.',
+      });
+      const calcolatrice = el('div', { class: 'strict-curl-calcolatrice' }, [
+        el('div', { class: 'strict-curl-campi' }, [
+          el('label', { class: 'campetto' }, [
+            campoBarraEz, el('span', { class: 'sotto-campo', testo: 'BARRA EZ KG' }),
+          ]),
+          el('label', { class: 'campetto' }, [
+            campoDischiLato, el('span', { class: 'sotto-campo', testo: 'DISCHI 1 LATO KG' }),
+          ]),
+        ]),
+        riepilogoCarico,
+        bottone('Calcola e usa il totale', {
+          classe: 'fantasma',
+          onClick: () => {
+            const calc = calcolaCaricoStrictCurl(campoBarraEz.value, campoDischiLato.value);
+            if (!calc.valido) {
+              avviso(calc.motivo, { tipo: 'attenzione' });
+              return;
+            }
+            scriviPeso(calc.totale);
+            riepilogoCarico.textContent = calc.formula
+              + ' (barra e due lati compresi). Carico totale salvato nella serie.';
+          },
+        }),
+      ]);
+      riga.appendChild(calcolatrice);
+    }
     if (conZavorri) {
       // IL TOTALE CHE STAI SPOSTANDO. È la riga che dice la verità: il numero che
       // hai scritto più il tuo corpo.
