@@ -46,6 +46,7 @@ test('v437: non confonde manubri, cavi e bilanciere e riconosce le prese',()=>{
   nonDeveTrovare('alzate laterali con manubri','ex-cable-lateral-raise');
   nonDeveTrovare('croci inverse ai cavi','ex-cable-fly');
   nonDeveTrovare('panca piana manubri','ex-incline-dumbbell-bench-press');
+  nonDeveTrovare('panca piana manubri','ex-dumbbell-bench-pull');
   nonDeveTrovare('panca piana manubri','ex-decline-dumbbell-bench-press');
   nonDeveTrovare('panca scott al contrario','ex-one-arm-preacher-curl');
   nonDeveTrovare('lat machine presa stretta','ex-lat-pulldown-lats');
