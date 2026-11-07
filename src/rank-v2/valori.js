@@ -742,6 +742,10 @@ bicipiti_panca: {
     multiplo: 0.4, ingressoMultiplo: 0.17, fonte: 'stima',
     nota: 'Crunch al cavo, PER LATO: tetto 0,4x il corpo per lato, ingresso 0,17x, come il fly al cavo. E’ una stima: i numeri veri li scrive Ste dal suo app.',
   },
+  estensione_posteriore: {
+    multiplo: 0.56, ingressoMultiplo: 0.01, fonte: 'modello_non_validato',
+    nota: 'Hyperextension con kg ESTERNI soltanto: modello FitnessVolt Back Extension (29/03/2026), non percentile sperimentale. Non assimilare a leg extension. Le varianti al petto e a braccia tese verso il basso non hanno coefficienti di conversione validati.',
+  },
   corpo_libero: {
     multiplo: 0, fonte: 'nessuno',
     nota: 'Trazioni e dip: qui i kg non esistono, si contano le ripetizioni.',
