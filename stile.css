@@ -271,8 +271,24 @@ a { color: var(--blu); text-decoration: none; }
   border-radius: 99px; padding: 5px 11px 5px 5px;
   font-size: .86rem; font-weight: 600;
 }
-.foto-esercizio { width: 30px; height: 30px; border-radius: 50%; flex: 0 0 auto; background: var(--nero-2); }
-.foto-esercizio.grande { width: 46px; height: 46px; }
+/* v440: icone complete, senza ritaglio circolare di braccia, bilancieri
+   o panche. L'immagine resta intera e riconoscibile anche sulla PWA iPhone. */
+.foto-esercizio {
+  width: 46px; height: 46px; flex: 0 0 46px;
+  box-sizing: border-box; display: block;
+  object-fit: contain; object-position: center center;
+  padding: 2px; border-radius: 10px;
+  background: #281a43;
+  border: 1px solid rgba(183, 145, 246, .22);
+}
+.foto-esercizio.grande {
+  width: 68px; height: 68px; flex-basis: 68px;
+  padding: 3px; border-radius: 12px;
+}
+@media (max-width: 390px) {
+  .foto-esercizio { width: 43px; height: 43px; flex-basis: 43px; }
+  .foto-esercizio.grande { width: 62px; height: 62px; flex-basis: 62px; }
+}
 /* IL NOME DEL MUSCOLO ACCANTO ALLA FOTO (15/10/2026).
    Le foto sono illustrazioni di pixel e NON hanno l'evidenziazione del muscolo:
    il pezzo chiaro che si vede è l'illuminazione del disegno. Ste ci ha costruito
