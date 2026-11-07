@@ -285,6 +285,16 @@ a { color: var(--blu); text-decoration: none; }
   width: 68px; height: 68px; flex-basis: 68px;
   padding: 3px; border-radius: 12px;
 }
+/* v441: 12 movimenti prima con foto duplicate. Ogni riquadro del foglio
+   contiene una scena autonoma, senza tagli circulari e senza stretch. */
+.foto-esercizio-sprite {
+  background-image: url('./img/esercizi/esercizi-correzioni-v441.webp');
+  background-size: 400% 300%;
+  background-position: var(--sprite-x, 0%) var(--sprite-y, 0%);
+  background-repeat: no-repeat;
+  background-origin: padding-box;
+  background-clip: padding-box;
+}
 @media (max-width: 390px) {
   .foto-esercizio { width: 43px; height: 43px; flex-basis: 43px; }
   .foto-esercizio.grande { width: 62px; height: 62px; flex-basis: 62px; }
