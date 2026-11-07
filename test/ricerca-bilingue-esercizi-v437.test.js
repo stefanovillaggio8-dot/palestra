@@ -59,7 +59,7 @@ test('v437: la ricerca originale inglese, parziale e senza accenti resta valida'
     ['preacher','ex-one-arm-preacher-curl'],
     ['LAT Pulldown','ex-lat-pulldown-lats'],
     ['cable fly','ex-cable-fly'],
-    ['DÉLTOIDE','ex-cable-lateral-raise'],
+    ['PÓLPÁCCI','ex-sled-press-calf-raise'],
     ['alz','ex-db-lateral-raise'],
     ['cávO','ex-cable-fly'],
     ['REMÁTORE MANÚBRI','ex-dumbbell-row'],
