@@ -15,9 +15,9 @@ const voci = [
 // Dal v437: Preacher e Scott sono sinonimi (inglese e italiano).
 test('v421: cerca parole in qualsiasi punto della frase, non soltanto allinizio', () => {
   assert.deepEqual(filtraEserciziPerRicerca(voci, 'preacher').map(x=>x.e.id), ['preacher', 'scott']);
-  assert.deepEqual(filtraEserciziPerRicerca(voci, 'dumbbell').map(x=>x.e.id), ['preacher']);
+  assert.deepEqual(filtraEserciziPerRicerca(voci, 'dumbbell').map(x=>x.e.id), ['preacher', 'row']);
   assert.deepEqual(filtraEserciziPerRicerca(voci, 'cavo').map(x=>x.e.id), ['laterali']);
-  assert.deepEqual(filtraEserciziPerRicerca(voci, 'manubrio').map(x=>x.e.id), ['row']);
+  assert.deepEqual(filtraEserciziPerRicerca(voci, 'manubrio').map(x=>x.e.id), ['preacher', 'row']);
 });
 
 test('v421: parole multiple in qualunque ordine, tra nome e muscolo', () => {
