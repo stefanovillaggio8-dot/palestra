@@ -408,6 +408,7 @@ test('C15. i 27 esercizi della scheda di Ste hanno il livello giusto', async () 
   'ex-incline-dumbbell-bench-press': 'composto',
   'ex-incline-dumbbell-curl': 'isolamento',
   'ex-incline-hammer-curl': 'isolamento',
+  'ex-strict-curl-ez-wall': 'isolamento',
   'ex-ez-bar-curl': 'isolamento',
   'ex-ez-bar-lying-tricep-extension': 'isolamento',
   'ex-ez-bar-preacher-curl': 'isolamento',
