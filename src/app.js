@@ -54,6 +54,7 @@ import { mostraFinaleCinematico } from './finale-allenamento-ui.js';
 import { calcolaAvatar, CLASSI, classeConsigliata, eCardio, minutiDiCardio, nomePremio, statoVisivo, percorsoStato, schedaProgressione, STATI_IMMAGINE } from './avatar-rpg.js';
 import { haSigillo, creaSigillo, verificaSigillo } from './sigillo-classe.js';
 import { isoGiorno } from './streak.js';
+import { calcolaStreakCloud, streakCloudUtilizzabile } from './streak-cloud.js';
 import { validaCreditoStreakOnline, profiloConCreditoStreak } from './streak-online.js';
 import { confrontaStreakDispositivi } from './streak-confronto.js';
 import { suona, sbloccaAudio, audioSpento, impostaAudioSpento } from './audio.js';
@@ -464,6 +465,9 @@ function ascoltaScorrimento() {
 let disiscriviSyncAvvio = null;
 let timerCreditoStreakAvvio = null;
 let gestoreFocusSyncRegistrato = false;
+let promessaRiallineamentoStreak = null;
+let ultimoRiallineamentoStreak = 0;
+const INTERVALLO_FOCUS_STREAK = 30 * 1000;
 
 async function avvia() {
   const radice = document.getElementById('app');
@@ -619,6 +623,7 @@ async function avvia() {
           // continuava a leggere V.sedute vecchio anche dopo il pull riuscito.
           await ricaricaTutto({ caricaAmiciOnline: false });
           await aggiornaCreditoStreakOnline();
+          await aggiornaStreakDaCloud();
           if (account !== accountAttivo()) return;
           // Non perdere i valori non ancora confermati nel form di una serie.
           const editando = document.activeElement?.matches?.('input, textarea, select, [contenteditable="true"]');
@@ -639,9 +644,10 @@ async function avvia() {
     attivaInvitiAutomatici();
     // Se si ritorna dall'altra PWA, recupera subito la rettifica autentica.
     if (!gestoreFocusSyncRegistrato) {
-      window.addEventListener('focus', () => {
-        if (!sb.collegato()) return;
-        aggiornaCreditoStreakOnline().then((cambiata) => { if (cambiata) disegna(); }).catch(() => {});
+      window.addEventListener('focus', () => { void riallineaStreakOnline(); });
+      window.addEventListener('online', () => { void riallineaStreakOnline(); });
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') void riallineaStreakOnline();
       });
       gestoreFocusSyncRegistrato = true;
     }
@@ -6179,6 +6185,7 @@ function vistaImpostazioni(zona) {
       // da Home e streak: rileggerla senza riavviare (PC/iPhone).
       await ricaricaTutto({ caricaAmiciOnline: false });
       await aggiornaCreditoStreakOnline();
+      if (r.fatto && !r.conflitti) await aggiornaStreakDaCloud({forza:true});
       await aggiornaStatoSalvataggio();
       if (account === accountAttivo()) disegna();
       if (r.messaggio) avviso(r.messaggio, { tipo: 'errore' });
