@@ -288,7 +288,7 @@ a { color: var(--blu); text-decoration: none; }
 /* v442: 16 icone in stile illustrato, palette viola, senza immagini realistiche
    e senza ripetere gli stessi disegni su esercizi diversi. */
 .foto-esercizio-sprite {
-  background-image: url('./img/esercizi/esercizi-illustrati-v442.webp');
+  background-image: url('./img/esercizi/esercizi-pittogrammi-viola-v443.svg');
   background-size: 400% 400%;
   background-position: var(--sprite-x, 0%) var(--sprite-y, 0%);
   background-repeat: no-repeat;
