@@ -71,7 +71,7 @@ test('v445: 16 miniature in stile viola sono immagini reali, non vecchi schemi',
   assert.equal(webp.subarray(0,4).toString('ascii'),'RIFF');
   assert.equal(webp.subarray(8,12).toString('ascii'),'WEBP');
   assert.ok(webp.length>3500 && webp.length<100000);
-  assert.match(css,/esercizi-illustrati-v445\\.webp/);
-  assert.doesNotMatch(css,/background-image: url\\('\\.\\/img\\/esercizi\\/esercizi-viola-v443\\.svg/);
-  assert.match(sw,/esercizi-illustrati-v445\\.webp/);
+  assert.ok(css.includes('esercizi-illustrati-v445.webp'));
+  assert.ok(!css.includes("background-image: url('./img/esercizi/esercizi-viola-v443.svg')"));
+  assert.ok(sw.includes('esercizi-illustrati-v445.webp'));
 });
