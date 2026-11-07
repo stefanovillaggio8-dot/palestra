@@ -91,11 +91,11 @@ test('v442: 16 icone distinte e 3 screenshot corretti, senza vecchio sfondo real
     assert.ok(posizioneIconaCorretta(e(id)),id);
   }
   const css=file('stile.css'),sw=file('sw.js');
-  assert.match(css,/esercizi-illustrati-v442\.webp/);
+  assert.match(css,/esercizi-pittogrammi-viola-v443\.svg/);
   assert.match(css,/background-size: 400% 400%/);
   assert.doesNotMatch(css,/background-image: url\('\.\/img\/esercizi\/esercizi-correzioni-v441/);
-  assert.match(sw,/esercizi-illustrati-v442\.webp/);
+  assert.match(sw,/esercizi-pittogrammi-viola-v443\.svg/);
   assert.match(sw,/streak-cloud\.js/);
   assert.match(sw,/hyperextension-rank\.js/);
-  assert.ok(statSync(new URL('../img/esercizi/esercizi-illustrati-v442.webp',import.meta.url)).size>2000);
+  assert.ok(statSync(new URL('../img/esercizi/esercizi-pittogrammi-viola-v443.svg',import.meta.url)).size>2000);
 });
