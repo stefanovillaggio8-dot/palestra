@@ -272,12 +272,43 @@ export function isoGiorno(data) {
  * interrompe la catena secondo le stesse regole normali.
  */
 function applicaRettificaStreak(stato, oggi, profilo) {
-  // La streak deve rispecchiare soltanto le date con sedute COMPLETATE e
-  // presenti nel calendario. Una vecchia rettifica del profilo non può
-  // aggiungere giorni virtuali: cancellando la seduta, il giorno torna rosso
-  // e il conteggio (attuale e record) scende nello stesso momento.
-  // Conserviamo la firma solo per compatibilità, senza applicare il credito.
-  return stato;
+  // Il titolare ha chiesto di ripristinare una streak reale, dopo aver
+  // dimenticato di segnare un giorno. Non aggiungere sedute, serie, XP
+  // o presenze retroattive: SOLO un valore di streak ancorato e auditabile.
+  const ancora = profilo?.privacy?.streak_ancora_confermata;
+  if (!ancora || ancora.origine !== 'rettifica_richiesta_dal_titolare') return stato;
+  const base = Number(ancora.giorni);
+  const data = String(ancora.data || '');
+  if (!Number.isInteger(base) || base < 1 || base > 10000
+      || !dataPossibile(data) || data > oggi) return stato;
+
+  // L'ancora costituisce una rettifica della catena sino a QUEL giorno,
+  // e conta una volta. I successivi allenamenti aggiungono solo +1 per data
+  // distinta. Un giorno programmato saltato dopo l'ancora spezza la catena.
+  const dati = new Set(stato.giorniAllenati || []);
+  const previsti = giorniPrevistiDa(profilo);
+  const previstiSet = previsti ? new Set(previsti) : null;
+  const dopo = [];
+  let corrente = giornoSuccessivo(data);
+  for (let i = 0; corrente && corrente <= oggi && i < 100000; i++) {
+    const eseguito = dati.has(corrente);
+    if (corrente < oggi && previstiSet && previstiSet.has(giornoSettimana(corrente)) && !eseguito) {
+      return stato; // torna al calcolo normale dopo un'interruzione reale
+    }
+    if (corrente < oggi && !previstiSet && !eseguito) return stato;
+    if (eseguito) dopo.push(corrente);
+    corrente = giornoSuccessivo(corrente);
+  }
+  const valore = base + dopo.length;
+  return {
+    ...stato,
+    giorni: valore, attiva: true, interrotta: false,
+    record: Math.max(stato.record || 0, valore),
+    ultimoGiorno: dopo[0] ? dopo[dopo.length - 1] : data,
+    prossimoObiettivo: prossimoMilestone(valore),
+    rettificaConfermata: { data, giorni: base },
+    testo: 'Streak di ' + valore + ' giorni confermata dal titolare. Gli allenamenti successivi si aggiungono automaticamente.',
+  };
 }
 
 /**
