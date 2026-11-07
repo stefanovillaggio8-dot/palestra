@@ -1,6 +1,6 @@
 // Miniature corrette: alcune foto storiche erano COPIE IDENTICHE per esercizi
 // completamente diversi (Face Pull -> EZ Bar Curl, row -> Bench Press, ecc.).
-// Illustrazioni 2D, senza sfondo fotografico: spritesheet 4 x 4; nessun dato personale modificato.
+// 16 illustrazioni originali con fondo e cerchio VIOLA, non nero/fotografico; nessun dato personale modificato.
 // Gli esercizi non elencati mantengono le proprie immagini e le foto personali.
 import { el } from './ui.js';
 
