@@ -45,7 +45,7 @@ test('v440: continuita 8 reps e solo nuova calibrazione sui bassi reps dello Str
     'non modificare gli altri esercizi');
 });
 
-test('v440: confronto locale 18 vs cloud 2 e' solo lettura, segnala eliminata/in corso',()=>{
+test('v440: confronto locale 18 vs cloud 2 senza scritture, segnala eliminata/in corso',()=>{
   const date=['2026-10-07','2026-10-09','2026-10-10','2026-10-13','2026-10-14',
     '2026-10-16','2026-10-17','2026-10-20','2026-10-21','2026-10-23',
     '2026-10-24','2026-10-27','2026-10-28','2026-10-30','2026-10-31',
