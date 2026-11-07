@@ -285,15 +285,17 @@ a { color: var(--blu); text-decoration: none; }
   width: 68px; height: 68px; flex-basis: 68px;
   padding: 3px; border-radius: 12px;
 }
-/* v442: 16 icone in stile illustrato, palette viola, senza immagini realistiche
-   e senza ripetere gli stessi disegni su esercizi diversi. */
+/* v443: reali icone originali verificate (sfondo #241032 e cerchio
+   #3b1458). Niente fotografie, schermate o fondi neri nei riquadri. */
 .foto-esercizio-sprite {
-  background-image: url('./img/esercizi/esercizi-illustrati-v442.webp');
+  background-color: #241032;
+  background-image: url('./img/esercizi/esercizi-viola-v443.svg');
   background-size: 400% 400%;
   background-position: var(--sprite-x, 0%) var(--sprite-y, 0%);
   background-repeat: no-repeat;
-  background-origin: padding-box;
-  background-clip: padding-box;
+  background-origin: border-box;
+  background-clip: border-box;
+  padding: 0;
 }
 @media (max-width: 390px) {
   .foto-esercizio { width: 43px; height: 43px; flex-basis: 43px; }
