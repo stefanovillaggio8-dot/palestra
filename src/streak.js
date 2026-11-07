@@ -271,13 +271,39 @@ export function isoGiorno(data) {
  * effettivamente completato conta +1. Un successivo giorno previsto saltato
  * interrompe la catena secondo le stesse regole normali.
  */
-function applicaRettificaStreak(stato, oggi, profilo) {
-  // La streak deve rispecchiare soltanto le date con sedute COMPLETATE e
-  // presenti nel calendario. Una vecchia rettifica del profilo non può
-  // aggiungere giorni virtuali: cancellando la seduta, il giorno torna rosso
-  // e il conteggio (attuale e record) scende nello stesso momento.
-  // Conserviamo la firma solo per compatibilità, senza applicare il credito.
-  return stato;
+export function applicaRettificaStreak(stato, oggi, profilo, giorniEffettivi = []) {
+  const r = profilo?.privacy?.rettifica_streak;
+  // Il vecchio credito al 31/10 riconosce UN giorno, NON 15 allenamenti
+  // aggiunti. Solo una distinta rettifica del TITOLORE con tipo esplicito
+  // può ristabilire il numero che era presente sul telefono.
+  if (!r || r.origine !== 'rettifica_richiesta_dal_titolare'
+      || r.tipo !== 'ripristino_streak_confermato') return stato;
+  const ancoraggio = String(r.data || '');
+  const base = Number(r.giorni);
+  if (!dataPossibile(ancoraggio) || ancoraggio > oggi ||
+      !Number.isInteger(base) || base < 1 || base > 10000) return stato;
+  // Nessun XP, seduta, serie o data fabbricata: deve esistere una seduta
+  // COMPLETATA NON ELIMINATA nel giorno dell'ancora.
+  if (!giorniEffettivi.includes(ancoraggio)) return stato;
+  const registratiDopoAncora = [ancoraggio, ...stato.giorniAllenati
+    .filter((g) => g > ancoraggio)];
+  const consecutivi = contaAllenamentiConsecutiviConGiorni(
+    registratiDopoAncora, stato.giorniPrevisti, oggi);
+  // Un giorno previsto saltato DOPO l'ancora spezza la streak normalmente.
+  // Il record manualmente riconosciuto rimane una conquista storica.
+  const record = Math.max(Number(stato.record) || 0, base);
+  if (consecutivi < 1) return {
+    ...stato, record, prossimoObiettivo: prossimoMilestone(record),
+  };
+  const totale = base + consecutivi - 1;
+  const finale = Math.max(record, totale);
+  return {
+    ...stato,
+    giorni: totale, record: finale, attiva: true, interrotta: false,
+    prossimoObiettivo: prossimoMilestone(finale),
+    rettificaApplicata: { data: ancoraggio, base, tipo: r.tipo },
+    testo: 'Streak di ' + totale + ' allenamenti: ripristino riconosciuto sul profilo e nuovi giorni completati. Nessuna seduta inventata.',
+  };
 }
 
 /**
@@ -329,7 +355,7 @@ export function calcolaStreak(sedute, oggi = isoGiorno(new Date()), profilo = nu
       prossimoGiorno: null, record: 0,
       prossimoObiettivo: prossimoMilestone(0),
       testo: 'Non hai ancora finito un allenamento: la streak parte dal primo allenamento.',
-    }, oggi, profilo);
+    }, oggi, profilo, fatti);
   }
   const ultimo = giorni[0];
   const consecutive = contaAllenamentiConsecutiviConGiorni(giorni, previsti, oggi);
@@ -380,7 +406,7 @@ export function calcolaStreak(sedute, oggi = isoGiorno(new Date()), profilo = nu
     record,
     prossimoObiettivo: prossimoMilestone(record),
     testo: testoStreak({ viva, valore, fattoOggi, ultimo, previsti, prossimoGiorno, oggiISO: oggi }),
-  }, oggi, profilo);
+  }, oggi, profilo, fatti);
 }
 
 /**
