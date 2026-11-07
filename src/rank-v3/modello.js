@@ -72,6 +72,7 @@ import { ESPONENTE_ALLOMETRICO, PESO_ALLOMETRICO_RIFERIMENTO, pesoAllometrico } 
 import { caricoReale, fattoreMeccanica, RIPETIZIONI_RIFERIMENTO } from '../rank-v2/curve.js';
 import { CURVA_PERCENTILI_SQUAT, CURVA_PERCENTILI_STACCO } from '../rank-v2/scalata.js';
 import { standardAutomaticoPerEsercizio, tipoAttrezzaturaRank, descriviAttrezzaturaRank } from './standard-automatici.js';
+import { riferimentoHyperextension } from '../hyperextension-rank.js';
 
 export { ESPONENTE_ALLOMETRICO, PESO_ALLOMETRICO_RIFERIMENTO, pesoAllometrico, RIPETIZIONI_RIFERIMENTO };
 
@@ -382,6 +383,7 @@ export const DIFFICOLTA_MOVIMENTO = {
   gambe_isolamento: { categoria: 'gambe', caricamento: 'macchina', difficolta: 0.9, difficoltaScala: 1, quotaCorpo: 0, modello: 'carico_esterno' },
   gambe_curl: { categoria: 'gambe', caricamento: 'macchina', difficolta: 0.9, difficoltaScala: 1, quotaCorpo: 0, modello: 'carico_esterno' },
   gambe_stabilizzatore: { categoria: 'gambe', caricamento: 'macchina', difficolta: 0.9, difficoltaScala: 1, quotaCorpo: 0, modello: 'carico_esterno' },
+  estensione_posteriore: { categoria: 'catena posteriore', caricamento: 'dischi', difficolta: 1, difficoltaScala: 1, quotaCorpo: 0, modello: 'carico_esterno' },
   tirata_verticale: { categoria: 'dorso', caricamento: 'macchina', difficolta: 1.05, difficoltaScala: 1, quotaCorpo: 0, modello: 'carico_esterno' },
   tirata_verticale_larga: { categoria: 'dorso', caricamento: 'macchina', difficolta: 1.05, difficoltaScala: 1, quotaCorpo: 0, modello: 'carico_esterno' },
   tirata_orizzontale: { categoria: 'dorso', caricamento: 'macchina', difficolta: 0.9, difficoltaScala: 1, quotaCorpo: 0, modello: 'carico_esterno' },
@@ -731,6 +733,9 @@ export const CAD_CURL_FATTORE_SOGLIE = 1;
 export function standardPerMovimento(movimento, esercizio = {}) {
   const e = esercizio || {};
   const base = STANDARD_1RM[movimento];
+  // FONTE MODELLATA, NON COMPETITIVA: distingui varianti e mostra
+  // attendibilita bassa. Nessun bonus arbitrario petto vs braccia in basso.
+  if (movimento === 'estensione_posteriore') return riferimentoHyperextension(e);
   // Prima la corrispondenza automatica ESATTA per nome/id e attrezzatura:
   // fonte originale con p5/p20/p50/p80/p95 del movimento specifico.
   const specifico = standardAutomaticoPerEsercizio(e);
