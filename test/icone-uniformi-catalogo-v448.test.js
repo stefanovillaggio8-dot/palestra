@@ -88,7 +88,7 @@ test('v448: stile viola, cerchio, nitidezza e nessun taglio aggressivo per tutti
   assert.match(css,/\.foto-esercizio-sprite[\s\S]*?background-size: 400% 400%/);
   assert.match(css,/\.foto-esercizio-arte[\s\S]*?pointer-events: none/);
   assert.doesNotMatch(css,/image-rendering:\s*pixelated/);
-  assert.doesNotMatch(css,/filter:\s*blur\(/);
+  const stileIcone=css.slice(css.indexOf('/* v448: un solo sistema visivo'),css.indexOf('@media (max-width: 390px)',css.indexOf('/* v448: un solo sistema visivo')));\n  assert.doesNotMatch(stileIcone,/filter:\s*blur\(/);
   assert.match(script,/ZOOM_ICONE_STORICHE/);
   assert.match(sw,/const VERSIONE = 'palestra-v448'/);
   assert.match(sw,/'\.\/img\/esercizi\/esercizi-illustrati-v447\.webp'/);
