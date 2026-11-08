@@ -8,6 +8,9 @@ import { el } from './ui.js';
 // Il movimento reale è Incline Single Arm Pulldown, con PETTO sul supporto.
 export const FOTO_INCLINE_PULLDOWN_CORRETTA = 'img/esercizi/incline-single-arm-pulldown-v446.svg';
 
+// Coordinate [colonna, riga] verificata per ogni movimento: 4 x 6,
+// con trazioni zavorrate e shoulder press a DISCHI approvate dall'utente.
+// Nessuna foto fotografica o sovrapposizione con esercizi diversi.
 export const POSIZIONI_ICONE_CORRETTE = Object.freeze({
   'ex-iso-lateral-low-row': [0, 0],
   'ex-iso-lateral-row': [1, 0],
@@ -25,6 +28,14 @@ export const POSIZIONI_ICONE_CORRETTE = Object.freeze({
   'ex-ez-bar-lying-tricep-extension': [1, 3],
   'ex-incline-dumbbell-bench-press': [2, 3],
   'ex-back-extension-hanging': [3, 3],
+  'ex-pull-ups': [0, 4],
+  'ex-shoulder-pin-press': [1, 4],
+  'ex-cable-lateral-raise': [2, 4],
+  'ex-back-extension-chest': [3, 4],
+  'ex-trazioni-corpo-libero': [0, 5],
+  'ex-seated-db-shoulder-press': [1, 5],
+  'ex-cable-fly': [2, 5],
+  'ex-dumbbell-concentration-curl': [3, 5],
 });
 
 export function posizioneIconaCorretta(esercizio) {
@@ -33,7 +44,7 @@ export function posizioneIconaCorretta(esercizio) {
   if (!pos) return null;
   return {
     x: pos[0] * 100 / 3,
-    y: pos[1] * 100 / 3,
+    y: pos[1] * 100 / 5,
   };
 }
 
