@@ -4,6 +4,10 @@
 // Gli esercizi non elencati mantengono le proprie immagini e le foto personali.
 import { el } from './ui.js';
 
+// ID storico: si chiama ancora ex-lying-cable-curl per non perdere lo storico.
+// Il movimento reale è Incline Single Arm Pulldown, con PETTO sul supporto.
+export const FOTO_INCLINE_PULLDOWN_CORRETTA = 'img/esercizi/incline-single-arm-pulldown-v446.svg';
+
 export const POSIZIONI_ICONE_CORRETTE = Object.freeze({
   'ex-iso-lateral-low-row': [0, 0],
   'ex-iso-lateral-row': [1, 0],
@@ -35,6 +39,12 @@ export function posizioneIconaCorretta(esercizio) {
 
 export function miniaturaEsercizio(esercizio, grande = false) {
   const classe = 'foto-esercizio' + (grande ? ' grande' : '');
+  // L'esercizio è salvato anche nelle versioni locali/cloud del catalogo:
+  // sovrascrivi solo il visual, senza migrare i dati, e risolvi la cache.
+  if (esercizio?.id === 'ex-lying-cable-curl') {
+    return el('img', { src: FOTO_INCLINE_PULLDOWN_CORRETTA,
+      alt: '', class: classe, loading: 'lazy', decoding: 'async' });
+  }
   const pos = posizioneIconaCorretta(esercizio);
   if (!pos) {
     return el('img', {
