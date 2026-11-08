@@ -97,5 +97,5 @@ test('v442: 16 icone distinte e 3 screenshot corretti, senza vecchio sfondo real
   assert.match(sw,/esercizi-completi-v450\.webp/);
   assert.match(sw,/streak-cloud\.js/);
   assert.match(sw,/hyperextension-rank\.js/);
-  assert.ok(statSync(new URL('../img/esercizi/esercizi-completi-v450.webp',import.meta.url)).size>2000);
+  assert.ok(statSync(new URL('../img/esercizi/esercizi-verificati-v451.webp',import.meta.url)).size>2000);
 });
