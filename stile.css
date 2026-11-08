@@ -317,10 +317,10 @@ a { color: var(--blu); text-decoration: none; }
   -webkit-mask-image: radial-gradient(circle at center, #000 0%, #000 69%, rgba(0,0,0,.94) 80%, transparent 100%);
   mask-image: radial-gradient(circle at center, #000 0%, #000 69%, rgba(0,0,0,.94) 80%, transparent 100%);
 }
-/* Le 16 figure HD hanno colori piu' accesi delle vecchie immagini:
+/* Atlante v451 controllato: 8x10, 79 celle; le pose tecniche non verificate riprendono le immagini storiche.
    lieve correzione tonale, SENZA blur e senza ritagliare braccia/attrezzi. */
 .foto-esercizio-sprite {
-  background-image: url('./img/esercizi/esercizi-completi-v450.webp');
+  background-image: url('./img/esercizi/esercizi-verificati-v451.webp');
   background-size: 800% 1000%;
   background-position: var(--sprite-x, 0%) var(--sprite-y, 0%);
   background-repeat: no-repeat;
