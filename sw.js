@@ -9,7 +9,7 @@
 // e il test I3 che sia quello dell'ultimo commit, altrimenti si alza la cache e si
 // lascia scritto il numero vecchio. E' successo due volte: nella v54 avevo alzato
 // solo questo file, e dopo la v55 avevo smesso di alzarlo del tutto.
-const VERSIONE = 'palestra-v445';
+const VERSIONE = 'palestra-v446';
 
 // LE 18 FOTO DEI PERSONAGGI, CON LA VERSIONE DENTRO.
 //
@@ -326,6 +326,7 @@ const FOTO = [
   './img/esercizi/lat-pulldown-lats.png',
   './img/esercizi/db-lateral-raise.png',
   './img/esercizi/incline-single-arm-pulldown.png',
+  './img/esercizi/incline-single-arm-pulldown-v446.svg',
 
   './img/esercizi/incline-side-lying-lateral-raise.png',
   './img/esercizi/iso-lateral-low-row.png',
