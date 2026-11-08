@@ -88,5 +88,5 @@ test('v448: stile viola, cerchio, nitidezza e nessun taglio aggressivo per tutti
   assert.doesNotMatch(stileIcone,/filter:\s*blur\(/);
   assert.match(script,/ZOOM_ICONE_STORICHE/);
   assert.match(sw,/const VERSIONE = 'palestra-v451'/);
-  assert.match(sw,/'\.\/img\/esercizi\/esercizi-completi-v450\.webp'/);
+  assert.match(sw,/'\.\/img\/esercizi\/esercizi-verificati-v451\.webp'/);
 });
