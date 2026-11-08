@@ -5,7 +5,7 @@ import { ESERCIZI } from '../src/dati-iniziali.js';
 import { POSIZIONI_ICONE_CORRETTE, FOTO_INCLINE_PULLDOWN_CORRETTA, posizioneIconaCorretta } from '../src/exercise-icons.js';
 
 const leggi = path => readFileSync(new URL('../' + path, import.meta.url), 'utf8');
-const sprite = readFileSync(new URL('../img/esercizi/esercizi-completi-v450.webp', import.meta.url));
+const sprite = readFileSync(new URL('../img/esercizi/esercizi-verificati-v451.webp', import.meta.url));
 
 test('v447: tutti i 16 esercizi del nuovo foglio hanno una cella unica e un ID reale', () => {
   const posizioni = Object.entries(POSIZIONI_ICONE_CORRETTE);
@@ -34,8 +34,8 @@ test('v447: nuovo asset binario alta definizione e diverso dal vecchio file', ()
   assert.match(css,/background-size:\s*800% 1000%/);
   assert.doesNotMatch(css,/background-image: url\('\.\/img\/esercizi\/esercizi-illustrati-v445\.webp'\)/);
   assert.match(sw,/'\.\/img\/esercizi\/esercizi-completi-v450\.webp'/);
-  assert.match(sw,/palestra-v450/);
-  assert.match(leggi('index.html'),/PALESTRA_VERSIONE = 'palestra-v450'/);
+  assert.match(sw,/palestra-v451/);
+  assert.match(leggi('index.html'),/PALESTRA_VERSIONE = 'palestra-v451'/);
 });
 
 test('v447: Incline Single Arm Pulldown v446 rimane corretto e separato', () => {
