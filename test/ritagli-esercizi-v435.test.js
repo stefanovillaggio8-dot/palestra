@@ -43,7 +43,7 @@ test('v435: 11 ritagli restano immagini quadrate senza cambiare la scheda', () =
 test('v435: cache e HTML allineati, senza cambiare il Rank', () => {
   const html = leggi('index.html').toString('utf8');
   const sw = leggi('sw.js').toString('utf8');
-  assert.ok(html.includes("window.PALESTRA_VERSIONE = 'palestra-v446'"));
-  assert.ok(sw.includes("const VERSIONE = 'palestra-v446'"));
+  assert.ok(html.includes("window.PALESTRA_VERSIONE = 'palestra-v447'"));
+  assert.ok(sw.includes("const VERSIONE = 'palestra-v447'"));
   assert.ok(sw.includes("'./img/esercizi/cad-curl-app.jpg'"));
 });
