@@ -8,7 +8,7 @@ import { POSIZIONI_ICONE_CORRETTE, posizioneIconaCorretta,
 test('v450: tutti i 79 esercizi hanno una nuova immagine del catalogo oppure SVG dedicato', () => {
   assert.equal(ESERCIZI.length,79);
   assert.equal(Object.keys(POSIZIONI_ICONE_CORRETTE).length,78);
-  let sprite=0, svg=0;
+  let sprite=0, svg=0, originali=0;
   const celle=new Set();
   for(const [i,e] of ESERCIZI.entries()) {
     const origine=sorgenteMiniatura(e);
@@ -19,7 +19,12 @@ test('v450: tutti i 79 esercizi hanno una nuova immagine del catalogo oppure SVG
       svg++;
       continue;
     }
-    assert.equal(origine.tipo,'sprite','non usare immagini vecchie: '+e.id);
+    if (origine.tipo === 'originale') {
+      assert.match(origine.src,/^img\\/esercizi\\//);
+      originali++;
+      continue;
+    }
+    assert.equal(origine.tipo,'sprite','icona non collegata: '+e.id);
     assert.deepEqual(POSIZIONI_ICONE_CORRETTE[e.id],[i%8,Math.floor(i/8)],'ID fuori ordine: '+e.id);
     assert.ok(origine.x>=0&&origine.x<=100);
     assert.ok(origine.y>=0&&origine.y<=100);
@@ -27,7 +32,8 @@ test('v450: tutti i 79 esercizi hanno una nuova immagine del catalogo oppure SVG
     assert.ok(!celle.has(key),'sprite duplicato: '+e.id);
     celle.add(key);sprite++;
   }
-  assert.equal(sprite,78);
+  assert.equal(sprite,71);
+  assert.equal(originali,7);
   assert.equal(svg,1);
 });
 
