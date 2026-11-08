@@ -96,7 +96,7 @@ test('1. l\'app si avvia e mostra i 4 giorni', () => {
 test('2. ogni giorno ha foto esercizi e il bottone "Inizia allenamento"', () => {
   for (const g of perClasse(app, 'scheda-giorno')) {
     assert.ok(pulsante(g, 'Inizia allenamento'));
-    assert.ok(trova(g, (n) => n.tagName === 'IMG').length >= 3);
+    assert.ok(perClasse(g, 'foto-esercizio-uniforme').length >= 3, 'ogni esercizio deve avere una miniatura visibile, IMG o sprite');
   }
 });
 
