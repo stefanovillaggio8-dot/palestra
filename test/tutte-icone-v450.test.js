@@ -8,7 +8,7 @@ import { POSIZIONI_ICONE_CORRETTE, posizioneIconaCorretta,
 test('v450: tutti i 79 esercizi hanno una nuova immagine del catalogo oppure SVG dedicato', () => {
   assert.equal(ESERCIZI.length,79);
   assert.equal(Object.keys(POSIZIONI_ICONE_CORRETTE).length,78);
-  let sprite=0, svg=0;
+  let sprite=0, svg=0, originali=0;
   const celle=new Set();
   for(const [i,e] of ESERCIZI.entries()) {
     const origine=sorgenteMiniatura(e);
@@ -19,7 +19,12 @@ test('v450: tutti i 79 esercizi hanno una nuova immagine del catalogo oppure SVG
       svg++;
       continue;
     }
-    assert.equal(origine.tipo,'sprite','non usare immagini vecchie: '+e.id);
+    if (origine.tipo === 'originale') {
+      assert.ok(origine.src.startsWith('img/esercizi/'),'foto fuori dal catalogo');
+      originali++;
+      continue;
+    }
+    assert.equal(origine.tipo,'sprite','icona non collegata: '+e.id);
     assert.deepEqual(POSIZIONI_ICONE_CORRETTE[e.id],[i%8,Math.floor(i/8)],'ID fuori ordine: '+e.id);
     assert.ok(origine.x>=0&&origine.x<=100);
     assert.ok(origine.y>=0&&origine.y<=100);
@@ -27,21 +32,22 @@ test('v450: tutti i 79 esercizi hanno una nuova immagine del catalogo oppure SVG
     assert.ok(!celle.has(key),'sprite duplicato: '+e.id);
     celle.add(key);sprite++;
   }
-  assert.equal(sprite,78);
+  assert.equal(sprite,71);
+  assert.equal(originali,7);
   assert.equal(svg,1);
 });
 
 test('v450: immagine WebP completa, caching PWA e scala 8x10',()=>{
-  const asset=readFileSync(new URL('../img/esercizi/esercizi-completi-v450.webp', import.meta.url));
+  const asset=readFileSync(new URL('../img/esercizi/esercizi-verificati-v451.webp', import.meta.url));
   assert.equal(asset.toString('ascii',0,4),'RIFF');
   assert.equal(asset.toString('ascii',8,12),'WEBP');
   assert.ok(asset.length>150000,'atlante troppo compresso');
   const css=readFileSync(new URL('../stile.css',import.meta.url),'utf8');
   const sw=readFileSync(new URL('../sw.js',import.meta.url),'utf8');
   const html=readFileSync(new URL('../index.html',import.meta.url),'utf8');
-  assert.match(css,/esercizi-completi-v450\.webp/);
+  assert.match(css,/esercizi-verificati-v451\.webp/);
   assert.match(css,/background-size: 800% 1000%/);
-  assert.match(sw,/palestra-v450/);
-  assert.match(sw,/esercizi-completi-v450\.webp/);
-  assert.match(html,/PALESTRA_VERSIONE = 'palestra-v450'/);
+  assert.match(sw,/palestra-v451/);
+  assert.match(sw,/esercizi-verificati-v451\.webp/);
+  assert.match(html,/PALESTRA_VERSIONE = 'palestra-v451'/);
 });

@@ -73,5 +73,5 @@ test('v441: tutte le viste usano miniatura e CSS/sync mantengono la spritesheet'
   assert.match(css,/\.foto-esercizio-sprite[\s\S]*?background-size: 800% 1000%/);
   assert.match(premium,/\.app-vista-allenamento \.pillola-esercizio \.foto-esercizio[\s\S]*?flex-basis:30px/);
   assert.match(sw,/'\.\/src\/exercise-icons\.js'/);
-  assert.match(sw,/'\.\/img\/esercizi\/esercizi-completi-v450\.webp'/);
+  assert.match(sw,/'\.\/img\/esercizi\/esercizi-verificati-v451\.webp'/);
 });

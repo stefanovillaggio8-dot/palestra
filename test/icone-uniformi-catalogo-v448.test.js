@@ -27,7 +27,7 @@ test('v448: catalogo completo: stessa cornice e fonte per ciascuno dei 79 eserci
       assert.ok(src.zoom>=1 && src.zoom<=1.28,e.id);
     }
   }
-  assert.deepEqual(conteggi,{sprite:78,dedicata:1,originale:0});
+  assert.deepEqual(conteggi,{sprite:71,dedicata:1,originale:7});
   assert.equal(FOTO_INCLINE_PULLDOWN_CORRETTA,'img/esercizi/incline-single-arm-pulldown-v446.svg');
 });
 
@@ -87,6 +87,6 @@ test('v448: stile viola, cerchio, nitidezza e nessun taglio aggressivo per tutti
   const stileIcone=css.slice(css.indexOf('/* v448: un solo sistema visivo'),css.indexOf('@media (max-width: 390px)',css.indexOf('/* v448: un solo sistema visivo')));
   assert.doesNotMatch(stileIcone,/filter:\s*blur\(/);
   assert.match(script,/ZOOM_ICONE_STORICHE/);
-  assert.match(sw,/const VERSIONE = 'palestra-v450'/);
-  assert.match(sw,/'\.\/img\/esercizi\/esercizi-completi-v450\.webp'/);
+  assert.match(sw,/const VERSIONE = 'palestra-v451'/);
+  assert.match(sw,/'\.\/img\/esercizi\/esercizi-verificati-v451\.webp'/);
 });
