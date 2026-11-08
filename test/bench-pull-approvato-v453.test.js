@@ -22,8 +22,8 @@ test('v453: Bench Pull usa soltanto la miniatura con due manubri approvata', () 
   assert.equal(createHash('sha256').update(img).digest('hex'),
     '48f919f5e50d581284c04789c81fc70227be0fd05a1970955140437c82a2f1e6',
     'Il Bench Pull approvato non va sostituito senza una nuova approvazione');
-  assert.match(txt('verifica-icone.html'),/bench-pull-v453\\.webp/);
-  assert.match(txt('sw.js'),/bench-pull-v453\\.webp/);
+  assert.match(txt('verifica-icone.html'),/bench-pull-v453\.webp/);
+  assert.match(txt('sw.js'),/bench-pull-v453\.webp/);
   assert.match(txt('index.html'),/palestra-v453/);
   assert.match(txt('sw.js'),/palestra-v453/);
 });
