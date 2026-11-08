@@ -116,10 +116,26 @@ export const ZOOM_ICONE_STORICHE = Object.freeze({
   'ex-seated-cable-row': 1.11,
 });
 
+// Una nuova immagine con l'attrezzo SBAGLIATO è peggio di una miniatura
+// storica meno nitida. Queste sette varianti conservano la posa specifica
+// già disponibile finché il disegno nuovo non supera la verifica manuale.
+// Non alterare le foto degli esercizi personalizzati.
+export const FOTO_VERIFICATE_TECNICAMENTE = Object.freeze({
+  "ex-one-arm-overhead-tricep-extension": "img/esercizi/bodyweight-overhead-tricep-ext.png",
+  "ex-scott-bench-curl": "img/esercizi/cad-curl-app.jpg",
+  "ex-chest-supported-shrug": "img/esercizi/chest-supported-dumbbell-shrug.png",
+  "ex-lat-pulldown-lats": "img/esercizi/lat-pulldown-lats.png",
+  "ex-bench-pull": "img/esercizi/bench-pull.png",
+  "ex-smith-machine-bent-over-row": "img/esercizi/smith-machine-bent-over-row.png",
+  "ex-smith-machine-shrug": "img/esercizi/smith-machine-shrug.png"
+});
+
 export function sorgenteMiniatura(esercizio) {
   if (esercizio?.id === 'ex-lying-cable-curl') {
     return { tipo: 'dedicata', src: FOTO_INCLINE_PULLDOWN_CORRETTA, zoom: 1 };
   }
+  const preferita = FOTO_VERIFICATE_TECNICAMENTE[esercizio?.id];
+  if (preferita) return { tipo: 'originale', src: preferita, zoom: 1.04 };
   const posizione = posizioneIconaCorretta(esercizio);
   if (posizione) return { tipo: 'sprite', ...posizione, zoom: 1 };
   return {
