@@ -285,11 +285,11 @@ a { color: var(--blu); text-decoration: none; }
   width: 68px; height: 68px; flex-basis: 68px;
   padding: 3px; border-radius: 12px;
 }
-/* v445: 16 illustrazioni leggibili anche a 30-46px, con persone, attrezzi e
+/* v447: foglio illustrato revisionato, 768px: nitido anche su display Retina,
    gesti realmente riconoscibili; stessa palette viola delle icone originali. */
 .foto-esercizio-sprite {
   background-color: #241032;
-  background-image: url('./img/esercizi/esercizi-illustrati-v445.webp');
+  background-image: url('./img/esercizi/esercizi-illustrati-v447.webp');
   background-size: 400% 400%;
   background-position: var(--sprite-x, 0%) var(--sprite-y, 0%);
   background-repeat: no-repeat;
