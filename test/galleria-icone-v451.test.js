@@ -14,6 +14,7 @@ test('v451: galleria controllabile, 79 icone corrette ID/nome e filtro funzionan
   }
   assert.match(html,/esercizi-verificati-v451\.webp/);
   assert.match(html,/incline-single-arm-pulldown-v446\.svg/);
+  assert.match(html,/img\/esercizi\/bench-pull-v453\.webp/);
   for(const file of ['dips-zavorrati-corretti-v452.svg','wrist-curl-cavo-v452.svg','strict-curl-parete-v452.svg']) {
     assert.ok(html.includes(file),'SVG v452 mancante dalla galleria: '+file);
   }

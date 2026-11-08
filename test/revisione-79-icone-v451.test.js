@@ -59,11 +59,11 @@ test('v451: l atlante HD e quello effettivamente controllato',()=>{
   const sw=txt('sw.js'),html=txt('index.html'),css=txt('stile.css');
   assert.match(css,/background-image: url\('\.\/img\/esercizi\/esercizi-verificati-v451\.webp'\)/);
   assert.match(css,/background-size: 800% 1000%/);
-  assert.match(sw,/palestra-v452/);
+  assert.match(sw,/palestra-v453/);
   assert.match(sw,/esercizi-verificati-v451\.webp/);
-  assert.match(html,/PALESTRA_VERSIONE = 'palestra-v452'/);
-  assert.match(html,/stile\.css\?v=452/);
-  assert.match(html,/app\.js\?v=452/);
+  assert.match(html,/PALESTRA_VERSIONE = 'palestra-v453'/);
+  assert.match(html,/stile\.css\?v=453/);
+  assert.match(html,/app\.js\?v=453/);
   const doc=txt('docs/verifica-79-icone-v451.md');
   assert.match(doc,/## Registro esercizio per esercizio/);
   assert.equal((doc.match(/^\| \d+ \|/gm)||[]).length,79);

@@ -125,7 +125,7 @@ export const FOTO_VERIFICATE_TECNICAMENTE = Object.freeze({
   "ex-scott-bench-curl": "img/esercizi/cad-curl-app.jpg",
   "ex-chest-supported-shrug": "img/esercizi/chest-supported-dumbbell-shrug.png",
   "ex-lat-pulldown-lats": "img/esercizi/lat-pulldown-lats.png",
-  "ex-bench-pull": "img/esercizi/bench-pull.png",
+  "ex-bench-pull": "img/esercizi/bench-pull-v453.webp",
   "ex-smith-machine-bent-over-row": "img/esercizi/smith-machine-bent-over-row.png",
   "ex-smith-machine-shrug": "img/esercizi/smith-machine-shrug.png",
   // v452: tre illustrazioni tecniche dedicate; non sostituire le 76 già verificate.
@@ -139,7 +139,7 @@ export function sorgenteMiniatura(esercizio) {
     return { tipo: 'dedicata', src: FOTO_INCLINE_PULLDOWN_CORRETTA, zoom: 1 };
   }
   const preferita = FOTO_VERIFICATE_TECNICAMENTE[esercizio?.id];
-  if (preferita) return { tipo: 'originale', src: preferita, zoom: 1.04 };
+  if (preferita) return { tipo: 'originale', src: preferita, zoom: esercizio?.id === 'ex-bench-pull' ? 1 : 1.04 };
   const posizione = posizioneIconaCorretta(esercizio);
   if (posizione) return { tipo: 'sprite', ...posizione, zoom: 1 };
   return {

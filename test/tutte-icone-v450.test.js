@@ -47,7 +47,7 @@ test('v450: immagine WebP completa, caching PWA e scala 8x10',()=>{
   const html=readFileSync(new URL('../index.html',import.meta.url),'utf8');
   assert.match(css,/esercizi-verificati-v451\.webp/);
   assert.match(css,/background-size: 800% 1000%/);
-  assert.match(sw,/palestra-v452/);
+  assert.match(sw,/palestra-v453/);
   assert.match(sw,/esercizi-verificati-v451\.webp/);
-  assert.match(html,/PALESTRA_VERSIONE = 'palestra-v452'/);
+  assert.match(html,/PALESTRA_VERSIONE = 'palestra-v453'/);
 });
