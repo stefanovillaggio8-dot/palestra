@@ -30,10 +30,10 @@ test('v447: nuovo asset binario alta definizione e diverso dal vecchio file', ()
   assert.ok(sprite.byteLength >= 80_000, 'non utilizzare miniature troppo compresse');
   const css=leggi('stile.css');
   const sw=leggi('sw.js');
-  assert.match(css,/background-image: url\('\.\/img\/esercizi\/esercizi-completi-v450\.webp'\)/);
+  assert.match(css,/background-image: url\('\.\/img\/esercizi\/esercizi-verificati-v451\.webp'\)/);
   assert.match(css,/background-size:\s*800% 1000%/);
   assert.doesNotMatch(css,/background-image: url\('\.\/img\/esercizi\/esercizi-illustrati-v445\.webp'\)/);
-  assert.match(sw,/'\.\/img\/esercizi\/esercizi-completi-v450\.webp'/);
+  assert.match(sw,/'\.\/img\/esercizi\/esercizi-verificati-v451\.webp'/);
   assert.match(sw,/palestra-v451/);
   assert.match(leggi('index.html'),/PALESTRA_VERSIONE = 'palestra-v451'/);
 });
