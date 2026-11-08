@@ -20,7 +20,7 @@ test('v450: tutti i 79 esercizi hanno una nuova immagine del catalogo oppure SVG
       continue;
     }
     if (origine.tipo === 'originale') {
-      assert.match(origine.src,/^img\\/esercizi\\//);
+      assert.ok(origine.src.startsWith('img/esercizi/'),'foto fuori dal catalogo');
       originali++;
       continue;
     }
@@ -45,9 +45,9 @@ test('v450: immagine WebP completa, caching PWA e scala 8x10',()=>{
   const css=readFileSync(new URL('../stile.css',import.meta.url),'utf8');
   const sw=readFileSync(new URL('../sw.js',import.meta.url),'utf8');
   const html=readFileSync(new URL('../index.html',import.meta.url),'utf8');
-  assert.match(css,/esercizi-completi-v450\.webp/);
+  assert.match(css,/esercizi-verificati-v451\.webp/);
   assert.match(css,/background-size: 800% 1000%/);
   assert.match(sw,/palestra-v451/);
-  assert.match(sw,/esercizi-completi-v450\.webp/);
+  assert.match(sw,/esercizi-verificati-v451\.webp/);
   assert.match(html,/PALESTRA_VERSIONE = 'palestra-v451'/);
 });
