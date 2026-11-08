@@ -9,7 +9,7 @@
 // e il test I3 che sia quello dell'ultimo commit, altrimenti si alza la cache e si
 // lascia scritto il numero vecchio. E' successo due volte: nella v54 avevo alzato
 // solo questo file, e dopo la v55 avevo smesso di alzarlo del tutto.
-const VERSIONE = 'palestra-v449';
+const VERSIONE = 'palestra-v450';
 
 // LE 18 FOTO DEI PERSONAGGI, CON LA VERSIONE DENTRO.
 //
@@ -36,7 +36,7 @@ const FILE = [
   './src/exercise-icons.js',
   './src/hyperextension-rank.js',
   './src/streak-cloud.js',
-  './img/esercizi/esercizi-verificati-v449.webp',
+  './img/esercizi/esercizi-completi-v450.webp',
   './src/strict-curl.js',
   './img/esercizi/strict-curl-ez-wall.jpg',
   './src/validazione-serie.js',
