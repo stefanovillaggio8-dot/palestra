@@ -16,7 +16,7 @@ I sette fallback mantengono l'immagine tecnicamente più adatta tra le risorse d
 
 | # | Esercizio | Sorgente effettiva | Esito / nota |
 |---|---|---|---|
-| 1 | One Arm Overhead Tricep Extension | Storica specifica | Una sola mano sopra la testa: riutilizzata fonte storica, definizione limitata |
+| 1 | One Arm Overhead Tricep Extension | v454 specifica | Nuova illustrazione a manubrio singolo sopra la testa |
 | 2 | Chest Press | Atlante v451 | Sostituita dopo revisione; figura da verificare anche su telefono |
 | 3 | Cable Hammer Curl | Atlante v451 | Sostituita dopo revisione; figura da verificare anche su telefono |
 | 4 | Cable Lateral Raise | Atlante v451 | Sostituita dopo revisione; figura da verificare anche su telefono |
@@ -27,12 +27,12 @@ I sette fallback mantengono l'immagine tecnicamente più adatta tra le risorse d
 | 9 | Dumbbell Bench Pull | Atlante v451 | Sostituita dopo revisione; figura da verificare anche su telefono |
 | 10 | Seated Dumbbell Shoulder Press | Atlante v451 | Mantenuta dopo controllo visivo |
 | 11 | Cable Fly | Atlante v451 | Sostituita dopo revisione; figura da verificare anche su telefono |
-| 12 | CAD Curl | Storica specifica | CAD Curl inverso: fonte storica, distinguere dalla Scott standard |
+| 12 | CAD Curl | v454 specifica | Nuova illustrazione al cavo su panca Scott; ancora da confrontare con la specifica variante CAD Curl inverso |
 | 13 | Single Arm Tricep Pushdown | Atlante v451 | Sostituita dopo revisione; figura da verificare anche su telefono |
 | 14 | Seated Leg Curl | Atlante v451 | Mantenuta dopo controllo visivo |
 | 15 | Smith Machine Incline Bench Press | Atlante v451 | Sostituita dopo revisione; figura da verificare anche su telefono |
 | 16 | Seated Cable Row | Atlante v451 | Mantenuta dopo controllo visivo |
-| 17 | Chest Supported Dumbbell Shrug | Storica specifica | Petto sul supporto e gomiti estesi; non usare disegno rematore |
+| 17 | Chest Supported Dumbbell Shrug | v454 specifica | Due manubri, petto sostenuto dalla panca inclinata |
 | 18 | Sled Press Calf Raise | Atlante v451 | Mantenuta dopo controllo visivo |
 | 19 | Single Leg Press | Atlante v451 | Sostituita dopo revisione; figura da verificare anche su telefono |
 | 20 | One Arm Dumbbell Preacher Curl | Atlante v451 | Sostituita dopo revisione; figura da verificare anche su telefono |
@@ -41,7 +41,7 @@ I sette fallback mantengono l'immagine tecnicamente più adatta tra le risorse d
 | 23 | Dips zavorrati | SVG dedicata v452 | Disco chiaramente sospeso alla cintura, distinto dalle dips a corpo libero |
 | 24 | Wrist Curl | SVG dedicata v452 | Variante personale al cavo monocarrucola, non curl con bilanciere |
 | 25 | Iso-Lateral Row | Atlante v451 | Mantenuta dopo controllo visivo |
-| 26 | Lat Pulldown presa neutra | Storica specifica | Presa neutra parallela, non confonderla con larga o stretta |
+| 26 | Lat Pulldown presa neutra | v454 specifica | Impugnatura parallela neutra chiaramente visibile |
 | 27 | Dumbbell Lateral Raise | Atlante v451 | Mantenuta dopo controllo visivo |
 | 28 | Incline Single Arm Pulldown | SVG approvato | Mantenuta dopo controllo visivo |
 | 29 | Incline Side Lying Lateral Raise | Atlante v451 | Mantenuta dopo controllo visivo |
@@ -57,7 +57,7 @@ I sette fallback mantengono l'immagine tecnicamente più adatta tra le risorse d
 | 39 | Dumbbell Concentration Curl | Atlante v451 | Sostituita dopo revisione; figura da verificare anche su telefono |
 | 40 | Dumbbell Curl | Atlante v451 | Sostituita dopo revisione; figura da verificare anche su telefono |
 | 41 | Dumbbell Deadlift | Atlante v451 | Mantenuta dopo controllo visivo |
-| 42 | Dumbbell Face Pull | Atlante v451 | Il nome è una variante atipica: la figura non è una face pull classica al cavo |
+| 42 | Dumbbell Face Pull | v454 specifica | Variante ai manubri con gomiti alti: controllo tecnico ancora consigliato |
 | 43 | Incline Bench Press | Atlante v451 | Mantenuta dopo controllo visivo |
 | 44 | Incline Cable Curl | Atlante v451 | Mantenuta dopo controllo visivo |
 | 45 | Incline Dumbbell Bench Press | Atlante v451 | Sostituita dopo revisione; figura da verificare anche su telefono |
@@ -78,7 +78,7 @@ I sette fallback mantengono l'immagine tecnicamente più adatta tra le risorse d
 | 60 | Bench Pull | Illustrazione approvata v453 | Due manubri singoli, petto sostenuto dallo schienale inclinato a circa 26°, sedile fissato alla panca |
 | 61 | Bent Arm Barbell Pullover | Atlante v451 | Mantenuta dopo controllo visivo |
 | 62 | Bent Over Dumbbell Row | Atlante v451 | Mantenuta dopo controllo visivo |
-| 63 | Bent Over Row | Atlante v451 | Controllare il dettaglio ridotto del barbell row nell'atlante |
+| 63 | Bent Over Row | v454 specifica | Bilanciere e dischi chiaramente visibili durante il rematore |
 | 64 | Cable Bicep Curl | Atlante v451 | Sostituita dopo revisione; figura da verificare anche su telefono |
 | 65 | Cable Chest Press | Atlante v451 | Sostituita dopo revisione; figura da verificare anche su telefono |
 | 66 | Cable Crunch | Atlante v451 | Sostituita dopo revisione; figura da verificare anche su telefono |
@@ -91,8 +91,8 @@ I sette fallback mantengono l'immagine tecnicamente più adatta tra le risorse d
 | 73 | Hyperextension disco al petto | Atlante v451 | Sostituita dopo revisione; figura da verificare anche su telefono |
 | 74 | Hyperextension braccia tese in basso | Atlante v451 | Sostituita dopo revisione; figura da verificare anche su telefono |
 | 75 | Smith Machine Bench Press | Atlante v451 | Mantenuta dopo controllo visivo |
-| 76 | Smith Machine Bent Over Row | Storica specifica | Corpo inclinato e bilanciere vincolato alle guide Smith |
-| 77 | Smith Machine Shrug | Storica specifica | Barra vincolata alle guide Smith, non due manubri |
+| 76 | Smith Machine Bent Over Row | v454 specifica | Rematore con bilanciere guidato e dischi visibili |
+| 77 | Smith Machine Shrug | v454 specifica | Scrollate al multipower con dischi ai lati |
 | 78 | Trazioni a corpo libero | Atlante v451 | Sostituita dopo revisione; figura da verificare anche su telefono |
 | 79 | Dips a corpo libero | Atlante v451 | Sostituita dopo revisione; figura da verificare anche su telefono |
 
@@ -112,3 +112,7 @@ L'atlante v451 conteneva ancora 3 incoerenze: nei dips zavorrati mancava la pias
 ## Correzione specifica v453 — Bench Pull
 
 Per il Bench Pull della scheda personale viene utilizzata la posa con due manubri su panca regolabile inclinata a circa 26°. Immagine approvata dall'utente e inclusa in `img/esercizi/bench-pull-v453.webp`. Solo `ex-bench-pull` riceve questa sorgente; gli altri 78 esercizi non cambiano, così come Rank, serie e streak. File WebP locale e precache PWA.
+
+## v454 · Otto immagini specifiche
+
+Sono state pubblicate otto illustrazioni WebP quadrate (320×320), tutte con la stessa cornice e sfondo viola, mappate agli ID degli esercizi. Il CAD Curl resta segnalato da ricontrollare perché l'illustrazione mostra un cavo e una panca Scott: verificare che sia la variante inversa richiesta. Il Dumbbell Face Pull è una variante non convenzionale da validare. Nessuna modifica a Rank, schede, serie, streak o account.
