@@ -271,31 +271,60 @@ a { color: var(--blu); text-decoration: none; }
   border-radius: 99px; padding: 5px 11px 5px 5px;
   font-size: .86rem; font-weight: 600;
 }
-/* v440: icone complete, senza ritaglio circolare di braccia, bilancieri
-   o panche. L'immagine resta intera e riconoscibile anche sulla PWA iPhone. */
+/* v448: un solo sistema visivo per TUTTE le miniature, incluse le
+   immagini storiche, lo sprite e le foto caricate negli esercizi personali.
+   Sfondo viola, spotlight tondo, bordo, dimensioni e nitidezza coerenti. */
 .foto-esercizio {
+  position: relative;
   width: 46px; height: 46px; flex: 0 0 46px;
-  box-sizing: border-box; display: block;
-  object-fit: contain; object-position: center center;
-  padding: 2px; border-radius: 10px;
-  background: #281a43;
-  border: 1px solid rgba(183, 145, 246, .22);
+  box-sizing: border-box; display: block; overflow: hidden;
+  isolation: isolate;
+  object-fit: contain;
+  border-radius: 11px;
+  background: linear-gradient(135deg, #2a0d3e, #1b092c);
+  border: 1px solid rgba(183, 145, 246, .38);
+  box-shadow: inset 0 0 0 1px rgba(117, 53, 170, .15);
 }
 .foto-esercizio.grande {
   width: 68px; height: 68px; flex-basis: 68px;
-  padding: 3px; border-radius: 12px;
+  border-radius: 13px;
 }
-/* v447: foglio illustrato revisionato, 768px: nitido anche su display Retina,
-   gesti realmente riconoscibili; stessa palette viola delle icone originali. */
+.foto-esercizio-uniforme::before {
+  content: '';
+  position: absolute;
+  inset: 5%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 44% 34%, #52176c 0%, #39104f 69%, #2b0b43 100%);
+  pointer-events: none;
+}
+.foto-esercizio-arte {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%; height: 100%;
+  min-width: 0; min-height: 0;
+  padding: 0; margin: 0; border: 0;
+  background-color: transparent;
+  border-radius: 0;
+  pointer-events: none;
+}
+.foto-esercizio-arte-originale {
+  object-fit: contain;
+  object-position: center;
+  transform: scale(var(--icon-zoom, 1.08));
+  transform-origin: 50% 50%;
+  filter: contrast(1.08) saturate(.96);
+  -webkit-mask-image: radial-gradient(circle at center, #000 0%, #000 69%, rgba(0,0,0,.94) 80%, transparent 100%);
+  mask-image: radial-gradient(circle at center, #000 0%, #000 69%, rgba(0,0,0,.94) 80%, transparent 100%);
+}
+/* Le 16 figure HD hanno colori piu' accesi delle vecchie immagini:
+   lieve correzione tonale, SENZA blur e senza ritagliare braccia/attrezzi. */
 .foto-esercizio-sprite {
-  background-color: #241032;
   background-image: url('./img/esercizi/esercizi-illustrati-v447.webp');
   background-size: 400% 400%;
   background-position: var(--sprite-x, 0%) var(--sprite-y, 0%);
   background-repeat: no-repeat;
-  background-origin: border-box;
-  background-clip: border-box;
-  padding: 0;
+  filter: brightness(.86) saturate(.78) contrast(1.01);
 }
 @media (max-width: 390px) {
   .foto-esercizio { width: 43px; height: 43px; flex-basis: 43px; }
