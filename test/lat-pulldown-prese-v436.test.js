@@ -51,6 +51,6 @@ test('v436: CAD Curl icona offline e versione PWA allineata',()=>{
  const sw=readFileSync(new URL('../sw.js',import.meta.url),'utf8');
  const index=readFileSync(new URL('../index.html',import.meta.url),'utf8');
  assert.match(sw,/\.\/img\/esercizi\/cad-curl-app\.jpg/);
- assert.match(sw,/const VERSIONE = 'palestra-v453'/);
- assert.match(index,/window\.PALESTRA_VERSIONE = 'palestra-v453'/);
+ assert.match(sw,/const VERSIONE = 'palestra-v454'/);
+ assert.match(index,/window\.PALESTRA_VERSIONE = 'palestra-v454'/);
 });
