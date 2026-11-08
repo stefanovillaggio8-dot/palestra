@@ -1,6 +1,6 @@
-# Revisione dettagliata delle 79 icone · v451
+# Revisione dettagliata delle 79 icone · v451 + correzioni mirate v452
 
-Verifica visiva del catalogo e dei collegamenti ID. Non è una certificazione scientifica delle posture. **79 esercizi censiti, 42 celle riviste, 7 immagini storiche specifiche preservate, 1 SVG dedicata**. Nessuna modifica a serie, schede, carichi, Rank, XP o streak.
+Verifica visiva del catalogo e dei collegamenti ID. Non è una certificazione scientifica delle posture. **79 esercizi censiti, 42 celle riviste, 7 immagini storiche specifiche preservate, 4 SVG dedicate (3 nuove nella v452)**. Nessuna modifica a serie, schede, carichi, Rank, XP o streak.
 
 ## Criteri controllati
 
@@ -38,8 +38,8 @@ I sette fallback mantengono l'immagine tecnicamente più adatta tra le risorse d
 | 20 | One Arm Dumbbell Preacher Curl | Atlante v451 | Sostituita dopo revisione; figura da verificare anche su telefono |
 | 21 | One Arm Cable Reverse Fly | Atlante v451 | Mantenuta dopo controllo visivo |
 | 22 | Trazioni zavorrate | Atlante v451 | Sostituita dopo revisione; figura da verificare anche su telefono |
-| 23 | Dips zavorrati | Atlante v451 | Sostituita dopo revisione; figura da verificare anche su telefono |
-| 24 | Wrist Curl | Atlante v451 | Mantenuta dopo controllo visivo |
+| 23 | Dips zavorrati | SVG dedicata v452 | Disco chiaramente sospeso alla cintura, distinto dalle dips a corpo libero |
+| 24 | Wrist Curl | SVG dedicata v452 | Variante personale al cavo monocarrucola, non curl con bilanciere |
 | 25 | Iso-Lateral Row | Atlante v451 | Mantenuta dopo controllo visivo |
 | 26 | Lat Pulldown presa neutra | Storica specifica | Presa neutra parallela, non confonderla con larga o stretta |
 | 27 | Dumbbell Lateral Raise | Atlante v451 | Mantenuta dopo controllo visivo |
@@ -63,7 +63,7 @@ I sette fallback mantengono l'immagine tecnicamente più adatta tra le risorse d
 | 45 | Incline Dumbbell Bench Press | Atlante v451 | Sostituita dopo revisione; figura da verificare anche su telefono |
 | 46 | Incline Dumbbell Curl | Atlante v451 | Mantenuta dopo controllo visivo |
 | 47 | Incline Hammer Curl | Atlante v451 | Mantenuta dopo controllo visivo |
-| 48 | Strict Curl (EZ Bar) | Atlante v451 | Sostituita dopo revisione; figura da verificare anche su telefono |
+| 48 | Strict Curl (EZ Bar) | SVG dedicata v452 | Schiena contro la parete, piedi poco avanzati, bilanciere EZ |
 | 49 | EZ Bar Curl | Atlante v451 | Sostituita dopo revisione; figura da verificare anche su telefono |
 | 50 | EZ Bar Lying Tricep Extension | Atlante v451 | Sostituita dopo revisione; figura da verificare anche su telefono |
 | 51 | EZ Bar Preacher Curl | Atlante v451 | Mantenuta dopo controllo visivo |
@@ -104,3 +104,7 @@ I sette fallback mantengono l'immagine tecnicamente più adatta tra le risorse d
 - Per le alzate laterali al cavo, la mano che lavora deve allontanarsi dalla carrucola bassa. Per gli shrug, gomiti prevalentemente estesi; per panca con manubri, carichi sempre nelle mani.
 
 Riferimenti di biomeccanica usati come controllo: StrengthLog [Cable Lateral Raise](https://www.strengthlog.com/cable-lateral-raise/); RepDB [Chest Supported Dumbbell Shrug](https://exercise-dataset.com/exercise/chest-supported-dumbbell-shrug/).
+
+## Correzioni v452 dopo controllo dell'atlante reale
+
+L'atlante v451 conteneva ancora 3 incoerenze: nei dips zavorrati mancava la piastra di peso, nel wrist curl appariva un bilanciere benché l'esercizio personale sia al cavo, e nello Strict Curl non era disegnata la parete. Tre immagini vettoriali specifiche sostituiscono solo quelle tre miniature: gli altri 76 esercizi, incluse le 7 immagini storiche con attrezzatura più pertinente, restano identici. Le 3 SVG sono inserite nella precache PWA per evitare differenze tra PC e iPhone. Non vengono modificati record, serie, attrezzature, Rank, streak, schede o account.
