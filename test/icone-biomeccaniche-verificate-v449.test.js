@@ -7,7 +7,7 @@ import { POSIZIONI_ICONE_CORRETTE, sorgenteMiniatura,
 
 const text = file => readFileSync(new URL('../' + file, import.meta.url),'utf8');
 const pos = id => POSIZIONI_ICONE_CORRETTE[id];
-const asset = readFileSync(new URL('../img/esercizi/esercizi-completi-v450.webp',import.meta.url));
+const asset = readFileSync(new URL('../img/esercizi/esercizi-verificati-v451.webp',import.meta.url));
 
 test('v449: approvate trazioni con sovraccarico e shoulder press a dischi hanno celle dedicate',() => {
   assert.deepEqual(pos('ex-pull-ups'),[21%8,Math.floor(21/8)]);
@@ -49,7 +49,7 @@ test('v449: atlas WebP HD effettivo, PWA e CSS senza crop o sfocatura',() => {
   assert.match(css,/\.foto-esercizio-arte-originale[\s\S]*object-fit: contain/);
   const cssIcons=css.slice(css.indexOf('/* v448: un solo sistema visivo'),css.indexOf('@media (max-width: 390px)'));
   assert.doesNotMatch(cssIcons,/blur\(/i);
-  assert.match(sw,/const VERSIONE = 'palestra-v450'/);
+  assert.match(sw,/const VERSIONE = 'palestra-v451'/);
   assert.match(sw,/'\.\/img\/esercizi\/esercizi-completi-v450\.webp'/);
-  assert.match(html,/PALESTRA_VERSIONE = 'palestra-v450'/);
+  assert.match(html,/PALESTRA_VERSIONE = 'palestra-v451'/);
 });
