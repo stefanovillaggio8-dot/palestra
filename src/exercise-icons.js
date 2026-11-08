@@ -37,27 +37,61 @@ export function posizioneIconaCorretta(esercizio) {
   };
 }
 
-export function miniaturaEsercizio(esercizio, grande = false) {
-  const classe = 'foto-esercizio' + (grande ? ' grande' : '');
-  // L'esercizio è salvato anche nelle versioni locali/cloud del catalogo:
-  // sovrascrivi solo il visual, senza migrare i dati, e risolvi la cache.
+// Le icone delle vecchie versioni avevano figure minuscole e margini molto
+// diversi. Zoom moderati, specifici per le sole illustrazioni piccole;
+// l'inquadratura viene sempre contenuta nel riquadro, senza object-fit:cover.
+export const ZOOM_ICONE_STORICHE = Object.freeze({
+  'ex-back-extension': 1.28,
+  'ex-back-extension-chest': 1.28,
+  'ex-lat-pulldown-lats': 1.17,
+  'ex-cable-fly': 1.13,
+  'ex-cable-hammer-curl': 1.12,
+  'ex-bench-press': 1.12,
+  'ex-incline-bench-press': 1.11,
+  'ex-seated-cable-row': 1.11,
+});
+
+export function sorgenteMiniatura(esercizio) {
   if (esercizio?.id === 'ex-lying-cable-curl') {
-    return el('img', { src: FOTO_INCLINE_PULLDOWN_CORRETTA,
-      alt: '', class: classe, loading: 'lazy', decoding: 'async' });
+    return { tipo: 'dedicata', src: FOTO_INCLINE_PULLDOWN_CORRETTA, zoom: 1 };
   }
-  const pos = posizioneIconaCorretta(esercizio);
-  if (!pos) {
-    return el('img', {
-      src: esercizio?.foto || './img/esercizi/chest-press.png',
-      alt: '', class: classe, loading: 'lazy',
-    });
-  }
-  // CSS background-position ritaglia UNA cella senza deformarla. Un solo asset
-  // occupa meno cache di dodici risorse separate, anche nella PWA iOS.
-  return el('span', {
-    class: classe + ' foto-esercizio-sprite',
+  const posizione = posizioneIconaCorretta(esercizio);
+  if (posizione) return { tipo: 'sprite', ...posizione, zoom: 1 };
+  return {
+    tipo: 'originale',
+    src: esercizio?.foto || './img/esercizi/chest-press.png',
+    zoom: ZOOM_ICONE_STORICHE[esercizio?.id] || 1.08,
+  };
+}
+
+// UN SOLO componente per tutto il catalogo. Sfondo, dimensioni, margine,
+// maschera e tonalita' sono uguali su PC/iPhone; soltanto il disegno
+// dell'esercizio cambia. Non modificare mai i record o il path personale.
+export function miniaturaEsercizio(esercizio, grande = false) {
+  const fonte = sorgenteMiniatura(esercizio);
+  const classe = 'foto-esercizio foto-esercizio-uniforme' + (grande ? ' grande' : '');
+  const contenitore = el('span', {
+    class: classe,
     role: 'img',
     aria: { label: 'Illustrazione di ' + String(esercizio?.nome || 'esercizio') },
-    style: '--sprite-x:' + pos.x + '%;--sprite-y:' + pos.y + '%',
   });
+
+  if (fonte.tipo === 'sprite') {
+    contenitore.appendChild(el('span', {
+      class: 'foto-esercizio-arte foto-esercizio-sprite',
+      style: '--sprite-x:' + fonte.x + '%;--sprite-y:' + fonte.y + '%',
+      'aria-hidden': 'true',
+    }));
+  } else {
+    contenitore.appendChild(el('img', {
+      src: fonte.src,
+      alt: '',
+      class: 'foto-esercizio-arte foto-esercizio-arte-originale',
+      style: '--icon-zoom:' + fonte.zoom,
+      loading: 'lazy',
+      decoding: 'async',
+      'aria-hidden': 'true',
+    }));
+  }
+  return contenitore;
 }
