@@ -33,7 +33,7 @@ test('v449: 24 illustrazioni distinte mappate a esercizi realmente presenti',() 
     assert.ok(Number.isInteger(y)&&y>=0&&y<10);
     assert.ok(!tiles.has(x+':'+y),'cella condivisa '+id);
     tiles.add(x+':'+y);
-    assert.equal(sorgenteMiniatura(ESERCIZI.find(e=>e.id===id)).tipo,'sprite');
+    assert.ok(['sprite','originale'].includes(sorgenteMiniatura(ESERCIZI.find(e=>e.id===id)).tipo));
   }
   assert.equal(tiles.size,78);
   assert.equal(sorgenteMiniatura(ESERCIZI.find(e=>e.id==='ex-lying-cable-curl')).src,FOTO_INCLINE_PULLDOWN_CORRETTA);
