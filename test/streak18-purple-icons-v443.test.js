@@ -65,13 +65,13 @@ test('v443: la PWA vecchia non sovrascrive mai il valore 18 del cloud',()=>{
 });
 
 test('v447: 16 miniature viola revisionate in alta definizione, non vecchi schemi',()=>{
-  const webp=readFileSync(new URL('../img/esercizi/esercizi-verificati-v449.webp',import.meta.url));
+  const webp=readFileSync(new URL('../img/esercizi/esercizi-completi-v450.webp',import.meta.url));
   const css=readFileSync(new URL('../stile.css',import.meta.url),'utf8');
   const sw=readFileSync(new URL('../sw.js',import.meta.url),'utf8');
   assert.equal(webp.subarray(0,4).toString('ascii'),'RIFF');
   assert.equal(webp.subarray(8,12).toString('ascii'),'WEBP');
   assert.ok(webp.length>=80000 && webp.length<300000);
-  assert.ok(css.includes('esercizi-verificati-v449.webp'));
+  assert.ok(css.includes('esercizi-completi-v450.webp'));
   assert.ok(!css.includes("background-image: url('./img/esercizi/esercizi-viola-v443.svg')"));
-  assert.ok(sw.includes('esercizi-verificati-v449.webp'));
+  assert.ok(sw.includes('esercizi-completi-v450.webp'));
 });
