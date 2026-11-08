@@ -78,7 +78,7 @@ test('v442: cloud valido uguale su PC/iPhone; cancellati e in corso NON riattiva
 });
 
 test('v442: 16 icone distinte e 3 screenshot corretti, senza vecchio sfondo realistico', () => {
-  assert.equal(Object.keys(POSIZIONI_ICONE_CORRETTE).length,16);
+  assert.equal(Object.keys(POSIZIONI_ICONE_CORRETTE).length,24);
   const seen=new Set();
   for(const [id] of Object.entries(POSIZIONI_ICONE_CORRETTE)){
     const pos=posizioneIconaCorretta(e(id));
@@ -92,10 +92,10 @@ test('v442: 16 icone distinte e 3 screenshot corretti, senza vecchio sfondo real
   }
   const css=file('stile.css'),sw=file('sw.js');
   assert.match(css,/esercizi-illustrati-v447\.webp/);
-  assert.match(css,/background-size: 400% 400%/);
+  assert.match(css,/background-size: 400% 600%/);
   assert.doesNotMatch(css,/background-image: url\('\.\/img\/esercizi\/esercizi-correzioni-v441/);
   assert.match(sw,/esercizi-illustrati-v447\.webp/);
   assert.match(sw,/streak-cloud\.js/);
   assert.match(sw,/hyperextension-rank\.js/);
-  assert.ok(statSync(new URL('../img/esercizi/esercizi-illustrati-v447.webp',import.meta.url)).size>2000);
+  assert.ok(statSync(new URL('../img/esercizi/esercizi-verificati-v449.webp',import.meta.url)).size>2000);
 });
