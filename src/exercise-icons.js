@@ -39,7 +39,6 @@ export const POSIZIONI_ICONE_CORRETTE = Object.freeze({
   'ex-iso-lateral-row': [0, 3],
   'ex-lat-pulldown-lats': [1, 3],
   'ex-db-lateral-raise': [2, 3],
-  'ex-lying-cable-curl': [3, 3],
   'ex-incline-side-lying-lateral-raise': [4, 3],
   'ex-iso-lateral-low-row': [5, 3],
   'ex-hammer-curl-dumbbell': [6, 3],
