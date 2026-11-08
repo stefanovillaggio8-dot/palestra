@@ -1,6 +1,6 @@
 // Miniature corrette: alcune foto storiche erano COPIE IDENTICHE per esercizi
 // completamente diversi (Face Pull -> EZ Bar Curl, row -> Bench Press, ecc.).
-// 16 illustrazioni originali con fondo e cerchio VIOLA, non nero/fotografico; nessun dato personale modificato.
+// 79 illustrazioni uniformate con fondo e cerchio VIOLA, non nero/fotografico; nessun dato personale modificato.
 // Gli esercizi non elencati mantengono le proprie immagini e le foto personali.
 import { el } from './ui.js';
 
@@ -8,34 +8,88 @@ import { el } from './ui.js';
 // Il movimento reale è Incline Single Arm Pulldown, con PETTO sul supporto.
 export const FOTO_INCLINE_PULLDOWN_CORRETTA = 'img/esercizi/incline-single-arm-pulldown-v446.svg';
 
-// Coordinate [colonna, riga] verificata per ogni movimento: 4 x 6,
-// con trazioni zavorrate e shoulder press a DISCHI approvate dall'utente.
-// Nessuna foto fotografica o sovrapposizione con esercizi diversi.
+// Coordinate [colonna, riga] per 79 esercizi, atlante 8 x 10.
+// Una cella distinta per ogni ID; la variante Incline Single Arm Pulldown
+// continua a usare il SVG biomeccanico dedicato e non la propria cella.
 export const POSIZIONI_ICONE_CORRETTE = Object.freeze({
-  'ex-iso-lateral-low-row': [0, 0],
-  'ex-iso-lateral-row': [1, 0],
-  'ex-high-to-low-cable-fly': [2, 0],
-  'ex-dumbbell-reverse-fly': [3, 0],
-  'ex-dumbbell-row': [0, 1],
-  'ex-dumbbell-spider-curl': [1, 1],
-  'ex-iso-lateral-high-row': [2, 1],
-  'ex-double-kettlebell-row': [3, 1],
-  'ex-dumbbell-bench-press': [0, 2],
-  'ex-dumbbell-bench-pull': [1, 2],
-  'ex-face-pull': [2, 2],
-  'ex-wide-grip-lat-pulldown': [3, 2],
-  'ex-cable-bicep-curl': [0, 3],
-  'ex-ez-bar-lying-tricep-extension': [1, 3],
-  'ex-incline-dumbbell-bench-press': [2, 3],
-  'ex-back-extension-hanging': [3, 3],
-  'ex-pull-ups': [0, 4],
-  'ex-shoulder-pin-press': [1, 4],
-  'ex-cable-lateral-raise': [2, 4],
-  'ex-back-extension-chest': [3, 4],
-  'ex-trazioni-corpo-libero': [0, 5],
-  'ex-seated-db-shoulder-press': [1, 5],
-  'ex-cable-fly': [2, 5],
-  'ex-dumbbell-concentration-curl': [3, 5],
+  'ex-one-arm-overhead-tricep-extension': [0, 0],
+  'ex-chest-press': [1, 0],
+  'ex-cable-hammer-curl': [2, 0],
+  'ex-cable-lateral-raise': [3, 0],
+  'ex-cable-overhead-tricep': [4, 0],
+  'ex-leg-extension': [5, 0],
+  'ex-wide-grip-lat-pulldown': [6, 0],
+  'ex-neutral-grip-lat-pulldown': [7, 0],
+  'ex-dumbbell-bench-pull': [0, 1],
+  'ex-seated-db-shoulder-press': [1, 1],
+  'ex-cable-fly': [2, 1],
+  'ex-scott-bench-curl': [3, 1],
+  'ex-single-arm-tricep-pushdown': [4, 1],
+  'ex-seated-leg-curl': [5, 1],
+  'ex-smith-incline-bench': [6, 1],
+  'ex-seated-cable-row': [7, 1],
+  'ex-chest-supported-shrug': [0, 2],
+  'ex-sled-press-calf-raise': [1, 2],
+  'ex-single-leg-press': [2, 2],
+  'ex-one-arm-preacher-curl': [3, 2],
+  'ex-one-arm-cable-reverse-fly': [4, 2],
+  'ex-pull-ups': [5, 2],
+  'ex-dips': [6, 2],
+  'ex-wrist-curl': [7, 2],
+  'ex-iso-lateral-row': [0, 3],
+  'ex-lat-pulldown-lats': [1, 3],
+  'ex-db-lateral-raise': [2, 3],
+  'ex-incline-side-lying-lateral-raise': [4, 3],
+  'ex-iso-lateral-low-row': [5, 3],
+  'ex-hammer-curl-dumbbell': [6, 3],
+  'ex-high-to-low-cable-fly': [7, 3],
+  'ex-dumbbell-reverse-fly': [0, 4],
+  'ex-dumbbell-row': [1, 4],
+  'ex-dumbbell-spider-curl': [2, 4],
+  'ex-iso-lateral-high-row': [3, 4],
+  'ex-double-kettlebell-row': [4, 4],
+  'ex-dumbbell-bench-press': [5, 4],
+  'ex-dumbbell-concentration-curl': [6, 4],
+  'ex-dumbbell-curl': [7, 4],
+  'ex-dumbbell-deadlift': [0, 5],
+  'ex-dumbbell-face-pull': [1, 5],
+  'ex-incline-bench-press': [2, 5],
+  'ex-incline-cable-curl': [3, 5],
+  'ex-incline-dumbbell-bench-press': [4, 5],
+  'ex-incline-dumbbell-curl': [5, 5],
+  'ex-incline-hammer-curl': [6, 5],
+  'ex-strict-curl-ez-wall': [7, 5],
+  'ex-ez-bar-curl': [0, 6],
+  'ex-ez-bar-lying-tricep-extension': [1, 6],
+  'ex-ez-bar-preacher-curl': [2, 6],
+  'ex-ez-bar-spider-curl': [3, 6],
+  'ex-seated-dumbbell-curl': [4, 6],
+  'ex-seated-dumbbell-lateral-raise': [5, 6],
+  'ex-seated-dumbbell-tricep-extension': [6, 6],
+  'ex-seated-hammer-curl': [7, 6],
+  'ex-shoulder-pin-press': [0, 7],
+  'ex-bench-pin-press': [1, 7],
+  'ex-bench-press': [2, 7],
+  'ex-bench-pull': [3, 7],
+  'ex-bent-arm-barbell-pullover': [4, 7],
+  'ex-bent-over-dumbbell-row': [5, 7],
+  'ex-bent-over-row': [6, 7],
+  'ex-cable-bicep-curl': [7, 7],
+  'ex-cable-chest-press': [0, 8],
+  'ex-cable-crunch': [1, 8],
+  'ex-cable-reverse-fly': [2, 8],
+  'ex-deadlift': [3, 8],
+  'ex-decline-bench-press': [4, 8],
+  'ex-decline-dumbbell-bench-press': [5, 8],
+  'ex-face-pull': [6, 8],
+  'ex-back-extension': [7, 8],
+  'ex-back-extension-chest': [0, 9],
+  'ex-back-extension-hanging': [1, 9],
+  'ex-smith-machine-bench-press': [2, 9],
+  'ex-smith-machine-bent-over-row': [3, 9],
+  'ex-smith-machine-shrug': [4, 9],
+  'ex-trazioni-corpo-libero': [5, 9],
+  'ex-dips-corpo-libero': [6, 9],
 });
 
 export function posizioneIconaCorretta(esercizio) {
@@ -43,8 +97,8 @@ export function posizioneIconaCorretta(esercizio) {
   const pos = POSIZIONI_ICONE_CORRETTE[esercizio.id];
   if (!pos) return null;
   return {
-    x: pos[0] * 100 / 3,
-    y: pos[1] * 100 / 5,
+    x: pos[0] * 100 / 7,
+    y: pos[1] * 100 / 9,
   };
 }
 
