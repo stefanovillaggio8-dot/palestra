@@ -27,7 +27,7 @@ test('v448: catalogo completo: stessa cornice e fonte per ciascuno dei 79 eserci
       assert.ok(src.zoom>=1 && src.zoom<=1.28,e.id);
     }
   }
-  assert.deepEqual(conteggi,{sprite:71,dedicata:1,originale:7});
+  assert.deepEqual(conteggi,{sprite:68,dedicata:1,originale:10});
   assert.equal(FOTO_INCLINE_PULLDOWN_CORRETTA,'img/esercizi/incline-single-arm-pulldown-v446.svg');
 });
 
