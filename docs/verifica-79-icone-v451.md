@@ -75,7 +75,7 @@ I sette fallback mantengono l'immagine tecnicamente più adatta tra le risorse d
 | 57 | Shoulder Pin Press | Atlante v451 | Sostituita dopo revisione; figura da verificare anche su telefono |
 | 58 | Bench Pin Press | Atlante v451 | Mantenuta dopo controllo visivo |
 | 59 | Bench Press | Atlante v451 | Mantenuta dopo controllo visivo |
-| 60 | Bench Pull | Storica specifica | Panca e tirata con bilanciere; non mostrare un dumbbell bench pull |
+| 60 | Bench Pull | Illustrazione approvata v453 | Due manubri singoli, petto sostenuto dallo schienale inclinato a circa 26°, sedile fissato alla panca |
 | 61 | Bent Arm Barbell Pullover | Atlante v451 | Mantenuta dopo controllo visivo |
 | 62 | Bent Over Dumbbell Row | Atlante v451 | Mantenuta dopo controllo visivo |
 | 63 | Bent Over Row | Atlante v451 | Controllare il dettaglio ridotto del barbell row nell'atlante |
@@ -108,3 +108,7 @@ Riferimenti di biomeccanica usati come controllo: StrengthLog [Cable Lateral Rai
 ## Correzioni v452 dopo controllo dell'atlante reale
 
 L'atlante v451 conteneva ancora 3 incoerenze: nei dips zavorrati mancava la piastra di peso, nel wrist curl appariva un bilanciere benché l'esercizio personale sia al cavo, e nello Strict Curl non era disegnata la parete. Tre immagini vettoriali specifiche sostituiscono solo quelle tre miniature: gli altri 76 esercizi, incluse le 7 immagini storiche con attrezzatura più pertinente, restano identici. Le 3 SVG sono inserite nella precache PWA per evitare differenze tra PC e iPhone. Non vengono modificati record, serie, attrezzature, Rank, streak, schede o account.
+
+## Correzione specifica v453 — Bench Pull
+
+Per il Bench Pull della scheda personale viene utilizzata la posa con due manubri su panca regolabile inclinata a circa 26°. Immagine approvata dall'utente e inclusa in `img/esercizi/bench-pull-v453.webp`. Solo `ex-bench-pull` riceve questa sorgente; gli altri 78 esercizi non cambiano, così come Rank, serie e streak. File WebP locale e precache PWA.
