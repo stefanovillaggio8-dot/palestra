@@ -18,5 +18,8 @@ test('v451: galleria controllabile, 79 icone corrette ID/nome e filtro funzionan
   for(const file of ['dips-zavorrati-corretti-v452.svg','wrist-curl-cavo-v452.svg','strict-curl-parete-v452.svg']) {
     assert.ok(html.includes(file),'SVG v452 mancante dalla galleria: '+file);
   }
+  for(const name of ['one-arm-overhead-tricep-extension','cad-curl','chest-supported-dumbbell-shrug','lat-pulldown-neutral','dumbbell-face-pull','bent-over-row','smith-machine-bent-over-row','smith-machine-shrug']) {
+    assert.ok(html.includes(name+'-v454.webp'),'Icona v454 mancante in galleria: '+name);
+  }
   assert.doesNotMatch(html,/esercizi-completi-v450\.webp/);
 });

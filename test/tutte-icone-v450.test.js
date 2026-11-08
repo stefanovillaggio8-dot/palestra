@@ -32,8 +32,8 @@ test('v450: tutti i 79 esercizi hanno una nuova immagine del catalogo oppure SVG
     assert.ok(!celle.has(key),'sprite duplicato: '+e.id);
     celle.add(key);sprite++;
   }
-  assert.equal(sprite,68);
-  assert.equal(originali,10);
+  assert.equal(sprite,66);
+  assert.equal(originali,12);
   assert.equal(svg,1);
 });
 
@@ -47,7 +47,7 @@ test('v450: immagine WebP completa, caching PWA e scala 8x10',()=>{
   const html=readFileSync(new URL('../index.html',import.meta.url),'utf8');
   assert.match(css,/esercizi-verificati-v451\.webp/);
   assert.match(css,/background-size: 800% 1000%/);
-  assert.match(sw,/palestra-v453/);
+  assert.match(sw,/palestra-v454/);
   assert.match(sw,/esercizi-verificati-v451\.webp/);
-  assert.match(html,/PALESTRA_VERSIONE = 'palestra-v453'/);
+  assert.match(html,/PALESTRA_VERSIONE = 'palestra-v454'/);
 });
