@@ -68,8 +68,8 @@ test('v454: otto immagini WebP originali e abbinate ai rispettivi ID',()=>{
 });
 test('v454: figure a tutto riquadro senza sfumatura e stessa PWA',()=>{
   const css=txt('stile.css');
-  assert.match(css,/foto-esercizio-arte-originale\\[src\\$="-v454\\.webp"\\]/);
-  assert.match(css,/-webkit-mask-image: none/);
+  assert.ok(css.includes('.foto-esercizio-arte-originale[src$="-v454.webp"]'));
+  assert.match(css,/-webkit-mask: none/);
   assert.match(css,/object-fit: cover/);
   assert.match(txt('index.html'),/PALESTRA_VERSIONE = 'palestra-v454'/);
   assert.match(txt('sw.js'),/const VERSIONE = 'palestra-v454'/);

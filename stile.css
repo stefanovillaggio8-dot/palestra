@@ -323,8 +323,8 @@ a { color: var(--blu); text-decoration: none; }
   object-position: center;
   transform: scale(1);
   filter: none;
-  -webkit-mask-image: none;
-  mask-image: none;
+  -webkit-mask: none;
+  mask: none;
 }
 /* Atlante v451 controllato: 8x10, 79 celle; le pose tecniche non verificate riprendono le immagini storiche.
    lieve correzione tonale, SENZA blur e senza ritagliare braccia/attrezzi. */
