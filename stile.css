@@ -320,11 +320,11 @@ a { color: var(--blu); text-decoration: none; }
 /* Le 16 figure HD hanno colori piu' accesi delle vecchie immagini:
    lieve correzione tonale, SENZA blur e senza ritagliare braccia/attrezzi. */
 .foto-esercizio-sprite {
-  background-image: url('./img/esercizi/esercizi-illustrati-v447.webp');
-  background-size: 400% 400%;
+  background-image: url('./img/esercizi/esercizi-verificati-v449.webp');
+  background-size: 400% 600%;
   background-position: var(--sprite-x, 0%) var(--sprite-y, 0%);
   background-repeat: no-repeat;
-  filter: brightness(.86) saturate(.78) contrast(1.01);
+  filter: brightness(.93) saturate(.88) contrast(1.05);
 }
 @media (max-width: 390px) {
   .foto-esercizio { width: 43px; height: 43px; flex-basis: 43px; }
