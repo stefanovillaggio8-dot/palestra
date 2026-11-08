@@ -27,7 +27,7 @@ test('v448: catalogo completo: stessa cornice e fonte per ciascuno dei 79 eserci
       assert.ok(src.zoom>=1 && src.zoom<=1.28,e.id);
     }
   }
-  assert.deepEqual(conteggi,{sprite:16,dedicata:1,originale:62});
+  assert.deepEqual(conteggi,{sprite:24,dedicata:1,originale:54});
   assert.equal(FOTO_INCLINE_PULLDOWN_CORRETTA,'img/esercizi/incline-single-arm-pulldown-v446.svg');
 });
 
@@ -45,9 +45,7 @@ test('v448: tutte le immagini locali esistono, nessuna duplicazione imprevista',
   }
   const duplicati=[...gruppi.values()].filter(g=>g.length>1).map(g=>g.slice().sort());
   const attesi=[
-    ['ex-back-extension','ex-back-extension-chest'],
     ['ex-dips','ex-dips-corpo-libero'],
-    ['ex-pull-ups','ex-trazioni-corpo-libero'],
   ].map(g=>g.sort());
   assert.deepEqual(duplicati.sort((a,b)=>a.join().localeCompare(b.join())),
                    attesi.sort((a,b)=>a.join().localeCompare(b.join())));
@@ -85,12 +83,12 @@ test('v448: stile viola, cerchio, nitidezza e nessun taglio aggressivo per tutti
   const sw=read('sw.js');
   assert.match(css,/\.foto-esercizio-uniforme::before[\s\S]*?border-radius: 50%/);
   assert.match(css,/\.foto-esercizio-arte-originale[\s\S]*?object-fit: contain/);
-  assert.match(css,/\.foto-esercizio-sprite[\s\S]*?background-size: 400% 400%/);
+  assert.match(css,/\.foto-esercizio-sprite[\s\S]*?background-size: 400% 600%/);
   assert.match(css,/\.foto-esercizio-arte[\s\S]*?pointer-events: none/);
   assert.doesNotMatch(css,/image-rendering:\s*pixelated/);
   const stileIcone=css.slice(css.indexOf('/* v448: un solo sistema visivo'),css.indexOf('@media (max-width: 390px)',css.indexOf('/* v448: un solo sistema visivo')));
   assert.doesNotMatch(stileIcone,/filter:\s*blur\(/);
   assert.match(script,/ZOOM_ICONE_STORICHE/);
-  assert.match(sw,/const VERSIONE = 'palestra-v448'/);
-  assert.match(sw,/'\.\/img\/esercizi\/esercizi-illustrati-v447\.webp'/);
+  assert.match(sw,/const VERSIONE = 'palestra-v449'/);
+  assert.match(sw,/'\.\/img\/esercizi\/esercizi-verificati-v449\.webp'/);
 });

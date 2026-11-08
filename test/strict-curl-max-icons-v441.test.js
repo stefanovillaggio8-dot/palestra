@@ -49,7 +49,7 @@ test('v441: confronti validi a parita di 1 rep e peso corporeo, nessuna soglia a
 
 test('v441: la libreria non riusa la stessa miniatura su 16 esercizi differenti', () => {
   const ids=Object.keys(POSIZIONI_ICONE_CORRETTE);
-  assert.equal(ids.length,16);
+  assert.equal(ids.length,24);
   const coordinate=new Set();
   for(const id of ids){
     const esercizio=ESERCIZI.find(e=>e.id===id);
@@ -70,8 +70,8 @@ test('v441: tutte le viste usano miniatura e CSS/sync mantengono la spritesheet'
   const sw=src('sw.js');
   assert.match(app,/import \{ miniaturaEsercizio \} from '\.\/exercise-icons\.js'/);
   assert.equal((app.match(/miniaturaEsercizio\(/g)||[]).length,7);
-  assert.match(css,/\.foto-esercizio-sprite[\s\S]*?background-size: 400% 400%/);
+  assert.match(css,/\.foto-esercizio-sprite[\s\S]*?background-size: 400% 600%/);
   assert.match(premium,/\.app-vista-allenamento \.pillola-esercizio \.foto-esercizio[\s\S]*?flex-basis:30px/);
   assert.match(sw,/'\.\/src\/exercise-icons\.js'/);
-  assert.match(sw,/'\.\/img\/esercizi\/esercizi-illustrati-v447\.webp'/);
+  assert.match(sw,/'\.\/img\/esercizi\/esercizi-verificati-v449\.webp'/);
 });
