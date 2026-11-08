@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Strict Curl con bilanciere EZ, schiena al muro e piedi leggermente avanzati">
+<defs><radialGradient id="bg" cx=".45" cy=".34" r=".75"><stop stop-color="#a638ec"/><stop offset=".6" stop-color="#7625bb"/><stop offset="1" stop-color="#260b48"/></radialGradient><linearGradient id="bar"><stop stop-color="#d9dae4"/><stop offset="1" stop-color="#6c738b"/></linearGradient><linearGradient id="skin"><stop stop-color="#ffcf91"/><stop offset="1" stop-color="#d58c55"/></linearGradient><linearGradient id="shirt"><stop stop-color="#b84aff"/><stop offset="1" stop-color="#61109b"/></linearGradient><style>.edge{stroke:#27162e;stroke-width:7;stroke-linejoin:round;stroke-linecap:round}.line{stroke:#27162e;stroke-width:6;stroke-linejoin:round;stroke-linecap:round}</style></defs>
+<rect width="512" height="512" rx="56" fill="#270a44"/><circle cx="256" cy="256" r="246" fill="url(#bg)"/><ellipse cx="251" cy="473" rx="190" ry="14" fill="#1f0b31" opacity=".4"/>
+<!-- Muro dietro tutta la schiena, piano verticale visibile -->
+<path d="M102 40 H197 V457 H102 Z" fill="#6b5b8e" stroke="#251935" stroke-width="11"/><path d="M171 40 V456" stroke="#d2c6e5" stroke-width="10"/><path d="M106 52 V444" stroke="#a99bc4" stroke-width="6" opacity=".6"/>
+<!-- Gambe dritte: piedi solo un poco avanti rispetto alla parete -->
+<path d="M198 325 L245 330 L245 434 L261 457 L221 458 L198 430 Z" fill="url(#skin)" class="edge"/>
+<path d="M249 324 L286 328 L306 439 L330 457 L283 457 L270 432 Z" fill="url(#skin)" class="edge"/>
+<path d="M222 443 Q244 444 265 456 L273 470 L214 470 L214 452 Z M283 445 Q308 444 336 457 L344 470 L280 470 Z" fill="#f0eef9" class="line"/>
+<!-- Schiena allineata al muro; torso immobile -->
+<path d="M184 177 Q209 160 239 171 Q268 170 289 190 L280 318 Q245 335 194 320 Z" fill="url(#shirt)" class="edge"/>
+<path d="M194 315 Q237 324 281 312 L294 359 L244 364 L193 351 Z" fill="#207ad4" class="edge"/>
+<path d="M202 181 L203 318" stroke="#d8a9ff" stroke-width="6" stroke-linecap="round" opacity=".7"/>
+<!-- Braccia con gomiti vicini al busto e avambracci piegati verso l'alto -->
+<path d="M195 189 Q174 207 184 264 Q185 282 197 287 L213 270 Q204 240 213 221" fill="url(#skin)" class="edge"/>
+<path d="M282 194 Q310 212 315 266 L303 284 L284 268 L277 226" fill="url(#skin)" class="edge"/>
+<path d="M197 277 Q207 250 225 233 L237 245 Q225 266 218 287 Z" fill="url(#skin)" class="edge"/>
+<path d="M302 277 Q286 254 269 235 L255 244 Q272 271 280 292 Z" fill="url(#skin)" class="edge"/>
+<!-- Bilanciere EZ con porzione centrale a zig-zag, stretta vicino -->
+<path d="M112 230 H173 L195 243 L219 230 H292 L315 243 L341 230 H403" stroke="#282033" stroke-width="20" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M112 225 H173 L195 238 L219 225 H292 L315 238 L341 225 H403" stroke="url(#bar)" stroke-width="11" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="114" y="202" width="13" height="52" rx="5" fill="#252130" stroke="#8e8da2" stroke-width="5"/><rect x="134" y="195" width="19" height="66" rx="6" fill="#242030" stroke="#82879d" stroke-width="5"/>
+<rect x="365" y="195" width="19" height="66" rx="6" fill="#242030" stroke="#82879d" stroke-width="5"/><rect x="390" y="202" width="13" height="52" rx="5" fill="#252130" stroke="#8e8da2" stroke-width="5"/>
+<ellipse cx="217" cy="238" rx="13" ry="11" fill="url(#skin)" class="line"/><ellipse cx="278" cy="238" rx="13" ry="11" fill="url(#skin)" class="line"/>
+<!-- Testa -->
+<path d="M224 159 V184 Q242 198 258 177 L255 158" fill="url(#skin)" class="line"/>
+<ellipse cx="238" cy="117" rx="46" ry="53" fill="url(#skin)" class="edge"/>
+<path d="M195 120 Q184 70 223 61 Q272 46 285 105 L274 115 Q255 94 244 88 Q228 110 200 108 Z" fill="#422738" class="edge"/>
+<path d="M260 128 L270 129" stroke="#7c4d35" stroke-width="5" stroke-linecap="round"/>
+</svg>

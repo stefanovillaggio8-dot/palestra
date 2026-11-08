@@ -127,7 +127,11 @@ export const FOTO_VERIFICATE_TECNICAMENTE = Object.freeze({
   "ex-lat-pulldown-lats": "img/esercizi/lat-pulldown-lats.png",
   "ex-bench-pull": "img/esercizi/bench-pull.png",
   "ex-smith-machine-bent-over-row": "img/esercizi/smith-machine-bent-over-row.png",
-  "ex-smith-machine-shrug": "img/esercizi/smith-machine-shrug.png"
+  "ex-smith-machine-shrug": "img/esercizi/smith-machine-shrug.png",
+  // v452: tre illustrazioni tecniche dedicate; non sostituire le 76 già verificate.
+  "ex-dips": "img/esercizi/dips-zavorrati-corretti-v452.svg",
+  "ex-wrist-curl": "img/esercizi/wrist-curl-cavo-v452.svg",
+  "ex-strict-curl-ez-wall": "img/esercizi/strict-curl-parete-v452.svg"
 });
 
 export function sorgenteMiniatura(esercizio) {

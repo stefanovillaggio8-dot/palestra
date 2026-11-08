@@ -34,8 +34,8 @@ test('v447: nuovo asset binario alta definizione e diverso dal vecchio file', ()
   assert.match(css,/background-size:\s*800% 1000%/);
   assert.doesNotMatch(css,/background-image: url\('\.\/img\/esercizi\/esercizi-illustrati-v445\.webp'\)/);
   assert.match(sw,/'\.\/img\/esercizi\/esercizi-verificati-v451\.webp'/);
-  assert.match(sw,/palestra-v451/);
-  assert.match(leggi('index.html'),/PALESTRA_VERSIONE = 'palestra-v451'/);
+  assert.match(sw,/palestra-v452/);
+  assert.match(leggi('index.html'),/PALESTRA_VERSIONE = 'palestra-v452'/);
 });
 
 test('v447: Incline Single Arm Pulldown v446 rimane corretto e separato', () => {
