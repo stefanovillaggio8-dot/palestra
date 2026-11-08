@@ -32,7 +32,7 @@ test('v450: tutti i 79 esercizi hanno una nuova immagine del catalogo oppure SVG
 });
 
 test('v450: immagine WebP completa, caching PWA e scala 8x10',()=>{
-  const asset=readFileSync(new URL('../img/esercizi/esercizi-completi-v450.webp', import.meta.url));
+  const asset=readFileSync(new URL('../img/esercizi/esercizi-verificati-v451.webp', import.meta.url));
   assert.equal(asset.toString('ascii',0,4),'RIFF');
   assert.equal(asset.toString('ascii',8,12),'WEBP');
   assert.ok(asset.length>150000,'atlante troppo compresso');
@@ -41,7 +41,7 @@ test('v450: immagine WebP completa, caching PWA e scala 8x10',()=>{
   const html=readFileSync(new URL('../index.html',import.meta.url),'utf8');
   assert.match(css,/esercizi-completi-v450\.webp/);
   assert.match(css,/background-size: 800% 1000%/);
-  assert.match(sw,/palestra-v450/);
+  assert.match(sw,/palestra-v451/);
   assert.match(sw,/esercizi-completi-v450\.webp/);
-  assert.match(html,/PALESTRA_VERSIONE = 'palestra-v450'/);
+  assert.match(html,/PALESTRA_VERSIONE = 'palestra-v451'/);
 });
