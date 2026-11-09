@@ -91,10 +91,10 @@ test('v442: 16 icone distinte e 3 screenshot corretti, senza vecchio sfondo real
     assert.ok(posizioneIconaCorretta(e(id)),id);
   }
   const css=file('stile.css'),sw=file('sw.js');
-  assert.match(css,/esercizi-verificati-v451\.webp/);
+  assert.match(css,/esercizi-uniformi-v455\.webp/);
   assert.match(css,/background-size: 800% 1000%/);
   assert.doesNotMatch(css,/background-image: url\('\.\/img\/esercizi\/esercizi-correzioni-v441/);
-  assert.match(sw,/esercizi-verificati-v451\.webp/);
+  assert.match(sw,/esercizi-uniformi-v455\.webp/);
   assert.match(sw,/streak-cloud\.js/);
   assert.match(sw,/hyperextension-rank\.js/);
   assert.ok(statSync(new URL('../img/esercizi/esercizi-verificati-v451.webp',import.meta.url)).size>2000);
