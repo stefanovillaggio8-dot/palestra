@@ -18,7 +18,9 @@ test('v459: aggiunte 2 varianti al cavo ALTO, storico Wrist Curl intatto', () =>
   assert.ok(one); assert.ok(two);
   assert.equal(one.usoBraccia,'un_braccio');
   assert.equal(two.usoBraccia,'due_braccia');
-  assert.equal(one.convenzione,'cavo'); assert.equal(two.convenzione,'cavo');
+  assert.equal(one.convenzione,'cavo_totali'); assert.equal(two.convenzione,'cavo_totali');
+  assert.equal(one.rapportoCarrucolaDaVerificare,true);
+  assert.equal(two.rapportoCarrucolaDaVerificare,true);
   assert.ok(!one.carrucola && !two.carrucola,'non presumere il rapporto del cavo');
   assert.match(one.nota_permanente,/ALTA/);
   assert.match(two.nota_permanente,/sbarra/i);
