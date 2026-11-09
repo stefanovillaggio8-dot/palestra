@@ -13,7 +13,9 @@ test('v451: galleria controllabile, 79 icone corrette ID/nome e filtro funzionan
     assert.ok(html.includes(e.nome),'Nome mancante: '+e.nome);
   }
   assert.match(html,/esercizi-uniformi-v455\.webp/);
-  assert.match(html,/uniformi-v455\/ex-lying-cable-curl\.svg/);
+  const inclineArticle=html.split('data-name="incline single arm pulldown ex-lying-cable-curl"')[1]?.split('</article>')[0];
+  assert.ok(inclineArticle?.includes('class="v456"'));
+  assert.ok(inclineArticle?.includes('background-position:100% 100%'));
   assert.match(html,/img\/esercizi\/bench-pull-v453\.webp/);
   for(const file of ['ex-wrist-curl.svg']) {
     assert.ok(html.includes('uniformi-v455/'+file),'SVG uniforme mancante dalla galleria: '+file);

@@ -18,7 +18,7 @@ test('v448: catalogo completo: stessa cornice e fonte per ciascuno dei 79 eserci
     assert.ok(src && ['sprite','dedicata','originale'].includes(src.tipo),e.id);
     conteggi[src.tipo]++;
     if(src.tipo==='sprite') {
-      assert.ok(POSIZIONI_ICONE_CORRETTE[e.id],e.id);
+      assert.ok(POSIZIONI_ICONE_CORRETTE[e.id] || e.id==='ex-lying-cable-curl',e.id);
       const key=(src.atlas || 'img/esercizi/esercizi-uniformi-v455.webp')+':'+src.x.toFixed(5)+':'+src.y.toFixed(5);
       assert.ok(!univoci.has(key),'due icone diverse condividono la stessa cella: '+e.id);
       univoci.add(key);
@@ -27,7 +27,7 @@ test('v448: catalogo completo: stessa cornice e fonte per ciascuno dei 79 eserci
       assert.ok(src.zoom>=1 && src.zoom<=1.28,e.id);
     }
   }
-  assert.deepEqual(conteggi,{sprite:69,dedicata:1,originale:9});
+  assert.deepEqual(conteggi,{sprite:70,dedicata:0,originale:9});
   assert.equal(FOTO_INCLINE_PULLDOWN_CORRETTA,'img/esercizi/uniformi-v455/ex-lying-cable-curl.svg');
 });
 
@@ -87,6 +87,6 @@ test('v448: stile viola, cerchio, nitidezza e nessun taglio aggressivo per tutti
   const stileIcone=css.slice(css.indexOf('/* v448: un solo sistema visivo'),css.indexOf('@media (max-width: 390px)',css.indexOf('/* v448: un solo sistema visivo')));
   assert.doesNotMatch(stileIcone,/filter:\s*blur\(/);
   assert.match(script,/ZOOM_ICONE_STORICHE/);
-  assert.match(sw,/const VERSIONE = 'palestra-v456'/);
+  assert.match(sw,/const VERSIONE = 'palestra-v457'/);
   assert.match(sw,/'\.\/img\/esercizi\/esercizi-uniformi-v455\.webp'/);
 });

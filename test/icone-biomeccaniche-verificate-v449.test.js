@@ -36,7 +36,7 @@ test('v449: 24 illustrazioni distinte mappate a esercizi realmente presenti',() 
     assert.ok(['sprite','originale'].includes(sorgenteMiniatura(ESERCIZI.find(e=>e.id===id)).tipo));
   }
   assert.equal(tiles.size,78);
-  assert.equal(sorgenteMiniatura(ESERCIZI.find(e=>e.id==='ex-lying-cable-curl')).src,FOTO_INCLINE_PULLDOWN_CORRETTA);
+  assert.equal(sorgenteMiniatura(ESERCIZI.find(e=>e.id==='ex-lying-cable-curl')).atlas,'img/esercizi/icone-corrette-v456-atlas.webp');
 });
 
 test('v449: atlas WebP HD effettivo, PWA e CSS senza crop o sfocatura',() => {
@@ -49,7 +49,7 @@ test('v449: atlas WebP HD effettivo, PWA e CSS senza crop o sfocatura',() => {
   assert.match(css,/\.foto-esercizio-arte-originale[\s\S]*object-fit: contain/);
   const cssIcons=css.slice(css.indexOf('/* v448: un solo sistema visivo'),css.indexOf('@media (max-width: 390px)'));
   assert.doesNotMatch(cssIcons,/blur\(/i);
-  assert.match(sw,/const VERSIONE = 'palestra-v456'/);
+  assert.match(sw,/const VERSIONE = 'palestra-v457'/);
   assert.match(sw,/'\.\/img\/esercizi\/esercizi-uniformi-v455\.webp'/);
-  assert.match(html,/PALESTRA_VERSIONE = 'palestra-v456'/);
+  assert.match(html,/PALESTRA_VERSIONE = 'palestra-v457'/);
 });

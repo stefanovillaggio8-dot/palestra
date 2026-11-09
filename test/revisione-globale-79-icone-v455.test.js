@@ -27,7 +27,7 @@ test('v455: tutte le 79 miniature sono presenti e distinguibili', () => {
       else originale++;
     }
   }
-  assert.deepEqual({sprite,speciale,originale},{sprite:69,speciale:1,originale:9});
+  assert.deepEqual({sprite,speciale,originale},{sprite:70,speciale:0,originale:9});
 });
 
 test('v455: la galleria e la PWA usano la stessa palette globale', () => {
@@ -53,8 +53,8 @@ test('v455: la galleria e la PWA usano la stessa palette globale', () => {
     const e=ESERCIZI.find(x=>x.id===id);
     assert.equal(sorgenteMiniatura(e).src,path);
   }
-  assert.match(txt('index.html'),/PALESTRA_VERSIONE = 'palestra-v456'/);
-  assert.match(sw,/const VERSIONE = 'palestra-v456'/);
+  assert.match(txt('index.html'),/PALESTRA_VERSIONE = 'palestra-v457'/);
+  assert.match(sw,/const VERSIONE = 'palestra-v457'/);
   assert.ok(css.includes('.foto-esercizio-arte-originale[src*="/uniformi-v455/"]'));
 });
 

@@ -15,8 +15,9 @@ const expected = [
   ['ex-iso-lateral-high-row',2,1],
   ['ex-strict-curl-ez-wall',0,2],
   ['ex-seated-dumbbell-lateral-raise',1,2],
+  ['ex-lying-cable-curl',2,2],
 ];
-test('v456: otto esercizi corretti con celle distinte e atlas 3x3 reale',()=>{
+test('v456: nove esercizi corretti con celle distinte e atlas 3x3 reale',()=>{
   assert.equal(ESERCIZI.length,79);
   assert.equal(ATLANTE_CORREZIONI_V456,'img/esercizi/icone-corrette-v456-atlas.webp');
   const bytes=read(ATLANTE_CORREZIONI_V456);
@@ -34,10 +35,10 @@ test('v456: otto esercizi corretti con celle distinte e atlas 3x3 reale',()=>{
     });
   }
 });
-test('v456: app, cache PWA e galleria hanno le stesse otto immagini',()=>{
+test('v456: app, cache PWA e galleria hanno le stesse nove immagini',()=>{
   const sw=txt('sw.js'),src=txt('src/exercise-icons.js'),html=txt('verifica-icone.html');
-  assert.match(sw,/palestra-v456/);
-  assert.match(txt('index.html'),/palestra-v456/);
+  assert.match(sw,/palestra-v457/);
+  assert.match(txt('index.html'),/palestra-v457/);
   assert.ok(sw.includes("'./"+ATLANTE_CORREZIONI_V456+"'"));
   assert.match(src,/background-size:300% 300%/);
   assert.match(html,/\.art span\.v456/);
@@ -57,7 +58,7 @@ test('v456: ripristino CAD Curl inverso e conservazione dei dati',()=>{
   const bench=ESERCIZI.find(x=>x.id==='ex-bench-pull');
   assert.equal(sorgenteMiniatura(bench).src,'img/esercizi/bench-pull-v453.webp');
   const incline=ESERCIZI.find(x=>x.id==='ex-lying-cable-curl');
-  assert.equal(sorgenteMiniatura(incline).tipo,'dedicata');
+  assert.deepEqual(sorgenteMiniatura(incline),{tipo:'sprite',atlas:ATLANTE_CORREZIONI_V456,x:100,y:100,zoom:1});
   for (const forbidden of ['localStorage.setItem','supabase.from','salvaSerie','eliminaSeduta']) {
     assert.ok(!txt('src/exercise-icons.js').includes(forbidden));
   }
