@@ -71,7 +71,7 @@ test('v447: 16 miniature viola revisionate in alta definizione, non vecchi schem
   assert.equal(webp.subarray(0,4).toString('ascii'),'RIFF');
   assert.equal(webp.subarray(8,12).toString('ascii'),'WEBP');
   assert.ok(webp.length>=80000 && webp.length<300000);
-  assert.ok(css.includes('esercizi-verificati-v451.webp'));
+  assert.ok(css.includes('esercizi-uniformi-v455.webp'));
   assert.ok(!css.includes("background-image: url('./img/esercizi/esercizi-viola-v443.svg')"));
-  assert.ok(sw.includes('esercizi-verificati-v451.webp'));
+  assert.ok(sw.includes('esercizi-uniformi-v455.webp'));
 });
