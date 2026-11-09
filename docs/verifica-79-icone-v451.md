@@ -120,3 +120,7 @@ Sono state pubblicate otto illustrazioni WebP quadrate (320×320), tutte con la 
 ## Controllo globale delle 79 miniature — v455
 
 Il catalogo ora ricompone tutte le 80 celle dell'atlante in un'unica palette (cerchio viola, cornice magenta, ingrandimento senza ritagli estremi), usando `esercizi-uniformi-v455.webp`. Le otto icone v454 specifiche sono anch'esse ricomposte in `img/esercizi/uniformi-v455/` e non condividono uno sfondo nero separato. Le immagini originali rimangono archiviate e immutate. Le quattro illustrazioni SVG tecniche e il Bench Pull approvato vengono conservati per non alterare la biomeccanica. Questa revisione risolve il problema visivo globale di sfondi e dimensioni; per le pose particolari (CAD Curl e Dumbbell Face Pull) non implica la validazione meccanica.
+
+### SVG tecniche allineate
+
+Anche i 4 disegni SVG originali (incline single-arm pulldown, dips zavorrati, wrist curl al cavo, strict curl EZ) ricevono solo i nuovi fondali e bordi viola in copie v455, preservando geometria, prese e attrezzi. Il file originario resta invariato per confronto.

@@ -6,7 +6,7 @@ import { el } from './ui.js';
 
 // ID storico: si chiama ancora ex-lying-cable-curl per non perdere lo storico.
 // Il movimento reale è Incline Single Arm Pulldown, con PETTO sul supporto.
-export const FOTO_INCLINE_PULLDOWN_CORRETTA = 'img/esercizi/incline-single-arm-pulldown-v446.svg';
+export const FOTO_INCLINE_PULLDOWN_CORRETTA = 'img/esercizi/uniformi-v455/ex-lying-cable-curl.svg';
 
 // Coordinate [colonna, riga] per 79 esercizi, atlante 8 x 10.
 // Una cella distinta per ogni ID; la variante Incline Single Arm Pulldown
@@ -129,9 +129,9 @@ export const FOTO_VERIFICATE_TECNICAMENTE = Object.freeze({
   "ex-smith-machine-bent-over-row": "img/esercizi/uniformi-v455/ex-smith-machine-bent-over-row.webp",
   "ex-smith-machine-shrug": "img/esercizi/uniformi-v455/ex-smith-machine-shrug.webp",
   // v452: tre illustrazioni tecniche dedicate; non sostituire le 76 già verificate.
-  "ex-dips": "img/esercizi/dips-zavorrati-corretti-v452.svg",
-  "ex-wrist-curl": "img/esercizi/wrist-curl-cavo-v452.svg",
-  "ex-strict-curl-ez-wall": "img/esercizi/strict-curl-parete-v452.svg",
+  "ex-dips": "img/esercizi/uniformi-v455/ex-dips.svg",
+  "ex-wrist-curl": "img/esercizi/uniformi-v455/ex-wrist-curl.svg",
+  "ex-strict-curl-ez-wall": "img/esercizi/uniformi-v455/ex-strict-curl-ez-wall.svg",
   "ex-dumbbell-face-pull": "img/esercizi/uniformi-v455/ex-dumbbell-face-pull.webp",
   "ex-bent-over-row": "img/esercizi/uniformi-v455/ex-bent-over-row.webp",
 });

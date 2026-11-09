@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Wrist Curl al cavo monocarrucola da seduto"><defs><radialGradient id="bg" cx=".5" cy=".5" r=".80"><stop stop-color="#8420d4"/><stop offset=".56" stop-color="#721bc4"/><stop offset="1" stop-color="#6317b1"/></radialGradient><linearGradient id="metal" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#f0ebf9"/><stop offset=".55" stop-color="#8590a3"/><stop offset="1" stop-color="#39374d"/></linearGradient><linearGradient id="shirt"><stop stop-color="#c567ff"/><stop offset=".65" stop-color="#8228d1"/><stop offset="1" stop-color="#56108b"/></linearGradient><linearGradient id="skin"><stop stop-color="#ffce8e"/><stop offset="1" stop-color="#d58b52"/></linearGradient><style>.edge{stroke:#21142f;stroke-width:7;stroke-linecap:round;stroke-linejoin:round}.small{stroke:#21142f;stroke-width:5;stroke-linejoin:round;stroke-linecap:round}</style></defs><rect width="512" height="512" rx="45" fill="#260a36"/><circle cx="256" cy="256" r="245" fill="url(#bg)"/><ellipse cx="260" cy="477" rx="198" ry="15" fill="#1c0833" opacity=".42"/>
+<!-- Macchina a cavo con stack evidente -->
+<rect x="374" y="59" width="92" height="383" rx="12" fill="#77748e" stroke="#241b33" stroke-width="9"/>
+<rect x="385" y="68" width="70" height="359" rx="6" fill="#2d293d"/><path d="M390 76 L390 418 M447 76 L447 418" stroke="#d5d3e8" stroke-width="7"/>
+<rect x="390" y="298" width="52" height="107" rx="6" fill="#77748e" stroke="#181321" stroke-width="5"/><path d="M390 320 H442 M390 343 H442 M390 366 H442 M390 389 H442" stroke="#211a30" stroke-width="7"/>
+<circle cx="400" cy="282" r="22" fill="url(#metal)" class="small"/><circle cx="400" cy="282" r="8" fill="#32253f"/>
+<path d="M398 280 L268 315" stroke="#20182c" stroke-width="7" stroke-linecap="round"/><path d="M397 279 L268 313" stroke="#d5cfdd" stroke-width="3" stroke-linecap="round"/>
+<!-- Panca, persona seduta con avambraccio sulle cosce -->
+<path d="M77 349 L270 349" stroke="#252035" stroke-width="38" stroke-linecap="round"/><path d="M85 344 L267 344" stroke="#8b649f" stroke-width="25" stroke-linecap="round"/>
+<path d="M119 360 L114 448 M245 360 L245 448" stroke="#9094af" stroke-width="15" stroke-linecap="round"/>
+<path d="M139 322 Q170 324 211 339 Q245 351 257 388 L284 446 L257 459 Q235 422 211 384 L164 371 Z" fill="#287ddd" class="edge"/>
+<path d="M138 366 Q132 403 153 439 L187 451 L174 465 L129 465 Q109 428 109 383" fill="url(#skin)" class="edge"/>
+<path d="M251 454 Q269 442 294 452 L304 468 L246 468 Z M129 458 Q148 447 180 458 L189 471 L128 471 Z" fill="#faf8ff" class="small"/>
+<!-- Torace e spalle -->
+<path d="M133 180 Q167 170 196 190 L218 305 L161 341 Q118 307 115 262 Z" fill="url(#shirt)" class="edge"/>
+<path d="M169 195 Q202 201 214 226 Q237 249 251 277 L238 294 Q210 274 187 258 L151 234" fill="url(#skin)" class="edge"/>
+<!-- Avambraccio sostenuto vicino al ginocchio, mano piegata verso l'alto -->
+<path d="M223 274 Q240 291 258 302 L269 288 Q259 269 251 265" fill="url(#skin)" class="small"/>
+<ellipse cx="265" cy="293" rx="15" ry="15" fill="url(#skin)" class="small"/>
+<!-- Presa al cavo e collegamento -->
+<path d="M244 289 L289 289" stroke="#241c29" stroke-width="16" stroke-linecap="round"/><path d="M244 285 L289 285" stroke="#c5c4d0" stroke-width="8" stroke-linecap="round"/><path d="M289 289 L299 298 L268 314" fill="none" stroke="#c5c4d0" stroke-width="6" stroke-linejoin="round"/>
+<!-- Testa e capelli -->
+<path d="M145 176 L151 196 Q168 209 186 189 L178 164" fill="#efb67c" class="small"/>
+<ellipse cx="164" cy="119" rx="43" ry="51" fill="url(#skin)" class="edge"/>
+<path d="M122 126 Q111 80 144 66 Q189 52 209 105 Q177 98 163 88 Q151 109 126 109 Z" fill="#42263a" class="edge"/>
+<path d="M185 126 L198 129" stroke="#704d37" stroke-width="5" stroke-linecap="round"/>
+<rect x="9" y="9" width="494" height="494" rx="45" fill="none" stroke="#bd23fa" stroke-width="9" pointer-events="none"/></svg>
