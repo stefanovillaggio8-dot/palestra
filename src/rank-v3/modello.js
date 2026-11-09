@@ -1013,7 +1013,7 @@ export function caricoEffettivo(serie, cfg, { pesoCorporeo = null, esercizio = {
   // Non cambiare carichi salvati, Wrist Curl precedente o soglie degli altri esercizi.
   if (esercizio?.id === 'ex-high-cable-wrist-curl-two-arm') {
     return { carico: arrotonda(reale / 2), zavorra: null, corpo: null,
-      motivo: 'carico stimato per polso = pila / 2 (due mani sulla stessa sbarra)' };
+      motivo: null, notaCarico: 'carico stimato per polso = pila / 2 (due mani sulla stessa sbarra)' };
   }
   return { carico: reale, zavorra: null, corpo: null, motivo: null };
 }
