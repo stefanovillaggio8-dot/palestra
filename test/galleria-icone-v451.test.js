@@ -5,7 +5,7 @@ import {ESERCIZI} from '../src/dati-iniziali.js';
 const html=readFileSync(new URL('../verifica-icone.html',import.meta.url),'utf8');
 
 test('v451: galleria controllabile, 79 icone corrette ID/nome e filtro funzionante',()=>{
-  assert.equal((html.match(/<article class="tile /g)||[]).length,79);
+  assert.equal((html.match(/<article class="tile /g)||[]).length,81);
   assert.match(html,/\.tile\[hidden\]\{display:none\}/);
   assert.match(html,/document\.querySelectorAll\('\.tile'\)/);
   for(const e of ESERCIZI){
