@@ -8,6 +8,18 @@ import { el } from './ui.js';
 // Il movimento reale è Incline Single Arm Pulldown, con PETTO sul supporto.
 export const FOTO_INCLINE_PULLDOWN_CORRETTA = 'img/esercizi/uniformi-v455/ex-lying-cable-curl.svg';
 
+export const ATLANTE_CORREZIONI_V456 = 'img/esercizi/icone-corrette-v456-atlas.webp';
+export const POSIZIONI_CORREZIONI_V456 = Object.freeze({
+  'ex-cable-overhead-tricep': [0, 0],
+  'ex-single-arm-tricep-pushdown': [1, 0],
+  'ex-one-arm-cable-reverse-fly': [2, 0],
+  'ex-lat-pulldown-lats': [0, 1],
+  'ex-dips': [1, 1],
+  'ex-iso-lateral-high-row': [2, 1],
+  'ex-strict-curl-ez-wall': [0, 2],
+  'ex-seated-dumbbell-lateral-raise': [1, 2],
+});
+
 // Coordinate [colonna, riga] per 79 esercizi, atlante 8 x 10.
 // Una cella distinta per ogni ID; la variante Incline Single Arm Pulldown
 // continua a usare il SVG biomeccanico dedicato e non la propria cella.
@@ -122,7 +134,7 @@ export const ZOOM_ICONE_STORICHE = Object.freeze({
 // Non alterare le foto degli esercizi personalizzati.
 export const FOTO_VERIFICATE_TECNICAMENTE = Object.freeze({
   "ex-one-arm-overhead-tricep-extension": "img/esercizi/uniformi-v455/ex-one-arm-overhead-tricep-extension.webp",
-  "ex-scott-bench-curl": "img/esercizi/uniformi-v455/ex-scott-bench-curl.webp",
+  "ex-scott-bench-curl": "img/esercizi/cad-curl-app.jpg",
   "ex-chest-supported-shrug": "img/esercizi/uniformi-v455/ex-chest-supported-shrug.webp",
   "ex-lat-pulldown-lats": "img/esercizi/uniformi-v455/ex-lat-pulldown-lats.webp",
   "ex-bench-pull": "img/esercizi/bench-pull-v453.webp",
@@ -137,6 +149,9 @@ export const FOTO_VERIFICATE_TECNICAMENTE = Object.freeze({
 });
 
 export function sorgenteMiniatura(esercizio) {
+  const nuovaPosizione = POSIZIONI_CORREZIONI_V456[esercizio?.id];
+  if (nuovaPosizione) return { tipo: 'sprite', atlas: ATLANTE_CORREZIONI_V456,
+    x: nuovaPosizione[0] * 50, y: nuovaPosizione[1] * 50, zoom: 1 };
   if (esercizio?.id === 'ex-lying-cable-curl') {
     return { tipo: 'dedicata', src: FOTO_INCLINE_PULLDOWN_CORRETTA, zoom: 1 };
   }
@@ -166,7 +181,8 @@ export function miniaturaEsercizio(esercizio, grande = false) {
   if (fonte.tipo === 'sprite') {
     contenitore.appendChild(el('span', {
       class: 'foto-esercizio-arte foto-esercizio-sprite',
-      style: '--sprite-x:' + fonte.x + '%;--sprite-y:' + fonte.y + '%',
+      style: '--sprite-x:' + fonte.x + '%;--sprite-y:' + fonte.y + '%' +
+        (fonte.atlas ? ';background-image:url(\"./' + fonte.atlas + '\");background-size:300% 300%' : ''),
       'aria-hidden': 'true',
     }));
   } else {
