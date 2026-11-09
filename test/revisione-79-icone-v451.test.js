@@ -67,7 +67,8 @@ test('v451: l atlante HD e quello effettivamente controllato',()=>{
   const doc=txt('docs/verifica-79-icone-v451.md');
   assert.match(doc,/## Registro esercizio per esercizio/);
   assert.equal((doc.match(/^\| \d+ \|/gm)||[]).length,79); // registro storico v451: le nuove icone sono in galleria v459
-  for(const e of ESERCIZI)assert.ok(doc.includes('| '+e.nome+' |'),'riga di audit mancante: '+e.id);
+  for(const e of ESERCIZI.filter(e => !['ex-high-cable-wrist-curl-one-arm', 'ex-high-cable-wrist-curl-two-arm'].includes(e.id)))
+    assert.ok(doc.includes('| '+e.nome+' |'),'riga di audit storica mancante: '+e.id);
 });
 
 test('v451: core e dati personali restano invariati',()=>{
