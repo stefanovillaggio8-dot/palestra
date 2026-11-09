@@ -13,10 +13,12 @@ test('v450: tutti i 79 esercizi hanno una nuova immagine del catalogo oppure SVG
   for(const [i,e] of ESERCIZI.entries()) {
     const origine=sorgenteMiniatura(e);
     if(e.id==='ex-lying-cable-curl'){
-      assert.equal(origine.tipo,'dedicata');
-      assert.equal(origine.src,FOTO_INCLINE_PULLDOWN_CORRETTA);
+      assert.equal(origine.tipo,'sprite');
+      assert.equal(origine.atlas,'img/esercizi/icone-corrette-v456-atlas.webp');
+      assert.equal(origine.x,100);
+      assert.equal(origine.y,100);
       assert.equal(posizioneIconaCorretta(e),null);
-      svg++;
+      sprite++;
       continue;
     }
     if (origine.tipo === 'originale') {
@@ -32,9 +34,9 @@ test('v450: tutti i 79 esercizi hanno una nuova immagine del catalogo oppure SVG
     assert.ok(!celle.has(key),'sprite duplicato: '+e.id);
     celle.add(key);sprite++;
   }
-  assert.equal(sprite,69);
+  assert.equal(sprite,70);
   assert.equal(originali,9);
-  assert.equal(svg,1);
+  assert.equal(svg,0);
 });
 
 test('v450: immagine WebP completa, caching PWA e scala 8x10',()=>{
