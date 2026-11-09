@@ -144,7 +144,7 @@ export const FOTO_VERIFICATE_TECNICAMENTE = Object.freeze({
   "ex-dips": "img/esercizi/uniformi-v455/ex-dips.svg",
   "ex-wrist-curl": "img/esercizi/uniformi-v455/ex-wrist-curl.svg",
   "ex-strict-curl-ez-wall": "img/esercizi/uniformi-v455/ex-strict-curl-ez-wall.svg",
-  "ex-dumbbell-face-pull": "img/esercizi/uniformi-v455/ex-dumbbell-face-pull.webp",
+  "ex-dumbbell-face-pull": "img/esercizi/verificati-v458/ex-dumbbell-face-pull.webp",
   "ex-bent-over-row": "img/esercizi/uniformi-v455/ex-bent-over-row.webp",
 });
 

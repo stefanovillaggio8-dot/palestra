@@ -46,15 +46,15 @@ test('v455: la galleria e la PWA usano la stessa palette globale', () => {
     'ex-chest-supported-shrug',
     'ex-smith-machine-bent-over-row','ex-smith-machine-shrug',
     'ex-dumbbell-face-pull','ex-bent-over-row']) {
-    const path='img/esercizi/uniformi-v455/'+id+'.webp';
+    const path=id==='ex-dumbbell-face-pull' ? 'img/esercizi/verificati-v458/ex-dumbbell-face-pull.webp' : 'img/esercizi/uniformi-v455/'+id+'.webp';
     assert.ok(read(path).length>3000,'foto storica non normalizzata: '+id);
     assert.ok(gallery.includes(path),'la galleria non mostra '+id);
     assert.ok(sw.includes('./'+path),'offline manca '+id);
     const e=ESERCIZI.find(x=>x.id===id);
     assert.equal(sorgenteMiniatura(e).src,path);
   }
-  assert.match(txt('index.html'),/PALESTRA_VERSIONE = 'palestra-v457'/);
-  assert.match(sw,/const VERSIONE = 'palestra-v457'/);
+  assert.match(txt('index.html'),/PALESTRA_VERSIONE = 'palestra-v458'/);
+  assert.match(sw,/const VERSIONE = 'palestra-v458'/);
   assert.ok(css.includes('.foto-esercizio-arte-originale[src*="/uniformi-v455/"]'));
 });
 
