@@ -32,7 +32,7 @@ test('v451: catalogo intero senza ID doppi, sorgenti e celle attribuite una sola
       assert.ok(read(f.src).length>1500,'foto personale assente: '+e.id);
     }
   }
-  assert.deepEqual(counts,{sprite:69,originale:9,dedicata:1});
+  assert.deepEqual(counts,{sprite:70,originale:9,dedicata:0});
 });
 
 test('v451: non riutilizzare un esercizio sbagliato quando manca la variante',()=>{
@@ -44,7 +44,7 @@ test('v451: non riutilizzare un esercizio sbagliato quando manca la variante',()
     assert.equal(f.tipo,'originale',id);
     assert.equal(f.src,FOTO_VERIFICATE_TECNICAMENTE[id]);
   }
-  assert.equal(sorgenteMiniatura(ESERCIZI.find(e=>e.id==='ex-lying-cable-curl')).src,FOTO_INCLINE_PULLDOWN_CORRETTA);
+  assert.equal(sorgenteMiniatura(ESERCIZI.find(e=>e.id==='ex-lying-cable-curl')).atlas,'img/esercizi/icone-corrette-v456-atlas.webp');
   assert.notEqual(sorgenteMiniatura(ESERCIZI.find(e=>e.id==='ex-cable-hammer-curl')).x,
                   sorgenteMiniatura(ESERCIZI.find(e=>e.id==='ex-cable-bicep-curl')).x);
 });
