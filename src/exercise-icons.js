@@ -6,7 +6,7 @@ import { el } from './ui.js';
 
 // ID storico: si chiama ancora ex-lying-cable-curl per non perdere lo storico.
 // Il movimento reale è Incline Single Arm Pulldown, con PETTO sul supporto.
-export const FOTO_INCLINE_PULLDOWN_CORRETTA = 'img/esercizi/uniformi-v455/ex-lying-cable-curl.svg';
+export const FOTO_INCLINE_PULLDOWN_CORRETTA = 'img/esercizi/verificati-v456/ex-lying-cable-curl.webp';
 
 export const ATLANTE_CORREZIONI_V456 = 'img/esercizi/icone-corrette-v456-atlas.webp';
 export const POSIZIONI_CORREZIONI_V456 = Object.freeze({
@@ -22,7 +22,7 @@ export const POSIZIONI_CORREZIONI_V456 = Object.freeze({
 
 // Coordinate [colonna, riga] per 79 esercizi, atlante 8 x 10.
 // Una cella distinta per ogni ID; la variante Incline Single Arm Pulldown
-// continua a usare il SVG biomeccanico dedicato e non la propria cella.
+// continua a usare un WebP biomeccanico dedicato e non la propria cella.
 export const POSIZIONI_ICONE_CORRETTE = Object.freeze({
   'ex-one-arm-overhead-tricep-extension': [0, 0],
   'ex-chest-press': [1, 0],
