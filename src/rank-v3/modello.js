@@ -1007,6 +1007,14 @@ export function caricoEffettivo(serie, cfg, { pesoCorporeo = null, esercizio = {
   if (reale === null) {
     return { carico: null, motivo: 'mancano i kg o le ripetizioni' };
   }
+  // Solo la variante nuova con sbarra unica a due mani: la pila e' un carico TOTALE.
+  // Per confrontare con il riferimento stimato della famiglia 'polso' (PER MANO),
+  // ogni polso sostiene approssimativamente meta della tensione in modo simmetrico.
+  // Non cambiare carichi salvati, Wrist Curl precedente o soglie degli altri esercizi.
+  if (esercizio?.id === 'ex-high-cable-wrist-curl-two-arm') {
+    return { carico: arrotonda(reale / 2), zavorra: null, corpo: null,
+      motivo: 'carico stimato per polso = pila / 2 (due mani sulla stessa sbarra)' };
+  }
   return { carico: reale, zavorra: null, corpo: null, motivo: null };
 }
 
