@@ -23,7 +23,7 @@ test('v451: catalogo intero senza ID doppi, sorgenti e celle attribuite una sola
     assert.ok(Object.hasOwn(counts,f.tipo),'tipo sconosciuto: '+e.id);
     counts[f.tipo]++;
     if(f.tipo==='sprite'){
-      const key=f.x.toFixed(6)+'/'+f.y.toFixed(6);
+      const key=(f.atlas || 'img/esercizi/esercizi-uniformi-v455.webp')+':'+f.x.toFixed(6)+'/'+f.y.toFixed(6);
       assert.ok(!seen.has(key),'cella riutilizzata: '+e.id);
       seen.add(key);
       assert.ok(Number.isFinite(f.x)&&Number.isFinite(f.y));
@@ -32,12 +32,12 @@ test('v451: catalogo intero senza ID doppi, sorgenti e celle attribuite una sola
       assert.ok(read(f.src).length>1500,'foto personale assente: '+e.id);
     }
   }
-  assert.deepEqual(counts,{sprite:66,originale:12,dedicata:1});
+  assert.deepEqual(counts,{sprite:69,originale:9,dedicata:1});
 });
 
 test('v451: non riutilizzare un esercizio sbagliato quando manca la variante',()=>{
   const fallback=['ex-one-arm-overhead-tricep-extension','ex-scott-bench-curl',
-    'ex-chest-supported-shrug','ex-lat-pulldown-lats','ex-bench-pull',
+    'ex-chest-supported-shrug','ex-bench-pull',
     'ex-smith-machine-bent-over-row','ex-smith-machine-shrug'];
   for(const id of fallback){
     const e=ESERCIZI.find(x=>x.id===id),f=sorgenteMiniatura(e);
@@ -59,11 +59,11 @@ test('v451: l atlante HD e quello effettivamente controllato',()=>{
   const sw=txt('sw.js'),html=txt('index.html'),css=txt('stile.css');
   assert.match(css,/background-image: url\('\.\/img\/esercizi\/esercizi-uniformi-v455\.webp'\)/);
   assert.match(css,/background-size: 800% 1000%/);
-  assert.match(sw,/palestra-v455/);
+  assert.match(sw,/palestra-v456/);
   assert.match(sw,/esercizi-uniformi-v455\.webp/);
-  assert.match(html,/PALESTRA_VERSIONE = 'palestra-v455'/);
-  assert.match(html,/stile\.css\?v=455/);
-  assert.match(html,/app\.js\?v=455/);
+  assert.match(html,/PALESTRA_VERSIONE = 'palestra-v456'/);
+  assert.match(html,/stile\.css\?v=456/);
+  assert.match(html,/app\.js\?v=456/);
   const doc=txt('docs/verifica-79-icone-v451.md');
   assert.match(doc,/## Registro esercizio per esercizio/);
   assert.equal((doc.match(/^\| \d+ \|/gm)||[]).length,79);

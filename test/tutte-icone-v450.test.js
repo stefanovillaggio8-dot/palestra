@@ -28,12 +28,12 @@ test('v450: tutti i 79 esercizi hanno una nuova immagine del catalogo oppure SVG
     assert.deepEqual(POSIZIONI_ICONE_CORRETTE[e.id],[i%8,Math.floor(i/8)],'ID fuori ordine: '+e.id);
     assert.ok(origine.x>=0&&origine.x<=100);
     assert.ok(origine.y>=0&&origine.y<=100);
-    const key=origine.x.toFixed(6)+'|'+origine.y.toFixed(6);
+    const key=(origine.atlas || 'img/esercizi/esercizi-uniformi-v455.webp')+'|'+origine.x.toFixed(6)+'|'+origine.y.toFixed(6);
     assert.ok(!celle.has(key),'sprite duplicato: '+e.id);
     celle.add(key);sprite++;
   }
-  assert.equal(sprite,66);
-  assert.equal(originali,12);
+  assert.equal(sprite,69);
+  assert.equal(originali,9);
   assert.equal(svg,1);
 });
 
@@ -47,7 +47,7 @@ test('v450: immagine WebP completa, caching PWA e scala 8x10',()=>{
   const html=readFileSync(new URL('../index.html',import.meta.url),'utf8');
   assert.match(css,/esercizi-uniformi-v455\.webp/);
   assert.match(css,/background-size: 800% 1000%/);
-  assert.match(sw,/palestra-v455/);
+  assert.match(sw,/palestra-v456/);
   assert.match(sw,/esercizi-uniformi-v455\.webp/);
-  assert.match(html,/PALESTRA_VERSIONE = 'palestra-v455'/);
+  assert.match(html,/PALESTRA_VERSIONE = 'palestra-v456'/);
 });
