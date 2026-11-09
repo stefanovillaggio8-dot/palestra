@@ -26,6 +26,6 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add img/esercizi/esercizi-uniformi-v455.webp docs/anteprima-icone-uniformi-v455.webp
+          git add img/esercizi/esercizi-uniformi-v455.webp img/esercizi/uniformi-v455/ docs/anteprima-icone-uniformi-v455.webp docs/anteprima-specifiche-v455.webp
           git commit -m 'assets: anteprima 80 celle normalizzate v455' || exit 0
           git push origin HEAD:fix/revisione-globale-79-icone-v455
