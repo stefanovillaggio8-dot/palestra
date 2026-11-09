@@ -319,6 +319,7 @@ a { color: var(--blu); text-decoration: none; }
 }
 /* Nuove icone v454: niente maschera sfumata che taglia il bordo e la figura. */
 .foto-esercizio-arte-originale[src*="/uniformi-v455/"],
+.foto-esercizio-arte-originale[src*="/verificati-v456/"],
 .foto-esercizio-arte-originale[src$="bench-pull-v453.webp"] {
   object-fit: cover;
   object-position: center;
