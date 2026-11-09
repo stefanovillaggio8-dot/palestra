@@ -89,3 +89,35 @@ p=Path('docs/anteprima-icone-uniformi-v455.webp')
 p.parent.mkdir(parents=True,exist_ok=True)
 preview.save(p,'WEBP',quality=85,method=6)
 print(f'foreground isolation {len(success)}/80, asset size={dest.stat().st_size}, preview={p}')
+
+# Uniforma anche le otto immagini esterne v454 con lo stesso fondale.
+dedicated={
+  "ex-one-arm-overhead-tricep-extension":"one-arm-overhead-tricep-extension-v454.webp",
+  "ex-scott-bench-curl":"cad-curl-v454.webp",
+  "ex-chest-supported-shrug":"chest-supported-dumbbell-shrug-v454.webp",
+  "ex-lat-pulldown-lats":"lat-pulldown-neutral-v454.webp",
+  "ex-smith-machine-bent-over-row":"smith-machine-bent-over-row-v454.webp",
+  "ex-smith-machine-shrug":"smith-machine-shrug-v454.webp",
+  "ex-dumbbell-face-pull":"dumbbell-face-pull-v454.webp",
+  "ex-bent-over-row":"bent-over-row-v454.webp",
+}
+dedicated_dest=Path("img/esercizi/uniformi-v455")
+dedicated_dest.mkdir(parents=True,exist_ok=True)
+contact=Image.new('RGB',(4*256,2*256),(12,6,18))
+for n,(exercise,name) in enumerate(dedicated.items()):
+    src=Image.open(Path("img/esercizi")/name).convert("RGB").resize((256,256),Image.Resampling.LANCZOS)
+    output=background()
+    fg=extract(src,exercise)
+    if fg is None:
+        print(f'Dedicated fallback: {exercise}')
+        output.alpha_composite(src.convert('RGBA'))
+    else:
+        output.alpha_composite(fg,((256-fg.width)//2,(256-fg.height)//2))
+    ImageDraw.Draw(output).rounded_rectangle((4,4,251,251),radius=27,outline=(189,35,250,255),width=5)
+    final=output.convert('RGB')
+    final.save(dedicated_dest/f'{exercise}.webp','WEBP',quality=90,method=6)
+    contact.paste(final,((n%4)*256,(n//4)*256))
+    ImageDraw.Draw(contact).text(((n%4)*256+12,(n//4)*256+10),str(n+1),
+      fill='white',stroke_fill='black',stroke_width=2)
+contact.save('docs/anteprima-specifiche-v455.webp','WEBP',quality=87,method=6)
+print(f'8 immagini individuali normalizzate, anteprima {contact.size}')
