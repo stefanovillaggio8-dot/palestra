@@ -121,19 +121,19 @@ export const ZOOM_ICONE_STORICHE = Object.freeze({
 // già disponibile finché il disegno nuovo non supera la verifica manuale.
 // Non alterare le foto degli esercizi personalizzati.
 export const FOTO_VERIFICATE_TECNICAMENTE = Object.freeze({
-  "ex-one-arm-overhead-tricep-extension": "img/esercizi/one-arm-overhead-tricep-extension-v454.webp",
-  "ex-scott-bench-curl": "img/esercizi/cad-curl-v454.webp",
-  "ex-chest-supported-shrug": "img/esercizi/chest-supported-dumbbell-shrug-v454.webp",
-  "ex-lat-pulldown-lats": "img/esercizi/lat-pulldown-neutral-v454.webp",
+  "ex-one-arm-overhead-tricep-extension": "img/esercizi/uniformi-v455/ex-one-arm-overhead-tricep-extension.webp",
+  "ex-scott-bench-curl": "img/esercizi/uniformi-v455/ex-scott-bench-curl.webp",
+  "ex-chest-supported-shrug": "img/esercizi/uniformi-v455/ex-chest-supported-shrug.webp",
+  "ex-lat-pulldown-lats": "img/esercizi/uniformi-v455/ex-lat-pulldown-lats.webp",
   "ex-bench-pull": "img/esercizi/bench-pull-v453.webp",
-  "ex-smith-machine-bent-over-row": "img/esercizi/smith-machine-bent-over-row-v454.webp",
-  "ex-smith-machine-shrug": "img/esercizi/smith-machine-shrug-v454.webp",
+  "ex-smith-machine-bent-over-row": "img/esercizi/uniformi-v455/ex-smith-machine-bent-over-row.webp",
+  "ex-smith-machine-shrug": "img/esercizi/uniformi-v455/ex-smith-machine-shrug.webp",
   // v452: tre illustrazioni tecniche dedicate; non sostituire le 76 già verificate.
   "ex-dips": "img/esercizi/dips-zavorrati-corretti-v452.svg",
   "ex-wrist-curl": "img/esercizi/wrist-curl-cavo-v452.svg",
   "ex-strict-curl-ez-wall": "img/esercizi/strict-curl-parete-v452.svg",
-  "ex-dumbbell-face-pull": "img/esercizi/dumbbell-face-pull-v454.webp",
-  "ex-bent-over-row": "img/esercizi/bent-over-row-v454.webp",
+  "ex-dumbbell-face-pull": "img/esercizi/uniformi-v455/ex-dumbbell-face-pull.webp",
+  "ex-bent-over-row": "img/esercizi/uniformi-v455/ex-bent-over-row.webp",
 });
 
 export function sorgenteMiniatura(esercizio) {
@@ -141,7 +141,7 @@ export function sorgenteMiniatura(esercizio) {
     return { tipo: 'dedicata', src: FOTO_INCLINE_PULLDOWN_CORRETTA, zoom: 1 };
   }
   const preferita = FOTO_VERIFICATE_TECNICAMENTE[esercizio?.id];
-  if (preferita) return { tipo: 'originale', src: preferita, zoom: preferita.endsWith("-v454.webp") || esercizio?.id === "ex-bench-pull" ? 1 : 1.04 };
+  if (preferita) return { tipo: 'originale', src: preferita, zoom: preferita.includes("/uniformi-v455/") || esercizio?.id === "ex-bench-pull" ? 1 : 1.04 };
   const posizione = posizioneIconaCorretta(esercizio);
   if (posizione) return { tipo: 'sprite', ...posizione, zoom: 1 };
   return {
