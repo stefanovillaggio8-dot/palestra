@@ -8,8 +8,8 @@ const read = p => readFileSync(new URL('../'+p,import.meta.url));
 const txt = p => read(p).toString('utf8');
 
 test('v455: tutte le 79 miniature sono presenti e distinguibili', () => {
-  assert.equal(ESERCIZI.length,79);
-  assert.equal(new Set(ESERCIZI.map(x=>x.id)).size,79);
+  assert.equal(ESERCIZI.length,81);
+  assert.equal(new Set(ESERCIZI.map(x=>x.id)).size,81);
   let sprite=0, speciale=0, originale=0;
   const sprites=new Set();
   for (const e of ESERCIZI) {
@@ -27,7 +27,7 @@ test('v455: tutte le 79 miniature sono presenti e distinguibili', () => {
       else originale++;
     }
   }
-  assert.deepEqual({sprite,speciale,originale},{sprite:69,speciale:1,originale:9});
+  assert.deepEqual({sprite,speciale,originale},{sprite:69,speciale:1,originale:11});
 });
 
 test('v455: la galleria e la PWA usano la stessa palette globale', () => {
@@ -41,7 +41,7 @@ test('v455: la galleria e la PWA usano la stessa palette globale', () => {
   assert.ok(gallery.includes(img),'atlante non usato dalla galleria');
   assert.ok(sw.includes('./'+img),'atlante non incluso nella cache');
   assert.match(css,/background-size: 800% 1000%/);
-  assert.equal((gallery.match(/<article class="tile /g)||[]).length,79);
+  assert.equal((gallery.match(/<article class="tile /g)||[]).length,81);
   for (const id of ['ex-one-arm-overhead-tricep-extension',
     'ex-chest-supported-shrug',
     'ex-smith-machine-bent-over-row','ex-smith-machine-shrug',
@@ -53,8 +53,8 @@ test('v455: la galleria e la PWA usano la stessa palette globale', () => {
     const e=ESERCIZI.find(x=>x.id===id);
     assert.equal(sorgenteMiniatura(e).src,path);
   }
-  assert.match(txt('index.html'),/PALESTRA_VERSIONE = 'palestra-v458'/);
-  assert.match(sw,/const VERSIONE = 'palestra-v458'/);
+  assert.match(txt('index.html'),/PALESTRA_VERSIONE = 'palestra-v459'/);
+  assert.match(sw,/const VERSIONE = 'palestra-v459'/);
   assert.ok(css.includes('.foto-esercizio-arte-originale[src*="/uniformi-v455/"]'));
 });
 
