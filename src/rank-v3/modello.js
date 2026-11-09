@@ -968,6 +968,12 @@ export function modoDiCaricamento(cfg, esercizio) {
  *    sono prestazione): per quelli il modore dice "non valutabile" e lascia
  *    fare il conto alle ripetizioni.
  */
+/** Fattore SOLO di confronto: il carico reale della sbarra resta TOTALE. */
+export function fattoreConfrontoPolso(esercizio = {}) {
+  return esercizio?.id === 'ex-high-cable-wrist-curl-two-arm'
+    && esercizio?.usoBraccia === 'due_braccia' ? 0.5 : 1;
+}
+
 export function caricoEffettivo(serie, cfg, { pesoCorporeo = null, esercizio = {} } = {}) {
   const peso = numero(serie && serie.peso);
   const assistenza = numero(serie && serie.peso_assistenza);
@@ -1007,13 +1013,15 @@ export function caricoEffettivo(serie, cfg, { pesoCorporeo = null, esercizio = {
   if (reale === null) {
     return { carico: null, motivo: 'mancano i kg o le ripetizioni' };
   }
-  // Solo la variante nuova con sbarra unica a due mani: la pila e' un carico TOTALE.
-  // Per confrontare con il riferimento stimato della famiglia 'polso' (PER MANO),
-  // ogni polso sostiene approssimativamente meta della tensione in modo simmetrico.
-  // Non cambiare carichi salvati, Wrist Curl precedente o soglie degli altri esercizi.
-  if (esercizio?.id === 'ex-high-cable-wrist-curl-two-arm') {
-    return { carico: arrotonda(reale / 2), zavorra: null, corpo: null,
-      motivo: null, notaCarico: 'carico stimato per polso = pila / 2 (due mani sulla stessa sbarra)' };
+  // La sbarra e' UNA sola e tira UN solo cavo: 20 kg sulla pila 1:1
+  // sono 20 kg TOTALI realmente sollevati, non 10 kg di "carico reale".
+  // Per lo score su un riferimento provvisorio per polso, si usa anche
+  // l'equivalente medio PER MANO: e' una stima, non un'altra carrucola.
+  const fattorePolso = fattoreConfrontoPolso(esercizio);
+  if (fattorePolso !== 1) {
+    return { carico: reale, caricoPerScore: arrotonda(reale * fattorePolso),
+      caricoPerPolsoStimato: arrotonda(reale * fattorePolso), zavorra: null, corpo: null,
+      motivo: null, notaCarico: 'Sbarra unica: carico TOTALE sulla pila; per il confronto Rank si stima meta per polso (contributo simmetrico non verificato).' };
   }
   return { carico: reale, zavorra: null, corpo: null, motivo: null };
 }

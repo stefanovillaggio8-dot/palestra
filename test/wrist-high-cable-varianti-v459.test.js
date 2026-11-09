@@ -52,20 +52,22 @@ test('v459: Rank indipendente, kg per mano vs pila bilaterale', () => {
   const c1=configEsercizio({esercizio:one,movimento:vOne.movimento,livello:vOne.livello});
   const c2=configEsercizio({esercizio:two,movimento:vTwo.movimento,livello:vTwo.livello});
   assert.equal(caricoEffettivo({peso:30},c1,{esercizio:one}).carico,30);
-  assert.equal(caricoEffettivo({peso:30},c2,{esercizio:two}).carico,15);
+  assert.equal(caricoEffettivo({peso:30},c2,{esercizio:two}).carico,30);
+  assert.equal(caricoEffettivo({peso:30},c2,{esercizio:two}).caricoPerScore,15);
   assert.equal(caricoEffettivo({peso:30},c1,{esercizio:ESERCIZI.find(e=>e.id==='ex-wrist-curl')}).carico,15);
 });
 
 test('v460: alto 1:1, basso 2:1, due mani /2 sullo stesso carico',()=>{
  const low=ESERCIZI.find(e=>e.id==='ex-wrist-curl');
- function reale(e,peso){
+ function effettivo(e,peso){
    const m=movimentoDi(e),cfg=configEsercizio({esercizio:e,movimento:m.movimento,livello:m.livello});
-   return caricoEffettivo({peso},cfg,{esercizio:e}).carico;
+   return caricoEffettivo({peso},cfg,{esercizio:e});
  }
  for(const peso of [10,25,40,60]){
-   assert.equal(reale(one,peso),peso,'alto monobraccio 1:1');
-   assert.equal(reale(two,peso),peso/2,'alto sbarra: per polso');
-   assert.equal(reale(low,peso),peso/2,'basso monobraccio 2:1');
+   assert.equal(effettivo(one,peso).carico,peso,'alto monobraccio 1:1');
+   assert.equal(effettivo(two,peso).carico,peso,'alto sbarra: carico TOTALE realmente tirato');
+   assert.equal(effettivo(two,peso).caricoPerScore,peso/2,'solo confronto per polso');
+   assert.equal(effettivo(low,peso).carico,peso/2,'basso monobraccio 2:1');
  }
  assert.equal(low.id,'ex-wrist-curl','lo storico rimane sul vecchio ID');
 });
