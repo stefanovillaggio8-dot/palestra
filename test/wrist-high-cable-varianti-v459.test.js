@@ -92,8 +92,16 @@ test('v461: 20 kg sulla sbarra sono 20 kg TOTALI, il Rank usa una proxy per pols
   const soglieMono=soglieLegibiliNuove(mono.soglie,{esercizio:one,pesoCorporeo,cfg:mono.cfg});
   const soglieBil=soglieLegibiliNuove(bil.soglie,{esercizio:two,pesoCorporeo,cfg:bil.cfg});
   assert.equal(soglieMono.length,soglieBil.length);
-  for(let i=0;i<soglieMono.length;i++) if(soglieMono[i]!==null&&soglieBil[i]!==null)
-    assert.ok(Math.abs(soglieBil[i]-2*soglieMono[i])<=1,'soglia '+i+' tradotta nel carico totale');
+  for(let i=0;i<soglieMono.length;i++) if(soglieMono[i]!==null&&soglieBil[i]!==null) {
+    assert.ok(soglieBil[i]>soglieMono[i],
+      'soglia '+i+' bilaterale deve indicare piu kg TOTALI che una sola mano');
+    // Non chiediamo esattamente il doppio: la pila e' a scatti di peso selezionabili.
+    // Verifichiamo che il carico in kg totali consigliato raggiunga davvero lo score.
+    const conSbarra=valutaPrestazione({esercizio:two,
+      serie:[{peso:soglieBil[i],ripetizioni:8,stato:'fatta'}],pesoCorporeo});
+    assert.ok(conSbarra.valido && conSbarra.score+0.00001>=bil.soglie[i],
+      'soglia '+i+' deve essere realmente raggiunta coi kg TOTALI indicati');
+  }
   if(bil.distanza?.kgNecessari!==null && mono.distanza?.kgNecessari!==null) {
     assert.ok(bil.distanza.kgNecessari > mono.distanza.kgNecessari,
       'l obiettivo di carico sulla sbarra deve richiedere piu kg che su una sola mano');
