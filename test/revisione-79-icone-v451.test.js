@@ -66,7 +66,7 @@ test('v451: l atlante HD e quello effettivamente controllato',()=>{
   assert.match(html,/app\.js\?v=459/);
   const doc=txt('docs/verifica-79-icone-v451.md');
   assert.match(doc,/## Registro esercizio per esercizio/);
-  assert.equal((doc.match(/^\| \d+ \|/gm)||[]).length,81);
+  assert.equal((doc.match(/^\| \d+ \|/gm)||[]).length,79); // registro storico v451: le nuove icone sono in galleria v459
   for(const e of ESERCIZI)assert.ok(doc.includes('| '+e.nome+' |'),'riga di audit mancante: '+e.id);
 });
 
