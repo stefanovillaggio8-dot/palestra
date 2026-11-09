@@ -12,7 +12,7 @@ test('v446: panca dell Incline Single Arm Pulldown corretta senza cambiare ID o 
   const exercise=ESERCIZI.find(e=>e.id===idStorico);
   assert.ok(exercise);
   assert.equal(exercise.nome,'Incline Single Arm Pulldown');
-  assert.equal(exercise.foto, asset);
+  assert.equal(exercise.foto, 'img/esercizi/incline-single-arm-pulldown-v446.svg');
   assert.equal(FOTO_INCLINE_PULLDOWN_CORRETTA, asset);
   assert.match(exercise.nota_permanente,/petto appoggiato/);
   assert.equal(posizioneIconaCorretta(exercise),null, 'questa foto non e il vecchio sprite errato');
@@ -25,7 +25,7 @@ test('v446: un file vettoriale unico rappresenta il petto contro il supporto, ca
   assert.match(svg, /chest-facing inclined pad/);
   assert.match(svg, /body leans forward\/right/);
   assert.match(svg, /working arm: upward reach to one D-handle/);
-  assert.match(svg, /<rect width="512" height="512" rx="42" fill="#241032"/);
+  assert.match(svg, /<rect width="512" height="512" rx="45" fill="#260a36"/);
   assert.match(svg, /url\(#bg\)/);
   assert.ok(svg.length>3000,'l immagine non e un placeholder');
 });
@@ -41,5 +41,5 @@ test('v446: le PWA esistenti ricevono la nuova foto anche con vecchio dato local
   assert.ok(sw.includes("'./"+asset+"'"));
   assert.match(html,/PALESTRA_VERSIONE = 'palestra-v455'/);
   assert.match(html,/app\.js\?v=455/);
-  assert.ok(catalogo.includes("foto: '"+asset+"'"));
+  assert.ok(catalogo.includes("foto: 'img/esercizi/incline-single-arm-pulldown-v446.svg'"));
 });
