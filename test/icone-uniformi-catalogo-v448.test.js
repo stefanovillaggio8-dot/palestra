@@ -9,7 +9,7 @@ import { miniaturaEsercizio, sorgenteMiniatura, POSIZIONI_ICONE_CORRETTE,
 const read = p => readFileSync(new URL('../' + p, import.meta.url), 'utf8');
 
 test('v448: catalogo completo: stessa cornice e fonte per ciascuno dei 79 esercizi', () => {
-  assert.equal(ESERCIZI.length, 79);
+  assert.equal(ESERCIZI.length, 81);
   const univoci=new Set();
   const conteggi={sprite:0,dedicata:0,originale:0};
   for(const e of ESERCIZI) {
@@ -27,7 +27,7 @@ test('v448: catalogo completo: stessa cornice e fonte per ciascuno dei 79 eserci
       assert.ok(src.zoom>=1 && src.zoom<=1.28,e.id);
     }
   }
-  assert.deepEqual(conteggi,{sprite:69,dedicata:1,originale:9});
+  assert.deepEqual(conteggi,{sprite:69,dedicata:1,originale:11});
   assert.equal(FOTO_INCLINE_PULLDOWN_CORRETTA,'img/esercizi/verificati-v456/ex-lying-cable-curl.webp');
 });
 
@@ -87,6 +87,6 @@ test('v448: stile viola, cerchio, nitidezza e nessun taglio aggressivo per tutti
   const stileIcone=css.slice(css.indexOf('/* v448: un solo sistema visivo'),css.indexOf('@media (max-width: 390px)',css.indexOf('/* v448: un solo sistema visivo')));
   assert.doesNotMatch(stileIcone,/filter:\s*blur\(/);
   assert.match(script,/ZOOM_ICONE_STORICHE/);
-  assert.match(sw,/const VERSIONE = 'palestra-v458'/);
+  assert.match(sw,/const VERSIONE = 'palestra-v459'/);
   assert.match(sw,/'\.\/img\/esercizi\/esercizi-uniformi-v455\.webp'/);
 });
