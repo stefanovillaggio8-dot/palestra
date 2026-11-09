@@ -1,12 +1,12 @@
 // Miniature corrette: alcune foto storiche erano COPIE IDENTICHE per esercizi
 // completamente diversi (Face Pull -> EZ Bar Curl, row -> Bench Press, ecc.).
-// 79 illustrazioni uniformate con fondo e cerchio VIOLA, non nero/fotografico; nessun dato personale modificato.
+// v456: nove pose biomeccaniche corrette su sfondo viola; nessun dato personale modificato.
 // Gli esercizi non elencati mantengono le proprie immagini e le foto personali.
 import { el } from './ui.js';
 
 // ID storico: si chiama ancora ex-lying-cable-curl per non perdere lo storico.
 // Il movimento reale è Incline Single Arm Pulldown, con PETTO sul supporto.
-export const FOTO_INCLINE_PULLDOWN_CORRETTA = 'img/esercizi/uniformi-v455/ex-lying-cable-curl.svg';
+export const FOTO_INCLINE_PULLDOWN_CORRETTA = 'img/esercizi/verificati-v456/ex-lying-cable-curl.webp';
 
 // Coordinate [colonna, riga] per 79 esercizi, atlante 8 x 10.
 // Una cella distinta per ogni ID; la variante Incline Single Arm Pulldown
@@ -121,17 +121,22 @@ export const ZOOM_ICONE_STORICHE = Object.freeze({
 // già disponibile finché il disegno nuovo non supera la verifica manuale.
 // Non alterare le foto degli esercizi personalizzati.
 export const FOTO_VERIFICATE_TECNICAMENTE = Object.freeze({
+  "ex-seated-dumbbell-lateral-raise": "img/esercizi/verificati-v456/ex-seated-dumbbell-lateral-raise.webp",
+  "ex-iso-lateral-high-row": "img/esercizi/verificati-v456/ex-iso-lateral-high-row.webp",
+  "ex-one-arm-cable-reverse-fly": "img/esercizi/verificati-v456/ex-one-arm-cable-reverse-fly.webp",
+  "ex-single-arm-tricep-pushdown": "img/esercizi/verificati-v456/ex-single-arm-tricep-pushdown.webp",
+  "ex-cable-overhead-tricep": "img/esercizi/verificati-v456/ex-cable-overhead-tricep.webp",
   "ex-one-arm-overhead-tricep-extension": "img/esercizi/uniformi-v455/ex-one-arm-overhead-tricep-extension.webp",
-  "ex-scott-bench-curl": "img/esercizi/uniformi-v455/ex-scott-bench-curl.webp",
+  "ex-scott-bench-curl": "img/esercizi/cad-curl-app.jpg",
   "ex-chest-supported-shrug": "img/esercizi/uniformi-v455/ex-chest-supported-shrug.webp",
-  "ex-lat-pulldown-lats": "img/esercizi/uniformi-v455/ex-lat-pulldown-lats.webp",
+  "ex-lat-pulldown-lats": "img/esercizi/verificati-v456/ex-lat-pulldown-lats.webp",
   "ex-bench-pull": "img/esercizi/bench-pull-v453.webp",
   "ex-smith-machine-bent-over-row": "img/esercizi/uniformi-v455/ex-smith-machine-bent-over-row.webp",
   "ex-smith-machine-shrug": "img/esercizi/uniformi-v455/ex-smith-machine-shrug.webp",
   // v452: tre illustrazioni tecniche dedicate; non sostituire le 76 già verificate.
-  "ex-dips": "img/esercizi/uniformi-v455/ex-dips.svg",
+  "ex-dips": "img/esercizi/verificati-v456/ex-dips.webp",
   "ex-wrist-curl": "img/esercizi/uniformi-v455/ex-wrist-curl.svg",
-  "ex-strict-curl-ez-wall": "img/esercizi/uniformi-v455/ex-strict-curl-ez-wall.svg",
+  "ex-strict-curl-ez-wall": "img/esercizi/verificati-v456/ex-strict-curl-ez-wall.webp",
   "ex-dumbbell-face-pull": "img/esercizi/uniformi-v455/ex-dumbbell-face-pull.webp",
   "ex-bent-over-row": "img/esercizi/uniformi-v455/ex-bent-over-row.webp",
 });
@@ -141,7 +146,7 @@ export function sorgenteMiniatura(esercizio) {
     return { tipo: 'dedicata', src: FOTO_INCLINE_PULLDOWN_CORRETTA, zoom: 1 };
   }
   const preferita = FOTO_VERIFICATE_TECNICAMENTE[esercizio?.id];
-  if (preferita) return { tipo: 'originale', src: preferita, zoom: preferita.includes("/uniformi-v455/") || esercizio?.id === "ex-bench-pull" ? 1 : 1.04 };
+  if (preferita) return { tipo: 'originale', src: preferita, zoom: (preferita.includes("/uniformi-v455/") || preferita.includes("/verificati-v456/")) || esercizio?.id === "ex-bench-pull" ? 1 : 1.04 };
   const posizione = posizioneIconaCorretta(esercizio);
   if (posizione) return { tipo: 'sprite', ...posizione, zoom: 1 };
   return {
