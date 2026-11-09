@@ -1,0 +1,21 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {ESERCIZI} from '../src/dati-iniziali.js';
+import {sorgenteMiniatura,ATLANTE_CORREZIONI_V456,POSIZIONI_CORREZIONI_V456} from '../src/exercise-icons.js';
+const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
+test('v457: nona cella per incline pulldown, ID e foto storica intatti',()=>{
+ const ex=ESERCIZI.find(e=>e.id==='ex-lying-cable-curl');
+ assert.ok(ex);assert.equal(ex.nome,'Incline Single Arm Pulldown');
+ assert.equal(ex.foto,'img/esercizi/incline-single-arm-pulldown-v446.svg');
+ assert.deepEqual(POSIZIONI_CORREZIONI_V456[ex.id],[2,2]);
+ assert.deepEqual(sorgenteMiniatura(ex),{tipo:'sprite',atlas:ATLANTE_CORREZIONI_V456,x:100,y:100,zoom:1});
+ const gallery=read('verifica-icone.html');
+ const tile=gallery.split('data-name="incline single arm pulldown ex-lying-cable-curl"')[1]?.split('</article>')[0];
+ assert.ok(tile?.includes('class="v456"'));
+ assert.ok(tile?.includes('background-position:100% 100%'));
+ assert.equal((gallery.match(/<article class="tile /g)||[]).length,79);
+ assert.match(read('sw.js'),/palestra-v457/);
+ assert.match(read('index.html'),/palestra-v457/);
+ assert.ok(read('sw.js').includes('./'+ATLANTE_CORREZIONI_V456));
+});
