@@ -128,3 +128,7 @@ Anche i 4 disegni SVG originali (incline single-arm pulldown, dips zavorrati, wr
 ## Revisione esercizi v456 — ripristini e correzioni meccaniche
 
 Nuova spritesheet 3×3 `img/esercizi/icone-corrette-v456-atlas.webp` per otto icone: estensioni overhead al cavo basso (#05), single-arm pushdown dall'alto (#13), reverse fly monobraccio a cavo altezza spalla (#21), dips zavorrati con disco (#23), lat pulldown neutra con barra singola e impugnatura alle estremità (#26), high row iso-laterale (#36), strict curl EZ contro muro (#48), alzate laterali seduto simmetriche (#54). Ripristinata la miniatura storica `cad-curl-app.jpg` per #12 perché rappresenta la posa CAD Curl inverso e non un esercizio al cavo. La #28 incline single arm pulldown conserva il SVG biomeccanico approvato della v455. Tutti i dati di serie, Rank, streak e personali sono invariati.
+
+## v457 — nona posa dell'atlante 3×3
+
+La nona immagine di `img/esercizi/icone-corrette-v456-atlas.webp`, Incline Single Arm Pulldown, è ora associata anche all'ID storico `ex-lying-cable-curl`, usando le coordinate [2,2]. L'ID e la foto storica nei dati iniziali non sono modificati. Sono state allineate galleria, cache PWA e verifiche automatiche. Totale del catalogo: 79 esercizi, 70 sprite attivi e 9 immagini originali, senza illustrazioni dedicate attive.

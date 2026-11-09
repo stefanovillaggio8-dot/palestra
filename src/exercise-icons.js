@@ -18,8 +18,10 @@ export const POSIZIONI_CORREZIONI_V456 = Object.freeze({
   'ex-iso-lateral-high-row': [2, 1],
   'ex-strict-curl-ez-wall': [0, 2],
   'ex-seated-dumbbell-lateral-raise': [1, 2],
+  'ex-lying-cable-curl': [2, 2],
 });
 
+// v457: l'ultima cella dell'atlante 3x3 e' il pulldown inclinato monobraccio.
 // Coordinate [colonna, riga] per 79 esercizi, atlante 8 x 10.
 // Una cella distinta per ogni ID; la variante Incline Single Arm Pulldown
 // continua a usare il SVG biomeccanico dedicato e non la propria cella.
