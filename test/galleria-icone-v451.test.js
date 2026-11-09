@@ -13,7 +13,7 @@ test('v451: galleria controllabile, 79 icone corrette ID/nome e filtro funzionan
     assert.ok(html.includes(e.nome),'Nome mancante: '+e.nome);
   }
   assert.match(html,/esercizi-uniformi-v455\.webp/);
-  assert.match(html,/uniformi-v455\/ex-lying-cable-curl\.svg/);
+  assert.match(html,/verificati-v456\/ex-lying-cable-curl\.webp/);
   assert.match(html,/img\/esercizi\/bench-pull-v453\.webp/);
   for(const file of ['ex-wrist-curl.svg']) {
     assert.ok(html.includes('uniformi-v455/'+file),'SVG uniforme mancante dalla galleria: '+file);
