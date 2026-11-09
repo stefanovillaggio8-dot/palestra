@@ -45,7 +45,7 @@ test('ogni cavo dice se è mono o doppia carrucola', () => {
   // del carrello come se fosse tutto su un braccio, cioe' il doppio.
   for (const e of ESERCIZI) {
     if (e.convenzione === CONVENZIONI.CAVO) {
-      assert.ok(e.carrucola || e.rapportoCarrucolaDaVerificare === true,
+      assert.ok(e.carrucola,
         `"${e.nome}" è a cavo ma non dice mono o doppia: il peso sarebbe letto il doppio`);
     }
   }
@@ -104,15 +104,17 @@ test('ogni esercizio in kg ha una scala con ingresso e tetto sensati', () => {
 test('i due esercizi corretti sono corretti', () => {
   // I due punti precisi, scritti uno per uno, così il motivo non si perde.
   //
-  // Il Wrist Curl è il caso che mi ha fatto sbagliare due volte: avevo tolto la
-  // carrucola perché sembrava un dato falso accanto a `bilanciere`, ma la verità è
-  // che è un CAVO (Ste: "lo faccio al cavo monocarrucola con la presa grigia").
-  // Tolto il sintomo invece della causa. Ora è un cavo, e la carrucola mono è il
-  // dato giusto: sulla corda c'è un cavo solo, quindi il numero non si dimezza.
+  // v460: cavo basso a doppia carrucola 2:1, cavo alto monocarrucola 1:1.
+  // Si aggiorna il carico, non l'ID né lo storico degli esercizi.
   const wrist = perId('ex-wrist-curl');
   assert.equal(wrist.convenzione, CONVENZIONI.CAVO, 'il Wrist Curl è un cavo');
-  assert.equal(wrist.carrucola, 'carrucola_mono', 'monocarrucola, con la presa grigia');
-  assert.ok(/presa grigia/i.test(wrist.nota_permanente), 'e la nota lo dice');
+  assert.equal(wrist.carrucola, 'carrucola_doppia', 'cavo basso 2:1 verificato');
+  assert.ok(/presa grigia/i.test(wrist.nota_permanente), 'la presa storica resta invariata');
+  for(const id of ['ex-high-cable-wrist-curl-one-arm','ex-high-cable-wrist-curl-two-arm']){
+    const alta=perId(id);
+    assert.equal(alta.carrucola,'carrucola_mono',id+' cavo alto 1:1');
+    assert.equal(alta.rapportoCarrucolaDaVerificare,undefined);
+  }
 
   assert.equal(perId('ex-db-lateral-raise').convenzione, CONVENZIONI.PER_MANUBRIO,
     'il Dumbbell Lateral Raise è per manubrio');

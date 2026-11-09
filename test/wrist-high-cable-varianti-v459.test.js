@@ -19,9 +19,12 @@ test('v459: aggiunte 2 varianti al cavo ALTO, storico Wrist Curl intatto', () =>
   assert.equal(one.usoBraccia,'un_braccio');
   assert.equal(two.usoBraccia,'due_braccia');
   assert.equal(one.convenzione,'cavo_totali'); assert.equal(two.convenzione,'cavo_totali');
-  assert.equal(one.rapportoCarrucolaDaVerificare,true);
-  assert.equal(two.rapportoCarrucolaDaVerificare,true);
-  assert.ok(!one.carrucola && !two.carrucola,'non presumere il rapporto del cavo');
+  assert.equal(one.carrucola,'carrucola_mono');
+  assert.equal(two.carrucola,'carrucola_mono');
+  assert.equal(old.carrucola,'carrucola_doppia');
+  assert.equal(old.usoBraccia,'un_braccio');
+  assert.equal(one.rapportoCarrucolaDaVerificare,undefined);
+  assert.equal(two.rapportoCarrucolaDaVerificare,undefined);
   assert.match(one.nota_permanente,/ALTA/);
   assert.match(two.nota_permanente,/sbarra/i);
 });
@@ -37,8 +40,8 @@ test('v459: due foto indipendenti nell app e nella galleria, visibili offline', 
     assert.ok(g.includes(e.foto));
     assert.ok(sw.includes('./'+e.foto));
   }
-  assert.match(sw,/palestra-v459/);
-  assert.match(read('index.html'),/palestra-v459/);
+  assert.match(sw,/palestra-v460/);
+  assert.match(read('index.html'),/palestra-v460/);
   assert.equal((g.match(/<article class="tile /g)||[]).length,81);
 });
 
@@ -50,5 +53,19 @@ test('v459: Rank indipendente, kg per mano vs pila bilaterale', () => {
   const c2=configEsercizio({esercizio:two,movimento:vTwo.movimento,livello:vTwo.livello});
   assert.equal(caricoEffettivo({peso:30},c1,{esercizio:one}).carico,30);
   assert.equal(caricoEffettivo({peso:30},c2,{esercizio:two}).carico,15);
-  assert.equal(caricoEffettivo({peso:30},c1,{esercizio:ESERCIZI.find(e=>e.id==='ex-wrist-curl')}).carico,30);
+  assert.equal(caricoEffettivo({peso:30},c1,{esercizio:ESERCIZI.find(e=>e.id==='ex-wrist-curl')}).carico,15);
+});
+
+test('v460: alto 1:1, basso 2:1, due mani /2 sullo stesso carico',()=>{
+ const low=ESERCIZI.find(e=>e.id==='ex-wrist-curl');
+ function reale(e,peso){
+   const m=movimentoDi(e),cfg=configEsercizio({esercizio:e,movimento:m.movimento,livello:m.livello});
+   return caricoEffettivo({peso},cfg,{esercizio:e}).carico;
+ }
+ for(const peso of [10,25,40,60]){
+   assert.equal(reale(one,peso),peso,'alto monobraccio 1:1');
+   assert.equal(reale(two,peso),peso/2,'alto sbarra: per polso');
+   assert.equal(reale(low,peso),peso/2,'basso monobraccio 2:1');
+ }
+ assert.equal(low.id,'ex-wrist-curl','lo storico rimane sul vecchio ID');
 });

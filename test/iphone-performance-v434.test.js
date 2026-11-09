@@ -28,7 +28,7 @@ test('iPhone v434: pre-cache a blocchi solo risorse essenziali e foto esercizi',
   assert.ok(batches.every(b => b.length > 0 && b.length <= 16));
   const risorse = batches.flat();
   assert.ok(risorse.includes('./index.html'));
-  assert.ok(risorse.includes('./src/app.js?v=459'));
+  assert.ok(risorse.includes('./src/app.js?v=460'));
   assert.ok(risorse.includes('./img/esercizi/dips.png'));
   assert.equal(risorse.filter(p => /img\/personaggi\/stati\/.+\.webp/.test(p)).length, 18);
   assert.ok(!risorse.some(p => /img\/personaggi\/(?:galleria-v352|corona-v360|scene|armature)\//.test(p)));
