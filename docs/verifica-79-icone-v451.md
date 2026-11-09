@@ -16,85 +16,85 @@ I sette fallback mantengono l'immagine tecnicamente più adatta tra le risorse d
 
 | # | Esercizio | Sorgente effettiva | Esito / nota |
 |---|---|---|---|
-| 1 | One Arm Overhead Tricep Extension | v454 specifica | Nuova illustrazione a manubrio singolo sopra la testa |
-| 2 | Chest Press | Atlante v451 | Sostituita dopo revisione; figura da verificare anche su telefono |
-| 3 | Cable Hammer Curl | Atlante v451 | Sostituita dopo revisione; figura da verificare anche su telefono |
-| 4 | Cable Lateral Raise | Atlante v451 | Sostituita dopo revisione; figura da verificare anche su telefono |
-| 5 | Cable Overhead Tricep Extension | Atlante v451 | Mantenuta dopo controllo visivo |
-| 6 | Leg Extension | Atlante v451 | Mantenuta dopo controllo visivo |
-| 7 | Lat Pulldown presa larga | Atlante v451 | Sostituita dopo revisione; figura da verificare anche su telefono |
-| 8 | Lat Pulldown presa stretta | Atlante v451 | Sostituita dopo revisione; figura da verificare anche su telefono |
-| 9 | Dumbbell Bench Pull | Atlante v451 | Sostituita dopo revisione; figura da verificare anche su telefono |
-| 10 | Seated Dumbbell Shoulder Press | Atlante v451 | Mantenuta dopo controllo visivo |
-| 11 | Cable Fly | Atlante v451 | Sostituita dopo revisione; figura da verificare anche su telefono |
-| 12 | CAD Curl | v454 specifica | Nuova illustrazione al cavo su panca Scott; ancora da confrontare con la specifica variante CAD Curl inverso |
-| 13 | Single Arm Tricep Pushdown | Atlante v451 | Sostituita dopo revisione; figura da verificare anche su telefono |
-| 14 | Seated Leg Curl | Atlante v451 | Mantenuta dopo controllo visivo |
-| 15 | Smith Machine Incline Bench Press | Atlante v451 | Sostituita dopo revisione; figura da verificare anche su telefono |
-| 16 | Seated Cable Row | Atlante v451 | Mantenuta dopo controllo visivo |
-| 17 | Chest Supported Dumbbell Shrug | v454 specifica | Due manubri, petto sostenuto dalla panca inclinata |
-| 18 | Sled Press Calf Raise | Atlante v451 | Mantenuta dopo controllo visivo |
-| 19 | Single Leg Press | Atlante v451 | Sostituita dopo revisione; figura da verificare anche su telefono |
-| 20 | One Arm Dumbbell Preacher Curl | Atlante v451 | Sostituita dopo revisione; figura da verificare anche su telefono |
-| 21 | One Arm Cable Reverse Fly | Atlante v451 | Mantenuta dopo controllo visivo |
-| 22 | Trazioni zavorrate | Atlante v451 | Sostituita dopo revisione; figura da verificare anche su telefono |
+| 1 | One Arm Overhead Tricep Extension | v455 uniforme | Nuova illustrazione a manubrio singolo sopra la testa |
+| 2 | Chest Press | Atlante uniforme v455 | Sostituita dopo revisione; figura da verificare anche su telefono |
+| 3 | Cable Hammer Curl | Atlante uniforme v455 | Sostituita dopo revisione; figura da verificare anche su telefono |
+| 4 | Cable Lateral Raise | Atlante uniforme v455 | Sostituita dopo revisione; figura da verificare anche su telefono |
+| 5 | Cable Overhead Tricep Extension | Atlante uniforme v455 | Mantenuta dopo controllo visivo |
+| 6 | Leg Extension | Atlante uniforme v455 | Mantenuta dopo controllo visivo |
+| 7 | Lat Pulldown presa larga | Atlante uniforme v455 | Sostituita dopo revisione; figura da verificare anche su telefono |
+| 8 | Lat Pulldown presa stretta | Atlante uniforme v455 | Sostituita dopo revisione; figura da verificare anche su telefono |
+| 9 | Dumbbell Bench Pull | Atlante uniforme v455 | Sostituita dopo revisione; figura da verificare anche su telefono |
+| 10 | Seated Dumbbell Shoulder Press | Atlante uniforme v455 | Mantenuta dopo controllo visivo |
+| 11 | Cable Fly | Atlante uniforme v455 | Sostituita dopo revisione; figura da verificare anche su telefono |
+| 12 | CAD Curl | v455 uniforme | Nuova illustrazione al cavo su panca Scott; ancora da confrontare con la specifica variante CAD Curl inverso |
+| 13 | Single Arm Tricep Pushdown | Atlante uniforme v455 | Sostituita dopo revisione; figura da verificare anche su telefono |
+| 14 | Seated Leg Curl | Atlante uniforme v455 | Mantenuta dopo controllo visivo |
+| 15 | Smith Machine Incline Bench Press | Atlante uniforme v455 | Sostituita dopo revisione; figura da verificare anche su telefono |
+| 16 | Seated Cable Row | Atlante uniforme v455 | Mantenuta dopo controllo visivo |
+| 17 | Chest Supported Dumbbell Shrug | v455 uniforme | Due manubri, petto sostenuto dalla panca inclinata |
+| 18 | Sled Press Calf Raise | Atlante uniforme v455 | Mantenuta dopo controllo visivo |
+| 19 | Single Leg Press | Atlante uniforme v455 | Sostituita dopo revisione; figura da verificare anche su telefono |
+| 20 | One Arm Dumbbell Preacher Curl | Atlante uniforme v455 | Sostituita dopo revisione; figura da verificare anche su telefono |
+| 21 | One Arm Cable Reverse Fly | Atlante uniforme v455 | Mantenuta dopo controllo visivo |
+| 22 | Trazioni zavorrate | Atlante uniforme v455 | Sostituita dopo revisione; figura da verificare anche su telefono |
 | 23 | Dips zavorrati | SVG dedicata v452 | Disco chiaramente sospeso alla cintura, distinto dalle dips a corpo libero |
 | 24 | Wrist Curl | SVG dedicata v452 | Variante personale al cavo monocarrucola, non curl con bilanciere |
-| 25 | Iso-Lateral Row | Atlante v451 | Mantenuta dopo controllo visivo |
-| 26 | Lat Pulldown presa neutra | v454 specifica | Impugnatura parallela neutra chiaramente visibile |
-| 27 | Dumbbell Lateral Raise | Atlante v451 | Mantenuta dopo controllo visivo |
+| 25 | Iso-Lateral Row | Atlante uniforme v455 | Mantenuta dopo controllo visivo |
+| 26 | Lat Pulldown presa neutra | v455 uniforme | Impugnatura parallela neutra chiaramente visibile |
+| 27 | Dumbbell Lateral Raise | Atlante uniforme v455 | Mantenuta dopo controllo visivo |
 | 28 | Incline Single Arm Pulldown | SVG approvato | Mantenuta dopo controllo visivo |
-| 29 | Incline Side Lying Lateral Raise | Atlante v451 | Mantenuta dopo controllo visivo |
-| 30 | Iso-Lateral Low Row | Atlante v451 | Sostituita dopo revisione; figura da verificare anche su telefono |
-| 31 | Hammer Curl (Dumbbell) | Atlante v451 | Mantenuta dopo controllo visivo |
-| 32 | High to Low Cable Fly | Atlante v451 | Mantenuta dopo controllo visivo |
-| 33 | Dumbbell Reverse Fly | Atlante v451 | Mantenuta dopo controllo visivo |
-| 34 | Dumbbell Row | Atlante v451 | Sostituita dopo revisione; figura da verificare anche su telefono |
-| 35 | Dumbbell Spider Curl | Atlante v451 | Mantenuta dopo controllo visivo |
-| 36 | Iso-Lateral High Row | Atlante v451 | Sostituita dopo revisione; figura da verificare anche su telefono |
-| 37 | Double Kettlebell Row | Atlante v451 | Sostituita dopo revisione; figura da verificare anche su telefono |
-| 38 | Dumbbell Bench Press | Atlante v451 | Sostituita dopo revisione; figura da verificare anche su telefono |
-| 39 | Dumbbell Concentration Curl | Atlante v451 | Sostituita dopo revisione; figura da verificare anche su telefono |
-| 40 | Dumbbell Curl | Atlante v451 | Sostituita dopo revisione; figura da verificare anche su telefono |
-| 41 | Dumbbell Deadlift | Atlante v451 | Mantenuta dopo controllo visivo |
-| 42 | Dumbbell Face Pull | v454 specifica | Variante ai manubri con gomiti alti: controllo tecnico ancora consigliato |
-| 43 | Incline Bench Press | Atlante v451 | Mantenuta dopo controllo visivo |
-| 44 | Incline Cable Curl | Atlante v451 | Mantenuta dopo controllo visivo |
-| 45 | Incline Dumbbell Bench Press | Atlante v451 | Sostituita dopo revisione; figura da verificare anche su telefono |
-| 46 | Incline Dumbbell Curl | Atlante v451 | Mantenuta dopo controllo visivo |
-| 47 | Incline Hammer Curl | Atlante v451 | Mantenuta dopo controllo visivo |
+| 29 | Incline Side Lying Lateral Raise | Atlante uniforme v455 | Mantenuta dopo controllo visivo |
+| 30 | Iso-Lateral Low Row | Atlante uniforme v455 | Sostituita dopo revisione; figura da verificare anche su telefono |
+| 31 | Hammer Curl (Dumbbell) | Atlante uniforme v455 | Mantenuta dopo controllo visivo |
+| 32 | High to Low Cable Fly | Atlante uniforme v455 | Mantenuta dopo controllo visivo |
+| 33 | Dumbbell Reverse Fly | Atlante uniforme v455 | Mantenuta dopo controllo visivo |
+| 34 | Dumbbell Row | Atlante uniforme v455 | Sostituita dopo revisione; figura da verificare anche su telefono |
+| 35 | Dumbbell Spider Curl | Atlante uniforme v455 | Mantenuta dopo controllo visivo |
+| 36 | Iso-Lateral High Row | Atlante uniforme v455 | Sostituita dopo revisione; figura da verificare anche su telefono |
+| 37 | Double Kettlebell Row | Atlante uniforme v455 | Sostituita dopo revisione; figura da verificare anche su telefono |
+| 38 | Dumbbell Bench Press | Atlante uniforme v455 | Sostituita dopo revisione; figura da verificare anche su telefono |
+| 39 | Dumbbell Concentration Curl | Atlante uniforme v455 | Sostituita dopo revisione; figura da verificare anche su telefono |
+| 40 | Dumbbell Curl | Atlante uniforme v455 | Sostituita dopo revisione; figura da verificare anche su telefono |
+| 41 | Dumbbell Deadlift | Atlante uniforme v455 | Mantenuta dopo controllo visivo |
+| 42 | Dumbbell Face Pull | v455 uniforme | Variante ai manubri con gomiti alti: controllo tecnico ancora consigliato |
+| 43 | Incline Bench Press | Atlante uniforme v455 | Mantenuta dopo controllo visivo |
+| 44 | Incline Cable Curl | Atlante uniforme v455 | Mantenuta dopo controllo visivo |
+| 45 | Incline Dumbbell Bench Press | Atlante uniforme v455 | Sostituita dopo revisione; figura da verificare anche su telefono |
+| 46 | Incline Dumbbell Curl | Atlante uniforme v455 | Mantenuta dopo controllo visivo |
+| 47 | Incline Hammer Curl | Atlante uniforme v455 | Mantenuta dopo controllo visivo |
 | 48 | Strict Curl (EZ Bar) | SVG dedicata v452 | Schiena contro la parete, piedi poco avanzati, bilanciere EZ |
-| 49 | EZ Bar Curl | Atlante v451 | Sostituita dopo revisione; figura da verificare anche su telefono |
-| 50 | EZ Bar Lying Tricep Extension | Atlante v451 | Sostituita dopo revisione; figura da verificare anche su telefono |
-| 51 | EZ Bar Preacher Curl | Atlante v451 | Mantenuta dopo controllo visivo |
-| 52 | EZ Bar Spider Curl | Atlante v451 | Mantenuta dopo controllo visivo |
-| 53 | Seated Dumbbell Curl | Atlante v451 | Mantenuta dopo controllo visivo |
-| 54 | Seated Dumbbell Lateral Raise | Atlante v451 | Sostituita dopo revisione; figura da verificare anche su telefono |
-| 55 | Seated Dumbbell Tricep Extension | Atlante v451 | Mantenuta dopo controllo visivo |
-| 56 | Seated Hammer Curl | Atlante v451 | Sostituita dopo revisione; figura da verificare anche su telefono |
-| 57 | Shoulder Pin Press | Atlante v451 | Sostituita dopo revisione; figura da verificare anche su telefono |
-| 58 | Bench Pin Press | Atlante v451 | Mantenuta dopo controllo visivo |
-| 59 | Bench Press | Atlante v451 | Mantenuta dopo controllo visivo |
+| 49 | EZ Bar Curl | Atlante uniforme v455 | Sostituita dopo revisione; figura da verificare anche su telefono |
+| 50 | EZ Bar Lying Tricep Extension | Atlante uniforme v455 | Sostituita dopo revisione; figura da verificare anche su telefono |
+| 51 | EZ Bar Preacher Curl | Atlante uniforme v455 | Mantenuta dopo controllo visivo |
+| 52 | EZ Bar Spider Curl | Atlante uniforme v455 | Mantenuta dopo controllo visivo |
+| 53 | Seated Dumbbell Curl | Atlante uniforme v455 | Mantenuta dopo controllo visivo |
+| 54 | Seated Dumbbell Lateral Raise | Atlante uniforme v455 | Sostituita dopo revisione; figura da verificare anche su telefono |
+| 55 | Seated Dumbbell Tricep Extension | Atlante uniforme v455 | Mantenuta dopo controllo visivo |
+| 56 | Seated Hammer Curl | Atlante uniforme v455 | Sostituita dopo revisione; figura da verificare anche su telefono |
+| 57 | Shoulder Pin Press | Atlante uniforme v455 | Sostituita dopo revisione; figura da verificare anche su telefono |
+| 58 | Bench Pin Press | Atlante uniforme v455 | Mantenuta dopo controllo visivo |
+| 59 | Bench Press | Atlante uniforme v455 | Mantenuta dopo controllo visivo |
 | 60 | Bench Pull | Illustrazione approvata v453 | Due manubri singoli, petto sostenuto dallo schienale inclinato a circa 26°, sedile fissato alla panca |
-| 61 | Bent Arm Barbell Pullover | Atlante v451 | Mantenuta dopo controllo visivo |
-| 62 | Bent Over Dumbbell Row | Atlante v451 | Mantenuta dopo controllo visivo |
-| 63 | Bent Over Row | v454 specifica | Bilanciere e dischi chiaramente visibili durante il rematore |
-| 64 | Cable Bicep Curl | Atlante v451 | Sostituita dopo revisione; figura da verificare anche su telefono |
-| 65 | Cable Chest Press | Atlante v451 | Sostituita dopo revisione; figura da verificare anche su telefono |
-| 66 | Cable Crunch | Atlante v451 | Sostituita dopo revisione; figura da verificare anche su telefono |
-| 67 | Cable Reverse Fly | Atlante v451 | Mantenuta dopo controllo visivo |
-| 68 | Deadlift | Atlante v451 | Mantenuta dopo controllo visivo |
-| 69 | Decline Bench Press | Atlante v451 | Sostituita dopo revisione; figura da verificare anche su telefono |
-| 70 | Decline Dumbbell Bench Press | Atlante v451 | Sostituita dopo revisione; figura da verificare anche su telefono |
-| 71 | Face Pull | Atlante v451 | Sostituita dopo revisione; figura da verificare anche su telefono |
-| 72 | Hyperextension | Atlante v451 | Mantenuta dopo controllo visivo |
-| 73 | Hyperextension disco al petto | Atlante v451 | Sostituita dopo revisione; figura da verificare anche su telefono |
-| 74 | Hyperextension braccia tese in basso | Atlante v451 | Sostituita dopo revisione; figura da verificare anche su telefono |
-| 75 | Smith Machine Bench Press | Atlante v451 | Mantenuta dopo controllo visivo |
-| 76 | Smith Machine Bent Over Row | v454 specifica | Rematore con bilanciere guidato e dischi visibili |
-| 77 | Smith Machine Shrug | v454 specifica | Scrollate al multipower con dischi ai lati |
-| 78 | Trazioni a corpo libero | Atlante v451 | Sostituita dopo revisione; figura da verificare anche su telefono |
-| 79 | Dips a corpo libero | Atlante v451 | Sostituita dopo revisione; figura da verificare anche su telefono |
+| 61 | Bent Arm Barbell Pullover | Atlante uniforme v455 | Mantenuta dopo controllo visivo |
+| 62 | Bent Over Dumbbell Row | Atlante uniforme v455 | Mantenuta dopo controllo visivo |
+| 63 | Bent Over Row | v455 uniforme | Bilanciere e dischi chiaramente visibili durante il rematore |
+| 64 | Cable Bicep Curl | Atlante uniforme v455 | Sostituita dopo revisione; figura da verificare anche su telefono |
+| 65 | Cable Chest Press | Atlante uniforme v455 | Sostituita dopo revisione; figura da verificare anche su telefono |
+| 66 | Cable Crunch | Atlante uniforme v455 | Sostituita dopo revisione; figura da verificare anche su telefono |
+| 67 | Cable Reverse Fly | Atlante uniforme v455 | Mantenuta dopo controllo visivo |
+| 68 | Deadlift | Atlante uniforme v455 | Mantenuta dopo controllo visivo |
+| 69 | Decline Bench Press | Atlante uniforme v455 | Sostituita dopo revisione; figura da verificare anche su telefono |
+| 70 | Decline Dumbbell Bench Press | Atlante uniforme v455 | Sostituita dopo revisione; figura da verificare anche su telefono |
+| 71 | Face Pull | Atlante uniforme v455 | Sostituita dopo revisione; figura da verificare anche su telefono |
+| 72 | Hyperextension | Atlante uniforme v455 | Mantenuta dopo controllo visivo |
+| 73 | Hyperextension disco al petto | Atlante uniforme v455 | Sostituita dopo revisione; figura da verificare anche su telefono |
+| 74 | Hyperextension braccia tese in basso | Atlante uniforme v455 | Sostituita dopo revisione; figura da verificare anche su telefono |
+| 75 | Smith Machine Bench Press | Atlante uniforme v455 | Mantenuta dopo controllo visivo |
+| 76 | Smith Machine Bent Over Row | v455 uniforme | Rematore con bilanciere guidato e dischi visibili |
+| 77 | Smith Machine Shrug | v455 uniforme | Scrollate al multipower con dischi ai lati |
+| 78 | Trazioni a corpo libero | Atlante uniforme v455 | Sostituita dopo revisione; figura da verificare anche su telefono |
+| 79 | Dips a corpo libero | Atlante uniforme v455 | Sostituita dopo revisione; figura da verificare anche su telefono |
 
 ## Eccezioni e limiti
 
@@ -116,3 +116,7 @@ Per il Bench Pull della scheda personale viene utilizzata la posa con due manubr
 ## v454 · Otto immagini specifiche
 
 Sono state pubblicate otto illustrazioni WebP quadrate (320×320), tutte con la stessa cornice e sfondo viola, mappate agli ID degli esercizi. Il CAD Curl resta segnalato da ricontrollare perché l'illustrazione mostra un cavo e una panca Scott: verificare che sia la variante inversa richiesta. Il Dumbbell Face Pull è una variante non convenzionale da validare. Nessuna modifica a Rank, schede, serie, streak o account.
+
+## Controllo globale delle 79 miniature — v455
+
+Il catalogo ora ricompone tutte le 80 celle dell'atlante in un'unica palette (cerchio viola, cornice magenta, ingrandimento senza ritagli estremi), usando `esercizi-uniformi-v455.webp`. Le otto icone v454 specifiche sono anch'esse ricomposte in `img/esercizi/uniformi-v455/` e non condividono uno sfondo nero separato. Le immagini originali rimangono archiviate e immutate. Le quattro illustrazioni SVG tecniche e il Bench Pull approvato vengono conservati per non alterare la biomeccanica. Questa revisione risolve il problema visivo globale di sfondi e dimensioni; per le pose particolari (CAD Curl e Dumbbell Face Pull) non implica la validazione meccanica.

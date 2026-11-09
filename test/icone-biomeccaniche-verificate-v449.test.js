@@ -44,12 +44,12 @@ test('v449: atlas WebP HD effettivo, PWA e CSS senza crop o sfocatura',() => {
   assert.equal(asset.toString('ascii',8,12),'WEBP');
   assert.ok(asset.length>=90_000, 'non sostituire con asset piccolo e sfocato');
   const css=text('stile.css'),sw=text('sw.js'),html=text('index.html');
-  assert.match(css,/background-image: url\('\.\/img\/esercizi\/esercizi-verificati-v451\.webp'\)/);
+  assert.match(css,/background-image: url\('\.\/img\/esercizi\/esercizi-uniformi-v455\.webp'\)/);
   assert.match(css,/background-size: 800% 1000%/);
   assert.match(css,/\.foto-esercizio-arte-originale[\s\S]*object-fit: contain/);
   const cssIcons=css.slice(css.indexOf('/* v448: un solo sistema visivo'),css.indexOf('@media (max-width: 390px)'));
   assert.doesNotMatch(cssIcons,/blur\(/i);
-  assert.match(sw,/const VERSIONE = 'palestra-v454'/);
-  assert.match(sw,/'\.\/img\/esercizi\/esercizi-verificati-v451\.webp'/);
-  assert.match(html,/PALESTRA_VERSIONE = 'palestra-v454'/);
+  assert.match(sw,/const VERSIONE = 'palestra-v455'/);
+  assert.match(sw,/'\.\/img\/esercizi\/esercizi-uniformi-v455\.webp'/);
+  assert.match(html,/PALESTRA_VERSIONE = 'palestra-v455'/);
 });
