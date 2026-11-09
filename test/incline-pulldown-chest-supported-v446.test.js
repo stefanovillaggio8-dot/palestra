@@ -5,7 +5,7 @@ import { ESERCIZI } from '../src/dati-iniziali.js';
 import { FOTO_INCLINE_PULLDOWN_CORRETTA, posizioneIconaCorretta } from '../src/exercise-icons.js';
 
 const read = path => readFileSync(new URL('../'+path, import.meta.url), 'utf8');
-const asset = 'img/esercizi/incline-single-arm-pulldown-v446.svg';
+const asset = 'img/esercizi/uniformi-v455/ex-lying-cable-curl.svg';
 const idStorico = 'ex-lying-cable-curl';
 
 test('v446: panca dell Incline Single Arm Pulldown corretta senza cambiare ID o perdere lo storico', () => {
