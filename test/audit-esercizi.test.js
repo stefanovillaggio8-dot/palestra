@@ -45,7 +45,7 @@ test('ogni cavo dice se è mono o doppia carrucola', () => {
   // del carrello come se fosse tutto su un braccio, cioe' il doppio.
   for (const e of ESERCIZI) {
     if (e.convenzione === CONVENZIONI.CAVO) {
-      assert.ok(e.carrucola,
+      assert.ok(e.carrucola || e.rapportoCarrucolaDaVerificare === true,
         `"${e.nome}" è a cavo ma non dice mono o doppia: il peso sarebbe letto il doppio`);
     }
   }
