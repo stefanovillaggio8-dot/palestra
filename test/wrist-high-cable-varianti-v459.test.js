@@ -4,7 +4,7 @@ import {readFileSync} from 'node:fs';
 import {ESERCIZI} from '../src/dati-iniziali.js';
 import {sorgenteMiniatura} from '../src/exercise-icons.js';
 import {caricoEffettivo, configEsercizio} from '../src/rank-v3/modello.js';
-import {movimentoDi} from '../src/rank-v3/valutazione.js';
+import {movimentoDi, valutaPrestazione, soglieLegibiliNuove} from '../src/rank-v3/valutazione.js';
 
 const read = p => readFileSync(new URL('../'+p, import.meta.url), 'utf8');
 const one = ESERCIZI.find(e => e.id === 'ex-high-cable-wrist-curl-one-arm');
@@ -70,4 +70,32 @@ test('v460: alto 1:1, basso 2:1, due mani /2 sullo stesso carico',()=>{
    assert.equal(effettivo(low,peso).carico,peso/2,'basso monobraccio 2:1');
  }
  assert.equal(low.id,'ex-wrist-curl','lo storico rimane sul vecchio ID');
+});
+
+test('v461: 20 kg sulla sbarra sono 20 kg TOTALI, il Rank usa una proxy per polso senza falsare il totale',()=>{
+  const pesoCorporeo=70;
+  const carico=20;
+  const serie=[{peso:carico,ripetizioni:8,stato:'fatta'}];
+  const bil=valutaPrestazione({esercizio:two,serie,pesoCorporeo});
+  const mono=valutaPrestazione({esercizio:one,serie:[{peso:carico/2,ripetizioni:8,stato:'fatta'}],pesoCorporeo});
+  assert.equal(bil.valido,true);
+  assert.equal(mono.valido,true);
+  assert.equal(bil.caricoRegistrato,20,'si registra il carico della pila intero');
+  assert.equal(bil.caricoReale,20,'la carrucola alta 1:1 sposta 20 kg TOTALI');
+  assert.equal(bil.caricoPerPolsoStimato,10,'solo lo score provvisorio e per polso');
+  assert.match(bil.notaCarico,/TOTALE/);
+  assert.equal(bil.score,mono.score,'proxy per polso: stessa serie equivalente a 10 kg monobraccio');
+  assert.equal(bil.rank.nome,mono.rank.nome);
+  assert.equal(bil.ingresso,mono.ingresso*2,'soglia espressa in kg TOTALI caricati');
+  assert.equal(bil.vertice,mono.vertice*2,'vertice in kg TOTALI caricati');
+  assert.equal(bil.kgEquivalenti,mono.kgEquivalenti*2,'equivalenti in kg sulla sbarra');
+  const soglieMono=soglieLegibiliNuove(mono.soglie,{esercizio:one,pesoCorporeo,cfg:mono.cfg});
+  const soglieBil=soglieLegibiliNuove(bil.soglie,{esercizio:two,pesoCorporeo,cfg:bil.cfg});
+  assert.equal(soglieMono.length,soglieBil.length);
+  for(let i=0;i<soglieMono.length;i++) if(soglieMono[i]!==null&&soglieBil[i]!==null)
+    assert.ok(Math.abs(soglieBil[i]-2*soglieMono[i])<=1,'soglia '+i+' tradotta nel carico totale');
+  if(bil.distanza?.kgNecessari!==null && mono.distanza?.kgNecessari!==null) {
+    assert.ok(bil.distanza.kgNecessari > mono.distanza.kgNecessari,
+      'l obiettivo di carico sulla sbarra deve richiedere piu kg che su una sola mano');
+  }
 });
