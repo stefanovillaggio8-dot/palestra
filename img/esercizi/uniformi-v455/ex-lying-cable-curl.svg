@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Incline Single Arm Pulldown: petto contro la panca inclinata, tirata al cavo alto con un braccio">
+<defs><radialGradient id="bg" cx=".5" cy=".5" r=".80"><stop stop-color="#8420d4"/><stop offset=".56" stop-color="#721bc4"/><stop offset="1" stop-color="#6317b1"/></radialGradient><linearGradient id="pad" x2=".95" y2="1"><stop stop-color="#b841ec"/><stop offset="1" stop-color="#6830a1"/></linearGradient></defs>
+<rect width="512" height="512" rx="45" fill="#260a36"/><circle cx="255" cy="255" r="236" fill="url(#bg)"/>
+<!-- cable tower, pulley and free handle; no cable passes behind the back -->
+<g stroke="#171126" stroke-linejoin="round" stroke-width="7">
+<path d="M427 71h36v384h-36z" fill="#c1b7d0"/><path d="M404 50q-18 1-18 20t18 20h59V50z" fill="#d5cce1"/>
+<circle cx="408" cy="70" r="9" fill="#49345c"/><rect x="421" y="299" width="34" height="145" rx="5" fill="#514164" stroke-width="5"/>
+<path d="M426 318h24M426 345h24M426 372h24M426 399h24M426 425h24" fill="none" stroke="#9e93ae" stroke-width="5"/>
+<path d="M405 80L359 134" fill="none" stroke="#e6deec" stroke-width="5"/>
+<path d="M352 131q-9-3-15 5l-14 18q-5 8 2 14l9 6q6 4 12-2l15-16q6-8-1-14z" fill="#bdaccd" stroke-width="6"/>
+</g>
+<!-- bench support, seat, and chest-facing inclined pad -->
+<g stroke="#171126" stroke-width="7" stroke-linejoin="round">
+<path d="M91 429h259M120 368l-25 61M185 370l38 57M292 266l77 163" stroke="#b8aec9" stroke-width="12" fill="none" stroke-linecap="round"/>
+<rect x="75" y="353" width="143" height="25" rx="11" fill="#9448c5"/>
+</g>
+<!-- seated person: torso tilted FORWARD onto the pad, not back supported -->
+<g stroke="#20112b" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+<!-- far leg, bent knees and feet -->
+<path d="M146 335q45 1 75 38l-33 39-34-16-33-20z" fill="#293669"/>
+<path d="M191 402q-10 20-7 31l-45 3-5-17 35-28z" fill="#f1ba86"/>
+<path d="M139 422q-9 7-9 19 14 9 64 4l0-14-17-7z" fill="#f4f1ff"/>
+<path d="M115 334q-28 17-22 47l43 29-7 29 31 4 19-45q7-17-9-30l-23-23z" fill="#edb181"/>
+<path d="M135 424q-13 3-14 20 19 10 54 5l8-16-17-12z" fill="#f9f8ff"/>
+<!-- body leans forward/right, shoulder nearly touching pad -->
+<path d="M121 331q32-43 72-90 19-27 51-30l37 38-67 83-50 27z" fill="#8b2ac8"/>
+<path d="M123 329l-17 27 65 15 28-45z" fill="#303267"/>
+<!-- face and head face the cable -->
+<path d="M237 177q6-25 34-25 34 0 38 34l-5 24-13 12-23-2-17-17z" fill="#f2bb8f"/>
+<path d="M232 184q-5-32 21-47 32-15 55 16l-17 1q-14-6-19 12l-13 4-3 19z" fill="#51302b"/>
+<path d="M294 184l15 9-13 11" fill="#f2bb8f" stroke-width="5"/>
+<circle cx="292" cy="180" r="3" fill="#231829" stroke="none"/>
+<!-- working arm: upward reach to one D-handle -->
+<path d="M241 233q29-16 49 1l39-59 19-23 16 13-15 27q-27 50-57 88-18 14-37-2z" fill="#efba89"/>
+<path d="M340 163q-1-18 11-23 13-4 18 9l-5 14-10 9z" fill="#f5c394"/>
+<!-- non-working arm braces at top of the bench -->
+<path d="M208 267q14-13 25-8l39 27-11 24-38 0q-18-2-24-21z" fill="#e7aa82"/>
+<path d="M261 279q22-10 31 1l-4 15q-11 13-25 8z" fill="#f0b68a"/>
+</g>
+<!-- chest support shown IN FRONT of chest; bench pad slopes up toward cable -->
+<g stroke="#171126" stroke-linejoin="round" stroke-width="7">
+<path d="M178 349L291 210q9-11 21-2l12 12q9 7 0 19L211 374q-9 11-20 4l-11-10q-8-8-2-19z" fill="url(#pad)"/>
+<path d="M198 357L307 222" fill="none" stroke="#d46bff" stroke-width="5" opacity=".58"/>
+</g>
+<rect x="9" y="9" width="494" height="494" rx="45" fill="none" stroke="#bd23fa" stroke-width="9" pointer-events="none"/></svg>

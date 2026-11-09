@@ -1,0 +1,31 @@
+name: Genera anteprima di revisione globale icone v455
+on:
+  push:
+    branches: ['fix/revisione-globale-79-icone-v455']
+    paths:
+      - 'tools/normalizza_icone_v455.py'
+      - '.github/workflows/normalizza-icone-v455.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Installa strumenti immagini
+        run: pip install Pillow numpy opencv-python-headless
+      - name: Genera atlante e anteprima delle 80 celle
+        run: python tools/normalizza_icone_v455.py
+      - name: Registra solo le risorse di anteprima
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add img/esercizi/esercizi-uniformi-v455.webp img/esercizi/uniformi-v455/ docs/anteprima-icone-uniformi-v455.webp docs/anteprima-specifiche-v455.webp
+          git commit -m 'assets: anteprima 80 celle normalizzate v455' || exit 0
+          git push origin HEAD:fix/revisione-globale-79-icone-v455

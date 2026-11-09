@@ -57,13 +57,13 @@ test('v451: l atlante HD e quello effettivamente controllato',()=>{
   assert.equal(createHash('sha256').update(bytes).digest('hex'),spriteHash,
     'atlas diverso dall anteprima revisionata');
   const sw=txt('sw.js'),html=txt('index.html'),css=txt('stile.css');
-  assert.match(css,/background-image: url\('\.\/img\/esercizi\/esercizi-verificati-v451\.webp'\)/);
+  assert.match(css,/background-image: url\('\.\/img\/esercizi\/esercizi-uniformi-v455\.webp'\)/);
   assert.match(css,/background-size: 800% 1000%/);
-  assert.match(sw,/palestra-v454/);
-  assert.match(sw,/esercizi-verificati-v451\.webp/);
-  assert.match(html,/PALESTRA_VERSIONE = 'palestra-v454'/);
-  assert.match(html,/stile\.css\?v=454/);
-  assert.match(html,/app\.js\?v=454/);
+  assert.match(sw,/palestra-v455/);
+  assert.match(sw,/esercizi-uniformi-v455\.webp/);
+  assert.match(html,/PALESTRA_VERSIONE = 'palestra-v455'/);
+  assert.match(html,/stile\.css\?v=455/);
+  assert.match(html,/app\.js\?v=455/);
   const doc=txt('docs/verifica-79-icone-v451.md');
   assert.match(doc,/## Registro esercizio per esercizio/);
   assert.equal((doc.match(/^\| \d+ \|/gm)||[]).length,79);

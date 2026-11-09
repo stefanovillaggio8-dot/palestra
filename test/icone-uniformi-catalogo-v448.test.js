@@ -28,7 +28,7 @@ test('v448: catalogo completo: stessa cornice e fonte per ciascuno dei 79 eserci
     }
   }
   assert.deepEqual(conteggi,{sprite:66,dedicata:1,originale:12});
-  assert.equal(FOTO_INCLINE_PULLDOWN_CORRETTA,'img/esercizi/incline-single-arm-pulldown-v446.svg');
+  assert.equal(FOTO_INCLINE_PULLDOWN_CORRETTA,'img/esercizi/uniformi-v455/ex-lying-cable-curl.svg');
 });
 
 test('v448: tutte le immagini locali esistono, nessuna duplicazione imprevista',()=>{
@@ -87,6 +87,6 @@ test('v448: stile viola, cerchio, nitidezza e nessun taglio aggressivo per tutti
   const stileIcone=css.slice(css.indexOf('/* v448: un solo sistema visivo'),css.indexOf('@media (max-width: 390px)',css.indexOf('/* v448: un solo sistema visivo')));
   assert.doesNotMatch(stileIcone,/filter:\s*blur\(/);
   assert.match(script,/ZOOM_ICONE_STORICHE/);
-  assert.match(sw,/const VERSIONE = 'palestra-v454'/);
-  assert.match(sw,/'\.\/img\/esercizi\/esercizi-verificati-v451\.webp'/);
+  assert.match(sw,/const VERSIONE = 'palestra-v455'/);
+  assert.match(sw,/'\.\/img\/esercizi\/esercizi-uniformi-v455\.webp'/);
 });

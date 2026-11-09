@@ -318,7 +318,8 @@ a { color: var(--blu); text-decoration: none; }
   mask-image: radial-gradient(circle at center, #000 0%, #000 69%, rgba(0,0,0,.94) 80%, transparent 100%);
 }
 /* Nuove icone v454: niente maschera sfumata che taglia il bordo e la figura. */
-.foto-esercizio-arte-originale[src$="-v454.webp"] {
+.foto-esercizio-arte-originale[src*="/uniformi-v455/"],
+.foto-esercizio-arte-originale[src$="bench-pull-v453.webp"] {
   object-fit: cover;
   object-position: center;
   transform: scale(1);
@@ -329,11 +330,11 @@ a { color: var(--blu); text-decoration: none; }
 /* Atlante v451 controllato: 8x10, 79 celle; le pose tecniche non verificate riprendono le immagini storiche.
    lieve correzione tonale, SENZA blur e senza ritagliare braccia/attrezzi. */
 .foto-esercizio-sprite {
-  background-image: url('./img/esercizi/esercizi-verificati-v451.webp');
+  background-image: url('./img/esercizi/esercizi-uniformi-v455.webp');
   background-size: 800% 1000%;
   background-position: var(--sprite-x, 0%) var(--sprite-y, 0%);
   background-repeat: no-repeat;
-  filter: brightness(.96) saturate(.96) contrast(1.04);
+  filter: none;
 }
 @media (max-width: 390px) {
   .foto-esercizio { width: 43px; height: 43px; flex-basis: 43px; }
