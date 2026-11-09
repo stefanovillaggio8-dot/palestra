@@ -13,10 +13,10 @@ test('v451: galleria controllabile, 79 icone corrette ID/nome e filtro funzionan
     assert.ok(html.includes(e.nome),'Nome mancante: '+e.nome);
   }
   assert.match(html,/esercizi-uniformi-v455\.webp/);
-  assert.match(html,/incline-single-arm-pulldown-v446\.svg/);
+  assert.match(html,/uniformi-v455\/ex-lying-cable-curl\.svg/);
   assert.match(html,/img\/esercizi\/bench-pull-v453\.webp/);
-  for(const file of ['dips-zavorrati-corretti-v452.svg','wrist-curl-cavo-v452.svg','strict-curl-parete-v452.svg']) {
-    assert.ok(html.includes(file),'SVG v452 mancante dalla galleria: '+file);
+  for(const file of ['ex-dips.svg','ex-wrist-curl.svg','ex-strict-curl-ez-wall.svg']) {
+    assert.ok(html.includes('uniformi-v455/'+file),'SVG uniforme mancante dalla galleria: '+file);
   }
   for(const id of ['ex-one-arm-overhead-tricep-extension','ex-scott-bench-curl',
     'ex-chest-supported-shrug','ex-lat-pulldown-lats','ex-dumbbell-face-pull',
