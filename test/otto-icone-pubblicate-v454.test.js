@@ -55,16 +55,23 @@ test('v454: otto immagini WebP originali e abbinate ai rispettivi ID',()=>{
     const path='img/esercizi/uniformi-v455/'+id+'.webp';
     const original=read('img/esercizi/'+name);
     assert.equal(createHash('sha256').update(original).digest('hex'),sha,'Originale v454 alterato: '+id);
-    assert.equal(FOTO_VERIFICATE_TECNICAMENTE[id],path);
     const record=ESERCIZI.find(x=>x.id===id);
     assert.ok(record,'esercizio sconosciuto: '+id);
-    assert.deepEqual(sorgenteMiniatura(record),{tipo:'originale',src:path,zoom:1});
+    const preview=sorgenteMiniatura(record);
+    if(id==='ex-scott-bench-curl') assert.equal(preview.src,'img/esercizi/cad-curl-app.jpg');
+    else if(id==='ex-lat-pulldown-lats') {
+      assert.equal(preview.tipo,'sprite');
+      assert.equal(preview.atlas,'img/esercizi/icone-corrette-v456-atlas.webp');
+    } else {
+      assert.equal(FOTO_VERIFICATE_TECNICAMENTE[id],path);
+      assert.deepEqual(preview,{tipo:'originale',src:path,zoom:1});
+    }
     const file=read(path);
     assert.ok(file.length>5000,'immagine eccessivamente piccola: '+id);
     assert.equal(file.toString('ascii',0,4),'RIFF');
     assert.equal(file.toString('ascii',8,12),'WEBP');
     assert.ok(file.length>3000,'WebP ricomposto vuoto: '+id);
-    assert.ok(gallery.includes(path),'icona non aggiornata in galleria: '+id);
+    assert.ok(gallery.includes(id==='ex-scott-bench-curl' ? 'img/esercizi/cad-curl-app.jpg' : id==='ex-lat-pulldown-lats' ? 'img/esercizi/icone-corrette-v456-atlas.webp' : path),'icona non aggiornata in galleria: '+id);
     assert.ok(sw.includes('./'+path),'WebP non disponibile offline: '+id);
   }
 });
@@ -73,8 +80,8 @@ test('v454: figure a tutto riquadro senza sfumatura e stessa PWA',()=>{
   assert.ok(css.includes('.foto-esercizio-arte-originale[src*="/uniformi-v455/"]'));
   assert.match(css,/-webkit-mask: none/);
   assert.match(css,/object-fit: cover/);
-  assert.match(txt('index.html'),/PALESTRA_VERSIONE = 'palestra-v455'/);
-  assert.match(txt('sw.js'),/const VERSIONE = 'palestra-v455'/);
+  assert.match(txt('index.html'),/PALESTRA_VERSIONE = 'palestra-v456'/);
+  assert.match(txt('sw.js'),/const VERSIONE = 'palestra-v456'/);
   const gallery=txt('verifica-icone.html');
   assert.equal((gallery.match(/<article class="tile /g)||[]).length,79);
 });

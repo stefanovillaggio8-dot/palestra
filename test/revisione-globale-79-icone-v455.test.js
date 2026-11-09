@@ -17,7 +17,7 @@ test('v455: tutte le 79 miniature sono presenti e distinguibili', () => {
     assert.ok(i,'senza miniatura: '+e.id);
     if (i.tipo==='sprite') {
       sprite++;
-      const key=i.x.toFixed(5)+' '+i.y.toFixed(5);
+      const key=(i.atlas || 'img/esercizi/esercizi-uniformi-v455.webp')+' '+i.x.toFixed(5)+' '+i.y.toFixed(5);
       assert.ok(!sprites.has(key),'cella duplicata: '+e.id);
       sprites.add(key);
     } else {
@@ -27,7 +27,7 @@ test('v455: tutte le 79 miniature sono presenti e distinguibili', () => {
       else originale++;
     }
   }
-  assert.deepEqual({sprite,speciale,originale},{sprite:66,speciale:1,originale:12});
+  assert.deepEqual({sprite,speciale,originale},{sprite:69,speciale:1,originale:9});
 });
 
 test('v455: la galleria e la PWA usano la stessa palette globale', () => {
@@ -42,8 +42,8 @@ test('v455: la galleria e la PWA usano la stessa palette globale', () => {
   assert.ok(sw.includes('./'+img),'atlante non incluso nella cache');
   assert.match(css,/background-size: 800% 1000%/);
   assert.equal((gallery.match(/<article class="tile /g)||[]).length,79);
-  for (const id of ['ex-one-arm-overhead-tricep-extension','ex-scott-bench-curl',
-    'ex-chest-supported-shrug','ex-lat-pulldown-lats',
+  for (const id of ['ex-one-arm-overhead-tricep-extension',
+    'ex-chest-supported-shrug',
     'ex-smith-machine-bent-over-row','ex-smith-machine-shrug',
     'ex-dumbbell-face-pull','ex-bent-over-row']) {
     const path='img/esercizi/uniformi-v455/'+id+'.webp';
@@ -53,8 +53,8 @@ test('v455: la galleria e la PWA usano la stessa palette globale', () => {
     const e=ESERCIZI.find(x=>x.id===id);
     assert.equal(sorgenteMiniatura(e).src,path);
   }
-  assert.match(txt('index.html'),/PALESTRA_VERSIONE = 'palestra-v455'/);
-  assert.match(sw,/const VERSIONE = 'palestra-v455'/);
+  assert.match(txt('index.html'),/PALESTRA_VERSIONE = 'palestra-v456'/);
+  assert.match(sw,/const VERSIONE = 'palestra-v456'/);
   assert.ok(css.includes('.foto-esercizio-arte-originale[src*="/uniformi-v455/"]'));
 });
 
