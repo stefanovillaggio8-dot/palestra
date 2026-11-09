@@ -17,7 +17,7 @@ const expected = [
   ['ex-seated-dumbbell-lateral-raise',1,2],
 ];
 test('v456: otto esercizi corretti con celle distinte e atlas 3x3 reale',()=>{
-  assert.equal(ESERCIZI.length,79);
+  assert.equal(ESERCIZI.length,81);
   assert.equal(ATLANTE_CORREZIONI_V456,'img/esercizi/icone-corrette-v456-atlas.webp');
   const bytes=read(ATLANTE_CORREZIONI_V456);
   assert.equal(bytes.toString('ascii',0,4),'RIFF');
@@ -36,12 +36,12 @@ test('v456: otto esercizi corretti con celle distinte e atlas 3x3 reale',()=>{
 });
 test('v456: app, cache PWA e galleria hanno le stesse otto immagini',()=>{
   const sw=txt('sw.js'),src=txt('src/exercise-icons.js'),html=txt('verifica-icone.html');
-  assert.match(sw,/palestra-v458/);
-  assert.match(txt('index.html'),/palestra-v458/);
+  assert.match(sw,/palestra-v459/);
+  assert.match(txt('index.html'),/palestra-v459/);
   assert.ok(sw.includes("'./"+ATLANTE_CORREZIONI_V456+"'"));
   assert.match(src,/background-size:300% 300%/);
   assert.match(html,/\.art span\.v456/);
-  assert.equal((html.match(/<article class="tile /g)||[]).length,79);
+  assert.equal((html.match(/<article class="tile /g)||[]).length,81);
   for (const [id,c,r] of expected) {
     const re=new RegExp('<article[^>]+data-name="[^"]*'+id+'"[^>]*>([\\s\\S]*?)<\\/article>');
     const article=html.match(re)?.[1];

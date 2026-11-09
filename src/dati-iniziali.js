@@ -275,7 +275,6 @@ export const ESERCIZI = [
 // verità, e se un giorno questo esercizio passasse a un cavo a doppia carrucola
 // l'app ha già il campo giusto per accorgersene.
 { id: 'ex-wrist-curl', nome: 'Wrist Curl', gruppo: 'Wrist Curl', convenzione: C.CAVO, carrucola: C.CARRUCOLA_MONO, foto: 'img/esercizi/wrist-curl.png', tipo: 'standard', nota_permanente: 'Cavo monocarrucola con la presa grigia (la corda). Dropset: prima serie fino a cedimento, poi si scende. Ci sono 3 giri extra da riempire.' },
-
   // Esercizi AGGIUNTI, non ancora messi in nessuna scheda: sono disponibili
   // nella lista così ognuno può aggiungerli quando gli servono.
   { id: 'ex-iso-lateral-row', nome: 'Iso-Lateral Row', gruppo: 'Row', convenzione: C.PER_BRACCIO, attrezzatura: C.MACCHINA_DISCHI, foto: 'img/esercizi/iso-lateral-row.png', tipo: 'standard', nota_permanente: 'Macchina a dischi, e ogni braccio e\' indipendente: se i due lati non sono uguali lo senti subito.' },
@@ -343,6 +342,11 @@ export const ESERCIZI = [
   { id: 'ex-smith-machine-shrug', nome: 'Smith Machine Shrug', gruppo: 'Smith Machine Shrug', convenzione: C.PER_BRACCIO, attrezzatura: C.MACCHINA_DISCHI, foto: 'img/esercizi/smith-machine-shrug.png', usoBraccia: 'due_braccia', tipo: 'standard', nota_permanente: 'Multipower: inserisci solo i kg di dischi per lato; non contare il peso della barra.' },
   { id: 'ex-trazioni-corpo-libero', nome: 'Trazioni a corpo libero', gruppo: 'Trazioni a corpo libero', convenzione: C.CORPO_LIBERO, foto: 'img/esercizi/pull-ups.png', tipo: 'standard', nota_permanente: 'Senza zavorra: si contano solo le ripetizioni.' },
   { id: 'ex-dips-corpo-libero', nome: 'Dips a corpo libero', gruppo: 'Dips a corpo libero', convenzione: C.CORPO_LIBERO, foto: 'img/esercizi/dips.png', tipo: 'standard', nota_permanente: 'Senza zavorra: si contano solo le ripetizioni.' },
+  // Due varianti aggiuntive: NON rinominare ex-wrist-curl, che possiede serie e Rank storici.
+  // Cavo dall'ALTO, atleta IN PIEDI; gomiti immobili, la flessione si compie solo al polso.
+  // Rapporto carrucola non dichiarato: chiedere la configurazione reale, non assumere 1:1 o 2:1.
+  { id: 'ex-high-cable-wrist-curl-one-arm', nome: 'Wrist Curl cavo alto - monobraccio', gruppo: 'Wrist Curl', usoBraccia: 'un_braccio', convenzione: C.CAVO, rapportoCarrucolaDaVerificare: true, foto: 'img/esercizi/high-pulley-wrist-one-arm.svg', tipo: 'standard', nota_permanente: 'In piedi, cavo con carrucola ALTA, maniglia singola. Gomito e avambraccio stabili: ruota/fletti il polso verso il basso senza trasformare il gesto in un pushdown. Registra i kg indicati sulla pila. Il rapporto del cavo (1:1 o 2:1) va verificato sulla tua macchina prima di confrontare i Rank.' },
+  { id: 'ex-high-cable-wrist-curl-two-arm', nome: 'Wrist Curl cavo alto - due braccia', gruppo: 'Wrist Curl', usoBraccia: 'due_braccia', convenzione: C.CAVO, rapportoCarrucolaDaVerificare: true, foto: 'img/esercizi/high-pulley-wrist-two-arm.svg', tipo: 'standard', nota_permanente: 'In piedi, carrucola ALTA, UNA sbarra diritta presa con entrambe le mani. Tieni fermi i gomiti e fletti i polsi verso il basso; NON estendere il gomito. Registra il peso TOTALE indicato sulla pila (non moltiplicare per due). Per il Rank si stima meta del carico per polso, assumendo una ripartizione simmetrica: e una stima biomeccanica e NON un percentile misurato. Rapporto carrucola da configurare.' },
 ];
 
 const s = (peso, rip, extra = {}) => ({ peso, ripetizioni: rip, ...extra });

@@ -50,7 +50,7 @@ const assets=[
 ];
 test('v454: otto immagini WebP originali e abbinate ai rispettivi ID',()=>{
   const gallery=txt('verifica-icone.html'),sw=txt('sw.js');
-  assert.equal(ESERCIZI.length,79);
+  assert.equal(ESERCIZI.length,81);
   for(const [id,name,sha] of assets){
     const path=id==='ex-dumbbell-face-pull' ? 'img/esercizi/verificati-v458/ex-dumbbell-face-pull.webp' : 'img/esercizi/uniformi-v455/'+id+'.webp';
     const original=read('img/esercizi/'+name);
@@ -80,8 +80,8 @@ test('v454: figure a tutto riquadro senza sfumatura e stessa PWA',()=>{
   assert.ok(css.includes('.foto-esercizio-arte-originale[src*="/uniformi-v455/"]'));
   assert.match(css,/-webkit-mask: none/);
   assert.match(css,/object-fit: cover/);
-  assert.match(txt('index.html'),/PALESTRA_VERSIONE = 'palestra-v458'/);
-  assert.match(txt('sw.js'),/const VERSIONE = 'palestra-v458'/);
+  assert.match(txt('index.html'),/PALESTRA_VERSIONE = 'palestra-v459'/);
+  assert.match(txt('sw.js'),/const VERSIONE = 'palestra-v459'/);
   const gallery=txt('verifica-icone.html');
-  assert.equal((gallery.match(/<article class="tile /g)||[]).length,79);
+  assert.equal((gallery.match(/<article class="tile /g)||[]).length,81);
 });

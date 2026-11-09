@@ -23,7 +23,7 @@ test('v449: approvate trazioni con sovraccarico e shoulder press a dischi hanno 
 
 test('v449: 24 illustrazioni distinte mappate a esercizi realmente presenti',() => {
   const ids = new Set(ESERCIZI.map(e=>e.id));
-  assert.equal(ESERCIZI.length,79);
+  assert.equal(ESERCIZI.length,81);
   const entries=Object.entries(POSIZIONI_ICONE_CORRETTE);
   assert.equal(entries.length,78);
   const tiles=new Set();
@@ -49,7 +49,7 @@ test('v449: atlas WebP HD effettivo, PWA e CSS senza crop o sfocatura',() => {
   assert.match(css,/\.foto-esercizio-arte-originale[\s\S]*object-fit: contain/);
   const cssIcons=css.slice(css.indexOf('/* v448: un solo sistema visivo'),css.indexOf('@media (max-width: 390px)'));
   assert.doesNotMatch(cssIcons,/blur\(/i);
-  assert.match(sw,/const VERSIONE = 'palestra-v458'/);
+  assert.match(sw,/const VERSIONE = 'palestra-v459'/);
   assert.match(sw,/'\.\/img\/esercizi\/esercizi-uniformi-v455\.webp'/);
-  assert.match(html,/PALESTRA_VERSIONE = 'palestra-v458'/);
+  assert.match(html,/PALESTRA_VERSIONE = 'palestra-v459'/);
 });

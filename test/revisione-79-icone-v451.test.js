@@ -11,8 +11,8 @@ const txt = p => read(p).toString('utf8');
 const spriteHash = '554ca73256f46fe6e90ec06fc69933550953965fa6e5a0cba64a53d67205e1f1';
 
 test('v451: catalogo intero senza ID doppi, sorgenti e celle attribuite una sola volta',()=>{
-  assert.equal(ESERCIZI.length,79);
-  assert.equal(new Set(ESERCIZI.map(x=>x.id)).size,79);
+  assert.equal(ESERCIZI.length,81);
+  assert.equal(new Set(ESERCIZI.map(x=>x.id)).size,81);
   assert.equal(Object.keys(POSIZIONI_ICONE_CORRETTE).length,78);
   assert.equal(Object.keys(FOTO_VERIFICATE_TECNICAMENTE).length,12);
   const counts={sprite:0,originale:0,dedicata:0};
@@ -32,7 +32,7 @@ test('v451: catalogo intero senza ID doppi, sorgenti e celle attribuite una sola
       assert.ok(read(f.src).length>1500,'foto personale assente: '+e.id);
     }
   }
-  assert.deepEqual(counts,{sprite:69,originale:9,dedicata:1});
+  assert.deepEqual(counts,{sprite:69,originale:11,dedicata:1});
 });
 
 test('v451: non riutilizzare un esercizio sbagliato quando manca la variante',()=>{
@@ -59,15 +59,16 @@ test('v451: l atlante HD e quello effettivamente controllato',()=>{
   const sw=txt('sw.js'),html=txt('index.html'),css=txt('stile.css');
   assert.match(css,/background-image: url\('\.\/img\/esercizi\/esercizi-uniformi-v455\.webp'\)/);
   assert.match(css,/background-size: 800% 1000%/);
-  assert.match(sw,/palestra-v458/);
+  assert.match(sw,/palestra-v459/);
   assert.match(sw,/esercizi-uniformi-v455\.webp/);
-  assert.match(html,/PALESTRA_VERSIONE = 'palestra-v458'/);
-  assert.match(html,/stile\.css\?v=458/);
-  assert.match(html,/app\.js\?v=458/);
+  assert.match(html,/PALESTRA_VERSIONE = 'palestra-v459'/);
+  assert.match(html,/stile\.css\?v=459/);
+  assert.match(html,/app\.js\?v=459/);
   const doc=txt('docs/verifica-79-icone-v451.md');
   assert.match(doc,/## Registro esercizio per esercizio/);
-  assert.equal((doc.match(/^\| \d+ \|/gm)||[]).length,79);
-  for(const e of ESERCIZI)assert.ok(doc.includes('| '+e.nome+' |'),'riga di audit mancante: '+e.id);
+  assert.equal((doc.match(/^\| \d+ \|/gm)||[]).length,79); // registro storico v451: le nuove icone sono in galleria v459
+  for(const e of ESERCIZI.filter(e => !['ex-high-cable-wrist-curl-one-arm', 'ex-high-cable-wrist-curl-two-arm'].includes(e.id)))
+    assert.ok(doc.includes('| '+e.nome+' |'),'riga di audit storica mancante: '+e.id);
 });
 
 test('v451: core e dati personali restano invariati',()=>{

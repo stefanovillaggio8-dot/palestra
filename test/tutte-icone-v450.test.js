@@ -6,7 +6,7 @@ import { POSIZIONI_ICONE_CORRETTE, posizioneIconaCorretta,
   sorgenteMiniatura, FOTO_INCLINE_PULLDOWN_CORRETTA } from '../src/exercise-icons.js';
 
 test('v450: tutti i 79 esercizi hanno una nuova immagine del catalogo oppure SVG dedicato', () => {
-  assert.equal(ESERCIZI.length,79);
+  assert.equal(ESERCIZI.length,81);
   assert.equal(Object.keys(POSIZIONI_ICONE_CORRETTE).length,78);
   let sprite=0, svg=0, originali=0;
   const celle=new Set();
@@ -33,7 +33,7 @@ test('v450: tutti i 79 esercizi hanno una nuova immagine del catalogo oppure SVG
     celle.add(key);sprite++;
   }
   assert.equal(sprite,69);
-  assert.equal(originali,9);
+  assert.equal(originali,11);
   assert.equal(svg,1);
 });
 
@@ -47,7 +47,7 @@ test('v450: immagine WebP completa, caching PWA e scala 8x10',()=>{
   const html=readFileSync(new URL('../index.html',import.meta.url),'utf8');
   assert.match(css,/esercizi-uniformi-v455\.webp/);
   assert.match(css,/background-size: 800% 1000%/);
-  assert.match(sw,/palestra-v458/);
+  assert.match(sw,/palestra-v459/);
   assert.match(sw,/esercizi-uniformi-v455\.webp/);
-  assert.match(html,/PALESTRA_VERSIONE = 'palestra-v458'/);
+  assert.match(html,/PALESTRA_VERSIONE = 'palestra-v459'/);
 });

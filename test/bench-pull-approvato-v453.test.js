@@ -14,7 +14,7 @@ test('v453: Bench Pull usa soltanto la miniatura con due manubri approvata', () 
   const e=ESERCIZI.find(x=>x.id===id);
   assert.ok(e);
   assert.deepEqual(sorgenteMiniatura(e),{tipo:'originale',src:path,zoom:1});
-  assert.equal(ESERCIZI.length,79);
+  assert.equal(ESERCIZI.length,81);
   const img=read(path);
   assert.equal(img.toString('ascii',0,4),'RIFF');
   assert.equal(img.toString('ascii',8,12),'WEBP');
@@ -24,6 +24,6 @@ test('v453: Bench Pull usa soltanto la miniatura con due manubri approvata', () 
     'Il Bench Pull approvato non va sostituito senza una nuova approvazione');
   assert.match(txt('verifica-icone.html'),/bench-pull-v453\.webp/);
   assert.match(txt('sw.js'),/bench-pull-v453\.webp/);
-  assert.match(txt('index.html'),/palestra-v458/);
-  assert.match(txt('sw.js'),/palestra-v458/);
+  assert.match(txt('index.html'),/palestra-v459/);
+  assert.match(txt('sw.js'),/palestra-v459/);
 });

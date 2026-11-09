@@ -95,6 +95,6 @@ test('v440: la Home rilegge IndexedDB dopo la sync e il confronto non invia modi
   assert.match(css,/\.foto-esercizio \{[\s\S]*?object-fit: contain/);
   assert.match(css,/\.foto-esercizio\.grande \{/);
   assert.match(sw,/'\.\/src\/streak-confronto\.js'/);
-  assert.match(sw,/const VERSIONE = 'palestra-v458'/);
-  assert.match(html,/window\.PALESTRA_VERSIONE = 'palestra-v458'/);
+  assert.match(sw,/const VERSIONE = 'palestra-v459'/);
+  assert.match(html,/window\.PALESTRA_VERSIONE = 'palestra-v459'/);
 });
