@@ -1,0 +1,70 @@
+name: Genera immagini v456 dal pacchetto approvato
+on:
+  push:
+    branches:
+      - fix/icone-biomeccaniche-v456
+    paths:
+      - '.github/workflows/genera-icone-v456.yml'
+      - 'tools/v456-payload/**'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build-icons:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Installa decodificatore AVIF
+        run: pip install Pillow pillow-avif-plugin
+      - name: Ricostruisci e valida 9 icone
+        run: |
+          python - <<'PY'
+          import base64
+          import hashlib
+          from io import BytesIO
+          from pathlib import Path
+          from PIL import Image
+          import pillow_avif
+          files=sorted(Path('tools/v456-payload').glob('part*.b64'))
+          assert len(files)==4, f'Pacchetto incompleto: {len(files)}'
+          encoded=''.join(x.read_text().strip() for x in files)
+          assert len(encoded)==15196, 'Dimensione pacchetto errata'
+          payload=base64.b64decode(encoded, validate=True)
+          expected='fdd117b840d9a2913172290a5413a9115e56a86e1bfd529a1942e4e7a9b4fe1c'
+          assert hashlib.sha256(payload).hexdigest()==expected, 'Pacchetto immagine alterato'
+          picture=Image.open(BytesIO(payload)).convert('RGB')
+          assert picture.size == (384,384)
+          names=[
+           'ex-cable-overhead-tricep',
+           'ex-single-arm-tricep-pushdown',
+           'ex-one-arm-cable-reverse-fly',
+           'ex-lat-pulldown-lats',
+           'ex-dips',
+           'ex-iso-lateral-high-row',
+           'ex-strict-curl-ez-wall',
+           'ex-seated-dumbbell-lateral-raise',
+           'ex-lying-cable-curl']
+          dest=Path('img/esercizi/verificati-v456')
+          dest.mkdir(parents=True,exist_ok=True)
+          for index,name in enumerate(names):
+            x=(index%3)*128
+            y=(index//3)*128
+            icon=picture.crop((x,y,x+128,y+128))
+            out=dest/(name+'.webp')
+            icon.save(out,'WEBP',quality=92,method=6)
+            assert out.stat().st_size > 2000
+            print(name,out.stat().st_size)
+          picture.save('docs/anteprima-9-icone-v456.webp','WEBP',quality=92,method=6)
+          PY
+      - name: Pubblica i file sul ramo di revisione
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add img/esercizi/verificati-v456/ docs/anteprima-9-icone-v456.webp
+          git commit -m 'assets: nove icone biomeccaniche corrette v456' || exit 0
+          git push origin HEAD:fix/icone-biomeccaniche-v456
