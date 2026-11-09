@@ -132,3 +132,7 @@ Nuova spritesheet 3×3 `img/esercizi/icone-corrette-v456-atlas.webp` per otto ic
 ### Finale v457 — Incline Single Arm Pulldown
 
 La nona immagine dell'atlante di correzioni v456 era stata generata ma non mostrata. Attivata la miniatura dedicata `img/esercizi/verificati-v456/ex-lying-cable-curl.webp`, rappresentante la tirata unilaterale del cavo alto con petto appoggiato alla panca inclinata. L'ID storico `ex-lying-cable-curl`, il nome e i record preesistenti non sono modificati, cosi come le altre otto pose gia pubblicate v456. Rinnovata la precache offline.
+
+## v458 — Dumbbell Face Pull (#42)
+
+L'illustrazione precedente mostrava la persona eretta con manubri accanto al viso; la nuova illustrazione mostra una flessione del busto, gomiti alti e larghi e manubri accanto ai lati del viso, rappresentando più chiaramente la variante ai manubri. Sono preservate le 79 identità, lo storico e tutte le altre icone. Nuovo WebP 256 px con sfondo viola e cornice magenta; gli asset v454 e v455 restano in repository per eventuale confronto. Indicazioni biomeccaniche: face pull classico NASM, variante con manubri eseguita inclinando il busto (RIRLift).
