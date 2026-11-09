@@ -87,7 +87,9 @@ test('v458: Dumbbell Face Pull inclinato, fonte corretta e storia invariata',()=
   assert.match(txt('index.html'),/palestra-v458/);
   assert.ok(txt('sw.js').includes('./'+path));
   const g=txt('verifica-icone.html');
-  const face=g.match(/<article[^>]*data-name="dumbbell face pull ex-dumbbell-face-pull"[\\\\s\\\\S]*?<\\\\/article>/)?.[0];
+  const pos=g.indexOf('data-name="dumbbell face pull ex-dumbbell-face-pull"');
+  assert.ok(pos>=0);
+  const face=g.slice(g.lastIndexOf('<article',pos),g.indexOf('</article>',pos)+10);
   assert.ok(face?.includes(path));
   assert.ok(face?.includes('class="tile rivista"'));
   assert.equal((g.match(/<article class="tile /g)||[]).length,79);
