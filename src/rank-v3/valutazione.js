@@ -37,7 +37,7 @@ import {
 } from '../rank-v2/curve.js';
 import {
   configEsercizio, controllaIngresso, fattoreCorpo, numero, arrotonda,
-  caricoEffettivo, soglieNormalizzate, standardPerMovimento,
+  caricoEffettivo, fattoreConfrontoPolso, soglieNormalizzate, standardPerMovimento,
 } from './modello.js';
 import { modelloRipetizioniRank, ripetizioniPieneRank } from './ripetizioni-rank.js';
 
@@ -143,7 +143,7 @@ export function valutaPrestazione({ esercizio, serie = [], pesoCorporeo = null, 
     if (eff.carico === null) continue;
     // PER ZAVORRI (dip/trazioni): lo score usa il TOTALE, corpo + zavorra.
     // A corpo libero stai sollevando 66 kg, non zero.
-    const caricoPerScore = eff.carico;
+    const caricoPerScore = eff.caricoPerScore ?? eff.carico;
     const meccanica = fattoreMeccanica(esercizio || {});
     const fattore = fattoreCorpo(pesoDellaSerie);
     if (fattore === null) continue;
@@ -170,6 +170,9 @@ export function valutaPrestazione({ esercizio, serie = [], pesoCorporeo = null, 
       // e poteva cambiare Rank vicino alla soglia.
       score: arrotonda(score, 6),
       carico: eff.carico,
+      caricoPerScore,
+      caricoPerPolsoStimato: eff.caricoPerPolsoStimato ?? null,
+      notaCarico: eff.notaCarico ?? null,
       zavorra: eff.zavorra,
       corpo: eff.corpo,
       ripetizioni: Math.floor(Number(s.ripetizioni) || 0),
@@ -233,8 +236,11 @@ export function valutaPrestazione({ esercizio, serie = [], pesoCorporeo = null, 
   const kgDaNormalizzato = (s) => arrotonda(
     (s * fattoreOggi) / migliore.meccanica,
   );
-  const ingresso = kgDaNormalizzato(soglie[0]);
-  const vertice = kgDaNormalizzato(soglie[soglie.length - 1]);
+  // Le soglie sono del modello per polso; i kg da CARICARE sulla sbarra
+  // comune vanno invece mostrati come TOTALE per entrambi i polsi.
+  const conversioneSbarra = 1 / fattoreConfrontoPolso(esercizio);
+  const ingresso = arrotonda(kgDaNormalizzato(soglie[0]) * conversioneSbarra);
+  const vertice = arrotonda(kgDaNormalizzato(soglie[soglie.length - 1]) * conversioneSbarra);
 
   // IL VOLUME E' DELLA SEDUTA, non di sempre (Ste, 18/10/2026).
   const sedutaRecord = migliore.serie && migliore.serie.seduta_id;
@@ -264,7 +270,7 @@ export function valutaPrestazione({ esercizio, serie = [], pesoCorporeo = null, 
     score: migliore.score,
     soglie,
     indice: rank.indice,
-    carico: migliore.carico,
+    carico: migliore.caricoPerScore,
     caricoRegistrato: cfg.modello === 'corpo_libero'
       ? migliore.zavorra
       : numero(migliore.serie.peso),
@@ -294,6 +300,8 @@ export function valutaPrestazione({ esercizio, serie = [], pesoCorporeo = null, 
     serieFatte: n,
     serieTotali: nTotali,
     caricoReale: migliore.carico,
+    caricoPerPolsoStimato: migliore.caricoPerPolsoStimato,
+    notaCarico: migliore.notaCarico,
     // Identifica senza ambiguita' la serie che ha davvero vinto. Il numero
     // scritto sul carrello puo' differire dal carico al cavo 2:1.
     caricoRegistrato: cfg.modello === 'corpo_libero'
@@ -325,7 +333,7 @@ export function valutaPrestazione({ esercizio, serie = [], pesoCorporeo = null, 
     tetto: vertice,
     tettoRaggiunto: false,
     // I KG EQUIVALENTI: che peso, a 8 ripetizioni, darebbe la stessa prestazione.
-    kgEquivalenti: kgEquivalenti(migliore.score, pesoDelRecord, migliore.meccanica),
+    kgEquivalenti: arrotonda(kgEquivalenti(migliore.score, pesoDelRecord, migliore.meccanica) * conversioneSbarra),
     ...rank,
     sogliePer8Rip: true,
     ripetizioniRiferimento: RIPETIZIONI_RIFERIMENTO,
@@ -487,10 +495,11 @@ export function distanzaAllaSogliaNuova({
   const e = esercizio || {};
   const corpoLibero = cfg?.modello === 'corpo_libero';
   const doppiaCarrucola = !corpoLibero && e.carrucola === 'carrucola_doppia';
+  const fattorePolso = fattoreConfrontoPolso(e);
   const numeroRegistrato = numero(caricoRegistrato);
   const pesoAttuale = numeroRegistrato !== null ? numeroRegistrato
     : corpoLibero ? Math.max(0, Number(carico) - Number(pesoCorporeo))
-      : doppiaCarrucola ? Number(carico) * 2 : Number(carico);
+      : (Number(carico) / fattorePolso) * (doppiaCarrucola ? 2 : 1);
 
   // Carico effettivo richiesto dallo score, poi inverso del sistema
   // dichiarato sul dispositivo. Con spotter si richiede piu' carico.
@@ -498,8 +507,7 @@ export function distanzaAllaSogliaNuova({
     (bersaglio * fattore) / (m * penalty * pieneFatte);
   const kgGrezzo = corpoLibero
     ? Math.max(0, caricoEffettivoNecessario - Number(pesoCorporeo))
-    : doppiaCarrucola ? caricoEffettivoNecessario * 2
-      : caricoEffettivoNecessario;
+    : (caricoEffettivoNecessario / fattorePolso) * (doppiaCarrucola ? 2 : 1);
 
   const pesoCaricabile = Array.isArray(pesiDisponibili)
     ? pesiDisponibili.find(p => p >= kgGrezzo - 1e-8 && p > pesoAttuale)
@@ -526,6 +534,7 @@ export function distanzaAllaSogliaNuova({
   const ripUtili = ripInPiu !== null && ripInPiu <= 12 ? ripInPiu : null;
   const nomeUnita = corpoLibero ? 'kg di zavorra'
     : doppiaCarrucola ? 'kg sul carrello'
+      : fattorePolso !== 1 ? 'kg totali sulla sbarra'
       : e.convenzione === 'per_manubrio' ? 'kg per manubrio'
         : e.convenzione === 'per_braccio' ? 'kg per lato'
           : e.convenzione === 'per_gamba' ? 'kg per gamba'
@@ -588,13 +597,14 @@ export function soglieLegibiliNuove(soglie, { esercizio = {}, pesoCorporeo = nul
     const carico = config.modello === 'corpo_libero'
       ? (corpo === null ? null : corpo + kg)
       : caricoReale(kg, esercizio);
-    if (carico === null || carico <= 0) return null;
+    const caricoPerScore = carico === null ? null : carico * fattoreConfrontoPolso(esercizio);
+    if (caricoPerScore === null || caricoPerScore <= 0) return null;
     const fattore = fattoreCorpo(pesoCorporeo);
     if (fattore === null) return null;
     // A 8 ripetizioni `ripetizioniPiene` vale 1: lo score e' il carico diviso
     // per il fattore corporeo. Le soglie contengono gia' la meccanica, quindi
     // lo score deve contenerla anche lui.
-    return (carico / fattore) * fattoreMeccanica(esercizio);
+    return (caricoPerScore / fattore) * fattoreMeccanica(esercizio);
   };
   return soglie.map((s) => {
     const trovato = pesi.find((kg) => {
