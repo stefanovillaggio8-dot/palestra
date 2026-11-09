@@ -543,14 +543,16 @@ test('V17. la doppia carrucola dimezza SEMPRE, anche con un braccio solo', async
       `${e.nome}: stessa stazione, stesso conto`);
   }
 
-  // 4) E QUELLO CHE NON DEVE ESSERE TOCCATO: senza doppia carrucola il numero
-  //    resta quello che leggi. Il pulldown, il row e il wrist curl hanno il
-  //    monocarrucola e nessun dimezzamento, e i manubri non hanno carrucole.
-  for (const id of ['ex-neutral-grip-lat-pulldown', 'ex-seated-cable-row', 'ex-wrist-curl']) {
+  // 4) Solo il vecchio Wrist Curl al cavo basso passa al rapporto verificato 2:1.
+  // I nuovi cavi alti e le altre macchine elencate restano 1:1.
+  for (const id of ['ex-neutral-grip-lat-pulldown', 'ex-seated-cable-row',
+    'ex-high-cable-wrist-curl-one-arm', 'ex-high-cable-wrist-curl-two-arm']) {
     const e = perId(id);
     assert.equal(caricoReale(90, e), 90,
       `${e.nome}: niente doppia carrucola, il numero resta come lo leggi`);
   }
+  assert.equal(caricoReale(90,perId('ex-wrist-curl')),45,
+    'cavo basso 2:1: 90 kg di pila sono 45 kg effettivi');
 
 // 5) IL MONUMENTO ALLA TRAPPOLA, e la ragione per cui questo test è stato
   //    riscritto invece che corretto. Nell'agosto 2026 il pushdown non dava nessun

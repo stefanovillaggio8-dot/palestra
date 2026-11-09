@@ -248,33 +248,9 @@ export const ESERCIZI = [
 
   { id: 'ex-pull-ups', nome: 'Trazioni zavorrate', gruppo: 'Trazioni zavorrate', convenzione: C.ZAVORRI, foto: 'img/esercizi/pull-ups.png', tipo: 'zavorre', nota_permanente: 'Zavorra: indica i kg aggiunti al tuo peso corporeo, non un aiuto della macchina.' },
   { id: 'ex-dips', nome: 'Dips zavorrati', gruppo: 'Dips zavorrati', convenzione: C.ZAVORRI, foto: 'img/esercizi/dips.png', tipo: 'zavorre', nota_permanente: 'Zavorra: indica i kg aggiunti al tuo peso corporeo, non un aiuto della macchina.' },
-  // Ste (10/10/2026), audit: questo esercizio aveva `carrucola: carrucola_mono` ma
-// convenzione `bilanciere`. La carrucola sta solo sui CAVI: un bilanciere non ha
-// un carrello da cui il peso si dimezzi. Qui non cambiava il Rank (il bilanciere non
-// dimezza niente), ma è un dato falso che la logica della carrucola non deve
-// trovare mai, e se un giorno il bilanciere venisse trattato come il cavo avrebbe
-// dimezzato un numero che non si dimezza.
-// Ste (10/10/2026): "nel wrist curl io lo faccio al cavo monocarrucola con la
-// presa grigia".
-//
-// Qui c'era una catena di errori, uno dietro l'altro, e per due volte sono stato io a
-// sbagliare.
-//
-//  1. Era `bilanciere`. Non lo è: è un CAVO. Il bilanciere è un peso con due mani,
-//     questo è un cavo con la presa grigia attaccata.
-//
-//  2. Aveva anche `carrucola: carrucola_mono` che insieme a `bilanciere` era un dato
-//     falso (la carrucola sta solo sui cavi). Io l'avevo tolto, ma era la mossa
-//     sbagliata: avevo tolto il sintomo invece della causa.
-//
-//  3. La carrucola mono c'era per la ragione giusta: è un cavo, e sulla presa grigia
-//     (la corda) c'è UN solo cavo, quindi il numero che segna il carrello è il numero
-//     che senti. Il fattore della mono è 1, non dimezza: 25 kg restano 25 kg.
-//
-// Il Rank non cambia (25 kg restano 25 in entrambi i casi), ma il dato ora dice la
-// verità, e se un giorno questo esercizio passasse a un cavo a doppia carrucola
-// l'app ha già il campo giusto per accorgersene.
-{ id: 'ex-wrist-curl', nome: 'Wrist Curl', gruppo: 'Wrist Curl', convenzione: C.CAVO, carrucola: C.CARRUCOLA_MONO, foto: 'img/esercizi/wrist-curl.png', tipo: 'standard', nota_permanente: 'Cavo monocarrucola con la presa grigia (la corda). Dropset: prima serie fino a cedimento, poi si scende. Ci sono 3 giri extra da riempire.' },
+  // v460: cavo BASSO con doppia carrucola 2:1 confermata.
+  // Manteniamo l'ID originale e tutte le serie storiche, correggendo solo il carico reale.
+{ id: 'ex-wrist-curl', nome: 'Wrist Curl', gruppo: 'Wrist Curl', usoBraccia: 'un_braccio', convenzione: C.CAVO, carrucola: C.CARRUCOLA_DOPPIA, foto: 'img/esercizi/wrist-curl.png', tipo: 'standard', nota_permanente: 'Cavo BASSO, doppia carrucola 2:1 confermata: carico reale al polso pari a meta dei kg indicati sulla pila. Monobraccio con presa grigia (corda). Dropset: prima serie fino a cedimento, poi si scende. Ci sono 3 giri extra da riempire. Serie storiche conservate, Rank ricalcolato secondo il carico reale.' },
   // Esercizi AGGIUNTI, non ancora messi in nessuna scheda: sono disponibili
   // nella lista così ognuno può aggiungerli quando gli servono.
   { id: 'ex-iso-lateral-row', nome: 'Iso-Lateral Row', gruppo: 'Row', convenzione: C.PER_BRACCIO, attrezzatura: C.MACCHINA_DISCHI, foto: 'img/esercizi/iso-lateral-row.png', tipo: 'standard', nota_permanente: 'Macchina a dischi, e ogni braccio e\' indipendente: se i due lati non sono uguali lo senti subito.' },
@@ -344,9 +320,9 @@ export const ESERCIZI = [
   { id: 'ex-dips-corpo-libero', nome: 'Dips a corpo libero', gruppo: 'Dips a corpo libero', convenzione: C.CORPO_LIBERO, foto: 'img/esercizi/dips.png', tipo: 'standard', nota_permanente: 'Senza zavorra: si contano solo le ripetizioni.' },
   // Due varianti aggiuntive: NON rinominare ex-wrist-curl, che possiede serie e Rank storici.
   // Cavo dall'ALTO, atleta IN PIEDI; gomiti immobili, la flessione si compie solo al polso.
-  // Rapporto carrucola non dichiarato: chiedere la configurazione reale, non assumere 1:1 o 2:1.
-  { id: 'ex-high-cable-wrist-curl-one-arm', nome: 'Wrist Curl cavo alto - monobraccio', gruppo: 'Wrist Curl', usoBraccia: 'un_braccio', convenzione: C.CAVO, rapportoCarrucolaDaVerificare: true, foto: 'img/esercizi/high-pulley-wrist-one-arm.svg', tipo: 'standard', nota_permanente: 'In piedi, cavo con carrucola ALTA, maniglia singola. Gomito e avambraccio stabili: ruota/fletti il polso verso il basso senza trasformare il gesto in un pushdown. Registra i kg indicati sulla pila. Il rapporto del cavo (1:1 o 2:1) va verificato sulla tua macchina prima di confrontare i Rank.' },
-  { id: 'ex-high-cable-wrist-curl-two-arm', nome: 'Wrist Curl cavo alto - due braccia', gruppo: 'Wrist Curl', usoBraccia: 'due_braccia', convenzione: C.CAVO, rapportoCarrucolaDaVerificare: true, foto: 'img/esercizi/high-pulley-wrist-two-arm.svg', tipo: 'standard', nota_permanente: 'In piedi, carrucola ALTA, UNA sbarra diritta presa con entrambe le mani. Tieni fermi i gomiti e fletti i polsi verso il basso; NON estendere il gomito. Registra il peso TOTALE indicato sulla pila (non moltiplicare per due). Per il Rank si stima meta del carico per polso, assumendo una ripartizione simmetrica: e una stima biomeccanica e NON un percentile misurato. Rapporto carrucola da configurare.' },
+  // v460: cavo alto monocarrucola 1:1; cavo basso doppia carrucola 2:1.
+  { id: 'ex-high-cable-wrist-curl-one-arm', nome: 'Wrist Curl cavo alto - monobraccio', gruppo: 'Wrist Curl', usoBraccia: 'un_braccio', convenzione: C.CAVO, carrucola: C.CARRUCOLA_MONO, foto: 'img/esercizi/high-pulley-wrist-one-arm.svg', tipo: 'standard', nota_permanente: 'In piedi, cavo con carrucola ALTA, maniglia singola. Gomito e avambraccio stabili: ruota/fletti il polso verso il basso senza trasformare il gesto in un pushdown. Registra i kg indicati sulla pila. Carrucola ALTA 1:1 confermata: il carico reale sul polso coincide con i kg indicati sulla pila.' },
+  { id: 'ex-high-cable-wrist-curl-two-arm', nome: 'Wrist Curl cavo alto - due braccia', gruppo: 'Wrist Curl', usoBraccia: 'due_braccia', convenzione: C.CAVO, carrucola: C.CARRUCOLA_MONO, foto: 'img/esercizi/high-pulley-wrist-two-arm.svg', tipo: 'standard', nota_permanente: 'In piedi, carrucola ALTA, UNA sbarra diritta presa con entrambe le mani. Tieni fermi i gomiti e fletti i polsi verso il basso; NON estendere il gomito. Registra il peso TOTALE indicato sulla pila (non moltiplicare per due). Per il Rank si stima meta del carico per polso, assumendo una ripartizione simmetrica: e una stima biomeccanica e NON un percentile misurato. Carrucola ALTA 1:1 confermata: per il Rank si stima meta del carico totale per ciascun polso.' },
 ];
 
 const s = (peso, rip, extra = {}) => ({ peso, ripetizioni: rip, ...extra });
