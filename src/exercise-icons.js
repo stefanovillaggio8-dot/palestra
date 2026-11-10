@@ -159,7 +159,7 @@ export function sorgenteMiniatura(esercizio) {
     return { tipo: 'dedicata', src: FOTO_INCLINE_PULLDOWN_CORRETTA, zoom: 1 };
   }
   const preferita = FOTO_VERIFICATE_TECNICAMENTE[esercizio?.id];
-  if (preferita) return { tipo: 'originale', src: preferita, zoom: preferita.includes("/uniformi-v455/") || preferita.includes("/verificati-v458/") || esercizio?.id === "ex-bench-pull" || esercizio?.id === "ex-incline-cable-curl" || esercizio?.id === "ex-scott-bench-curl" || esercizio?.id === "ex-wrist-curl" ? 1 : 1.04 };
+  if (preferita) return { tipo: 'originale', src: preferita, zoom: preferita.includes("/uniformi-v455/") || preferita.includes("/verificati-v458/") || esercizio?.id === "ex-bench-pull" || esercizio?.id === "ex-incline-cable-curl" || esercizio?.id === "ex-scott-bench-curl" || esercizio?.id === "ex-wrist-curl" || esercizio?.id === "ex-high-cable-wrist-curl-one-arm" || esercizio?.id === "ex-high-cable-wrist-curl-two-arm" ? 1 : 1.04 };
   const posizione = posizioneIconaCorretta(esercizio);
   if (posizione) return { tipo: 'sprite', ...posizione, zoom: 1 };
   return {
