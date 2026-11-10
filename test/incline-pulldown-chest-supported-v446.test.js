@@ -5,7 +5,7 @@ import { ESERCIZI } from '../src/dati-iniziali.js';
 import { FOTO_INCLINE_PULLDOWN_CORRETTA, posizioneIconaCorretta } from '../src/exercise-icons.js';
 
 const read = path => readFileSync(new URL('../'+path, import.meta.url), 'utf8');
-const asset = 'img/esercizi/verificati-v456/ex-lying-cable-curl.webp';
+const asset = 'img/esercizi/incline-single-arm-pulldown-v465.webp';
 const svgStorico='img/esercizi/uniformi-v455/ex-lying-cable-curl.svg';
 const idStorico = 'ex-lying-cable-curl';
 
@@ -42,9 +42,9 @@ test('v446: le PWA esistenti ricevono la nuova foto anche con vecchio dato local
   const catalogo=read('src/dati-iniziali.js');
   assert.match(images,/esercizio\?\.id === 'ex-lying-cable-curl'/);
   assert.match(images,/src: FOTO_INCLINE_PULLDOWN_CORRETTA/);
-  assert.match(sw,/const VERSIONE = 'palestra-v464'/);
+  assert.match(sw,/const VERSIONE = 'palestra-v465'/);
   assert.ok(sw.includes("'./"+asset+"'"));
-  assert.match(html,/PALESTRA_VERSIONE = 'palestra-v464'/);
-  assert.match(html,/app\.js\?v=464/);
+  assert.match(html,/PALESTRA_VERSIONE = 'palestra-v465'/);
+  assert.match(html,/app\.js\?v=465/);
   assert.ok(catalogo.includes("foto: 'img/esercizi/incline-single-arm-pulldown-v446.svg'"));
 });

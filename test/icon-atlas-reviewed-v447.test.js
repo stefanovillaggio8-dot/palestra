@@ -34,16 +34,16 @@ test('v447: nuovo asset binario alta definizione e diverso dal vecchio file', ()
   assert.match(css,/background-size:\s*800% 1000%/);
   assert.doesNotMatch(css,/background-image: url\('\.\/img\/esercizi\/esercizi-illustrati-v445\.webp'\)/);
   assert.match(sw,/'\.\/img\/esercizi\/esercizi-uniformi-v455\.webp'/);
-  assert.match(sw,/palestra-v464/);
-  assert.match(leggi('index.html'),/PALESTRA_VERSIONE = 'palestra-v464'/);
+  assert.match(sw,/palestra-v465/);
+  assert.match(leggi('index.html'),/PALESTRA_VERSIONE = 'palestra-v465'/);
 });
 
 test('v447: Incline Single Arm Pulldown v446 rimane corretto e separato', () => {
   const legacy = ESERCIZI.find(item => item.id === 'ex-lying-cable-curl');
   assert.ok(legacy);
-  assert.equal(FOTO_INCLINE_PULLDOWN_CORRETTA,'img/esercizi/verificati-v456/ex-lying-cable-curl.webp');
+  assert.equal(FOTO_INCLINE_PULLDOWN_CORRETTA,'img/esercizi/incline-single-arm-pulldown-v465.webp');
   assert.equal(legacy.foto,'img/esercizi/incline-single-arm-pulldown-v446.svg');
   assert.equal(posizioneIconaCorretta(legacy),null);
   assert.match(leggi('src/exercise-icons.js'),/id === 'ex-lying-cable-curl'/);
-  assert.match(leggi('sw.js'),/verificati-v456\/ex-lying-cable-curl\.webp/);
+  assert.ok(leggi('sw.js').includes('img/esercizi/incline-single-arm-pulldown-v465.webp'));
 });

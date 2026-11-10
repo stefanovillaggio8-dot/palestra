@@ -6,7 +6,7 @@ import { el } from './ui.js';
 
 // ID storico: si chiama ancora ex-lying-cable-curl per non perdere lo storico.
 // Il movimento reale è Incline Single Arm Pulldown, con PETTO sul supporto.
-export const FOTO_INCLINE_PULLDOWN_CORRETTA = 'img/esercizi/verificati-v456/ex-lying-cable-curl.webp';
+export const FOTO_INCLINE_PULLDOWN_CORRETTA = 'img/esercizi/incline-single-arm-pulldown-v465.webp';
 
 export const ATLANTE_CORREZIONI_V456 = 'img/esercizi/icone-corrette-v456-atlas.webp';
 export const POSIZIONI_CORREZIONI_V456 = Object.freeze({
@@ -135,7 +135,7 @@ export const ZOOM_ICONE_STORICHE = Object.freeze({
 export const FOTO_VERIFICATE_TECNICAMENTE = Object.freeze({
   "ex-one-arm-overhead-tricep-extension": "img/esercizi/uniformi-v455/ex-one-arm-overhead-tricep-extension.webp",
   "ex-scott-bench-curl": "img/esercizi/cad-curl-app.jpg",
-  "ex-cable-reverse-fly": "img/esercizi/cable-reverse-fly-v463.webp",
+  "ex-cable-reverse-fly": "img/esercizi/cable-reverse-fly-v465.webp",
   "ex-chest-supported-shrug": "img/esercizi/uniformi-v455/ex-chest-supported-shrug.webp",
   "ex-lat-pulldown-lats": "img/esercizi/uniformi-v455/ex-lat-pulldown-lats.webp",
   "ex-bench-pull": "img/esercizi/bench-pull-v453.webp",
