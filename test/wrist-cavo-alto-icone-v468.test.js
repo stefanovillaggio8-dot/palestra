@@ -59,7 +59,7 @@ test('v468: CAD, Wrist Curl normale, Reverse Fly e Incline Curl identici alle ve
  ]) assert.equal(sorgenteMiniatura(ESERCIZI.find(e=>e.id===id)).src,path,id);
  assert.match(txt('sw.js'),/const VERSIONE = 'palestra-v468'/);
  assert.match(txt('index.html'),/PALESTRA_VERSIONE = 'palestra-v468'/);
- assert.match(txt('index.html'),/app\\.js\\?v=468/);
+ assert.ok(txt('index.html').includes('app.js?v=468'));
  const iconCode=txt('src/exercise-icons.js');
  for(const op of ['localStorage.setItem','supabase.from','salvaSerie','eliminaSeduta'])assert.ok(!iconCode.includes(op));
 });
