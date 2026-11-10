@@ -36,8 +36,8 @@ test('v456: otto esercizi corretti con celle distinte e atlas 3x3 reale',()=>{
 });
 test('v456: app, cache PWA e galleria hanno le stesse otto immagini',()=>{
   const sw=txt('sw.js'),src=txt('src/exercise-icons.js'),html=txt('verifica-icone.html');
-  assert.match(sw,/palestra-v467/);
-  assert.match(txt('index.html'),/palestra-v467/);
+  assert.match(sw,/palestra-v468/);
+  assert.match(txt('index.html'),/palestra-v468/);
   assert.ok(sw.includes("'./"+ATLANTE_CORREZIONI_V456+"'"));
   assert.match(src,/background-size:300% 300%/);
   assert.match(html,/\.art span\.v456/);
