@@ -47,7 +47,7 @@ export function accessoSkin(oggetto, stato, classe, posseduto = false) {
 /**
  * La barra 0/80 rappresenta la sequenza IN CORSO, non il record storico.
  * Una sequenza interrotta ricomincia da zero; il record serve SOLO a
- * conservare i premi gia' conquistati e non viene cancellato.
+ * conservare i premi già conquistati e non viene cancellato.
  */
 export function progressoCoronaInfinito(streak = null) {
   const sano = valore => {

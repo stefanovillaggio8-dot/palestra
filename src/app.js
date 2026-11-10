@@ -2074,7 +2074,7 @@ function apriAnteprimaCoronaRpg(profilo, st) {
   }else{
     pannello.appendChild(el('p',{class:'nota',testo:'Scegli Assassino, Guerriero o Berserker per vedere il premio finale.'}));
   }
-  // La Corona gia' sbloccata resta tua grazie al record storico, ma
+  // La Corona già sbloccata resta tua grazie al record storico, ma
   // il percorso verso gli 80 giorni riparte dalla STREAK ATTUALE.
   const progresso = progressoCoronaInfinito(st?.streak);
   pannello.appendChild(el('p',{class:'nota',testo:progresso.sbloccata
