@@ -3792,18 +3792,19 @@ html.animazioni-mai .barra-piena::after { animation: none; }
 }
 
 /* Ultima regola: include anche effetti e armature aggiunti dopo il tema base. */
-/* v463: CAD Curl mantiene la posa storica approvata, con cornice e palette
+/* v467: CAD Curl usa il disegno definitivo approvato, con cornice e palette
    coerenti alle nuove carte viola neon. Il disegno non viene sostituito. */
 .foto-esercizio-cad-curl::after {
-  content: ''; position: absolute; z-index: 2; inset: 0;
-  border: 2px solid #dd18fa; border-radius: inherit;
-  box-shadow: inset 0 0 6px rgba(236, 33, 255, .44);
-  pointer-events: none;
+  /* La nuova foto include gia' il bordo neon: non sovrapporre un secondo contorno. */
+  content: none;
 }
 .foto-esercizio-cad-curl .foto-esercizio-arte-originale {
   -webkit-mask: none; mask: none;
-  object-fit: cover; transform: scale(1.01);
-  filter: saturate(1.12) contrast(1.07);
+  object-fit: cover; transform: none; filter: none;
+}
+.foto-esercizio-arte-originale[src$="wrist-curl-v467.webp"] {
+  -webkit-mask: none; mask: none;
+  object-fit: cover; transform: none; filter: none;
 }
 /* La nuova illustrazione Reverse Fly include già il bordo; non sfumarlo. */
 .foto-esercizio-arte-originale[src$="cable-reverse-fly-v465.webp"],

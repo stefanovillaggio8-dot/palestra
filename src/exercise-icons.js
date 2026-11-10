@@ -134,7 +134,7 @@ export const ZOOM_ICONE_STORICHE = Object.freeze({
 // Non alterare le foto degli esercizi personalizzati.
 export const FOTO_VERIFICATE_TECNICAMENTE = Object.freeze({
   "ex-one-arm-overhead-tricep-extension": "img/esercizi/uniformi-v455/ex-one-arm-overhead-tricep-extension.webp",
-  "ex-scott-bench-curl": "img/esercizi/cad-curl-app.jpg",
+  "ex-scott-bench-curl": "img/esercizi/cad-curl-v467.webp",
   "ex-cable-reverse-fly": "img/esercizi/cable-reverse-fly-v465.webp",
   // v466: panca centrale avanzata, due carrucole basse e maniglie approvate.
   "ex-incline-cable-curl": "img/esercizi/incline-cable-curl-v466.webp",
@@ -145,7 +145,7 @@ export const FOTO_VERIFICATE_TECNICAMENTE = Object.freeze({
   "ex-smith-machine-shrug": "img/esercizi/uniformi-v455/ex-smith-machine-shrug.webp",
   // v452: tre illustrazioni tecniche dedicate; non sostituire le 76 già verificate.
   "ex-dips": "img/esercizi/uniformi-v455/ex-dips.svg",
-  "ex-wrist-curl": "img/esercizi/uniformi-v455/ex-wrist-curl.svg",
+  "ex-wrist-curl": "img/esercizi/wrist-curl-v467.webp",
   "ex-strict-curl-ez-wall": "img/esercizi/uniformi-v455/ex-strict-curl-ez-wall.svg",
   "ex-dumbbell-face-pull": "img/esercizi/verificati-v458/ex-dumbbell-face-pull.webp",
   "ex-bent-over-row": "img/esercizi/uniformi-v455/ex-bent-over-row.webp",
@@ -159,7 +159,7 @@ export function sorgenteMiniatura(esercizio) {
     return { tipo: 'dedicata', src: FOTO_INCLINE_PULLDOWN_CORRETTA, zoom: 1 };
   }
   const preferita = FOTO_VERIFICATE_TECNICAMENTE[esercizio?.id];
-  if (preferita) return { tipo: 'originale', src: preferita, zoom: preferita.includes("/uniformi-v455/") || preferita.includes("/verificati-v458/") || esercizio?.id === "ex-bench-pull" || esercizio?.id === "ex-incline-cable-curl" ? 1 : 1.04 };
+  if (preferita) return { tipo: 'originale', src: preferita, zoom: preferita.includes("/uniformi-v455/") || preferita.includes("/verificati-v458/") || esercizio?.id === "ex-bench-pull" || esercizio?.id === "ex-incline-cable-curl" || esercizio?.id === "ex-scott-bench-curl" || esercizio?.id === "ex-wrist-curl" ? 1 : 1.04 };
   const posizione = posizioneIconaCorretta(esercizio);
   if (posizione) return { tipo: 'sprite', ...posizione, zoom: 1 };
   return {
