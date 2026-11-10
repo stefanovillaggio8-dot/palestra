@@ -58,7 +58,7 @@ test('v454: otto immagini WebP originali e abbinate ai rispettivi ID',()=>{
     const record=ESERCIZI.find(x=>x.id===id);
     assert.ok(record,'esercizio sconosciuto: '+id);
     const preview=sorgenteMiniatura(record);
-    if(id==='ex-scott-bench-curl') assert.equal(preview.src,'img/esercizi/cad-curl-app.jpg');
+    if(id==='ex-scott-bench-curl') assert.equal(preview.src,'img/esercizi/cad-curl-v467.webp');
     else if(id==='ex-lat-pulldown-lats') {
       assert.equal(preview.tipo,'sprite');
       assert.equal(preview.atlas,'img/esercizi/icone-corrette-v456-atlas.webp');
@@ -71,7 +71,7 @@ test('v454: otto immagini WebP originali e abbinate ai rispettivi ID',()=>{
     assert.equal(file.toString('ascii',0,4),'RIFF');
     assert.equal(file.toString('ascii',8,12),'WEBP');
     assert.ok(file.length>3000,'WebP ricomposto vuoto: '+id);
-    assert.ok(gallery.includes(id==='ex-scott-bench-curl' ? 'img/esercizi/cad-curl-app.jpg' : id==='ex-lat-pulldown-lats' ? 'img/esercizi/icone-corrette-v456-atlas.webp' : path),'icona non aggiornata in galleria: '+id);
+    assert.ok(gallery.includes(id==='ex-scott-bench-curl' ? 'img/esercizi/cad-curl-v467.webp' : id==='ex-lat-pulldown-lats' ? 'img/esercizi/icone-corrette-v456-atlas.webp' : path),'icona non aggiornata in galleria: '+id);
     assert.ok(sw.includes('./'+path),'WebP non disponibile offline: '+id);
   }
 });
@@ -80,8 +80,8 @@ test('v454: figure a tutto riquadro senza sfumatura e stessa PWA',()=>{
   assert.ok(css.includes('.foto-esercizio-arte-originale[src*="/uniformi-v455/"]'));
   assert.match(css,/-webkit-mask: none/);
   assert.match(css,/object-fit: cover/);
-  assert.match(txt('index.html'),/PALESTRA_VERSIONE = 'palestra-v466'/);
-  assert.match(txt('sw.js'),/const VERSIONE = 'palestra-v466'/);
+  assert.match(txt('index.html'),/PALESTRA_VERSIONE = 'palestra-v467'/);
+  assert.match(txt('sw.js'),/const VERSIONE = 'palestra-v467'/);
   const gallery=txt('verifica-icone.html');
   assert.equal((gallery.match(/<article class="tile /g)||[]).length,81);
 });

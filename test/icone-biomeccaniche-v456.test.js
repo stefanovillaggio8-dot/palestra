@@ -36,8 +36,8 @@ test('v456: otto esercizi corretti con celle distinte e atlas 3x3 reale',()=>{
 });
 test('v456: app, cache PWA e galleria hanno le stesse otto immagini',()=>{
   const sw=txt('sw.js'),src=txt('src/exercise-icons.js'),html=txt('verifica-icone.html');
-  assert.match(sw,/palestra-v466/);
-  assert.match(txt('index.html'),/palestra-v466/);
+  assert.match(sw,/palestra-v467/);
+  assert.match(txt('index.html'),/palestra-v467/);
   assert.ok(sw.includes("'./"+ATLANTE_CORREZIONI_V456+"'"));
   assert.match(src,/background-size:300% 300%/);
   assert.match(html,/\.art span\.v456/);
@@ -52,8 +52,8 @@ test('v456: app, cache PWA e galleria hanno le stesse otto immagini',()=>{
 });
 test('v456: ripristino CAD Curl inverso e conservazione dei dati',()=>{
   const cad=ESERCIZI.find(x=>x.id==='ex-scott-bench-curl');
-  assert.equal(sorgenteMiniatura(cad).src,'img/esercizi/cad-curl-app.jpg');
-  assert.match(txt('verifica-icone.html'),/img\/esercizi\/cad-curl-app\.jpg/);
+  assert.equal(sorgenteMiniatura(cad).src,'img/esercizi/cad-curl-v467.webp');
+  assert.match(txt('verifica-icone.html'),/img\/esercizi\/cad-curl-v467\.webp/);
   const bench=ESERCIZI.find(x=>x.id==='ex-bench-pull');
   assert.equal(sorgenteMiniatura(bench).src,'img/esercizi/bench-pull-v453.webp');
   const incline=ESERCIZI.find(x=>x.id==='ex-lying-cable-curl');
