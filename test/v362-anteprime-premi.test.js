@@ -16,7 +16,7 @@ test('v362: anteprima 80 mostra artwork originale e non la vecchia corona incoll
     assert.match(preview,new RegExp(cls));
   assert.doesNotMatch(preview,/bloccoPersonaggio\(/);
   assert.match(preview,/non vengono modificati/);
-  assert.match(preview,/record>=80/);
+  assert.match(preview,/progresso\.sbloccata/);
   assert.doesNotMatch(preview,/cambiaCoronaInfinito|db\.salva/);
 });
 

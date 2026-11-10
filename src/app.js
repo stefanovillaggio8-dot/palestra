@@ -2,7 +2,7 @@
 // Tutto in italiano, tema scuro, pulsanti grandi, fatto per essere usato
 // in palestra con le mani occupate.
 
-import { requisitoSkin, accessoSkin, scenarioSkin, statoCoronaInfinito, cambiaCoronaInfinito, CORONA_INFINITO_ID, ordinaPerRaritaAura } from './aura-skin.js';
+import { requisitoSkin, accessoSkin, scenarioSkin, statoCoronaInfinito, progressoCoronaInfinito, cambiaCoronaInfinito, CORONA_INFINITO_ID, ordinaPerRaritaAura } from './aura-skin.js';
 import { equipaggiamentoRpgUnico, slotPerOggettoRpg, aggiornaEquipaggiamentoRpg } from './equipaggiamento-rpg.js';
 import { percorsoFotoCoronaV360 } from './foto-corona-v360.js';
 import { percorsoFotoAuraDivinaV366 } from './foto-aura-divina-v366.js';
@@ -2074,10 +2074,12 @@ function apriAnteprimaCoronaRpg(profilo, st) {
   }else{
     pannello.appendChild(el('p',{class:'nota',testo:'Scegli Assassino, Guerriero o Berserker per vedere il premio finale.'}));
   }
-  const record=Math.max(0,Number(st?.streak?.record)||0);
-  pannello.appendChild(el('p',{class:'nota',testo:record>=80
+  // La Corona già sbloccata resta tua grazie al record storico, ma
+  // il percorso verso gli 80 giorni riparte dalla STREAK ATTUALE.
+  const progresso = progressoCoronaInfinito(st?.streak);
+  pannello.appendChild(el('p',{class:'nota',testo:progresso.sbloccata
     ? 'Ricompensa sbloccata: rimane tua per sempre.'
-    : 'Ti mancano '+(80-record)+' giorni di record Streak per sbloccarla.'}));
+    : 'Ti mancano '+progresso.mancanti+' giorni di Streak attuale per sbloccarla.'}));
   pannello.appendChild(bottone('Chiudi anteprima',{classe:'fantasma',onClick:chiudi}));
   overlay.appendChild(pannello);
   overlay.addEventListener('click',e=>{if(e.target===overlay)chiudi();});
@@ -2100,6 +2102,7 @@ function vistaAuraShop(zona, soloInventario = false) {
     .filter(Boolean))];
   const streak = Math.max(0, Number(st.streak?.record) || 0);
   const streakShop = Math.max(0, Number(st.streak?.giorni) || 0);
+  const coronaProgresso = progressoCoronaInfinito(st.streak);
   const statoCorona = statoCoronaInfinito(profilo.equipaggiamento_aura, streak);
   // Navigazione primaria dello shop: il bottone Indietro sta sopra i contenuti
   // e le due tab principali rimangono Shop a sinistra / Inventario a destra.
@@ -2148,8 +2151,8 @@ function vistaAuraShop(zona, soloInventario = false) {
       el('span',{class:'aura-shop-kicker',testo:'RICOMPENSA ESCLUSIVA · NON IN VENDITA'}),
       el('h2',{testo:'Corona dell’Infinito'}),
       el('p',{testo:'Corona dorata sospesa sopra la testa, con rune e sigilli; si abbina all’alone celestiale dell’Aura divina senza confondersi.'}),
-      el('strong',{testo:streak>=80?'✦ SBLOCCATA · 80 giorni raggiunti':Math.min(80,streak)+' / 80 giorni di streak'}),
-      el('div',{class:'aura-shop-progress'},[el('span',{style:'width:'+Math.min(100,streak/80*100)+'%'})]),
+      el('strong',{testo:streak>=80?'✦ SBLOCCATA · 80 giorni raggiunti':coronaProgresso.giorni+' / 80 giorni di streak'}),
+      el('div',{class:'aura-shop-progress'},[el('span',{style:'width:'+coronaProgresso.percentuale+'%'})]),
       el('small',{testo:streak>=80?'Questa ricompensa resta tua: non serve comprarla.':'Allenati con costanza per sbloccare la più bella aura del gioco.'}),
       bottone('Guarda la Corona animata',{classe:'fantasma aura-corona-preview-btn',
         onClick:()=>apriAnteprimaCoronaRpg(profiloAttivo(),statoMio())}),
@@ -8359,7 +8362,7 @@ function bloccoPersonaggio(profilo, st) {
         el('span',{class:'pezzo-corona-sigillo',testo:'✧',aria:{hidden:'true'}}),
       ]),
       el('span',{class:'pezzo-nome',testo:'Corona dell’Infinito'}),
-      el('span',{class:'pezzo-quando',testo:coronaSbloccata?(coronaIndossata?'equipaggiata · 80 giorni':'sbloccata, non equipaggiata'):'mancano '+(80-recordCorona)+' giorni'}),
+      el('span',{class:'pezzo-quando',testo:coronaSbloccata?(coronaIndossata?'equipaggiata · 80 giorni':'sbloccata, non equipaggiata'): 'mancano '+progressoCoronaInfinito(st?.streak).mancanti+' giorni'}),
       bottone('Anteprima',{classe:'fantasma corona-streak-preview premio-preview-btn',onClick:()=>apriAnteprimaCoronaRpg(profilo,st)}),
     ]));
     rigaStati.appendChild(striscia);

@@ -44,6 +44,27 @@ export function accessoSkin(oggetto, stato, classe, posseduto = false) {
 }
 
 
+/**
+ * La barra 0/80 rappresenta la sequenza IN CORSO, non il record storico.
+ * Una sequenza interrotta ricomincia da zero; il record serve SOLO a
+ * conservare i premi già conquistati e non viene cancellato.
+ */
+export function progressoCoronaInfinito(streak = null) {
+  const sano = valore => {
+    const n = Number(valore);
+    return Number.isFinite(n) ? Math.max(0, Math.floor(n)) : 0;
+  };
+  const giorni = streak?.interrotta === true ? 0 : Math.min(80, sano(streak?.giorni));
+  const record = sano(streak?.record);
+  return {
+    giorni,
+    record,
+    sbloccata: record >= 80,
+    mancanti: 80 - giorni,
+    percentuale: giorni / 80 * 100,
+  };
+}
+
 // La Corona è una ricompensa gratuita, distinta da Skin, Armatura, Effetto
 // e Titolo. Il valore 'nessuna' conserva la scelta di disequipaggiarla,
 // anche dopo che si sono raggiunti gli 80 giorni.
