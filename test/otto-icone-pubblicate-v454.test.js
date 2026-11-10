@@ -80,8 +80,8 @@ test('v454: figure a tutto riquadro senza sfumatura e stessa PWA',()=>{
   assert.ok(css.includes('.foto-esercizio-arte-originale[src*="/uniformi-v455/"]'));
   assert.match(css,/-webkit-mask: none/);
   assert.match(css,/object-fit: cover/);
-  assert.match(txt('index.html'),/PALESTRA_VERSIONE = 'palestra-v468'/);
-  assert.match(txt('sw.js'),/const VERSIONE = 'palestra-v468'/);
+  assert.match(txt('index.html'),/PALESTRA_VERSIONE = 'palestra-v469'/);
+  assert.match(txt('sw.js'),/const VERSIONE = 'palestra-v469'/);
   const gallery=txt('verifica-icone.html');
   assert.equal((gallery.match(/<article class="tile /g)||[]).length,81);
 });
