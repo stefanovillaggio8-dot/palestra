@@ -135,6 +135,7 @@ export const ZOOM_ICONE_STORICHE = Object.freeze({
 export const FOTO_VERIFICATE_TECNICAMENTE = Object.freeze({
   "ex-one-arm-overhead-tricep-extension": "img/esercizi/uniformi-v455/ex-one-arm-overhead-tricep-extension.webp",
   "ex-scott-bench-curl": "img/esercizi/cad-curl-app.jpg",
+  "ex-cable-reverse-fly": "img/esercizi/cable-reverse-fly-v463.webp",
   "ex-chest-supported-shrug": "img/esercizi/uniformi-v455/ex-chest-supported-shrug.webp",
   "ex-lat-pulldown-lats": "img/esercizi/uniformi-v455/ex-lat-pulldown-lats.webp",
   "ex-bench-pull": "img/esercizi/bench-pull-v453.webp",
@@ -171,7 +172,7 @@ export function sorgenteMiniatura(esercizio) {
 // dell'esercizio cambia. Non modificare mai i record o il path personale.
 export function miniaturaEsercizio(esercizio, grande = false) {
   const fonte = sorgenteMiniatura(esercizio);
-  const classe = 'foto-esercizio foto-esercizio-uniforme' + (grande ? ' grande' : '');
+  const classe = 'foto-esercizio foto-esercizio-uniforme' + (esercizio?.id === 'ex-scott-bench-curl' ? ' foto-esercizio-cad-curl' : '') + (grande ? ' grande' : '');
   const contenitore = el('span', {
     class: classe,
     role: 'img',

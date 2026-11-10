@@ -3815,3 +3815,22 @@ html.animazioni-mai .barra-piena::after { animation: none; }
 .strict-curl-campi .campo-num { width: 100%; min-width: 0; font-size: 16px; min-height: 44px; }
 .strict-curl-calcolatrice .nota { margin: 7px 0; line-height: 1.4; }
 .strict-curl-calcolatrice .bot { min-height: 42px; width: 100%; }
+
+
+/* v463: CAD Curl mantiene la posa storica approvata, con cornice e palette
+   coerenti alle nuove carte viola neon. Il disegno non viene sostituito. */
+.foto-esercizio-cad-curl::after {
+  content: ''; position: absolute; z-index: 2; inset: 0;
+  border: 2px solid #dd18fa; border-radius: inherit;
+  box-shadow: inset 0 0 6px rgba(236, 33, 255, .44);
+  pointer-events: none;
+}
+.foto-esercizio-cad-curl .foto-esercizio-arte-originale {
+  -webkit-mask: none; mask: none;
+  object-fit: cover; transform: scale(1.01);
+  filter: saturate(1.12) contrast(1.07);
+}
+/* La nuova illustrazione Reverse Fly include già il bordo; non sfumarlo. */
+.foto-esercizio-arte-originale[src$="cable-reverse-fly-v463.webp"] {
+  -webkit-mask: none; mask: none; object-fit: cover; transform: none; filter: none;
+}
