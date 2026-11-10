@@ -87,6 +87,6 @@ test('v448: stile viola, cerchio, nitidezza e nessun taglio aggressivo per tutti
   const stileIcone=css.slice(css.indexOf('/* v448: un solo sistema visivo'),css.indexOf('@media (max-width: 390px)',css.indexOf('/* v448: un solo sistema visivo')));
   assert.doesNotMatch(stileIcone,/filter:\s*blur\(/);
   assert.match(script,/ZOOM_ICONE_STORICHE/);
-  assert.match(sw,/const VERSIONE = 'palestra-v461'/);
+  assert.match(sw,/const VERSIONE = 'palestra-v462'/);
   assert.match(sw,/'\.\/img\/esercizi\/esercizi-uniformi-v455\.webp'/);
 });
