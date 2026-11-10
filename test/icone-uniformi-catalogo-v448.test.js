@@ -28,7 +28,7 @@ test('v448: catalogo completo: stessa cornice e fonte per ciascuno dei 79 eserci
     }
   }
   assert.deepEqual(conteggi,{sprite:68,dedicata:1,originale:12});
-  assert.equal(FOTO_INCLINE_PULLDOWN_CORRETTA,'img/esercizi/verificati-v456/ex-lying-cable-curl.webp');
+  assert.equal(FOTO_INCLINE_PULLDOWN_CORRETTA,'img/esercizi/incline-single-arm-pulldown-v465.webp');
 });
 
 test('v448: tutte le immagini locali esistono, nessuna duplicazione imprevista',()=>{
