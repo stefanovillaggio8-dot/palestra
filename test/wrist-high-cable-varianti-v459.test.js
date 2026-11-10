@@ -35,13 +35,17 @@ test('v459: due foto indipendenti nell app e nella galleria, visibili offline', 
     const img=sorgenteMiniatura(e);
     assert.equal(img.tipo,'originale');
     assert.equal(img.src,e.foto);
-    assert.match(read(e.foto),/<svg/);
+    // Le icone approvate ora sono WebP binari (non SVG provvisori).
+    const bytes=readFileSync(new URL('../'+e.foto, import.meta.url));
+    assert.equal(bytes.subarray(0,4).toString('ascii'),'RIFF');
+    assert.equal(bytes.subarray(8,12).toString('ascii'),'WEBP');
+    assert.ok(bytes.length>3000,'illustrazione approvata non vuota');
     assert.ok(g.includes(e.id));
     assert.ok(g.includes(e.foto));
     assert.ok(sw.includes('./'+e.foto));
   }
-  assert.match(sw,/palestra-v461/);
-  assert.match(read('index.html'),/palestra-v461/);
+  assert.match(sw,/palestra-v462/);
+  assert.match(read('index.html'),/palestra-v462/);
   assert.equal((g.match(/<article class="tile /g)||[]).length,81);
 });
 
