@@ -118,7 +118,7 @@ export function posizioneIconaCorretta(esercizio) {
 // diversi. Zoom moderati, specifici per le sole illustrazioni piccole;
 // l'inquadratura viene sempre contenuta nel riquadro, senza object-fit:cover.
 export const ZOOM_ICONE_STORICHE = Object.freeze({
-  // v468: cornice neon gia' integrata nelle due immagini, nessun crop.
+  // v468: cornice neon già integrata nelle due immagini, nessun crop.
   'ex-high-cable-wrist-curl-one-arm': 1,
   'ex-high-cable-wrist-curl-two-arm': 1,
   'ex-back-extension': 1.28,
