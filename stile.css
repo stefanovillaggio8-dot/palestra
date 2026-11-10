@@ -3806,7 +3806,8 @@ html.animazioni-mai .barra-piena::after { animation: none; }
   filter: saturate(1.12) contrast(1.07);
 }
 /* La nuova illustrazione Reverse Fly include già il bordo; non sfumarlo. */
-.foto-esercizio-arte-originale[src$="cable-reverse-fly-v463.webp"] {
+.foto-esercizio-arte-originale[src$="cable-reverse-fly-v465.webp"],
+.foto-esercizio-arte-originale[src$="incline-single-arm-pulldown-v465.webp"] {
   -webkit-mask: none; mask: none; object-fit: cover; transform: none; filter: none;
 }
 
