@@ -15,7 +15,7 @@ test('v451: galleria controllabile, 79 icone corrette ID/nome e filtro funzionan
   assert.match(html,/esercizi-uniformi-v455\.webp/);
   assert.match(html,/incline-single-arm-pulldown-v465\.webp/);
   assert.match(html,/img\/esercizi\/bench-pull-v453\.webp/);
-  for(const file of ['ex-wrist-curl.svg']) {
+  for(const file of []) {
     assert.ok(html.includes('uniformi-v455/'+file),'SVG uniforme mancante dalla galleria: '+file);
   }
   for(const id of ['ex-one-arm-overhead-tricep-extension',
@@ -25,7 +25,8 @@ test('v451: galleria controllabile, 79 icone corrette ID/nome e filtro funzionan
   }
   assert.ok(html.includes('img/esercizi/icone-corrette-v456-atlas.webp'));
   assert.ok(html.includes('img/esercizi/verificati-v458/ex-dumbbell-face-pull.webp'));
-  assert.ok(html.includes('img/esercizi/cad-curl-app.jpg'));
+  assert.ok(html.includes('img/esercizi/cad-curl-v467.webp'));
+  assert.ok(html.includes('img/esercizi/wrist-curl-v467.webp'));
   for(const id of ['ex-lat-pulldown-lats','ex-dips','ex-strict-curl-ez-wall']) {
     const item=html.match(new RegExp('<article[^>]*data-name="[^"]*'+id+'"[\\s\\S]*?<\\/article>'))?.[0];
     assert.ok(item?.includes('class="v456"'),id);
