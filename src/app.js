@@ -57,6 +57,7 @@ import { isoGiorno } from './streak.js';
 import { calcolaStreakCloud, streakCloudUtilizzabile } from './streak-cloud.js';
 import { validaCreditoStreakOnline, profiloConCreditoStreak } from './streak-online.js';
 import { confrontaStreakDispositivi } from './streak-confronto.js';
+import { profiloUnicoConScheda, scegliProfiloOnline } from './profilo-online.js';
 import { suona, sbloccaAudio, audioSpento, impostaAudioSpento } from './audio.js';
 import { bloccoGlossario } from './glossario-app.js';
 import {
@@ -244,8 +245,10 @@ async function risolviPersona({ daConfermaEmail = false } = {}) {
           nuovoAccountSenzaProfilo = true;
           // La vecchia conferma email portava tutti su ?p=1, anche gli amici.
           if (!invito) ricerca = '';
-        } else if (propri.length === 1 && propri[0].scheda_id) {
-          const profilo = propri[0];
+        } else if (profiloUnicoConScheda(propri)) {
+          // Un profilo omonimo senza scheda non deve bloccare il recupero della
+          // scheda vera al primo login su un dispositivo appena installato.
+          const profilo = profiloUnicoConScheda(propri);
           memoria = profilo.id === 'account-1' ? { p: 1 }
             : profilo.id === 'account-2' ? { p: 2 }
             : profilo.id.startsWith('account-') && profilo.scheda_id === 'scheda-' + profilo.id.slice(8)
@@ -1289,9 +1292,12 @@ async function preparaAccountOnline() {
   const profiliServer = await sb.leggi('profili');
   const profiloServerCorrente = (profiliServer || []).find((p) => p && p.id === idProfilo);
   if (!profiloServerCorrente && (profiliServer || []).length) {
-    const destinazione = profiliServer.find((p) => p && p.id === 'account-1')
-      || profiliServer.find((p) => p && p.id === 'account-2')
-      || profiliServer[0];
+    // Non dare priorita' a un account-1 orfano: un nuovo dispositivo deve
+    // riaprire la scheda con sedute, senza inventare o unire profili.
+    const destinazione = scegliProfiloOnline(profiliServer);
+    if (!destinazione && profiliServer.some((p) => p?.scheda_id)) {
+      throw new Error('Piu profili online con schede diverse: apri il link del tuo profilo originale. Nessuna scheda e stata modificata.');
+    }
     if (destinazione && destinazione.id !== idProfilo && await riapriProfiloOnline(destinazione)) {
       return false; // la pagina ricarica sul profilo remoto corretto
     }
