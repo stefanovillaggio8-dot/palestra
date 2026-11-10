@@ -146,6 +146,9 @@ export const FOTO_VERIFICATE_TECNICAMENTE = Object.freeze({
   // v452: tre illustrazioni tecniche dedicate; non sostituire le 76 già verificate.
   "ex-dips": "img/esercizi/uniformi-v455/ex-dips.svg",
   "ex-wrist-curl": "img/esercizi/wrist-curl-v467.webp",
+  // v468: anche le schede esistenti possono contenere la foto v462: l'ID usa la nuova icona.
+  "ex-high-cable-wrist-curl-one-arm": "img/esercizi/high-pulley-wrist-one-arm-v468.webp",
+  "ex-high-cable-wrist-curl-two-arm": "img/esercizi/high-pulley-wrist-two-arm-v468.webp",
   "ex-strict-curl-ez-wall": "img/esercizi/uniformi-v455/ex-strict-curl-ez-wall.svg",
   "ex-dumbbell-face-pull": "img/esercizi/verificati-v458/ex-dumbbell-face-pull.webp",
   "ex-bent-over-row": "img/esercizi/uniformi-v455/ex-bent-over-row.webp",

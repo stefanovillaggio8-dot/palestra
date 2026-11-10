@@ -32,6 +32,13 @@ test('v468: immagini Wrist Curl alte #80 e #81 caricate in app galleria e cache 
  assert.equal((gallery.match(/<article class="tile /g)||[]).length,81);
 });
 
+test('v468: anche i profili salvati con foto v462 mostrano le icone nuove',()=>{
+ for(const [id,name] of variants){
+  const legacy = {...ESERCIZI.find(e=>e.id===id),foto:'img/esercizi/'+name.replace('-v468.webp','-v462.webp')};
+  assert.equal(sorgenteMiniatura(legacy).src,'img/esercizi/'+name,'mappa ID prioritaria per cache locale vecchia');
+ }
+});
+
 test('v468: foto delle 2 varianti differenti, senza confondere monobraccio con due braccia',()=>{
  const digests=variants.map(([,p])=>createHash('sha256').update(read('img/esercizi/'+p)).digest('hex'));
  assert.notEqual(digests[0],digests[1]);
