@@ -14,7 +14,7 @@ test('v451: catalogo intero senza ID doppi, sorgenti e celle attribuite una sola
   assert.equal(ESERCIZI.length,81);
   assert.equal(new Set(ESERCIZI.map(x=>x.id)).size,81);
   assert.equal(Object.keys(POSIZIONI_ICONE_CORRETTE).length,78);
-  assert.equal(Object.keys(FOTO_VERIFICATE_TECNICAMENTE).length,14);
+  assert.equal(Object.keys(FOTO_VERIFICATE_TECNICAMENTE).length,16);
   const counts={sprite:0,originale:0,dedicata:0};
   const seen=new Set();
   for(const e of ESERCIZI) {
