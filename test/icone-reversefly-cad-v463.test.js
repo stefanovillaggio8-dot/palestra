@@ -14,7 +14,7 @@ test('v463: reverse fly mostra i cavi alti approvati in app, galleria e cache',(
  assert.equal(b.toString('ascii',8,12),'WEBP');
  assert.ok(b.length>4000);
  const gallery=read('verifica-icone.html');
- assert.match(gallery,/ex-cable-reverse-fly[^]*?cable-reverse-fly-v463\.webp/);
+ assert.match(gallery,/ex-cable-reverse-fly[^]*?cable-reverse-fly-v465\.webp/);
  assert.ok(read('sw.js').includes('./'+f.src));
 });
 test('v463: CAD mantiene la posa storica e lo stile della galleria',()=>{
