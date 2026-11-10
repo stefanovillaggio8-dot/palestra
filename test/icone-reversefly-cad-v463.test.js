@@ -8,7 +8,7 @@ test('v463: reverse fly mostra i cavi alti approvati in app, galleria e cache',(
  const e=ESERCIZI.find(x=>x.id==='ex-cable-reverse-fly');
  const f=sorgenteMiniatura(e);
  assert.equal(f.tipo,'originale');
- assert.equal(f.src,'img/esercizi/cable-reverse-fly-v463.webp');
+ assert.equal(f.src,'img/esercizi/cable-reverse-fly-v465.webp');
  const b=readFileSync(new URL('../'+f.src,import.meta.url));
  assert.equal(b.toString('ascii',0,4),'RIFF');
  assert.equal(b.toString('ascii',8,12),'WEBP');
@@ -26,8 +26,8 @@ test('v463: CAD mantiene la posa storica e lo stile della galleria',()=>{
  assert.match(read('verifica-icone.html'),/img\/esercizi\/cad-curl-app\.jpg/);
 });
 test('v463: versioni coerenti e nessuna modifica allo storico di allenamento',()=>{
- assert.match(read('sw.js'),/const VERSIONE = 'palestra-v464'/);
- assert.match(read('index.html'),/window\.PALESTRA_VERSIONE = 'palestra-v464'/);
- assert.match(read('index.html'),/app\.js\?v=464/);
- assert.match(read('verifica-icone.html'),/Palestra v464/);
+ assert.match(read('sw.js'),/const VERSIONE = 'palestra-v465'/);
+ assert.match(read('index.html'),/window\.PALESTRA_VERSIONE = 'palestra-v465'/);
+ assert.match(read('index.html'),/app\.js\?v=465/);
+ assert.match(read('verifica-icone.html'),/Palestra v465/);
 });
