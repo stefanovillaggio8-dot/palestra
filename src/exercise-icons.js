@@ -146,6 +146,9 @@ export const FOTO_VERIFICATE_TECNICAMENTE = Object.freeze({
   // v452: tre illustrazioni tecniche dedicate; non sostituire le 76 già verificate.
   "ex-dips": "img/esercizi/uniformi-v455/ex-dips.svg",
   "ex-wrist-curl": "img/esercizi/wrist-curl-v467.webp",
+  // v468: anche le schede esistenti possono contenere la foto v462: l'ID usa la nuova icona.
+  "ex-high-cable-wrist-curl-one-arm": "img/esercizi/high-pulley-wrist-one-arm-v468.webp",
+  "ex-high-cable-wrist-curl-two-arm": "img/esercizi/high-pulley-wrist-two-arm-v468.webp",
   "ex-strict-curl-ez-wall": "img/esercizi/uniformi-v455/ex-strict-curl-ez-wall.svg",
   "ex-dumbbell-face-pull": "img/esercizi/verificati-v458/ex-dumbbell-face-pull.webp",
   "ex-bent-over-row": "img/esercizi/uniformi-v455/ex-bent-over-row.webp",
@@ -159,7 +162,7 @@ export function sorgenteMiniatura(esercizio) {
     return { tipo: 'dedicata', src: FOTO_INCLINE_PULLDOWN_CORRETTA, zoom: 1 };
   }
   const preferita = FOTO_VERIFICATE_TECNICAMENTE[esercizio?.id];
-  if (preferita) return { tipo: 'originale', src: preferita, zoom: preferita.includes("/uniformi-v455/") || preferita.includes("/verificati-v458/") || esercizio?.id === "ex-bench-pull" || esercizio?.id === "ex-incline-cable-curl" || esercizio?.id === "ex-scott-bench-curl" || esercizio?.id === "ex-wrist-curl" ? 1 : 1.04 };
+  if (preferita) return { tipo: 'originale', src: preferita, zoom: preferita.includes("/uniformi-v455/") || preferita.includes("/verificati-v458/") || esercizio?.id === "ex-bench-pull" || esercizio?.id === "ex-incline-cable-curl" || esercizio?.id === "ex-scott-bench-curl" || esercizio?.id === "ex-wrist-curl" || esercizio?.id === "ex-high-cable-wrist-curl-one-arm" || esercizio?.id === "ex-high-cable-wrist-curl-two-arm" ? 1 : 1.04 };
   const posizione = posizioneIconaCorretta(esercizio);
   if (posizione) return { tipo: 'sprite', ...posizione, zoom: 1 };
   return {

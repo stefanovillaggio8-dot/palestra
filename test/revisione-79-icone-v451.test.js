@@ -14,7 +14,7 @@ test('v451: catalogo intero senza ID doppi, sorgenti e celle attribuite una sola
   assert.equal(ESERCIZI.length,81);
   assert.equal(new Set(ESERCIZI.map(x=>x.id)).size,81);
   assert.equal(Object.keys(POSIZIONI_ICONE_CORRETTE).length,78);
-  assert.equal(Object.keys(FOTO_VERIFICATE_TECNICAMENTE).length,14);
+  assert.equal(Object.keys(FOTO_VERIFICATE_TECNICAMENTE).length,16);
   const counts={sprite:0,originale:0,dedicata:0};
   const seen=new Set();
   for(const e of ESERCIZI) {
@@ -59,11 +59,11 @@ test('v451: l atlante HD e quello effettivamente controllato',()=>{
   const sw=txt('sw.js'),html=txt('index.html'),css=txt('stile.css');
   assert.match(css,/background-image: url\('\.\/img\/esercizi\/esercizi-uniformi-v455\.webp'\)/);
   assert.match(css,/background-size: 800% 1000%/);
-  assert.match(sw,/palestra-v467/);
+  assert.match(sw,/palestra-v468/);
   assert.match(sw,/esercizi-uniformi-v455\.webp/);
-  assert.match(html,/PALESTRA_VERSIONE = 'palestra-v467'/);
-  assert.match(html,/stile\.css\?v=467/);
-  assert.match(html,/app\.js\?v=467/);
+  assert.match(html,/PALESTRA_VERSIONE = 'palestra-v468'/);
+  assert.match(html,/stile\.css\?v=468/);
+  assert.match(html,/app\.js\?v=468/);
   const doc=txt('docs/verifica-79-icone-v451.md');
   assert.match(doc,/## Registro esercizio per esercizio/);
   assert.equal((doc.match(/^\| \d+ \|/gm)||[]).length,79); // registro storico v451: le nuove icone sono in galleria v459

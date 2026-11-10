@@ -31,16 +31,16 @@ test('v465: Incline Single Arm Pulldown approvato, ID storico mantenuto',()=>{
  assert.ok(text('sw.js').includes('./'+path));
  assert.ok(text('stile.css').includes('src$="incline-single-arm-pulldown-v465.webp"'));
 });
-test('v465: CAD Curl e Wrist Curl non vengono sostituiti',()=>{
+test('v468: CAD Curl e le varianti Wrist Curl approvate mantengono la mappatura corretta',()=>{
  assert.equal(sorgenteMiniatura(ESERCIZI.find(x=>x.id==='ex-scott-bench-curl')).src,'img/esercizi/cad-curl-v467.webp');
  for(const [id,path] of [
-  ['ex-high-cable-wrist-curl-one-arm','high-pulley-wrist-one-arm-v462.webp'],
-  ['ex-high-cable-wrist-curl-two-arm','high-pulley-wrist-two-arm-v462.webp']
+  ['ex-high-cable-wrist-curl-one-arm','high-pulley-wrist-one-arm-v468.webp'],
+  ['ex-high-cable-wrist-curl-two-arm','high-pulley-wrist-two-arm-v468.webp']
  ]) assert.equal(sorgenteMiniatura(ESERCIZI.find(x=>x.id===id)).src,'img/esercizi/'+path);
 });
 test('v465: versione coerente, 81 icone, nessuna alterazione dei dati',()=>{
- assert.ok(text('sw.js').includes("const VERSIONE = 'palestra-v467'"));
- assert.ok(text('index.html').includes("window.PALESTRA_VERSIONE = 'palestra-v467'"));
+ assert.ok(text('sw.js').includes("const VERSIONE = 'palestra-v468'"));
+ assert.ok(text('index.html').includes("window.PALESTRA_VERSIONE = 'palestra-v468'"));
  assert.equal((text('verifica-icone.html').match(/<article class="tile /g)||[]).length,81);
  const code=text('src/exercise-icons.js');
  for(const s of ['localStorage.setItem','db.salva','sb.scrivi','salvaSerie','eliminaSeduta'])assert.ok(!code.includes(s));
