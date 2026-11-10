@@ -35,18 +35,18 @@ test('v467: le altre foto approvate non cambiano, incluse le due varianti al cav
     'ex-cable-reverse-fly': 'img/esercizi/cable-reverse-fly-v465.webp',
     'ex-lying-cable-curl': 'img/esercizi/incline-single-arm-pulldown-v465.webp',
     'ex-incline-cable-curl': 'img/esercizi/incline-cable-curl-v466.webp',
-    'ex-high-cable-wrist-curl-one-arm': 'img/esercizi/high-pulley-wrist-one-arm-v462.webp',
-    'ex-high-cable-wrist-curl-two-arm': 'img/esercizi/high-pulley-wrist-two-arm-v462.webp',
+    'ex-high-cable-wrist-curl-one-arm': 'img/esercizi/high-pulley-wrist-one-arm-v468.webp',
+    'ex-high-cable-wrist-curl-two-arm': 'img/esercizi/high-pulley-wrist-two-arm-v468.webp',
   };
   for (const [id, path] of Object.entries(unchanged)) {
     assert.equal(sorgenteMiniatura(ESERCIZI.find(e => e.id === id)).src, path, id);
   }
 });
 test('v467: versione unica, nessuna scrittura ai dati allenamento in icone', () => {
-  assert.match(txt('sw.js'), /const VERSIONE = 'palestra-v467'/);
-  assert.match(txt('index.html'), /window\.PALESTRA_VERSIONE = 'palestra-v467'/);
-  assert.match(txt('index.html'), /app\.js\?v=467/);
-  assert.match(txt('verifica-icone.html'), /Verifica icone esercizi · v467/);
+  assert.match(txt('sw.js'), /const VERSIONE = 'palestra-v468'/);
+  assert.match(txt('index.html'), /window\.PALESTRA_VERSIONE = 'palestra-v468'/);
+  assert.match(txt('index.html'), /app\.js\?v=468/);
+  assert.match(txt('verifica-icone.html'), /Verifica icone esercizi · v468/);
   const code = txt('src/exercise-icons.js');
   for (const forbidden of ['localStorage.setItem', 'salvaSerie', 'eliminaSeduta', 'db.salva']) {
     assert.ok(!code.includes(forbidden));

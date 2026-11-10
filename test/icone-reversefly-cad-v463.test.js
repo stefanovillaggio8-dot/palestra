@@ -26,8 +26,8 @@ test('v463: CAD mantiene la posa storica e lo stile della galleria',()=>{
  assert.match(read('verifica-icone.html'),/img\/esercizi\/cad-curl-v467\.webp/);
 });
 test('v463: versioni coerenti e nessuna modifica allo storico di allenamento',()=>{
- assert.match(read('sw.js'),/const VERSIONE = 'palestra-v467'/);
- assert.match(read('index.html'),/window\.PALESTRA_VERSIONE = 'palestra-v467'/);
- assert.match(read('index.html'),/app\.js\?v=467/);
- assert.match(read('verifica-icone.html'),/Palestra v467/);
+ assert.match(read('sw.js'),/const VERSIONE = 'palestra-v468'/);
+ assert.match(read('index.html'),/window\.PALESTRA_VERSIONE = 'palestra-v468'/);
+ assert.match(read('index.html'),/app\.js\?v=468/);
+ assert.match(read('verifica-icone.html'),/Palestra v468/);
 });
