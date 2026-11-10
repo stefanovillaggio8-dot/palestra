@@ -15,9 +15,8 @@ test('v451: galleria controllabile, 79 icone corrette ID/nome e filtro funzionan
   assert.match(html,/esercizi-uniformi-v455\.webp/);
   assert.match(html,/incline-single-arm-pulldown-v465\.webp/);
   assert.match(html,/img\/esercizi\/bench-pull-v453\.webp/);
-  for(const file of []) {
-    assert.ok(html.includes('uniformi-v455/'+file),'SVG uniforme mancante dalla galleria: '+file);
-  }
+  assert.ok(html.includes('img/esercizi/wrist-curl-v467.webp'),
+    'Wrist Curl approvato deve comparire nella galleria');
   for(const id of ['ex-one-arm-overhead-tricep-extension',
     'ex-chest-supported-shrug',
     'ex-bent-over-row','ex-smith-machine-bent-over-row','ex-smith-machine-shrug']) {
