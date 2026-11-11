@@ -35,7 +35,7 @@ test('v466: cache/versione coerenti e solo rendering senza scrittura dati',()=>{
  assert.ok(txt('sw.js').includes("const VERSIONE = 'palestra-v471'"));
  assert.ok(txt('index.html').includes("window.PALESTRA_VERSIONE = 'palestra-v471'"));
  assert.ok(txt('index.html').includes('app.js?v=471'));
- assert.match(txt('verifica-icone.html'),/Palestra v470/);
+ assert.match(txt('verifica-icone.html'),/Palestra v471/);
  const module=txt('src/exercise-icons.js');
  for(const v of ['localStorage.setItem','salvaSerie','eliminaSeduta','supabase.from'])
   assert.ok(!module.includes(v));
