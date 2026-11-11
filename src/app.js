@@ -8008,6 +8008,7 @@ function bloccoPersonaggio(profilo, st) {
   const scena = el('div', { class: 'personaggio-scena' });
   // v481: la Nebulosa si diffonde anche NELLA scena esterna alla foto: non più ritagliata.
   if (nebulosaAttiva) scena.classList.add('rpg-scena-nebulosa');
+  if (astraleAttiva) scena.classList.add('rpg-scena-astrale'); // v482: atmosfera mitica SOLO fuori dal personaggio
   const classeId = rpg.classe ? rpg.classe.id : 'nessuna';
   const indosano = rpg.premi.filter((p) => p.sbloccato);
   const idsIndossati = indosano.map((p) => p.id);

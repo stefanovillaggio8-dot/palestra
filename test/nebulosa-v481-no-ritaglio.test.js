@@ -7,7 +7,7 @@ const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 test('v481 corregge il rettangolo ritagliato della Nebulosa senza toccare Astrale',()=>{
  const app=read('src/app.js');
  const css=read('stile-rpg.css');
- const patch=css.slice(css.lastIndexOf('/* v481 — Nebulosa LEGGENDARIA'));
+ const patch=css.slice(css.lastIndexOf('/* v481 — Nebulosa LEGGENDARIA'),css.indexOf('/* v482 · NEBULOSA COSMICA'));
  assert.match(app,/if \(nebulosaAttiva\) scena\.classList\.add\('rpg-scena-nebulosa'\)/);
  assert.match(patch,/\.personaggio-scena\.rpg-scena-nebulosa::before/);
  assert.match(patch,/\.personaggio-scena\.rpg-scena-nebulosa::after/);
@@ -19,14 +19,14 @@ test('v481 corregge il rettangolo ritagliato della Nebulosa senza toccare Astral
  assert.doesNotMatch(patch,/shop-skin-mitica/);
  assert.doesNotMatch(patch,/astrale-rift-v477/);
  assert.match(css,/astrale-rift-v477\.svg/); // v477 intentionally unchanged
- assert.match(read('sw.js'),/palestra-v481/);
- assert.match(read('index.html'),/palestra-v481/);
+ assert.match(read('sw.js'),/palestra-v482/);
+ assert.match(read('index.html'),/palestra-v482/);
  assert.doesNotMatch(read('sw.js'),/^\s*'\.\/img\/effetti\/nebulosa-nuclei-.*-v480\.svg'/m);
 });
 
 test('v481 nuvole continue, nessuna linea neon o rombo nella Nebulosa dinamica',()=>{
  const f=read('src/effetti-rpg-canvas.js');
- const body=f.slice(f.indexOf('export function dipingiNebulosaCosmica'));
+ const body=f.slice(f.indexOf('export function dipingiNebulosaCosmica'), f.indexOf('export function dipingiApoteosiAstrale'));
  assert.match(body,/v481: gas in ricircolo/);
  assert.doesNotMatch(body,/quadraticCurveTo/);
  assert.doesNotMatch(body,/ctx\.stroke\(/);

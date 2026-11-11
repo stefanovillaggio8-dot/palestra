@@ -42,10 +42,10 @@ test('v481: identico zoom di Astrale, maschera originale per tre personaggi',()=
    assert.match(sw,new RegExp('nebulosa-tempesta-'+cls+'-v481\\.svg'));
  }
  assert.doesNotMatch(sw,/\.\/img\/effetti\/nebulosa-cosmica-v478\.svg/);
- assert.match(sw,/palestra-v481/);
- assert.match(read('index.html'),/palestra-v481/);
+ assert.match(sw,/palestra-v482/);
+ assert.match(read('index.html'),/palestra-v482/);
  const f=read('src/effetti-rpg-canvas.js');
- const body=f.slice(f.indexOf('export function dipingiNebulosaCosmica'));
+ const body=f.slice(f.indexOf('export function dipingiNebulosaCosmica'), f.indexOf('export function dipingiApoteosiAstrale'));
  assert.doesNotMatch(body,/ctx\.stroke\(/,'nessun neon né cerchio sul personaggio');
  assert.doesNotMatch(body,/ctx\.ellipse\(/,'nessuna copia del portale Astrale');
 });
