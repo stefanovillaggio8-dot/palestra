@@ -9008,16 +9008,51 @@ function vistaCasa(zona) {
     sedute:seduteMie(),serie:serieMie(),esercizi:V.esercizi,
     profilo:profiloAttivo(),ricompense:ricompenseMie(),pesoCorporeo:pesoCorporeoOra()});
   zona.appendChild(el('h2',{testo:'Daily Missions'}));
-  zona.appendChild(el('p',{class:'nota',testo:'Premi automatici soltanto dopo allenamenti e serie registrate. I giorni di riposo previsti non richiedono sfide.'}));
+  zona.appendChild(el('p',{class:'nota',testo:'Completa la sfida con gli allenamenti registrati; poi premi Riscatta. Nei giorni di riposo non perdi nulla.'}));
   if(!quadroAuto.daily.length)
     zona.appendChild(el('p',{class:'nota',testo:'Oggi e un giorno di riposo previsto: recupera senza perdere nulla.'}));
   for(const sfida of quadroAuto.daily) zona.appendChild(tesseraSfidaAutomatica(sfida));
+  // Se completi una Daily e non entri subito nell'app, puoi riscattarla
+  // nei giorni successivi DELLA STESSA SETTIMANA, senza premi retroattivi infiniti.
+  const arretrati=[];
+  const oggiUTC=new Date(st.giorno+'T12:00:00Z');
+  if(!Number.isNaN(+oggiUTC))for(let delta=1;delta<=6;delta++){
+    const d=new Date(oggiUTC);
+    d.setUTCDate(d.getUTCDate()-delta);
+    const giorno=d.toISOString().slice(0,10);
+    if(giorno<INIZIO_SFIDE_AUTO||idSettimanaSfida(giorno)!==st.settimana)break;
+    const vecchie=quadroSfideAutomatiche(datiSfideCorrenti(),{periodoDaily:giorno,periodoWeekly:st.settimana});
+    arretrati.push(...vecchie.daily.filter(v=>v.raggiunta&&!v.premiata));
+  }
+  if(arretrati.length){
+    zona.appendChild(el('h3',{testo:'Premi giornalieri da riscattare'}));
+    for(const sfida of arretrati)zona.appendChild(tesseraSfidaAutomatica(sfida));
+  }
   zona.appendChild(el('h2',{testo:'Weekly Missions · '+st.settimana}));
-  zona.appendChild(el('p',{class:'nota',testo:'Obiettivi verificati dalla scheda: non serve premere nulla per riscuotere.'}));
-  for(const sfida of quadroAuto.weekly) zona.appendChild(tesseraSfidaAutomatica(sfida));
+  zona.appendChild(el('p',{class:'nota',testo:'I progressi sono automatici, ma il premio si riscatta solo dopo il completamento.'}));
+  for(const sfida of quadroAuto.weekly){
+    const vecchioPremio=sfida.id==='record-vero' && ricompenseMie().some(r=>r&&!r.eliminata
+      && r.tipo==='record_settimanale_riscattato' && String(r.fonte)===sfida.periodo);
+    zona.appendChild(tesseraSfidaAutomatica(vecchioPremio?{...sfida,premiata:true}:sfida));
+  }
   zona.appendChild(el('h2',{testo:'Secret Missions'}));
   zona.appendChild(el('p',{class:'nota',testo:'Si svelano automaticamente solo quando le hai davvero completate.'}));
   for(const sfida of quadroAuto.secret) zona.appendChild(tesseraSfidaAutomatica(sfida));
+  const giornoLimite=new Date(oggiUTC);
+  if(!Number.isNaN(+giornoLimite))giornoLimite.setUTCDate(giornoLimite.getUTCDate()-14);
+  const prossime=seduteMie().filter(v=>v&&v.data && (Number.isNaN(+giornoLimite)
+    || String(v.data).slice(0,10)>=giornoLimite.toISOString().slice(0,10)));
+  const anomalie=segnaliDatiSospetti({sedute:prossime,serie:serieMie(),oggi:st.giorno});
+  if(anomalie.length){
+    const verifica=el('section',{class:'blocco sfide-verifica-dati'},[
+      el('h3',{testo:'Controllo dati degli allenamenti'}),
+      el('p',{class:'nota',testo:'Ho trovato '+anomalie.length+' dato/i insoliti da controllare. Non sono prove di falsificazione: nessuna serie, premio o Rank viene modificato per questo.'}),
+    ]);
+    for(const avvertimento of anomalie.slice(0,3))
+      verifica.appendChild(el('p',{class:'nota',testo:'• '+avvertimento.messaggio}));
+    verifica.appendChild(el('a',{href:'#/storico',class:'bottone-guarda',testo:'Controlla nello Storico'}));
+    zona.appendChild(verifica);
+  }
 
   // --- cronologia delle sfide fatte ---
   // Ste l'ha chiesto: comÈ che si fa a vedere tutte le sfide che hai
@@ -9133,9 +9168,10 @@ function tesseraSfidaAutomatica(voce) {
     ? 'Obiettivo nascosto: si rivela automaticamente quando lo raggiungi.'
     : voce.testo}));
   if(voce.premiata) {
-    box.appendChild(el('span',{class:'tag-fatto',testo:'✓ COMPLETATA AUTOMATICAMENTE'}));
+    box.appendChild(el('span',{class:'tag-fatto',testo:'✓ PREMIO RISCATTATO'}));
   } else if(voce.raggiunta) {
-    box.appendChild(el('span',{class:'tag-fatto',testo:'OBIETTIVO VERIFICATO · PREMIO IN ACCREDITO'}));
+    box.appendChild(bottone('Riscatta +'+voce.aura+' Aura',{classe:'principale',
+      onClick:()=>riscattaSfidaAutomatica(voce)}));
   } else if(!nascosta) {
     box.appendChild(el('p',{class:'nota nota-piccola',
       testo:Math.min(voce.progresso,voce.obiettivo)+' / '+voce.obiettivo+' · Progresso registrato'}));
