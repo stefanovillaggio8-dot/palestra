@@ -33,6 +33,7 @@ function immaginiPersonaggi() {
 
 const FILE = [
   './src/sfide-automatiche.js',
+  './src/controlli-missioni.js',
   './src/streak-confronto.js',
   './src/profilo-online.js',
   './src/exercise-icons.js',
