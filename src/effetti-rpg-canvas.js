@@ -262,6 +262,97 @@ export function montaEffettiRpg(elemento,tipo,{corona=false,divina=false,mitica=
       ctx.stroke();ctx.restore();
     }
   }
+  // ASTR ALE IMPERIALE — mitico deve essere inconfondibile, non la stessa
+  // Nebulosa ricolorata. Fasci di aurora, comete e costellazioni sono sempre
+  // esterni alla sagoma, con animazioni lente e un budget fisso su iPhone.
+  // Le stelle vengono create UNA SOLA VOLTA al montaggio: niente allocazioni
+  // o texture da scaricare a ogni frame.
+  const stelleAstrali=Array.from({length:ios?30:48},(_,i)=>({
+    y:casuale(.045,.92),lato:i%2?1:-1,dist:casuale(.035,.13),
+    r:casuale(.65,2.1),fase:casuale(0,TAU),vel:casuale(.42,.97),
+    tinta:i%5,luminosita:casuale(.55,1),
+  }));
+  function astrale(t){
+    const pulsazione=.87+.13*Math.sin(t*.72);
+    // Tre sorgenti luminose: l'armatura non viene tinta o oscurata.
+    haze(w*.07,h*.39,w*.27,h*.48,'rgba(118,60,236,.66)',.34*pulsazione);
+    haze(w*.93,h*.46,w*.29,h*.47,'rgba(30,184,244,.62)',.33*pulsazione);
+    haze(w*.5,h*.975,w*.43,h*.095,'rgba(215,139,255,.65)',.36*pulsazione);
+    // Tre nastri per lato: gradienti cromatici e ampiezza variabile,
+    // come ali di aurora ma senza un cerchio sul volto o sul torso.
+    for(const lato of [-1,1]){
+      for(let fascia=0;fascia<3;fascia++){
+        ctx.save();
+        ctx.globalAlpha=(.39-fascia*.072)*pulsazione;
+        ctx.strokeStyle=(lato<0
+          ? ['#8852fa','#da7dff','#f3dbff']
+          : ['#3ecff9','#99eafa','#f7d3ff'])[fascia];
+        ctx.lineWidth=Math.max(1.1,w*(.014-fascia*.0035));
+        ctx.lineCap='round';ctx.lineJoin='round';
+        ctx.shadowColor=lato<0?'#995bff':'#3ee2ff';
+        ctx.shadowBlur=Math.min(16,w*.043);
+        ctx.beginPath();
+        for(let i=0;i<=28;i++){
+          const yy=.075+.83*i/28;
+          const onda=Math.sin(yy*11-t*.68+fascia*1.25+lato*.5)*.018
+            +Math.cos(yy*18+t*.27+fascia)*.009;
+          const dist=.032+fascia*.024+onda;
+          const x=puntoLaterale(personaggio,yy,lato,dist)*w;
+          if(i===0)ctx.moveTo(x,yy*h);else ctx.lineTo(x,yy*h);
+        }
+        ctx.stroke();ctx.restore();
+      }
+    }
+    // Comete con scia affusolata: le stelle grandi cambiano posizione,
+    // evitando i lunghi flash elettrici degli effetti Epici.
+    for(let i=0;i<6;i++){
+      const p=stelleAstrali[i*5];
+      if(!p)continue;
+      const y=((p.y-t*(.035+i*.004))%1+1)%1;
+      const x=puntoLaterale(personaggio,y,p.lato,p.dist)*w;
+      const c=i%2?'#b8f7ff':'#ffcbff';
+      const luce=.30+.26*(.5+.5*Math.sin(t*.85+p.fase));
+      ctx.save();
+      ctx.globalAlpha=luce;ctx.strokeStyle=c;
+      ctx.lineWidth=Math.max(1,w*.0035);
+      ctx.lineCap='round';ctx.shadowColor=c;ctx.shadowBlur=9;
+      ctx.beginPath();ctx.moveTo(x-p.lato*w*.036,y*h+h*.027);
+      ctx.lineTo(x,y*h);ctx.stroke();ctx.restore();
+    }
+    // Costellazioni nitide su un fondo diffuso: alcune stelle a quattro
+    // punte e molti punti piccoli, senza interferire con la Corona.
+    const colori=['#fff8ff','#dbb9ff','#8feaff','#ffceec','#fff0bf'];
+    for(let i=0;i<stelleAstrali.length;i++){
+      const p=stelleAstrali[i];
+      const y=limita(p.y+Math.sin(t*.34+p.fase)*.008,.02,.98);
+      const x=puntoLaterale(personaggio,y,p.lato,p.dist
+        +Math.sin(t*.26+p.fase)*.009)*w;
+      const twinkle=(.48+.52*(.5+.5*Math.sin(t*p.vel*2+p.fase)))
+        *p.luminosita;
+      const c=colori[p.tinta];
+      dot(x,y*h,p.r,c,Math.min(.95,twinkle*.85));
+      if(i%7===0) {
+        ctx.save();ctx.globalAlpha=.55*twinkle;
+        ctx.strokeStyle=c;ctx.lineWidth=Math.max(.65,w*.002);
+        ctx.shadowColor=c;ctx.shadowBlur=7;
+        ctx.beginPath();
+        ctx.moveTo(x-w*.011,y*h);ctx.lineTo(x+w*.011,y*h);
+        ctx.moveTo(x,y*h-h*.008);ctx.lineTo(x,y*h+h*.008);
+        ctx.stroke();ctx.restore();
+      }
+    }
+    // Sigillo di energia sospeso sul terreno, parzialmente nascosto
+    // dalle gambe attraverso la normale maschera fotografica.
+    ctx.save();ctx.globalAlpha=.48+.11*Math.sin(t*.84);
+    ctx.lineWidth=Math.max(1,w*.004);
+    ctx.strokeStyle='#bda1ff';ctx.shadowColor='#bd7aff';
+    ctx.shadowBlur=Math.min(18,w*.045);
+    ctx.beginPath();ctx.ellipse(w*.5,h*.958,w*.33,h*.027,0,0,TAU);ctx.stroke();
+    ctx.globalAlpha=.35;ctx.strokeStyle='#93eaff';
+    ctx.beginPath();ctx.ellipse(w*.5,h*.958,w*.245,h*.016,0,0,TAU);ctx.stroke();
+    ctx.restore();
+  }
+
   function aura(t){
     if(!divina&&!corona)return;
     const cx=w*.5,y=h*.055;
@@ -316,10 +407,10 @@ export function montaEffettiRpg(elemento,tipo,{corona=false,divina=false,mitica=
   function render(t){
     if(w<16||h<20)return;
     ctx.clearRect(0,0,w,h);
-    if(mitica && tipo!=='effetto-nebula') {
-      // Astrale è un cielo di stelle e luce dietro l'eroe, non un rombo sul petto.
-      // Se un altro effetto è equipaggiato, non ne nasconde le scintille.
-      ctx.save();ctx.globalAlpha=tipo?.55:1;nebula(t);ctx.restore();
+    if(mitica) {
+      // Mitico: una vera identita celeste, diversa dall'effetto Nebulosa.
+      // Non crea un secondo accessorio o un secondo acquisto.
+      ctx.save();ctx.globalAlpha=tipo?.58:1;astrale(t);ctx.restore();
     }
     if(tipo==='effetto-ambra')amber(t);
     else if(tipo==='effetto-ombra')smoke(t);
