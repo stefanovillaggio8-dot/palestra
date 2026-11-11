@@ -8063,14 +8063,25 @@ function bloccoPersonaggio(profilo, st) {
     // I cosmetici equipaggiati restano visibili nel Profilo; nello Shop solo premendo Anteprima.
     if (armaturaEquipaggiata) grafica.classList.add('shop-' + armaturaEquipaggiata.id);
     if (effettoEquipaggiato) grafica.classList.add('shop-' + effettoEquipaggiato.id);
-    if (astraleAttiva) grafica.classList.add('shop-skin-mitica');
+    if (astraleAttiva) {
+      grafica.classList.add('shop-skin-mitica');
+      // Fallback Astrale indipendente da Canvas/RAF/IntersectionObserver.
+      // Su Safari alcune anteprime fotografiche nascondevano il canvas:
+      // il cielo cosmico rimane SEMPRE visibile per tutte e tre le classi,
+      // senza cambiare la foto, l'inventario o il personaggio selezionato.
+      grafica.appendChild(el('div',{class:'rpg-astrale-presenza',aria:{hidden:'true'}},[
+        el('i',{class:'rpg-astrale-scintilla rpg-astrale-scintilla-a'}),
+        el('i',{class:'rpg-astrale-scintilla rpg-astrale-scintilla-b'}),
+        el('i',{class:'rpg-astrale-scintilla rpg-astrale-scintilla-c'}),
+      ]));
+    }
     // L'AURA è il sesto premio: non ha un'immagine tutta sua (l'ultima riga è
     // già "tutto addosso"), quindi è una luce che si accende sopra la foto.
     // L'Aura Divina degli 80 giorni ha un'identità visiva distinta: non deve
     // sembrare la normale aura dorata, ma un alone celestiale con anello e raggi.
     const recordCorona = Math.max(Number(rpg.recordStreak)||0, Number(st?.streak?.record)||0);
     const coronaAttiva = (!auraDivinaAnteprima || coronaAnteprima) && statoCoronaInfinito(equipaggiamentoRpg, recordCorona, coronaAnteprima).visibile;
-    const auraDivinaAttiva=auraDivinaAnteprima || (Boolean(viso.aura) && !effettoEquipaggiato); // one effect at a time; an explicitly equipped Shop effect takes priority
+    const auraDivinaAttiva=auraDivinaAnteprima || (Boolean(viso.aura) && !effettoEquipaggiato && !astraleAttiva); // Astrale nello slot Effetto ha priorita sulla luce divina automatica
     // Restituisce all'Aura divina la fotografia originale dell'atlante,
     // senza aggiungere l'altra Corona. Non tocca il viso o la posa.
     if (auraDivinaAttiva) grafica.classList.add('personaggio-aura-divina');
