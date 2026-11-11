@@ -2194,8 +2194,23 @@ body {
 /* Astrale è un vero cielo luminoso, non un segno geometrico.
    Una rifrazione delicata sulle spalle accompagna le stelle vive. */
 .personaggio-scena-grafica.rpg-render-live.shop-skin-mitica {
-  border-color:rgba(148,185,255,.42);
-  box-shadow:0 0 23px rgba(112,130,247,.18),inset 0 0 27px rgba(102,147,226,.12);
+  border-color:rgba(192,163,255,.66);
+  box-shadow:
+    0 0 0 1px rgba(141,236,255,.22),
+    0 0 23px rgba(127,82,247,.29),
+    0 0 54px rgba(58,171,242,.13),
+    inset 0 0 33px rgba(154,88,248,.14);
+}
+.personaggio-scena-grafica.rpg-render-live.rpg-fx-attiva.shop-skin-mitica .rpg-effetti-canvas {
+  opacity:1;
+  mix-blend-mode:screen;
+  filter:none;
+}
+@media (prefers-reduced-motion:reduce) {
+  .personaggio-scena-grafica.rpg-render-live.shop-skin-mitica {
+    transition:none;
+    animation:none;
+  }
 }
 @media(prefers-reduced-motion:reduce) {
   .personaggio-scena-grafica.rpg-render-live .rpg-effetti-canvas {
