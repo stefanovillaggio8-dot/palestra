@@ -45,6 +45,6 @@ test('v446: le PWA esistenti ricevono la nuova foto anche con vecchio dato local
   assert.match(sw,/const VERSIONE = 'palestra-v476'/);
   assert.ok(sw.includes("'./"+asset+"'"));
   assert.match(html,/PALESTRA_VERSIONE = 'palestra-v476'/);
-  assert.match(html,/app\.js\?v=475/);
+  assert.match(html,/app\.js\?v=476/);
   assert.ok(catalogo.includes("foto: 'img/esercizi/incline-single-arm-pulldown-v446.svg'"));
 });
