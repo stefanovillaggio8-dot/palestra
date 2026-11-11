@@ -20,7 +20,7 @@ export const FOTO_EFFETTI_PREMIUM_RPG = Object.freeze({
   assassino:Object.freeze({
     'effetto-ambra':'img/personaggi/effetti/assassino-ambra.webp?v=350',
     'effetto-fulmine':'img/personaggi/effetti/assassino-fulmine.webp?v=350',
-    'skin-mitica':'img/personaggi/effetti/assassino-astrale.webp?v=350',
+    'skin-mitica':'img/personaggi/effetti/assassino-astrale-mitico-v475.avif?v=475',
   }),
   guerriero:Object.freeze({
     'effetto-ambra':'img/personaggi/effetti/guerriero-ambra.webp?v=350',
@@ -188,6 +188,12 @@ export function montaScenaCinematograficaRpg(grafica,foto,opzioni={}) {
     // Una fotografia completa, già con armatura, fumo, luce e corona integrati.
     // L'eventuale renderer precedente resta nel DOM solo come fallback.
     foto.src=src;
+    // La fotografia mitica e' completa: elimina il vecchio effetto-adesivo solo
+    // DOPO che la nuova immagine e' stata caricata correttamente.
+    if(opzioni.skin==='skin-mitica'){
+      grafica.querySelector?.('.rpg-astrale-presenza')?.remove?.();
+      grafica.classList.add('rpg-foto-mitica-integrale');
+    }
     grafica.classList.add('rpg-scena-cinematografica');
     if(speciale)grafica.classList.add('rpg-scena-foto-speciale');
     grafica.classList.add('rpg-composite-active');
