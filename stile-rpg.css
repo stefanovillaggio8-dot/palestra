@@ -2588,3 +2588,40 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
     opacity:.92!important;
   }
 }
+
+
+/* v478 · Nebulosa Cosmica: stessa dimensione/zoom del ritratto Astrale.
+   Il cielo galattico è un elemento trasparente, NON una nuova foto della skin.
+   Le quattro scie di Nebulosa v346 non devono più sostituire la fotografia. */
+.personaggio-scena-grafica.shop-effetto-nebula > .rpg-nebulosa-presenza {
+  position:absolute;inset:0;
+  display:block!important;z-index:4;
+  pointer-events:none;border-radius:inherit;overflow:hidden;
+  background:url('img/effetti/nebulosa-cosmica-v478.svg') center / 100% 100% no-repeat;
+  opacity:.95;
+  -webkit-mask-image:none;
+  mask-image:none;
+}
+.personaggio-scena-grafica.rpg-render-live.rpg-fx-attiva.shop-effetto-nebula > .rpg-nebulosa-presenza {
+  opacity:.20; /* il Canvas vivo crea stelle e gas; SVG solo fallback profondo */
+}
+.personaggio-scena-grafica.rpg-render-live.rpg-fx-attiva.shop-effetto-nebula > .rpg-effetti-canvas {
+  display:block!important;
+  position:absolute;
+  inset:0;
+  z-index:11;
+  width:100%;height:100%;
+  opacity:1!important;
+  mix-blend-mode:screen;
+  filter:none;
+  pointer-events:none;
+}
+.personaggio-scena-grafica.shop-effetto-nebula {
+  box-shadow:0 0 0 1px rgba(109,220,242,.32),
+    0 0 24px rgba(90,103,221,.20),0 16px 37px rgba(0,0,0,.44);
+}
+@media (prefers-reduced-motion:reduce) {
+  .personaggio-scena-grafica.rpg-render-live.shop-effetto-nebula > .rpg-effetti-canvas {
+    animation:none!important;
+  }
+}
