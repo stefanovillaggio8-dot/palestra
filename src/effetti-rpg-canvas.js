@@ -751,6 +751,24 @@ export function dipingiNebulosaCosmica(ctx,w,h,classe='assassino',t=0,stars=68) 
     ctx.beginPath();ctx.ellipse(w*.5,gy,w*(.39-k*.085),h*(.026-k*.009),
       0,0,tau);ctx.stroke();ctx.restore();
   }
+  // Protezione reale delle fotografie: cancella il velo nebularare sulla sagoma
+  // prima di comporre il Canvas. Non altera la foto, la scala o il corpo.
+  ctx.save();
+  ctx.globalCompositeOperation='destination-out';
+  if('filter' in ctx)ctx.filter='blur('+Math.max(2,Math.round(w*.009))+'px)';
+  ctx.fillStyle='#000';ctx.beginPath();
+  for(let j=0;j<=80;j++){
+    const yy=j/80;
+    const [left]=bordoSagomaRpg(classe,yy);
+    const x=(left-.011)*w,y=yy*h;
+    if(!j)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+  }
+  for(let j=80;j>=0;j--){
+    const yy=j/80;
+    const [,right]=bordoSagomaRpg(classe,yy);
+    ctx.lineTo((right+.011)*w,yy*h);
+  }
+  ctx.closePath();ctx.fill();ctx.restore();
   ctx.restore();
   return true;
 }
