@@ -2,6 +2,7 @@
 // Le vecchie missioni restano nello storico, ma non sono più assegnabili.
 // Nessuna seduta, serie, Rank o saldo è modificato da questo modulo puro.
 import { idSettimana } from './missioni.js';
+export { idSettimana as idSettimanaSfida };
 import { recordEsercizio } from './rank.js';
 
 export const SFIDE_AUTOMATICHE = Object.freeze({
