@@ -23,12 +23,12 @@ test('v477 conserva foto, progressione, armi e slot Effetto con Corona o Armatur
  const app=read('src/app.js'),atelier=read('src/rpg-atelier.js');
  assert.doesNotMatch(app,/astraleConFotoIntegrale/);
  assert.match(app,/const effettoVivo=!auraDivinaAttiva && usaEffettiViviRpg/);
- assert.match(app,/const combinata = !astraleAttiva/);
- assert.match(app,/if\(scenaRichiesta && !astraleAttiva/);
+ assert.match(app,/const combinata = !effettoCosmicoAttivo/);
+ assert.match(app,/if\(scenaRichiesta && !effettoCosmicoAttivo/);
  assert.match(app,/effetto:astraleAttiva \? null : effettoEquipaggiato\?\.id/);
  assert.match(atelier,/disegnaAstraleExport\(ctx/);
  assert.match(atelier,/c\.effetto==='skin-mitica'\?null/);
- assert.match(read('sw.js'),/palestra-v477/);
- assert.match(read('index.html'),/palestra-v477/);
+ assert.match(read('sw.js'),/palestra-v478/);
+ assert.match(read('index.html'),/palestra-v478/);
  assert.doesNotMatch(read('sw.js'),/assassino-astrale-mitico-v475\.avif/);
 });
