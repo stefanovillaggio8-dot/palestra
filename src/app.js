@@ -8006,6 +8006,8 @@ function bloccoPersonaggio(profilo, st) {
   // se i pezzi si accendessero dal basso verso l'alto senza ordine, il personaggio
   // sembrerebbe montarsi al contrario.
   const scena = el('div', { class: 'personaggio-scena' });
+  // v481: la Nebulosa si diffonde anche NELLA scena esterna alla foto: non più ritagliata.
+  if (nebulosaAttiva) scena.classList.add('rpg-scena-nebulosa');
   const classeId = rpg.classe ? rpg.classe.id : 'nessuna';
   const indosano = rpg.premi.filter((p) => p.sbloccato);
   const idsIndossati = indosano.map((p) => p.id);
