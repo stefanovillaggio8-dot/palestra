@@ -3,6 +3,7 @@
 // in palestra con le mani occupate.
 
 import { requisitoSkin, accessoSkin, scenarioSkin, statoCoronaInfinito, progressoCoronaInfinito, cambiaCoronaInfinito, CORONA_INFINITO_ID, ordinaPerRaritaAura } from './aura-skin.js';
+import { quadroSfideAutomatiche, premioSfidaAutomatica, premioSfidaAncoraValido, interpretaPremioSfida } from './sfide-automatiche.js';
 import { equipaggiamentoRpgUnico, slotPerOggettoRpg, aggiornaEquipaggiamentoRpg } from './equipaggiamento-rpg.js';
 import { percorsoFotoCoronaV360 } from './foto-corona-v360.js';
 import { percorsoFotoAuraDivinaV366 } from './foto-aura-divina-v366.js';
@@ -1772,23 +1773,23 @@ function animaNumeriCambiati(zona) {
 
 /* ===================== Aura Shop ===================== */
 const OGGETTI_AURA = [
-  {id:'titolo-cardio',nome:'Cardio? Denunciami',tipo:'Titolo',rarita:'Comune',prezzo:1600,icona:'💀',descrizione:'La resistenza è un’opinione.'},
-  {id:'titolo-tecnica',nome:'Tecnica discutibile',tipo:'Titolo',rarita:'Raro',prezzo:2400,icona:'🫠',descrizione:'Il peso sale. La forma… anche no.'},
-  {id:'titolo-ego',nome:'Ego da 200 kg',tipo:'Titolo',rarita:'Epico',prezzo:3400,icona:'🗿',descrizione:'Il bilanciere pesa meno della tua autostima.'},
-  {id:'titolo-riposo',nome:'Campione del giorno di riposo',tipo:'Titolo',rarita:'Epico',prezzo:3900,icona:'🛌',descrizione:'Prestazioni eccezionali nel non fare niente.'},
-  {id:'titolo-specchio',nome:'Sotto contratto con lo specchio',tipo:'Titolo',rarita:'Leggendario',prezzo:4800,icona:'🪞',descrizione:'Una serie ogni tre selfie.'},
-  {id:'titolo-panca',nome:'Panca e basta',tipo:'Titolo',rarita:'Raro',prezzo:2200,icona:'🏋️',descrizione:'Le gambe sono contenuto bonus.'},
-  {id:'effetto-ambra',nome:'Scintille d’ambra',tipo:'Effetto',rarita:'Comune',prezzo:4500,icona:'✨',descrizione:'Particelle calde intorno al personaggio.'},
-  {id:'effetto-ombra',nome:'Fumo d’ombra',tipo:'Effetto',rarita:'Raro',prezzo:5900,icona:'🌫️',descrizione:'Una scia scura, discreta e cattiva.'},
-  {id:'effetto-fulmine',nome:'Scarica viola',tipo:'Effetto',rarita:'Epico',prezzo:7200,icona:'⚡',descrizione:'Lamp i viola e scariche elettriche'.replace('Lamp i','Lampi')},
-  {id:'effetto-nebula',nome:'Nebulosa cosmica',tipo:'Effetto',rarita:'Leggendario',prezzo:8900,icona:'🌌',descrizione:'Una piccola galassia personale.'},
-  {id:'armatura-guerriero-braci',immagine:'./img/personaggi/armature/guerriero-braci.webp',miniatura:'./img/personaggi/armature/guerriero-braci-mini.webp',nome:'Custode delle Braci',tipo:'Armatura',rarita:'Epico',prezzo:9200,classe:'guerriero',icona:'🛡️',descrizione:'Piastre roventi e mantello da prima linea.'},
-  {id:'armatura-guerriero-abisso',immagine:'./img/personaggi/armature/guerriero-abisso.webp',miniatura:'./img/personaggi/armature/guerriero-abisso-mini.webp',nome:'Re dell’Abisso',tipo:'Armatura',rarita:'Leggendario',prezzo:13500,classe:'guerriero',icona:'👑',descrizione:'Armatura pesante con dettagli abissali.'},
-  {id:'armatura-assassino-notte',immagine:'./img/personaggi/armature/assassino-notte.webp',miniatura:'./img/personaggi/armature/assassino-notte-mini.webp',nome:'Velo della Notte',tipo:'Armatura',rarita:'Epico',prezzo:9400,classe:'assassino',icona:'🥷',descrizione:'Corazza leggera, lame e cappuccio.'},
-  {id:'armatura-assassino-spettro',immagine:'./img/personaggi/armature/assassino-spettro.webp',miniatura:'./img/personaggi/armature/assassino-spettro-mini.webp',nome:'Spettro Cremisi',tipo:'Armatura',rarita:'Leggendario',prezzo:13800,classe:'assassino',icona:'🩸',descrizione:'Silhouette furtiva con bagliori rossi.'},
-  {id:'armatura-berserker-rabbia',immagine:'./img/personaggi/armature/berserker-rabbia.webp',miniatura:'./img/personaggi/armature/berserker-rabbia-mini.webp',nome:'Rabbia Antica',tipo:'Armatura',rarita:'Epico',prezzo:9800,classe:'berserker',icona:'🪓',descrizione:'Corna, metallo grezzo e furia pura.'},
-  {id:'armatura-berserker-apocalisse',immagine:'./img/personaggi/armature/berserker-apocalisse-corna.svg?v=368',miniatura:'./img/personaggi/armature/berserker-apocalisse-corna.svg?v=368',nome:'Ultimo Giorno',tipo:'Armatura',rarita:'Leggendario',prezzo:14500,classe:'berserker',icona:'🔥',descrizione:'Un set enorme che sembra uscito dalla fine del mondo.'},
-  {id:'skin-mitica',nome:'Astrale · effetto cosmico',tipo:'Effetto',rarita:'Mitico',prezzo:22000,icona:'🌠',descrizione:'Un effetto stellare viola che si combina con altre particelle, Aura divina e Corona.'},
+  {id:'titolo-cardio',nome:'Cardio? Denunciami',tipo:'Titolo',rarita:'Comune',prezzo:600,icona:'💀',descrizione:'La resistenza è un’opinione.'},
+  {id:'titolo-tecnica',nome:'Tecnica discutibile',tipo:'Titolo',rarita:'Raro',prezzo:900,icona:'🫠',descrizione:'Il peso sale. La forma… anche no.'},
+  {id:'titolo-ego',nome:'Ego da 200 kg',tipo:'Titolo',rarita:'Epico',prezzo:1200,icona:'🗿',descrizione:'Il bilanciere pesa meno della tua autostima.'},
+  {id:'titolo-riposo',nome:'Campione del giorno di riposo',tipo:'Titolo',rarita:'Epico',prezzo:1400,icona:'🛌',descrizione:'Prestazioni eccezionali nel non fare niente.'},
+  {id:'titolo-specchio',nome:'Sotto contratto con lo specchio',tipo:'Titolo',rarita:'Leggendario',prezzo:1800,icona:'🪞',descrizione:'Una serie ogni tre selfie.'},
+  {id:'titolo-panca',nome:'Panca e basta',tipo:'Titolo',rarita:'Raro',prezzo:800,icona:'🏋️',descrizione:'Le gambe sono contenuto bonus.'},
+  {id:'effetto-ambra',nome:'Scintille d’ambra',tipo:'Effetto',rarita:'Comune',prezzo:2000,icona:'✨',descrizione:'Particelle calde intorno al personaggio.'},
+  {id:'effetto-ombra',nome:'Fumo d’ombra',tipo:'Effetto',rarita:'Raro',prezzo:2600,icona:'🌫️',descrizione:'Una scia scura, discreta e cattiva.'},
+  {id:'effetto-fulmine',nome:'Scarica viola',tipo:'Effetto',rarita:'Epico',prezzo:3300,icona:'⚡',descrizione:'Lamp i viola e scariche elettriche'.replace('Lamp i','Lampi')},
+  {id:'effetto-nebula',nome:'Nebulosa cosmica',tipo:'Effetto',rarita:'Leggendario',prezzo:4200,icona:'🌌',descrizione:'Una piccola galassia personale.'},
+  {id:'armatura-guerriero-braci',immagine:'./img/personaggi/armature/guerriero-braci.webp',miniatura:'./img/personaggi/armature/guerriero-braci-mini.webp',nome:'Custode delle Braci',tipo:'Armatura',rarita:'Epico',prezzo:5000,classe:'guerriero',icona:'🛡️',descrizione:'Piastre roventi e mantello da prima linea.'},
+  {id:'armatura-guerriero-abisso',immagine:'./img/personaggi/armature/guerriero-abisso.webp',miniatura:'./img/personaggi/armature/guerriero-abisso-mini.webp',nome:'Re dell’Abisso',tipo:'Armatura',rarita:'Leggendario',prezzo:8000,classe:'guerriero',icona:'👑',descrizione:'Armatura pesante con dettagli abissali.'},
+  {id:'armatura-assassino-notte',immagine:'./img/personaggi/armature/assassino-notte.webp',miniatura:'./img/personaggi/armature/assassino-notte-mini.webp',nome:'Velo della Notte',tipo:'Armatura',rarita:'Epico',prezzo:5100,classe:'assassino',icona:'🥷',descrizione:'Corazza leggera, lame e cappuccio.'},
+  {id:'armatura-assassino-spettro',immagine:'./img/personaggi/armature/assassino-spettro.webp',miniatura:'./img/personaggi/armature/assassino-spettro-mini.webp',nome:'Spettro Cremisi',tipo:'Armatura',rarita:'Leggendario',prezzo:8400,classe:'assassino',icona:'🩸',descrizione:'Silhouette furtiva con bagliori rossi.'},
+  {id:'armatura-berserker-rabbia',immagine:'./img/personaggi/armature/berserker-rabbia.webp',miniatura:'./img/personaggi/armature/berserker-rabbia-mini.webp',nome:'Rabbia Antica',tipo:'Armatura',rarita:'Epico',prezzo:5300,classe:'berserker',icona:'🪓',descrizione:'Corna, metallo grezzo e furia pura.'},
+  {id:'armatura-berserker-apocalisse',immagine:'./img/personaggi/armature/berserker-apocalisse-corna.svg?v=368',miniatura:'./img/personaggi/armature/berserker-apocalisse-corna.svg?v=368',nome:'Ultimo Giorno',tipo:'Armatura',rarita:'Leggendario',prezzo:8800,classe:'berserker',icona:'🔥',descrizione:'Un set enorme che sembra uscito dalla fine del mondo.'},
+  {id:'skin-mitica',nome:'Astrale · effetto cosmico',tipo:'Effetto',rarita:'Mitico',prezzo:14000,icona:'🌠',descrizione:'Un effetto stellare viola che si combina con altre particelle, Aura divina e Corona.'},
 ];
 const CLASSE_AURA = {guerriero:'Guerriero',assassino:'Assassino',berserker:'Berserker'};
 
@@ -7582,57 +7583,49 @@ async function assegnaRicompense(sedutaId) {
   }
 }
 
-/** Completa una missione: una volta sola per giorno o per settimana. */
-async function completaMissione(voce) {
-  if (!voce || voce.completata) return;
-  const ok = await chiediConferma(
-    'Missione completata?',
-    `${voce.missione.titolo}\n\n${voce.missione.testo}\n\nRicompensa: +${voce.ricompensa.aura} AURA.`,
-    { testoOk: 'Sì, l\'ho fatta', testoAnnulla: 'Ancora no' },
-  );
-  if (!ok) return;
-  await salvaMissione(voce, { completata: true });
-}
-
-/** Rivela una Secret Mission: resta registrata anche se non la completi. */
-async function rivelaMissione(voce) {
-  if (!voce || voce.rivelata) return;
-  await salvaMissione(voce, { rivelata: true });
-}
-
-async function salvaMissione(voce, { completata = false, rivelata = false } = {}) {
-  const riga = {
-    id: voce.chiave,
-    account_id: accountAttivo(),
-    missione_id: voce.missione.id,
-    categoria: voce.categoria,
-    titolo: voce.missione.titolo,
-    difficolta: voce.missione.difficolta,
-    data: voce.categoria === 'daily' ? schedaEvento() : null,
-    settimana: voce.categoria === 'daily' ? null : statoMio().settimana,
-    aura: voce.ricompensa.aura,
-    xp: voce.ricompensa.xp,
-    rivelata: rivelata || voce.rivelata,
-    completata_il: completata ? adesso() : null,
+// Premi automatici: un ID stabile per account, obiettivo e periodo.
+let codaSfideAutomatiche = Promise.resolve();
+function aggiornaSfideAutomatiche({rivalida=false}={}) {
+  const esegui = async () => {
+    const account = accountAttivo();
+    const tutte = (await db.tutti('ricompense',{includiEliminati:true}))
+      .filter(r=>r && r.account_id===account);
+    const args = {account,oggi:isoGiorno(new Date()),sedute:seduteMie(),
+      serie:serieMie(),esercizi:V.esercizi,profilo:profiloAttivo(),
+      ricompense:tutte,pesoCorporeo:pesoCorporeoOra()};
+    let modificate = 0;
+    if (rivalida) {
+      for(const r of tutte) {
+        if(r.eliminata || !interpretaPremioSfida(r)) continue;
+        if(premioSfidaAncoraValido(r,args)===false) {
+          await db.cestino('ricompense',r.id);
+          modificate++;
+        }
+      }
+    }
+    const quadro = quadroSfideAutomatiche(args);
+    const legacyRecord = new Set(tutte.filter(r=>r && !r.eliminata
+      && r.tipo==='record_settimanale_riscattato').map(r=>String(r.fonte)));
+    for(const voce of [...quadro.daily,...quadro.weekly,...quadro.secret]) {
+      if(!voce.raggiunta) continue;
+      // Il vecchio premio settimanale gia riscosso non vale due volte.
+      if(voce.id==='record-vero' && legacyRecord.has(voce.periodo)) continue;
+      const vecchia = tutte.find(r=>r.id===voce.chiave);
+      if(vecchia && !vecchia.eliminata) continue;
+      const premio = premioSfidaAutomatica(voce);
+      if(!premio) continue;
+      await db.salva('ricompense',{...vecchia,...premio,
+        eliminata:false,eliminata_il:null,
+        sync:undefined,updated_at:undefined});
+      modificate++;
+    }
+    if(modificate && account===accountAttivo())
+      await ricaricaTutto({caricaAmiciOnline:false});
+    return modificate;
   };
-  await db.salva('missioni', riga);
-  if (completata) {
-    await db.salva('ricompense', {
-      id: riga.id + ':premio',
-      account_id: accountAttivo(),
-      tipo: 'missione',
-      fonte: riga.missione_id,
-      aura: riga.aura,
-      xp: riga.xp,
-      dettaglio: riga.titolo,
-      quando: adesso(),
-    });
-    await ricaricaTutto();
-    avviso(`+${formattaAura(riga.aura)} AURA · ${riga.titolo}`, { tipo: 'ok', durata: 6000 });
-  } else {
-    await ricaricaTutto();
-  }
-  disegna();
+  const prossima = codaSfideAutomatiche.then(esegui,esegui);
+  codaSfideAutomatiche = prossima.catch(e=>console.warn('Sfide automatiche:',e?.message||e));
+  return prossima;
 }
 
 async function salvaProfilo(campi) {
