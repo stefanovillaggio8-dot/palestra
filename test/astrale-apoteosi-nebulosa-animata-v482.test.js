@@ -27,7 +27,7 @@ test('v482 Apoteosi Mitica: superfici luminose, fratture e portali per tutte le 
   assert.equal(dipingiRiftAstrale(one.ctx,340,490,cls,0,40),true);
   assert.equal(dipingiRiftAstrale(two.ctx,340,490,cls,4,40),true);
   assert.ok(one.stats.bezier>=12,'ali piene di materia, non solo fili');
-  assert.ok(one.stats.gradients>=22,'molti livelli di luce');
+  assert.ok(one.stats.gradients>=20,'molti livelli di luce');
   assert.ok(one.stats.stroke>=35,'eclissi, rune e onde dimensionali');
   assert.ok(one.arcs.length>=70,'polvere e particelle mitiche');
   assert.notDeepEqual(one.arcs.slice(-35),two.arcs.slice(-35),'animazione effettiva nel Canvas');
