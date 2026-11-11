@@ -349,6 +349,35 @@ test('17b. ogni schermata si trova: dalla Casa si arriva a tutto quello che c\'e
   }
 });
 
+test('v472: la missione con dati veri mostra Riscatta, paga una volta sola e non paga senza clic', async()=>{
+  const v=(await db.tutti('versioni'))[0];
+  const giorno=v.snapshot.giorni[0];
+  const seduta=await apriSeduta({scheda_id:SCHEDA_ID,versione:v,giorno});
+  const elenco=await db.perIndice('serie','seduta_id',seduta.id);
+  assert.ok(elenco.length>=3,'la scheda prevede almeno tre serie');
+  for(const row of elenco.slice(0,3)){
+    await db.salva('serie',{...row,peso:42,ripetizioni:8,stato:'fatta'});
+  }
+  await chiudiSeduta(seduta.id);
+  await rilanciaAvvio();
+  await vai('#/casa',()=>app.textContent.includes('Tre serie completate'));
+  const prima=(await db.tutti('ricompense')).filter(r=>r.tipo==='missione_auto'
+     && r.fonte.includes('daily:tre-serie:'));
+  assert.equal(prima.length,0,'completare la scheda NON accredita automaticamente la missione');
+  const pulsanteRiscatto=pulsante(app,'Riscatta +35 Aura');
+  assert.ok(pulsanteRiscatto,'il bottone appare soltanto dopo aver registrato le serie');
+  await pulsanteRiscatto.click();
+  const successo=await attendiCheAsync(async()=>
+    (await db.tutti('ricompense')).filter(r=>r.tipo==='missione_auto'
+     && r.fonte.includes('daily:tre-serie:')).length===1);
+  assert.equal(successo,true,'il riscatto assegna un premio realmente registrato');
+  await vai('#/casa',()=>app.textContent.includes('Daily Missions'));
+  assert.equal(pulsante(app,'Riscatta +35 Aura'),null,'il premio gia incassato non e riscattabile due volte');
+  const dopo=(await db.tutti('ricompense')).filter(r=>r.tipo==='missione_auto'
+    && r.fonte.includes('daily:tre-serie:'));
+  assert.equal(dopo.length,1);
+});
+
 test('18. nessun errore durante tutta la sessione di test', () => {
   assert.deepEqual(errori, [], 'sono rimasti errori: ' + errori.join(' | '));
   assert.deepEqual(globalThis.__erroriClick, [], 'un pulsante e\' fallito: ' + globalThis.__erroriClick.join(' | '));

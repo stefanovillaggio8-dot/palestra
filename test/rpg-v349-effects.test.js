@@ -37,10 +37,14 @@ test('Ambra, Scarica viola ed Astrale scelgono il renderer visibile su iPhone mo
 });
 test('Il compositore statico non copre il rendering live, anche con corona e armatura',async()=>{
  const app=await read('src/app.js'),css=await read('stile-rpg.css');
- const start=app.indexOf('const effettoVivo=!auraDivinaAttiva && !fotoCoronaRpg && !fotoArmaturaArmataRpg && usaEffettiViviRpg(');
+ const start=app.indexOf('const effettoVivo=!auraDivinaAttiva && usaEffettiViviRpg(');
  const end=app.indexOf('// LA FILMSTRIP:',start);
  assert.ok(start>0&&end>start);
  const b=app.slice(start,end);
+ assert.match(b,/astraleAttiva \|\| \(!fotoCoronaRpg && !fotoArmaturaArmataRpg && !fotoEffettoPremium\)/,
+   'Astrale mitico mantiene il Canvas anche con le fotografie di Corona o Armatura');
+ assert.match(b,/\(astraleAttiva && effettoVivo\)/,
+   'Il motore astrale viene montato anche dove gli altri effetti usano solo foto');
  assert.match(b,/\(!effettoVivo \|\| auraDivinaAttiva\) && montaFotoRpg/);
  assert.match(b,/!fotoCoronaRpg && !fotoArmaturaArmataRpg && !effettoVivo && !auraDivinaAttiva && montaFotoCombinataRpg/);
  assert.match(b,/scenaRichiesta && !fotoCoronaRpg && !fotoArmaturaArmataRpg && !effettoVivo/);

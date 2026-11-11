@@ -3,7 +3,8 @@
 // in palestra con le mani occupate.
 
 import { requisitoSkin, accessoSkin, scenarioSkin, statoCoronaInfinito, progressoCoronaInfinito, cambiaCoronaInfinito, CORONA_INFINITO_ID, ordinaPerRaritaAura } from './aura-skin.js';
-import { quadroSfideAutomatiche, premioSfidaAutomatica, premioSfidaAncoraValido, interpretaPremioSfida } from './sfide-automatiche.js';
+import { quadroSfideAutomatiche, premioSfidaAutomatica, premioSfidaAncoraValido, interpretaPremioSfida, INIZIO_SFIDE_AUTO, idSettimanaSfida } from './sfide-automatiche.js';
+import { segnaliDatiSospetti } from './controlli-missioni.js';
 import { equipaggiamentoRpgUnico, slotPerOggettoRpg, aggiornaEquipaggiamentoRpg } from './equipaggiamento-rpg.js';
 import { percorsoFotoCoronaV360 } from './foto-corona-v360.js';
 import { percorsoFotoAuraDivinaV366 } from './foto-aura-divina-v366.js';
@@ -7598,53 +7599,86 @@ async function assegnaRicompense(sedutaId) {
   }
 }
 
-// Premi automatici: un ID stabile per account, obiettivo e periodo.
-let codaSfideAutomatiche = Promise.resolve();
+// Una missione completata e pronta per il riscatto, non pagata in automatico.
+// La rivalidazione non inventa premi e non annulla un acquisto: mette nel
+// cestino solo ricompense nuove che hanno perso le prove dopo una cancellazione.
+let codaSfideAutomatiche=Promise.resolve();
+const riscattiSfideInCorso=new Set();
+function datiSfideCorrenti(ricompense=ricompenseMie()) {
+  return {account:accountAttivo(),oggi:isoGiorno(new Date()),
+    sedute:seduteMie(),serie:serieMie(),esercizi:V.esercizi,
+    profilo:profiloAttivo(),ricompense,pesoCorporeo:pesoCorporeoOra()};
+}
 function aggiornaSfideAutomatiche({rivalida=false}={}) {
-  const esegui = async () => {
-    const account = accountAttivo();
-    const tutte = (await db.tutti('ricompense',{includiEliminati:true}))
-      .filter(r=>r && r.account_id===account);
-    const args = {account,oggi:isoGiorno(new Date()),sedute:seduteMie(),
-      serie:serieMie(),esercizi:V.esercizi,profilo:profiloAttivo(),
-      ricompense:tutte,pesoCorporeo:pesoCorporeoOra()};
-    let modificate = 0;
-    if (rivalida) {
-      for(const r of tutte) {
-        if(!interpretaPremioSfida(r)) continue;
-        const valida=premioSfidaAncoraValido(r,args)===true;
-        if(!r.eliminata && !valida) {
-          await db.cestino('ricompense',r.id);
-          modificate++;
-        } else if(r.eliminata && valida) {
-          await db.recupera('ricompense',r.id);
-          modificate++;
-        }
+  const esegui=async()=>{
+    if(!rivalida)return 0; // niente accrediti al semplice avvio o fine seduta
+    const account=accountAttivo();
+    const tutte=(await db.tutti('ricompense',{includiEliminati:true}))
+      .filter(r=>r&&r.account_id===account);
+    const args=datiSfideCorrenti(tutte);
+    let revocate=0;
+    for(const r of tutte) {
+      if(r.eliminata||!interpretaPremioSfida(r))continue;
+      if(premioSfidaAncoraValido(r,args)===false) {
+        await db.cestino('ricompense',r.id);
+        revocate++;
       }
     }
-    const quadro = quadroSfideAutomatiche(args);
-    const legacyRecord = new Set(tutte.filter(r=>r && !r.eliminata
-      && r.tipo==='record_settimanale_riscattato').map(r=>String(r.fonte)));
-    for(const voce of [...quadro.daily,...quadro.weekly,...quadro.secret]) {
-      if(!voce.raggiunta) continue;
-      // Il vecchio premio settimanale gia riscosso non vale due volte.
-      if(voce.id==='record-vero' && legacyRecord.has(voce.periodo)) continue;
-      const vecchia = tutte.find(r=>r.id===voce.chiave);
-      if(vecchia && !vecchia.eliminata) continue;
-      const premio = premioSfidaAutomatica(voce);
-      if(!premio) continue;
-      await db.salva('ricompense',{...vecchia,...premio,
-        eliminata:false,eliminata_il:null,
-        sync:undefined,updated_at:undefined});
-      modificate++;
-    }
-    if(modificate && account===accountAttivo())
+    if(revocate && account===accountAttivo())
       await ricaricaTutto({caricaAmiciOnline:false});
-    return modificate;
+    return revocate;
   };
-  const prossima = codaSfideAutomatiche.then(esegui,esegui);
-  codaSfideAutomatiche = prossima.catch(e=>console.warn('Sfide automatiche:',e?.message||e));
-  return prossima;
+  const next=codaSfideAutomatiche.then(esegui,esegui);
+  codaSfideAutomatiche=next.catch(e=>console.warn('Verifica sfide:',e?.message||e));
+  return next;
+}
+
+// Un clic non e' una dichiarazione: la prova viene riletta da IndexedDB
+// DOPO aver atteso le scritture in corso. Soltanto la sfida gia raggiunta
+// genera il premio, con ID stabile e una sola operazione per account e periodo.
+async function riscattaSfidaAutomatica(voce) {
+  if(!voce?.raggiunta||voce.premiata||!voce.chiave)return false;
+  if(riscattiSfideInCorso.has(voce.chiave))return false;
+  riscattiSfideInCorso.add(voce.chiave);
+  const account=accountAttivo();
+  try {
+    await aspettaSalvataggi();
+    await ricaricaTutto({caricaAmiciOnline:false});
+    if(account!==accountAttivo())throw Error('Hai cambiato account: riapri la sfida.');
+    const precedente=await db.prendi('ricompense',voce.chiave);
+    if(precedente && !precedente.eliminata) {
+      if(precedente.tipo!=='missione_auto')throw Error('Esiste gia una registrazione con questo ID.');
+      avviso('Premio gia riscattato su questo dispositivo.',{tipo:'info'});
+      disegna();return false;
+    }
+    if(precedente && precedente.tipo!=='missione_auto')
+      throw Error('Premio incompatibile: non posso sovrascrivere dati esistenti.');
+    const tutte=(await db.tutti('ricompense',{includiEliminati:true}))
+      .filter(r=>r&&r.account_id===account);
+    const args=datiSfideCorrenti(tutte);
+    const q=quadroSfideAutomatiche(args,{periodoDaily:voce.categoria==='daily'?voce.periodo:args.oggi,
+      periodoWeekly:voce.categoria==='daily'?idSettimanaSfida(args.oggi)
+        :voce.periodo==='sempre'?idSettimanaSfida(args.oggi):voce.periodo});
+    const valida=q[voce.categoria]?.find(m=>m.chiave===voce.chiave);
+    if(!valida?.raggiunta || valida.premiata)
+      throw Error('La missione non risulta completata con i dati attuali.');
+    // Il vecchio premio settimanale record non puo essere riscosso due volte.
+    if(valida.id==='record-vero'&&tutte.some(r=>!r.eliminata
+      && r.tipo==='record_settimanale_riscattato'&&String(r.fonte)===valida.periodo))
+      throw Error('Il premio per questo record e gia stato riscosso.');
+    const premio=premioSfidaAutomatica(valida);
+    if(!premio||premio.account_id!==account)throw Error('Premio non valido.');
+    await db.salva('ricompense',{...precedente,...premio,
+      eliminata:false,eliminata_il:null,sync:undefined,updated_at:undefined});
+    await ricaricaTutto({caricaAmiciOnline:false});
+    avviso('Missione riscattata: +'+formattaAura(premio.aura)+' Aura e +'+formattaNumero(premio.xp)+' XP.',
+      {tipo:'ok',durata:5500});
+    disegna();
+    return true;
+  } catch(e) {
+    avviso('Riscatto non riuscito: '+(e?.message||String(e)),{tipo:'errore',durata:6500});
+    return false;
+  } finally {riscattiSfideInCorso.delete(voce.chiave);}
 }
 
 async function salvaProfilo(campi) {
@@ -8226,9 +8260,9 @@ function bloccoPersonaggio(profilo, st) {
       corona:false,
       divina:false,
     });
-    const effettoVivo=!auraDivinaAttiva && !fotoCoronaRpg && !fotoArmaturaArmataRpg && usaEffettiViviRpg(astraleAttiva ? null : effettoEquipaggiato?.id || null,{
+    const effettoVivo=!auraDivinaAttiva && usaEffettiViviRpg(astraleAttiva ? null : effettoEquipaggiato?.id || null,{
       mitica:astraleAttiva,
-    }) && !fotoEffettoPremium;
+    }) && (astraleAttiva || (!fotoCoronaRpg && !fotoArmaturaArmataRpg && !fotoEffettoPremium));
     // Ambra, Fulmine e Astrale usano UN solo renderer Canvas. Prima il
     // compositore fotografico li nascondeva tramite rpg-composite-active.
     if (effettoVivo) grafica.classList.add('rpg-render-live');
@@ -8273,7 +8307,8 @@ function bloccoPersonaggio(profilo, st) {
     });
     // La classe rpg-composite-active viene attivata dal renderer, SOLO
     // quando la fotografia è pronta: nessun avatar senza effetti su Safari.
-    if (!fotoCoronaRpg && !fotoArmaturaArmataRpg && (effettoVivo || (!scenaFotografica && !combinata))) {
+    if ((astraleAttiva && effettoVivo) ||
+       (!fotoCoronaRpg && !fotoArmaturaArmataRpg && (effettoVivo || (!scenaFotografica && !combinata)))) {
       montaEffettiRpg(grafica, effettoVivo ? (astraleAttiva ? null : effettoEquipaggiato?.id || null) : null, {
         divina: false, // La fotografia già conserva l'Aura originale
         corona: false,
@@ -8974,16 +9009,51 @@ function vistaCasa(zona) {
     sedute:seduteMie(),serie:serieMie(),esercizi:V.esercizi,
     profilo:profiloAttivo(),ricompense:ricompenseMie(),pesoCorporeo:pesoCorporeoOra()});
   zona.appendChild(el('h2',{testo:'Daily Missions'}));
-  zona.appendChild(el('p',{class:'nota',testo:'Premi automatici soltanto dopo allenamenti e serie registrate. I giorni di riposo previsti non richiedono sfide.'}));
+  zona.appendChild(el('p',{class:'nota',testo:'Completa la sfida con gli allenamenti registrati; poi premi Riscatta. Nei giorni di riposo non perdi nulla.'}));
   if(!quadroAuto.daily.length)
     zona.appendChild(el('p',{class:'nota',testo:'Oggi e un giorno di riposo previsto: recupera senza perdere nulla.'}));
   for(const sfida of quadroAuto.daily) zona.appendChild(tesseraSfidaAutomatica(sfida));
+  // Se completi una Daily e non entri subito nell'app, puoi riscattarla
+  // nei giorni successivi DELLA STESSA SETTIMANA, senza premi retroattivi infiniti.
+  const arretrati=[];
+  const oggiUTC=new Date(st.giorno+'T12:00:00Z');
+  if(!Number.isNaN(+oggiUTC))for(let delta=1;delta<=6;delta++){
+    const d=new Date(oggiUTC);
+    d.setUTCDate(d.getUTCDate()-delta);
+    const giorno=d.toISOString().slice(0,10);
+    if(giorno<INIZIO_SFIDE_AUTO||idSettimanaSfida(giorno)!==st.settimana)break;
+    const vecchie=quadroSfideAutomatiche(datiSfideCorrenti(),{periodoDaily:giorno,periodoWeekly:st.settimana});
+    arretrati.push(...vecchie.daily.filter(v=>v.raggiunta&&!v.premiata));
+  }
+  if(arretrati.length){
+    zona.appendChild(el('h3',{testo:'Premi giornalieri da riscattare'}));
+    for(const sfida of arretrati)zona.appendChild(tesseraSfidaAutomatica(sfida));
+  }
   zona.appendChild(el('h2',{testo:'Weekly Missions · '+st.settimana}));
-  zona.appendChild(el('p',{class:'nota',testo:'Obiettivi verificati dalla scheda: non serve premere nulla per riscuotere.'}));
-  for(const sfida of quadroAuto.weekly) zona.appendChild(tesseraSfidaAutomatica(sfida));
+  zona.appendChild(el('p',{class:'nota',testo:'I progressi sono automatici, ma il premio si riscatta solo dopo il completamento.'}));
+  for(const sfida of quadroAuto.weekly){
+    const vecchioPremio=sfida.id==='record-vero' && ricompenseMie().some(r=>r&&!r.eliminata
+      && r.tipo==='record_settimanale_riscattato' && String(r.fonte)===sfida.periodo);
+    zona.appendChild(tesseraSfidaAutomatica(vecchioPremio?{...sfida,premiata:true}:sfida));
+  }
   zona.appendChild(el('h2',{testo:'Secret Missions'}));
   zona.appendChild(el('p',{class:'nota',testo:'Si svelano automaticamente solo quando le hai davvero completate.'}));
   for(const sfida of quadroAuto.secret) zona.appendChild(tesseraSfidaAutomatica(sfida));
+  const giornoLimite=new Date(oggiUTC);
+  if(!Number.isNaN(+giornoLimite))giornoLimite.setUTCDate(giornoLimite.getUTCDate()-14);
+  const prossime=seduteMie().filter(v=>v&&v.data && (Number.isNaN(+giornoLimite)
+    || String(v.data).slice(0,10)>=giornoLimite.toISOString().slice(0,10)));
+  const anomalie=segnaliDatiSospetti({sedute:prossime,serie:serieMie(),oggi:st.giorno});
+  if(anomalie.length){
+    const verifica=el('section',{class:'blocco sfide-verifica-dati'},[
+      el('h3',{testo:'Controllo dati degli allenamenti'}),
+      el('p',{class:'nota',testo:'Ho trovato '+anomalie.length+' dato/i insoliti da controllare. Non sono prove di falsificazione: nessuna serie, premio o Rank viene modificato per questo.'}),
+    ]);
+    for(const avvertimento of anomalie.slice(0,3))
+      verifica.appendChild(el('p',{class:'nota',testo:'• '+avvertimento.messaggio}));
+    verifica.appendChild(el('a',{href:'#/storico',class:'bottone-guarda',testo:'Controlla nello Storico'}));
+    zona.appendChild(verifica);
+  }
 
   // --- cronologia delle sfide fatte ---
   // Ste l'ha chiesto: comÈ che si fa a vedere tutte le sfide che hai
@@ -9099,9 +9169,10 @@ function tesseraSfidaAutomatica(voce) {
     ? 'Obiettivo nascosto: si rivela automaticamente quando lo raggiungi.'
     : voce.testo}));
   if(voce.premiata) {
-    box.appendChild(el('span',{class:'tag-fatto',testo:'✓ COMPLETATA AUTOMATICAMENTE'}));
+    box.appendChild(el('span',{class:'tag-fatto',testo:'✓ PREMIO RISCATTATO'}));
   } else if(voce.raggiunta) {
-    box.appendChild(el('span',{class:'tag-fatto',testo:'OBIETTIVO VERIFICATO · PREMIO IN ACCREDITO'}));
+    box.appendChild(bottone('Riscatta +'+voce.aura+' Aura',{classe:'principale',
+      onClick:()=>riscattaSfidaAutomatica(voce)}));
   } else if(!nascosta) {
     box.appendChild(el('p',{class:'nota nota-piccola',
       testo:Math.min(voce.progresso,voce.obiettivo)+' / '+voce.obiettivo+' · Progresso registrato'}));
