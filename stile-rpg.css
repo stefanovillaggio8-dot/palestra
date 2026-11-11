@@ -2545,3 +2545,46 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
 .personaggio-scena-grafica.rpg-render-live.rpg-fx-attiva.shop-skin-mitica > .rpg-astrale-presenza {
   opacity:.23;
 }
+
+
+/* v477 · RIFT ASTRALE MITICO
+   Rivoluzione del solo effetto: la foto, armatura e armi rimangono intatte.
+   Il vecchio portale di linee non si usa più, né sul PC né nell'anteprima iPhone. */
+.personaggio-scena-grafica.shop-skin-mitica > .rpg-astrale-presenza {
+  inset:0!important;
+  z-index:4!important;
+  opacity:.94;
+  background:
+    url('img/effetti/astrale-rift-v477.svg') center center / 100% 100% no-repeat!important;
+  -webkit-mask-image:none!important;
+  mask-image:none!important;
+  filter:none!important;
+}
+.personaggio-scena-grafica.shop-skin-mitica > .rpg-astrale-presenza::before,
+.personaggio-scena-grafica.shop-skin-mitica > .rpg-astrale-presenza::after {
+  content:none!important;
+  display:none!important;
+}
+.personaggio-scena-grafica.rpg-render-live.rpg-fx-attiva.shop-skin-mitica > .rpg-astrale-presenza {
+  opacity:.26!important; /* i filamenti vivi sono protagonisti, SVG solo profondità */
+}
+.personaggio-scena-grafica.rpg-render-live.rpg-fx-attiva.shop-skin-mitica > .rpg-effetti-canvas {
+  display:block!important;
+  position:absolute;
+  z-index:11;
+  opacity:1!important;
+  mix-blend-mode:screen;
+  filter:none;
+  pointer-events:none;
+}
+.personaggio-scena-grafica.shop-skin-mitica {
+  border-color:rgba(183,96,255,.85);
+  box-shadow:0 0 0 1px rgba(231,166,255,.24),
+    0 0 25px rgba(127,49,232,.20),
+    0 16px 37px rgba(0,0,0,.50);
+}
+@media (prefers-reduced-motion:reduce) {
+  .personaggio-scena-grafica.shop-skin-mitica > .rpg-astrale-presenza {
+    opacity:.92!important;
+  }
+}
