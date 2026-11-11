@@ -8272,7 +8272,7 @@ function bloccoPersonaggio(profilo, st) {
       divina:false,
     });
     // v475: preferisci il ritratto completo quando rappresenta esattamente la configurazione.
-    // Non aggiungere il vecchio portale sopra una fotografia gia' mitica.
+    // Non aggiungere il vecchio portale sopra una fotografia già mitica.
     const astraleConFotoIntegrale = astraleAttiva && Boolean(fotoEffettoPremium) &&
       !fotoCoronaRpg && !fotoArmaturaArmataRpg && !auraDivinaAttiva && !coronaAttiva;
     const effettoVivo=!astraleConFotoIntegrale && !auraDivinaAttiva && usaEffettiViviRpg(astraleAttiva ? null : effettoEquipaggiato?.id || null,{
