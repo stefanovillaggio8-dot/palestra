@@ -2425,3 +2425,108 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
 @media(max-width:600px){
   .streak-online-aiuto button{width:100%}
 }
+
+
+/* v473 — Astrale: PRESENZA visibile anche su Safari/PWA quando il Canvas
+   e' sospeso, non supportato o la scena usa una foto precomposta.
+   Il layer decorativo e' separato dall'avatar e attraversa SOLO i bordi,
+   cosi' non copre volto, armatura o arma. Funziona su tutte le classi. */
+.personaggio-scena-grafica.shop-skin-mitica > .rpg-astrale-presenza {
+  display:block!important;
+  position:absolute;
+  inset:0;
+  z-index:18;
+  pointer-events:none;
+  overflow:hidden;
+  border-radius:inherit;
+  opacity:1;
+  background:
+    radial-gradient(circle at 6% 12%,rgba(255,251,255,.98) 0 1.5px,transparent 3px),
+    radial-gradient(circle at 89% 15%,rgba(212,249,255,.95) 0 2px,transparent 4px),
+    radial-gradient(circle at 8% 41%,rgba(221,183,255,.95) 0 2px,transparent 4px),
+    radial-gradient(circle at 94% 46%,rgba(255,249,255,.96) 0 1.6px,transparent 3.5px),
+    radial-gradient(circle at 13% 73%,rgba(222,198,255,.95) 0 2px,transparent 4px),
+    radial-gradient(circle at 86% 81%,rgba(160,247,255,.93) 0 1.5px,transparent 3.2px),
+    radial-gradient(ellipse 29% 58% at 0% 50%,rgba(143,63,246,.78),rgba(108,45,220,.24) 55%,transparent 100%),
+    radial-gradient(ellipse 29% 60% at 100% 48%,rgba(36,197,254,.63),rgba(87,81,242,.25) 58%,transparent 100%),
+    radial-gradient(ellipse 46% 12% at 50% 98%,rgba(174,100,255,.65),transparent 100%);
+  -webkit-mask-image:radial-gradient(ellipse 63% 72% at 50% 49%,transparent 0 43%,rgba(0,0,0,.46) 70%,#000 100%);
+  mask-image:radial-gradient(ellipse 63% 72% at 50% 49%,transparent 0 43%,rgba(0,0,0,.46) 70%,#000 100%);
+}
+.personaggio-scena-grafica.shop-skin-mitica > .rpg-astrale-presenza::before,
+.personaggio-scena-grafica.shop-skin-mitica > .rpg-astrale-presenza::after {
+  content:"";
+  position:absolute;
+  top:4%;
+  width:72%;
+  height:92%;
+  border-radius:50%;
+  border:2px solid transparent;
+  box-sizing:border-box;
+  pointer-events:none;
+  opacity:.91;
+}
+.personaggio-scena-grafica.shop-skin-mitica > .rpg-astrale-presenza::before {
+  left:-31%;
+  border-left:3px solid rgba(227,153,255,.96);
+  border-top:2px solid rgba(177,107,255,.67);
+  border-bottom:2px solid rgba(132,95,253,.75);
+  box-shadow:-8px 0 16px -10px rgba(185,107,255,.98);
+  transform:rotate(-12deg);
+  animation:rpg-astrale-orbita-sx 8s ease-in-out infinite alternate;
+}
+.personaggio-scena-grafica.shop-skin-mitica > .rpg-astrale-presenza::after {
+  right:-31%;
+  border-right:3px solid rgba(151,240,255,.98);
+  border-top:2px solid rgba(139,128,255,.65);
+  border-bottom:2px solid rgba(107,199,255,.76);
+  box-shadow:8px 0 16px -10px rgba(93,230,255,.98);
+  transform:rotate(12deg);
+  animation:rpg-astrale-orbita-dx 9s ease-in-out infinite alternate;
+}
+.personaggio-scena-grafica.shop-skin-mitica .rpg-astrale-scintilla {
+  position:absolute;
+  display:block;
+  width:5px;
+  height:5px;
+  background:#fff9ff;
+  border-radius:50%;
+  box-shadow:0 0 8px 3px rgba(220,156,255,.87),0 0 19px rgba(110,213,255,.7);
+  animation:rpg-astrale-stella 4.8s ease-in-out infinite alternate;
+}
+.personaggio-scena-grafica.shop-skin-mitica .rpg-astrale-scintilla::before,
+.personaggio-scena-grafica.shop-skin-mitica .rpg-astrale-scintilla::after {
+  content:"";
+  position:absolute;
+  inset:0;
+  margin:auto;
+  background:rgba(242,232,255,.91);
+  border-radius:100px;
+}
+.personaggio-scena-grafica.shop-skin-mitica .rpg-astrale-scintilla::before {width:17px;height:1px;left:-6px;}
+.personaggio-scena-grafica.shop-skin-mitica .rpg-astrale-scintilla::after {width:1px;height:17px;top:-6px;}
+.personaggio-scena-grafica.shop-skin-mitica .rpg-astrale-scintilla-a {left:7%;top:24%;}
+.personaggio-scena-grafica.shop-skin-mitica .rpg-astrale-scintilla-b {right:8%;top:57%;animation-delay:-2s;}
+.personaggio-scena-grafica.shop-skin-mitica .rpg-astrale-scintilla-c {left:13%;bottom:11%;animation-delay:-3.1s;}
+/* Con il motore live il fallback resta sottile; senza Canvas il fallback e'
+   completo e, diversamente dal renderer, e' visibile gia' nel primo frame. */
+.personaggio-scena-grafica.rpg-render-live.rpg-fx-attiva.shop-skin-mitica > .rpg-astrale-presenza {opacity:.55;}
+@keyframes rpg-astrale-orbita-sx {
+  from {transform:translateX(-2%) rotate(-12deg);opacity:.78;}
+  to {transform:translateX(3%) rotate(-8deg);opacity:1;}
+}
+@keyframes rpg-astrale-orbita-dx {
+  from {transform:translateX(2%) rotate(12deg);opacity:.78;}
+  to {transform:translateX(-3%) rotate(8deg);opacity:1;}
+}
+@keyframes rpg-astrale-stella {
+  from {opacity:.45;transform:scale(.82);}
+  to {opacity:1;transform:scale(1.18);}
+}
+@media (prefers-reduced-motion:reduce) {
+  .personaggio-scena-grafica.shop-skin-mitica .rpg-astrale-presenza::before,
+  .personaggio-scena-grafica.shop-skin-mitica .rpg-astrale-presenza::after,
+  .personaggio-scena-grafica.shop-skin-mitica .rpg-astrale-scintilla {
+    animation:none!important;
+  }
+}
