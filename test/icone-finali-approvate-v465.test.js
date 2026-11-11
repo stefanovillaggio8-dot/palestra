@@ -39,8 +39,8 @@ test('v465: CAD Curl e Wrist Curl non vengono sostituiti',()=>{
  ]) assert.equal(sorgenteMiniatura(ESERCIZI.find(x=>x.id===id)).src,'img/esercizi/'+path);
 });
 test('v465: versione coerente, 81 icone, nessuna alterazione dei dati',()=>{
- assert.ok(text('sw.js').includes("const VERSIONE = 'palestra-v471'"));
- assert.ok(text('index.html').includes("window.PALESTRA_VERSIONE = 'palestra-v471'"));
+ assert.ok(text('sw.js').includes("const VERSIONE = 'palestra-v472'"));
+ assert.ok(text('index.html').includes("window.PALESTRA_VERSIONE = 'palestra-v472'"));
  assert.equal((text('verifica-icone.html').match(/<article class="tile /g)||[]).length,81);
  const code=text('src/exercise-icons.js');
  for(const s of ['localStorage.setItem','db.salva','sb.scrivi','salvaSerie','eliminaSeduta'])assert.ok(!code.includes(s));

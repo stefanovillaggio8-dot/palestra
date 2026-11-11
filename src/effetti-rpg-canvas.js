@@ -267,11 +267,11 @@ export function montaEffettiRpg(elemento,tipo,{corona=false,divina=false,mitica=
   // esterni alla sagoma, con animazioni lente e un budget fisso su iPhone.
   // Le stelle vengono create UNA SOLA VOLTA al montaggio: niente allocazioni
   // o texture da scaricare a ogni frame.
-  const stelleAstrali=Array.from({length:ios?30:48},(_,i)=>({
+  const stelleAstrali=mitica ? Array.from({length:ios?30:48},(_,i)=>({
     y:casuale(.045,.92),lato:i%2?1:-1,dist:casuale(.035,.13),
     r:casuale(.65,2.1),fase:casuale(0,TAU),vel:casuale(.42,.97),
     tinta:i%5,luminosita:casuale(.55,1),
-  }));
+  })) : [];
   function astrale(t){
     const pulsazione=.87+.13*Math.sin(t*.72);
     // Tre sorgenti luminose: l'armatura non viene tinta o oscurata.

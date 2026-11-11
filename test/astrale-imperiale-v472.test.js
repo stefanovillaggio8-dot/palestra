@@ -10,6 +10,10 @@ test('v472: Astrale mitico e diverso dalla Nebulosa e mantiene la foto intatta',
   for(const elemento of ['stelleAstrali','Comete','ctx\.ellipse','puntoLaterale','shadowBlur'])
     assert.match(parte,new RegExp(elemento,'i'));
   assert.match(file,/if\(mitica\) \{/);
+  assert.match(file,/mitica \? Array\.from/,'le stelle extra si creano soltanto per il mitico');
+  const app=readFileSync(new URL('../src/app.js',import.meta.url),'utf8');
+  assert.match(app,/astraleAttiva \|\| \(!fotoCoronaRpg && !fotoArmaturaArmataRpg/,
+    'Astrale animato anche con Corona e armatura');
   assert.match(file,/astrale\(t\)/);
   assert.match(file,/if\(tipo==='effetto-nebula'\)nebula\(t\)/);
   assert.doesNotMatch(parte,/acquistaAura|db\.salva|salvaSerie|recordStreak/);
