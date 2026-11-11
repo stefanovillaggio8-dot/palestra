@@ -48,7 +48,7 @@ export function bordoSagomaRpg(classe,y) {
 export function usaEffettiViviRpg(tipo,{mitica=false}={}) {
   // Su browser legacy e nei test DOM minimali lasciamo il vecchio renderer.
   // Il canvas visibile viene selezionato solo dove l'animazione e' supportata.
-  return Boolean((mitica || tipo==='effetto-ambra' || tipo==='effetto-fulmine') &&
+  return Boolean((mitica || tipo==='effetto-ambra' || tipo==='effetto-fulmine' || tipo==='effetto-nebula') &&
     typeof document!=='undefined' &&
     typeof requestAnimationFrame==='function' &&
     typeof document.createElement==='function');
@@ -233,34 +233,10 @@ export function montaEffettiRpg(elemento,tipo,{corona=false,divina=false,mitica=
       dot(puntoLaterale(personaggio,yy,p.lato,p.dist)*w,yy*h,p.r,'#c4a8ff',.56);
     }
   }
+  // v478: Nebulosa Cosmica è un effetto vivo sulla FOTO ORIGINALE.
+  // La camera è la stessa di Astrale: niente ritaglio/zoom o skin sostitutiva.
   function nebula(t){
-    ambient(t);
-    for(const p of vapori){
-      const yy=((p.y-t*p.vel*.65)%1+1)%1;
-      const x=puntoLaterale(personaggio,yy,p.lato,p.dist+Math.sin(t*.36+p.fase)*.028)*w;
-      const r=w*p.scala*1.1;
-      const c=['rgba(77,151,203,.40)','rgba(137,91,186,.39)','rgba(75,172,169,.35)'][p.tonalita];
-      haze(x,h*yy,r*1.45,r*1.15,c,.25);
-    }
-    for(const p of scintille){
-      const yy=((p.y-t*p.vel*.22)%1+1)%1;
-      const x=puntoLaterale(personaggio,yy,p.lato,p.dist+Math.sin(t*.45+p.fase)*.023)*w;
-      const twinkle=.15+.37*(.5+.5*Math.sin(t*(.7+p.giro)+p.fase));
-      dot(x,h*yy,Math.max(.5,p.r*.8),palette[p.colore],twinkle);
-    }
-    for(const side of [-1,1]){
-      ctx.save();
-      ctx.globalAlpha=.18;
-      ctx.strokeStyle=side<0?'#75b9ef':'#cc92ff';
-      ctx.lineWidth=Math.max(.7,w*.003);
-      ctx.beginPath();
-      for(let i=0;i<=32;i++){
-        const yy=.22+i/32*.63;
-        const x=puntoLaterale(personaggio,yy,side,.07+.025*Math.sin(yy*9+t*.42+side))*w;
-        if(i===0)ctx.moveTo(x,yy*h);else ctx.lineTo(x,yy*h);
-      }
-      ctx.stroke();ctx.restore();
-    }
+    dipingiNebulosaCosmica(ctx,w,h,personaggio,t,ios?36:70);
   }
   // v477 ASTR ALE: un portale mitico, non sei strisce lineari.
   // Comete, stelleAstrali e polvere viva circondano la fotografia originale:
@@ -361,7 +337,7 @@ export function montaEffettiRpg(elemento,tipo,{corona=false,divina=false,mitica=
     // Le scintille e gli archi sono già posizionati fuori dal bordo corporeo.
     // La vecchia grande maschera ovale li eliminava quasi tutti su iPhone!
     // La cancellazione sfumata rimane SOLO per i vapori più diffusi.
-    if(tipo==='effetto-ombra'||tipo==='effetto-nebula') cancellaCorpo();
+    if(tipo==='effetto-ombra') cancellaCorpo(); // Nebulosa ha maschere geometriche proprie
     aura(t);
   }
   function paginaNascosta() {
@@ -636,6 +612,145 @@ export function dipingiRiftAstrale(ctx,w,h,classe='assassino',t=0,numeroStelle=7
   ctx.lineTo(w*.51,baseline);ctx.lineTo(w*.5,baseline+h*.033);
   ctx.lineTo(w*.49,baseline);ctx.closePath();ctx.fill();ctx.restore();
 
+  ctx.restore();
+  return true;
+}
+
+
+// v478 · NEBULOSA COSMICA — Leggendario. Vortici di gas e bracci di galassia,
+// profondità cromatica turchese/indaco/rosa, comete e ammassi stellari.
+// Non produce avatar, texture di armatura, pugnali o zoom: è un overlay trasparente.
+// Le zone luminose più dense stanno sempre oltre il contorno specifico di classe.
+export function dipingiNebulosaCosmica(ctx,w,h,classe='assassino',t=0,stars=68) {
+  if(!ctx || w<16 || h<20 || typeof ctx.createRadialGradient!=='function')return false;
+  const pi=Math.PI,tau=2*pi;
+  const fract=n=>n-Math.floor(n);
+  const rand=n=>fract(Math.sin(n*127.1+39.27)*43758.5453);
+  const outside=(side,y,dist)=>puntoLaterale(classe,Math.max(.01,Math.min(.99,y)),side,Math.max(.014,dist))*w;
+  const wave=.83+.17*Math.sin(t*.42);
+  const palette=['#4ee6f2','#8c9aff','#d784ff','#ffaadf','#dcfcff'];
+  ctx.save();
+  // 11 banchi di gas colorato con gradienti ellittici, in movimento lento.
+  const blobs=[
+    [-1,.13,.12,.24,.17,'rgba(36,198,230,.88)'],
+    [-1,.27,.24,.25,.25,'rgba(74,93,225,.83)'],
+    [-1,.45,.40,.33,.30,'rgba(160,78,245,.77)'],
+    [-1,.70,.60,.30,.27,'rgba(38,169,221,.82)'],
+    [-1,.87,.81,.25,.18,'rgba(229,76,177,.70)'],
+    [ 1,.10,.12,.22,.19,'rgba(132,82,246,.80)'],
+    [ 1,.33,.28,.30,.28,'rgba(48,181,231,.84)'],
+    [ 1,.52,.47,.27,.28,'rgba(171,80,246,.76)'],
+    [ 1,.79,.68,.24,.26,'rgba(70,136,248,.82)'],
+    [ 1,.90,.88,.23,.17,'rgba(105,223,233,.75)'],
+    [ 1,.57,.13,.18,.15,'rgba(229,110,220,.62)']
+  ];
+  for(let i=0;i<blobs.length;i++){
+    const [side,,yy,rx,ry,color]=blobs[i];
+    const y=(yy+.016*Math.sin(t*.22+i*.8))*h;
+    const x=outside(side,yy,.07+.022*Math.sin(t*.18+i))+(side*w*.012*Math.cos(t*.27+i));
+    ctx.save();ctx.globalAlpha=(.45+.09*Math.sin(t*.48+i))*wave;
+    ctx.translate(x,y);ctx.scale(1,Math.max(.1,ry*h/(rx*w)));
+    const radius=rx*w;
+    const g=ctx.createRadialGradient(0,0,0,0,0,radius);
+    g.addColorStop(0,color);
+    g.addColorStop(.38,color.replace(/,\s*0?\.\d+\)/,',.34)'));
+    g.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,radius,0,tau);ctx.fill();
+    ctx.restore();
+  }
+
+  // Bracci di galassia incurvati verso l'esterno, con ampiezza tridimensionale;
+  // niente semplici strisce a lato. Ogni traccia è composta da 3 passate.
+  for(const side of [-1,1]){
+    for(let arm=0;arm<3;arm++){
+      const path=()=>{
+        ctx.beginPath();
+        for(let j=0;j<=42;j++){
+          const y=.09+(j/42)*.79;
+          const angle=11*y-t*.38+arm*1.7+side;
+          const spiral=.065+arm*.043+
+            .074*Math.sin(angle)+.036*Math.cos(23*y+t*.21+arm*.7);
+          const x=outside(side,y,spiral);
+          const py=(y+.009*Math.sin(angle+arm))*h;
+          if(!j)ctx.moveTo(x,py);else ctx.lineTo(x,py);
+        }
+      };
+      const col=side<0?['#48d7f3','#87d9ff','#e1faff']:['#8a76fb','#d28cff','#ffe3fa'];
+      for(let layer=0;layer<3;layer++){
+        ctx.save();
+        ctx.globalAlpha=[.13,.37,.80][layer]*(1-arm*.18)*wave;
+        ctx.lineCap='round';ctx.lineJoin='round';
+        ctx.strokeStyle=col[layer];
+        ctx.lineWidth=Math.max(.7,w*[.085,.031,.0046][layer]);
+        ctx.shadowBlur=Math.min(22,w*[.090,.07,.036][layer]);
+        ctx.shadowColor=col[1];path();ctx.stroke();ctx.restore();
+      }
+    }
+  }
+
+  // Doppia galassia orbitante: archi spezzati, distinti dall'eclissi Astrale.
+  // La prospettiva è laterale, verso le spalle, mai un ovale sul volto.
+  for(let side of [-1,1]){
+    for(let orbit=0;orbit<2;orbit++){
+      const y0=.27+orbit*.35;
+      const x0=outside(side,y0,.13+orbit*.025),cy=y0*h;
+      const phase=t*(side<0?.11:-.09)+orbit*.9;
+      ctx.save();
+      ctx.strokeStyle=side<0?'#75e5fc':'#d4a1ff';
+      ctx.shadowColor=ctx.strokeStyle;ctx.shadowBlur=Math.min(20,w*.065);
+      ctx.lineWidth=Math.max(.8,w*(orbit?.004:.006));
+      ctx.globalAlpha=(orbit?.28:.44)*wave;
+      ctx.beginPath();
+      ctx.ellipse(x0,cy,w*(.105+orbit*.035),h*.065,
+        -side*.5,phase,phase+pi*1.30);
+      ctx.stroke();ctx.restore();
+    }
+  }
+  // Ammassi stellari: densità non uniforme come una piccola galassia.
+  for(let i=0;i<stars;i++){
+    const side=i%2?-1:1;
+    const cluster=(i%5<3?.035:.14);
+    const yy=.06+.88*rand(i*7+3);
+    const x=outside(side,yy,cluster+.12*rand(i*13+2)+
+      .011*Math.sin(t*.33+i));
+    const y=(yy+.006*Math.cos(t*.35+i))*h;
+    const radius=Math.max(.45,w*(.0015+.0055*rand(i*27+12)));
+    const alpha=(.40+.44*(.5+.5*Math.sin(t*(.4+.55*rand(i*5+1))+i)))*wave;
+    const color=palette[i%palette.length];
+    ctx.save();ctx.globalAlpha=alpha;ctx.fillStyle=color;
+    ctx.shadowColor=color;ctx.shadowBlur=Math.max(3,Math.min(14,radius*5));
+    ctx.beginPath();ctx.arc(x,y,radius,0,tau);ctx.fill();
+    if(i%11===0){
+      ctx.strokeStyle='#f1faff';ctx.lineWidth=Math.max(.6,w*.0019);
+      ctx.beginPath();ctx.moveTo(x-w*.016,y);ctx.lineTo(x+w*.016,y);
+      ctx.moveTo(x,y-h*.01);ctx.lineTo(x,y+h*.01);ctx.stroke();
+    }
+    if(i%23===0){
+      ctx.strokeStyle=color;ctx.lineWidth=Math.max(.7,w*.0025);
+      ctx.beginPath();ctx.moveTo(x-side*w*.05,y+h*.022);ctx.lineTo(x,y);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  // Pozza luminosa, NON il sigillo runico di Astrale: identità leggendaria.
+  const gy=h*.962;
+  ctx.save();
+  const g=ctx.createRadialGradient(w*.5,gy,0,w*.5,gy,w*.45);
+  g.addColorStop(0,'rgba(95,213,250,.38)');
+  g.addColorStop(.54,'rgba(125,99,255,.19)');
+  g.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.globalAlpha=.55*wave;ctx.fillStyle=g;
+  ctx.beginPath();ctx.ellipse(w*.5,gy,w*.45,h*.065,0,0,tau);
+  ctx.fill();ctx.restore();
+  for(let k=0;k<2;k++){
+    ctx.save();ctx.globalAlpha=(.55-k*.22)*wave;
+    ctx.strokeStyle=k?'#bf99ff':'#88ecff';
+    ctx.shadowColor='#65bdf8';ctx.shadowBlur=Math.min(18,w*.052);
+    ctx.lineWidth=Math.max(.9,w*(.005-k*.001));
+    ctx.beginPath();ctx.ellipse(w*.5,gy,w*(.39-k*.085),h*(.026-k*.009),
+      0,0,tau);ctx.stroke();ctx.restore();
+  }
   ctx.restore();
   return true;
 }
