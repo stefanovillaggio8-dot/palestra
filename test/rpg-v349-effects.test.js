@@ -28,7 +28,7 @@ test('Ambra, Scarica viola ed Astrale scelgono il renderer visibile su iPhone mo
    assert.equal(usaEffettiViviRpg('effetto-ombra',{mitica:true}),true);
    assert.equal(usaEffettiViviRpg('effetto-nebula',{mitica:true}),true);
    assert.equal(usaEffettiViviRpg('effetto-ombra'),false);
-   assert.equal(usaEffettiViviRpg('effetto-nebula'),false);
+   assert.equal(usaEffettiViviRpg('effetto-nebula'),true);
    assert.equal(usaEffettiViviRpg(null),false);
  } finally {
    if(doc===undefined)delete globalThis.document;else globalThis.document=doc;
@@ -41,13 +41,13 @@ test('Il compositore statico non copre il rendering live, anche con corona e arm
  const end=app.indexOf('// LA FILMSTRIP:',start);
  assert.ok(start>0&&end>start);
  const b=app.slice(start,end);
- assert.match(b,/astraleAttiva \|\| \(!fotoCoronaRpg && !fotoArmaturaArmataRpg && !fotoEffettoPremium\)/,
+ assert.match(b,/effettoCosmicoAttivo \|\| \(!fotoCoronaRpg && !fotoArmaturaArmataRpg && !fotoEffettoPremium\)/,
    'Astrale conserva il Canvas solo dove non esiste una foto completa della configurazione');
- assert.match(b,/\(astraleAttiva && effettoVivo\)/,
+ assert.match(b,/\(effettoCosmicoAttivo && effettoVivo\)/,
    'Il motore astrale viene montato anche dove gli altri effetti usano solo foto');
- assert.match(b,/!astraleAttiva && \(!effettoVivo \|\| auraDivinaAttiva\) && montaFotoRpg/);
- assert.match(b,/!astraleAttiva && !fotoCoronaRpg && !fotoArmaturaArmataRpg && !effettoVivo && !auraDivinaAttiva && montaFotoCombinataRpg/);
- assert.match(b,/scenaRichiesta && !astraleAttiva && !fotoCoronaRpg && !fotoArmaturaArmataRpg && !effettoVivo/);
+ assert.match(b,/!effettoCosmicoAttivo && \(!effettoVivo \|\| auraDivinaAttiva\) && montaFotoRpg/);
+ assert.match(b,/!effettoCosmicoAttivo && !fotoCoronaRpg && !fotoArmaturaArmataRpg && !effettoVivo && !auraDivinaAttiva && montaFotoCombinataRpg/);
+ assert.match(b,/scenaRichiesta && !effettoCosmicoAttivo && !fotoCoronaRpg && !fotoArmaturaArmataRpg && !effettoVivo/);
  assert.match(b,/montaEffettiRpg\(grafica, effettoVivo \? \(astraleAttiva \? null : effettoEquipaggiato\?\.id \|\| null\) : null/);
  assert.match(b,/rpg-render-live/);
  assert.match(css,/\.rpg-render-live\.rpg-fx-attiva \.rpg-effetti-canvas/);
@@ -67,7 +67,7 @@ test('I fulmini rimangono visibili per una porzione significativa di ogni ciclo'
  assert.match(c,/length:8\},\(_,i\)=>\(\{/);
  assert.match(c,/durata:casuale\(\.32,\.52\)/);
  assert.match(c,/length:tipo==='effetto-ombra'\?22:66/);
- assert.match(c,/if\(tipo==='effetto-ombra'\|\|tipo==='effetto-nebula'/);
+ assert.match(c,/if\(tipo==='effetto-ombra'\) cancellaCorpo\(\)/);
  assert.match(c,/cancellaCorpo\(\);/);
  assert.match(c,/function amber\(/);
  assert.match(c,/function arc\(/);
