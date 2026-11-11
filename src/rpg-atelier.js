@@ -5,6 +5,7 @@ import { AURA_FOTO_ATLAS } from './aura-foto-atlas.js';
 import { FOTO_RPG_RIQUADRI, livelliFotoRpg } from './aura-foto-rpg.js';
 import { fasciaSagoma, disegnaCoronaEnergetica } from './anteprima-combinata-rpg.js';
 import { fotoCinematograficaRpg } from './foto-cinematica-rpg.js';
+import { disegnaAstraleExport } from './effetti-rpg-canvas.js';
 import { percorsoFotoCoronaV360 } from './foto-corona-v360.js';
 import { percorsoFotoAuraDivinaV366 } from './foto-aura-divina-v366.js';
 import { percorsoFotoArmaturaArmataV371 } from './foto-armatura-armata-v371.js';
@@ -82,7 +83,7 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
   // Se il collage non e' installato resta il renderer precedente.
   const fotoCorona=c.corona ? percorsoFotoCoronaV360({
     classe:c.classe,stato:c.stadio,armatura:c.armatura||null,
-    effetto:c.effetto||null,divina:c.divina,armaSbloccata:c.stadio>=4,
+    effetto:c.effetto==='skin-mitica'?null:(c.effetto||null),divina:c.divina,armaSbloccata:c.stadio>=4,
   }) : null;
   // Aura alone is already baked into all nine full-armored Shop/standard photos.
   // The Atelier never adds a second Shop effect to Divine Aura.
@@ -92,9 +93,9 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
   }):null;
   const fotoArmata=(!c.corona&&!c.divina) ? percorsoFotoArmaturaArmataV371({
     classe:c.classe,stato:c.stadio,armatura:c.armatura||null,
-    effetto:c.effetto||null,armaSbloccata:c.stadio>=4,
+    effetto:c.effetto==='skin-mitica'?null:(c.effetto||null),armaSbloccata:c.stadio>=4,
   }) : null;
-  const scena=fotoDivina||fotoCorona||fotoArmata||(c.divina?null:await fotoCinematograficaRpg({...c,corona:false,divina:false}));
+  const scena=fotoDivina||fotoCorona||fotoArmata||((c.divina||c.effetto==='skin-mitica')?null:await fotoCinematograficaRpg({...c,corona:false,divina:false}));
   const immagine=scena ? await attesaImmagine(scena).catch(()=>fotoBase) : fotoBase;
   const giaFotografica=Boolean(scena&&immagine!==fotoBase);
   const larghezza=780,altezza=1170;
@@ -115,10 +116,9 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
   }
   // I nuovi WebP includono già l'effetto acquistato. Solo l'Aura divina,
   // premio separato dei 75 giorni, va aggiunta alla foto finale.
-  const livelli=(fotoDivina||fotoCorona||fotoArmata)
+  const livelli=c.effetto==='skin-mitica' ? [] : ((fotoDivina||fotoCorona||fotoArmata)
     ? livelliFotoRpg(null,{mitica:false,corona:false,divina:false})
-    : livelliFotoRpg(c.effetto==='skin-mitica'?null:c.effetto,
-        {mitica:c.effetto==='skin-mitica',corona:false,divina:c.divina});
+    : livelliFotoRpg(c.effetto,{mitica:false,corona:false,divina:c.divina}));
   if((!giaFotografica || (c.divina && !fotoDivina))&&livelli.length) {
     const atlas=await attesaImmagine(AURA_FOTO_ATLAS);
     const sw=atlas.naturalWidth/3,sh=atlas.naturalHeight/2;
@@ -158,6 +158,10 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
     }
 
   }
+
+  // EFFETTO ORIGINALE: la foto del personaggio resta sotto completamente invariata.
+  if(c.effetto==='skin-mitica')
+    disegnaAstraleExport(ctx,{classe:c.classe,x:dx,y:dy,width:dw,height:dh});
 
   if(c.titolo) {
     const titolo= c.titolo.replace(/^titolo-/,'').replaceAll('-',' ').toUpperCase();
