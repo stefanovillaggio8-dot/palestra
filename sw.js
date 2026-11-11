@@ -9,7 +9,7 @@
 // e il test I3 che sia quello dell'ultimo commit, altrimenti si alza la cache e si
 // lascia scritto il numero vecchio. E' successo due volte: nella v54 avevo alzato
 // solo questo file, e dopo la v55 avevo smesso di alzarlo del tutto.
-const VERSIONE = 'palestra-v480';
+const VERSIONE = 'palestra-v481';
 
 // LE 18 FOTO DEI PERSONAGGI, CON LA VERSIONE DENTRO.
 //
@@ -87,43 +87,43 @@ const FILE = [
   './src/aura-foto-rpg.js',
   './img/effetti/astrale-sovrano-v474.svg', // fallback offline senza Canvas
   './img/effetti/astrale-rift-v477.svg', // vero effetto cosmico anche offline senza Canvas
-  './img/effetti/nebulosa-nuclei-assassino-v480.svg', // supernove leggendarie, corpo intatto
-  './img/effetti/nebulosa-nuclei-guerriero-v480.svg', // gas luminoso con maschera dedicata
-  './img/effetti/nebulosa-nuclei-berserker-v480.svg', // fallback offline luminoso
+  './img/effetti/nebulosa-tempesta-assassino-v481.svg', // gas galattico, bordo diffuso, foto originale
+  './img/effetti/nebulosa-tempesta-guerriero-v481.svg', // gas galattico, bordo diffuso, foto originale
+  './img/effetti/nebulosa-tempesta-berserker-v481.svg', // gas galattico, bordo diffuso, foto originale
   './img/effetti/aura-divina-v364.webp?v=364', // visual effect shared by every class and streak stage
   './src/anteprima-combinata-rpg.js',
   './src/equipaggiamento-rpg.js',
   './src/foto-corona-v360.js',
   './src/foto-armatura-armata-v371.js',
   './src/foto-aura-divina-v365.js',
-  './src/foto-aura-divina-v366.js?v=480',
-  './img/personaggi/armature/berserker-apocalisse-corna.svg?v=480',
+  './src/foto-aura-divina-v366.js?v=481',
+  './img/personaggi/armature/berserker-apocalisse-corna.svg?v=481',
   // Only stage-5 full armors are possible at the 75-day Divine reward.
-  ...Object.entries({assassino:['base','armatura-assassino-notte','armatura-assassino-spettro'],guerriero:['base','armatura-guerriero-braci','armatura-guerriero-abisso'],berserker:['base','armatura-berserker-rabbia','armatura-berserker-apocalisse']}).flatMap(([cls,armors])=>armors.map(armor=>'./img/personaggi/aura-divina-v379/'+cls+'/'+armor+'.webp?v=480')),
+  ...Object.entries({assassino:['base','armatura-assassino-notte','armatura-assassino-spettro'],guerriero:['base','armatura-guerriero-braci','armatura-guerriero-abisso'],berserker:['base','armatura-berserker-rabbia','armatura-berserker-apocalisse']}).flatMap(([cls,armors])=>armors.map(armor=>'./img/personaggi/aura-divina-v379/'+cls+'/'+armor+'.webp?v=481')),
   // Nine exact approved-aura photos: only the current progression stage is displayed.
   ...['assassino','guerriero','berserker'].flatMap(cls=>
     [0,3,5].map(stage=>'./img/personaggi/aura-divina-v365/'+cls+'/stato-'+stage+'.webp?v=365')),
   './src/foto-corona-v359.js', // Legacy map still tested; preserve offline compatibility.
   // 648 nuove fotografie disponibili su richiesta; precache limitata a 18 foto standard.
   ...['assassino','guerriero','berserker'].flatMap(cls =>
-    Array.from({length:6},(_,i)=>'./img/personaggi/corona-v360/'+cls+'/stato-'+i+'/standard/base-divina.webp?v=480')),
+    Array.from({length:6},(_,i)=>'./img/personaggi/corona-v360/'+cls+'/stato-'+i+'/standard/base-divina.webp?v=481')),
   './src/rpg-atelier.js',
   './src/foto-cinematica-rpg.js',
   // Full-resolution photographic effect renders for all three RPG classes.
   ...['assassino','guerriero','berserker'].flatMap(classe =>
     ['ambra','fulmine','astrale'].map(effect =>
-      './img/personaggi/effetti/'+classe+'-'+effect+'.webp?v=480')),
+      './img/personaggi/effetti/'+classe+'-'+effect+'.webp?v=481')),
   './img/personaggi/catalogo/effetti-3-classi-v350.webp',
-  './img/personaggi/scene/guerriero-nove-scene.webp?v=480',
-  './img/personaggi/scene/guerriero-base.webp?v=480',
-  './img/personaggi/scene/guerriero-base-corona.webp?v=480',
-  './img/personaggi/scene/guerriero-base-fumo.webp?v=480',
-  './img/personaggi/scene/guerriero-base-corona-fumo.webp?v=480',
-  './img/personaggi/scene/guerriero-epica.webp?v=480',
-  './img/personaggi/scene/guerriero-epica-corona.webp?v=480',
-  './img/personaggi/scene/guerriero-epica-fumo.webp?v=480',
-  './img/personaggi/scene/guerriero-epica-corona-fumo.webp?v=480',
-  './img/personaggi/scene/guerriero-epica-divina-corona-fumo.webp?v=480',
+  './img/personaggi/scene/guerriero-nove-scene.webp?v=481',
+  './img/personaggi/scene/guerriero-base.webp?v=481',
+  './img/personaggi/scene/guerriero-base-corona.webp?v=481',
+  './img/personaggi/scene/guerriero-base-fumo.webp?v=481',
+  './img/personaggi/scene/guerriero-base-corona-fumo.webp?v=481',
+  './img/personaggi/scene/guerriero-epica.webp?v=481',
+  './img/personaggi/scene/guerriero-epica-corona.webp?v=481',
+  './img/personaggi/scene/guerriero-epica-fumo.webp?v=481',
+  './img/personaggi/scene/guerriero-epica-corona-fumo.webp?v=481',
+  './img/personaggi/scene/guerriero-epica-divina-corona-fumo.webp?v=481',
   './img/personaggi/scene/assassino-nove-scene.webp?v=346',
   './img/personaggi/scene/berserker-nove-scene.webp?v=346',
   './img/personaggi/scene/assassino-fumo.webp?v=346',
@@ -160,35 +160,35 @@ const FILE = [
   './aura-divina-v365-anteprima.html',
   './aura-divina-v366-anteprima.html',
   './corona-v361-anteprima.html', // 9 generated portraits: images cached only on demand
-  './img/personaggi/galleria-v352/assassino-01.webp?v=480',
-  './img/personaggi/galleria-v352/assassino-02.webp?v=480',
-  './img/personaggi/galleria-v352/assassino-03.webp?v=480',
-  './img/personaggi/galleria-v352/assassino-04.webp?v=480',
-  './img/personaggi/galleria-v352/assassino-05.webp?v=480',
-  './img/personaggi/galleria-v352/assassino-06.webp?v=480',
-  './img/personaggi/galleria-v352/assassino-07.webp?v=480',
-  './img/personaggi/galleria-v352/assassino-08.webp?v=480',
-  './img/personaggi/galleria-v352/assassino-09.webp?v=480',
-  './img/personaggi/galleria-v352/guerriero-01.webp?v=480',
-  './img/personaggi/galleria-v352/guerriero-02.webp?v=480',
-  './img/personaggi/galleria-v352/guerriero-03.webp?v=480',
-  './img/personaggi/galleria-v352/guerriero-04.webp?v=480',
-  './img/personaggi/galleria-v352/guerriero-05.webp?v=480',
-  './img/personaggi/galleria-v352/guerriero-06.webp?v=480',
-  './img/personaggi/galleria-v352/guerriero-07.webp?v=480',
-  './img/personaggi/galleria-v352/guerriero-08.webp?v=480',
-  './img/personaggi/galleria-v352/guerriero-09.webp?v=480',
-  './img/personaggi/galleria-v352/berserker-01.webp?v=480',
-  './img/personaggi/galleria-v352/berserker-02.webp?v=480',
-  './img/personaggi/galleria-v352/berserker-03.webp?v=480',
-  './img/personaggi/galleria-v352/berserker-04.webp?v=480',
-  './img/personaggi/galleria-v352/berserker-05.webp?v=480',
-  './img/personaggi/galleria-v352/berserker-06.webp?v=480',
-  './img/personaggi/galleria-v352/berserker-07.webp?v=480',
-  './img/personaggi/galleria-v352/berserker-08.webp?v=480',
-  './img/personaggi/galleria-v352/berserker-09.webp?v=480',
-  './stile-galleria-rpg.css?v=480',
-  './src/galleria-foto-rpg.js?v=480',
+  './img/personaggi/galleria-v352/assassino-01.webp?v=481',
+  './img/personaggi/galleria-v352/assassino-02.webp?v=481',
+  './img/personaggi/galleria-v352/assassino-03.webp?v=481',
+  './img/personaggi/galleria-v352/assassino-04.webp?v=481',
+  './img/personaggi/galleria-v352/assassino-05.webp?v=481',
+  './img/personaggi/galleria-v352/assassino-06.webp?v=481',
+  './img/personaggi/galleria-v352/assassino-07.webp?v=481',
+  './img/personaggi/galleria-v352/assassino-08.webp?v=481',
+  './img/personaggi/galleria-v352/assassino-09.webp?v=481',
+  './img/personaggi/galleria-v352/guerriero-01.webp?v=481',
+  './img/personaggi/galleria-v352/guerriero-02.webp?v=481',
+  './img/personaggi/galleria-v352/guerriero-03.webp?v=481',
+  './img/personaggi/galleria-v352/guerriero-04.webp?v=481',
+  './img/personaggi/galleria-v352/guerriero-05.webp?v=481',
+  './img/personaggi/galleria-v352/guerriero-06.webp?v=481',
+  './img/personaggi/galleria-v352/guerriero-07.webp?v=481',
+  './img/personaggi/galleria-v352/guerriero-08.webp?v=481',
+  './img/personaggi/galleria-v352/guerriero-09.webp?v=481',
+  './img/personaggi/galleria-v352/berserker-01.webp?v=481',
+  './img/personaggi/galleria-v352/berserker-02.webp?v=481',
+  './img/personaggi/galleria-v352/berserker-03.webp?v=481',
+  './img/personaggi/galleria-v352/berserker-04.webp?v=481',
+  './img/personaggi/galleria-v352/berserker-05.webp?v=481',
+  './img/personaggi/galleria-v352/berserker-06.webp?v=481',
+  './img/personaggi/galleria-v352/berserker-07.webp?v=481',
+  './img/personaggi/galleria-v352/berserker-08.webp?v=481',
+  './img/personaggi/galleria-v352/berserker-09.webp?v=481',
+  './stile-galleria-rpg.css?v=481',
+  './src/galleria-foto-rpg.js?v=481',
   './rassegna-missioni.html',
   // IL FOGLIO DI STILE HA LA VERSIONE, come il collegamento in index.html.
   //
@@ -200,9 +200,9 @@ const FILE = [
   // Il numero deve essere uguale a quello di `stile.css?v=` in index.html e a
   // `window.PALESTRA_VERSIONE`: se i tre non coincidono, l'app carica un foglio di
   // stile e dice un altro numero.
-  './stile.css?v=480',
-  './stile-rpg.css?v=480',
-  './stile-premium.css?v=480',
+  './stile.css?v=481',
+  './stile-rpg.css?v=481',
+  './stile-premium.css?v=481',
 './manifest.webmanifest',
   './manifest-p1.webmanifest',
   './manifest-p2.webmanifest',
@@ -210,7 +210,7 @@ const FILE = [
   // installata di un amico prenderebbe quello di Ste, con lo stesso id e con
   // start_url che punta a ?p=1
   './manifest-nuovo.webmanifest',
-  './src/app.js?v=480',
+  './src/app.js?v=481',
   './src/numeri.js',
   './src/confronto.js',
   './src/confronto-mensile.js',
@@ -485,7 +485,7 @@ self.addEventListener('fetch', (evento) => {
     // I CSS/JS locali sono precaricati senza query, mentre index.html li
     // richiede con ?v=VERSIONE. Offline bisogna trovare lo stesso asset,
     // senza ignorare query arbitrarie o accettare una release diversa.
-    // Anche i manifest e l'icona Home hanno ?v=480 per evitare vecchie
+    // Anche i manifest e l'icona Home hanno ?v=481 per evitare vecchie
     // icone iPhone/Android: offline devono usare le copie gia' precaricate.
     if ((/\.(?:css|js|webmanifest)$/i.test(url.pathname) ||
          /\/img\/icon-palestra-v407-192\.png$/i.test(url.pathname)) &&
