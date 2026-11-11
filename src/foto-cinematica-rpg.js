@@ -20,7 +20,7 @@ export const FOTO_EFFETTI_PREMIUM_RPG = Object.freeze({
   assassino:Object.freeze({
     'effetto-ambra':'img/personaggi/effetti/assassino-ambra.webp?v=350',
     'effetto-fulmine':'img/personaggi/effetti/assassino-fulmine.webp?v=350',
-    'skin-mitica':'img/personaggi/effetti/assassino-astrale.webp?v=350',
+    'skin-mitica':'img/personaggi/effetti/assassino-astrale-mitico-v475.avif?v=475',
   }),
   guerriero:Object.freeze({
     'effetto-ambra':'img/personaggi/effetti/guerriero-ambra.webp?v=350',
@@ -75,6 +75,11 @@ export function percorsoCombinazioneFotoRpg({classe,armatura=null,effetto=null,
 }
 export function percorsoScenaSpecialeRpg({classe,armatura=null,effetto=null,skin=null,
   corona=false,divina=false,stato=null,stadio=null,armaSbloccata=false}={}) {
+  // La forma Astrale dell'Assassino include già i pugnali nella scena completa.
+  // L'acquisto richiede una streak elevata: non altera né anticipa gli sblocchi reali.
+  // Solo senza altre armature/effetti/corone da preservare: mai nascondere acquisti.
+  if(classe==='assassino' && skin==='skin-mitica' && !armatura && !effetto && !corona && !divina)
+    return FOTO_EFFETTI_PREMIUM_RPG.assassino['skin-mitica'];
   const raw=stadio??stato;
   if(!armatura&&!armaSbloccata&&!corona&&!divina &&
     (raw===null||raw===undefined||Number(raw)<4)) {
@@ -188,6 +193,12 @@ export function montaScenaCinematograficaRpg(grafica,foto,opzioni={}) {
     // Una fotografia completa, già con armatura, fumo, luce e corona integrati.
     // L'eventuale renderer precedente resta nel DOM solo come fallback.
     foto.src=src;
+    // La fotografia mitica e' completa: elimina il vecchio effetto-adesivo solo
+    // DOPO che la nuova immagine e' stata caricata correttamente.
+    if(opzioni.skin==='skin-mitica'){
+      grafica.querySelector?.('.rpg-astrale-presenza')?.remove?.();
+      grafica.classList.add('rpg-foto-mitica-integrale');
+    }
     grafica.classList.add('rpg-scena-cinematografica');
     if(speciale)grafica.classList.add('rpg-scena-foto-speciale');
     grafica.classList.add('rpg-composite-active');

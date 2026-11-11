@@ -8271,7 +8271,11 @@ function bloccoPersonaggio(profilo, st) {
       corona:false,
       divina:false,
     });
-    const effettoVivo=!auraDivinaAttiva && usaEffettiViviRpg(astraleAttiva ? null : effettoEquipaggiato?.id || null,{
+    // v475: preferisci il ritratto completo quando rappresenta esattamente la configurazione.
+    // Non aggiungere il vecchio portale sopra una fotografia già mitica.
+    const astraleConFotoIntegrale = astraleAttiva && Boolean(fotoEffettoPremium) &&
+      !fotoCoronaRpg && !fotoArmaturaArmataRpg && !auraDivinaAttiva && !coronaAttiva;
+    const effettoVivo=!astraleConFotoIntegrale && !auraDivinaAttiva && usaEffettiViviRpg(astraleAttiva ? null : effettoEquipaggiato?.id || null,{
       mitica:astraleAttiva,
     }) && (astraleAttiva || (!fotoCoronaRpg && !fotoArmaturaArmataRpg && !fotoEffettoPremium));
     // Ambra, Fulmine e Astrale usano UN solo renderer Canvas. Prima il
@@ -8280,14 +8284,14 @@ function bloccoPersonaggio(profilo, st) {
     const scenaFotografica = (!effettoVivo || auraDivinaAttiva) && montaFotoRpg(grafica, fotoAuraDivinaRpg || fotoCoronaRpg || fotoArmaturaArmataRpg || effettoVivo || auraDivinaAttiva || astraleAttiva ? null : effettoEquipaggiato?.id || null, {
       corona: false, // Nuova Corona regale: asset indipendente
       divina: auraDivinaAttiva && !fotoAuraDivinaRpg, // v367 SVG artwork preserves original photo with a single Divine aura; do not duplicate it.
-      mitica: !auraDivinaAttiva && !fotoCoronaRpg && !fotoArmaturaArmataRpg && astraleAttiva,
+      mitica: !astraleConFotoIntegrale && !auraDivinaAttiva && !fotoCoronaRpg && !fotoArmaturaArmataRpg && astraleAttiva,
       classe: classeId,
     });
     // Fallback per avatar senza effetto fotografico: Aura divina storica.
     // Per ogni combinazione possibile costruisci una FOTO reale da avatar e
     // texture (stessa faccia, stesso corpo, stesso stato, nessun duplicato).
     // I layer precedenti restano fallback in caso di Safari senza Canvas.
-    const combinata = !fotoCoronaRpg && !fotoArmaturaArmataRpg && !effettoVivo && !auraDivinaAttiva && montaFotoCombinataRpg(grafica, fotoRpg, {
+    const combinata = !astraleConFotoIntegrale && !fotoCoronaRpg && !fotoArmaturaArmataRpg && !effettoVivo && !auraDivinaAttiva && montaFotoCombinataRpg(grafica, fotoRpg, {
       classe: classeId, stato: viso.indice,
       armatura: armaturaEquipaggiata?.id || null,
       skin: astraleAttiva ? 'skin-mitica' : null,
@@ -8314,12 +8318,12 @@ function bloccoPersonaggio(profilo, st) {
       skin:astraleAttiva ? 'skin-mitica' : null,
       effetto:astraleAttiva ? null : effettoEquipaggiato?.id || null,
       corona:coronaAttiva,
-      divina:Boolean(viso.aura) || auraDivinaAnteprima,
+      divina:!astraleAttiva && (Boolean(viso.aura) || auraDivinaAnteprima),
     });
     // La classe rpg-composite-active viene attivata dal renderer, SOLO
     // quando la fotografia è pronta: nessun avatar senza effetti su Safari.
-    if ((astraleAttiva && effettoVivo) ||
-       (!fotoCoronaRpg && !fotoArmaturaArmataRpg && (effettoVivo || (!scenaFotografica && !combinata)))) {
+    if (!astraleConFotoIntegrale && ((astraleAttiva && effettoVivo) ||
+       (!fotoCoronaRpg && !fotoArmaturaArmataRpg && (effettoVivo || (!scenaFotografica && !combinata))))) {
       montaEffettiRpg(grafica, effettoVivo ? (astraleAttiva ? null : effettoEquipaggiato?.id || null) : null, {
         divina: false, // La fotografia già conserva l'Aura originale
         corona: false,
