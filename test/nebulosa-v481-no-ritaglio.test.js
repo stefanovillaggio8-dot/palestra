@@ -26,7 +26,7 @@ test('v481 corregge il rettangolo ritagliato della Nebulosa senza toccare Astral
 
 test('v481 nuvole continue, nessuna linea neon o rombo nella Nebulosa dinamica',()=>{
  const f=read('src/effetti-rpg-canvas.js');
- const body=f.slice(f.indexOf('export function dipingiNebulosaCosmica'));
+ const body=f.slice(f.indexOf('export function dipingiNebulosaCosmica'), f.indexOf('export function dipingiApoteosiAstrale'));
  assert.match(body,/v481: gas in ricircolo/);
  assert.doesNotMatch(body,/quadraticCurveTo/);
  assert.doesNotMatch(body,/ctx\.stroke\(/);
