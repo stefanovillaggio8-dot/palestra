@@ -35,8 +35,8 @@ test('v481: fallback offline realmente distinto per tutti i personaggi e armatur
  for(const classe of ['assassino','guerriero','berserker']){
    const path='img/effetti/nebulosa-tempesta-'+classe+'-v481.svg';
    const svg=read(path);
-   assert.match(sw,new RegExp('nebulosa-tempesta-'+classe+'-v480\\.svg'));
-   assert.match(css,new RegExp('nebulosa-tempesta-'+classe+'-v480\\.svg'));
+   assert.match(sw,new RegExp('nebulosa-tempesta-'+classe+'-v481\\.svg'));
+   assert.match(css,new RegExp('nebulosa-tempesta-'+classe+'-v481\\.svg'));
    assert.match(svg,/id="protect"/);
    assert.match(svg,/id="cyan"/);
    assert.match(svg,/id="magenta"/);
