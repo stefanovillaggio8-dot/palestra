@@ -9,8 +9,14 @@ test('v473: il fallback Astrale sopravvive alle scene fotografiche che nascondon
   const css=read('stile-rpg.css');
   assert.match(css,/shop-skin-mitica > \.rpg-astrale-presenza \{/);
   assert.match(css,/display:block!important;[\s\S]{0,180}z-index:18;/);
-  assert.match(css,/rpg-astrale-orbita-sx/);
-  assert.match(css,/rpg-astrale-orbita-dx/);
+  assert.match(css,/astrale-sovrano-v474\.svg/);
+  assert.match(css,/rpg-astrale-portale/);
+  assert.match(css,/rpg-astrale-plasma/);
+  const svg=read('img/effetti/astrale-sovrano-v474.svg');
+  assert.match(svg,/plumeL/);
+  assert.match(svg,/plumeR/);
+  assert.match(svg,/clearBody/);
+  assert.ok((svg.match(/<path /g)||[]).length>=25,'energia dinamica e linee di luce visibili');
   assert.match(css,/rpg-astrale-scintilla/);
   const cinema=css.slice(css.indexOf('.personaggio-scena-grafica.rpg-scena-cinematografica\n'),
     css.indexOf('/* v345',css.indexOf('.personaggio-scena-grafica.rpg-scena-cinematografica\n')));
