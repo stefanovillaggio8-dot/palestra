@@ -49,7 +49,7 @@ test('v449: atlas WebP HD effettivo, PWA e CSS senza crop o sfocatura',() => {
   assert.match(css,/\.foto-esercizio-arte-originale[\s\S]*object-fit: contain/);
   const cssIcons=css.slice(css.indexOf('/* v448: un solo sistema visivo'),css.indexOf('@media (max-width: 390px)'));
   assert.doesNotMatch(cssIcons,/blur\(/i);
-  assert.match(sw,/const VERSIONE = 'palestra-v480'/);
+  assert.match(sw,/const VERSIONE = 'palestra-v481'/);
   assert.match(sw,/'\.\/img\/esercizi\/esercizi-uniformi-v455\.webp'/);
-  assert.match(html,/PALESTRA_VERSIONE = 'palestra-v480'/);
+  assert.match(html,/PALESTRA_VERSIONE = 'palestra-v481'/);
 });

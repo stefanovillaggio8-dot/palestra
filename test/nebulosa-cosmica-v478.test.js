@@ -4,7 +4,7 @@ import {readFileSync} from 'node:fs';
 import {dipingiNebulosaCosmica,usaEffettiViviRpg} from '../src/effetti-rpg-canvas.js';
 const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 
-test('v480: nubi, stelle e profondità, ZERO neon e anelli per tutte le classi',()=>{
+test('v481: nubi, stelle e profondità, ZERO neon e anelli per tutte le classi',()=>{
   for(const classe of ['assassino','guerriero','berserker']){
     const counts={gradient:0,stroke:0,ellipse:0,arc:0,line:0,mask:0};
     const ctx=new Proxy({
@@ -23,7 +23,7 @@ test('v480: nubi, stelle e profondità, ZERO neon e anelli per tutte le classi',
   }
 });
 
-test('v480: identico zoom di Astrale, maschera originale per tre personaggi',()=>{
+test('v481: identico zoom di Astrale, maschera originale per tre personaggi',()=>{
  const app=read('src/app.js'),atelier=read('src/rpg-atelier.js');
  const css=read('stile-rpg.css'),sw=read('sw.js');
  assert.match(app,/const effettoCosmicoAttivo = astraleAttiva \|\| nebulosaAttiva/);
@@ -34,23 +34,23 @@ test('v480: identico zoom di Astrale, maschera originale per tre personaggi',()=
  assert.match(app,/if \(\(effettoCosmicoAttivo && effettoVivo\)/);
  assert.match(atelier,/dipingiNebulosaCosmica\(ctx,dw,dh,c.classe/);
  assert.match(atelier,/fxSenzaFoto = c.effetto==='skin-mitica' \|\| c.effetto==='effetto-nebula'/);
- const v480=css.slice(css.indexOf('/* v480 · SUPERNOVA LEGGENDARIA'));
- assert.match(v480,/nebulosa-nuclei-assassino-v480\.svg/);
- assert.match(v480,/nebulosa-nuclei-guerriero-v480\.svg/);
- assert.match(v480,/nebulosa-nuclei-berserker-v480\.svg/);
+ const v481=css.slice(css.indexOf('/* v481 — Nebulosa LEGGENDARIA'));
+ assert.match(v481,/nebulosa-tempesta-assassino-v481\.svg/);
+ assert.match(v481,/nebulosa-tempesta-guerriero-v481\.svg/);
+ assert.match(v481,/nebulosa-tempesta-berserker-v481\.svg/);
  for(const cls of ['assassino','guerriero','berserker']){
-   assert.match(sw,new RegExp('nebulosa-nuclei-'+cls+'-v480\\.svg'));
+   assert.match(sw,new RegExp('nebulosa-tempesta-'+cls+'-v481\\.svg'));
  }
  assert.doesNotMatch(sw,/\.\/img\/effetti\/nebulosa-cosmica-v478\.svg/);
- assert.match(sw,/palestra-v480/);
- assert.match(read('index.html'),/palestra-v480/);
+ assert.match(sw,/palestra-v481/);
+ assert.match(read('index.html'),/palestra-v481/);
  const f=read('src/effetti-rpg-canvas.js');
  const body=f.slice(f.indexOf('export function dipingiNebulosaCosmica'));
  assert.doesNotMatch(body,/ctx\.stroke\(/,'nessun neon né cerchio sul personaggio');
  assert.doesNotMatch(body,/ctx\.ellipse\(/,'nessuna copia del portale Astrale');
 });
 
-test('v480: animazione iPhone, fallback funzionante senza API',t=>{
+test('v481: animazione iPhone, fallback funzionante senza API',t=>{
  const before={doc:globalThis.document,raf:globalThis.requestAnimationFrame};
  t.after(()=>{
    if(before.doc===undefined)delete globalThis.document;else globalThis.document=before.doc;

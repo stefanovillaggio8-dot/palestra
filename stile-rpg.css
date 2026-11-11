@@ -2688,3 +2688,113 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
     0 0 25px rgba(113,82,230,.21),
     0 16px 37px rgba(0,0,0,.44);
 }
+
+
+/* v481 — Nebulosa LEGGENDARIA
+   Il problema precedente era strutturale: overflow:hidden sulla FOTO e luce
+   confinata al suo rettangolo. Il volume esterno ora appartiene alla SCENA,
+   non alla pelle del personaggio. Nessuna regola Astrale viene cambiata. */
+.personaggio-scena.rpg-scena-nebulosa {
+  position:relative;
+  isolation:isolate;
+  overflow:visible;
+  border-color:rgba(124,156,246,.46);
+  background:
+    radial-gradient(ellipse 66% 47% at 4% 22%,rgba(28,133,217,.23),transparent 85%),
+    radial-gradient(ellipse 64% 59% at 98% 61%,rgba(139,70,238,.29),transparent 86%),
+    radial-gradient(ellipse 76% 34% at 43% 96%,rgba(72,108,222,.14),transparent 86%),
+    linear-gradient(153deg,#171e31,#131724 68%,#111624);
+  box-shadow:inset 0 0 42px rgba(71,58,143,.17),0 19px 38px rgba(0,0,0,.24);
+}
+.personaggio-scena.rpg-scena-nebulosa::before {
+  content:"";
+  position:absolute;
+  z-index:0;
+  inset:-16px -12px -12px;
+  pointer-events:none;
+  border-radius:29px;
+  background:
+    radial-gradient(ellipse 34% 30% at 11% 27%,rgba(45,224,246,.57),transparent 85%),
+    radial-gradient(ellipse 36% 38% at 91% 63%,rgba(160,80,248,.57),transparent 84%),
+    radial-gradient(ellipse 29% 24% at 13% 82%,rgba(211,70,211,.32),transparent 82%),
+    radial-gradient(ellipse 31% 25% at 88% 14%,rgba(111,108,250,.38),transparent 84%);
+  filter:blur(11px);
+  opacity:.91;
+  animation:nebula-respiro-leggendario 9s ease-in-out infinite alternate;
+}
+.personaggio-scena.rpg-scena-nebulosa::after {
+  content:"";
+  position:absolute;
+  z-index:0;
+  inset:-10px -9px 10%;
+  pointer-events:none;
+  background:
+    radial-gradient(circle at 5% 35%,rgba(217,249,255,.89) 0 1px,transparent 3px),
+    radial-gradient(circle at 94% 25%,rgba(244,218,255,.79) 0 1.5px,transparent 3.5px),
+    radial-gradient(circle at 10% 71%,rgba(185,232,255,.86) 0 1px,transparent 3px),
+    radial-gradient(circle at 93% 84%,rgba(235,193,254,.9) 0 1px,transparent 4px);
+  opacity:.78;
+  animation:nebula-polvere-leggendaria 7s ease-in-out infinite alternate;
+}
+.personaggio-scena.rpg-scena-nebulosa > :is(.personaggio-scena-grafica,.personaggio-dati,.riga-pezzi) {
+  position:relative;
+  z-index:1;
+}
+/* La foto può rimanere rettangolare: è la luce che deve oltrepassarne il bordo.
+   Non tocchiamo le dimensioni/zoom della foto o la sua immagine originale. */
+.personaggio-scena.rpg-scena-nebulosa > .personaggio-scena-grafica.shop-effetto-nebula,
+.aura-preview-panel .personaggio-scena.rpg-scena-nebulosa > .personaggio-scena-grafica.shop-effetto-nebula {
+  overflow:visible!important;
+}
+.personaggio-scena.rpg-scena-nebulosa > .personaggio-scena-grafica.shop-effetto-nebula::before {
+  content:none!important; /* disattiva il vecchio sfondo conico generico */
+  animation:none!important;
+}
+.personaggio-scena-grafica.shop-effetto-nebula > .rpg-nebulosa-presenza {
+  display:block!important;
+  inset:0!important;
+  overflow:visible!important;
+  border-radius:0!important;
+  background-image:url('img/effetti/nebulosa-tempesta-assassino-v481.svg')!important;
+  background-size:100% 100%!important;
+  background-position:center!important;
+  background-repeat:no-repeat!important;
+  pointer-events:none!important;
+  z-index:12!important;
+  opacity:1!important;
+  mix-blend-mode:screen;
+  filter:saturate(1.22) brightness(1.08)!important;
+  -webkit-mask-image:none!important;
+  mask-image:none!important;
+}
+.personaggio-scena-grafica.personaggio-guerriero.shop-effetto-nebula > .rpg-nebulosa-presenza {
+  background-image:url('img/effetti/nebulosa-tempesta-guerriero-v481.svg')!important;
+}
+.personaggio-scena-grafica.personaggio-berserker.shop-effetto-nebula > .rpg-nebulosa-presenza {
+  background-image:url('img/effetti/nebulosa-tempesta-berserker-v481.svg')!important;
+}
+.personaggio-scena-grafica.rpg-render-live.rpg-fx-attiva.shop-effetto-nebula > .rpg-nebulosa-presenza {
+  opacity:.61!important; /* texture ricca sotto i gas e le stelle animate */
+}
+.personaggio-scena-grafica.rpg-render-live.rpg-fx-attiva.shop-effetto-nebula > .rpg-effetti-canvas {
+  position:absolute!important;
+  inset:0!important;
+  z-index:13!important;
+  width:100%!important;height:100%!important;
+  mix-blend-mode:screen!important;
+  pointer-events:none!important;
+}
+@keyframes nebula-respiro-leggendario {
+  from {opacity:.73;filter:blur(13px) saturate(1.05);}
+  to {opacity:.99;filter:blur(9px) saturate(1.25);}
+}
+@keyframes nebula-polvere-leggendaria {
+  from {opacity:.46;transform:translateY(3px);}
+  to {opacity:.9;transform:translateY(-4px);}
+}
+@media (prefers-reduced-motion:reduce) {
+  .personaggio-scena.rpg-scena-nebulosa::before,
+  .personaggio-scena.rpg-scena-nebulosa::after {
+    animation:none!important;
+  }
+}
