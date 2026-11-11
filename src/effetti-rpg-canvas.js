@@ -504,7 +504,7 @@ export function dipingiRiftAstrale(ctx,w,h,classe='assassino',t=0,numeroStelle=7
         }
       };
       for(let layer=0;layer<3;layer++){
-        ctx.save();ctx.globalAlpha=[.13,.39,.88][layer]*pulse*(1-branch*.125);
+        ctx.save();ctx.globalAlpha=[.04,.12,.28][layer]*pulse*(1-branch*.125);
         ctx.strokeStyle=pal[layer];
         ctx.lineWidth=Math.max(.65,w*[.072,.027,.0058][layer]);
         ctx.lineCap='round';ctx.lineJoin='round';
@@ -518,7 +518,7 @@ export function dipingiRiftAstrale(ctx,w,h,classe='assassino',t=0,numeroStelle=7
       const d0=.023+Math.sin(t*.43+j)*.012;
       const x0=outside(lato,yy,d0);
       const x1=outside(lato,yy+.075,.13+(j%3)*.032);
-      ctx.save();ctx.globalAlpha=(.32+.19*Math.sin(t*.8+j))*pulse;
+      ctx.save();ctx.globalAlpha=(.12+.10*Math.sin(t*.8+j))*pulse;
       ctx.strokeStyle=j%3===0?'#f9cfff':pal[1];
       ctx.lineWidth=Math.max(.8,w*.005);
       ctx.shadowColor='#aa64ff';ctx.shadowBlur=Math.min(19,w*.075);
@@ -612,6 +612,9 @@ export function dipingiRiftAstrale(ctx,w,h,classe='assassino',t=0,numeroStelle=7
   ctx.lineTo(w*.51,baseline);ctx.lineTo(w*.5,baseline+h*.033);
   ctx.lineTo(w*.49,baseline);ctx.closePath();ctx.fill();ctx.restore();
 
+  // v482: grandi ali di energia, materia frammentata e risonanze dimensionali.
+  // Nessuna nuova foto e nessuna variazione di zoom: il canvas usa le stesse w/h.
+  dipingiApoteosiAstrale(ctx,w,h,classe,t,numeroStelle);
   ctx.restore();
   return true;
 }
@@ -780,6 +783,26 @@ export function dipingiNebulosaCosmica(ctx,w,h,classe='assassino',t=0,stars=68) 
       cloud(x,y,w*(.056+.042*Math.sin(p*Math.PI)),h*(.052+.04*Math.sin(p*Math.PI)),tone,alpha);
     }
   }
+  // v482: due correnti di polvere GALATTICA orbitano intorno ai nuclei.
+  // Granelli separati (non curve neon); 20 fps iPhone e pieno rispetto della sagoma.
+  for(let campo=0;campo<2;campo++){
+    const side=campo===0?-1:1,centerY=campo===0?.33:.64;
+    const anchor=outside(side,centerY,.125);
+    const n=stars<=45?22:44;
+    for(let j=0;j<n;j++){
+      const u=j/n;
+      const ang=u*12.5+t*(campo===0?.30:-.23)+campo*2;
+      const rr=w*(.032+.142*Math.pow(u,.72));
+      const xx=anchor+Math.cos(ang)*rr;
+      const yy=centerY*h+Math.sin(ang)*rr*.93;
+      const radius=Math.max(.45,w*(.0012+.0023*rnd(j*57+campo*19)));
+      const alpha=(.20+.54*(1-u))*(.75+.25*Math.cos(t*.53+u*4));
+      ctx.save();ctx.globalAlpha=alpha;
+      ctx.fillStyle=campo===0?(j%5===0?'#ffffff':'#a5f6ff'):(j%4===0?'#fff8ff':'#e1adff');
+      ctx.shadowColor=ctx.fillStyle;ctx.shadowBlur=radius*3;
+      ctx.beginPath();ctx.arc(xx,yy,radius,0,TAU2);ctx.fill();ctx.restore();
+    }
+  }
   // Polvere galattica: tante stelle PICCOLE intorno a tutte le silhouette.
   // I corpi rimangono protetti dalla maschera finale.
   const count=Math.max(20,Math.min(stars,100));
@@ -827,6 +850,150 @@ export function dipingiNebulosaCosmica(ctx,w,h,classe='assassino',t=0,stars=68) 
     ctx.lineTo((right+.014)*w,yy*h);
   }
   ctx.closePath();ctx.fill();ctx.restore();
+  ctx.restore();
+  return true;
+}
+
+
+/**
+ * v482 — APOTEOSI ASTRALE (MITICO).
+ * Nuova materia luminosa e ali tridimensionali, non lo stesso filtro Nebulosa.
+ * Non disegna mai l'avatar: opera sul Canvas trasparente 1:1 della foto scelta.
+ * Le superfici si fermano prima della sagoma propria della classe; i lampi sono
+ * molto esterni, e il portale a terra resta fuori dal viso e dal busto.
+ * Richiede solo Canvas 2D standard, nessuna libreria, nessuna nuova skin.
+ */
+export function dipingiApoteosiAstrale(ctx,w,h,classe='assassino',t=0,qualita=75){
+  if(!ctx || w<16 || h<20 || typeof ctx.createRadialGradient!=='function')return false;
+  const pi=Math.PI,tau=pi*2;
+  const fract=n=>n-Math.floor(n);
+  const rnd=n=>fract(Math.sin(n*173.17+19.71)*59123.31);
+  const edge=(side,yy,offset)=>puntoLaterale(classe,Math.max(.008,Math.min(.992,yy)),side,Math.max(.015,offset))*w;
+  const respiro=.92+.08*Math.sin(t*.64);
+  const high=qualita>65;
+  ctx.save();
+
+  // (A) ALI CELESTIALI di materia: superfici luminose, NON tubi laterali.
+  // Due membrane per lato, con profondità e spessore modulati nel tempo.
+  for(const side of [-1,1]){
+    for(let layer=0;layer<3;layer++){
+      const drift=Math.sin(t*.34+layer*1.8+side*.7)*w*.018;
+      const xx=edge(side,.47,.12)+drift;
+      const cy=h*(.39+layer*.09);
+      const radius=w*(.28+layer*.065);
+      const g=ctx.createRadialGradient(xx,cy,0,xx,cy,radius);
+      const pal=side<0
+        ? [['rgba(203,83,255,.85)','rgba(94,34,195,.28)'],['rgba(247,121,242,.80)','rgba(135,55,230,.20)'],['rgba(169,126,255,.77)','rgba(73,74,223,.19)']][layer]
+        : [['rgba(144,216,255,.86)','rgba(88,69,228,.32)'],['rgba(195,148,255,.81)','rgba(94,77,245,.22)'],['rgba(255,185,252,.76)','rgba(122,74,216,.20)']][layer];
+      g.addColorStop(0,pal[0]);g.addColorStop(.48,pal[1]);g.addColorStop(1,'rgba(0,0,0,0)');
+      const a=.56-layer*.075;
+      const top=.11+layer*.025,bottom=.91-layer*.027;
+      const innerX=edge(side,top,.024),outerX=edge(side,.40,.23+layer*.06)+drift;
+      const bottomX=edge(side,bottom,.036);
+      ctx.save();
+      ctx.globalAlpha=a*respiro;ctx.fillStyle=g;
+      ctx.shadowColor=side<0?'#b96aff':'#9bafff';
+      ctx.shadowBlur=high?Math.min(20,w*.042):Math.min(13,w*.031);
+      ctx.beginPath();ctx.moveTo(innerX,top*h);
+      ctx.bezierCurveTo(edge(side,.14,.21+layer*.035),h*.12,
+        outerX,h*(.21+layer*.02),outerX,h*.39);
+      ctx.bezierCurveTo(edge(side,.59,.27+layer*.042),h*.63,
+        edge(side,.71,.15+layer*.04),h*.78,bottomX,bottom*h);
+      ctx.bezierCurveTo(edge(side,.79,.022),h*.82,
+        edge(side,.45,.022),h*.49,innerX,top*h);
+      ctx.closePath();ctx.fill();ctx.restore();
+    }
+    // Propulsione di energia dietro la schiena: frammenti in orbite inclinate.
+    for(let i=0;i<12;i++){
+      const y=.14+.74*((i*.6180339)%1);
+      const phase=t*(.17+.04*(i%3))+i*2.2;
+      const distance=.055+.14*rnd(i*8+(side<0?1:9));
+      const x=edge(side,y,distance+.016*Math.sin(phase));
+      const yy=h*(y+.008*Math.cos(phase));
+      const sz=w*(.006+.018*rnd(i*22+5));
+      ctx.save();ctx.translate(x,yy);ctx.rotate(.3*Math.sin(phase));
+      ctx.globalAlpha=(.35+.4*Math.sin(phase*.55)**2)*respiro;
+      ctx.fillStyle=i%3===0?'#fce9ff':side<0?'#ba7fff':'#91e9ff';
+      ctx.shadowColor=ctx.fillStyle;ctx.shadowBlur=Math.min(16,w*.04);
+      ctx.beginPath();ctx.moveTo(0,-sz*1.6);
+      ctx.lineTo(sz*.86,0);ctx.lineTo(0,sz*1.8);ctx.lineTo(-sz*.86,0);
+      ctx.closePath();ctx.fill();ctx.restore();
+    }
+  }
+
+  // (B) UNA COSTELLAZIONE AUREA TRA DUE ECLISSI:
+  // l'anello interno segue il tempo, l'esterno emette scariche a intervalli.
+  for(let k=0;k<3;k++){
+    ctx.save();
+    const angle=t*(.10+(k%2)*.035)+k*1.7;
+    const rx=w*(.33+k*.045),ry=h*(.170+k*.020);
+    const cx=w*.50,cy=h*.185;
+    ctx.globalAlpha=(.17+.21*(.5+.5*Math.sin(t*.77+k)))*(1-k*.15);
+    ctx.strokeStyle=k===0?'#fff0ff':k===1?'#cfacff':'#8ccfff';
+    ctx.lineWidth=Math.max(.8,w*(.0045-k*.0008));
+    ctx.shadowColor=k===0?'#ffcaff':'#b987ff';
+    ctx.shadowBlur=Math.min(20,w*.053);
+    ctx.beginPath();
+    // Spezzature attorno al cappuccio: lascia il centro libero.
+    ctx.ellipse(cx,cy,rx,ry,0,pi*.995+angle,pi*1.70+angle);
+    ctx.stroke();ctx.restore();
+  }
+  for(let i=0;i<(high?40:24);i++){
+    const a=i/(high?40:24)*tau+t*.13;
+    const x=w*.5+Math.cos(a)*w*.41;
+    const y=h*.185+Math.sin(a)*h*.202;
+    // Evita il centro fotografico: solo punti sulla corona distante.
+    const alpha=.27+.45*Math.sin(t*.7+i*1.3)**2;
+    const size=w*(i%9===0?.005:.0023);
+    ctx.save();ctx.globalAlpha=alpha;
+    ctx.fillStyle=i%6===0?'#ffffff':i%2===0?'#dba3ff':'#a5e3ff';
+    ctx.shadowColor=ctx.fillStyle;ctx.shadowBlur=size*5;
+    ctx.beginPath();ctx.arc(x,y,size,0,tau);ctx.fill();ctx.restore();
+  }
+
+  // (C) SCARICHE DI MATERIA: impulsi che risalgono esternamente ai fianchi.
+  for(let side of [-1,1]){
+    for(let i=0;i<3;i++){
+      const phase=(t*.38+i*.33+(side<0?.21:.65))%1;
+      const yy=.87-phase*.77;
+      const x=edge(side,yy,.075+.055*i+.013*Math.sin(t*.7+i));
+      const y=yy*h;
+      const radius=w*(.011+.007*(1-phase));
+      const glow=ctx.createRadialGradient(x,y,0,x,y,radius*5);
+      glow.addColorStop(0,'rgba(255,255,255,.88)');
+      glow.addColorStop(.18,side<0?'rgba(251,137,255,.62)':'rgba(156,220,255,.62)');
+      glow.addColorStop(1,'rgba(30,0,80,0)');
+      ctx.save();ctx.globalAlpha=.42+.4*(1-phase);
+      ctx.fillStyle=glow;
+      ctx.beginPath();ctx.arc(x,y,radius*5,0,tau);ctx.fill();ctx.restore();
+    }
+  }
+
+  // (D) PORTALE QUANTICO: più profondo del semplice anello della rarità
+  // leggendaria; emette ONDE periodiche e piccoli glifi senza essere un'arma.
+  const ground=h*.967;
+  for(let i=0;i<3;i++){
+    const ph=(t*.19+i/3)%1;
+    const rx=w*(.22+.29*ph),ry=h*(.017+.022*ph);
+    const alpha=(1-ph)*(.46+i*.07);
+    ctx.save();ctx.globalAlpha=alpha;
+    ctx.strokeStyle=i===0?'#ffe9ff':i===1?'#be90ff':'#94d8ff';
+    ctx.shadowColor='#ad56ff';ctx.shadowBlur=Math.min(17,w*.05);
+    ctx.lineWidth=Math.max(.8,w*(.008-.003*ph));
+    ctx.beginPath();ctx.ellipse(w*.5,ground,rx,ry,0,0,tau);
+    ctx.stroke();ctx.restore();
+  }
+  for(let i=0;i<18;i++){
+    const a=i/18*tau-t*.14;
+    const x=w*.5+Math.cos(a)*w*.39;
+    const y=ground+Math.sin(a)*h*.032;
+    const yy=Math.sin(t*.61+i)*.5+.5;
+    ctx.save();ctx.globalAlpha=.35+.45*yy;
+    ctx.fillStyle=i%3===0?'#fff6ff':'#d3a8ff';
+    ctx.beginPath();ctx.moveTo(x,y-h*.008);
+    ctx.lineTo(x+w*.005,y);ctx.lineTo(x,y+h*.008);
+    ctx.lineTo(x-w*.005,y);ctx.closePath();ctx.fill();ctx.restore();
+  }
   ctx.restore();
   return true;
 }
