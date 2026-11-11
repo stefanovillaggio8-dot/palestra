@@ -4599,6 +4599,7 @@ async function annullaEventoCronologia(voce) {
   }
   await db.salva('note',annullaVoce(nota,evento));
   await ricaricaTutto();
+  await aggiornaSfideAutomatiche({rivalida:true});
   disegna();
   avviso('Azione annullata. Dati, statistiche e ricompense disponibili aggiornati.',{tipo:'ok',durata:6000});
 }
@@ -7600,9 +7601,13 @@ function aggiornaSfideAutomatiche({rivalida=false}={}) {
     let modificate = 0;
     if (rivalida) {
       for(const r of tutte) {
-        if(r.eliminata || !interpretaPremioSfida(r)) continue;
-        if(premioSfidaAncoraValido(r,args)===false) {
+        if(!interpretaPremioSfida(r)) continue;
+        const valida=premioSfidaAncoraValido(r,args)===true;
+        if(!r.eliminata && !valida) {
           await db.cestino('ricompense',r.id);
+          modificate++;
+        } else if(r.eliminata && valida) {
+          await db.recupera('ricompense',r.id);
           modificate++;
         }
       }
