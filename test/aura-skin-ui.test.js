@@ -90,3 +90,35 @@ test('equipaggiare, ricaricare e disequipaggiare conserva tutti gli acquisti e i
   assert.deepEqual((await db.tutti('profili')).find(p=>p.id==='account-1').equipaggiamento_aura,{});
   assert.deepEqual(await db.tutti('ricompense'),spese);
 });
+
+
+test('v473: l\'anteprima Astrale non mostra mai solo la foto normale su Safari senza Canvas', async()=>{
+  // Il DOM dei test non espone ne getContext ne requestAnimationFrame:
+  // simula proprio il caso iPhone in cui il live renderer non e disponibile.
+  await avvia();
+  const prima={profili:await db.tutti('profili'),ricompense:await db.tutti('ricompense')};
+  window.location.hash='#/aura-shop';
+  await pausa();
+  const carta=perClasse(app,'aura-shop-card').find(c=>c.textContent.includes('Astrale · effetto cosmico'));
+  assert.ok(carta,'Astrale presente nello shop');
+  const anteprima=pulsante(carta,'Anteprima');
+  assert.ok(anteprima,'anteprima accessibile anche senza acquisto');
+  await anteprima.click();
+  const overlay=perClasse(body,'aura-preview-overlay')[0];
+  assert.ok(overlay,'overlay visualizzato');
+  for(const classe of ['Guerriero','Assassino','Berserker']){
+    const cambia=pulsante(overlay,classe);
+    assert.ok(cambia,'pulsante per '+classe);
+    await cambia.click();
+    const avatar=perClasse(overlay,'personaggio-scena-grafica')[0];
+    assert.ok(avatar,'immagine della classe '+classe);
+    assert.ok(avatar.classList.contains('shop-skin-mitica'),'Astrale equipaggiato in sola anteprima per '+classe);
+    assert.equal(perClasse(avatar,'rpg-astrale-presenza').length,1,'fallback visibile indipendentemente da Canvas su '+classe);
+    assert.equal(perClasse(avatar,'rpg-astrale-scintilla').length,3,'scintille visibili per '+classe);
+    assert.equal(perClasse(avatar,'personaggio-ritratto').length,1,'foto originale conservata per '+classe);
+  }
+  await pulsante(overlay,'Chiudi').click();
+  assert.equal(perClasse(body,'aura-preview-overlay').length,0);
+  assert.deepEqual({profili:await db.tutti('profili'),ricompense:await db.tutti('ricompense')},
+    prima,'la preview non cambia classe reale, acquisti o saldi');
+});

@@ -32,7 +32,8 @@ test('v365: app uses the original stage photograph, no second aura overlay and o
  assert.match(app,/const fotoAuraDivinaRpg=percorsoFotoAuraDivinaV366/);
  assert.match(app,/src: fotoAuraDivinaRpg \|\| fotoCoronaRpg/);
  assert.match(app,/divina: auraDivinaAttiva && !fotoAuraDivinaRpg/);
- assert.match(app,/const auraDivinaAttiva=auraDivinaAnteprima \|\| \(Boolean\(viso\.aura\) && !effettoEquipaggiato\)/);
+ assert.match(app,/const auraDivinaAttiva=auraDivinaAnteprima \|\| \(Boolean\(viso\.aura\) && !effettoEquipaggiato && !astraleAttiva\)/);
+ assert.match(app,/if \(astraleAttiva\) \{[\s\S]{0,950}rpg-astrale-presenza/,'Astrale prioritario nello slot Effetto con presenza visibile');
  assert.match(app,/armaSbloccataRpg\(rpg.premi\)/);
  assert.match(file('src/anteprima-combinata-rpg.js'),/aura-divina-v\(\?:365\|366\)/);
  assert.doesNotMatch(app,/db\.salva\([^)]*auraDivinaRpg/);
