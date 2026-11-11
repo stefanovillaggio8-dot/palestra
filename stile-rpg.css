@@ -2663,3 +2663,28 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
   pointer-events:none!important;
   filter:none!important;
 }
+
+
+/* v480 · SUPERNOVA LEGGENDARIA: tre nuclei e gas volumetrico.
+   L'effetto resta trasparente, con lo stesso zoom/framing di Astrale.
+   Nessun filtro cambia il ritratto o crea un'altra skin. */
+.personaggio-scena-grafica.shop-effetto-nebula > .rpg-nebulosa-presenza {
+  background-image:url('img/effetti/nebulosa-nuclei-assassino-v480.svg')!important;
+  opacity:1!important;
+  filter:saturate(1.32) brightness(1.10)!important;
+}
+.personaggio-scena-grafica.personaggio-guerriero.shop-effetto-nebula > .rpg-nebulosa-presenza {
+  background-image:url('img/effetti/nebulosa-nuclei-guerriero-v480.svg')!important;
+}
+.personaggio-scena-grafica.personaggio-berserker.shop-effetto-nebula > .rpg-nebulosa-presenza {
+  background-image:url('img/effetti/nebulosa-nuclei-berserker-v480.svg')!important;
+}
+.personaggio-scena-grafica.rpg-render-live.rpg-fx-attiva.shop-effetto-nebula > .rpg-nebulosa-presenza {
+  opacity:.53!important; /* profondità statica, tre supernove animate sopra */
+}
+.personaggio-scena-grafica.shop-effetto-nebula {
+  border-color:rgba(141,165,254,.66);
+  box-shadow:0 0 0 1px rgba(138,196,255,.20),
+    0 0 25px rgba(113,82,230,.21),
+    0 16px 37px rgba(0,0,0,.44);
+}
