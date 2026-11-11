@@ -46,7 +46,8 @@ test('La Corona non costa Aura e la preview conserva tutti gli slot',async()=>{
   assert.match(app,/mitica: astraleAttiva/);
   assert.match(app,/rpg-corona-foto-v360/);
   assert.match(app,/effettoEquipaggiato\?\.id \|\| null/);
-  assert.match(fx,/mitica && tipo!=='effetto-nebula'/);
+  assert.match(fx,/if\(mitica\) \{/);
+  assert.match(fx,/astrale\(t\)/);
   assert.match(fx,/if\(divina && corona\)/);
   assert.doesNotMatch(app,/acquistaOggettoAura\(\{[^}]*corona-infinito/s);
 });
