@@ -617,156 +617,132 @@ export function dipingiRiftAstrale(ctx,w,h,classe='assassino',t=0,numeroStelle=7
 }
 
 
-// v478 · NEBULOSA COSMICA — Leggendario. Vortici di gas e bracci di galassia,
-// profondità cromatica turchese/indaco/rosa, comete e ammassi stellari.
-// Non produce avatar, texture di armatura, pugnali o zoom: è un overlay trasparente.
-// Le zone luminose più dense stanno sempre oltre il contorno specifico di classe.
+// v479 · NEBULOSA COSMICA: vera nube stellare, NON Astrale ricolorato.
+// Soltanto gas volumetrici, ammassi di stelle e polvere cosmica, nessun
+// nastro verticale, filamento neon, portale runico o fotografia sostitutiva.
+// Tutto segue i contorni delle tre classi e conserva esattamente lo zoom.
+// Un singolo Canvas trasparente è disegnato sopra la fotografia originale.
 export function dipingiNebulosaCosmica(ctx,w,h,classe='assassino',t=0,stars=68) {
   if(!ctx || w<16 || h<20 || typeof ctx.createRadialGradient!=='function')return false;
-  const pi=Math.PI,tau=2*pi;
+  const TAU2=Math.PI*2;
   const fract=n=>n-Math.floor(n);
-  const rand=n=>fract(Math.sin(n*127.1+39.27)*43758.5453);
-  const outside=(side,y,dist)=>puntoLaterale(classe,Math.max(.01,Math.min(.99,y)),side,Math.max(.014,dist))*w;
-  const wave=.83+.17*Math.sin(t*.42);
-  const palette=['#4ee6f2','#8c9aff','#d784ff','#ffaadf','#dcfcff'];
-  ctx.save();
-  // 11 banchi di gas colorato con gradienti ellittici, in movimento lento.
-  const blobs=[
-    [-1,.13,.12,.24,.17,'rgba(36,198,230,.88)'],
-    [-1,.27,.24,.25,.25,'rgba(74,93,225,.83)'],
-    [-1,.45,.40,.33,.30,'rgba(160,78,245,.77)'],
-    [-1,.70,.60,.30,.27,'rgba(38,169,221,.82)'],
-    [-1,.87,.81,.25,.18,'rgba(229,76,177,.70)'],
-    [ 1,.10,.12,.22,.19,'rgba(132,82,246,.80)'],
-    [ 1,.33,.28,.30,.28,'rgba(48,181,231,.84)'],
-    [ 1,.52,.47,.27,.28,'rgba(171,80,246,.76)'],
-    [ 1,.79,.68,.24,.26,'rgba(70,136,248,.82)'],
-    [ 1,.90,.88,.23,.17,'rgba(105,223,233,.75)'],
-    [ 1,.57,.13,.18,.15,'rgba(229,110,220,.62)']
+  const rnd=n=>fract(Math.sin(n*127.1+39.27)*43758.5453);
+  const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
+  const outside=(side,y,d)=>puntoLaterale(classe,clamp(y,.005,.995),side,Math.max(.022,d))*w;
+  const breathe=.92+.08*Math.sin(t*.48);
+  const lum=[
+    [59,213,248], // gas ossigeno: turchese elettrico
+    [85,113,240], // idrogeno ionizzato: indaco
+    [190,97,242], // lilla tenue
+    [251,108,190],// riflessi magenta
+    [158,235,253] // stelle che illuminano le nubi
   ];
-  for(let i=0;i<blobs.length;i++){
-    const [side,,yy,rx,ry,color]=blobs[i];
-    const y=(yy+.016*Math.sin(t*.22+i*.8))*h;
-    const x=outside(side,yy,.07+.022*Math.sin(t*.18+i))+(side*w*.012*Math.cos(t*.27+i));
-    ctx.save();ctx.globalAlpha=(.45+.09*Math.sin(t*.48+i))*wave;
-    ctx.translate(x,y);ctx.scale(1,Math.max(.1,ry*h/(rx*w)));
-    const radius=rx*w;
-    const g=ctx.createRadialGradient(0,0,0,0,0,radius);
-    g.addColorStop(0,color);
-    g.addColorStop(.38,color.replace(/,\s*0?\.\d+\)/,',.34)'));
-    g.addColorStop(1,'rgba(0,0,0,0)');
-    ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,radius,0,tau);ctx.fill();
+  // Ogni banco è fatto di macchie IRREGOLARI: non di linee sovrapposte.
+  // Le macchie più grandi formano il gas, i nuclei piccoli creano profondità.
+  const cloud=(x,y,rx,ry,rgb,alpha)=>{
+    if(alpha<=.003)return;
+    ctx.save();
+    ctx.globalAlpha=alpha;
+    ctx.translate(x,y);
+    ctx.scale(Math.max(2,rx),Math.max(2,ry));
+    const g=ctx.createRadialGradient(0,0,0,0,0,1);
+    const p=(a)=>'rgba('+rgb[0]+','+rgb[1]+','+rgb[2]+','+a+')';
+    g.addColorStop(0,p(.74));
+    g.addColorStop(.26,p(.46));
+    g.addColorStop(.58,p(.13));
+    g.addColorStop(1,p(0));
+    ctx.fillStyle=g;
+    ctx.beginPath();ctx.arc(0,0,1,0,TAU2);ctx.fill();
     ctx.restore();
-  }
-
-  // Bracci di galassia incurvati verso l'esterno, con ampiezza tridimensionale;
-  // niente semplici strisce a lato. Ogni traccia è composta da 3 passate.
-  for(const side of [-1,1]){
-    for(let arm=0;arm<3;arm++){
-      const path=()=>{
-        ctx.beginPath();
-        for(let j=0;j<=42;j++){
-          const y=.09+(j/42)*.79;
-          const angle=11*y-t*.38+arm*1.7+side;
-          const spiral=.065+arm*.043+
-            .074*Math.sin(angle)+.036*Math.cos(23*y+t*.21+arm*.7);
-          const x=outside(side,y,spiral);
-          const py=(y+.009*Math.sin(angle+arm))*h;
-          if(!j)ctx.moveTo(x,py);else ctx.lineTo(x,py);
-        }
-      };
-      const col=side<0?['#48d7f3','#87d9ff','#e1faff']:['#8a76fb','#d28cff','#ffe3fa'];
-      for(let layer=0;layer<3;layer++){
-        ctx.save();
-        ctx.globalAlpha=[.13,.37,.80][layer]*(1-arm*.18)*wave;
-        ctx.lineCap='round';ctx.lineJoin='round';
-        ctx.strokeStyle=col[layer];
-        ctx.lineWidth=Math.max(.7,w*[.085,.031,.0046][layer]);
-        ctx.shadowBlur=Math.min(22,w*[.090,.07,.036][layer]);
-        ctx.shadowColor=col[1];path();ctx.stroke();ctx.restore();
-      }
-    }
-  }
-
-  // Doppia galassia orbitante: archi spezzati, distinti dall'eclissi Astrale.
-  // La prospettiva è laterale, verso le spalle, mai un ovale sul volto.
-  for(let side of [-1,1]){
-    for(let orbit=0;orbit<2;orbit++){
-      const y0=.27+orbit*.35;
-      const x0=outside(side,y0,.13+orbit*.025),cy=y0*h;
-      const phase=t*(side<0?.11:-.09)+orbit*.9;
-      ctx.save();
-      ctx.strokeStyle=side<0?'#75e5fc':'#d4a1ff';
-      ctx.shadowColor=ctx.strokeStyle;ctx.shadowBlur=Math.min(20,w*.065);
-      ctx.lineWidth=Math.max(.8,w*(orbit?.004:.006));
-      ctx.globalAlpha=(orbit?.28:.44)*wave;
-      ctx.beginPath();
-      ctx.ellipse(x0,cy,w*(.105+orbit*.035),h*.065,
-        -side*.5,phase,phase+pi*1.30);
-      ctx.stroke();ctx.restore();
-    }
-  }
-  // Ammassi stellari: densità non uniforme come una piccola galassia.
-  for(let i=0;i<stars;i++){
-    const side=i%2?-1:1;
-    const cluster=(i%5<3?.035:.14);
-    const yy=.06+.88*rand(i*7+3);
-    const x=outside(side,yy,cluster+.12*rand(i*13+2)+
-      .011*Math.sin(t*.33+i));
-    const y=(yy+.006*Math.cos(t*.35+i))*h;
-    const radius=Math.max(.45,w*(.0015+.0055*rand(i*27+12)));
-    const alpha=(.40+.44*(.5+.5*Math.sin(t*(.4+.55*rand(i*5+1))+i)))*wave;
-    const color=palette[i%palette.length];
-    ctx.save();ctx.globalAlpha=alpha;ctx.fillStyle=color;
-    ctx.shadowColor=color;ctx.shadowBlur=Math.max(3,Math.min(14,radius*5));
-    ctx.beginPath();ctx.arc(x,y,radius,0,tau);ctx.fill();
-    if(i%11===0){
-      ctx.strokeStyle='#f1faff';ctx.lineWidth=Math.max(.6,w*.0019);
-      ctx.beginPath();ctx.moveTo(x-w*.016,y);ctx.lineTo(x+w*.016,y);
-      ctx.moveTo(x,y-h*.01);ctx.lineTo(x,y+h*.01);ctx.stroke();
-    }
-    if(i%23===0){
-      ctx.strokeStyle=color;ctx.lineWidth=Math.max(.7,w*.0025);
-      ctx.beginPath();ctx.moveTo(x-side*w*.05,y+h*.022);ctx.lineTo(x,y);
-      ctx.stroke();
-    }
-    ctx.restore();
-  }
-
-  // Pozza luminosa, NON il sigillo runico di Astrale: identità leggendaria.
-  const gy=h*.962;
+  };
   ctx.save();
-  const g=ctx.createRadialGradient(w*.5,gy,0,w*.5,gy,w*.45);
-  g.addColorStop(0,'rgba(95,213,250,.38)');
-  g.addColorStop(.54,'rgba(125,99,255,.19)');
-  g.addColorStop(1,'rgba(0,0,0,0)');
-  ctx.globalAlpha=.55*wave;ctx.fillStyle=g;
-  ctx.beginPath();ctx.ellipse(w*.5,gy,w*.45,h*.065,0,0,tau);
-  ctx.fill();ctx.restore();
-  for(let k=0;k<2;k++){
-    ctx.save();ctx.globalAlpha=(.55-k*.22)*wave;
-    ctx.strokeStyle=k?'#bf99ff':'#88ecff';
-    ctx.shadowColor='#65bdf8';ctx.shadowBlur=Math.min(18,w*.052);
-    ctx.lineWidth=Math.max(.9,w*(.005-k*.001));
-    ctx.beginPath();ctx.ellipse(w*.5,gy,w*(.39-k*.085),h*(.026-k*.009),
-      0,0,tau);ctx.stroke();ctx.restore();
+  // Nubi profonde: quattro masse asimmetriche per lato (niente simmetria da ali).
+  const banks=[
+    [-1,.15,.10,.19,.22,0],[-1,.38,.15,.25,.20,1],
+    [-1,.64,.12,.21,.19,2],[-1,.85,.10,.16,.16,3],
+    [ 1,.19,.13,.24,.24,1],[ 1,.48,.13,.24,.24,2],
+    [ 1,.71,.09,.22,.20,0],[ 1,.88,.10,.16,.15,3]
+  ];
+  for(let k=0;k<banks.length;k++){
+    const [side,cy,dist,rx,ry,pal]=banks[k];
+    const y=(cy+.019*Math.sin(t*.19+k*1.3))*h;
+    const x=outside(side,cy,dist);
+    cloud(x,y,rx*w,ry*h,lum[pal],(.30+.06*Math.sin(t*.26+k))*breathe);
   }
-  // Protezione reale delle fotografie: cancella il velo nebularare sulla sagoma
-  // prima di comporre il Canvas. Non altera la foto, la scala o il corpo.
+  // Punti di condensazione, 6–10 per banco. Posizioni coerenti fra frame,
+  // evoluzione lenta indipendente, variabilità di dimensioni e trasparenza.
+  const perBank=stars<=45?6:10;
+  for(let k=0;k<banks.length;k++){
+    const [side,cy,dist,rx,ry,pal]=banks[k];
+    for(let i=0;i<perBank;i++){
+      const id=k*79+i*37;
+      const yy=clamp(cy+(rnd(id+9)-.5)*ry*1.92,.05,.92);
+      const dd=dist+(rnd(id+13)-.5)*rx*.94
+        +.015*Math.sin(t*.22+id*.17);
+      const x=outside(side,yy,Math.max(.027,dd));
+      const y=(yy+.008*Math.cos(t*.32+id))*h;
+      const rr=w*(.026+.079*rnd(id+18));
+      const vr=h*(.025+.083*rnd(id+24));
+      const color=lum[(pal+(i%3===0?1:0))%lum.length];
+      const alpha=(.12+.20*rnd(id+28))
+        *(.80+.20*Math.sin(t*.41+id*.1)**2);
+      cloud(x,y,rr,vr,color,alpha*breathe);
+    }
+  }
+  // Due regioni nebulari più luminose: stelle illuminano il gas circostante.
+  for(const [side,yy,dist,pal,seed] of [
+    [-1,.31,.16,4,7],[1,.59,.15,2,9],[-1,.78,.10,3,13]
+  ]){
+    const x=outside(side,yy,dist);
+    const y=(yy+.009*Math.sin(t*.27+seed))*h;
+    cloud(x,y,w*.102,h*.085,lum[pal],.52*breathe);
+    cloud(x,y,w*.042,h*.037,[255,249,255],.17*breathe);
+  }
+  // Polvere galattica: tante stelle PICCOLE intorno a tutte le silhouette.
+  // I corpi rimangono protetti dalla maschera finale.
+  const count=Math.max(20,Math.min(stars,100));
+  for(let i=0;i<count;i++){
+    const side=i%2?-1:1;
+    const yy=.035+.92*rnd(i*23+6);
+    const dist=.026+.20*rnd(i*19+5);
+    const x=outside(side,yy,dist);
+    const y=(yy+.011*Math.sin(t*(.11+.09*rnd(i*7))+i))*h;
+    const r=Math.max(.50,w*(.0012+.0035*rnd(i*29+8)));
+    const rgb=lum[(i+2)%lum.length];
+    const twinkle=(.34+.57*(.5+.5*Math.sin(t*(.45+rnd(i*47))+i*1.9)));
+    ctx.save();
+    ctx.globalAlpha=twinkle;ctx.fillStyle='rgb('+rgb.join(',')+')';
+    ctx.shadowColor=ctx.fillStyle;ctx.shadowBlur=Math.min(12,r*4);
+    ctx.beginPath();ctx.arc(x,y,r,0,TAU2);ctx.fill();
+    // Rari bagliori stellari a 4 punte, niente fasci o scie verticali.
+    if(i%16===0){
+      const d=w*(.009+.009*rnd(i+4));
+      ctx.globalAlpha=twinkle*.65;
+      ctx.beginPath();
+      ctx.moveTo(x,y-d*1.6);ctx.lineTo(x+d*.25,y);
+      ctx.lineTo(x,y+d*1.6);ctx.lineTo(x-d*.25,y);
+      ctx.closePath();ctx.fill();
+    }
+    ctx.restore();
+  }
+  // Diffusione sul terreno senza cerchi, rune, halo da Astrale.
+  cloud(w*.43,h*.954,w*.31,h*.040,lum[0],.30*breathe);
+  cloud(w*.57,h*.947,w*.29,h*.038,lum[2],.19*breathe);
+
+  // Svuotamento protettivo della sagoma originale, valido per ogni armatura,
+  // livello e arma. Il personaggio conserva i pixel e la scala d'origine.
   ctx.save();
   ctx.globalCompositeOperation='destination-out';
-  if('filter' in ctx)ctx.filter='blur('+Math.max(2,Math.round(w*.009))+'px)';
+  if('filter' in ctx)ctx.filter='blur('+Math.max(2,Math.round(w*.007))+'px)';
   ctx.fillStyle='#000';ctx.beginPath();
   for(let j=0;j<=80;j++){
-    const yy=j/80;
-    const [left]=bordoSagomaRpg(classe,yy);
-    const x=(left-.011)*w,y=yy*h;
-    if(!j)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+    const yy=j/80;const [left]=bordoSagomaRpg(classe,yy);
+    if(!j)ctx.moveTo((left-.014)*w,yy*h);
+    else ctx.lineTo((left-.014)*w,yy*h);
   }
   for(let j=80;j>=0;j--){
-    const yy=j/80;
-    const [,right]=bordoSagomaRpg(classe,yy);
-    ctx.lineTo((right+.011)*w,yy*h);
+    const yy=j/80;const [,right]=bordoSagomaRpg(classe,yy);
+    ctx.lineTo((right+.014)*w,yy*h);
   }
   ctx.closePath();ctx.fill();ctx.restore();
   ctx.restore();
