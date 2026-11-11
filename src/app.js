@@ -8260,9 +8260,9 @@ function bloccoPersonaggio(profilo, st) {
       corona:false,
       divina:false,
     });
-    const effettoVivo=!auraDivinaAttiva && !fotoCoronaRpg && !fotoArmaturaArmataRpg && usaEffettiViviRpg(astraleAttiva ? null : effettoEquipaggiato?.id || null,{
+    const effettoVivo=!auraDivinaAttiva && usaEffettiViviRpg(astraleAttiva ? null : effettoEquipaggiato?.id || null,{
       mitica:astraleAttiva,
-    }) && !fotoEffettoPremium;
+    }) && (astraleAttiva || (!fotoCoronaRpg && !fotoArmaturaArmataRpg && !fotoEffettoPremium));
     // Ambra, Fulmine e Astrale usano UN solo renderer Canvas. Prima il
     // compositore fotografico li nascondeva tramite rpg-composite-active.
     if (effettoVivo) grafica.classList.add('rpg-render-live');
@@ -8307,7 +8307,8 @@ function bloccoPersonaggio(profilo, st) {
     });
     // La classe rpg-composite-active viene attivata dal renderer, SOLO
     // quando la fotografia è pronta: nessun avatar senza effetti su Safari.
-    if (!fotoCoronaRpg && !fotoArmaturaArmataRpg && (effettoVivo || (!scenaFotografica && !combinata))) {
+    if ((astraleAttiva && effettoVivo) ||
+       (!fotoCoronaRpg && !fotoArmaturaArmataRpg && (effettoVivo || (!scenaFotografica && !combinata)))) {
       montaEffettiRpg(grafica, effettoVivo ? (astraleAttiva ? null : effettoEquipaggiato?.id || null) : null, {
         divina: false, // La fotografia già conserva l'Aura originale
         corona: false,
