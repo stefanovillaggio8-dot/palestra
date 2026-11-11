@@ -55,9 +55,9 @@ test('v468: le altre icone approvate rimangono identiche e gli esercizi sono 81'
 });
 
 test('v468: versioni sincronizzate e rendering senza scritture dei dati',()=>{
-  assert.match(text('sw.js'),/const VERSIONE = 'palestra-v475'/);
-  assert.match(text('index.html'),/PALESTRA_VERSIONE = 'palestra-v475'/);
-  assert.match(text('index.html'),/app\.js\?v=475/);
+  assert.match(text('sw.js'),/const VERSIONE = 'palestra-v476'/);
+  assert.match(text('index.html'),/PALESTRA_VERSIONE = 'palestra-v476'/);
+  assert.match(text('index.html'),/app\.js\?v=476/);
   assert.match(text('verifica-icone.html'),/Palestra v474/);
   for(const forbidden of ['localStorage.setItem','supabase.from','salvaSerie','eliminaSeduta']) {
     assert.ok(!text('src/exercise-icons.js').includes(forbidden),forbidden);

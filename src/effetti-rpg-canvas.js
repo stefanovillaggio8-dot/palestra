@@ -482,3 +482,64 @@ export function montaEffettiRpg(elemento,tipo,{corona=false,divina=false,mitica=
   pianifica();
   return cleanup;
 }
+
+
+// v476 — fotoritocco additivo per l'Atelier: nessuna nuova armatura, posa o volto.
+// Disegna lo stesso tipo di energia del motore live, esternamente alla sagoma
+// specifica di ogni classe, sopra un ritratto che rimane intatto.
+export function disegnaAstraleExport(ctx,{classe='guerriero',x=0,y=0,width=780,height=1170}={}) {
+  if(!ctx || typeof ctx.createRadialGradient!=='function')return false;
+  const w=width,h=height;
+  ctx.save();ctx.translate(x,y);
+  for(const lato of [-1,1]) {
+    const cx=w*(lato<0?.08:.92);
+    const grad=ctx.createRadialGradient(cx,h*.49,0,cx,h*.49,w*.28);
+    grad.addColorStop(0,lato<0?'rgba(183,74,255,.26)':'rgba(75,215,255,.23)');
+    grad.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.save();ctx.fillStyle=grad;ctx.fillRect(0,0,w,h);ctx.restore();
+    for(let fascia=0;fascia<3;fascia++) {
+      ctx.save();ctx.globalAlpha=.86-fascia*.20;
+      ctx.lineCap='round';ctx.lineJoin='round';
+      ctx.strokeStyle=(lato<0?['#9e66ff','#eea7ff','#fff5ff']:
+        ['#49ddff','#b9eeff','#efcfff'])[fascia];
+      ctx.lineWidth=Math.max(1.5,w*(.010-fascia*.002));
+      ctx.shadowColor=lato<0?'#9e5bff':'#62e3ff';
+      ctx.shadowBlur=Math.max(7,w*.036);
+      ctx.beginPath();
+      for(let i=0;i<=40;i++) {
+        const yy=.10+.79*i/40;
+        const wave=Math.sin(yy*13+fascia*1.2+lato*.7)*.02;
+        const xx=puntoLaterale(classe,yy,lato,.018+fascia*.021+wave)*w;
+        if(i===0)ctx.moveTo(xx,yy*h);else ctx.lineTo(xx,yy*h);
+      }
+      ctx.stroke();ctx.restore();
+    }
+  }
+  // Scie e costellazioni sempre esterne all'avatar, senza incollare un'altra skin.
+  for(let i=0;i<36;i++) {
+    const yy=.09+((i*0.6180339887)%1)*.83,lato=i%2?-1:1;
+    const offset=.035+((i*0.3819660113)%1)*.09;
+    const xx=puntoLaterale(classe,yy,lato,offset)*w;
+    const r=Math.max(1,w*(i%9===0?.005:.002));
+    ctx.save();ctx.fillStyle=i%3===0?'#fff7ff':i%3===1?'#b1eaff':'#e5adff';
+    ctx.shadowColor=ctx.fillStyle;ctx.shadowBlur=r*6;
+    ctx.globalAlpha=.55+(i%4)*.10;
+    ctx.beginPath();ctx.arc(xx,yy*h,r,0,TAU);ctx.fill();
+    if(i%9===0){
+      ctx.strokeStyle=ctx.fillStyle;ctx.lineWidth=Math.max(1,w*.0015);
+      ctx.beginPath();ctx.moveTo(xx-r*4,yy*h);ctx.lineTo(xx+r*4,yy*h);
+      ctx.moveTo(xx,yy*h-r*4);ctx.lineTo(xx,yy*h+r*4);ctx.stroke();
+    }
+    ctx.restore();
+  }
+  ctx.save();ctx.strokeStyle='#c496ff';ctx.shadowColor='#ba75ff';
+  ctx.shadowBlur=Math.max(6,w*.030);ctx.globalAlpha=.76;
+  ctx.lineWidth=Math.max(1.5,w*.004);
+  if(typeof ctx.ellipse==='function') {
+    ctx.beginPath();ctx.ellipse(w*.5,h*.965,w*.36,h*.025,0,0,TAU);ctx.stroke();
+    ctx.globalAlpha=.4;ctx.strokeStyle='#78e7ff';
+    ctx.beginPath();ctx.ellipse(w*.5,h*.965,w*.25,h*.016,0,0,TAU);ctx.stroke();
+  }
+  ctx.restore();ctx.restore();
+  return true;
+}

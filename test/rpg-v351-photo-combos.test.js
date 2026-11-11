@@ -9,27 +9,22 @@ const armature={
  guerriero:['armatura-guerriero-braci','armatura-guerriero-abisso'],
  berserker:['armatura-berserker-rabbia','armatura-berserker-apocalisse']
 };
-test('216 combinazioni fotografiche uniche: tre classi, 8 stati/armature, 9 effetti',()=>{
+test('96 foto degli effetti ordinari, Astrale sempre procedurale',()=>{
  const chiavi=new Set();
  for(const [classe,armors] of Object.entries(armature)){
    for(const base of [0,1,2,3,4,5,...armors]){
-     for(const effetto of [null,'effetto-ambra','effetto-fulmine','effetto-ombra','effetto-nebula']){
-       for(const astrale of [false,true]){
-         if(!effetto&&!astrale)continue;
-         const config={
-           classe,stato:typeof base==='number'?base:2,
-           armatura:typeof base==='string'?base:null,
-           effetto,skin:astrale?'skin-mitica':null,
-         };
-         const url=percorsoCombinazioneFotoRpg(config);
-         assert.ok(url && url.startsWith('img/personaggi/combinazioni/'+classe+'/'));
-         assert.ok(!chiavi.has(url),'duplicato '+url);
-         chiavi.add(url);
-       }
+     for(const effetto of ['effetto-ambra','effetto-fulmine','effetto-ombra','effetto-nebula']){
+       const config={classe,stato:typeof base==='number'?base:2,
+         armatura:typeof base==='string'?base:null,effetto};
+       const url=percorsoCombinazioneFotoRpg(config);
+       assert.ok(url && url.startsWith('img/personaggi/combinazioni/'+classe+'/'));
+       assert.ok(!chiavi.has(url),'duplicato '+url);
+       chiavi.add(url);
+       assert.equal(percorsoCombinazioneFotoRpg({...config,skin:'skin-mitica'}),null);
      }
    }
  }
- assert.equal(chiavi.size,216);
+ assert.equal(chiavi.size,96);
 });
 test('Le foto premium più definite restano prioritarie; la skin dello shop usa la corazza giusta',()=>{
  for(const classe of Object.keys(armature)){
@@ -38,8 +33,7 @@ test('Le foto premium più definite restano prioritarie; la skin dello shop usa 
    const armor=armature[classe][1];
    assert.match(percorsoScenaSpecialeRpg({classe,armatura:armor,stato:2,effetto:'effetto-fulmine'}),
      new RegExp(armor+'/fulmine\\.webp'));
-   assert.match(percorsoScenaSpecialeRpg({classe,armatura:armor,stato:2,effetto:'effetto-ombra',skin:'skin-mitica'}),
-     new RegExp(armor+'/ombra-astrale\\.webp'));
+   assert.equal(percorsoScenaSpecialeRpg({classe,armatura:armor,stato:2,effetto:'effetto-ombra',skin:'skin-mitica'}),null);
  }
 });
 test('Un pugnale, una spada o un ascia già sbloccati non vengono mai cancellati',()=>{

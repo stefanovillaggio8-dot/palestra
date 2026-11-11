@@ -51,6 +51,7 @@ export const EFFETTI_FOTOGRAFICI_RPG = Object.freeze({
 export function percorsoCombinazioneFotoRpg({classe,armatura=null,effetto=null,
  skin=null,corona=false,divina=false,stato=null,stadio=null,armaSbloccata=false}={}) {
  if(!Object.hasOwn(SCENE_ATLANTI_RPG,classe) || corona || divina)return null;
+ if(skin==='skin-mitica')return null; // Astrale è solo effetto, nessun collage sostituisce la skin
  if(skin && skin!=='skin-mitica')return null;
  const fx=EFFETTI_FOTOGRAFICI_RPG[effetto];
  if(effetto && !fx)return null;
@@ -75,11 +76,8 @@ export function percorsoCombinazioneFotoRpg({classe,armatura=null,effetto=null,
 }
 export function percorsoScenaSpecialeRpg({classe,armatura=null,effetto=null,skin=null,
   corona=false,divina=false,stato=null,stadio=null,armaSbloccata=false}={}) {
-  // La forma Astrale dell'Assassino include già i pugnali nella scena completa.
-  // L'acquisto richiede una streak elevata: non altera né anticipa gli sblocchi reali.
-  // Solo senza altre armature/effetti/corone da preservare: mai nascondere acquisti.
-  if(classe==='assassino' && skin==='skin-mitica' && !armatura && !effetto && !corona && !divina)
-    return FOTO_EFFETTI_PREMIUM_RPG.assassino['skin-mitica'];
+  // Tutte le classi: il Mitico lascia invariati il ritratto e le armi originali.
+  if(skin==='skin-mitica')return null;
   const raw=stadio??stato;
   if(!armatura&&!armaSbloccata&&!corona&&!divina &&
     (raw===null||raw===undefined||Number(raw)<4)) {
@@ -183,6 +181,7 @@ export async function fotoCinematograficaRpg(opzioni={}) {
  * Le immagini mancanti su GitHub lasciano intatta la v341.
  */
 export function montaScenaCinematograficaRpg(grafica,foto,opzioni={}) {
+  if(opzioni.skin==='skin-mitica')return false;
   const speciale=percorsoScenaSpecialeRpg(opzioni);
   const indice=indiceScenaCinematograficaRpg(opzioni);
   if((indice===null&&!speciale) || !grafica || !foto)return false;
@@ -193,12 +192,6 @@ export function montaScenaCinematograficaRpg(grafica,foto,opzioni={}) {
     // Una fotografia completa, già con armatura, fumo, luce e corona integrati.
     // L'eventuale renderer precedente resta nel DOM solo come fallback.
     foto.src=src;
-    // La fotografia mitica e' completa: elimina il vecchio effetto-adesivo solo
-    // DOPO che la nuova immagine e' stata caricata correttamente.
-    if(opzioni.skin==='skin-mitica'){
-      grafica.querySelector?.('.rpg-astrale-presenza')?.remove?.();
-      grafica.classList.add('rpg-foto-mitica-integrale');
-    }
     grafica.classList.add('rpg-scena-cinematografica');
     if(speciale)grafica.classList.add('rpg-scena-foto-speciale');
     grafica.classList.add('rpg-composite-active');
