@@ -717,20 +717,15 @@ export function dipingiNebulosaCosmica(ctx,w,h,classe='assassino',t=0,stars=68) 
     cloud(x,y,w*.19,h*.16,n.col,.84*pulsa);
     cloud(x,y,w*.095,h*.082,[248,225,255],.79*pulsa);
     cloud(x,y,w*.037,h*.031,[255,255,255],.95*pulsa);
-    // Una vera STELLA luminosa a quattro punte, non una linea neon.
-    const rr=w*(k===0?.023:k===1?.020:.014);
-    const stretch=h*(k===0?.040:k===1?.034:.023);
-    ctx.save();ctx.translate(x,y);
-    ctx.globalAlpha=.85*pulsa;
-    ctx.fillStyle='#fcffff';
+    // v481: niente tre adesivi a rombo: nuclei tondi, diffusi nel gas
+    // con luminosità diversa e piccole variazioni di intensità.
+    const rr=w*(k===0?.016:k===1?.013:.009);
+    ctx.save();ctx.globalAlpha=.74*pulsa;
+    ctx.fillStyle='#f5ffff';
     ctx.shadowColor=k===0?'#70f1ff':k===1?'#de9bff':'#ffc4ee';
-    ctx.shadowBlur=Math.max(8,w*.10);
-    ctx.beginPath();ctx.moveTo(0,-stretch);
-    ctx.quadraticCurveTo(rr*.18,-rr*.26,rr*1.6,0);
-    ctx.quadraticCurveTo(rr*.18,rr*.24,0,stretch);
-    ctx.quadraticCurveTo(-rr*.18,rr*.26,-rr*1.6,0);
-    ctx.quadraticCurveTo(-rr*.18,-rr*.24,0,-stretch);
-    ctx.closePath();ctx.fill();ctx.restore();
+    ctx.shadowBlur=Math.max(10,w*.068);
+    ctx.beginPath();ctx.arc(x,y,rr,0,TAU2);ctx.fill();
+    ctx.restore();
 
     // Polvere in orbita gravitazionale: una spirale fatta di singoli granelli,
     // mai di fasci o curve fluorescenti. L'insieme gira dolcemente.
@@ -768,6 +763,23 @@ export function dipingiNebulosaCosmica(ctx,w,h,classe='assassino',t=0,stars=68) 
     ctx.restore();
   }
 
+  // v481: gas in ricircolo. La galassia sembra UN SOLO evento, non
+  // tre luci separate. Le volute sono nubi irregolari con bordi morbidi,
+  // non tubi al neon, e seguono la sagoma senza coprire il personaggio.
+  for(let j=0;j<4;j++){
+    const side=j%2?-1:1;
+    const steps=stars<=45?7:12; // 20 fps iPhone, qualità invariata
+    for(let i=0;i<steps;i++){
+      const p=i/steps,yy=.12+.72*p;
+      const twist=Math.sin(yy*9.5-t*.22+j*1.73);
+      const dist=.075+.085*(.5+.5*twist)+.025*Math.cos(yy*17+j);
+      const x=outside(side,yy,dist);
+      const y=(yy+.017*Math.cos(t*.19+j+p*7))*h;
+      const tone=lum[(j+i%3)%lum.length];
+      const alpha=(.18+.12*Math.sin(p*Math.PI))*(.86+.14*Math.cos(t*.31+j));
+      cloud(x,y,w*(.056+.042*Math.sin(p*Math.PI)),h*(.052+.04*Math.sin(p*Math.PI)),tone,alpha);
+    }
+  }
   // Polvere galattica: tante stelle PICCOLE intorno a tutte le silhouette.
   // I corpi rimangono protetti dalla maschera finale.
   const count=Math.max(20,Math.min(stars,100));
