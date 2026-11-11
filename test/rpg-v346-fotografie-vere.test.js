@@ -62,7 +62,7 @@ test('Le nuove foto premium sono dedicate a tutte le classi e non anticipano le 
      assert.equal(percorsoScenaSpecialeRpg({...base,effetto:id,corona:true}),null);
      assert.equal(percorsoScenaSpecialeRpg({...base,effetto:id,divina:true}),null);
    }
-   const finale=classe==='assassino' ? /assassino-astrale-mitico-v475\\.avif/ : new RegExp(classe+'-astrale\\.webp');
+   const finale=classe==='assassino' ? /assassino-astrale-mitico-v475\.avif/ : new RegExp(classe+'-astrale\\.webp');
    assert.match(percorsoScenaSpecialeRpg({...base,skin:'skin-mitica'}),finale);
    assert.match(percorsoScenaSpecialeRpg({...base,skin:'skin-mitica',effetto:'effetto-fulmine'}),/stato-2\/fulmine-astrale\.webp/);
    const armaMitica=percorsoScenaSpecialeRpg({...base,skin:'skin-mitica',stato:4});
