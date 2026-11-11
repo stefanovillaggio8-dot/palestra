@@ -7983,6 +7983,8 @@ function bloccoPersonaggio(profilo, st) {
   const armaturaEquipaggiata = OGGETTI_AURA.find((o) => o.id === equipaggiamentoRpg.Armatura && o.tipo === 'Armatura' && o.classe === (rpg.classe && rpg.classe.id));
   const effettoEquipaggiato = OGGETTI_AURA.find((o) => o.id === equipaggiamentoRpg.Effetto && o.tipo === 'Effetto');
   const astraleAttiva = equipaggiamentoRpg.Effetto === 'skin-mitica';
+  const nebulosaAttiva = equipaggiamentoRpg.Effetto === 'effetto-nebula';
+  const effettoCosmicoAttivo = astraleAttiva || nebulosaAttiva; // stesso zoom e fotografia
   const skinEquipaggiata = null; // Astrale occupa Effetto, non può sommarsi ad altri effetti.
   const titoloEquipaggiato = OGGETTI_AURA.find((o) => o.id === equipaggiamentoRpg.Titolo && o.tipo === 'Titolo');
 
@@ -8074,6 +8076,10 @@ function bloccoPersonaggio(profilo, st) {
         el('i',{class:'rpg-astrale-scintilla rpg-astrale-scintilla-b'}),
         el('i',{class:'rpg-astrale-scintilla rpg-astrale-scintilla-c'}),
       ]));
+    }
+    if (nebulosaAttiva) {
+      // Nebulosa: solo FX sopra la foto, senza alcuna immagine sostitutiva.
+      grafica.appendChild(el('div',{class:'rpg-nebulosa-presenza',aria:{hidden:'true'}}));
     }
     // L'AURA è il sesto premio: non ha un'immagine tutta sua (l'ultima riga è
     // già "tutto addosso"), quindi è una luce che si accende sopra la foto.
@@ -8206,14 +8212,14 @@ function bloccoPersonaggio(profilo, st) {
     const fotoArmaturaArmataRpg=percorsoFotoArmaturaArmataV371({
       classe:classeId,stato:statoFotoConsentito,
       armatura:armaturaEquipaggiata?.id || null,
-      effetto:astraleAttiva ? null : effettoEquipaggiato?.id || null,
+      effetto:effettoCosmicoAttivo ? null : effettoEquipaggiato?.id || null,
       armaSbloccata,
     });
     const fotoArmaturaRpg = fotoArmaturaArmataRpg || armaturaEquipaggiata?.immagine || null;
     const fotoCoronaRpg = coronaAttiva ? percorsoFotoCoronaV360({
       classe:classeId,stato:statoFotoConsentito,
       armatura:armaturaEquipaggiata?.id || null,
-      effetto:astraleAttiva ? null : effettoEquipaggiato?.id || null,
+      effetto:effettoCosmicoAttivo ? null : effettoEquipaggiato?.id || null,
       divina:auraDivinaAttiva, // Corona + Aura Divina coesistono nella stessa foto fedele, senza duplicati.
       armaSbloccata,
     }) : null;
@@ -8226,7 +8232,7 @@ function bloccoPersonaggio(profilo, st) {
       divina:auraDivinaAttiva,
       armatura:armaturaEquipaggiata?.id || null,
       corona:coronaAttiva,
-      effetto:astraleAttiva ? null : effettoEquipaggiato?.id || null,
+      effetto:effettoCosmicoAttivo ? null : effettoEquipaggiato?.id || null,
       anteprima:auraDivinaAnteprima,
       armaSbloccata,
     });
@@ -8267,18 +8273,18 @@ function bloccoPersonaggio(profilo, st) {
       armaSbloccata,
       armatura:armaturaEquipaggiata?.id || null,
       skin:astraleAttiva ? 'skin-mitica' : null,
-      effetto:astraleAttiva ? null : effettoEquipaggiato?.id || null,
+      effetto:effettoCosmicoAttivo ? null : effettoEquipaggiato?.id || null,
       corona:false,
       divina:false,
     });
     // v476: Astrale è un effetto, mai una nuova foto o skin.
     const effettoVivo=!auraDivinaAttiva && usaEffettiViviRpg(astraleAttiva ? null : effettoEquipaggiato?.id || null,{
       mitica:astraleAttiva,
-    }) && (astraleAttiva || (!fotoCoronaRpg && !fotoArmaturaArmataRpg && !fotoEffettoPremium));
+    }) && (effettoCosmicoAttivo || (!fotoCoronaRpg && !fotoArmaturaArmataRpg && !fotoEffettoPremium));
     // Ambra, Fulmine e Astrale usano UN solo renderer Canvas. Prima il
     // compositore fotografico li nascondeva tramite rpg-composite-active.
     if (effettoVivo) grafica.classList.add('rpg-render-live');
-    const scenaFotografica = !astraleAttiva && (!effettoVivo || auraDivinaAttiva) && montaFotoRpg(grafica, fotoAuraDivinaRpg || fotoCoronaRpg || fotoArmaturaArmataRpg || effettoVivo || auraDivinaAttiva || astraleAttiva ? null : effettoEquipaggiato?.id || null, {
+    const scenaFotografica = !effettoCosmicoAttivo && (!effettoVivo || auraDivinaAttiva) && montaFotoRpg(grafica, fotoAuraDivinaRpg || fotoCoronaRpg || fotoArmaturaArmataRpg || effettoVivo || auraDivinaAttiva || astraleAttiva ? null : effettoEquipaggiato?.id || null, {
       corona: false, // Nuova Corona regale: asset indipendente
       divina: auraDivinaAttiva && !fotoAuraDivinaRpg, // v367 SVG artwork preserves original photo with a single Divine aura; do not duplicate it.
       mitica: false, // Astrale usa i suoi effetti, mai il generico overlay Nebulosa
@@ -8288,11 +8294,11 @@ function bloccoPersonaggio(profilo, st) {
     // Per ogni combinazione possibile costruisci una FOTO reale da avatar e
     // texture (stessa faccia, stesso corpo, stesso stato, nessun duplicato).
     // I layer precedenti restano fallback in caso di Safari senza Canvas.
-    const combinata = !astraleAttiva && !fotoCoronaRpg && !fotoArmaturaArmataRpg && !effettoVivo && !auraDivinaAttiva && montaFotoCombinataRpg(grafica, fotoRpg, {
+    const combinata = !effettoCosmicoAttivo && !fotoCoronaRpg && !fotoArmaturaArmataRpg && !effettoVivo && !auraDivinaAttiva && montaFotoCombinataRpg(grafica, fotoRpg, {
       classe: classeId, stato: viso.indice,
       armatura: armaturaEquipaggiata?.id || null,
       skin: astraleAttiva ? 'skin-mitica' : null,
-      effetto: astraleAttiva ? null : effettoEquipaggiato?.id || null,
+      effetto: effettoCosmicoAttivo ? null : effettoEquipaggiato?.id || null,
       divina: false, // Atlante originale: si conserva l'Aura divina
       corona: false, // Solo la nuova Corona regale separata
     });
@@ -8307,20 +8313,20 @@ function bloccoPersonaggio(profilo, st) {
       Boolean(armaturaEquipaggiata || effettoEquipaggiato || astraleAttiva || coronaAttiva);
     // Le scene preconfezionate possono già includere una corona: con i nuovi
     // livelli premium usiamo invece sempre la foto originale e sovrapposizioni distinte.
-    if(scenaRichiesta && !astraleAttiva && !fotoCoronaRpg && !fotoArmaturaArmataRpg && !effettoVivo && !auraDivinaAttiva && !coronaAttiva) montaScenaCinematograficaRpg(grafica,fotoRpg,{
+    if(scenaRichiesta && !effettoCosmicoAttivo && !fotoCoronaRpg && !fotoArmaturaArmataRpg && !effettoVivo && !auraDivinaAttiva && !coronaAttiva) montaScenaCinematograficaRpg(grafica,fotoRpg,{
       classe:classeId,
       stato:statoFotoConsentito,
       armaSbloccata:armaSbloccata,
       armatura:armaturaEquipaggiata?.id || null,
       skin:astraleAttiva ? 'skin-mitica' : null,
-      effetto:astraleAttiva ? null : effettoEquipaggiato?.id || null,
+      effetto:effettoCosmicoAttivo ? null : effettoEquipaggiato?.id || null,
       corona:coronaAttiva,
       divina:!astraleAttiva && (Boolean(viso.aura) || auraDivinaAnteprima),
     });
     // La classe rpg-composite-active viene attivata dal renderer, SOLO
     // quando la fotografia è pronta: nessun avatar senza effetti su Safari.
-    if ((astraleAttiva && effettoVivo) ||
-       (!astraleAttiva && !fotoCoronaRpg && !fotoArmaturaArmataRpg &&
+    if ((effettoCosmicoAttivo && effettoVivo) ||
+       (!effettoCosmicoAttivo && !fotoCoronaRpg && !fotoArmaturaArmataRpg &&
         (effettoVivo || (!scenaFotografica && !combinata)))) {
       montaEffettiRpg(grafica, effettoVivo ? (astraleAttiva ? null : effettoEquipaggiato?.id || null) : null, {
         divina: false, // La fotografia già conserva l'Aura originale
