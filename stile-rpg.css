@@ -2834,8 +2834,8 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
   animation:nebula-v482-gas 13s ease-in-out infinite alternate;
 }
 @keyframes nebula-v482-chiarore {
-  from {filter:saturate(1.14) brightness(1.03)!important;opacity:.89}
-  to {filter:saturate(1.30) brightness(1.15)!important;opacity:1}
+  from {transform:translate3d(-1px,2px,0) scale(.994);opacity:.91}
+  to {transform:translate3d(1px,-2px,0) scale(1.006);opacity:1}
 }
 @keyframes nebula-v482-polvere {
   from {transform:translate3d(-4px,4px,0) scale(.98);opacity:.46}
