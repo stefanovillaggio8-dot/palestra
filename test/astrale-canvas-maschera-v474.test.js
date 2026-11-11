@@ -47,7 +47,7 @@ test('v474: la maschera cancella i vapori ma non le aurore astrali appena disegn
   const [[id,cb]]=[...pending];pending.delete(id);
   assert.doesNotThrow(()=>cb(1000));
   const c=canvases[0].counters();
-  assert.ok(c.clears>0,'l'effetto deve renderizzare un vero frame');
+  assert.ok(c.clears>0,"Il motore deve renderizzare un vero frame");
   assert.ok(c.strokes>=10,'le aurore e le costellazioni devono essere disegnate');
   assert.equal(c.destinationOut,0,'non cancellare il portale astrale dopo averlo disegnato');
   stop();
