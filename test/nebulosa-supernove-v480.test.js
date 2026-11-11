@@ -50,6 +50,6 @@ test('v481: fallback offline realmente distinto per tutti i personaggi e armatur
  assert.match(rules,/opacity:\.61!important/);
  assert.match(app,/effettoCosmicoAttivo = astraleAttiva \|\| nebulosaAttiva/);
  assert.match(atelier,/dipingiNebulosaCosmica\(ctx,dw,dh,c.classe/);
- assert.match(sw,/palestra-v481/);
- assert.match(read('index.html'),/palestra-v481/);
+ assert.match(sw,/palestra-v482/);
+ assert.match(read('index.html'),/palestra-v482/);
 });
