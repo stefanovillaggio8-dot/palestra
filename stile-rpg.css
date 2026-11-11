@@ -2798,3 +2798,156 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
     animation:none!important;
   }
 }
+
+
+/* v482 · NEBULOSA COSMICA: vita anche senza Canvas (Safari/PWA).
+   Lo scatto e l'inquadratura restano invariati. I moti non sono lo stesso
+   portale di Astrale: polvere, gas e due ammassi in lento moto orbitale. */
+.personaggio-scena-grafica.shop-effetto-nebula > .rpg-nebulosa-presenza {
+  animation:nebula-v482-chiarore 8s ease-in-out infinite alternate!important;
+  will-change:opacity,filter;
+}
+.personaggio-scena-grafica.shop-effetto-nebula > .rpg-nebulosa-presenza::before,
+.personaggio-scena-grafica.shop-effetto-nebula > .rpg-nebulosa-presenza::after {
+  content:"";display:block;position:absolute;
+  inset:-4% -6%;
+  pointer-events:none;
+  -webkit-mask-image:radial-gradient(ellipse 55% 63% at 50% 52%,transparent 0 62%,rgba(0,0,0,.35) 81%,#000 100%);
+  mask-image:radial-gradient(ellipse 55% 63% at 50% 52%,transparent 0 62%,rgba(0,0,0,.35) 81%,#000 100%);
+}
+.personaggio-scena-grafica.shop-effetto-nebula > .rpg-nebulosa-presenza::before {
+  background:
+    radial-gradient(circle at 18% 25%,rgba(232,255,255,.95) 0 1px,rgba(61,215,255,.34) 4px,transparent 22px),
+    radial-gradient(circle at 89% 56%,rgba(255,247,255,.98) 0 1.3px,rgba(194,100,255,.43) 5px,transparent 26px),
+    radial-gradient(circle at 15% 78%,rgba(250,210,255,.80) 0 1px,transparent 16px),
+    radial-gradient(circle at 90% 17%,rgba(151,226,255,.76) 0 1px,transparent 18px);
+  opacity:.92;
+  animation:nebula-v482-polvere 9.8s ease-in-out infinite alternate;
+}
+.personaggio-scena-grafica.shop-effetto-nebula > .rpg-nebulosa-presenza::after {
+  background:
+    radial-gradient(ellipse 27% 20% at 16% 42%,rgba(62,232,254,.38),transparent 97%),
+    radial-gradient(ellipse 35% 22% at 87% 62%,rgba(194,99,255,.39),transparent 95%),
+    radial-gradient(circle at 9% 54%,#d8f8ff 0 1px,transparent 3px),
+    radial-gradient(circle at 92% 29%,#f7d2ff 0 1px,transparent 4px);
+  opacity:.68;
+  animation:nebula-v482-gas 13s ease-in-out infinite alternate;
+}
+@keyframes nebula-v482-chiarore {
+  from {filter:saturate(1.14) brightness(1.03)!important;opacity:.89}
+  to {filter:saturate(1.30) brightness(1.15)!important;opacity:1}
+}
+@keyframes nebula-v482-polvere {
+  from {transform:translate3d(-4px,4px,0) scale(.98);opacity:.46}
+  to {transform:translate3d(5px,-7px,0) scale(1.05);opacity:1}
+}
+@keyframes nebula-v482-gas {
+  from {transform:translate3d(-6px,6px,0) rotate(-3deg);opacity:.44}
+  to {transform:translate3d(7px,-8px,0) rotate(4deg);opacity:.91}
+}
+
+/* v482 · APOTEOSI ASTRALE: più grande, più ricca e di rarità superiore.
+   Resta un EFFETTO; nessun nuovo ritratto. Tre sagome di fallback dedicate
+   proteggono viso, armatura, corona e armi sbloccate. */
+.personaggio-scena.rpg-scena-astrale {
+  position:relative;isolation:isolate;overflow:visible;
+  border-color:rgba(191,115,255,.63);
+  background:
+    radial-gradient(ellipse 81% 54% at 50% 17%,rgba(129,55,217,.20),transparent 93%),
+    radial-gradient(ellipse 91% 66% at 50% 68%,rgba(65,58,154,.19),transparent 89%),
+    linear-gradient(148deg,#191525,#121220 75%);
+  box-shadow:0 0 38px rgba(131,54,242,.16),0 16px 38px rgba(0,0,0,.36);
+}
+.personaggio-scena.rpg-scena-astrale::before {
+  content:"";position:absolute;inset:-19px -15px -12px;z-index:0;
+  pointer-events:none;border-radius:28px;
+  background:
+    radial-gradient(ellipse 40% 24% at 15% 23%,rgba(199,84,255,.47),transparent 86%),
+    radial-gradient(ellipse 34% 27% at 86% 40%,rgba(120,124,255,.43),transparent 87%),
+    radial-gradient(ellipse 48% 21% at 54% 94%,rgba(215,91,252,.27),transparent 83%);
+  filter:blur(13px);
+  animation:astrale-v482-alito 5.6s ease-in-out infinite alternate;
+}
+.personaggio-scena.rpg-scena-astrale::after {
+  content:"";position:absolute;inset:-16px -9px 3%;z-index:0;
+  pointer-events:none;
+  background:
+    radial-gradient(circle at 5% 24%,#ffeaff 0 1.2px,transparent 4px),
+    radial-gradient(circle at 96% 37%,#c5deff 0 1.3px,transparent 4px),
+    radial-gradient(circle at 6% 71%,#e9d1ff 0 1.5px,transparent 4px),
+    radial-gradient(circle at 94% 83%,#fbe6ff 0 1.5px,transparent 4px);
+  animation:astrale-v482-pulviscolo 7s ease-in-out infinite alternate;
+}
+.personaggio-scena.rpg-scena-astrale > :is(.personaggio-scena-grafica,.personaggio-dati,.riga-pezzi) {
+  position:relative;z-index:1;
+}
+.personaggio-scena-grafica.shop-skin-mitica > .rpg-astrale-presenza {
+  inset:0!important;
+  display:block!important;
+  background:url('img/effetti/astrale-apoteosi-assassino-v482.svg') center/100% 100% no-repeat!important;
+  opacity:1!important;
+  filter:saturate(1.14) brightness(1.08)!important;
+  animation:astrale-v482-risonanza 4.7s ease-in-out infinite alternate!important;
+  -webkit-mask-image:none!important;mask-image:none!important;
+}
+.personaggio-scena-grafica.personaggio-guerriero.shop-skin-mitica > .rpg-astrale-presenza {
+  background-image:url('img/effetti/astrale-apoteosi-guerriero-v482.svg')!important;
+}
+.personaggio-scena-grafica.personaggio-berserker.shop-skin-mitica > .rpg-astrale-presenza {
+  background-image:url('img/effetti/astrale-apoteosi-berserker-v482.svg')!important;
+}
+.personaggio-scena-grafica.rpg-render-live.rpg-fx-attiva.shop-skin-mitica > .rpg-astrale-presenza {
+  opacity:.49!important; /* nuovi filamenti, rune e onde Canvas in primo piano */
+}
+.personaggio-scena-grafica.rpg-render-live.rpg-fx-attiva.shop-skin-mitica > .rpg-effetti-canvas {
+  z-index:15!important;mix-blend-mode:screen!important;opacity:1!important;
+}
+.personaggio-scena-grafica.shop-skin-mitica > .rpg-astrale-presenza::before,
+.personaggio-scena-grafica.shop-skin-mitica > .rpg-astrale-presenza::after {
+  content:""!important;display:block!important;
+  position:absolute;pointer-events:none;inset:-3% -3%;
+  -webkit-mask-image:radial-gradient(ellipse 54% 63% at 50% 50%,transparent 0 61%,#000 96%);
+  mask-image:radial-gradient(ellipse 54% 63% at 50% 50%,transparent 0 61%,#000 96%);
+}
+.personaggio-scena-grafica.shop-skin-mitica > .rpg-astrale-presenza::before {
+  background:
+    radial-gradient(circle at 14% 26%,rgba(253,237,255,.91) 0 1.5px,rgba(218,110,255,.42) 5px,transparent 30px),
+    radial-gradient(circle at 88% 51%,rgba(255,246,255,.89) 0 1.2px,rgba(164,145,255,.42) 7px,transparent 31px),
+    radial-gradient(circle at 20% 76%,rgba(232,191,255,.97) 0 1px,transparent 18px);
+  animation:astrale-v482-particelle 4.3s ease-in-out infinite alternate;
+}
+.personaggio-scena-grafica.shop-skin-mitica > .rpg-astrale-presenza::after {
+  background:
+    radial-gradient(circle at 13% 42%,rgba(181,112,255,.60),transparent 29%),
+    radial-gradient(circle at 86% 37%,rgba(127,177,255,.58),transparent 28%),
+    radial-gradient(ellipse 44% 11% at 50% 97%,rgba(217,147,255,.55),transparent 96%);
+  animation:astrale-v482-risonanza 6.4s ease-in-out infinite alternate;
+}
+@keyframes astrale-v482-risonanza {
+  from {opacity:.77;filter:saturate(1.05) brightness(1.02);transform:scale(.992)}
+  to {opacity:1;filter:saturate(1.22) brightness(1.19);transform:scale(1.009)}
+}
+@keyframes astrale-v482-alito {
+  from {opacity:.58;transform:translateY(5px) scale(.98)}
+  to {opacity:1;transform:translateY(-5px) scale(1.03)}
+}
+@keyframes astrale-v482-pulviscolo {
+  from {opacity:.35;transform:translateY(4px)}
+  to {opacity:.98;transform:translateY(-5px)}
+}
+@keyframes astrale-v482-particelle {
+  from {transform:translate3d(-5px,5px,0);opacity:.46}
+  to {transform:translate3d(5px,-8px,0);opacity:.98}
+}
+@media(prefers-reduced-motion:reduce) {
+  .personaggio-scena.rpg-scena-astrale::before,
+  .personaggio-scena.rpg-scena-astrale::after,
+  .personaggio-scena-grafica.shop-skin-mitica > .rpg-astrale-presenza,
+  .personaggio-scena-grafica.shop-skin-mitica > .rpg-astrale-presenza::before,
+  .personaggio-scena-grafica.shop-skin-mitica > .rpg-astrale-presenza::after,
+  .personaggio-scena-grafica.shop-effetto-nebula > .rpg-nebulosa-presenza,
+  .personaggio-scena-grafica.shop-effetto-nebula > .rpg-nebulosa-presenza::before,
+  .personaggio-scena-grafica.shop-effetto-nebula > .rpg-nebulosa-presenza::after {
+    animation:none!important;transform:none!important;
+  }
+}
