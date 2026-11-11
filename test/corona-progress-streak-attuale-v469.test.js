@@ -60,7 +60,7 @@ test('v469: shop, anteprima e avatar non usano piu record per i giorni mancanti'
 test('v469: pubblicazione e cache allineate, nessuna scrittura nel calcolo',()=>{
  const src=txt('src/aura-skin.js');
  const sw=txt('sw.js');
- assert.match(sw,/const VERSIONE = 'palestra-v476'/);
- assert.match(txt('index.html'),/PALESTRA_VERSIONE = 'palestra-v476'/);
+ assert.match(sw,/const VERSIONE = 'palestra-v477'/);
+ assert.match(txt('index.html'),/PALESTRA_VERSIONE = 'palestra-v477'/);
  assert.doesNotMatch(src,/localStorage|db\.salva|update\(/);
 });

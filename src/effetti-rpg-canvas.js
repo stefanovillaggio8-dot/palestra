@@ -262,95 +262,36 @@ export function montaEffettiRpg(elemento,tipo,{corona=false,divina=false,mitica=
       ctx.stroke();ctx.restore();
     }
   }
-  // ASTR ALE IMPERIALE — mitico deve essere inconfondibile, non la stessa
-  // Nebulosa ricolorata. Fasci di aurora, comete e costellazioni sono sempre
-  // esterni alla sagoma, con animazioni lente e un budget fisso su iPhone.
-  // Le stelle vengono create UNA SOLA VOLTA al montaggio: niente allocazioni
-  // o texture da scaricare a ogni frame.
-  const stelleAstrali=mitica ? Array.from({length:ios?30:48},(_,i)=>({
-    y:casuale(.045,.92),lato:i%2?1:-1,dist:casuale(.035,.13),
-    r:casuale(.65,2.1),fase:casuale(0,TAU),vel:casuale(.42,.97),
-    tinta:i%5,luminosita:casuale(.55,1),
+  // v477 ASTR ALE: un portale mitico, non sei strisce lineari.
+  // Comete, stelleAstrali e polvere viva circondano la fotografia originale:
+  // ogni x segue puntoLaterale e shadowBlur è limitato al budget iPhone.
+  const stelleAstrali=mitica ? Array.from({length:ios?27:48},(_,i)=>({
+    y:casuale(.07,.90),lato:i%2?1:-1,dist:casuale(.045,.18),
+    r:casuale(.55,1.75),fase:casuale(0,TAU),vel:casuale(.32,.95),
+    tinta:i%5,luminosita:casuale(.6,1),
   })) : [];
   function astrale(t){
-    const pulsazione=.87+.13*Math.sin(t*.72);
-    // Tre sorgenti luminose: l'armatura non viene tinta o oscurata.
-    haze(w*.07,h*.39,w*.30,h*.50,'rgba(164,72,255,.84)',.62*pulsazione);
-    haze(w*.93,h*.46,w*.31,h*.49,'rgba(53,204,255,.83)',.61*pulsazione);
-    haze(w*.5,h*.975,w*.45,h*.11,'rgba(235,160,255,.75)',.53*pulsazione);
-    // Tre nastri per lato: gradienti cromatici e ampiezza variabile,
-    // come ali di aurora ma senza un cerchio sul volto o sul torso.
-    for(const lato of [-1,1]){
-      for(let fascia=0;fascia<3;fascia++){
-        ctx.save();
-        ctx.globalAlpha=(.79-fascia*.12)*pulsazione;
-        ctx.strokeStyle=(lato<0
-          ? ['#8852fa','#da7dff','#f3dbff']
-          : ['#3ecff9','#99eafa','#f7d3ff'])[fascia];
-        ctx.lineWidth=Math.max(1.65,w*(.019-fascia*.0045));
-        ctx.lineCap='round';ctx.lineJoin='round';
-        ctx.shadowColor=lato<0?'#995bff':'#3ee2ff';
-        ctx.shadowBlur=Math.min(28,w*.078);
-        ctx.beginPath();
-        for(let i=0;i<=28;i++){
-          const yy=.075+.83*i/28;
-          const onda=Math.sin(yy*11-t*.68+fascia*1.25+lato*.5)*.018
-            +Math.cos(yy*18+t*.27+fascia)*.009;
-          const dist=.032+fascia*.024+onda;
-          const x=puntoLaterale(personaggio,yy,lato,dist)*w;
-          if(i===0)ctx.moveTo(x,yy*h);else ctx.lineTo(x,yy*h);
-        }
+    dipingiRiftAstrale(ctx,w,h,personaggio,t,ios?48:88);
+    // Micro-comete erranti vive, oltre la sagoma del mantello e delle armi.
+    for(const p of stelleAstrali){
+      const yy=.06+((p.y+.009*Math.sin(t*.38+p.fase))% .86);
+      const xx=puntoLaterale(personaggio,yy,p.lato,p.dist)*w;
+      const c=['#fdf0ff','#bca4ff','#8fe8ff','#ffbfff','#ffdefd'][p.tinta];
+      const alpha=(.35+.55*(.5+.5*Math.sin(t*p.vel*3+p.fase)))*p.luminosita;
+      dot(xx,yy*h,p.r,c,alpha);
+      if(p.tinta===0){
+        ctx.save();ctx.globalAlpha=alpha*.7;ctx.shadowColor=c;
+        ctx.shadowBlur=Math.max(5,w*.025);ctx.strokeStyle=c;
+        ctx.lineWidth=Math.max(.65,w*.002);
+        ctx.beginPath();ctx.moveTo(xx-w*.018,yy*h);ctx.lineTo(xx+w*.018,yy*h);
+        ctx.moveTo(xx,yy*h-h*.013);ctx.lineTo(xx,yy*h+h*.013);
         ctx.stroke();ctx.restore();
       }
     }
-    // Comete con scia affusolata: le stelle grandi cambiano posizione,
-    // evitando i lunghi flash elettrici degli effetti Epici.
-    for(let i=0;i<6;i++){
-      const p=stelleAstrali[i*5];
-      if(!p)continue;
-      const y=((p.y-t*(.035+i*.004))%1+1)%1;
-      const x=puntoLaterale(personaggio,y,p.lato,p.dist)*w;
-      const c=i%2?'#b8f7ff':'#ffcbff';
-      const luce=.52+.37*(.5+.5*Math.sin(t*.85+p.fase));
-      ctx.save();
-      ctx.globalAlpha=luce;ctx.strokeStyle=c;
-      ctx.lineWidth=Math.max(1,w*.0035);
-      ctx.lineCap='round';ctx.shadowColor=c;ctx.shadowBlur=9;
-      ctx.beginPath();ctx.moveTo(x-p.lato*w*.036,y*h+h*.027);
-      ctx.lineTo(x,y*h);ctx.stroke();ctx.restore();
-    }
-    // Costellazioni nitide su un fondo diffuso: alcune stelle a quattro
-    // punte e molti punti piccoli, senza interferire con la Corona.
-    const colori=['#fff8ff','#dbb9ff','#8feaff','#ffceec','#fff0bf'];
-    for(let i=0;i<stelleAstrali.length;i++){
-      const p=stelleAstrali[i];
-      const y=limita(p.y+Math.sin(t*.34+p.fase)*.008,.02,.98);
-      const x=puntoLaterale(personaggio,y,p.lato,p.dist
-        +Math.sin(t*.26+p.fase)*.009)*w;
-      const twinkle=(.48+.52*(.5+.5*Math.sin(t*p.vel*2+p.fase)))
-        *p.luminosita;
-      const c=colori[p.tinta];
-      dot(x,y*h,p.r,c,Math.min(.95,twinkle*.85));
-      if(i%7===0) {
-        ctx.save();ctx.globalAlpha=.80*twinkle;
-        ctx.strokeStyle=c;ctx.lineWidth=Math.max(.65,w*.002);
-        ctx.shadowColor=c;ctx.shadowBlur=7;
-        ctx.beginPath();
-        ctx.moveTo(x-w*.011,y*h);ctx.lineTo(x+w*.011,y*h);
-        ctx.moveTo(x,y*h-h*.008);ctx.lineTo(x,y*h+h*.008);
-        ctx.stroke();ctx.restore();
-      }
-    }
-    // Sigillo di energia sospeso sul terreno, parzialmente nascosto
-    // dalle gambe attraverso la normale maschera fotografica.
-    ctx.save();ctx.globalAlpha=.48+.11*Math.sin(t*.84);
-    ctx.lineWidth=Math.max(1,w*.004);
-    ctx.strokeStyle='#bda1ff';ctx.shadowColor='#bd7aff';
-    ctx.shadowBlur=Math.min(18,w*.045);
-    ctx.beginPath();ctx.ellipse(w*.5,h*.958,w*.33,h*.027,0,0,TAU);ctx.stroke();
-    ctx.globalAlpha=.35;ctx.strokeStyle='#93eaff';
-    ctx.beginPath();ctx.ellipse(w*.5,h*.958,w*.245,h*.016,0,0,TAU);ctx.stroke();
-    ctx.restore();
+    // L'ultimo anello è ai piedi: non viene mai disegnato sul viso.
+    ctx.save();ctx.globalAlpha=.22;ctx.strokeStyle='#e7b1ff';
+    ctx.lineWidth=Math.max(.8,w*.003);ctx.beginPath();
+    ctx.ellipse(w*.5,h*.957,w*.405,h*.03,0,0,TAU);ctx.stroke();ctx.restore();
   }
 
   function aura(t){
@@ -487,59 +428,214 @@ export function montaEffettiRpg(elemento,tipo,{corona=false,divina=false,mitica=
 // v476 — fotoritocco additivo per l'Atelier: nessuna nuova armatura, posa o volto.
 // Disegna lo stesso tipo di energia del motore live, esternamente alla sagoma
 // specifica di ogni classe, sopra un ritratto che rimane intatto.
+// v477: stesso Rift mitico per il profilo e per le fotografie dell'Atelier.
+// Importante: qui non compare nessun avatar, nessuna armatura o arma nuova.
 export function disegnaAstraleExport(ctx,{classe='guerriero',x=0,y=0,width=780,height=1170}={}) {
   if(!ctx || typeof ctx.createRadialGradient!=='function')return false;
-  const w=width,h=height;
   ctx.save();ctx.translate(x,y);
-  for(const lato of [-1,1]) {
-    const cx=w*(lato<0?.08:.92);
-    const grad=ctx.createRadialGradient(cx,h*.49,0,cx,h*.49,w*.28);
-    grad.addColorStop(0,lato<0?'rgba(183,74,255,.26)':'rgba(75,215,255,.23)');
-    grad.addColorStop(1,'rgba(0,0,0,0)');
-    ctx.save();ctx.fillStyle=grad;ctx.fillRect(0,0,w,h);ctx.restore();
-    for(let fascia=0;fascia<3;fascia++) {
-      ctx.save();ctx.globalAlpha=.86-fascia*.20;
-      ctx.lineCap='round';ctx.lineJoin='round';
-      ctx.strokeStyle=(lato<0?['#9e66ff','#eea7ff','#fff5ff']:
-        ['#49ddff','#b9eeff','#efcfff'])[fascia];
-      ctx.lineWidth=Math.max(1.5,w*(.010-fascia*.002));
-      ctx.shadowColor=lato<0?'#9e5bff':'#62e3ff';
-      ctx.shadowBlur=Math.max(7,w*.036);
-      ctx.beginPath();
-      for(let i=0;i<=40;i++) {
-        const yy=.10+.79*i/40;
-        const wave=Math.sin(yy*13+fascia*1.2+lato*.7)*.02;
-        const xx=puntoLaterale(classe,yy,lato,.018+fascia*.021+wave)*w;
-        if(i===0)ctx.moveTo(xx,yy*h);else ctx.lineTo(xx,yy*h);
+  dipingiRiftAstrale(ctx,width,height,classe,2.3,90);
+  ctx.restore();
+  return true;
+}
+
+// Tavolozza e gesti propri della rarità MITICA, indipendenti da Nebulosa.
+// Tutta la geometria è disegnata attorno ai contorni originali del personaggio.
+// I cerchi sono portali ad arco, non sticker sul petto; le fiamme si incurvano
+// e cambiano spessore, mentre la polvere galattica si muove lentamente.
+export function dipingiRiftAstrale(ctx,w,h,classe='assassino',t=0,numeroStelle=75) {
+  if(!ctx || w<16 || h<20)return false;
+  const pi=Math.PI,PI2=pi*2;
+  const pulse=.86+.14*Math.sin(t*.67);
+  const outside=(side,y,offset)=>puntoLaterale(classe,Math.max(.005,Math.min(.995,y)),side,offset)*w;
+  const fract=n=>n-Math.floor(n);
+  const rnd=n=>fract(Math.sin(n*127.1+72.19)*43758.5453);
+  const vivid=(lato)=>lato<0?'#b35aff':'#8d83ff';
+  ctx.save();
+
+  // (1) Atmosfera VOLUMETRICA: nubi a macchie irregolari, non tubi verticali.
+  const clouds=[
+    [-1,.14,.16,.27,.22,'rgba(132,30,225,.87)',.37],
+    [-1,.31,.35,.25,.29,'rgba(194,48,245,.85)',.46],
+    [-1,.58,.54,.25,.24,'rgba(127,40,248,.89)',.49],
+    [-1,.81,.73,.20,.24,'rgba(218,76,233,.75)',.42],
+    [ 1,.88,.19,.27,.24,'rgba(71,61,225,.82)',.41],
+    [ 1,.72,.37,.31,.28,'rgba(102,78,249,.85)',.51],
+    [ 1,.85,.65,.24,.33,'rgba(73,145,251,.78)',.42],
+    [ 1,.67,.84,.24,.16,'rgba(159,83,252,.82)',.41]
+  ];
+  for(let j=0;j<clouds.length;j++){
+    const [side,px,py,rx,ry,color,alpha]=clouds[j];
+    const drift=Math.sin(t*.27+j*1.51)*.026;
+    const centerX=outside(side,py,side<0?.09:.08)+drift*w;
+    const centerY=(py+.014*Math.cos(t*.24+j))*h;
+    ctx.save();
+    ctx.globalAlpha=alpha*pulse;
+    ctx.translate(centerX,centerY);ctx.scale(1,Math.max(.05,ry*h/(rx*w)));
+    const g=ctx.createRadialGradient(0,0,0,0,0,rx*w);
+    g.addColorStop(0,color);
+    g.addColorStop(.35,color.replace(/,\s*\.\d+\)/,',.36)'));
+    g.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,rx*w,0,PI2);ctx.fill();
+    ctx.restore();
+  }
+
+  // (2) ECLISSI ASTRALE: arco sopra il cappuccio, lati esterni, centro libero.
+  // L'arco non forma una corona: è una fenditura celeste nello sfondo.
+  for(const ring of [0,1,2]){
+    ctx.save();
+    ctx.globalAlpha=(ring===0?.22:ring===1?.62:.96)*pulse;
+    ctx.strokeStyle=ring===2?'#f7dbff':ring===1?'#ba61ff':'#723cfb';
+    ctx.lineWidth=Math.max(1,w*[.065,.018,.006][ring]);
+    ctx.shadowColor=ring===2?'#e1a1ff':'#b967ff';
+    ctx.shadowBlur=Math.min(30,w*[.10,.065,.042][ring]);
+    ctx.beginPath();
+    const q=1+.018*Math.sin(t*.5);
+    // Disegna solo la metà superiore: nessun cerchio sul volto/torso.
+    ctx.ellipse(w*.5,h*.205,w*.302*q,h*.168*q,0,pi*.985,pi*2.015);
+    ctx.stroke();ctx.restore();
+  }
+  // Quattro discontinuità dell'eclissi (i frammenti si muovono lungo l'arco).
+  for(let k=0;k<7;k++){
+    const angle=pi*1.04+(k/6)*pi*.92+.016*Math.sin(t*.31+k);
+    const px=w*.5+Math.cos(angle)*w*.304;
+    const py=h*.205+Math.sin(angle)*h*.168;
+    const r=w*(k===3?.011:.0055);
+    ctx.save();ctx.globalAlpha=.58+.33*Math.sin(t*.65+k)*Math.sin(t*.65+k);
+    ctx.fillStyle=k%3?'#ffe3ff':'#a2c8ff';ctx.shadowColor='#dd9dff';
+    ctx.shadowBlur=Math.max(4,w*.045);
+    ctx.beginPath();ctx.moveTo(px,py-r*1.75);ctx.lineTo(px+r*.65,py);
+    ctx.lineTo(px,py+r*1.75);ctx.lineTo(px-r*.65,py);ctx.closePath();
+    ctx.fill();ctx.restore();
+  }
+
+  // (3) ALI DI NEBULOSA: la stessa scia ha tre profondità, ogni onda ruota e
+  // attraversa le altre dietro alla silhouette, non due neon rettilinei.
+  const hues=[['#7629ed','#b765ff','#ffd6ff'],['#4b59df','#9891ff','#e0d4ff']];
+  for(const lato of [-1,1]){
+    const pal=hues[lato<0?0:1];
+    for(let branch=0;branch<4;branch++){
+      const path=()=>{
+        ctx.beginPath();
+        for(let step=0;step<=52;step++){
+          const yy=.08+step/52*.82;
+          const phase=yy*12.5-t*.52+branch*1.15+lato*.8;
+          const dist=.086+branch*.032+
+            Math.sin(phase)*(.078+branch*.004)+
+            Math.sin(yy*29+t*.31+branch*2.9)*.033;
+          const x=outside(lato,yy,Math.max(.016,dist));
+          const y=yy*h+Math.sin(yy*8+t*.25+branch)*h*.006;
+          if(step===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+        }
+      };
+      for(let layer=0;layer<3;layer++){
+        ctx.save();ctx.globalAlpha=[.13,.39,.88][layer]*pulse*(1-branch*.125);
+        ctx.strokeStyle=pal[layer];
+        ctx.lineWidth=Math.max(.65,w*[.072,.027,.0058][layer]);
+        ctx.lineCap='round';ctx.lineJoin='round';
+        ctx.shadowColor=pal[1];ctx.shadowBlur=Math.min(33,w*[.12,.08,.052][layer]);
+        path();ctx.stroke();ctx.restore();
       }
+    }
+    // Ali trasversali, brevi archi di plasma staccati dal mantello.
+    for(let j=0;j<7;j++){
+      const yy=.18+j*.095;
+      const d0=.023+Math.sin(t*.43+j)*.012;
+      const x0=outside(lato,yy,d0);
+      const x1=outside(lato,yy+.075,.13+(j%3)*.032);
+      ctx.save();ctx.globalAlpha=(.32+.19*Math.sin(t*.8+j))*pulse;
+      ctx.strokeStyle=j%3===0?'#f9cfff':pal[1];
+      ctx.lineWidth=Math.max(.8,w*.005);
+      ctx.shadowColor='#aa64ff';ctx.shadowBlur=Math.min(19,w*.075);
+      ctx.beginPath();ctx.moveTo(x0,yy*h);
+      ctx.quadraticCurveTo(x0+lato*w*.07,(yy+.024)*h,x1,(yy+.075)*h);
       ctx.stroke();ctx.restore();
     }
   }
-  // Scie e costellazioni sempre esterne all'avatar, senza incollare un'altra skin.
-  for(let i=0;i<36;i++) {
-    const yy=.09+((i*0.6180339887)%1)*.83,lato=i%2?-1:1;
-    const offset=.035+((i*0.3819660113)%1)*.09;
-    const xx=puntoLaterale(classe,yy,lato,offset)*w;
-    const r=Math.max(1,w*(i%9===0?.005:.002));
-    ctx.save();ctx.fillStyle=i%3===0?'#fff7ff':i%3===1?'#b1eaff':'#e5adff';
-    ctx.shadowColor=ctx.fillStyle;ctx.shadowBlur=r*6;
-    ctx.globalAlpha=.55+(i%4)*.10;
-    ctx.beginPath();ctx.arc(xx,yy*h,r,0,TAU);ctx.fill();
-    if(i%9===0){
-      ctx.strokeStyle=ctx.fillStyle;ctx.lineWidth=Math.max(1,w*.0015);
-      ctx.beginPath();ctx.moveTo(xx-r*4,yy*h);ctx.lineTo(xx+r*4,yy*h);
-      ctx.moveTo(xx,yy*h-r*4);ctx.lineTo(xx,yy*h+r*4);ctx.stroke();
+
+  // (4) CRISTALLI FLUTTUANTI: piccoli prismi, non un filtro colorato sul corpo.
+  for(let i=0;i<16;i++){
+    const yy=.11+((i*.4739)%1)*.75;
+    const side=i%2?-1:1;
+    const x=outside(side,yy,.09+.13*rnd(i*7+11)+Math.sin(t*.18+i)*.008);
+    const y=(yy+Math.sin(t*.41+i)*.012)*h;
+    const size=w*(.007+.014*rnd(i*29+7));
+    ctx.save();ctx.translate(x,y);ctx.rotate(.14*Math.sin(t*.37+i));
+    ctx.globalAlpha=.30+.32*Math.sin(t*.33+i*.9)**2;
+    ctx.fillStyle=i%3===0?'#dcb1ff':'#986eff';
+    ctx.strokeStyle=i%4===0?'#f8dbff':'#ad89fa';
+    ctx.lineWidth=Math.max(.5,w*.0017);
+    ctx.shadowColor='#ab67fd';ctx.shadowBlur=w*.036;
+    ctx.beginPath();ctx.moveTo(0,-size*1.7);ctx.lineTo(size*.65,-size*.25);
+    ctx.lineTo(0,size*1.4);ctx.lineTo(-size*.65,-size*.25);
+    ctx.closePath();ctx.fill();ctx.stroke();ctx.restore();
+  }
+
+  // (5) POLVERE DI STELLE e piccole comete distribuite nello SPAZIO 3D.
+  for(let i=0;i<numeroStelle;i++){
+    const yy=.045+(.91*rnd(i*29+4));
+    const side=i%2?-1:1;
+    const xx=outside(side,yy,.028+.20*rnd(i*31+9));
+    const y=(yy+.010*Math.sin(t*(.16+.16*rnd(i*8))+i)) *h;
+    const r=Math.max(.42,w*(.0015+.0046*rnd(i*23+5)));
+    const alpha=.35+.55*(.5+.5*Math.sin(t*(.3+.6*rnd(i*49+2))+i*2));
+    ctx.save();ctx.globalAlpha=alpha;
+    const col=i%5===0?'#ffffff':i%3===0?'#8de2ff':'#e9bbff';
+    ctx.fillStyle=col;ctx.shadowColor=col;
+    ctx.shadowBlur=Math.min(16,Math.max(3,r*4));
+    ctx.beginPath();ctx.arc(xx,y,r,0,PI2);ctx.fill();
+    if(i%13===0){
+      ctx.lineWidth=Math.max(.5,w*.0015);ctx.strokeStyle=col;
+      ctx.beginPath();ctx.moveTo(xx-w*.015,y);ctx.lineTo(xx+w*.015,y);
+      ctx.moveTo(xx,y-h*.011);ctx.lineTo(xx,y+h*.011);ctx.stroke();
+    }
+    if(i%19===0){
+      // Comete: scia diagonale progressiva, senza fotogrammi a intermittenza.
+      ctx.globalAlpha=alpha*.68;ctx.lineWidth=Math.max(.65,w*.003);
+      ctx.beginPath();ctx.moveTo(xx-side*w*.055,y-h*.029);
+      ctx.lineTo(xx,y);ctx.stroke();
     }
     ctx.restore();
   }
-  ctx.save();ctx.strokeStyle='#c496ff';ctx.shadowColor='#ba75ff';
-  ctx.shadowBlur=Math.max(6,w*.030);ctx.globalAlpha=.76;
-  ctx.lineWidth=Math.max(1.5,w*.004);
-  if(typeof ctx.ellipse==='function') {
-    ctx.beginPath();ctx.ellipse(w*.5,h*.965,w*.36,h*.025,0,0,TAU);ctx.stroke();
-    ctx.globalAlpha=.4;ctx.strokeStyle='#78e7ff';
-    ctx.beginPath();ctx.ellipse(w*.5,h*.965,w*.25,h*.016,0,0,TAU);ctx.stroke();
+
+  // (6) SIGILLO DIMENSIONALE sotto i piedi: rune, tre orbite e riflessi.
+  const baseline=h*.967;
+  ctx.save();
+  const g=ctx.createRadialGradient(w*.5,baseline,0,w*.5,baseline,w*.46);
+  g.addColorStop(0,'rgba(218,128,255,.42)');
+  g.addColorStop(.38,'rgba(141,47,247,.27)');
+  g.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.globalAlpha=.48*pulse;ctx.fillStyle=g;
+  ctx.beginPath();ctx.ellipse(w*.5,baseline,w*.47,h*.065,0,0,PI2);ctx.fill();
+  ctx.restore();
+  for(let k=0;k<3;k++){
+    ctx.save();
+    ctx.globalAlpha=(.68-k*.15)*pulse;
+    ctx.strokeStyle=k===0?'#f0baff':k===1?'#9a55ff':'#8b9bff';
+    ctx.shadowColor='#be5eff';ctx.shadowBlur=Math.min(23,w*.06);
+    ctx.lineWidth=Math.max(.8,w*(.009-k*.002));
+    ctx.beginPath();ctx.ellipse(w*.5,baseline-k*h*.009,w*(.42-k*.067),h*(.039-k*.008),0,0,PI2);
+    ctx.stroke();ctx.restore();
   }
-  ctx.restore();ctx.restore();
+  for(let i=0;i<22;i++){
+    const angle=i*PI2/22+t*.052;
+    const rx=w*.415,ry=h*.036;
+    const x=w*.5+Math.cos(angle)*rx,y=baseline+Math.sin(angle)*ry;
+    const len=w*(i%3===0?.021:.012);
+    ctx.save();ctx.globalAlpha=.5+.27*Math.sin(t*.7+i)**2;
+    ctx.strokeStyle=i%4===0?'#fff3ff':'#bc9bff';
+    ctx.shadowColor='#b163ff';ctx.shadowBlur=w*.032;
+    ctx.lineWidth=Math.max(.75,w*.0028);
+    ctx.beginPath();ctx.moveTo(x-len*.5,y-h*.004);
+    ctx.lineTo(x+len*.5,y+h*.004);ctx.stroke();ctx.restore();
+  }
+  // L'esplosione centrale rimane ai PIEDI, non sul busto.
+  const force=.6+.4*Math.sin(t*.52)**2;
+  ctx.save();ctx.globalAlpha=force;
+  ctx.fillStyle='#fff4ff';ctx.shadowColor='#c783ff';ctx.shadowBlur=w*.06;
+  ctx.beginPath();ctx.moveTo(w*.5,baseline-h*.038);
+  ctx.lineTo(w*.51,baseline);ctx.lineTo(w*.5,baseline+h*.033);
+  ctx.lineTo(w*.49,baseline);ctx.closePath();ctx.fill();ctx.restore();
+
+  ctx.restore();
   return true;
 }

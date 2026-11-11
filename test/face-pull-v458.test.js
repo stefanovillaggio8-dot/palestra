@@ -13,8 +13,8 @@ test('v458: Dumbbell Face Pull inclinato, fonte corretta e storia invariata',()=
   assert.deepEqual(sorgenteMiniatura(e),{tipo:'originale',src:path,zoom:1});
   assert.equal(createHash('sha256').update(read(path)).digest('hex'),
     'd5c7bc4d950fcd96f9836ccf8d99615dd30b3d125e7903020777c38771e61e11');
-  assert.match(txt('sw.js'),/palestra-v476/);
-  assert.match(txt('index.html'),/palestra-v476/);
+  assert.match(txt('sw.js'),/palestra-v477/);
+  assert.match(txt('index.html'),/palestra-v477/);
   assert.ok(txt('sw.js').includes('./'+path));
   const g=txt('verifica-icone.html');
   const pos=g.indexOf('data-name="dumbbell face pull ex-dumbbell-face-pull"');
