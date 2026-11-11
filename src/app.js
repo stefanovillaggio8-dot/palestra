@@ -3,7 +3,8 @@
 // in palestra con le mani occupate.
 
 import { requisitoSkin, accessoSkin, scenarioSkin, statoCoronaInfinito, progressoCoronaInfinito, cambiaCoronaInfinito, CORONA_INFINITO_ID, ordinaPerRaritaAura } from './aura-skin.js';
-import { quadroSfideAutomatiche, premioSfidaAutomatica, premioSfidaAncoraValido, interpretaPremioSfida } from './sfide-automatiche.js';
+import { quadroSfideAutomatiche, premioSfidaAutomatica, premioSfidaAncoraValido, interpretaPremioSfida, INIZIO_SFIDE_AUTO, idSettimanaSfida } from './sfide-automatiche.js';
+import { segnaliDatiSospetti } from './controlli-missioni.js';
 import { equipaggiamentoRpgUnico, slotPerOggettoRpg, aggiornaEquipaggiamentoRpg } from './equipaggiamento-rpg.js';
 import { percorsoFotoCoronaV360 } from './foto-corona-v360.js';
 import { percorsoFotoAuraDivinaV366 } from './foto-aura-divina-v366.js';
@@ -7598,53 +7599,86 @@ async function assegnaRicompense(sedutaId) {
   }
 }
 
-// Premi automatici: un ID stabile per account, obiettivo e periodo.
-let codaSfideAutomatiche = Promise.resolve();
+// Una missione completata e pronta per il riscatto, non pagata in automatico.
+// La rivalidazione non inventa premi e non annulla un acquisto: mette nel
+// cestino solo ricompense nuove che hanno perso le prove dopo una cancellazione.
+let codaSfideAutomatiche=Promise.resolve();
+const riscattiSfideInCorso=new Set();
+function datiSfideCorrenti(ricompense=ricompenseMie()) {
+  return {account:accountAttivo(),oggi:isoGiorno(new Date()),
+    sedute:seduteMie(),serie:serieMie(),esercizi:V.esercizi,
+    profilo:profiloAttivo(),ricompense,pesoCorporeo:pesoCorporeoOra()};
+}
 function aggiornaSfideAutomatiche({rivalida=false}={}) {
-  const esegui = async () => {
-    const account = accountAttivo();
-    const tutte = (await db.tutti('ricompense',{includiEliminati:true}))
-      .filter(r=>r && r.account_id===account);
-    const args = {account,oggi:isoGiorno(new Date()),sedute:seduteMie(),
-      serie:serieMie(),esercizi:V.esercizi,profilo:profiloAttivo(),
-      ricompense:tutte,pesoCorporeo:pesoCorporeoOra()};
-    let modificate = 0;
-    if (rivalida) {
-      for(const r of tutte) {
-        if(!interpretaPremioSfida(r)) continue;
-        const valida=premioSfidaAncoraValido(r,args)===true;
-        if(!r.eliminata && !valida) {
-          await db.cestino('ricompense',r.id);
-          modificate++;
-        } else if(r.eliminata && valida) {
-          await db.recupera('ricompense',r.id);
-          modificate++;
-        }
+  const esegui=async()=>{
+    if(!rivalida)return 0; // niente accrediti al semplice avvio o fine seduta
+    const account=accountAttivo();
+    const tutte=(await db.tutti('ricompense',{includiEliminati:true}))
+      .filter(r=>r&&r.account_id===account);
+    const args=datiSfideCorrenti(tutte);
+    let revocate=0;
+    for(const r of tutte) {
+      if(r.eliminata||!interpretaPremioSfida(r))continue;
+      if(premioSfidaAncoraValido(r,args)===false) {
+        await db.cestino('ricompense',r.id);
+        revocate++;
       }
     }
-    const quadro = quadroSfideAutomatiche(args);
-    const legacyRecord = new Set(tutte.filter(r=>r && !r.eliminata
-      && r.tipo==='record_settimanale_riscattato').map(r=>String(r.fonte)));
-    for(const voce of [...quadro.daily,...quadro.weekly,...quadro.secret]) {
-      if(!voce.raggiunta) continue;
-      // Il vecchio premio settimanale gia riscosso non vale due volte.
-      if(voce.id==='record-vero' && legacyRecord.has(voce.periodo)) continue;
-      const vecchia = tutte.find(r=>r.id===voce.chiave);
-      if(vecchia && !vecchia.eliminata) continue;
-      const premio = premioSfidaAutomatica(voce);
-      if(!premio) continue;
-      await db.salva('ricompense',{...vecchia,...premio,
-        eliminata:false,eliminata_il:null,
-        sync:undefined,updated_at:undefined});
-      modificate++;
-    }
-    if(modificate && account===accountAttivo())
+    if(revocate && account===accountAttivo())
       await ricaricaTutto({caricaAmiciOnline:false});
-    return modificate;
+    return revocate;
   };
-  const prossima = codaSfideAutomatiche.then(esegui,esegui);
-  codaSfideAutomatiche = prossima.catch(e=>console.warn('Sfide automatiche:',e?.message||e));
-  return prossima;
+  const next=codaSfideAutomatiche.then(esegui,esegui);
+  codaSfideAutomatiche=next.catch(e=>console.warn('Verifica sfide:',e?.message||e));
+  return next;
+}
+
+// Un clic non e' una dichiarazione: la prova viene riletta da IndexedDB
+// DOPO aver atteso le scritture in corso. Soltanto la sfida gia raggiunta
+// genera il premio, con ID stabile e una sola operazione per account e periodo.
+async function riscattaSfidaAutomatica(voce) {
+  if(!voce?.raggiunta||voce.premiata||!voce.chiave)return false;
+  if(riscattiSfideInCorso.has(voce.chiave))return false;
+  riscattiSfideInCorso.add(voce.chiave);
+  const account=accountAttivo();
+  try {
+    await aspettaSalvataggi();
+    await ricaricaTutto({caricaAmiciOnline:false});
+    if(account!==accountAttivo())throw Error('Hai cambiato account: riapri la sfida.');
+    const precedente=await db.prendi('ricompense',voce.chiave);
+    if(precedente && !precedente.eliminata) {
+      if(precedente.tipo!=='missione_auto')throw Error('Esiste gia una registrazione con questo ID.');
+      avviso('Premio gia riscattato su questo dispositivo.',{tipo:'info'});
+      disegna();return false;
+    }
+    if(precedente && precedente.tipo!=='missione_auto')
+      throw Error('Premio incompatibile: non posso sovrascrivere dati esistenti.');
+    const tutte=(await db.tutti('ricompense',{includiEliminati:true}))
+      .filter(r=>r&&r.account_id===account);
+    const args=datiSfideCorrenti(tutte);
+    const q=quadroSfideAutomatiche(args,{periodoDaily:voce.categoria==='daily'?voce.periodo:args.oggi,
+      periodoWeekly:voce.categoria==='daily'?idSettimanaSfida(args.oggi)
+        :voce.periodo==='sempre'?idSettimanaSfida(args.oggi):voce.periodo});
+    const valida=q[voce.categoria]?.find(m=>m.chiave===voce.chiave);
+    if(!valida?.raggiunta || valida.premiata)
+      throw Error('La missione non risulta completata con i dati attuali.');
+    // Il vecchio premio settimanale record non puo essere riscosso due volte.
+    if(valida.id==='record-vero'&&tutte.some(r=>!r.eliminata
+      && r.tipo==='record_settimanale_riscattato'&&String(r.fonte)===valida.periodo))
+      throw Error('Il premio per questo record e gia stato riscosso.');
+    const premio=premioSfidaAutomatica(valida);
+    if(!premio||premio.account_id!==account)throw Error('Premio non valido.');
+    await db.salva('ricompense',{...precedente,...premio,
+      eliminata:false,eliminata_il:null,sync:undefined,updated_at:undefined});
+    await ricaricaTutto({caricaAmiciOnline:false});
+    avviso('Missione riscattata: +'+formattaAura(premio.aura)+' Aura e +'+formattaNumero(premio.xp)+' XP.',
+      {tipo:'ok',durata:5500});
+    disegna();
+    return true;
+  } catch(e) {
+    avviso('Riscatto non riuscito: '+(e?.message||String(e)),{tipo:'errore',durata:6500});
+    return false;
+  } finally {riscattiSfideInCorso.delete(voce.chiave);}
 }
 
 async function salvaProfilo(campi) {
