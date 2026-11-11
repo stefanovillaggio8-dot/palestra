@@ -2532,3 +2532,16 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
     animation:none!important;
   }
 }
+
+
+/* v476 · Astrale rimane un EFFETTO: centro protetto, foto originali intatte.
+   Il portale di riserva resta dietro le particelle procedurali e non colora
+   cappuccio, viso, corpo, armi o armatura. */
+.personaggio-scena-grafica.shop-skin-mitica > .rpg-astrale-presenza {
+  z-index:4;
+  -webkit-mask-image:radial-gradient(ellipse 49% 70% at 50% 48%,transparent 0 53%,rgba(0,0,0,.34) 72%,#000 96%);
+  mask-image:radial-gradient(ellipse 49% 70% at 50% 48%,transparent 0 53%,rgba(0,0,0,.34) 72%,#000 96%);
+}
+.personaggio-scena-grafica.rpg-render-live.rpg-fx-attiva.shop-skin-mitica > .rpg-astrale-presenza {
+  opacity:.23;
+}
