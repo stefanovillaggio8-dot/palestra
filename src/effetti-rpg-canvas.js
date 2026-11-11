@@ -275,22 +275,22 @@ export function montaEffettiRpg(elemento,tipo,{corona=false,divina=false,mitica=
   function astrale(t){
     const pulsazione=.87+.13*Math.sin(t*.72);
     // Tre sorgenti luminose: l'armatura non viene tinta o oscurata.
-    haze(w*.07,h*.39,w*.27,h*.48,'rgba(118,60,236,.66)',.34*pulsazione);
-    haze(w*.93,h*.46,w*.29,h*.47,'rgba(30,184,244,.62)',.33*pulsazione);
-    haze(w*.5,h*.975,w*.43,h*.095,'rgba(215,139,255,.65)',.36*pulsazione);
+    haze(w*.07,h*.39,w*.30,h*.50,'rgba(164,72,255,.84)',.62*pulsazione);
+    haze(w*.93,h*.46,w*.31,h*.49,'rgba(53,204,255,.83)',.61*pulsazione);
+    haze(w*.5,h*.975,w*.45,h*.11,'rgba(235,160,255,.75)',.53*pulsazione);
     // Tre nastri per lato: gradienti cromatici e ampiezza variabile,
     // come ali di aurora ma senza un cerchio sul volto o sul torso.
     for(const lato of [-1,1]){
       for(let fascia=0;fascia<3;fascia++){
         ctx.save();
-        ctx.globalAlpha=(.39-fascia*.072)*pulsazione;
+        ctx.globalAlpha=(.79-fascia*.12)*pulsazione;
         ctx.strokeStyle=(lato<0
           ? ['#8852fa','#da7dff','#f3dbff']
           : ['#3ecff9','#99eafa','#f7d3ff'])[fascia];
-        ctx.lineWidth=Math.max(1.1,w*(.014-fascia*.0035));
+        ctx.lineWidth=Math.max(1.65,w*(.019-fascia*.0045));
         ctx.lineCap='round';ctx.lineJoin='round';
         ctx.shadowColor=lato<0?'#995bff':'#3ee2ff';
-        ctx.shadowBlur=Math.min(16,w*.043);
+        ctx.shadowBlur=Math.min(28,w*.078);
         ctx.beginPath();
         for(let i=0;i<=28;i++){
           const yy=.075+.83*i/28;
@@ -311,7 +311,7 @@ export function montaEffettiRpg(elemento,tipo,{corona=false,divina=false,mitica=
       const y=((p.y-t*(.035+i*.004))%1+1)%1;
       const x=puntoLaterale(personaggio,y,p.lato,p.dist)*w;
       const c=i%2?'#b8f7ff':'#ffcbff';
-      const luce=.30+.26*(.5+.5*Math.sin(t*.85+p.fase));
+      const luce=.52+.37*(.5+.5*Math.sin(t*.85+p.fase));
       ctx.save();
       ctx.globalAlpha=luce;ctx.strokeStyle=c;
       ctx.lineWidth=Math.max(1,w*.0035);
@@ -332,7 +332,7 @@ export function montaEffettiRpg(elemento,tipo,{corona=false,divina=false,mitica=
       const c=colori[p.tinta];
       dot(x,y*h,p.r,c,Math.min(.95,twinkle*.85));
       if(i%7===0) {
-        ctx.save();ctx.globalAlpha=.55*twinkle;
+        ctx.save();ctx.globalAlpha=.80*twinkle;
         ctx.strokeStyle=c;ctx.lineWidth=Math.max(.65,w*.002);
         ctx.shadowColor=c;ctx.shadowBlur=7;
         ctx.beginPath();
@@ -420,8 +420,7 @@ export function montaEffettiRpg(elemento,tipo,{corona=false,divina=false,mitica=
     // Le scintille e gli archi sono già posizionati fuori dal bordo corporeo.
     // La vecchia grande maschera ovale li eliminava quasi tutti su iPhone!
     // La cancellazione sfumata rimane SOLO per i vapori più diffusi.
-    if(tipo==='effetto-ombra'||tipo==='effetto-nebula' ||
-       (mitica&&!tipo)) cancellaCorpo();
+    if(tipo==='effetto-ombra'||tipo==='effetto-nebula') cancellaCorpo();
     aura(t);
   }
   function paginaNascosta() {
