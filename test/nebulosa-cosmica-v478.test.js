@@ -28,7 +28,7 @@ test('v478: Nebulosa ha esattamente il medesimo ritratto e zoom di Astrale',()=>
  assert.match(app,/const effettoCosmicoAttivo = astraleAttiva \|\| nebulosaAttiva/);
  assert.match(app,/const combinata = !effettoCosmicoAttivo/);
  assert.match(app,/if\(scenaRichiesta && !effettoCosmicoAttivo/);
- assert.match(app,/shop-effetto-nebula/);
+ assert.match(app,/if \(effettoEquipaggiato\) grafica\.classList\.add\('shop-' \+ effettoEquipaggiato\.id\)/);
  assert.match(app,/rpg-nebulosa-presenza/);
  assert.match(app,/if \(\(effettoCosmicoAttivo && effettoVivo\)/);
  assert.match(atelier,/dipingiNebulosaCosmica\(ctx,dw,dh,c.classe/);
