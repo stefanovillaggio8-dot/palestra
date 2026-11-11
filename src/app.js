@@ -3915,7 +3915,9 @@ const rip = campoNumero(serieCardio ? valoreMinutiCardioNelCampo(serie) : serie.
             titolo:'Serie eliminata · '+(e?.nome||'Esercizio'),
             dettaglio:'Serie '+numero+' spostata nel cestino',
           }); } catch(err) { console.warn('Registro cronologia non disponibile',err); }
-          V.serie = await db.tutti('serie'); disegna();
+          V.serie = await db.tutti('serie');
+          await aggiornaSfideAutomatiche({rivalida:true});
+          disegna();
         }
       },
       classe: 'fantasma piccolo-b pericolo-b',
@@ -4284,6 +4286,14 @@ async function aggiornaSerie(serie, campi) {
   if (idx >= 0) V.serie[idx] = salvata;
   if(campi.stato==='fatta') GHOST_BOZZE.delete(serie.id);
   aggiornaGhostDalForm(serie.seduta_id,serie.esercizio_id,serie.id);
+  // Dopo la chiusura della seduta una modifica alla serie puo togliere la prova
+  // a una missione: i premi non devono continuare a contare senza quella prova.
+  if(seduteMie().some(s=>s.id===serie.seduta_id && s.stato==='completata')
+      && ['stato','peso','peso_assistenza','ripetizioni','rip_assistite'].some(k=>
+        Object.prototype.hasOwnProperty.call(campi,k))) {
+    await ricaricaTutto({caricaAmiciOnline:false});
+    await aggiornaSfideAutomatiche({rivalida:true});
+  }
   disegnaStatoSalvataggio();
   return salvata;
 }
