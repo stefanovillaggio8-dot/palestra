@@ -88,18 +88,16 @@ test('1. la barra in alto mostra streak, aura e livello', async () => {
   assert.ok(testo.length > 0);
 });
 
-test('2. la Casa mostra teschio della streak, dell\'Aura e le missioni', async () => {
+test('2. la Casa mostra Daily, Weekly e Secret automatiche, senza sfide manuali', async () => {
   await vai('#/casa', () => app.textContent.includes('Daily Mission'));
-  assert.match(app.textContent, /Daily Mission/);
-  assert.match(app.textContent, /Weekly Missions/);
-  assert.match(app.textContent, /Secret Missions/);
-  assert.equal(perClasse(app, 'teschio-streak').length, 1);
-  assert.equal(perClasse(app, 'teschio-aura').length, 1);
-  assert.equal(perClasse(app, 'tessera-missione').length, 8, '1 daily + 5 weekly + 2 secret');
-  // le secret sono coperte
-  const coperte = perClasse(app, 'coperta');
-  assert.equal(coperte.length, 2);
-  assert.match(app.textContent, /Questa missione richiede coraggio/);
+  assert.match(app.textContent,/Daily Missions/);
+  assert.match(app.textContent,/Weekly Missions/);
+  assert.match(app.textContent,/Secret Missions/);
+  assert.equal(perClasse(app,'teschio-streak').length,1);
+  assert.equal(perClasse(app,'teschio-aura').length,1);
+  assert.ok(perClasse(app,'tessera-missione').length>=5,'almeno weekly e secret, anche nei giorni di riposo');
+  assert.equal(perClasse(app,'coperta').length,2,'le due secret restano nascoste prima del risultato');
+  assert.doesNotMatch(app.textContent,/Questa missione richiede coraggio|L'ho fatta|Riscatta premio settimanale/);
 });
 
 test('3. la Casa ha i collegamenti a Storico, Progressi e Impostazioni', async () => {
@@ -110,47 +108,21 @@ test('3. la Casa ha i collegamenti a Storico, Progressi e Impostazioni', async (
   }
 });
 
-test('4. il pulsante REVEAL scopre la Secret e la segna come rivelata', async () => {
-  await vai('#/casa', () => !!pulsante(app, '[ REVEAL ]'));
-  const prima = (await db.tutti('missioni')).filter((m) => m.rivelata);
-  assert.equal(prima.length, 0, 'all\'inizio nessuna secret e\' rivelata');
-  await pulsante(app, '[ REVEAL ]').click();
-  await attendiChe(() => (await0()) );
-  const dopo = await db.tutti('missioni');
-  assert.equal(dopo.filter((m) => m.rivelata).length, 1, 'la secret rivelata resta registrata');
-  await attendiChe(() => app.textContent.includes('L\'ho fatta'));
+test('4. nessun REVEAL manuale: le missioni segrete si svelano solo con prove', async () => {
+  await vai('#/casa',()=>app.textContent.includes('Secret Missions'));
+  assert.equal(pulsante(app,'[ REVEAL ]'),null,'il reveal manuale non puo alterare lo stato');
+  assert.equal(pulsante(app,"L'ho fatta"),null,'nessun tasto di autocompletamento');
+  assert.equal(perClasse(app,'coperta').length,2);
+  assert.match(app.textContent,/Obiettivo nascosto/);
 });
 
-test('5. completare la Daily dà Aura una volta sola', async () => {
-  await vai('#/casa', () => perClasse(app, 'tessera-missione').length === 8);
-  const daily = perClasse(app, 'tessera-missione')[0];
-  const fai = pulsante(daily, 'L\'ho fatta');
-  assert.ok(fai, 'la daily ha il bottone per completarla');
-  // il pulsante chiede conferma in un dialogo: premo "Si, l'ho fatta"
-  fai.clickNonAspettando();
-  // il dialogo di conferma e' l'ultima cosa aggiunta al body: lo cerco per classe
-  await attendiChe(() => trova(globalThis.document.body, (n) => n.attributi && String(n.attributi.class || '').includes('sfondo-dialogo')).length > 0);
-  const dialogo = trova(globalThis.document.body, (n) => n.attributi && String(n.attributi.class || '').includes('sfondo-dialogo')).pop();
-  const conferma = pulsanti(dialogo).find((b) => (b.textContent || '').includes('l\'ho fatta'));
-  assert.ok(conferma, 'il dialogo di conferma c\'e\'');
-  await conferma.click();
-  // la scrittura nel database avviene subito dopo: aspetto che ci sia davvero
-  const salvata = await attendiCheAsync(async () => {
-    const ric = await db.tutti('ricompense');
-    return ric.filter((r) => r.tipo === 'missione').length === 1;
-  });
-  const dopo = await db.tutti('missioni');
-  const completata = dopo.filter((m) => m.categoria === 'daily' && m.completata_il);
-  assert.equal(completata.length, 1, 'la daily di oggi e\' completata una volta sola');
-  const ricompense = (await db.tutti('ricompense')).filter((r) => r.tipo === 'missione');
-  assert.equal(salvata, true, 'una ricompensa sola per la missione');
-  assert.equal(ricompense.length, 1, 'una ricompensa sola per la missione');
-  assert.ok(Number(ricompense[0].aura) > 0, 'la ricompensa vale qualcosa');
-  // una seconda volta non si puo': il bottone non c\'e\' piu\'
-  await vai('#/casa', () => perClasse(app, 'tessera-missione').length === 8);
-  const daily2 = perClasse(app, 'tessera-missione')[0];
-  assert.match(daily2.className, /fatta/);
-  assert.equal(pulsante(daily2, 'L\'ho fatta'), null, 'non si puo\' completare due volte');
+test('5. visitare la Casa senza prove non assegna Aura o XP artificiali', async () => {
+  const prima=(await db.tutti('ricompense')).filter(r=>r.tipo==='missione'||r.tipo==='missione_auto');
+  await vai('#/casa',()=>app.textContent.includes('Daily Missions'));
+  assert.equal(pulsante(app,"L'ho fatta"),null);
+  assert.equal(pulsante(app,'Riscatta premio settimanale'),null);
+  const dopo=(await db.tutti('ricompense')).filter(r=>r.tipo==='missione'||r.tipo==='missione_auto');
+  assert.deepEqual(dopo,prima,'aprire la pagina non crea premi non meritati');
 });
 
 test('6. dopo un allenamento finito ci sono rank, LP e Aura', async () => {

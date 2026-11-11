@@ -32,5 +32,5 @@ test('v464: le due vie di recupero usano la verifica delle schede e la PWA la me
  assert.ok(app.includes('profiloUnicoConScheda(propri)'));
  assert.ok(app.includes('scegliProfiloOnline(profiliServer)'));
  assert.ok(sw.includes('./src/profilo-online.js'));
- assert.ok(sw.includes('palestra-v470'));
+ assert.ok(sw.includes('palestra-v471'));
 });
