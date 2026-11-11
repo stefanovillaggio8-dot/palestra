@@ -629,7 +629,7 @@ export function dipingiNebulosaCosmica(ctx,w,h,classe='assassino',t=0,stars=68) 
   const rnd=n=>fract(Math.sin(n*127.1+39.27)*43758.5453);
   const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
   const outside=(side,y,d)=>puntoLaterale(classe,clamp(y,.005,.995),side,Math.max(.022,d))*w;
-  const breathe=.92+.08*Math.sin(t*.48);
+  const breathe=.93+.07*Math.sin(t*.48);
   const lum=[
     [59,213,248], // gas ossigeno: turchese elettrico
     [85,113,240], // idrogeno ionizzato: indaco
@@ -667,7 +667,7 @@ export function dipingiNebulosaCosmica(ctx,w,h,classe='assassino',t=0,stars=68) 
     const [side,cy,dist,rx,ry,pal]=banks[k];
     const y=(cy+.019*Math.sin(t*.19+k*1.3))*h;
     const x=outside(side,cy,dist);
-    cloud(x,y,rx*w,ry*h,lum[pal],(.30+.06*Math.sin(t*.26+k))*breathe);
+    cloud(x,y,rx*w,ry*h,lum[pal],(.38+.08*Math.sin(t*.26+k))*breathe);
   }
   // Punti di condensazione, 6–10 per banco. Posizioni coerenti fra frame,
   // evoluzione lenta indipendente, variabilità di dimensioni e trasparenza.
@@ -684,7 +684,7 @@ export function dipingiNebulosaCosmica(ctx,w,h,classe='assassino',t=0,stars=68) 
       const rr=w*(.026+.079*rnd(id+18));
       const vr=h*(.025+.083*rnd(id+24));
       const color=lum[(pal+(i%3===0?1:0))%lum.length];
-      const alpha=(.12+.20*rnd(id+28))
+      const alpha=(.16+.23*rnd(id+28))
         *(.80+.20*Math.sin(t*.41+id*.1)**2);
       cloud(x,y,rr,vr,color,alpha*breathe);
     }
@@ -698,6 +698,76 @@ export function dipingiNebulosaCosmica(ctx,w,h,classe='assassino',t=0,stars=68) 
     cloud(x,y,w*.102,h*.085,lum[pal],.52*breathe);
     cloud(x,y,w*.042,h*.037,[255,249,255],.17*breathe);
   }
+  // v480 · TRE NUCLEI DI SUPERNOVA: punto focale che mancava alla Nebulosa.
+  // Sono vere sorgenti di luce volumetrica: non cerchi/rune/portali di Astrale.
+  // La rarità Leggendaria ha due stelle dominanti e una terza più tenue.
+  // La posizione è calcolata sulla sagoma in tutte le tre classi.
+  const nuclei=[
+    {side:-1,y:.275,d:.155,col:[92,231,255],seed:1,intensita:1},
+    {side:1,y:.565,d:.145,col:[232,137,255],seed:3,intensita:.87},
+    {side:-1,y:.795,d:.112,col:[255,164,231],seed:5,intensita:.60}
+  ];
+  for(let k=0;k<nuclei.length;k++){
+    const n=nuclei[k];
+    const yy=n.y+.014*Math.sin(t*.28+n.seed);
+    const x=outside(n.side,yy,n.d+.012*Math.sin(t*.21+n.seed));
+    const y=yy*h;
+    const pulsa=(.79+.21*Math.sin(t*.76+n.seed))*n.intensita;
+    // alone largo + gas illuminato + nucleo, tre profondità disaccoppiate.
+    cloud(x,y,w*.19,h*.16,n.col,.84*pulsa);
+    cloud(x,y,w*.095,h*.082,[248,225,255],.79*pulsa);
+    cloud(x,y,w*.037,h*.031,[255,255,255],.95*pulsa);
+    // Una vera STELLA luminosa a quattro punte, non una linea neon.
+    const rr=w*(k===0?.023:k===1?.020:.014);
+    const stretch=h*(k===0?.040:k===1?.034:.023);
+    ctx.save();ctx.translate(x,y);
+    ctx.globalAlpha=.85*pulsa;
+    ctx.fillStyle='#fcffff';
+    ctx.shadowColor=k===0?'#70f1ff':k===1?'#de9bff':'#ffc4ee';
+    ctx.shadowBlur=Math.max(8,w*.10);
+    ctx.beginPath();ctx.moveTo(0,-stretch);
+    ctx.quadraticCurveTo(rr*.18,-rr*.26,rr*1.6,0);
+    ctx.quadraticCurveTo(rr*.18,rr*.24,0,stretch);
+    ctx.quadraticCurveTo(-rr*.18,rr*.26,-rr*1.6,0);
+    ctx.quadraticCurveTo(-rr*.18,-rr*.24,0,-stretch);
+    ctx.closePath();ctx.fill();ctx.restore();
+
+    // Polvere in orbita gravitazionale: una spirale fatta di singoli granelli,
+    // mai di fasci o curve fluorescenti. L'insieme gira dolcemente.
+    const granelli=stars<=45?17:27;
+    for(let i=0;i<granelli;i++){
+      const p=i/granelli;
+      const angle=p*Math.PI*3.65+t*(k===1?-.27:.22)+n.seed;
+      const radius=(.025+.14*p)*w;
+      const xx=x+Math.cos(angle)*radius;
+      const py=y+Math.sin(angle)*radius*(h/w)*.68;
+      const dotRadius=Math.max(.45,w*(.0016+.0026*rnd(i*13+k*43)));
+      const sparkle=.36+.48*(.5+.5*Math.sin(t*.73+i*.67+n.seed));
+      ctx.save();
+      ctx.globalAlpha=sparkle*pulsa;
+      ctx.fillStyle=i%6===0?'#ffffff':k===0?'#a0f9ff':k===1?'#e2b1ff':'#ffd4f2';
+      ctx.shadowColor=ctx.fillStyle;ctx.shadowBlur=Math.max(3,dotRadius*4);
+      ctx.beginPath();ctx.arc(xx,py,dotRadius,0,TAU2);ctx.fill();
+      ctx.restore();
+    }
+  }
+  // Impulsi di micro-comete: tre piogge brevi, diverse per fase, niente
+  // stroboscopi. Il moto resta all'esterno della foto originale.
+  for(let i=0;i<(stars<=45?16:28);i++){
+    const side=i%2?-1:1;
+    const progress=(rnd(i*19+71)+t*(.025+.013*rnd(i*5+3)))%1;
+    const yy=.09+progress*.81;
+    const x=outside(side,yy,.040+.18*rnd(i*43+7));
+    const y=yy*h;
+    const rad=Math.max(.55,w*(.0016+.0023*rnd(i*23+4)));
+    const fade=Math.sin(progress*Math.PI);
+    ctx.save();ctx.globalAlpha=fade*(.32+.39*rnd(i*13+11));
+    ctx.fillStyle=i%3===0?'#fcf5ff':i%3===1?'#83eaff':'#cda5ff';
+    ctx.shadowColor=ctx.fillStyle;ctx.shadowBlur=Math.max(3,rad*5);
+    ctx.beginPath();ctx.arc(x,y,rad,0,TAU2);ctx.fill();
+    ctx.restore();
+  }
+
   // Polvere galattica: tante stelle PICCOLE intorno a tutte le silhouette.
   // I corpi rimangono protetti dalla maschera finale.
   const count=Math.max(20,Math.min(stars,100));
