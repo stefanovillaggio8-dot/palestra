@@ -48,7 +48,7 @@ test('v470: nessuna rettifica valida non crea record inventati',()=>{
 test('v470: cache PWA e pagina principale condividono la stessa versione',()=>{
   const html=readFileSync(new URL('../index.html',import.meta.url),'utf8');
   const sw=readFileSync(new URL('../sw.js',import.meta.url),'utf8');
-  assert.match(html,/PALESTRA_VERSIONE = 'palestra-v478'/);
-  assert.match(html,/app\.js\?v=478/);
-  assert.match(sw,/const VERSIONE = 'palestra-v478'/);
+  assert.match(html,/PALESTRA_VERSIONE = 'palestra-v479'/);
+  assert.match(html,/app\.js\?v=479/);
+  assert.match(sw,/const VERSIONE = 'palestra-v479'/);
 });

@@ -2625,3 +2625,41 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
     animation:none!important;
   }
 }
+
+
+/* v479 · Nebulosa = NUVOLE DI GAS, NON strisce o cerchi neon.
+   Tre tavole stellari trasparenti con sagome dedicate alla classe.
+   La foto, la sua scala e qualunque armatura sono sempre originali. */
+.personaggio-scena-grafica.shop-effetto-nebula > .rpg-nebulosa-presenza {
+  display:block!important;
+  position:absolute!important;
+  inset:0!important;
+  z-index:12!important; /* sopra lo sfondo fotografico, centro già svuotato */
+  pointer-events:none!important;
+  border-radius:inherit;
+  opacity:.98!important;
+  mix-blend-mode:screen;
+  background: url('img/effetti/nebulosa-nubi-assassino-v479.svg') center / 100% 100% no-repeat!important;
+  -webkit-mask-image:none!important;
+  mask-image:none!important;
+}
+.personaggio-scena-grafica.personaggio-guerriero.shop-effetto-nebula > .rpg-nebulosa-presenza {
+  background-image:url('img/effetti/nebulosa-nubi-guerriero-v479.svg')!important;
+}
+.personaggio-scena-grafica.personaggio-berserker.shop-effetto-nebula > .rpg-nebulosa-presenza {
+  background-image:url('img/effetti/nebulosa-nubi-berserker-v479.svg')!important;
+}
+.personaggio-scena-grafica.rpg-render-live.rpg-fx-attiva.shop-effetto-nebula > .rpg-nebulosa-presenza {
+  opacity:.31!important; /* volume statico dietro al gas procedurale vivo */
+}
+.personaggio-scena-grafica.rpg-render-live.rpg-fx-attiva.shop-effetto-nebula > .rpg-effetti-canvas {
+  display:block!important;
+  position:absolute!important;
+  z-index:13!important;
+  inset:0!important;
+  width:100%!important;height:100%!important;
+  opacity:1!important;
+  mix-blend-mode:screen!important;
+  pointer-events:none!important;
+  filter:none!important;
+}
