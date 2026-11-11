@@ -92,7 +92,10 @@ export function statoAccount({
     completamenti,
   });
 
-  const numMissioni = contaCompletate(completamenti);
+  // Le missioni automatiche sono premi verificati; quelle manuali storiche
+  // continuano a contare nello storico ma non sono piu assegnabili.
+  const numMissioni = contaCompletate(completamenti) + (ricompense || [])
+    .filter(r => r && !r.eliminata && r.tipo === 'missione_auto').length;
   // LE MEDAGLIE USANO IL RECORD DELLA STREAK, NON QUELLA DI ADESSO.
   //
   // Prima qui c'era `streak.giorni`, cioe' la streak di ADESSO. Quindi se facevi 20

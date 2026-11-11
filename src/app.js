@@ -3,6 +3,7 @@
 // in palestra con le mani occupate.
 
 import { requisitoSkin, accessoSkin, scenarioSkin, statoCoronaInfinito, progressoCoronaInfinito, cambiaCoronaInfinito, CORONA_INFINITO_ID, ordinaPerRaritaAura } from './aura-skin.js';
+import { quadroSfideAutomatiche, premioSfidaAutomatica, premioSfidaAncoraValido, interpretaPremioSfida } from './sfide-automatiche.js';
 import { equipaggiamentoRpgUnico, slotPerOggettoRpg, aggiornaEquipaggiamentoRpg } from './equipaggiamento-rpg.js';
 import { percorsoFotoCoronaV360 } from './foto-corona-v360.js';
 import { percorsoFotoAuraDivinaV366 } from './foto-aura-divina-v366.js';
@@ -584,6 +585,7 @@ async function avvia() {
     aggiornaFaseAvvio('preparazione delle statistiche locali');
     await aggiornaPesoInMemoria();
     await caricaLivelliImparati();
+    try { await aggiornaSfideAutomatiche(); } catch(e) { console.warn('Sfide automatiche all’avvio:',e); }
     window.addEventListener('hashchange', () => disegna());
     disegna();
     if (window.PALESTRA_AVVIO) window.PALESTRA_AVVIO.pronto = true;
@@ -628,6 +630,7 @@ async function avvia() {
           await aggiornaCreditoStreakOnline();
           await aggiornaStreakDaCloud();
           if (account !== accountAttivo()) return;
+          await aggiornaSfideAutomatiche();
           // Non perdere i valori non ancora confermati nel form di una serie.
           const editando = document.activeElement?.matches?.('input, textarea, select, [contenteditable="true"]');
           const inAllenamento = /^#\/allenamento/.test(location.hash || '');
@@ -1772,23 +1775,23 @@ function animaNumeriCambiati(zona) {
 
 /* ===================== Aura Shop ===================== */
 const OGGETTI_AURA = [
-  {id:'titolo-cardio',nome:'Cardio? Denunciami',tipo:'Titolo',rarita:'Comune',prezzo:1600,icona:'💀',descrizione:'La resistenza è un’opinione.'},
-  {id:'titolo-tecnica',nome:'Tecnica discutibile',tipo:'Titolo',rarita:'Raro',prezzo:2400,icona:'🫠',descrizione:'Il peso sale. La forma… anche no.'},
-  {id:'titolo-ego',nome:'Ego da 200 kg',tipo:'Titolo',rarita:'Epico',prezzo:3400,icona:'🗿',descrizione:'Il bilanciere pesa meno della tua autostima.'},
-  {id:'titolo-riposo',nome:'Campione del giorno di riposo',tipo:'Titolo',rarita:'Epico',prezzo:3900,icona:'🛌',descrizione:'Prestazioni eccezionali nel non fare niente.'},
-  {id:'titolo-specchio',nome:'Sotto contratto con lo specchio',tipo:'Titolo',rarita:'Leggendario',prezzo:4800,icona:'🪞',descrizione:'Una serie ogni tre selfie.'},
-  {id:'titolo-panca',nome:'Panca e basta',tipo:'Titolo',rarita:'Raro',prezzo:2200,icona:'🏋️',descrizione:'Le gambe sono contenuto bonus.'},
-  {id:'effetto-ambra',nome:'Scintille d’ambra',tipo:'Effetto',rarita:'Comune',prezzo:4500,icona:'✨',descrizione:'Particelle calde intorno al personaggio.'},
-  {id:'effetto-ombra',nome:'Fumo d’ombra',tipo:'Effetto',rarita:'Raro',prezzo:5900,icona:'🌫️',descrizione:'Una scia scura, discreta e cattiva.'},
-  {id:'effetto-fulmine',nome:'Scarica viola',tipo:'Effetto',rarita:'Epico',prezzo:7200,icona:'⚡',descrizione:'Lamp i viola e scariche elettriche'.replace('Lamp i','Lampi')},
-  {id:'effetto-nebula',nome:'Nebulosa cosmica',tipo:'Effetto',rarita:'Leggendario',prezzo:8900,icona:'🌌',descrizione:'Una piccola galassia personale.'},
-  {id:'armatura-guerriero-braci',immagine:'./img/personaggi/armature/guerriero-braci.webp',miniatura:'./img/personaggi/armature/guerriero-braci-mini.webp',nome:'Custode delle Braci',tipo:'Armatura',rarita:'Epico',prezzo:9200,classe:'guerriero',icona:'🛡️',descrizione:'Piastre roventi e mantello da prima linea.'},
-  {id:'armatura-guerriero-abisso',immagine:'./img/personaggi/armature/guerriero-abisso.webp',miniatura:'./img/personaggi/armature/guerriero-abisso-mini.webp',nome:'Re dell’Abisso',tipo:'Armatura',rarita:'Leggendario',prezzo:13500,classe:'guerriero',icona:'👑',descrizione:'Armatura pesante con dettagli abissali.'},
-  {id:'armatura-assassino-notte',immagine:'./img/personaggi/armature/assassino-notte.webp',miniatura:'./img/personaggi/armature/assassino-notte-mini.webp',nome:'Velo della Notte',tipo:'Armatura',rarita:'Epico',prezzo:9400,classe:'assassino',icona:'🥷',descrizione:'Corazza leggera, lame e cappuccio.'},
-  {id:'armatura-assassino-spettro',immagine:'./img/personaggi/armature/assassino-spettro.webp',miniatura:'./img/personaggi/armature/assassino-spettro-mini.webp',nome:'Spettro Cremisi',tipo:'Armatura',rarita:'Leggendario',prezzo:13800,classe:'assassino',icona:'🩸',descrizione:'Silhouette furtiva con bagliori rossi.'},
-  {id:'armatura-berserker-rabbia',immagine:'./img/personaggi/armature/berserker-rabbia.webp',miniatura:'./img/personaggi/armature/berserker-rabbia-mini.webp',nome:'Rabbia Antica',tipo:'Armatura',rarita:'Epico',prezzo:9800,classe:'berserker',icona:'🪓',descrizione:'Corna, metallo grezzo e furia pura.'},
-  {id:'armatura-berserker-apocalisse',immagine:'./img/personaggi/armature/berserker-apocalisse-corna.svg?v=368',miniatura:'./img/personaggi/armature/berserker-apocalisse-corna.svg?v=368',nome:'Ultimo Giorno',tipo:'Armatura',rarita:'Leggendario',prezzo:14500,classe:'berserker',icona:'🔥',descrizione:'Un set enorme che sembra uscito dalla fine del mondo.'},
-  {id:'skin-mitica',nome:'Astrale · effetto cosmico',tipo:'Effetto',rarita:'Mitico',prezzo:22000,icona:'🌠',descrizione:'Un effetto stellare viola che si combina con altre particelle, Aura divina e Corona.'},
+  {id:'titolo-cardio',nome:'Cardio? Denunciami',tipo:'Titolo',rarita:'Comune',prezzo:600,icona:'💀',descrizione:'La resistenza è un’opinione.'},
+  {id:'titolo-tecnica',nome:'Tecnica discutibile',tipo:'Titolo',rarita:'Raro',prezzo:900,icona:'🫠',descrizione:'Il peso sale. La forma… anche no.'},
+  {id:'titolo-ego',nome:'Ego da 200 kg',tipo:'Titolo',rarita:'Epico',prezzo:1200,icona:'🗿',descrizione:'Il bilanciere pesa meno della tua autostima.'},
+  {id:'titolo-riposo',nome:'Campione del giorno di riposo',tipo:'Titolo',rarita:'Epico',prezzo:1400,icona:'🛌',descrizione:'Prestazioni eccezionali nel non fare niente.'},
+  {id:'titolo-specchio',nome:'Sotto contratto con lo specchio',tipo:'Titolo',rarita:'Leggendario',prezzo:1800,icona:'🪞',descrizione:'Una serie ogni tre selfie.'},
+  {id:'titolo-panca',nome:'Panca e basta',tipo:'Titolo',rarita:'Raro',prezzo:800,icona:'🏋️',descrizione:'Le gambe sono contenuto bonus.'},
+  {id:'effetto-ambra',nome:'Scintille d’ambra',tipo:'Effetto',rarita:'Comune',prezzo:2000,icona:'✨',descrizione:'Particelle calde intorno al personaggio.'},
+  {id:'effetto-ombra',nome:'Fumo d’ombra',tipo:'Effetto',rarita:'Raro',prezzo:2600,icona:'🌫️',descrizione:'Una scia scura, discreta e cattiva.'},
+  {id:'effetto-fulmine',nome:'Scarica viola',tipo:'Effetto',rarita:'Epico',prezzo:3300,icona:'⚡',descrizione:'Lamp i viola e scariche elettriche'.replace('Lamp i','Lampi')},
+  {id:'effetto-nebula',nome:'Nebulosa cosmica',tipo:'Effetto',rarita:'Leggendario',prezzo:4200,icona:'🌌',descrizione:'Una piccola galassia personale.'},
+  {id:'armatura-guerriero-braci',immagine:'./img/personaggi/armature/guerriero-braci.webp',miniatura:'./img/personaggi/armature/guerriero-braci-mini.webp',nome:'Custode delle Braci',tipo:'Armatura',rarita:'Epico',prezzo:5000,classe:'guerriero',icona:'🛡️',descrizione:'Piastre roventi e mantello da prima linea.'},
+  {id:'armatura-guerriero-abisso',immagine:'./img/personaggi/armature/guerriero-abisso.webp',miniatura:'./img/personaggi/armature/guerriero-abisso-mini.webp',nome:'Re dell’Abisso',tipo:'Armatura',rarita:'Leggendario',prezzo:8000,classe:'guerriero',icona:'👑',descrizione:'Armatura pesante con dettagli abissali.'},
+  {id:'armatura-assassino-notte',immagine:'./img/personaggi/armature/assassino-notte.webp',miniatura:'./img/personaggi/armature/assassino-notte-mini.webp',nome:'Velo della Notte',tipo:'Armatura',rarita:'Epico',prezzo:5100,classe:'assassino',icona:'🥷',descrizione:'Corazza leggera, lame e cappuccio.'},
+  {id:'armatura-assassino-spettro',immagine:'./img/personaggi/armature/assassino-spettro.webp',miniatura:'./img/personaggi/armature/assassino-spettro-mini.webp',nome:'Spettro Cremisi',tipo:'Armatura',rarita:'Leggendario',prezzo:8400,classe:'assassino',icona:'🩸',descrizione:'Silhouette furtiva con bagliori rossi.'},
+  {id:'armatura-berserker-rabbia',immagine:'./img/personaggi/armature/berserker-rabbia.webp',miniatura:'./img/personaggi/armature/berserker-rabbia-mini.webp',nome:'Rabbia Antica',tipo:'Armatura',rarita:'Epico',prezzo:5300,classe:'berserker',icona:'🪓',descrizione:'Corna, metallo grezzo e furia pura.'},
+  {id:'armatura-berserker-apocalisse',immagine:'./img/personaggi/armature/berserker-apocalisse-corna.svg?v=368',miniatura:'./img/personaggi/armature/berserker-apocalisse-corna.svg?v=368',nome:'Ultimo Giorno',tipo:'Armatura',rarita:'Leggendario',prezzo:8800,classe:'berserker',icona:'🔥',descrizione:'Un set enorme che sembra uscito dalla fine del mondo.'},
+  {id:'skin-mitica',nome:'Astrale · effetto cosmico',tipo:'Effetto',rarita:'Mitico',prezzo:14000,icona:'🌠',descrizione:'Un effetto stellare viola che si combina con altre particelle, Aura divina e Corona.'},
 ];
 const CLASSE_AURA = {guerriero:'Guerriero',assassino:'Assassino',berserker:'Berserker'};
 
@@ -3912,7 +3915,9 @@ const rip = campoNumero(serieCardio ? valoreMinutiCardioNelCampo(serie) : serie.
             titolo:'Serie eliminata · '+(e?.nome||'Esercizio'),
             dettaglio:'Serie '+numero+' spostata nel cestino',
           }); } catch(err) { console.warn('Registro cronologia non disponibile',err); }
-          V.serie = await db.tutti('serie'); disegna();
+          V.serie = await db.tutti('serie');
+          await aggiornaSfideAutomatiche({rivalida:true});
+          disegna();
         }
       },
       classe: 'fantasma piccolo-b pericolo-b',
@@ -4281,6 +4286,14 @@ async function aggiornaSerie(serie, campi) {
   if (idx >= 0) V.serie[idx] = salvata;
   if(campi.stato==='fatta') GHOST_BOZZE.delete(serie.id);
   aggiornaGhostDalForm(serie.seduta_id,serie.esercizio_id,serie.id);
+  // Dopo la chiusura della seduta una modifica alla serie puo togliere la prova
+  // a una missione: i premi non devono continuare a contare senza quella prova.
+  if(seduteMie().some(s=>s.id===serie.seduta_id && s.stato==='completata')
+      && ['stato','peso','peso_assistenza','ripetizioni','rip_assistite'].some(k=>
+        Object.prototype.hasOwnProperty.call(campi,k))) {
+    await ricaricaTutto({caricaAmiciOnline:false});
+    await aggiornaSfideAutomatiche({rivalida:true});
+  }
   disegnaStatoSalvataggio();
   return salvata;
 }
@@ -4319,6 +4332,7 @@ async function finisceAllenamento(s) {
   // il gioco: record, rank, LP, streak, Aura e traguardi. Tutto calcolato
   // dai dati appena salvati e passato dal database, mai scritto a mano.
   const premiAllenamento = await assegnaRicompense(s.id);
+  try { await aggiornaSfideAutomatiche(); } catch(e) { console.warn('Premi automatici:',e); }
   try {
     await registraVoceCronologia({
       tipo:'allenamento_completato',
@@ -4542,6 +4556,7 @@ async function eliminaSeduteEGuadagni(ids) {
   for (const seduta of mie) await db.cestino('sedute',seduta.id);
   for (const r of premi) await db.cestino('ricompense',r.id);
   await ricaricaTutto();
+  await aggiornaSfideAutomatiche({rivalida:true});
   return {
     numero:mie.length,
     aura:premi.reduce((v,r)=>v+(Number(r.aura)||0),0),
@@ -4594,6 +4609,7 @@ async function annullaEventoCronologia(voce) {
   }
   await db.salva('note',annullaVoce(nota,evento));
   await ricaricaTutto();
+  await aggiornaSfideAutomatiche({rivalida:true});
   disegna();
   avviso('Azione annullata. Dati, statistiche e ricompense disponibili aggiornati.',{tipo:'ok',durata:6000});
 }
@@ -7582,57 +7598,53 @@ async function assegnaRicompense(sedutaId) {
   }
 }
 
-/** Completa una missione: una volta sola per giorno o per settimana. */
-async function completaMissione(voce) {
-  if (!voce || voce.completata) return;
-  const ok = await chiediConferma(
-    'Missione completata?',
-    `${voce.missione.titolo}\n\n${voce.missione.testo}\n\nRicompensa: +${voce.ricompensa.aura} AURA.`,
-    { testoOk: 'Sì, l\'ho fatta', testoAnnulla: 'Ancora no' },
-  );
-  if (!ok) return;
-  await salvaMissione(voce, { completata: true });
-}
-
-/** Rivela una Secret Mission: resta registrata anche se non la completi. */
-async function rivelaMissione(voce) {
-  if (!voce || voce.rivelata) return;
-  await salvaMissione(voce, { rivelata: true });
-}
-
-async function salvaMissione(voce, { completata = false, rivelata = false } = {}) {
-  const riga = {
-    id: voce.chiave,
-    account_id: accountAttivo(),
-    missione_id: voce.missione.id,
-    categoria: voce.categoria,
-    titolo: voce.missione.titolo,
-    difficolta: voce.missione.difficolta,
-    data: voce.categoria === 'daily' ? schedaEvento() : null,
-    settimana: voce.categoria === 'daily' ? null : statoMio().settimana,
-    aura: voce.ricompensa.aura,
-    xp: voce.ricompensa.xp,
-    rivelata: rivelata || voce.rivelata,
-    completata_il: completata ? adesso() : null,
+// Premi automatici: un ID stabile per account, obiettivo e periodo.
+let codaSfideAutomatiche = Promise.resolve();
+function aggiornaSfideAutomatiche({rivalida=false}={}) {
+  const esegui = async () => {
+    const account = accountAttivo();
+    const tutte = (await db.tutti('ricompense',{includiEliminati:true}))
+      .filter(r=>r && r.account_id===account);
+    const args = {account,oggi:isoGiorno(new Date()),sedute:seduteMie(),
+      serie:serieMie(),esercizi:V.esercizi,profilo:profiloAttivo(),
+      ricompense:tutte,pesoCorporeo:pesoCorporeoOra()};
+    let modificate = 0;
+    if (rivalida) {
+      for(const r of tutte) {
+        if(!interpretaPremioSfida(r)) continue;
+        const valida=premioSfidaAncoraValido(r,args)===true;
+        if(!r.eliminata && !valida) {
+          await db.cestino('ricompense',r.id);
+          modificate++;
+        } else if(r.eliminata && valida) {
+          await db.recupera('ricompense',r.id);
+          modificate++;
+        }
+      }
+    }
+    const quadro = quadroSfideAutomatiche(args);
+    const legacyRecord = new Set(tutte.filter(r=>r && !r.eliminata
+      && r.tipo==='record_settimanale_riscattato').map(r=>String(r.fonte)));
+    for(const voce of [...quadro.daily,...quadro.weekly,...quadro.secret]) {
+      if(!voce.raggiunta) continue;
+      // Il vecchio premio settimanale gia riscosso non vale due volte.
+      if(voce.id==='record-vero' && legacyRecord.has(voce.periodo)) continue;
+      const vecchia = tutte.find(r=>r.id===voce.chiave);
+      if(vecchia && !vecchia.eliminata) continue;
+      const premio = premioSfidaAutomatica(voce);
+      if(!premio) continue;
+      await db.salva('ricompense',{...vecchia,...premio,
+        eliminata:false,eliminata_il:null,
+        sync:undefined,updated_at:undefined});
+      modificate++;
+    }
+    if(modificate && account===accountAttivo())
+      await ricaricaTutto({caricaAmiciOnline:false});
+    return modificate;
   };
-  await db.salva('missioni', riga);
-  if (completata) {
-    await db.salva('ricompense', {
-      id: riga.id + ':premio',
-      account_id: accountAttivo(),
-      tipo: 'missione',
-      fonte: riga.missione_id,
-      aura: riga.aura,
-      xp: riga.xp,
-      dettaglio: riga.titolo,
-      quando: adesso(),
-    });
-    await ricaricaTutto();
-    avviso(`+${formattaAura(riga.aura)} AURA · ${riga.titolo}`, { tipo: 'ok', durata: 6000 });
-  } else {
-    await ricaricaTutto();
-  }
-  disegna();
+  const prossima = codaSfideAutomatiche.then(esegui,esegui);
+  codaSfideAutomatiche = prossima.catch(e=>console.warn('Sfide automatiche:',e?.message||e));
+  return prossima;
 }
 
 async function salvaProfilo(campi) {
@@ -8957,89 +8969,34 @@ function vistaCasa(zona) {
       : el('p', { class: 'nota', testo: 'Non hai ancora finito un allenamento. La streak parte dal primo.' }),
   ]));
 
-  // --- daily mission ---
-  zona.appendChild(el('h2', { testo: 'Daily Mission' }));
-  zona.appendChild(el('p', { class: 'nota', testo: 'Una missione al giorno, diversa per ciascuno. Si completa una volta sola.' }));
-  zona.appendChild(tesseraMissione(st.missioni.daily));
-
-  // --- weekly ---
-  zona.appendChild(el('h2', { testo: `Weekly Missions · ${st.settimana}` }));
-  zona.appendChild(el('p', { class: 'nota', testo: 'Diverse per ciascuno, e cambiano ogni settimana. Nessuna sfida ti viene riproposta.' }));
-  for (const voce of st.missioni.weekly) zona.appendChild(tesseraMissione(voce));
-
-  // --- record settimanale riscattabile: un solo premio per settimana ---
-  const inizioSettimanaRecord = (() => {
-    const d = new Date();
-    d.setHours(0, 0, 0, 0);
-    const giorno = d.getDay() || 7;
-    d.setDate(d.getDate() - giorno + 1);
-    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-  })();
-  // Verifica il record confrontando la miglior serie valida di questa settimana
-  // con tutte quelle precedenti. Non dipende dal premio "record" storico, che per
-  // design viene registrato una sola volta per esercizio.
-  const seduteCompletatePerRecord = seduteMie().filter((s) => s && !s.eliminata && s.stato === 'completata');
-  const giornoSedutaRecord = new Map(seduteCompletatePerRecord.map((s) => [s.id, String(s.data || '').slice(0, 10)]));
-  const serieCompletatePerRecord = serieMie().filter((s) => s && !s.eliminata && eFatta(s) && giornoSedutaRecord.has(s.seduta_id));
-  const eserciziAllenatiQuestaSettimana = new Set(serieCompletatePerRecord
-    .filter((s) => (giornoSedutaRecord.get(s.seduta_id) || '') >= inizioSettimanaRecord)
-    .map((s) => s.esercizio_id));
-  const recordDellaSettimana = [];
-  for (const esercizioId of eserciziAllenatiQuestaSettimana) {
-    const esercizio = esercizioPerId(esercizioId);
-    if (!esercizio) continue;
-    const tutteSerieEsercizio = serieCompletatePerRecord.filter((s) => s.esercizio_id === esercizioId);
-    const serieQuestaSettimana = tutteSerieEsercizio.filter((s) => (giornoSedutaRecord.get(s.seduta_id) || '') >= inizioSettimanaRecord);
-    const seriePrecedenti = tutteSerieEsercizio.filter((s) => (giornoSedutaRecord.get(s.seduta_id) || '') < inizioSettimanaRecord);
-    const migliorSettimana = recordEsercizio(serieQuestaSettimana, esercizio, null, pesoCorporeoOra());
-    const migliorPrecedente = recordEsercizio(seriePrecedenti, esercizio, null, pesoCorporeoOra());
-    if (migliorSettimana && migliorSettimana.valido
-      && (!migliorPrecedente || !migliorPrecedente.valido
-        || Number(migliorSettimana.punteggio) > Number(migliorPrecedente.punteggio))) {
-      recordDellaSettimana.push({ esercizioId, nome: esercizio.nome, punteggio: migliorSettimana.punteggio });
-    }
-  }
-  const chiaveRiscattoRecord = 'record-settimanale:' + accountAttivo() + ':' + st.settimana;
-  const premioRecordGiaRiscattato = ricompenseMie().some((r) => r && r.id === chiaveRiscattoRecord);
-  const sfidaRecord = el('section', { class: 'blocco sfida-record-settimanale' }, [
-    el('div', { class: 'sfida-record-kicker', testo: 'SFIDA SETTIMANALE' }),
-    el('h2', { testo: 'Supera un tuo record' }),
-    el('p', { class: 'nota', testo: 'Migliora il tuo record personale in almeno un esercizio questa settimana. Quando il nuovo record viene registrato, puoi riscattare il premio una sola volta.' }),
-    el('div', { class: 'sfida-record-premio' }, [
-      el('span', { testo: '✦ +250 Aura' }),
-      el('span', { testo: '⚡ +150 XP' }),
-    ]),
-  ]);
-  if (premioRecordGiaRiscattato) {
-    sfidaRecord.appendChild(el('span', { class: 'tag-fatto', testo: 'PREMIO RISCATTATO QUESTA SETTIMANA' }));
-  } else if (recordDellaSettimana.length) {
-    sfidaRecord.appendChild(el('p', { class: 'nota', testo: 'Record nuovi registrati: ' + recordDellaSettimana.length }));
-    sfidaRecord.appendChild(bottone('Riscatta premio settimanale', { classe: 'principale', onClick: async () => {
-      if (ricompenseMie().some((r) => r && r.id === chiaveRiscattoRecord)) return;
-      const premio = { id: chiaveRiscattoRecord, account_id: accountAttivo(), tipo: 'record_settimanale_riscattato', fonte: st.settimana, aura: 250, xp: 150, descrizione: 'Sfida settimanale: record personale', quando: adesso() };
-      try {
-        await db.salva('ricompense', premio);
-        await ricaricaTutto();
-        avviso('Premio riscattato: +250 Aura e +150 XP!', { tipo: 'ok', durata: 6000 });
-        disegna();
-      } catch (err) {
-        avviso('Non sono riuscito a riscattare il premio. Riprova con internet attivo.', { tipo: 'errore' });
-      }
-    }}));
-  } else {
-    sfidaRecord.appendChild(el('p', { class: 'nota', testo: 'Non hai ancora battuto un record questa settimana. Il premio si sblocca quando registri un nuovo record.' }));
-  }
-  zona.appendChild(sfidaRecord);
-
-  // --- secret ---
-  zona.appendChild(el('h2', { testo: 'Secret Missions' }));
-  zona.appendChild(el('p', { class: 'nota', testo: 'Coperti finche\' non li riveli. Valgono di piu\'.' }));
-  for (const voce of st.missioni.secret) zona.appendChild(tesseraMissione(voce));
+  // Daily, Weekly e Secret sono verificate dai dati, non da un click.
+  const quadroAuto=quadroSfideAutomatiche({account:accountAttivo(),oggi:st.giorno,
+    sedute:seduteMie(),serie:serieMie(),esercizi:V.esercizi,
+    profilo:profiloAttivo(),ricompense:ricompenseMie(),pesoCorporeo:pesoCorporeoOra()});
+  zona.appendChild(el('h2',{testo:'Daily Missions'}));
+  zona.appendChild(el('p',{class:'nota',testo:'Premi automatici soltanto dopo allenamenti e serie registrate. I giorni di riposo previsti non richiedono sfide.'}));
+  if(!quadroAuto.daily.length)
+    zona.appendChild(el('p',{class:'nota',testo:'Oggi e un giorno di riposo previsto: recupera senza perdere nulla.'}));
+  for(const sfida of quadroAuto.daily) zona.appendChild(tesseraSfidaAutomatica(sfida));
+  zona.appendChild(el('h2',{testo:'Weekly Missions · '+st.settimana}));
+  zona.appendChild(el('p',{class:'nota',testo:'Obiettivi verificati dalla scheda: non serve premere nulla per riscuotere.'}));
+  for(const sfida of quadroAuto.weekly) zona.appendChild(tesseraSfidaAutomatica(sfida));
+  zona.appendChild(el('h2',{testo:'Secret Missions'}));
+  zona.appendChild(el('p',{class:'nota',testo:'Si svelano automaticamente solo quando le hai davvero completate.'}));
+  for(const sfida of quadroAuto.secret) zona.appendChild(tesseraSfidaAutomatica(sfida));
 
   // --- cronologia delle sfide fatte ---
   // Ste l'ha chiesto: comÈ che si fa a vedere tutte le sfide che hai
   // finito? Prima i dati c'erano (st.storicoMissioni) ma non erano mostrati.
-  const finiteSfide = (st.storicoMissioni || []).filter((v) => v && v.missione);
+  const storiche=(st.storicoMissioni||[]).filter(v=>v&&v.missione);
+  const automatiche=ricompenseMie().filter(r=>r&&r.tipo==='missione_auto'
+    && interpretaPremioSfida(r)).map(r=>({
+    id:r.id,titolo:r.dettaglio,quando:r.quando,aura:r.aura,
+    categoria:interpretaPremioSfida(r).categoria,
+    missione:{difficolta:{nome:'AUTO',colore:'#37d18b'}}
+  }));
+  const finiteSfide=[...storiche,...automatiche].sort((a,b)=>
+    String(b.quando||'').localeCompare(String(a.quando||'')));
   zona.appendChild(el('section', { class: 'blocco' }, [
     el('h2', { testo: 'Cronologia sfide' }),
     finiteSfide.length
@@ -9130,28 +9087,26 @@ function rigaCronologiaMissione(voce) {
   ]);
 }
 
-function tesseraMissione(voce) {
-  if (!voce) return el('p', { class: 'nota', testo: 'Missione non disponibile.' });
-  const d = voce.ricompensa.difficolta;
-  const secretCoverta = voce.segreta && !voce.rivelata;
-  const box = el('div', { class: 'tessera-missione' + (voce.completata ? ' fatta' : '') + (secretCoverta ? ' coperta' : '') });
-  box.appendChild(el('div', { class: 'missione-alto' }, [
-    el('span', { class: 'tag-difficolta', style: `--diff:${d.colore}`, testo: d.nome }),
-    el('strong', { testo: secretCoverta ? 'SECRET MISSION' : voce.missione.titolo }),
-    el('span', { class: 'aura-premio', testo: '+' + voce.ricompensa.aura + ' AURA' }),
+function tesseraSfidaAutomatica(voce) {
+  const nascosta=voce.categoria==='secret' && !voce.raggiunta && !voce.premiata;
+  const box=el('div',{class:'tessera-missione'+(voce.premiata?' fatta':'')+(nascosta?' coperta':'')});
+  box.appendChild(el('div',{class:'missione-alto'},[
+    el('span',{class:'tag-difficolta',testo:voce.categoria.toUpperCase()}),
+    el('strong',{testo:nascosta?'SECRET MISSION':voce.titolo}),
+    el('span',{class:'aura-premio',testo:'+'+voce.aura+' AURA'}),
   ]));
-  box.appendChild(el('p', {
-    class: 'missione-testo',
-    testo: secretCoverta
-      ? 'Questa missione richiede coraggio.'
-      : voce.missione.testo,
-  }));
-  if (secretCoverta && !voce.completata) {
-    box.appendChild(bottone('[ REVEAL ]', { onClick: () => rivelaMissione(voce), classe: 'fantasma' }));
-  } else if (voce.completata) {
-    box.appendChild(el('span', { class: 'tag-fatto', testo: 'COMPLETATA' }));
-  } else {
-    box.appendChild(bottone('L\'ho fatta', { onClick: () => completaMissione(voce), classe: 'principale' }));
+  box.appendChild(el('p',{class:'missione-testo',testo:nascosta
+    ? 'Obiettivo nascosto: si rivela automaticamente quando lo raggiungi.'
+    : voce.testo}));
+  if(voce.premiata) {
+    box.appendChild(el('span',{class:'tag-fatto',testo:'✓ COMPLETATA AUTOMATICAMENTE'}));
+  } else if(voce.raggiunta) {
+    box.appendChild(el('span',{class:'tag-fatto',testo:'OBIETTIVO VERIFICATO · PREMIO IN ACCREDITO'}));
+  } else if(!nascosta) {
+    box.appendChild(el('p',{class:'nota nota-piccola',
+      testo:Math.min(voce.progresso,voce.obiettivo)+' / '+voce.obiettivo+' · Progresso registrato'}));
+    box.appendChild(el('progress',{max:voce.obiettivo,
+      value:Math.min(voce.progresso,voce.obiettivo)}));
   }
   return box;
 }
