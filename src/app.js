@@ -8950,89 +8950,34 @@ function vistaCasa(zona) {
       : el('p', { class: 'nota', testo: 'Non hai ancora finito un allenamento. La streak parte dal primo.' }),
   ]));
 
-  // --- daily mission ---
-  zona.appendChild(el('h2', { testo: 'Daily Mission' }));
-  zona.appendChild(el('p', { class: 'nota', testo: 'Una missione al giorno, diversa per ciascuno. Si completa una volta sola.' }));
-  zona.appendChild(tesseraMissione(st.missioni.daily));
-
-  // --- weekly ---
-  zona.appendChild(el('h2', { testo: `Weekly Missions · ${st.settimana}` }));
-  zona.appendChild(el('p', { class: 'nota', testo: 'Diverse per ciascuno, e cambiano ogni settimana. Nessuna sfida ti viene riproposta.' }));
-  for (const voce of st.missioni.weekly) zona.appendChild(tesseraMissione(voce));
-
-  // --- record settimanale riscattabile: un solo premio per settimana ---
-  const inizioSettimanaRecord = (() => {
-    const d = new Date();
-    d.setHours(0, 0, 0, 0);
-    const giorno = d.getDay() || 7;
-    d.setDate(d.getDate() - giorno + 1);
-    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-  })();
-  // Verifica il record confrontando la miglior serie valida di questa settimana
-  // con tutte quelle precedenti. Non dipende dal premio "record" storico, che per
-  // design viene registrato una sola volta per esercizio.
-  const seduteCompletatePerRecord = seduteMie().filter((s) => s && !s.eliminata && s.stato === 'completata');
-  const giornoSedutaRecord = new Map(seduteCompletatePerRecord.map((s) => [s.id, String(s.data || '').slice(0, 10)]));
-  const serieCompletatePerRecord = serieMie().filter((s) => s && !s.eliminata && eFatta(s) && giornoSedutaRecord.has(s.seduta_id));
-  const eserciziAllenatiQuestaSettimana = new Set(serieCompletatePerRecord
-    .filter((s) => (giornoSedutaRecord.get(s.seduta_id) || '') >= inizioSettimanaRecord)
-    .map((s) => s.esercizio_id));
-  const recordDellaSettimana = [];
-  for (const esercizioId of eserciziAllenatiQuestaSettimana) {
-    const esercizio = esercizioPerId(esercizioId);
-    if (!esercizio) continue;
-    const tutteSerieEsercizio = serieCompletatePerRecord.filter((s) => s.esercizio_id === esercizioId);
-    const serieQuestaSettimana = tutteSerieEsercizio.filter((s) => (giornoSedutaRecord.get(s.seduta_id) || '') >= inizioSettimanaRecord);
-    const seriePrecedenti = tutteSerieEsercizio.filter((s) => (giornoSedutaRecord.get(s.seduta_id) || '') < inizioSettimanaRecord);
-    const migliorSettimana = recordEsercizio(serieQuestaSettimana, esercizio, null, pesoCorporeoOra());
-    const migliorPrecedente = recordEsercizio(seriePrecedenti, esercizio, null, pesoCorporeoOra());
-    if (migliorSettimana && migliorSettimana.valido
-      && (!migliorPrecedente || !migliorPrecedente.valido
-        || Number(migliorSettimana.punteggio) > Number(migliorPrecedente.punteggio))) {
-      recordDellaSettimana.push({ esercizioId, nome: esercizio.nome, punteggio: migliorSettimana.punteggio });
-    }
-  }
-  const chiaveRiscattoRecord = 'record-settimanale:' + accountAttivo() + ':' + st.settimana;
-  const premioRecordGiaRiscattato = ricompenseMie().some((r) => r && r.id === chiaveRiscattoRecord);
-  const sfidaRecord = el('section', { class: 'blocco sfida-record-settimanale' }, [
-    el('div', { class: 'sfida-record-kicker', testo: 'SFIDA SETTIMANALE' }),
-    el('h2', { testo: 'Supera un tuo record' }),
-    el('p', { class: 'nota', testo: 'Migliora il tuo record personale in almeno un esercizio questa settimana. Quando il nuovo record viene registrato, puoi riscattare il premio una sola volta.' }),
-    el('div', { class: 'sfida-record-premio' }, [
-      el('span', { testo: '✦ +250 Aura' }),
-      el('span', { testo: '⚡ +150 XP' }),
-    ]),
-  ]);
-  if (premioRecordGiaRiscattato) {
-    sfidaRecord.appendChild(el('span', { class: 'tag-fatto', testo: 'PREMIO RISCATTATO QUESTA SETTIMANA' }));
-  } else if (recordDellaSettimana.length) {
-    sfidaRecord.appendChild(el('p', { class: 'nota', testo: 'Record nuovi registrati: ' + recordDellaSettimana.length }));
-    sfidaRecord.appendChild(bottone('Riscatta premio settimanale', { classe: 'principale', onClick: async () => {
-      if (ricompenseMie().some((r) => r && r.id === chiaveRiscattoRecord)) return;
-      const premio = { id: chiaveRiscattoRecord, account_id: accountAttivo(), tipo: 'record_settimanale_riscattato', fonte: st.settimana, aura: 250, xp: 150, descrizione: 'Sfida settimanale: record personale', quando: adesso() };
-      try {
-        await db.salva('ricompense', premio);
-        await ricaricaTutto();
-        avviso('Premio riscattato: +250 Aura e +150 XP!', { tipo: 'ok', durata: 6000 });
-        disegna();
-      } catch (err) {
-        avviso('Non sono riuscito a riscattare il premio. Riprova con internet attivo.', { tipo: 'errore' });
-      }
-    }}));
-  } else {
-    sfidaRecord.appendChild(el('p', { class: 'nota', testo: 'Non hai ancora battuto un record questa settimana. Il premio si sblocca quando registri un nuovo record.' }));
-  }
-  zona.appendChild(sfidaRecord);
-
-  // --- secret ---
-  zona.appendChild(el('h2', { testo: 'Secret Missions' }));
-  zona.appendChild(el('p', { class: 'nota', testo: 'Coperti finche\' non li riveli. Valgono di piu\'.' }));
-  for (const voce of st.missioni.secret) zona.appendChild(tesseraMissione(voce));
+  // Daily, Weekly e Secret sono verificate dai dati, non da un click.
+  const quadroAuto=quadroSfideAutomatiche({account:accountAttivo(),oggi:st.giorno,
+    sedute:seduteMie(),serie:serieMie(),esercizi:V.esercizi,
+    profilo:profiloAttivo(),ricompense:ricompenseMie(),pesoCorporeo:pesoCorporeoOra()});
+  zona.appendChild(el('h2',{testo:'Daily Missions'}));
+  zona.appendChild(el('p',{class:'nota',testo:'Premi automatici soltanto dopo allenamenti e serie registrate. I giorni di riposo previsti non richiedono sfide.'}));
+  if(!quadroAuto.daily.length)
+    zona.appendChild(el('p',{class:'nota',testo:'Oggi e un giorno di riposo previsto: recupera senza perdere nulla.'}));
+  for(const sfida of quadroAuto.daily) zona.appendChild(tesseraSfidaAutomatica(sfida));
+  zona.appendChild(el('h2',{testo:'Weekly Missions · '+st.settimana}));
+  zona.appendChild(el('p',{class:'nota',testo:'Obiettivi verificati dalla scheda: non serve premere nulla per riscuotere.'}));
+  for(const sfida of quadroAuto.weekly) zona.appendChild(tesseraSfidaAutomatica(sfida));
+  zona.appendChild(el('h2',{testo:'Secret Missions'}));
+  zona.appendChild(el('p',{class:'nota',testo:'Si svelano automaticamente solo quando le hai davvero completate.'}));
+  for(const sfida of quadroAuto.secret) zona.appendChild(tesseraSfidaAutomatica(sfida));
 
   // --- cronologia delle sfide fatte ---
   // Ste l'ha chiesto: comÈ che si fa a vedere tutte le sfide che hai
   // finito? Prima i dati c'erano (st.storicoMissioni) ma non erano mostrati.
-  const finiteSfide = (st.storicoMissioni || []).filter((v) => v && v.missione);
+  const storiche=(st.storicoMissioni||[]).filter(v=>v&&v.missione);
+  const automatiche=ricompenseMie().filter(r=>r&&r.tipo==='missione_auto'
+    && interpretaPremioSfida(r)).map(r=>({
+    id:r.id,titolo:r.dettaglio,quando:r.quando,aura:r.aura,
+    categoria:interpretaPremioSfida(r).categoria,
+    missione:{difficolta:{nome:'AUTO',colore:'#37d18b'}}
+  }));
+  const finiteSfide=[...storiche,...automatiche].sort((a,b)=>
+    String(b.quando||'').localeCompare(String(a.quando||'')));
   zona.appendChild(el('section', { class: 'blocco' }, [
     el('h2', { testo: 'Cronologia sfide' }),
     finiteSfide.length
@@ -9123,28 +9068,26 @@ function rigaCronologiaMissione(voce) {
   ]);
 }
 
-function tesseraMissione(voce) {
-  if (!voce) return el('p', { class: 'nota', testo: 'Missione non disponibile.' });
-  const d = voce.ricompensa.difficolta;
-  const secretCoverta = voce.segreta && !voce.rivelata;
-  const box = el('div', { class: 'tessera-missione' + (voce.completata ? ' fatta' : '') + (secretCoverta ? ' coperta' : '') });
-  box.appendChild(el('div', { class: 'missione-alto' }, [
-    el('span', { class: 'tag-difficolta', style: `--diff:${d.colore}`, testo: d.nome }),
-    el('strong', { testo: secretCoverta ? 'SECRET MISSION' : voce.missione.titolo }),
-    el('span', { class: 'aura-premio', testo: '+' + voce.ricompensa.aura + ' AURA' }),
+function tesseraSfidaAutomatica(voce) {
+  const nascosta=voce.categoria==='secret' && !voce.raggiunta && !voce.premiata;
+  const box=el('div',{class:'tessera-missione'+(voce.premiata?' fatta':'')+(nascosta?' coperta':'')});
+  box.appendChild(el('div',{class:'missione-alto'},[
+    el('span',{class:'tag-difficolta',testo:voce.categoria.toUpperCase()}),
+    el('strong',{testo:nascosta?'SECRET MISSION':voce.titolo}),
+    el('span',{class:'aura-premio',testo:'+'+voce.aura+' AURA'}),
   ]));
-  box.appendChild(el('p', {
-    class: 'missione-testo',
-    testo: secretCoverta
-      ? 'Questa missione richiede coraggio.'
-      : voce.missione.testo,
-  }));
-  if (secretCoverta && !voce.completata) {
-    box.appendChild(bottone('[ REVEAL ]', { onClick: () => rivelaMissione(voce), classe: 'fantasma' }));
-  } else if (voce.completata) {
-    box.appendChild(el('span', { class: 'tag-fatto', testo: 'COMPLETATA' }));
-  } else {
-    box.appendChild(bottone('L\'ho fatta', { onClick: () => completaMissione(voce), classe: 'principale' }));
+  box.appendChild(el('p',{class:'missione-testo',testo:nascosta
+    ? 'Obiettivo nascosto: si rivela automaticamente quando lo raggiungi.'
+    : voce.testo}));
+  if(voce.premiata) {
+    box.appendChild(el('span',{class:'tag-fatto',testo:'✓ COMPLETATA AUTOMATICAMENTE'}));
+  } else if(voce.raggiunta) {
+    box.appendChild(el('span',{class:'tag-fatto',testo:'OBIETTIVO VERIFICATO · PREMIO IN ACCREDITO'}));
+  } else if(!nascosta) {
+    box.appendChild(el('p',{class:'nota nota-piccola',
+      testo:Math.min(voce.progresso,voce.obiettivo)+' / '+voce.obiettivo+' · Progresso registrato'}));
+    box.appendChild(el('progress',{max:voce.obiettivo,
+      value:Math.min(voce.progresso,voce.obiettivo)}));
   }
   return box;
 }
