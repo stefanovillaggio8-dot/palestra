@@ -585,6 +585,7 @@ async function avvia() {
     aggiornaFaseAvvio('preparazione delle statistiche locali');
     await aggiornaPesoInMemoria();
     await caricaLivelliImparati();
+    try { await aggiornaSfideAutomatiche(); } catch(e) { console.warn('Sfide automatiche all’avvio:',e); }
     window.addEventListener('hashchange', () => disegna());
     disegna();
     if (window.PALESTRA_AVVIO) window.PALESTRA_AVVIO.pronto = true;
@@ -629,6 +630,7 @@ async function avvia() {
           await aggiornaCreditoStreakOnline();
           await aggiornaStreakDaCloud();
           if (account !== accountAttivo()) return;
+          await aggiornaSfideAutomatiche();
           // Non perdere i valori non ancora confermati nel form di una serie.
           const editando = document.activeElement?.matches?.('input, textarea, select, [contenteditable="true"]');
           const inAllenamento = /^#\/allenamento/.test(location.hash || '');
@@ -4320,6 +4322,7 @@ async function finisceAllenamento(s) {
   // il gioco: record, rank, LP, streak, Aura e traguardi. Tutto calcolato
   // dai dati appena salvati e passato dal database, mai scritto a mano.
   const premiAllenamento = await assegnaRicompense(s.id);
+  try { await aggiornaSfideAutomatiche(); } catch(e) { console.warn('Premi automatici:',e); }
   try {
     await registraVoceCronologia({
       tipo:'allenamento_completato',
@@ -4543,6 +4546,7 @@ async function eliminaSeduteEGuadagni(ids) {
   for (const seduta of mie) await db.cestino('sedute',seduta.id);
   for (const r of premi) await db.cestino('ricompense',r.id);
   await ricaricaTutto();
+  await aggiornaSfideAutomatiche({rivalida:true});
   return {
     numero:mie.length,
     aura:premi.reduce((v,r)=>v+(Number(r.aura)||0),0),
