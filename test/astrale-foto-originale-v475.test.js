@@ -7,7 +7,7 @@ import {
 } from '../src/foto-cinematica-rpg.js';
 const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 
-test('v476 corregge regressione v475: il Mitico NON è una skin nuova',()=>{
+test('v477 corregge regressione v475: il Mitico NON è una skin nuova',()=>{
  for(const classe of ['assassino','guerriero','berserker']){
    for(const stato of [0,1,3,4,5]){
      const config={classe,stato,skin:'skin-mitica',armaSbloccata:stato>=4};
@@ -19,7 +19,7 @@ test('v476 corregge regressione v475: il Mitico NON è una skin nuova',()=>{
  assert.equal(montaScenaCinematograficaRpg({}, {}, {classe:'assassino',skin:'skin-mitica'}),false);
 });
 
-test('v476 conserva foto, progressione, armi e slot Effetto con Corona o Armatura',()=>{
+test('v477 conserva foto, progressione, armi e slot Effetto con Corona o Armatura',()=>{
  const app=read('src/app.js'),atelier=read('src/rpg-atelier.js');
  assert.doesNotMatch(app,/astraleConFotoIntegrale/);
  assert.match(app,/const effettoVivo=!auraDivinaAttiva && usaEffettiViviRpg/);
@@ -28,7 +28,7 @@ test('v476 conserva foto, progressione, armi e slot Effetto con Corona o Armatur
  assert.match(app,/effetto:astraleAttiva \? null : effettoEquipaggiato\?\.id/);
  assert.match(atelier,/disegnaAstraleExport\(ctx/);
  assert.match(atelier,/c\.effetto==='skin-mitica'\?null/);
- assert.match(read('sw.js'),/palestra-v476/);
- assert.match(read('index.html'),/palestra-v476/);
+ assert.match(read('sw.js'),/palestra-v477/);
+ assert.match(read('index.html'),/palestra-v477/);
  assert.doesNotMatch(read('sw.js'),/assassino-astrale-mitico-v475\.avif/);
 });
