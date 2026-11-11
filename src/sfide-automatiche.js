@@ -6,7 +6,7 @@ import { recordEsercizio } from './rank.js';
 
 export const SFIDE_AUTOMATICHE = Object.freeze({
   daily: [
-    {id:'allenamento-completo',titolo:'Allenamento completato',testo:'Termina un allenamento e registra almeno due serie realmente eseguite.',aura:25,xp:30,obiettivo:1},
+    {id:'scheda-completa',titolo:'Completa la scheda',testo:'Concludi il giorno della scheda registrando tutte le serie, senza lasciarne da fare o saltate.',aura:40,xp:45,obiettivo:1},
     {id:'tre-serie',titolo:'Tre serie completate',testo:'Registra almeno tre serie eseguite oggi. Le serie saltate non contano.',aura:35,xp:35,obiettivo:3},
   ],
   weekly: [
@@ -102,6 +102,10 @@ export function quadroSfideAutomatiche({account,oggi,sedute=[],serie=[],esercizi
   const dati=datiValidi({sedute,serie,oggi});
   const validi=dati.filter(x=>x.serie.length>=2);
   const giornata=validi.filter(x=>dataDi(x.seduta)===periodoDaily);
+  const schedeComplete=giornata.filter(x=>{
+    const previste=(serie||[]).filter(s=>s && !s.eliminata && s.seduta_id===x.seduta.id);
+    return previste.length>=2 && x.serie.length===previste.length;
+  });
   const serieOggi=dati.filter(x=>dataDi(x.seduta)===periodoDaily).flatMap(x=>x.serie);
   const dellaSettimana=validi.filter(x=>idSettimana(dataDi(x.seduta))===periodoWeekly);
   const dateSettimana=new Set(dellaSettimana.map(x=>dataDi(x.seduta)));
@@ -116,8 +120,8 @@ export function quadroSfideAutomatiche({account,oggi,sedute=[],serie=[],esercizi
       premiata:esistenti.has(chiave)};
   };
   const daily=validaData(periodoDaily)&&periodoDaily>=INIZIO_SFIDE_AUTO
-    && giornoPrevisto(periodoDaily,profilo)
-    ? SFIDE_AUTOMATICHE.daily.map(def=>crea(def,'daily',periodoDaily,def.id==='tre-serie'?serieOggi.length:giornata.length))
+    && (giornoPrevisto(periodoDaily,profilo) || giornata.length>0)
+    ? SFIDE_AUTOMATICHE.daily.map(def=>crea(def,'daily',periodoDaily,def.id==='tre-serie'?serieOggi.length:schedeComplete.length))
     : [];
   const weekly=SFIDE_AUTOMATICHE.weekly
     .filter(def=>def.id!=='tre-allenamenti'||programma>=3)
