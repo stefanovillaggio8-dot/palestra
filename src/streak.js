@@ -289,13 +289,20 @@ function applicaRettificaStreak(stato, oggi, profilo) {
   const previsti = giorniPrevistiDa(profilo);
   const previstiSet = previsti ? new Set(previsti) : null;
   const dopo = [];
+  // Il record di una streak confermata resta storico anche dopo un'interruzione.
+  // Conserviamo anche gli allenamenti effettivi successivi alla rettifica che
+  // hanno preceduto il primo giorno saltato, senza aggiungerne di inventati.
+  const dopoInterruzione = () => {
+    const record = Math.max(Number(stato.record) || 0, base + dopo.length);
+    return {...stato, record, prossimoObiettivo: prossimoMilestone(record)};
+  };
   let corrente = giornoSuccessivo(data);
   for (let i = 0; corrente && corrente <= oggi && i < 100000; i++) {
     const eseguito = dati.has(corrente);
     if (corrente < oggi && previstiSet && previstiSet.has(giornoSettimana(corrente)) && !eseguito) {
-      return stato; // torna al calcolo normale dopo un'interruzione reale
+      return dopoInterruzione(); // solo la streak corrente torna a zero
     }
-    if (corrente < oggi && !previstiSet && !eseguito) return stato;
+    if (corrente < oggi && !previstiSet && !eseguito) return dopoInterruzione();
     if (eseguito) dopo.push(corrente);
     corrente = giornoSuccessivo(corrente);
   }
