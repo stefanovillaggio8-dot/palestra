@@ -8318,7 +8318,7 @@ function bloccoPersonaggio(profilo, st) {
       skin:astraleAttiva ? 'skin-mitica' : null,
       effetto:astraleAttiva ? null : effettoEquipaggiato?.id || null,
       corona:coronaAttiva,
-      divina:Boolean(viso.aura) || auraDivinaAnteprima,
+      divina:!astraleAttiva && (Boolean(viso.aura) || auraDivinaAnteprima),
     });
     // La classe rpg-composite-active viene attivata dal renderer, SOLO
     // quando la fotografia è pronta: nessun avatar senza effetti su Safari.

@@ -11,6 +11,8 @@ test('v475: il ritratto mitico Assassino e una nuova fotografia autonoma',()=>{
  assert.equal(bytes.toString('ascii',4,8),'ftyp');
  assert.match(bytes.toString('ascii',8,40),/avif/);
  assert.equal(percorsoScenaSpecialeRpg({classe:'assassino',stato:1,skin:'skin-mitica'}),path+'?v=475');
+ assert.equal(percorsoScenaSpecialeRpg({classe:'assassino',stato:5,skin:'skin-mitica',armaSbloccata:true}),path+'?v=475');
+ assert.match(percorsoScenaSpecialeRpg({classe:'assassino',stato:5,skin:'skin-mitica',armatura:'armatura-assassino-notte',armaSbloccata:true}),/armatura-assassino-notte\/astrale\.webp/);
  for(const classe of ['guerriero','berserker'])assert.match(FOTO_EFFETTI_PREMIUM_RPG[classe]['skin-mitica'],new RegExp(classe+'-astrale'));
 });
 test('v475: ritratto mitico prioritario rispetto ai layer incollati',()=>{

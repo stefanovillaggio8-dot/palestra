@@ -75,6 +75,11 @@ export function percorsoCombinazioneFotoRpg({classe,armatura=null,effetto=null,
 }
 export function percorsoScenaSpecialeRpg({classe,armatura=null,effetto=null,skin=null,
   corona=false,divina=false,stato=null,stadio=null,armaSbloccata=false}={}) {
+  // La forma Astrale dell'Assassino include già i pugnali nella scena completa.
+  // L'acquisto richiede una streak elevata: non altera né anticipa gli sblocchi reali.
+  // Solo senza altre armature/effetti/corone da preservare: mai nascondere acquisti.
+  if(classe==='assassino' && skin==='skin-mitica' && !armatura && !effetto && !corona && !divina)
+    return FOTO_EFFETTI_PREMIUM_RPG.assassino['skin-mitica'];
   const raw=stadio??stato;
   if(!armatura&&!armaSbloccata&&!corona&&!divina &&
     (raw===null||raw===undefined||Number(raw)<4)) {
