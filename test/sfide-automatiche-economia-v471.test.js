@@ -18,21 +18,23 @@ const dati=(giorni,oggi,options={})=>{
 };
 const sfida=(q,categoria,id)=>q[categoria].find(x=>x.id===id);
 
-test('v471: daily premia solo la seduta completata con almeno due serie eseguite',()=>{
+test('v471: completa scheda solo se ogni serie prevista e stata eseguita',()=>{
  const args=dati(['2026-11-11'],'2026-11-11');
  const q=quadroSfideAutomatiche(args);
- assert.equal(sfida(q,'daily','allenamento-completo').raggiunta,true);
+ assert.equal(sfida(q,'daily','scheda-completa').raggiunta,true);
  assert.equal(sfida(q,'daily','tre-serie').raggiunta,true);
- const incompleto={...args,serie:args.serie.slice(0,1)};
- assert.equal(sfida(quadroSfideAutomatiche(incompleto),'daily','allenamento-completo').raggiunta,false);
+ const incompleto={...args,serie:args.serie.map((s,i)=>i===2?{...s,stato:'da_fare'}:s)};
+ assert.equal(sfida(quadroSfideAutomatiche(incompleto),'daily','scheda-completa').raggiunta,false);
  assert.equal(sfida(quadroSfideAutomatiche(incompleto),'daily','tre-serie').raggiunta,false);
  const finto={...args,sedute:args.sedute.map(s=>({...s,stato:'in_corso'}))};
- assert.equal(sfida(quadroSfideAutomatiche(finto),'daily','allenamento-completo').raggiunta,false);
+ assert.equal(sfida(quadroSfideAutomatiche(finto),'daily','scheda-completa').raggiunta,false);
 });
 
 test('v471: il riposo programmato non impone alcuna Daily Mission',()=>{
  assert.equal(quadroSfideAutomatiche(dati([], '2026-11-12')).daily.length,0); // giovedi
  assert.equal(quadroSfideAutomatiche(dati([], '2026-11-11')).daily.length,2);
+ assert.equal(quadroSfideAutomatiche(dati(['2026-11-12'],'2026-11-12')).daily.length,2,
+   'un allenamento volontario nel giorno di riposo puo comunque dare un premio');
 });
 
 test('v471: la weekly conta giorni diversi, non doppie sedute nello stesso giorno',()=>{
@@ -50,11 +52,11 @@ test('v471: la weekly conta giorni diversi, non doppie sedute nello stesso giorn
 
 test('v471: premio con ID stabile e nessuna nuova ricompensa per doppio dispositivo',()=>{
  const args=dati(['2026-11-11'],'2026-11-11');
- const v=sfida(quadroSfideAutomatiche(args),'daily','allenamento-completo');
+ const v=sfida(quadroSfideAutomatiche(args),'daily','scheda-completa');
  const premio=premioSfidaAutomatica(v);
  assert.equal(premio.tipo,'missione_auto');
- assert.deepEqual(interpretaPremioSfida(premio),{categoria:'daily',id:'allenamento-completo',periodo:'2026-11-11'});
- const due=sfida(quadroSfideAutomatiche({...args,ricompense:[premio]}),'daily','allenamento-completo');
+ assert.deepEqual(interpretaPremioSfida(premio),{categoria:'daily',id:'scheda-completa',periodo:'2026-11-11'});
+ const due=sfida(quadroSfideAutomatiche({...args,ricompense:[premio]}),'daily','scheda-completa');
  assert.equal(v.chiave,due.chiave);
  assert.equal(due.premiata,true);
  assert.equal(premioSfidaAncoraValido(premio,args),true);
