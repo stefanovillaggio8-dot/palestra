@@ -43,9 +43,9 @@ test('v467: le altre foto approvate non cambiano, incluse le due varianti al cav
   }
 });
 test('v467: versione unica, nessuna scrittura ai dati allenamento in icone', () => {
-  assert.match(txt('sw.js'), /const VERSIONE = 'palestra-v488'/);
-  assert.match(txt('index.html'), /window\.PALESTRA_VERSIONE = 'palestra-v488'/);
-  assert.match(txt('index.html'), /app\.js\?v=488/);
+  assert.match(txt('sw.js'), /const VERSIONE = 'palestra-v489'/);
+  assert.match(txt('index.html'), /window\.PALESTRA_VERSIONE = 'palestra-v489'/);
+  assert.match(txt('index.html'), /app\.js\?v=489/);
   assert.match(txt('verifica-icone.html'), /Verifica icone esercizi · v470/);
   const code = txt('src/exercise-icons.js');
   for (const forbidden of ['localStorage.setItem', 'salvaSerie', 'eliminaSeduta', 'db.salva']) {
