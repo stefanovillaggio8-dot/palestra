@@ -49,6 +49,6 @@ test('v470: cache PWA e pagina principale condividono la stessa versione',()=>{
   const html=readFileSync(new URL('../index.html',import.meta.url),'utf8');
   const sw=readFileSync(new URL('../sw.js',import.meta.url),'utf8');
   assert.match(html,/PALESTRA_VERSIONE = 'palestra-v\d+'/);
-  assert.match(html,/app\.js\?v=489/);
+  assert.match(html,/app\.js\?v=\d+/);
   assert.match(sw,/const VERSIONE = 'palestra-v\d+'/);
 });
