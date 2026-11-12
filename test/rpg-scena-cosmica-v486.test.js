@@ -49,12 +49,12 @@ test('v486 in anteprima non taglia la stage, libera overflow e dissolvenza ai ma
  assert.match(styles,/-webkit-mask-image:none!important/);
  assert.doesNotMatch(styles,/zoom:|scale\([^)]{2,}\)/);
  for(const classe of ['assassino','guerriero','berserker']) {
-   assert.match(styles,new RegExp('astrale-celestial-'+classe+'-v483\\.svg\\?v=487'));
-   assert.match(styles,new RegExp('nebulosa-spirale-'+classe+'-v484\\.svg\\?v=487'));
+   assert.match(styles,new RegExp('astrale-celestial-'+classe+'-v483\\.svg\\?v=488'));
+   assert.match(styles,new RegExp('nebulosa-spirale-'+classe+'-v484\\.svg\\?v=488'));
    assert.match(sw,new RegExp('astrale-celestial-'+classe+'-v483\\.svg'));
    assert.match(sw,new RegExp('nebulosa-spirale-'+classe+'-v484\\.svg'));
  }
  assert.match(sw,/src\/rpg-scena-cosmica\.js/);
- assert.match(read('index.html'),/palestra-v487/);
- assert.match(sw,/palestra-v487/);
+ assert.match(read('index.html'),/palestra-v488/);
+ assert.match(sw,/palestra-v488/);
 });
