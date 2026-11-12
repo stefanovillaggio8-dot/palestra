@@ -8,7 +8,6 @@ In caso contrario il file problematico NON sostituisce il ritratto originale.
 from __future__ import annotations
 
 import json
-import re
 from pathlib import Path
 from PIL import Image
 from rembg import new_session, remove
@@ -94,15 +93,11 @@ def main():
 
     # Non attivare ritagli non rigenerati: aggiorna solo la allowlist.
     original_js = JS.read_text(encoding="utf-8")
-    pattern = r"export const CUTOUT_VERIFICATI_RPG=Object\\.freeze\\(\\[[\\s\\S]*?\\]\\);"
-    replacement = "export const CUTOUT_VERIFICATI_RPG=Object.freeze([\\n  " + (
-        ",".join(repr(k) for k in valid_keys)
-    ) + "\\n]);"
-    # Il replacement deve contenere i reali newline, non backslash-n.
-    replacement = replacement.replace("\\\\n", "\\n")
-    updated, count = re.subn(pattern, lambda _: replacement, original_js, count=1)
-    if count != 1:
-        raise RuntimeError("Missing CUTOUT_VERIFICATI_RPG allowlist")
+    start = original_js.index("export const CUTOUT_VERIFICATI_RPG=Object.freeze([")
+    end = original_js.index("]);",start) + 3
+    entries = ", ".join(repr(key) for key in valid_keys)
+    replacement = "export const CUTOUT_VERIFICATI_RPG=Object.freeze([\\n  " + entries + "\\n]);"
+    updated = original_js[:start] + replacement + original_js[end:]
     JS.write_text(updated,encoding="utf-8")
     manifest = {"model":"isnet-general-use","expected":18,
                 "validated":len(valid_keys),"valid_keys":valid_keys,"results":report}
