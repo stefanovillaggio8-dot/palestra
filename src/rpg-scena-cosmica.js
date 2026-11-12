@@ -238,7 +238,7 @@ export function percorsoRitaglioCosmicoRpg(source) {
   const match=src.match(/(?:^|\/)img\/personaggi\/stati\/(assassino|guerriero|berserker)-([0-5])\.webp$/);
   if(!match)return null;
   const key=match[1]+'-'+match[2];
-  return CUTOUT_PRESENTI_RPG.has(key)?'./img/personaggi/cutout/stati/'+key+'.webp?v=490':null;
+  return CUTOUT_PRESENTI_RPG.has(key)?'./img/personaggi/cutout/stati/'+key+'.webp?v=491':null;
 }
 /** Fotografia intatta nel DOM, vero soggetto alpha inserito SOPRA di essa.
   * Solo quando il ritaglio e' stato caricato si nasconde la foto col fondale.
