@@ -65,7 +65,7 @@ test('v490 nessuna variante sbagliata o fotografia che sparisce al caricamento f
  const palco={classList:{add(){throw Error('non attivare cutout quando fallisce');}}};
  const ambiente={style:{},classList:{remove(){}}};
  assert.equal(montaRitaglioRealeRpg(grafica,hero,palco,ambiente,FailedImage),true);
- assert.equal(montaRitaglioRealeRpg(grafica,{getAttribute:()=> './img/personaggi/stati/assassino-5.webp'},palco,ambiente,FailedImage),false);
+ assert.equal(montaRitaglioRealeRpg(grafica,{getAttribute:()=> './img/personaggi/stati/assassino-9.webp'},palco,ambiente,FailedImage),false);
 });
 
 test('v490 asset WEBP validi e separazione di chiaro/scuro senza foto originale',()=>{
