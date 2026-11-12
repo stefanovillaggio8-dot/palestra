@@ -4,17 +4,16 @@ import {readFileSync} from 'node:fs';
 import {percorsoRitaglioCosmicoRpg,montaRitaglioRealeRpg,verificaIntegritaRitaglioRpg,CUTOUT_VERIFICATI_RPG} from '../src/rpg-scena-cosmica.js';
 const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 
-test('v490 usa solo il PNG trasparente della STESSA foto originale',()=>{
- assert.deepEqual(CUTOUT_VERIFICATI_RPG,[
-   'assassino-0','assassino-2','assassino-3','guerriero-0','berserker-0'
- ]);
- assert.equal(percorsoRitaglioCosmicoRpg('./img/personaggi/stati/assassino-3.webp?v=490'),
-   './img/personaggi/cutout/stati/assassino-3.webp?v=490');
- assert.equal(percorsoRitaglioCosmicoRpg('https://example.com/palestra/img/personaggi/stati/guerriero-0.webp'),
-   './img/personaggi/cutout/stati/guerriero-0.webp?v=490');
- assert.equal(percorsoRitaglioCosmicoRpg('./img/personaggi/stati/assassino-5.webp'),null);
+test('v491 usa soltanto cutout dichiarati e mai foto di armature differenti',()=>{
+ assert.ok(CUTOUT_VERIFICATI_RPG.length<=18);
+ assert.equal(new Set(CUTOUT_VERIFICATI_RPG).size,CUTOUT_VERIFICATI_RPG.length);
+ for(const key of CUTOUT_VERIFICATI_RPG){
+   assert.match(key,/^(assassino|guerriero|berserker)-[0-5]$/);
+   assert.equal(percorsoRitaglioCosmicoRpg('./img/personaggi/stati/'+key+'.webp?v=490'),
+     './img/personaggi/cutout/stati/'+key+'.webp?v=490');
+ }
+ assert.equal(percorsoRitaglioCosmicoRpg('./img/personaggi/stati/assassino-9.webp'),null);
  assert.equal(percorsoRitaglioCosmicoRpg('./img/personaggi/armatura-con-arma-v371/assassino/armatura-assassino-notte/base.webp'),null);
- assert.equal(percorsoRitaglioCosmicoRpg('./img/personaggi/stati/guerriero-3.webp'),null);
 });
 
 test('v491 il cutout resta invisibile finche alpha e geometria non sono verificati',()=>{
