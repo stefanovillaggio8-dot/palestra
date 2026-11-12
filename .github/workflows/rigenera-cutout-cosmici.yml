@@ -1,18 +1,22 @@
 name: Rigenera cutout cosmici v491
 on:
-  push:
-    branches:
-      - fix/v491-cutout-integrity-preview
+  pull_request:
+    branches: [main]
     paths:
       - scripts/genera_cutout_cosmici.py
       - .github/workflows/rigenera-cutout-cosmici.yml
   workflow_dispatch:
+
+concurrency:
+  group: rigenera-cutout-cosmici-v491
+  cancel-in-progress: true
 
 permissions:
   contents: write
 
 jobs:
   generate-alpha:
+    if: github.head_ref == 'fix/v491-cutout-integrity-preview' && github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 35
     steps:
