@@ -1,0 +1,75 @@
+name: Installazione veri personaggi RPG trasparenti
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'tools/rpg-cutout-manifest.json'
+  workflow_dispatch:
+permissions:
+  contents: write
+  pages: write
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Pillow per convalidare la trasparenza
+        run: python -m pip install Pillow
+      - name: Salva e valida i veri ritagli (non maschere geometriche)
+        run: |
+          python - <<'PY'
+          import io,json,re,urllib.request
+          from PIL import Image
+          from pathlib import Path
+          path=Path('tools/rpg-cutout-manifest.json')
+          manifest=json.loads(path.read_text(encoding='utf-8'))
+          items=manifest.get('assets') or []
+          if not items:
+              raise SystemExit('Manifest cutout vuoto')
+          outdir=Path('img/personaggi/cutout/stati')
+          outdir.mkdir(parents=True,exist_ok=True)
+          for item in items:
+              name=item['name']
+              if not re.fullmatch(r'(assassino|guerriero|berserker)-[0-5]',name):
+                  raise SystemExit('Nome non valido: '+name)
+              url=item['url']
+              if not url.startswith('https://'):
+                  raise SystemExit('URL non HTTPS')
+              req=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0 RPG cutout installer'})
+              with urllib.request.urlopen(req,timeout=90) as resp:
+                  content=resp.read(12_000_000)
+              pic=Image.open(io.BytesIO(content)).convert('RGBA')
+              if pic.width<500 or pic.height<700:
+                  raise SystemExit('Dimensioni troppo piccole: '+name)
+              alpha=pic.getchannel('A')
+              lo,hi=alpha.getextrema()
+              opaque=alpha.point(lambda a:255 if a>200 else 0).getbbox()
+              if lo>10 or hi<245 or not opaque:
+                  raise SystemExit('PNG non trasparente o soggetto mancante: '+name)
+              target=outdir/(name+'.webp')
+              pic.save(target,format='WEBP',quality=92,method=6,exact=True)
+              print(f'Installato {name}: {pic.size} alpha={lo}..{hi} bytes={target.stat().st_size}')
+          PY
+      - name: Pubblica solo gli asset scontornati
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add img/personaggi/cutout/stati/
+          git rm -f tools/rpg-cutout-manifest.json
+          git commit -m "assets: vera trasparenza per personaggi RPG" || exit 0
+          for i in 1 2 3 4 5; do
+            git pull --rebase origin main && git push origin HEAD:main && break
+            if [ "$i" = 5 ]; then exit 1; fi
+            sleep 3
+          done
+      - name: Ricarica sito Pages se necessario
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api --method POST "repos/${GITHUB_REPOSITORY}/pages/builds"
