@@ -143,11 +143,11 @@ test('R10i. la foto grande viene PRIMA della fila degli stati', async () => {
   assert.ok(posStriscia >= 0, 'la fila degli stati deve essere aggiunta alla scena');
   assert.ok(posFoto < posStriscia,
     'la foto grande deve venire PRIMA della fila degli stati, altrimenti finisce in fondo e piccola');
-  assert.match(helper,/palco\\.appendChild\\(grafica\\)/,
+  assert.match(helper,/palco\.appendChild\(grafica\)/,
     'la stage cosmica deve contenere la foto originale');
-  assert.match(helper,/scena\\.appendChild\\(palco\\)/,
+  assert.match(helper,/scena\.appendChild\(palco\)/,
     'la stage deve essere montata come figlia della scena');
-  assert.match(helper,/scena\\.appendChild\\(grafica\\)/,
+  assert.match(helper,/scena\.appendChild\(grafica\)/,
     'senza effetto cosmico la foto deve restare direttamente nella scena');
 });
 
