@@ -42,6 +42,6 @@ test('v477: l immagine esistente resta il personaggio, Astrale occupa solo lo sl
  assert.match(x,/astrale-rift-v477\.svg/);
  assert.match(x,/content:none!important/);
  assert.match(sw,/\.\/img\/effetti\/astrale-rift-v477\.svg/);
- assert.match(sw,/palestra-v487/);
- assert.match(read('index.html'),/palestra-v487/);
+ assert.match(sw,/palestra-v488/);
+ assert.match(read('index.html'),/palestra-v488/);
 });
