@@ -80,6 +80,9 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
   const input=opzioniAtelier(opzioni);
   const c=input.divina?{...input,stadio:5,effetto:''}:input; // visual preview only: 75-day reward is full armor, one aura
   const fotoBase=await fotoPronta(grafica?.querySelector?.('.personaggio-ritratto'));
+  const ritaglioPresente=grafica?.querySelector?.('.rpg-cosmic-cutout-asset');
+  const ritaglioReale=ritaglioPresente?.complete && ritaglioPresente?.naturalWidth
+    ? ritaglioPresente : null;
   const fxSenzaFoto = c.effetto==='skin-mitica' || c.effetto==='effetto-nebula';
   // Il file finale deve usare lo stesso scatto completo visibile in anteprima.
   // Se il collage non e' installato resta il renderer precedente.
@@ -98,7 +101,9 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
     effetto:fxSenzaFoto?null:(c.effetto||null),armaSbloccata:c.stadio>=4,
   }) : null;
   const scena=fotoDivina||fotoCorona||fotoArmata||((c.divina||fxSenzaFoto)?null:await fotoCinematograficaRpg({...c,corona:false,divina:false}));
-  const immagine=scena ? await attesaImmagine(scena).catch(()=>fotoBase) : fotoBase;
+  const immagine=scena ? await attesaImmagine(scena).catch(()=>fotoBase)
+    : (fxSenzaFoto && ritaglioReale ? ritaglioReale : fotoBase);
+  const alphaAutentico=Boolean(fxSenzaFoto && ritaglioReale && immagine===ritaglioReale);
   const giaFotografica=Boolean(scena&&immagine!==fotoBase);
   const larghezza=780,altezza=1170;
   const canvas=document.createElement('canvas');
@@ -111,9 +116,14 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
   const dx=(larghezza-dw)/2,dy=(altezza-dh)/2;
   if(fxSenzaFoto) {
     disegnaAtmosferaCosmicaRpg(ctx,larghezza,altezza,c.effetto==='skin-mitica'?'astrale':'nebulosa');
-    disegnaSfondoFotograficoCosmicoRpg(ctx,immagine,larghezza,altezza);
-    if(!disegnaSoggettoCosmicoRpg(ctx,immagine,dx,dy,dw,dh,c.classe))
-      ctx.drawImage(immagine,dx,dy,dw,dh); // fallback se Canvas temporaneo non disponibile
+    if(alphaAutentico) {
+      // La trasparenza è già nei pixel, vietato ripristinare il pavimento.
+      ctx.drawImage(immagine,dx,dy,dw,dh);
+    } else {
+      disegnaSfondoFotograficoCosmicoRpg(ctx,immagine,larghezza,altezza);
+      if(!disegnaSoggettoCosmicoRpg(ctx,immagine,dx,dy,dw,dh,c.classe))
+        ctx.drawImage(immagine,dx,dy,dw,dh);
+    }
   } else ctx.drawImage(immagine,dx,dy,dw,dh);
   // Il rivestimento della skin in CSS e' un canvas separato dalla foto.
   const pelle=grafica.querySelector?.('.rpg-skin-fedele');

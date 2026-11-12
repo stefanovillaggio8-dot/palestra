@@ -4,6 +4,7 @@
 // Le texture degli effetti vengono applicate solo ATTORNO alla silhouette.
 // Le combinazioni sono composte al momento: nessun limite prefissato di varianti.
 import { AURA_FOTO_ATLAS } from './aura-foto-atlas.js';
+import { disegnaAtmosferaCosmicaRpg } from './rpg-scena-cosmica.js';
 
 export const CLASSI_FOTO_RPG = Object.freeze(['guerriero','assassino','berserker']);
 export const EFFETTI_FOTO_RPG = Object.freeze([
@@ -240,15 +241,39 @@ export async function scaricaFotoCombinataRpg(grafica,classe='rpg') {
   out.width=Math.min(960,original.naturalWidth);
   out.height=Math.round(out.width*original.naturalHeight/original.naturalWidth);
   const ctx=out.getContext?.('2d');if(!ctx)return false;
-  ctx.drawImage(original,0,0,out.width,out.height);
+  // v490: se la stessa anteprima mostra un vero ritaglio alpha, salva
+  // quello sulla scena cosmica: nessun rettangolo originale nel PNG.
+  const cutout=grafica.querySelector('.rpg-cosmic-cutout-asset');
+  const alphaPronto=Boolean(cutout?.complete&&cutout?.naturalWidth);
+  if(alphaPronto){
+    const tipo=grafica.classList.contains('shop-skin-mitica')?'astrale':'nebulosa';
+    disegnaAtmosferaCosmicaRpg(ctx,out.width,out.height,tipo);
+    ctx.drawImage(cutout,0,0,out.width,out.height);
+    const cls=['assassino','guerriero','berserker'].includes(classe)?classe:'assassino';
+    const file=tipo==='astrale'
+      ?'astrale-celestial-'+cls+'-v483.svg'
+      :'nebulosa-spirale-'+cls+'-v484.svg';
+    const fx=await new Promise(resolve=>{
+      const img=new Image();
+      img.onload=()=>resolve(img);
+      img.onerror=()=>resolve(null);
+      img.src='./img/effetti/'+file+'?v=490';
+    });
+    if(fx){
+      ctx.save();
+      ctx.globalCompositeOperation='screen';
+      ctx.drawImage(fx,0,0,out.width,out.height);
+      ctx.restore();
+    }
+  } else ctx.drawImage(original,0,0,out.width,out.height);
   const integrata=Boolean(original.dataset?.scenaCinematografica);
   const skin=grafica.querySelector('.rpg-skin-fedele');
-  if(!integrata && skin?.width) {
+  if(!alphaPronto && !integrata && skin?.width) {
     ctx.save();ctx.globalCompositeOperation='source-over';
     ctx.drawImage(skin,0,0,out.width,out.height);ctx.restore();
   }
   const effects=grafica.querySelector('.rpg-foto-combinata');
-  if(!integrata && effects?.width)ctx.drawImage(effects,0,0,out.width,out.height);
+  if(!alphaPronto && !integrata && effects?.width)ctx.drawImage(effects,0,0,out.width,out.height);
   // v363: la foto esportata usa esattamente la NUOVA Aura Divina scontornata.
   // Se Safari non riesce a caricare il WebP, fallback alla vecchia texture.
   const fotoCoronataConDivina=/\/corona-v360\/.*-divina\.webp/.test(original.currentSrc||original.src||'');

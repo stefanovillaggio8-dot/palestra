@@ -1922,7 +1922,7 @@ function apriAnteprimaAura(oggetto, profilo, st) {
   const pannello = el('section', { class: 'aura-preview-panel' }, [
     el('div', { class: 'aura-preview-heading' }, [
       el('div', {}, [
-        el('span', { class: 'aura-shop-kicker', testo: 'ANTEPRIMA · ' + oggetto.rarita.toUpperCase() + (cosmicoAnteprima?' · v489':'') }),
+        el('span', { class: 'aura-shop-kicker', testo: 'ANTEPRIMA · ' + oggetto.rarita.toUpperCase() + (cosmicoAnteprima?' · v490':'') }),
         el('h2', { testo: oggetto.nome }),
       ]),
       bottone('✕', { classe: 'fantasma aura-preview-close', titolo: 'Chiudi anteprima', onClick: chiudi }),

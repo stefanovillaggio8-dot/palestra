@@ -192,5 +192,52 @@ export function montaScenaCosmicaRpg(scena,grafica,{classe='assassino',effetto=n
   palco.appendChild(grafica);
   palco.appendChild(layer);
   scena.appendChild(palco);
+  montaRitaglioRealeRpg(grafica,foto,palco,ambiente);
+  return true;
+}
+
+/**
+ * v490: SOLO ritagli alpha realmente presenti sul repository.
+ * Non inventare una foto di stato/armatura differente per una combinazione.
+ * Le altre foto mantengono il fallback esistente finché non avranno
+ * anch'esse il proprio ritaglio approvato.
+ */
+export const CUTOUT_VERIFICATI_RPG=Object.freeze([
+  'assassino-0','assassino-2','assassino-3','guerriero-0','berserker-0'
+]);
+const CUTOUT_PRESENTI_RPG=new Set(CUTOUT_VERIFICATI_RPG);
+export function percorsoRitaglioCosmicoRpg(source) {
+  const src=String(source||'').split(/[?#]/)[0].replaceAll('\\','/');
+  const match=src.match(/(?:^|\/)img\/personaggi\/stati\/(assassino|guerriero|berserker)-([0-5])\.webp$/);
+  if(!match)return null;
+  const key=match[1]+'-'+match[2];
+  return CUTOUT_PRESENTI_RPG.has(key)?'./img/personaggi/cutout/stati/'+key+'.webp?v=490':null;
+}
+/** Fotografia intatta nel DOM, vero soggetto alpha inserito SOPRA di essa.
+  * Solo quando il ritaglio e' stato caricato si nasconde la foto col fondale.
+  * Non serve una vecchia maschera per la sagoma: il WebP ha pixel trasparenti.
+  */
+export function montaRitaglioRealeRpg(grafica,foto,palco,ambiente,ImageClass=typeof Image==='function'?Image:null) {
+  if(!grafica||!foto||!palco||!ambiente||!ImageClass)return false;
+  const path=percorsoRitaglioCosmicoRpg(foto.getAttribute?.('src')||foto.currentSrc||foto.src);
+  if(!path)return false;
+  const ritaglio=new ImageClass();
+  ritaglio.className='rpg-cosmic-cutout-asset';
+  ritaglio.alt='';
+  ritaglio.decoding='async';
+  ritaglio.onload=()=>{
+    if(!ritaglio.naturalWidth||!ritaglio.naturalHeight)return;
+    grafica.appendChild(ritaglio);
+    palco.classList?.add?.('rpg-cosmic-cutout-ready');
+    grafica.classList?.add?.('rpg-cosmic-cutout-inserted');
+    ambiente.classList?.remove?.('rpg-cosmic-photo-environment');
+    if(ambiente.style){
+      ambiente.style.backgroundImage='';
+      ambiente.style.backgroundSize='';
+      ambiente.style.backgroundPosition='';
+    }
+  };
+  ritaglio.onerror=()=>{ /* Nessun placeholder nero: la foto originale resta visibile. */ };
+  ritaglio.src=path;
   return true;
 }
