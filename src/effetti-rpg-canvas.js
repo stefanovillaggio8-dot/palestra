@@ -803,6 +803,49 @@ export function dipingiNebulosaCosmica(ctx,w,h,classe='assassino',t=0,stars=68) 
       ctx.beginPath();ctx.arc(xx,yy,radius,0,TAU2);ctx.fill();ctx.restore();
     }
   }
+  // v484: una GALASSIA A SPIRALE viva, non tre bagliori indipendenti.
+  // Ogni punto orbita con velocità diversa; la forma resta nella stessa
+  // inquadratura e la maschera silhouette ripulisce il corpo alla fine.
+  const galX=outside(-1,.25,.13), galY=h*.25;
+  const bulge=ctx.createRadialGradient(galX,galY,0,galX,galY,w*.29);
+  bulge.addColorStop(0,'rgba(255,249,221,.89)');
+  bulge.addColorStop(.14,'rgba(245,203,181,.67)');
+  bulge.addColorStop(.48,'rgba(171,111,231,.25)');
+  bulge.addColorStop(1,'rgba(30,61,157,0)');
+  ctx.save();ctx.globalAlpha=.67+Math.sin(t*.36)*.09;
+  ctx.fillStyle=bulge;ctx.beginPath();ctx.arc(galX,galY,w*.29,0,TAU2);
+  ctx.fill();ctx.restore();
+  const arms=4;
+  const perArm=stars<=45?28:49;
+  for(let arm=0;arm<arms;arm++){
+    for(let i=0;i<perArm;i++){
+      const f=i/perArm;
+      const ang=arm*Math.PI*.5+f*7.3-t*.17;
+      const rho=w*(.018+.32*Math.pow(f,.9));
+      const xx=galX+Math.cos(ang)*rho;
+      const yy=galY+Math.sin(ang)*rho*.69;
+      const radius=Math.max(.40,w*(i%9===0?.006:.0018+.0022*rnd(i*71+arm*17)));
+      const strength=(.30+.54*(1-f))*(.85+.15*Math.cos(t*.33+i*.12));
+      ctx.save();ctx.globalAlpha=strength;
+      ctx.fillStyle=i%4===0?'#ffe4bb':i%5===0?'#f7feff':arm%2===0?'#acdbff':'#cbabff';
+      ctx.shadowColor=ctx.fillStyle;
+      ctx.shadowBlur=Math.min(12,radius*3);
+      ctx.beginPath();ctx.arc(xx,yy,radius,0,TAU2);ctx.fill();ctx.restore();
+    }
+  }
+  // Luce diffusa sul suolo: nessun sigillo o runa (quelli restano Mitici).
+  for(let i=0;i<(stars<=45?8:14);i++){
+    const py=.91+.068*rnd(i*13+2),side=i%2?-1:1;
+    const x=outside(side,py,.035+.14*rnd(i*7+8));
+    const y=py*h;
+    const rr=w*(.025+.032*rnd(i*17+9));
+    const grad=ctx.createRadialGradient(x,y,0,x,y,rr);
+    grad.addColorStop(0,i%2?'rgba(195,126,255,.44)':'rgba(115,223,249,.47)');
+    grad.addColorStop(1,'rgba(36,27,89,0)');
+    ctx.save();ctx.globalAlpha=.42+.19*Math.sin(t*.30+i);
+    ctx.fillStyle=grad;ctx.beginPath();ctx.arc(x,y,rr,0,TAU2);ctx.fill();ctx.restore();
+  }
+
   // Polvere galattica: tante stelle PICCOLE intorno a tutte le silhouette.
   // I corpi rimangono protetti dalla maschera finale.
   const count=Math.max(20,Math.min(stars,100));

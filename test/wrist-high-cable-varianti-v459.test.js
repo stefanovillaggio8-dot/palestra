@@ -44,8 +44,8 @@ test('v459: due foto indipendenti nell app e nella galleria, visibili offline', 
     assert.ok(g.includes(e.foto));
     assert.ok(sw.includes('./'+e.foto));
   }
-  assert.match(sw,/palestra-v483/);
-  assert.match(read('index.html'),/palestra-v483/);
+  assert.match(sw,/palestra-v484/);
+  assert.match(read('index.html'),/palestra-v484/);
   assert.equal((g.match(/<article class="tile /g)||[]).length,81);
 });
 

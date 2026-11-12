@@ -3013,3 +3013,72 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
     animation:none!important;opacity:1!important;transform:none!important;
   }
 }
+
+
+/* v484 · NEBULOSA LEGGENDARIA: una GALASSIA riconoscibile, non scintille sparse.
+   Due materiali distinti dal Mitico: galassia spiraliforme + atmosfera diffusa.
+   La fotografia originale, il suo zoom e tutti gli equipaggiamenti restano intatti.
+   Nessuna regola di Astrale è cambiata. */
+.personaggio-scena-grafica.shop-effetto-nebula > .rpg-nebulosa-presenza {
+  position:absolute!important;
+  inset:-4% -6%!important;
+  background:url('img/effetti/nebulosa-spirale-assassino-v484.svg') center center / 100% 100% no-repeat!important;
+  border-radius:0!important;
+  opacity:.98!important;
+  mix-blend-mode:screen!important;
+  filter:saturate(1.18) brightness(1.12)!important;
+  -webkit-mask-image:radial-gradient(ellipse 76% 75% at 50% 51%,#000 0 54%,rgba(0,0,0,.77) 73%,transparent 100%)!important;
+  mask-image:radial-gradient(ellipse 76% 75% at 50% 51%,#000 0 54%,rgba(0,0,0,.77) 73%,transparent 100%)!important;
+  transform:none!important;
+  pointer-events:none!important;
+  animation:nebula-v484-immersione 10s ease-in-out infinite alternate!important;
+}
+.personaggio-scena-grafica.personaggio-guerriero.shop-effetto-nebula > .rpg-nebulosa-presenza {
+  background-image:url('img/effetti/nebulosa-spirale-guerriero-v484.svg')!important;
+}
+.personaggio-scena-grafica.personaggio-berserker.shop-effetto-nebula > .rpg-nebulosa-presenza {
+  background-image:url('img/effetti/nebulosa-spirale-berserker-v484.svg')!important;
+}
+.personaggio-scena-grafica.rpg-render-live.rpg-fx-attiva.shop-effetto-nebula > .rpg-nebulosa-presenza {
+  opacity:.77!important; /* la galassia resta leggibile sotto le stelle vive */
+}
+/* La luce attraversa il bordo della FOTO, ma non invade il personaggio. */
+.personaggio-scena.rpg-scena-nebulosa {
+  overflow:visible!important;
+  background:
+    radial-gradient(ellipse 49% 53% at 10% 31%,rgba(96,157,235,.32),transparent 96%),
+    radial-gradient(ellipse 44% 56% at 91% 55%,rgba(161,94,219,.32),transparent 97%),
+    radial-gradient(ellipse 75% 24% at 51% 94%,rgba(105,94,201,.19),transparent 92%),
+    linear-gradient(150deg,#171a2d,#101528 68%,#141221);
+}
+.personaggio-scena.rpg-scena-nebulosa::before {
+  background:
+    radial-gradient(ellipse 39% 30% at 11% 28%,rgba(137,174,255,.52),transparent 89%),
+    radial-gradient(ellipse 47% 44% at 91% 62%,rgba(149,75,224,.39),transparent 94%),
+    radial-gradient(ellipse 50% 28% at 48% 93%,rgba(81,164,250,.18),transparent 96%);
+  filter:blur(18px);
+  opacity:.74;
+}
+/* Stelle nel volume della scena, NON un rettangolo sopra la persona. */
+.personaggio-scena.rpg-scena-nebulosa::after {
+  background:
+    radial-gradient(circle at 10% 21%,rgba(245,247,255,.91) 0 1px,transparent 4px),
+    radial-gradient(circle at 95% 45%,rgba(223,192,255,.83) 0 1.2px,transparent 4px),
+    radial-gradient(circle at 12% 75%,rgba(180,225,255,.92) 0 1.2px,transparent 4px),
+    radial-gradient(circle at 89% 87%,rgba(230,197,255,.78) 0 1px,transparent 4px);
+  animation:nebula-v484-stelle 9s ease-in-out infinite alternate;
+}
+@keyframes nebula-v484-immersione {
+  from {transform:translate3d(-3px,2px,0) scale(.995);opacity:.85}
+  to {transform:translate3d(3px,-3px,0) scale(1.009);opacity:1}
+}
+@keyframes nebula-v484-stelle {
+  from {opacity:.48;transform:translateY(4px)}
+  to {opacity:1;transform:translateY(-5px)}
+}
+@media(prefers-reduced-motion:reduce){
+  .personaggio-scena-grafica.shop-effetto-nebula > .rpg-nebulosa-presenza,
+  .personaggio-scena.rpg-scena-nebulosa::after {
+    animation:none!important;transform:none!important;
+  }
+}
