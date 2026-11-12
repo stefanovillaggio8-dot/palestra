@@ -20,6 +20,6 @@ test('v485 atmosfera e bordo appartengono alla scena, non sostituiscono il ritra
  assert.match(tail,/prefers-reduced-motion:reduce/);
  assert.doesNotMatch(tail,/personaggio-ritratto|shop-skin-mitica|object-fit/);
  assert.doesNotMatch(tail,/\.rpg-astrale-presenza/);
- assert.match(read('sw.js'),/palestra-v486/);
- assert.match(read('index.html'),/palestra-v486/);
+ assert.match(read('sw.js'),/palestra-v487/);
+ assert.match(read('index.html'),/palestra-v487/);
 });
