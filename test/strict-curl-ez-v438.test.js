@@ -102,8 +102,8 @@ test('v438: il calcolatore salva il TOTALE nellunico campo serie.peso e foto e o
   assert.match(app,/etichetta: strictCurlConBarraInclusa\(e\) \? 'kg TOTALI/);
   assert.match(sw,/'\.\/src\/strict-curl\.js'/);
   assert.match(sw,/'\.\/img\/esercizi\/strict-curl-ez-wall\.jpg'/);
-  assert.match(sw,/const VERSIONE = 'palestra-v482'/);
-  assert.match(html,/window\.PALESTRA_VERSIONE = 'palestra-v482'/);
+  assert.match(sw,/const VERSIONE = 'palestra-v483'/);
+  assert.match(html,/window\.PALESTRA_VERSIONE = 'palestra-v483'/);
   assert.ok(photo.length>2000);
   assert.equal(photo[0],0xff);
   assert.equal(photo[1],0xd8);
