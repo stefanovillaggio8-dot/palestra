@@ -21,14 +21,14 @@ test('v491: tutti i 18 stati conservano un WebP realmente trasparente',()=>{
    assert.ok(bin[pos+8]&16,'alpha non dichiarato '+key);
    assert.ok(bin.indexOf(Buffer.from('ALPH'))>0,'chunk alpha mancante '+key);
    assert.ok(bin.length>20_000,'asset insolitamente piccolo '+key);
-   assert.match(percorsoRitaglioCosmicoRpg('./img/personaggi/stati/'+key+'.webp'),/webp\\?v=491$/);
+   assert.match(percorsoRitaglioCosmicoRpg('./img/personaggi/stati/'+key+'.webp'),/webp\?v=491$/);
   }
  }
 });
 
 test('versione PWA coerente fra SW, pagina, JS e CSS anche dopo gli aggiornamenti',()=>{
  const sw=text('sw.js'),html=text('index.html');
- const version=sw.match(/const VERSIONE = 'palestra-v(\\d+)'/)?.[1];
+ const version=sw.match(/const VERSIONE = 'palestra-v(\d+)'/)?.[1];
  assert.ok(version && Number(version)>=490,'versione software leggibile');
  for(const path of ['stile.css','stile-rpg.css','stile-premium.css','src/app.js']){
    assert.ok(html.includes(path+'?v='+version),'HTML disallineato: '+path);
