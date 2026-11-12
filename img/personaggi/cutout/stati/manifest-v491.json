@@ -1,0 +1,351 @@
+{
+  "model": "isnet-general-use",
+  "expected": 18,
+  "validated": 18,
+  "valid_keys": [
+    "assassino-0",
+    "assassino-1",
+    "assassino-2",
+    "assassino-3",
+    "assassino-4",
+    "assassino-5",
+    "guerriero-0",
+    "guerriero-1",
+    "guerriero-2",
+    "guerriero-3",
+    "guerriero-4",
+    "guerriero-5",
+    "berserker-0",
+    "berserker-1",
+    "berserker-2",
+    "berserker-3",
+    "berserker-4",
+    "berserker-5"
+  ],
+  "results": {
+    "assassino-0": {
+      "coverage": 0.2764,
+      "bbox": [
+        0.25,
+        0.0704,
+        0.7578,
+        0.9474
+      ],
+      "corner_opaque": 0.0,
+      "body_bands": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "valid": true
+    },
+    "assassino-1": {
+      "coverage": 0.2634,
+      "bbox": [
+        0.2489,
+        0.0704,
+        0.7633,
+        0.9489
+      ],
+      "corner_opaque": 0.0,
+      "body_bands": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "valid": true
+    },
+    "assassino-2": {
+      "coverage": 0.2437,
+      "bbox": [
+        0.2011,
+        0.0704,
+        0.7211,
+        0.9481
+      ],
+      "corner_opaque": 0.0,
+      "body_bands": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "valid": true
+    },
+    "assassino-3": {
+      "coverage": 0.2583,
+      "bbox": [
+        0.2022,
+        0.0711,
+        0.7244,
+        0.9474
+      ],
+      "corner_opaque": 0.0,
+      "body_bands": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "valid": true
+    },
+    "assassino-4": {
+      "coverage": 0.2683,
+      "bbox": [
+        0.2022,
+        0.0704,
+        0.7244,
+        0.9481
+      ],
+      "corner_opaque": 0.0,
+      "body_bands": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "valid": true
+    },
+    "assassino-5": {
+      "coverage": 0.3118,
+      "bbox": [
+        0.1667,
+        0.0444,
+        0.8033,
+        0.9756
+      ],
+      "corner_opaque": 0.0,
+      "body_bands": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "valid": true
+    },
+    "guerriero-0": {
+      "coverage": 0.3032,
+      "bbox": [
+        0.2278,
+        0.0526,
+        0.8744,
+        0.977
+      ],
+      "corner_opaque": 0.0,
+      "body_bands": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "valid": true
+    },
+    "guerriero-1": {
+      "coverage": 0.3038,
+      "bbox": [
+        0.2289,
+        0.0526,
+        0.8711,
+        0.9778
+      ],
+      "corner_opaque": 0.0,
+      "body_bands": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "valid": true
+    },
+    "guerriero-2": {
+      "coverage": 0.3107,
+      "bbox": [
+        0.2289,
+        0.0489,
+        0.8711,
+        0.9807
+      ],
+      "corner_opaque": 0.0,
+      "body_bands": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "valid": true
+    },
+    "guerriero-3": {
+      "coverage": 0.3265,
+      "bbox": [
+        0.22,
+        0.0459,
+        0.8722,
+        0.9807
+      ],
+      "corner_opaque": 0.0,
+      "body_bands": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "valid": true
+    },
+    "guerriero-4": {
+      "coverage": 0.3307,
+      "bbox": [
+        0.2233,
+        0.0467,
+        0.8722,
+        0.9822
+      ],
+      "corner_opaque": 0.0,
+      "body_bands": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "valid": true
+    },
+    "guerriero-5": {
+      "coverage": 0.3576,
+      "bbox": [
+        0.14,
+        0.0541,
+        0.9,
+        0.9578
+      ],
+      "corner_opaque": 0.0,
+      "body_bands": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "valid": true
+    },
+    "berserker-0": {
+      "coverage": 0.4653,
+      "bbox": [
+        0.17,
+        0.0593,
+        0.91,
+        0.9867
+      ],
+      "corner_opaque": 0.0,
+      "body_bands": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "valid": true
+    },
+    "berserker-1": {
+      "coverage": 0.4433,
+      "bbox": [
+        0.1711,
+        0.0459,
+        0.91,
+        0.9585
+      ],
+      "corner_opaque": 0.0,
+      "body_bands": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "valid": true
+    },
+    "berserker-2": {
+      "coverage": 0.4426,
+      "bbox": [
+        0.1711,
+        0.0459,
+        0.9122,
+        0.9585
+      ],
+      "corner_opaque": 0.0,
+      "body_bands": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "valid": true
+    },
+    "berserker-3": {
+      "coverage": 0.4477,
+      "bbox": [
+        0.1722,
+        0.0459,
+        0.9133,
+        0.9578
+      ],
+      "corner_opaque": 0.0,
+      "body_bands": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "valid": true
+    },
+    "berserker-4": {
+      "coverage": 0.48,
+      "bbox": [
+        0.0278,
+        0.0459,
+        0.9156,
+        0.9637
+      ],
+      "corner_opaque": 0.0,
+      "body_bands": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "valid": true
+    },
+    "berserker-5": {
+      "coverage": 0.4456,
+      "bbox": [
+        0.0367,
+        0.0215,
+        0.91,
+        0.9667
+      ],
+      "corner_opaque": 0.0,
+      "body_bands": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "valid": true
+    }
+  }
+}

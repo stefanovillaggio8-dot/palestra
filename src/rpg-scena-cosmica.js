@@ -203,7 +203,7 @@ export function montaScenaCosmicaRpg(scena,grafica,{classe='assassino',effetto=n
  * anch'esse il proprio ritaglio approvato.
  */
 export const CUTOUT_VERIFICATI_RPG=Object.freeze([
-  'assassino-0','assassino-2','assassino-3','guerriero-0','berserker-0'
+  'assassino-0', 'assassino-1', 'assassino-2', 'assassino-3', 'assassino-4', 'assassino-5', 'guerriero-0', 'guerriero-1', 'guerriero-2', 'guerriero-3', 'guerriero-4', 'guerriero-5', 'berserker-0', 'berserker-1', 'berserker-2', 'berserker-3', 'berserker-4', 'berserker-5'
 ]);
 const CUTOUT_PRESENTI_RPG=new Set(CUTOUT_VERIFICATI_RPG);
 
