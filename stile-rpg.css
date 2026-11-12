@@ -3227,24 +3227,24 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
   filter:none!important;
 }
 .personaggio-scena > .rpg-cosmic-stage.rpg-cosmic-astrale > .rpg-astrale-presenza {
-  background-image:url('img/effetti/astrale-celestial-assassino-v483.svg?v=486')!important;
+  background-image:url('img/effetti/astrale-celestial-assassino-v483.svg?v=487')!important;
   animation:rpg-v486-astrale-pulse 9s ease-in-out infinite alternate!important;
 }
 .personaggio-scena > .rpg-cosmic-stage.rpg-cosmic-astrale.personaggio-guerriero > .rpg-astrale-presenza {
-  background-image:url('img/effetti/astrale-celestial-guerriero-v483.svg?v=486')!important;
+  background-image:url('img/effetti/astrale-celestial-guerriero-v483.svg?v=487')!important;
 }
 .personaggio-scena > .rpg-cosmic-stage.rpg-cosmic-astrale.personaggio-berserker > .rpg-astrale-presenza {
-  background-image:url('img/effetti/astrale-celestial-berserker-v483.svg?v=486')!important;
+  background-image:url('img/effetti/astrale-celestial-berserker-v483.svg?v=487')!important;
 }
 .personaggio-scena > .rpg-cosmic-stage.rpg-cosmic-nebulosa > .rpg-nebulosa-presenza {
-  background-image:url('img/effetti/nebulosa-spirale-assassino-v484.svg?v=486')!important;
+  background-image:url('img/effetti/nebulosa-spirale-assassino-v484.svg?v=487')!important;
   animation:rpg-v486-nebulosa-deriva 12s ease-in-out infinite alternate!important;
 }
 .personaggio-scena > .rpg-cosmic-stage.rpg-cosmic-nebulosa.personaggio-guerriero > .rpg-nebulosa-presenza {
-  background-image:url('img/effetti/nebulosa-spirale-guerriero-v484.svg?v=486')!important;
+  background-image:url('img/effetti/nebulosa-spirale-guerriero-v484.svg?v=487')!important;
 }
 .personaggio-scena > .rpg-cosmic-stage.rpg-cosmic-nebulosa.personaggio-berserker > .rpg-nebulosa-presenza {
-  background-image:url('img/effetti/nebulosa-spirale-berserker-v484.svg?v=486')!important;
+  background-image:url('img/effetti/nebulosa-spirale-berserker-v484.svg?v=487')!important;
 }
 @keyframes rpg-v486-respiro {
   from{opacity:.72;transform:translate3d(-2px,2px,0)}
