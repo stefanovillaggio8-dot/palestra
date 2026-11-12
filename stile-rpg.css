@@ -3579,3 +3579,17 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
   border-color:transparent!important;
   box-shadow:none!important;
 }
+
+
+/* v491 · Il WebP alpha segue il riquadro esatto della FOTO originale.
+   Le coordinate top/left/width/height vengono assegnate dal JS usando
+   getBoundingClientRect; nessuna trasformazione o cap di zoom autonomo. */
+.personaggio-scena .rpg-cosmic-cutout-ready > .personaggio-scena-grafica.con-foto > .rpg-cosmic-cutout-asset {
+  transform:none!important;
+  max-width:none!important;
+  max-height:none!important;
+  margin:0!important;
+  padding:0!important;
+  object-fit:contain!important;
+  object-position:center!important;
+}
