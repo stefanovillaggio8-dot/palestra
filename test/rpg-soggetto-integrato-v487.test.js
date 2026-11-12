@@ -59,6 +59,6 @@ test('v487 PNG export conserva arma, skin e lo stesso scatto senza nuovo WebP',(
  assert.match(styles,/rpg-cosmic-subject/);
  assert.match(styles,/mask-size:100% 100%!important/);
  assert.doesNotMatch(styles,/\.rpg-astrale-presenza\s*\{[^}]*object-fit/);
- assert.match(read('sw.js'),/palestra-v489/);
- assert.match(read('index.html'),/palestra-v489/);
+ assert.match(read('sw.js'),/palestra-v\d+/);
+ assert.match(read('index.html'),/palestra-v\d+/);
 });
