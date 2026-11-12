@@ -19,8 +19,8 @@ test('v481 corregge il rettangolo ritagliato della Nebulosa senza toccare Astral
  assert.doesNotMatch(patch,/shop-skin-mitica/);
  assert.doesNotMatch(patch,/astrale-rift-v477/);
  assert.match(css,/astrale-rift-v477\.svg/); // v477 intentionally unchanged
- assert.match(read('sw.js'),/palestra-v484/);
- assert.match(read('index.html'),/palestra-v484/);
+ assert.match(read('sw.js'),/palestra-v485/);
+ assert.match(read('index.html'),/palestra-v485/);
  assert.doesNotMatch(read('sw.js'),/^\s*'\.\/img\/effetti\/nebulosa-nuclei-.*-v480\.svg'/m);
 });
 
