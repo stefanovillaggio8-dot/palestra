@@ -96,13 +96,13 @@ def main():
     start = original_js.index("export const CUTOUT_VERIFICATI_RPG=Object.freeze([")
     end = original_js.index("]);",start) + 3
     entries = ", ".join(repr(key) for key in valid_keys)
-    replacement = "export const CUTOUT_VERIFICATI_RPG=Object.freeze([\\n  " + entries + "\\n]);"
+    replacement = "export const CUTOUT_VERIFICATI_RPG=Object.freeze([\n  " + entries + "\n]);"
     updated = original_js[:start] + replacement + original_js[end:]
     JS.write_text(updated,encoding="utf-8")
     manifest = {"model":"isnet-general-use","expected":18,
                 "validated":len(valid_keys),"valid_keys":valid_keys,"results":report}
     (OUTPUT/"manifest-v491.json").write_text(
-        json.dumps(manifest,indent=2,ensure_ascii=False)+"\\n",encoding="utf-8")
+        json.dumps(manifest,indent=2,ensure_ascii=False)+"\n",encoding="utf-8")
     print(f"Validated {len(valid_keys)}/18 real cutouts.",flush=True)
     # Partial success is allowed: the app safely keeps originals for rejected states.
     if len(valid_keys) < 10:
