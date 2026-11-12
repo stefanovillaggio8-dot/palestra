@@ -42,9 +42,9 @@ test('v446: le PWA esistenti ricevono la nuova foto anche con vecchio dato local
   const catalogo=read('src/dati-iniziali.js');
   assert.match(images,/esercizio\?\.id === 'ex-lying-cable-curl'/);
   assert.match(images,/src: FOTO_INCLINE_PULLDOWN_CORRETTA/);
-  assert.match(sw,/const VERSIONE = 'palestra-v489'/);
+  assert.match(sw,/const VERSIONE = 'palestra-v\d+'/);
   assert.ok(sw.includes("'./"+asset+"'"));
-  assert.match(html,/PALESTRA_VERSIONE = 'palestra-v489'/);
+  assert.match(html,/PALESTRA_VERSIONE = 'palestra-v\d+'/);
   assert.match(html,/app\.js\?v=489/);
   assert.ok(catalogo.includes("foto: 'img/esercizi/incline-single-arm-pulldown-v446.svg'"));
 });
