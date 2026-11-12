@@ -53,7 +53,8 @@ test('v487 PNG: matte con alpha e stessa sagoma in tutte e tre le classi',()=>{
 test('v487 PNG export conserva arma, skin e lo stesso scatto senza nuovo WebP',()=>{
  const a=read('src/rpg-atelier.js');
  assert.match(a,/disegnaAtmosferaCosmicaRpg\(ctx,larghezza,altezza/);
- assert.doesNotMatch(a,/disegnaSoggettoCosmicoRpg\(ctx,immagine,dx,dy,dw,dh,c.classe\)/);\n assert.match(a,/ctx\\.drawImage\\(immagine,dx,dy,dw,dh\\)/);
+ assert.ok(!a.includes('disegnaSoggettoCosmicoRpg(ctx,immagine,dx,dy,dw,dh,c.classe)'));
+ assert.ok(a.includes('ctx.drawImage(immagine,dx,dy,dw,dh)'));
  assert.match(a,/disegnaSoggettoCosmicoRpg\(ctx,pelle,dx,dy,dw,dh,c.classe\)/);
  const styles=read('stile-rpg.css').slice(read('stile-rpg.css').lastIndexOf('/* v487'));
  assert.match(styles,/rpg-cosmic-subject/);
