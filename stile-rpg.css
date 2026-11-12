@@ -2951,3 +2951,65 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
     animation:none!important;transform:none!important;
   }
 }
+
+
+/* v483 · ASTR ALE CELESTIALE — immagine approvata tradotta in un effetto.
+   NON cambia il portrait img, la sua dimensione, posizione, skin o armatura.
+   L'effetto è il cerchio runico ORO, cristalli viola/ciano, spazio e portale.
+   Le tre maschere SVG proteggono la reale foto di ciascuna classe. */
+.personaggio-scena-grafica.shop-skin-mitica > .rpg-astrale-presenza {
+  display:block!important;
+  position:absolute!important;
+  inset:0!important;
+  z-index:12!important;
+  pointer-events:none!important;
+  background:url('img/effetti/astrale-celestial-assassino-v483.svg') center center / 100% 100% no-repeat!important;
+  opacity:1!important;
+  filter:none!important;
+  -webkit-mask-image:none!important;
+  mask-image:none!important;
+  transform:none!important;
+  animation:astrale-v483-pulse 7s ease-in-out infinite alternate!important;
+}
+.personaggio-scena-grafica.personaggio-guerriero.shop-skin-mitica > .rpg-astrale-presenza {
+  background-image:url('img/effetti/astrale-celestial-guerriero-v483.svg')!important;
+}
+.personaggio-scena-grafica.personaggio-berserker.shop-skin-mitica > .rpg-astrale-presenza {
+  background-image:url('img/effetti/astrale-celestial-berserker-v483.svg')!important;
+}
+/* Mantieni il supporto al Canvas dinamico, ma evita che i vecchi filamenti
+   coprano o deformino la nuova composizione runica dorata. */
+.personaggio-scena-grafica.rpg-render-live.rpg-fx-attiva.shop-skin-mitica > .rpg-astrale-presenza {
+  opacity:.84!important;
+}
+.personaggio-scena-grafica.rpg-render-live.rpg-fx-attiva.shop-skin-mitica > .rpg-effetti-canvas {
+  z-index:13!important;
+  mix-blend-mode:screen!important;
+  opacity:.52!important;
+}
+/* Gold stardust, composizione leggera: mai trasformazioni della FOTO. */
+.personaggio-scena.rpg-scena-astrale {
+  border-color:rgba(228,180,255,.64);
+  box-shadow:0 0 26px rgba(117,66,213,.19),0 16px 38px rgba(0,0,0,.34);
+}
+.personaggio-scena-grafica.shop-skin-mitica > .rpg-astrale-presenza::before {
+  background:
+    radial-gradient(circle at 50% 9%,rgba(255,237,158,.9) 0 1px,rgba(248,199,119,.37) 5px,transparent 25px),
+    radial-gradient(circle at 16% 33%,rgba(255,233,188,.75) 0 1px,transparent 15px),
+    radial-gradient(circle at 85% 43%,rgba(235,214,255,.79) 0 1px,transparent 18px);
+}
+.personaggio-scena-grafica.shop-skin-mitica > .rpg-astrale-presenza::after {
+  background:
+    radial-gradient(ellipse 43% 14% at 50% 95%,rgba(255,194,112,.36),transparent 92%),
+    radial-gradient(ellipse 39% 22% at 12% 47%,rgba(185,93,248,.28),transparent 93%),
+    radial-gradient(ellipse 37% 22% at 91% 39%,rgba(109,180,250,.24),transparent 93%);
+}
+@keyframes astrale-v483-pulse {
+  0% {opacity:.88;filter:saturate(1.06) brightness(.95)}
+  100% {opacity:1;filter:saturate(1.24) brightness(1.11)}
+}
+@media(prefers-reduced-motion:reduce){
+  .personaggio-scena-grafica.shop-skin-mitica > .rpg-astrale-presenza {
+    animation:none!important;opacity:1!important;transform:none!important;
+  }
+}
