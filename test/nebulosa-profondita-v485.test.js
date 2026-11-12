@@ -13,13 +13,13 @@ test('v485 le sagome nebulari sono sfumate su tutte e tre le classi',()=>{
 });
 test('v485 atmosfera e bordo appartengono alla scena, non sostituiscono il ritratto',()=>{
  const css=read('stile-rpg.css');
- const tail=css.slice(css.lastIndexOf('/* v485'));
+ const tail=css.slice(css.lastIndexOf('/* v485'),css.indexOf('/* v486'));
  assert.match(tail,/\.personaggio-scena\.rpg-scena-nebulosa::before/);
  assert.match(tail,/filter:blur\(24px\)/);
  assert.match(tail,/nebula-v485-respiro/);
  assert.match(tail,/prefers-reduced-motion:reduce/);
  assert.doesNotMatch(tail,/personaggio-ritratto|shop-skin-mitica|object-fit/);
  assert.doesNotMatch(tail,/\.rpg-astrale-presenza/);
- assert.match(read('sw.js'),/palestra-v485/);
- assert.match(read('index.html'),/palestra-v485/);
+ assert.match(read('sw.js'),/palestra-v486/);
+ assert.match(read('index.html'),/palestra-v486/);
 });

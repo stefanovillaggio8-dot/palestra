@@ -3122,3 +3122,146 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
     animation:none!important;transform:none!important;opacity:.82!important;
   }
 }
+
+/* v486 · STAGE COSMICA ESTERNA ALLA FOTO.
+   Root cause: la preview applica overflow:hidden e isolation:isolate al
+   ritratto; i vecchi SVG erano figli di quel nodo e sparivano ai bordi.
+   Questa stage contiene SOLO la foto e i due piani ambiente/FX, non
+   la didascalia. Mantiene identici asset, livello, corporatura e zoom. */
+.personaggio-scena.rpg-scena-nebulosa,
+.personaggio-scena.rpg-scena-astrale {
+  position:relative!important;
+  overflow:visible!important;
+  isolation:isolate;
+}
+.personaggio-scena > .rpg-cosmic-stage {
+  position:relative;
+  z-index:2;
+  flex:1 0 100%;
+  width:100%;
+  min-width:0;
+  max-width:100%;
+  height:auto;
+  isolation:isolate;
+  overflow:visible!important;
+}
+.personaggio-scena > .personaggio-dati {
+  position:relative;
+  z-index:4;
+}
+.personaggio-scena > .rpg-cosmic-stage > .personaggio-scena-grafica.con-foto {
+  position:relative!important;
+  display:block!important;
+  z-index:1!important;
+  flex:none!important;
+  width:100%!important;
+  max-width:100%!important;
+  height:auto!important;
+  margin:0!important;
+  box-sizing:border-box!important;
+  overflow:visible!important;
+  /* manteniamo l'11px di ingombro per non cambiare la scala */
+  border:11px solid transparent!important;
+  border-image:none!important;
+  border-radius:0!important;
+  isolation:isolate;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+/* Dissolve SOLO il bordo fotografico nell'atmosfera; niente zoom, crop o
+   trasformazioni sul personaggio e sulle sue armi. Il centro resta opaco. */
+.rpg-cosmic-stage > .personaggio-scena-grafica.con-foto > .personaggio-ritratto {
+  -webkit-mask-image:
+    linear-gradient(to right,transparent 0%,#000 6%,#000 94%,transparent 100%),
+    linear-gradient(to bottom,transparent 0%,#000 4%,#000 94%,transparent 100%);
+  -webkit-mask-composite:source-in;
+  mask-image:
+    linear-gradient(to right,transparent 0%,#000 6%,#000 94%,transparent 100%),
+    linear-gradient(to bottom,transparent 0%,#000 4%,#000 94%,transparent 100%);
+  mask-composite:intersect;
+}
+.rpg-cosmic-stage > .rpg-cosmic-ambiente {
+  position:absolute;
+  inset:-12% -14% -9%;
+  z-index:0;
+  border:0;
+  pointer-events:none;
+  overflow:visible;
+  animation:rpg-v486-respiro 11s ease-in-out infinite alternate;
+}
+.rpg-cosmic-stage.rpg-cosmic-nebulosa > .rpg-cosmic-ambiente {
+  background:
+    radial-gradient(ellipse 41% 24% at 15% 19%,rgba(144,228,255,.45),transparent 92%),
+    radial-gradient(ellipse 55% 37% at 8% 45%,rgba(40,117,250,.34),transparent 94%),
+    radial-gradient(ellipse 43% 42% at 94% 55%,rgba(161,69,236,.42),transparent 96%),
+    radial-gradient(ellipse 39% 25% at 63% 95%,rgba(83,115,244,.40),transparent 96%),
+    radial-gradient(ellipse 48% 48% at 53% 39%,rgba(59,70,161,.18),transparent 95%);
+  filter:blur(14px);
+}
+.rpg-cosmic-stage.rpg-cosmic-astrale > .rpg-cosmic-ambiente {
+  background:
+    radial-gradient(ellipse 65% 44% at 48% 26%,rgba(172,87,255,.31),transparent 95%),
+    radial-gradient(ellipse 35% 53% at 6% 62%,rgba(134,45,241,.38),transparent 96%),
+    radial-gradient(ellipse 36% 51% at 94% 61%,rgba(67,159,252,.35),transparent 96%),
+    radial-gradient(ellipse 55% 18% at 50% 95%,rgba(241,190,109,.30),transparent 94%);
+  filter:blur(11px);
+}
+/* Lo SVG e' ORA FRATELLO della foto, non figlio del frame della preview.
+   La trasparenza centrale è nel suo SVG, non in una maschera rettangolare. */
+.personaggio-scena > .rpg-cosmic-stage > :is(.rpg-nebulosa-presenza,.rpg-astrale-presenza) {
+  display:block!important;
+  position:absolute!important;
+  z-index:3!important;
+  inset:-10% -12% -7%!important;
+  width:auto!important;
+  height:auto!important;
+  border:0!important;
+  border-radius:0!important;
+  overflow:visible!important;
+  opacity:.98!important;
+  pointer-events:none!important;
+  mix-blend-mode:screen!important;
+  -webkit-mask-image:none!important;
+  mask-image:none!important;
+  background-position:center center!important;
+  background-size:100% 100%!important;
+  background-repeat:no-repeat!important;
+  filter:none!important;
+}
+.personaggio-scena > .rpg-cosmic-stage.rpg-cosmic-astrale > .rpg-astrale-presenza {
+  background-image:url('img/effetti/astrale-celestial-assassino-v483.svg?v=486')!important;
+  animation:rpg-v486-astrale-pulse 9s ease-in-out infinite alternate!important;
+}
+.personaggio-scena > .rpg-cosmic-stage.rpg-cosmic-astrale.personaggio-guerriero > .rpg-astrale-presenza {
+  background-image:url('img/effetti/astrale-celestial-guerriero-v483.svg?v=486')!important;
+}
+.personaggio-scena > .rpg-cosmic-stage.rpg-cosmic-astrale.personaggio-berserker > .rpg-astrale-presenza {
+  background-image:url('img/effetti/astrale-celestial-berserker-v483.svg?v=486')!important;
+}
+.personaggio-scena > .rpg-cosmic-stage.rpg-cosmic-nebulosa > .rpg-nebulosa-presenza {
+  background-image:url('img/effetti/nebulosa-spirale-assassino-v484.svg?v=486')!important;
+  animation:rpg-v486-nebulosa-deriva 12s ease-in-out infinite alternate!important;
+}
+.personaggio-scena > .rpg-cosmic-stage.rpg-cosmic-nebulosa.personaggio-guerriero > .rpg-nebulosa-presenza {
+  background-image:url('img/effetti/nebulosa-spirale-guerriero-v484.svg?v=486')!important;
+}
+.personaggio-scena > .rpg-cosmic-stage.rpg-cosmic-nebulosa.personaggio-berserker > .rpg-nebulosa-presenza {
+  background-image:url('img/effetti/nebulosa-spirale-berserker-v484.svg?v=486')!important;
+}
+@keyframes rpg-v486-respiro {
+  from{opacity:.72;transform:translate3d(-2px,2px,0)}
+  to{opacity:.96;transform:translate3d(2px,-2px,0)}
+}
+@keyframes rpg-v486-astrale-pulse {
+  from{opacity:.83;filter:saturate(1.0) brightness(.97)}
+  to{opacity:.98;filter:saturate(1.16) brightness(1.06)}
+}
+@keyframes rpg-v486-nebulosa-deriva {
+  from{opacity:.85;transform:translate3d(-2px,2px,0)}
+  to{opacity:.99;transform:translate3d(2px,-3px,0)}
+}
+@media(prefers-reduced-motion:reduce) {
+  .rpg-cosmic-stage > :is(.rpg-cosmic-ambiente,.rpg-nebulosa-presenza,.rpg-astrale-presenza) {
+    animation:none!important;transform:none!important;
+  }
+}

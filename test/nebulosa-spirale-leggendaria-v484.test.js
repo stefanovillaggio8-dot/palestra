@@ -33,7 +33,7 @@ test('v484 Galassia Leggendaria: 4 bracci di stelle realmente animati su tre cla
 });
 test('v484 fallback non rettangolare, tre silhouette e nessuna regressione Astrale v483',()=>{
  const css=read('stile-rpg.css'),sw=read('sw.js'),app=read('src/app.js');
- const news=css.slice(css.lastIndexOf('/* v484'));
+ const news=css.slice(css.lastIndexOf('/* v484'),css.indexOf('/* v485'));
  assert.match(news,/mask-image:radial-gradient/);
  assert.match(news,/inset:-4% -6%!important/);
  assert.match(news,/overflow:visible!important/);
@@ -50,7 +50,7 @@ test('v484 fallback non rettangolare, tre silhouette e nessuna regressione Astra
   assert.match(news,new RegExp('nebulosa-spirale-'+classe+'-v484\\.svg'));
   assert.match(sw,new RegExp('astrale-celestial-'+classe+'-v483\\.svg'),'Astrale intatto e offline');
  }
- assert.match(sw,/palestra-v485/);
- assert.match(read('index.html'),/palestra-v485/);
+ assert.match(sw,/palestra-v486/);
+ assert.match(read('index.html'),/palestra-v486/);
  assert.match(app,/const effettoCosmicoAttivo = astraleAttiva \|\| nebulosaAttiva/);
 });

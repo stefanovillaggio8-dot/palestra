@@ -73,6 +73,7 @@ import { confrontoGiorno, confrontiMensili, GIORNI_UN_MESE } from './confronto-m
 import { profiloEsercizio, profiloPerPesoCorporeo, RANK, ETICHETTE_MISURA, descriviPunteggio, descrizioneLivello, livelloEsercizio, impostaLivelliImparati, livelliImparati, rapportoDifficolta, MOLTIPLICATORI_SOGLIA, passoCaricabile } from './rank-config.js';
 import { formattaAura } from './aura.js';
 import { montaEffettiRpg, smontaEffettiRpg, usaEffettiViviRpg } from './effetti-rpg-canvas.js';
+import { montaScenaCosmicaRpg } from './rpg-scena-cosmica.js';
 import { montaFotoRpg } from './aura-foto-rpg.js';
 import { montaFotoCombinataRpg, scaricaFotoCombinataRpg } from './anteprima-combinata-rpg.js';
 import { apriAtelierRpg as mostraAtelierRpg } from './rpg-atelier-ui.js';
@@ -8444,7 +8445,14 @@ function bloccoPersonaggio(profilo, st) {
     attesa.innerHTML = personaggioSvg({ classe: classeId, sbloccati: idsIndossati });
     grafica.appendChild(attesa);
   }
-scena.appendChild(grafica);
+// v486: Astrale e Nebulosa non sono piu figli del ritratto con overflow hidden.
+  // Spostati in una stage che segue ESATTAMENTE le dimensioni fotografiche,
+  // mai il blocco di didascalia e mai una nuova skin.
+  montaScenaCosmicaRpg(scena,grafica,{
+    classe:classeId,
+    effetto:astraleAttiva?'astrale':nebulosaAttiva?'nebulosa':null,
+    creaElemento:el,
+  });
   scena.appendChild(el('div', { class: 'personaggio-dati' }, [
     el('strong', { testo: (rpg.classe ? rpg.classe.nome : 'Scegli una classe') }),
     el('span', {
