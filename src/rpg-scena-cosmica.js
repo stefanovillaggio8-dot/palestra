@@ -203,15 +203,42 @@ export function montaScenaCosmicaRpg(scena,grafica,{classe='assassino',effetto=n
  * anch'esse il proprio ritaglio approvato.
  */
 export const CUTOUT_VERIFICATI_RPG=Object.freeze([
-  'assassino-0','assassino-2','assassino-3','guerriero-0','berserker-0'
+  'assassino-0', 'assassino-1', 'assassino-2', 'assassino-3', 'assassino-4', 'assassino-5', 'guerriero-0', 'guerriero-1', 'guerriero-2', 'guerriero-3', 'guerriero-4', 'guerriero-5', 'berserker-0', 'berserker-1', 'berserker-2', 'berserker-3', 'berserker-4', 'berserker-5'
 ]);
 const CUTOUT_PRESENTI_RPG=new Set(CUTOUT_VERIFICATI_RPG);
+
+/** v491: il fatto che un WebP contenga ALPH non garantisce uno scontorno:
+ * alcuni ritagli v490 avevano ancora il vecchio fondale opaco.
+ * Verifica che gli angoli siano realmente trasparenti e che testa, busto
+ * e gambe rimangano presenti. Se il controllo fallisce NON oscurare la foto.
+ */
+export function verificaIntegritaRitaglioRpg(immagine,documento=globalThis.document) {
+  if(!immagine?.naturalWidth||!immagine?.naturalHeight||!documento?.createElement)return false;
+  try {
+    const canvas=documento.createElement('canvas');
+    canvas.width=64;canvas.height=96;
+    const ctx=canvas.getContext?.('2d',{willReadFrequently:true});
+    if(!ctx)return false;
+    ctx.clearRect(0,0,64,96);
+    ctx.drawImage(immagine,0,0,64,96);
+    const pixels=ctx.getImageData(0,0,64,96).data;
+    const a=(x,y)=>pixels[(Math.round(y*95)*64+Math.round(x*63))*4+3];
+    const bordo=[[.02,.02],[.50,.02],[.98,.02],[.02,.50],[.98,.50],
+      [.02,.98],[.50,.98],[.98,.98]];
+    const centro=[[.50,.18],[.50,.32],[.50,.48],[.43,.70],[.58,.70]];
+    const trasparenti=bordo.filter(([x,y])=>a(x,y)<65).length;
+    const pieni=centro.filter(([x,y])=>a(x,y)>160).length;
+    return trasparenti>=5 && pieni>=4;
+  } catch {
+    return false; // alpha/canvas non leggibile: mai nascondere il personaggio
+  }
+}
 export function percorsoRitaglioCosmicoRpg(source) {
   const src=String(source||'').split(/[?#]/)[0].replaceAll('\\','/');
   const match=src.match(/(?:^|\/)img\/personaggi\/stati\/(assassino|guerriero|berserker)-([0-5])\.webp$/);
   if(!match)return null;
   const key=match[1]+'-'+match[2];
-  return CUTOUT_PRESENTI_RPG.has(key)?'./img/personaggi/cutout/stati/'+key+'.webp?v=490':null;
+  return CUTOUT_PRESENTI_RPG.has(key)?'./img/personaggi/cutout/stati/'+key+'.webp?v=491':null;
 }
 /** Fotografia intatta nel DOM, vero soggetto alpha inserito SOPRA di essa.
   * Solo quando il ritaglio e' stato caricato si nasconde la foto col fondale.
@@ -226,15 +253,42 @@ export function montaRitaglioRealeRpg(grafica,foto,palco,ambiente,ImageClass=typ
   ritaglio.alt='';
   ritaglio.decoding='async';
   ritaglio.onload=()=>{
-    if(!ritaglio.naturalWidth||!ritaglio.naturalHeight)return;
+    if(!verificaIntegritaRitaglioRpg(ritaglio))return;
     grafica.appendChild(ritaglio);
-    palco.classList?.add?.('rpg-cosmic-cutout-ready');
-    grafica.classList?.add?.('rpg-cosmic-cutout-inserted');
-    ambiente.classList?.remove?.('rpg-cosmic-photo-environment');
-    if(ambiente.style){
-      ambiente.style.backgroundImage='';
-      ambiente.style.backgroundSize='';
-      ambiente.style.backgroundPosition='';
+    let pronto=false;
+    const sincronizza=()=>{
+      // Misure del RITRATTO reale: niente zoom inventato né max-height
+      // indipendenti per il livello trasparente (errore v490 su mobile).
+      const f=foto.getBoundingClientRect?.();
+      const g=grafica.getBoundingClientRect?.();
+      if(!f||!g||f.width<1||f.height<1)return;
+      const valori={
+        top:(f.top-g.top)+'px',
+        left:(f.left-g.left)+'px',
+        width:f.width+'px',
+        height:f.height+'px'
+      };
+      for(const [proprieta,valore] of Object.entries(valori)){
+        ritaglio.style.setProperty(proprieta,valore,'important');
+      }
+      if(pronto)return;
+      pronto=true;
+      palco.classList?.add?.('rpg-cosmic-cutout-ready');
+      grafica.classList?.add?.('rpg-cosmic-cutout-inserted');
+      ambiente.classList?.remove?.('rpg-cosmic-photo-environment');
+      if(ambiente.style){
+        ambiente.style.backgroundImage='';
+        ambiente.style.backgroundSize='';
+        ambiente.style.backgroundPosition='';
+      }
+    };
+    sincronizza();
+    // iPhone: il viewport puo cambiare al cambio orientamento o anteprima.
+    // Osservare foto e contenitore mantiene ESATTAMENTE lo stesso zoom.
+    if(typeof ResizeObserver==='function'){
+      const osservatore=new ResizeObserver(sincronizza);
+      osservatore.observe(foto);
+      osservatore.observe(grafica);
     }
   };
   ritaglio.onerror=()=>{ /* Nessun placeholder nero: la foto originale resta visibile. */ };

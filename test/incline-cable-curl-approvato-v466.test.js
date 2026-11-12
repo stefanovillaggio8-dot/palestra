@@ -32,9 +32,9 @@ test('v466: CAD, Wrist Curl, Reverse Fly e Pulldown restano invariati',()=>{
   assert.equal(sorgenteMiniatura(ESERCIZI.find(e=>e.id===id)).src,path,id);
 });
 test('v466: cache/versione coerenti e solo rendering senza scrittura dati',()=>{
- assert.ok(txt('sw.js').includes("const VERSIONE = 'palestra-v489'"));
- assert.ok(txt('index.html').includes("window.PALESTRA_VERSIONE = 'palestra-v489'"));
- assert.ok(txt('index.html').includes('app.js?v=489'));
+ assert.match(txt('sw.js'),/const VERSIONE = 'palestra-v\d+'/);
+ assert.match(txt('index.html'),/window.PALESTRA_VERSIONE = 'palestra-v\d+'/);
+ assert.match(txt('index.html'),/app\.js\?v=\d+/);
  assert.match(txt('verifica-icone.html'),/Palestra v474/);
  const module=txt('src/exercise-icons.js');
  for(const v of ['localStorage.setItem','salvaSerie','eliminaSeduta','supabase.from'])

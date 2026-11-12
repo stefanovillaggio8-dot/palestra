@@ -120,9 +120,11 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
       // La trasparenza è già nei pixel, vietato ripristinare il pavimento.
       ctx.drawImage(immagine,dx,dy,dw,dh);
     } else {
+      // v491: nelle combinazioni con armatura/corona senza un alpha ESATTO,
+      // l'esportazione deve conservare integralmente armi, scudo, testa e piedi.
+      // La vecchia maschera per classe amputava elementi non previsti.
       disegnaSfondoFotograficoCosmicoRpg(ctx,immagine,larghezza,altezza);
-      if(!disegnaSoggettoCosmicoRpg(ctx,immagine,dx,dy,dw,dh,c.classe))
-        ctx.drawImage(immagine,dx,dy,dw,dh);
+      ctx.drawImage(immagine,dx,dy,dw,dh);
     }
   } else ctx.drawImage(immagine,dx,dy,dw,dh);
   // Il rivestimento della skin in CSS e' un canvas separato dalla foto.
