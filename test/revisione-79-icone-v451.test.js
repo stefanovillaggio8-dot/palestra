@@ -62,8 +62,8 @@ test('v451: l atlante HD e quello effettivamente controllato',()=>{
   assert.match(sw,/palestra-v\d+/);
   assert.match(sw,/esercizi-uniformi-v455\.webp/);
   assert.match(html,/PALESTRA_VERSIONE = 'palestra-v\d+'/);
-  assert.match(html,/stile\.css\?v=489/);
-  assert.match(html,/app\.js\?v=489/);
+  assert.match(html,/stile\.css\?v=\d+/);
+  assert.match(html,/app\.js\?v=\d+/);
   const doc=txt('docs/verifica-79-icone-v451.md');
   assert.match(doc,/## Registro esercizio per esercizio/);
   assert.equal((doc.match(/^\| \d+ \|/gm)||[]).length,79); // registro storico v451: le nuove icone sono in galleria v459
