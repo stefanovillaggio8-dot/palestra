@@ -32,8 +32,8 @@ test('v483 Astrale Celestiale è un effetto, mai una skin completa o crop',()=>{
   assert.match(sw,new RegExp('astrale-celestial-'+classe+'-v483\\.svg'));
   assert.match(styles,new RegExp('astrale-celestial-'+classe+'-v483\\.svg'));
  }
- assert.match(sw,/palestra-v485/);
- assert.match(read('index.html'),/palestra-v485/);
+ assert.match(sw,/palestra-v486/);
+ assert.match(read('index.html'),/palestra-v486/);
 });
 
 test('v483 combinazioni 3 classi x 6 livelli x armature x armi x corona x aura: mai foto fissa',()=>{
