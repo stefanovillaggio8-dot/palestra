@@ -132,13 +132,23 @@ test('R10i. la foto grande viene PRIMA della fila degli stati', async () => {
   // L'ordine con cui gli elementi vengono aggiunti a `scena` e' quello con cui il
   // browser li disegna: non si vede in anteprima e nessun test lo controllava.
   const app = await readFile(join(RADICE, 'src', 'app.js'), 'utf8');
-  const posFoto = app.indexOf('scena.appendChild(grafica)');
+  // v486: la figura entra nella scena tramite una stage esterna solo
+  // per Astrale/Nebulosa; per le altre configurazioni resta diretta.
+  // Entrambi i percorsi devono montare la foto prima della progressione.
+  const posFoto = app.indexOf('montaScenaCosmicaRpg(scena,grafica,');
   const posStriscia = app.indexOf('if (rigaStati) scena.appendChild(rigaStati)');
+  const helper = await readFile(join(RADICE, 'src', 'rpg-scena-cosmica.js'), 'utf8');
 
-  assert.ok(posFoto >= 0, 'la foto deve essere aggiunta alla scena');
+  assert.ok(posFoto >= 0, 'la foto o la sua stage devono essere aggiunte alla scena');
   assert.ok(posStriscia >= 0, 'la fila degli stati deve essere aggiunta alla scena');
   assert.ok(posFoto < posStriscia,
     'la foto grande deve venire PRIMA della fila degli stati, altrimenti finisce in fondo e piccola');
+  assert.match(helper,/palco\\.appendChild\\(grafica\\)/,
+    'la stage cosmica deve contenere la foto originale');
+  assert.match(helper,/scena\\.appendChild\\(palco\\)/,
+    'la stage deve essere montata come figlia della scena');
+  assert.match(helper,/scena\\.appendChild\\(grafica\\)/,
+    'senza effetto cosmico la foto deve restare direttamente nella scena');
 });
 
 test('R10j. la foto non resta stretta in una scatola', async () => {
