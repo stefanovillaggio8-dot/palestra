@@ -3593,3 +3593,17 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
   object-fit:contain!important;
   object-position:center!important;
 }
+
+
+/* v491 · Fallback delle combinazioni senza un ritaglio alpha verificato.
+   La vecchia sagoma poligonale/ovale poteva amputare cappuccio, scudi,
+   armi o piedi. Per armi/armature non ancora scontornate mostriamo la FOTO
+   completa senza maschere distruttive; l'ambiente resta dietro la foto.
+   Non applicare queste regole agli altri effetti né alle foto ordinarie. */
+.personaggio-scena .rpg-cosmic-stage:not(.rpg-cosmic-cutout-ready) > .personaggio-scena-grafica.con-foto > .personaggio-ritratto {
+  -webkit-mask-image:none!important;
+  mask-image:none!important;
+  object-fit:contain!important;
+  object-position:center!important;
+  overflow:visible!important;
+}
