@@ -55,6 +55,6 @@ test('v486 in anteprima non taglia la stage, libera overflow e dissolvenza ai ma
    assert.match(sw,new RegExp('nebulosa-spirale-'+classe+'-v484\\.svg'));
  }
  assert.match(sw,/src\/rpg-scena-cosmica\.js/);
- assert.match(read('index.html'),/palestra-v488/);
- assert.match(sw,/palestra-v488/);
+ assert.match(read('index.html'),/palestra-v489/);
+ assert.match(sw,/palestra-v489/);
 });

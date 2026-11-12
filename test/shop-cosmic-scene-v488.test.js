@@ -12,7 +12,7 @@ test('v488 Shop usa un solo scenario senza nested cards per entrambi gli effetti
  assert.match(body,/cosmic-astrale/);
  assert.match(body,/cosmic-nebulosa/);
  assert.match(body,/const scenario = cosmicoAnteprima \? null : scenarioSkin/);
- assert.match(body,/cosmicoAnteprima\?' · v488'/);
+ assert.match(body,/cosmicoAnteprima\?' · v489'/);
 });
 test('v488 le cornici interne spariscono dalla preview, non dalle altre skin',()=>{
  const css=read('stile-rpg.css');
@@ -25,6 +25,6 @@ test('v488 le cornici interne spariscono dalla preview, non dalle altre skin',()
  assert.match(part,/background:transparent!important/);
  assert.match(part,/\.rpg-cosmic-stage > \.personaggio-scena-grafica > \.personaggio-ritratto/);
  assert.doesNotMatch(part,/\.aura-preview-panel:not\(\.aura-preview-cosmic-panel\)/);
- assert.match(read('sw.js'),/palestra-v488/);
- assert.match(read('index.html'),/palestra-v488/);
+ assert.match(read('sw.js'),/palestra-v489/);
+ assert.match(read('index.html'),/palestra-v489/);
 });
