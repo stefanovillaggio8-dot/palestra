@@ -28,7 +28,7 @@ test('v477 conserva foto, progressione, armi e slot Effetto con Corona o Armatur
  assert.match(app,/effetto:effettoCosmicoAttivo \? null : effettoEquipaggiato\?\.id/);
  assert.match(atelier,/disegnaAstraleExport\(ctx/);
  assert.match(atelier,/fxSenzaFoto\?null/);
- assert.match(read('sw.js'),/palestra-v482/);
- assert.match(read('index.html'),/palestra-v482/);
+ assert.match(read('sw.js'),/palestra-v483/);
+ assert.match(read('index.html'),/palestra-v483/);
  assert.doesNotMatch(read('sw.js'),/assassino-astrale-mitico-v475\.avif/);
 });
