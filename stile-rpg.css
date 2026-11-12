@@ -3082,3 +3082,43 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
     animation:none!important;transform:none!important;
   }
 }
+
+/* v485 · Nebulosa immersiva: profondità luminosa senza ritagli rigidi.
+   Non cambia la fotografia del personaggio, lo zoom, le armi o l'Astrale.
+   Il bordo del corpo è sfumato nella maschera SVG, mentre l'atmosfera
+   circostante vive nella SCENA (non in una seconda immagine del corpo). */
+.personaggio-scena-grafica.shop-effetto-nebula > .rpg-nebulosa-presenza {
+  inset:-5% -7%!important;
+  opacity:.95!important;
+  filter:saturate(1.12) brightness(1.07)!important;
+  -webkit-mask-image:radial-gradient(ellipse 83% 80% at 50% 51%,#000 0 54%,rgba(0,0,0,.94) 69%,rgba(0,0,0,.42) 88%,transparent 100%)!important;
+  mask-image:radial-gradient(ellipse 83% 80% at 50% 51%,#000 0 54%,rgba(0,0,0,.94) 69%,rgba(0,0,0,.42) 88%,transparent 100%)!important;
+}
+.personaggio-scena-grafica.rpg-render-live.rpg-fx-attiva.shop-effetto-nebula > .rpg-nebulosa-presenza {
+  opacity:.77!important;
+}
+.personaggio-scena.rpg-scena-nebulosa {
+  background:
+    radial-gradient(ellipse 54% 49% at 8% 27%,rgba(79,153,241,.38),transparent 96%),
+    radial-gradient(ellipse 49% 54% at 95% 58%,rgba(156,81,225,.37),transparent 97%),
+    radial-gradient(ellipse 74% 24% at 52% 95%,rgba(82,112,209,.24),transparent 96%),
+    linear-gradient(153deg,#15172b,#0d152a 61%,#171326);
+}
+.personaggio-scena.rpg-scena-nebulosa::before {
+  background:
+    radial-gradient(ellipse 49% 39% at 13% 26%,rgba(70,196,255,.42),transparent 95%),
+    radial-gradient(ellipse 46% 46% at 91% 60%,rgba(178,93,245,.42),transparent 96%),
+    radial-gradient(ellipse 52% 29% at 44% 95%,rgba(74,155,243,.24),transparent 98%);
+  filter:blur(24px);
+  opacity:.84;
+  animation:nebula-v485-respiro 12s ease-in-out infinite alternate;
+}
+@keyframes nebula-v485-respiro {
+  from {opacity:.69;transform:translate3d(-2px,3px,0) scale(.995)}
+  to {opacity:.88;transform:translate3d(2px,-2px,0) scale(1.006)}
+}
+@media(prefers-reduced-motion:reduce) {
+  .personaggio-scena.rpg-scena-nebulosa::before {
+    animation:none!important;transform:none!important;opacity:.82!important;
+  }
+}

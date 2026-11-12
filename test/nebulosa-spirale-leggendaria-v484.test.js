@@ -50,7 +50,7 @@ test('v484 fallback non rettangolare, tre silhouette e nessuna regressione Astra
   assert.match(news,new RegExp('nebulosa-spirale-'+classe+'-v484\\.svg'));
   assert.match(sw,new RegExp('astrale-celestial-'+classe+'-v483\\.svg'),'Astrale intatto e offline');
  }
- assert.match(sw,/palestra-v484/);
- assert.match(read('index.html'),/palestra-v484/);
+ assert.match(sw,/palestra-v485/);
+ assert.match(read('index.html'),/palestra-v485/);
  assert.match(app,/const effettoCosmicoAttivo = astraleAttiva \|\| nebulosaAttiva/);
 });
