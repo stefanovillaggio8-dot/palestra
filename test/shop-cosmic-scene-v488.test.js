@@ -1,0 +1,30 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
+test('v488 Shop usa un solo scenario senza nested cards per entrambi gli effetti',()=>{
+ const app=read('src/app.js');
+ const start=app.indexOf('function apriAnteprimaAura(oggetto');
+ const body=app.slice(start,app.indexOf('function apriAnteprimaAuraDivinaRpg',start));
+ assert.match(body,/cosmicoAnteprima=oggetto\.id==='skin-mitica'\|\|oggetto\.id==='effetto-nebula'/);
+ assert.match(body,/pannello\.classList\.add\('aura-preview-cosmic-panel'\)/);
+ assert.match(body,/aura-preview-cosmic-scene/);
+ assert.match(body,/cosmic-astrale/);
+ assert.match(body,/cosmic-nebulosa/);
+ assert.match(body,/const scenario = cosmicoAnteprima \? null : scenarioSkin/);
+ assert.match(body,/cosmicoAnteprima\?' · v488'/);
+});
+test('v488 le cornici interne spariscono dalla preview, non dalle altre skin',()=>{
+ const css=read('stile-rpg.css');
+ const part=css.slice(css.lastIndexOf('/* v488:'));
+ assert.match(part,/\.aura-preview-panel\.aura-preview-cosmic-panel \.aura-preview-scene/);
+ assert.match(part,/\.aura-preview-character\.blocco/);
+ assert.match(part,/\.personaggio-scena:is\(\.rpg-scena-astrale,\.rpg-scena-nebulosa\)/);
+ assert.match(part,/border:0!important/);
+ assert.match(part,/border-image:none!important/);
+ assert.match(part,/background:transparent!important/);
+ assert.match(part,/\.rpg-cosmic-stage > \.personaggio-scena-grafica > \.personaggio-ritratto/);
+ assert.doesNotMatch(part,/\.aura-preview-panel:not\(\.aura-preview-cosmic-panel\)/);
+ assert.match(read('sw.js'),/palestra-v488/);
+ assert.match(read('index.html'),/palestra-v488/);
+});

@@ -1905,6 +1905,8 @@ function apriAtelierConDatiRpg(profilo, st, oggetto = null) {
 }
 
 function apriAnteprimaAura(oggetto, profilo, st) {
+  // v488: Shop Astrale/Nebulosa usa una SCENA UNICA, non tre card sovrapposte.
+  const cosmicoAnteprima=oggetto.id==='skin-mitica'||oggetto.id==='effetto-nebula';
   const overlay = el('div', { class: 'aura-preview-overlay', role: 'dialog', aria: { modal: 'true', label: 'Anteprima ' + oggetto.nome } });
   const primaDelDialogo = document.activeElement;
   const chiudi = () => { overlay.remove(); document.removeEventListener('keydown', sullaTastiera); primaDelDialogo?.focus?.(); };
@@ -1920,7 +1922,7 @@ function apriAnteprimaAura(oggetto, profilo, st) {
   const pannello = el('section', { class: 'aura-preview-panel' }, [
     el('div', { class: 'aura-preview-heading' }, [
       el('div', {}, [
-        el('span', { class: 'aura-shop-kicker', testo: 'ANTEPRIMA · ' + oggetto.rarita.toUpperCase() }),
+        el('span', { class: 'aura-shop-kicker', testo: 'ANTEPRIMA · ' + oggetto.rarita.toUpperCase() + (cosmicoAnteprima?' · v488':'') }),
         el('h2', { testo: oggetto.nome }),
       ]),
       bottone('✕', { classe: 'fantasma aura-preview-close', titolo: 'Chiudi anteprima', onClick: chiudi }),
@@ -1935,11 +1937,14 @@ function apriAnteprimaAura(oggetto, profilo, st) {
       el('small', { testo: oggetto.classe ? CLASSE_AURA[oggetto.classe] : 'Cosmetico per il tuo personaggio' }),
     ]),
   ]);
+  if(cosmicoAnteprima)pannello.classList.add('aura-preview-cosmic-panel');
   // La skin Astrale e' un solo acquisto, con tre vere anteprime di classe.
   // Il selettore e' SOLO VISIVO e non cambia la classe o gli oggetti del profilo.
   let classeAnteprima = oggetto.classe || profilo.classe_rpg || 'guerriero';
-  const scena = el('div', { class: 'aura-preview-scene' });
-  const scenario = scenarioSkin(oggetto.id);
+  const scena = el('div', { class: 'aura-preview-scene' + (cosmicoAnteprima?' aura-preview-cosmic-scene '+(oggetto.id==='skin-mitica'?'cosmic-astrale':'cosmic-nebulosa'):'') });
+  // L'illustrazione promozionale scenarioSkin disegnava cerchi e rettangoli
+  // dietro la foto. Qui la scena vive tutta in CSS con l'avatar ritagliato.
+  const scenario = cosmicoAnteprima ? null : scenarioSkin(oggetto.id);
   if (scenario) scena.appendChild(el('img', {
     class:'aura-preview-environment', src:scenario,alt:'', aria:{hidden:'true'},
   }));

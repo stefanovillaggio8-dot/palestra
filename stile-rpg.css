@@ -3313,3 +3313,184 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
 @media(prefers-reduced-motion:reduce){
   .rpg-cosmic-stage > .rpg-cosmic-ambiente{animation:none!important}
 }
+
+/* v488: ANTEPRIMA COSMICA FULL-BLEED. La cornice che sembrava "incollata"
+   proveniva da tre card: aura-preview-scene, bloccoPersonaggio e
+   personaggio-scena, oltre alla fotografia. Solo l'anteprima dei due FX
+   cosmici usa il nuovo set, lasciando inalterate tutte le altre skin. */
+.aura-preview-panel.aura-preview-cosmic-panel .aura-preview-scene.aura-preview-cosmic-scene {
+  width:100%!important;
+  min-height:350px;
+  padding:0!important;
+  margin:8px 0 12px!important;
+  border:0!important;
+  border-radius:22px!important;
+  box-shadow:none!important;
+  overflow:hidden!important;
+  isolation:isolate;
+  background:
+    radial-gradient(ellipse 54% 28% at 23% 21%,rgba(84,146,249,.37),transparent 98%),
+    radial-gradient(ellipse 44% 46% at 84% 59%,rgba(147,73,217,.42),transparent 96%),
+    radial-gradient(ellipse 52% 38% at 56% 89%,rgba(48,90,204,.26),transparent 97%),
+    linear-gradient(152deg,#090e27 0%,#171139 45%,#080b24 100%)!important;
+}
+.aura-preview-panel.aura-preview-cosmic-panel .aura-preview-scene.cosmic-astrale {
+  background:
+    radial-gradient(ellipse 72% 40% at 53% 24%,rgba(137,65,206,.44),transparent 94%),
+    radial-gradient(ellipse 40% 41% at 5% 66%,rgba(81,64,203,.28),transparent 95%),
+    radial-gradient(ellipse 52% 38% at 95% 68%,rgba(72,132,228,.26),transparent 98%),
+    linear-gradient(157deg,#080b23,#191038 62%,#0a0e27)!important;
+}
+/* Non sono piu riquadri: una sola superficie stellare, da bordo a bordo. */
+.aura-preview-cosmic-scene::before {
+  content:"";
+  position:absolute;
+  z-index:0;
+  inset:-8%;
+  pointer-events:none;
+  background:
+    radial-gradient(circle at 8% 22%,rgba(247,246,255,.95) 0 1px,transparent 2.5px),
+    radial-gradient(circle at 23% 11%,rgba(198,233,255,.85) 0 1.2px,transparent 3px),
+    radial-gradient(circle at 84% 17%,rgba(240,210,255,.95) 0 1.3px,transparent 3.5px),
+    radial-gradient(circle at 95% 38%,rgba(198,235,255,.82) 0 1px,transparent 3px),
+    radial-gradient(circle at 15% 58%,rgba(255,244,255,.9) 0 1px,transparent 3px),
+    radial-gradient(circle at 88% 81%,rgba(230,220,255,.82) 0 1.1px,transparent 3.2px),
+    radial-gradient(circle at 33% 91%,rgba(183,222,255,.86) 0 1px,transparent 3px),
+    radial-gradient(circle at 68% 9%,rgba(236,239,255,.83) 0 1.3px,transparent 3.5px);
+  opacity:.94;
+  animation:rpg-v488-cosmos-pulse 8.5s ease-in-out infinite alternate;
+}
+.aura-preview-cosmic-scene::after {
+  content:"";
+  position:absolute;
+  z-index:0;
+  inset:-12%;
+  pointer-events:none;
+  background:
+    conic-gradient(from 60deg at 53% 38%,transparent 0deg,rgba(131,77,215,.17) 28deg,transparent 85deg,rgba(77,171,237,.13) 135deg,transparent 200deg,rgba(132,65,215,.15) 255deg,transparent 315deg);
+  filter:blur(31px);
+  opacity:.68;
+  animation:rpg-v488-cosmos-gas 18s ease-in-out infinite alternate;
+}
+.aura-preview-panel.aura-preview-cosmic-panel .aura-preview-avatar-container {
+  position:relative!important;
+  z-index:1;
+  width:100%!important;
+  max-width:none!important;
+  margin:0!important;
+  padding:0!important;
+  overflow:visible!important;
+  display:block!important;
+}
+.aura-preview-panel.aura-preview-cosmic-panel .aura-preview-character.blocco {
+  position:relative!important;
+  width:100%!important;
+  max-width:none!important;
+  margin:0!important;
+  padding:0!important;
+  background:none!important;
+  border:none!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  overflow:visible!important;
+}
+.aura-preview-panel.aura-preview-cosmic-panel .aura-preview-character > h2 {
+  display:none!important;
+}
+.aura-preview-panel.aura-preview-cosmic-panel .personaggio-scena:is(.rpg-scena-astrale,.rpg-scena-nebulosa) {
+  position:relative!important;
+  isolation:isolate;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:stretch!important;
+  gap:0!important;
+  width:100%!important;
+  max-width:none!important;
+  margin:0!important;
+  padding:0!important;
+  background:transparent!important;
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  overflow:visible!important;
+}
+.aura-preview-panel.aura-preview-cosmic-panel .personaggio-scena > .rpg-cosmic-stage {
+  width:100%!important;
+  flex:none!important;
+  max-width:none!important;
+  margin:0 auto!important;
+  padding:5px 0 0!important;
+  background:transparent!important;
+  border:none!important;
+  border-radius:0!important;
+  outline:0!important;
+  box-shadow:none!important;
+  overflow:visible!important;
+  isolation:isolate;
+}
+.aura-preview-panel.aura-preview-cosmic-panel .rpg-cosmic-stage > .personaggio-scena-grafica.con-foto {
+  background:none!important;
+  border:0!important;
+  border-image:none!important;
+  box-shadow:none!important;
+  outline:none!important;
+  padding:10px 0 0!important;
+  margin:0 auto!important;
+  width:100%!important;
+  max-width:none!important;
+  overflow:visible!important;
+}
+.aura-preview-panel.aura-preview-cosmic-panel .rpg-cosmic-stage > .personaggio-scena-grafica::before,
+.aura-preview-panel.aura-preview-cosmic-panel .rpg-cosmic-stage > .personaggio-scena-grafica::after {
+  content:none!important;
+  border:0!important;
+}
+.aura-preview-panel.aura-preview-cosmic-panel .rpg-cosmic-stage > .personaggio-scena-grafica > .personaggio-ritratto {
+  max-height:min(61dvh,490px)!important;
+  max-width:min(86%,340px)!important;
+  width:auto!important;
+  height:auto!important;
+  margin:0 auto!important;
+  border:none!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  background:transparent!important;
+  object-fit:contain!important;
+  /* La sagoma trasparente deriva dalla maschera v487, mai dal frame. */
+}
+.aura-preview-panel.aura-preview-cosmic-panel .rpg-cosmic-stage > .rpg-cosmic-ambiente {
+  inset:-5% -10% -7%!important;
+  filter:blur(23px)!important;
+  opacity:1!important;
+}
+.aura-preview-panel.aura-preview-cosmic-panel .rpg-cosmic-stage > :is(.rpg-nebulosa-presenza,.rpg-astrale-presenza) {
+  inset:-8% -3% -8%!important;
+  z-index:3!important;
+  background-size:100% 100%!important;
+}
+.aura-preview-panel.aura-preview-cosmic-panel .personaggio-scena > .personaggio-dati {
+  position:relative!important;
+  z-index:4!important;
+  display:flex;
+  flex-direction:column;
+  width:100%!important;
+  margin:0!important;
+  padding:16px 20px 20px!important;
+  border:0!important;
+  border-radius:0!important;
+  color:#ecebff;
+  background:linear-gradient(0deg,rgba(13,14,39,.98),rgba(13,14,39,.72) 75%,transparent)!important;
+  box-shadow:none!important;
+}
+@keyframes rpg-v488-cosmos-pulse {
+  from {opacity:.62;transform:translate3d(-2px,1px,0)}
+  to {opacity:1;transform:translate3d(2px,-2px,0)}
+}
+@keyframes rpg-v488-cosmos-gas {
+  from {opacity:.44;transform:translate3d(-4px,3px,0)}
+  to {opacity:.76;transform:translate3d(3px,-4px,0)}
+}
+@media(prefers-reduced-motion:reduce){
+  .aura-preview-cosmic-scene::before,
+  .aura-preview-cosmic-scene::after {animation:none!important;transform:none!important}
+}
