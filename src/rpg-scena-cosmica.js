@@ -6,9 +6,50 @@ import { CONTORNI_RPG } from './effetti-rpg-canvas.js';
 
 const CLASSI=Object.freeze(['assassino','guerriero','berserker']);
 const MASK_CACHE=new Map();
+const MASK_RASTER_CACHE=new Map();
+// La foto dell'eroe NON comincia al bordo superiore dello scatto.
+// La maschera v487 iniziava a y=0 e lasciava una piramide di fondale sopra
+// il cappuccio. Questi contorni includono mantelli, braccia, armi e scudi,
+// ma partono dalla vera testa del soggetto.
+export const FOTO_CONTORNI_COSMICI_RPG=Object.freeze({
+  assassino:[[.065,.50,.50],[.09,.46,.54],[.13,.41,.59],[.18,.385,.62],
+    [.22,.33,.69],[.30,.29,.74],[.43,.25,.77],[.56,.21,.80],
+    [.66,.19,.81],[.73,.20,.80],[.78,.22,.78],[.81,.31,.72],
+    [.88,.33,.71],[.94,.33,.72],[.98,.38,.70],[1,.50,.50]],
+  guerriero:[[.052,.50,.50],[.085,.45,.56],[.14,.41,.61],[.18,.35,.67],
+    [.25,.28,.76],[.31,.23,.89],[.44,.22,.90],[.59,.21,.91],
+    [.63,.25,.90],[.69,.32,.79],[.81,.30,.77],[.92,.28,.77],
+    [.98,.31,.75],[1,.50,.50]],
+  berserker:[[.054,.50,.50],[.10,.42,.60],[.17,.35,.67],[.22,.23,.78],
+    [.31,.18,.88],[.44,.19,.93],[.56,.19,.95],[.64,.19,.93],
+    [.73,.23,.86],[.82,.27,.79],[.92,.27,.80],[.97,.32,.76],[1,.50,.50]],
+});
+// PNG alpha con bordi morbidi REALI: nei browser WebKit la GaussianBlur
+// nell'SVG usato come mask-image veniva ignorata, lasciando un poligono netto.
+export function mascheraCosmicaRasterRpg(classe='assassino',documento=globalThis.document) {
+  const c=CLASSI.includes(classe)?classe:'assassino';
+  if(MASK_RASTER_CACHE.has(c))return MASK_RASTER_CACHE.get(c);
+  if(!documento?.createElement)return null;
+  try {
+    const canvas=documento.createElement('canvas');
+    canvas.width=340;canvas.height=490;
+    const ctx=canvas.getContext?.('2d',{alpha:true});
+    if(!ctx || !canvas.toDataURL || !('filter' in ctx))return null;
+    const punti=FOTO_CONTORNI_COSMICI_RPG[c];
+    ctx.save();ctx.filter='blur(11px)';ctx.fillStyle='#fff';
+    ctx.beginPath();
+    punti.forEach(([y,l],i)=>i?ctx.lineTo(l*340,y*490):ctx.moveTo(l*340,y*490));
+    for(let i=punti.length-1;i>=0;i--){const [y,,r]=punti[i];ctx.lineTo(r*340,y*490);}
+    ctx.closePath();ctx.fill();ctx.restore();
+    const result='url('+JSON.stringify(canvas.toDataURL('image/png'))+')';
+    MASK_RASTER_CACHE.set(c,result);
+    return result;
+  } catch {return null;}
+}
+
 
 export function contornoCosmicoRpg(classe='assassino',w=680,h=980) {
-  const righe=CONTORNI_RPG[CLASSI.includes(classe)?classe:'assassino'];
+  const righe=FOTO_CONTORNI_COSMICI_RPG[CLASSI.includes(classe)?classe:'assassino'];
   const xy=(v)=>Number(v).toFixed(2);
   const left=righe.map(([y,l],i)=>(i?'L':'M')+xy(l*w)+','+xy(y*h)).join(' ');
   const right=righe.slice().reverse().map(([y,,r])=>'L'+xy(r*w)+','+xy(y*h)).join(' ');
@@ -32,7 +73,7 @@ export function mascheraCosmicaSvgRpg(classe='assassino') {
 }
 export function applicaMascheraCosmicaRpg(foto,classe='assassino') {
   if(!foto?.style)return false;
-  const src=mascheraCosmicaSvgRpg(classe);
+  const src=mascheraCosmicaRasterRpg(classe)||mascheraCosmicaSvgRpg(classe);
   foto.style.webkitMaskImage=src;
   foto.style.maskImage=src;
   foto.style.webkitMaskSize='100% 100%';
@@ -87,6 +128,19 @@ export function disegnaAtmosferaCosmicaRpg(ctx,w,h,effetto='nebulosa') {
   }
   ctx.restore();
 }
+// Esportazione coerente con l'anteprima: usa lo STESSO scatto
+// sfocato per raccordare la luce al nuovo fondale, mai il ritratto rettangolare.
+export function disegnaSfondoFotograficoCosmicoRpg(ctx,foto,w,h) {
+  if(!ctx || !foto || !('filter' in ctx))return false;
+  ctx.save();
+  try {
+    ctx.filter='blur(28px) brightness(.48) saturate(1.35)';
+    ctx.globalAlpha=.72;
+    ctx.drawImage(foto,-22,-22,w+44,h+44);
+  }catch {ctx.restore();return false;}
+  ctx.restore();
+  return true;
+}
 // Estrae il soggetto dal medesimo scatto, anche per Corona e armature.
 // I file originali non vengono sostituiti o modificati.
 export function disegnaSoggettoCosmicoRpg(ctx,foto,dx,dy,w,h,classe='assassino',documento=globalThis.document) {
@@ -114,6 +168,24 @@ export function montaScenaCosmicaRpg(scena,grafica,{classe='assassino',effetto=n
   const ambiente=creaElemento('div',{class:'rpg-cosmic-ambiente',aria:{hidden:'true'}});
   const foto=grafica.querySelector?.(':scope > .personaggio-ritratto');
   applicaMascheraCosmicaRpg(foto,classeId);
+  // Un raccordo fotografico reale: il fondale cosmico deriva dalla STESSA
+  // immagine che viene mascherata, quindi illuminazione e toni coincidono.
+  // La foto e l'equipaggiamento restano intatti.
+  if(foto?.addEventListener && ambiente?.style){
+    const aggiornaSfondo=()=>{
+      const src=foto.currentSrc||foto.src;
+      if(!src)return;
+      ambiente.style.backgroundImage=
+        'linear-gradient(150deg,rgba(13,12,50,.42),rgba(13,13,46,.52)),'
+        +'radial-gradient(ellipse at 50% 40%,rgba(90,89,180,.25),transparent 90%),'
+        +'url('+JSON.stringify(src)+')';
+      ambiente.style.backgroundSize='cover,cover,cover';
+      ambiente.style.backgroundPosition='center,center,center';
+      ambiente.classList?.add?.('rpg-cosmic-photo-environment');
+    };
+    aggiornaSfondo();
+    foto.addEventListener('load',aggiornaSfondo);
+  }
   // Ordine pittorico: spazio continuo DIETRO, stesso soggetto centrale,
   // polvere e stelle DAVANTI, senza duplicare la figura.
   palco.appendChild(ambiente);

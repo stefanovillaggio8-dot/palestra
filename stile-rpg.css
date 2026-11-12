@@ -3494,3 +3494,20 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
   .aura-preview-cosmic-scene::before,
   .aura-preview-cosmic-scene::after {animation:none!important;transform:none!important}
 }
+
+/* v489: raccordo tra la stessa fotografia sfocata e il ritratto alpha-matted.
+   Non è un secondo scatto né un nuovo sfondo rettangolare. */
+.aura-preview-cosmic-scene .rpg-cosmic-stage > .rpg-cosmic-ambiente.rpg-cosmic-photo-environment {
+  z-index:0!important;
+  filter:blur(23px) brightness(.66) saturate(1.30)!important;
+  opacity:.83!important;
+  mix-blend-mode:screen!important;
+  background-repeat:no-repeat!important;
+  background-attachment:scroll!important;
+}
+.aura-preview-cosmic-scene .rpg-cosmic-stage > .personaggio-scena-grafica .personaggio-ritratto.rpg-cosmic-subject {
+  -webkit-mask-position:center!important;
+  mask-position:center!important;
+  -webkit-mask-repeat:no-repeat!important;
+  mask-repeat:no-repeat!important;
+}

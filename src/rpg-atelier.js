@@ -6,7 +6,7 @@ import { FOTO_RPG_RIQUADRI, livelliFotoRpg } from './aura-foto-rpg.js';
 import { fasciaSagoma, disegnaCoronaEnergetica } from './anteprima-combinata-rpg.js';
 import { fotoCinematograficaRpg } from './foto-cinematica-rpg.js';
 import { disegnaAstraleExport,dipingiNebulosaCosmica } from './effetti-rpg-canvas.js';
-import {disegnaAtmosferaCosmicaRpg,disegnaSoggettoCosmicoRpg} from './rpg-scena-cosmica.js';
+import {disegnaAtmosferaCosmicaRpg,disegnaSoggettoCosmicoRpg,disegnaSfondoFotograficoCosmicoRpg} from './rpg-scena-cosmica.js';
 import { percorsoFotoCoronaV360 } from './foto-corona-v360.js';
 import { percorsoFotoAuraDivinaV366 } from './foto-aura-divina-v366.js';
 import { percorsoFotoArmaturaArmataV371 } from './foto-armatura-armata-v371.js';
@@ -111,6 +111,7 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
   const dx=(larghezza-dw)/2,dy=(altezza-dh)/2;
   if(fxSenzaFoto) {
     disegnaAtmosferaCosmicaRpg(ctx,larghezza,altezza,c.effetto==='skin-mitica'?'astrale':'nebulosa');
+    disegnaSfondoFotograficoCosmicoRpg(ctx,immagine,larghezza,altezza);
     if(!disegnaSoggettoCosmicoRpg(ctx,immagine,dx,dy,dw,dh,c.classe))
       ctx.drawImage(immagine,dx,dy,dw,dh); // fallback se Canvas temporaneo non disponibile
   } else ctx.drawImage(immagine,dx,dy,dw,dh);
