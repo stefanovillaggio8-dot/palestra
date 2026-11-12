@@ -8,7 +8,7 @@ const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 
 test('v483 Astrale Celestiale è un effetto, mai una skin completa o crop',()=>{
  const css=read('stile-rpg.css');
- const styles=css.slice(css.lastIndexOf('/* v483'));
+ const styles=css.slice(css.lastIndexOf('/* v483'),css.indexOf('/* v484'));
  const sw=read('sw.js'),app=read('src/app.js');
  assert.match(app,/equipaggiamentoRpg\.Effetto === 'skin-mitica'/);
  assert.match(app,/scena\.classList\.add\('rpg-scena-astrale'\)/);

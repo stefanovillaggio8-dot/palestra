@@ -41,7 +41,7 @@ test('v486 nessun effetto: non cambia DOM e non crea layer',()=>{
 });
 test('v486 in anteprima non taglia la stage, libera overflow e dissolvenza ai margini',()=>{
  const app=read('src/app.js'),css=read('stile-rpg.css'),sw=read('sw.js');
- const styles=css.slice(css.lastIndexOf('/* v486'));
+ const styles=css.slice(css.lastIndexOf('/* v486'),css.indexOf('/* v487'));
  assert.match(app,/montaScenaCosmicaRpg\(scena,grafica,/);
  assert.match(styles,/\.rpg-cosmic-stage > \.rpg-cosmic-ambiente/);
  assert.match(styles,/overflow:visible!important/);
@@ -49,8 +49,8 @@ test('v486 in anteprima non taglia la stage, libera overflow e dissolvenza ai ma
  assert.match(styles,/-webkit-mask-image:none!important/);
  assert.doesNotMatch(styles,/zoom:|scale\([^)]{2,}\)/);
  for(const classe of ['assassino','guerriero','berserker']) {
-   assert.match(styles,new RegExp('astrale-celestial-'+classe+'-v483\\.svg\\?v=488'));
-   assert.match(styles,new RegExp('nebulosa-spirale-'+classe+'-v484\\.svg\\?v=488'));
+   assert.match(styles,new RegExp('astrale-celestial-'+classe+'-v483\\.svg\\?v=487'));
+   assert.match(styles,new RegExp('nebulosa-spirale-'+classe+'-v484\\.svg\\?v=487'));
    assert.match(sw,new RegExp('astrale-celestial-'+classe+'-v483\\.svg'));
    assert.match(sw,new RegExp('nebulosa-spirale-'+classe+'-v484\\.svg'));
  }
