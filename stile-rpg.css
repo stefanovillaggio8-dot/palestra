@@ -3168,17 +3168,15 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
   background:transparent!important;
   box-shadow:none!important;
 }
-/* Dissolve SOLO il bordo fotografico nell'atmosfera; niente zoom, crop o
-   trasformazioni sul personaggio e sulle sue armi. Il centro resta opaco. */
+/* Fallback mentre JS prepara la maschera sagomata: niente bordo netto.
+   Quando arriva l'immagine il solo soggetto resta fotografico. */
 .rpg-cosmic-stage > .personaggio-scena-grafica.con-foto > .personaggio-ritratto {
-  -webkit-mask-image:
-    linear-gradient(to right,transparent 0%,#000 6%,#000 94%,transparent 100%),
-    linear-gradient(to bottom,transparent 0%,#000 4%,#000 94%,transparent 100%);
-  -webkit-mask-composite:source-in;
-  mask-image:
-    linear-gradient(to right,transparent 0%,#000 6%,#000 94%,transparent 100%),
-    linear-gradient(to bottom,transparent 0%,#000 4%,#000 94%,transparent 100%);
-  mask-composite:intersect;
+  -webkit-mask-image:radial-gradient(ellipse 60% 74% at 50% 49%,#000 55%,rgba(0,0,0,.88) 73%,transparent 100%);
+  mask-image:radial-gradient(ellipse 60% 74% at 50% 49%,#000 55%,rgba(0,0,0,.88) 73%,transparent 100%);
+  -webkit-mask-size:100% 100%;
+  mask-size:100% 100%;
+  -webkit-mask-repeat:no-repeat;
+  mask-repeat:no-repeat;
 }
 .rpg-cosmic-stage > .rpg-cosmic-ambiente {
   position:absolute;
@@ -3264,4 +3262,54 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
   .rpg-cosmic-stage > :is(.rpg-cosmic-ambiente,.rpg-nebulosa-presenza,.rpg-astrale-presenza) {
     animation:none!important;transform:none!important;
   }
+}
+
+/* v487 · NESSUN RETTANGOLO FOTOGRAFICO: foto sagomata sul soggetto.
+   Ambiente e stelle sono esterni alla foto, non un overlay attaccato.
+   La silhouette si allarga per armi/scudi/mantelli secondo la classe. */
+.rpg-cosmic-stage > .personaggio-scena-grafica.con-foto {
+  padding:11px!important;
+  border:0!important;
+  outline:0!important;
+  box-shadow:none!important;
+  background:none!important;
+}
+.rpg-cosmic-stage > .personaggio-scena-grafica.con-foto::before,
+.rpg-cosmic-stage > .personaggio-scena-grafica.con-foto::after {
+  content:none!important;
+  box-shadow:none!important;
+}
+.rpg-cosmic-stage > .personaggio-scena-grafica.con-foto > .personaggio-ritratto {
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  background:transparent!important;
+}
+.rpg-cosmic-stage > .personaggio-scena-grafica.con-foto > .personaggio-ritratto.rpg-cosmic-subject {
+  -webkit-mask-size:100% 100%!important;
+  mask-size:100% 100%!important;
+  -webkit-mask-repeat:no-repeat!important;
+  mask-repeat:no-repeat!important;
+  -webkit-mask-position:center!important;
+  mask-position:center!important;
+}
+.rpg-cosmic-stage.rpg-cosmic-nebulosa,
+.rpg-cosmic-stage.rpg-cosmic-astrale {
+  background:
+    radial-gradient(ellipse 70% 40% at 18% 22%,rgba(59,88,169,.27),transparent 95%),
+    radial-gradient(ellipse 66% 48% at 85% 59%,rgba(97,49,158,.24),transparent 95%),
+    linear-gradient(150deg,rgba(6,9,26,.90),rgba(12,9,35,.77) 50%,rgba(5,17,32,.92));
+  border:0!important;
+  box-shadow:none!important;
+  border-radius:28px;
+}
+.personaggio-scena.rpg-scena-nebulosa,
+.personaggio-scena.rpg-scena-astrale {
+  background:
+    radial-gradient(ellipse 42% 43% at 10% 34%,rgba(70,119,207,.27),transparent 96%),
+    radial-gradient(ellipse 48% 48% at 92% 62%,rgba(133,68,206,.25),transparent 97%),
+    linear-gradient(145deg,#0b1029,#0f112b 62%,#101427)!important;
+}
+@media(prefers-reduced-motion:reduce){
+  .rpg-cosmic-stage > .rpg-cosmic-ambiente{animation:none!important}
 }

@@ -45,7 +45,7 @@ test('v486 in anteprima non taglia la stage, libera overflow e dissolvenza ai ma
  assert.match(app,/montaScenaCosmicaRpg\(scena,grafica,/);
  assert.match(styles,/\.rpg-cosmic-stage > \.rpg-cosmic-ambiente/);
  assert.match(styles,/overflow:visible!important/);
- assert.match(styles,/mask-composite:intersect/);
+ assert.match(styles,/mask-size:100% 100%/);
  assert.match(styles,/-webkit-mask-image:none!important/);
  assert.doesNotMatch(styles,/zoom:|scale\([^)]{2,}\)/);
  for(const classe of ['assassino','guerriero','berserker']) {

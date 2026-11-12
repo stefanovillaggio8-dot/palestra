@@ -6,6 +6,7 @@ import { FOTO_RPG_RIQUADRI, livelliFotoRpg } from './aura-foto-rpg.js';
 import { fasciaSagoma, disegnaCoronaEnergetica } from './anteprima-combinata-rpg.js';
 import { fotoCinematograficaRpg } from './foto-cinematica-rpg.js';
 import { disegnaAstraleExport,dipingiNebulosaCosmica } from './effetti-rpg-canvas.js';
+import {disegnaAtmosferaCosmicaRpg,disegnaSoggettoCosmicoRpg} from './rpg-scena-cosmica.js';
 import { percorsoFotoCoronaV360 } from './foto-corona-v360.js';
 import { percorsoFotoAuraDivinaV366 } from './foto-aura-divina-v366.js';
 import { percorsoFotoArmaturaArmataV371 } from './foto-armatura-armata-v371.js';
@@ -108,11 +109,20 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
   const ratio=Math.min(larghezza/immagine.naturalWidth,altezza/immagine.naturalHeight);
   const dw=Math.round(immagine.naturalWidth*ratio),dh=Math.round(immagine.naturalHeight*ratio);
   const dx=(larghezza-dw)/2,dy=(altezza-dh)/2;
-  ctx.drawImage(immagine,dx,dy,dw,dh);
+  if(fxSenzaFoto) {
+    disegnaAtmosferaCosmicaRpg(ctx,larghezza,altezza,c.effetto==='skin-mitica'?'astrale':'nebulosa');
+    if(!disegnaSoggettoCosmicoRpg(ctx,immagine,dx,dy,dw,dh,c.classe))
+      ctx.drawImage(immagine,dx,dy,dw,dh); // fallback se Canvas temporaneo non disponibile
+  } else ctx.drawImage(immagine,dx,dy,dw,dh);
   // Il rivestimento della skin in CSS e' un canvas separato dalla foto.
   const pelle=grafica.querySelector?.('.rpg-skin-fedele');
   if(!giaFotografica&&pelle?.width&&pelle?.height) {
-    try {ctx.save();ctx.globalCompositeOperation='source-over';ctx.drawImage(pelle,dx,dy,dw,dh);ctx.restore();}
+    try {
+      ctx.save();ctx.globalCompositeOperation='source-over';
+      if(!fxSenzaFoto || !disegnaSoggettoCosmicoRpg(ctx,pelle,dx,dy,dw,dh,c.classe))
+        ctx.drawImage(pelle,dx,dy,dw,dh);
+      ctx.restore();
+    }
     catch {ctx.restore();}
   }
   // I nuovi WebP includono già l'effetto acquistato. Solo l'Aura divina,
