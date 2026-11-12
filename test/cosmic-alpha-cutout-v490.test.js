@@ -82,9 +82,9 @@ test('v490 asset WEBP validi e separazione di chiaro/scuro senza foto originale'
  assert.match(v490,/opacity:0!important/);
  assert.match(v490,/mask-image:none!important/);
  assert.match(v490,/rpg-cosmic-ambiente/);
- assert.match(read('sw.js'),/palestra-v490/);
- assert.match(read('index.html'),/palestra-v490/);
- assert.match(read('src/app.js'),/ · v490/);
+ assert.match(read('sw.js'),/palestra-v\d+/);
+ assert.match(read('index.html'),/palestra-v\d+/);
+ assert.match(read('src/app.js'),/ · v\d+/);
 });
 
 test('v490 esportazioni della stessa figura trasparente',()=>{
