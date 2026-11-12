@@ -96,9 +96,9 @@ const FILE = [
   './img/effetti/nebulosa-tempesta-assassino-v481.svg', // gas galattico, bordo diffuso, foto originale
   './img/effetti/nebulosa-tempesta-guerriero-v481.svg', // gas galattico, bordo diffuso, foto originale
   './img/effetti/nebulosa-tempesta-berserker-v481.svg', // gas galattico, bordo diffuso, foto originale
-  './img/effetti/nebulosa-spirale-assassino-v484.svg', // galassia leggendaria con bracci di stelle
-  './img/effetti/nebulosa-spirale-guerriero-v484.svg', // stessa inquadratura e silhouette
-  './img/effetti/nebulosa-spirale-berserker-v484.svg', // fotografia originale e cache offline
+  './img/effetti/nebulosa-spirale-assassino-v484.svg?v=485', // galassia leggendaria con bracci di stelle
+  './img/effetti/nebulosa-spirale-guerriero-v484.svg?v=485', // stessa inquadratura e silhouette
+  './img/effetti/nebulosa-spirale-berserker-v484.svg?v=485', // fotografia originale e cache offline
   './img/effetti/aura-divina-v364.webp?v=364', // visual effect shared by every class and streak stage
   './src/anteprima-combinata-rpg.js',
   './src/equipaggiamento-rpg.js',

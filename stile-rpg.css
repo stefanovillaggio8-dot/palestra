@@ -3022,7 +3022,7 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
 .personaggio-scena-grafica.shop-effetto-nebula > .rpg-nebulosa-presenza {
   position:absolute!important;
   inset:-4% -6%!important;
-  background:url('img/effetti/nebulosa-spirale-assassino-v484.svg') center center / 100% 100% no-repeat!important;
+  background:url('img/effetti/nebulosa-spirale-assassino-v484.svg?v=485') center center / 100% 100% no-repeat!important;
   border-radius:0!important;
   opacity:.98!important;
   mix-blend-mode:screen!important;
@@ -3034,10 +3034,10 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
   animation:nebula-v484-immersione 10s ease-in-out infinite alternate!important;
 }
 .personaggio-scena-grafica.personaggio-guerriero.shop-effetto-nebula > .rpg-nebulosa-presenza {
-  background-image:url('img/effetti/nebulosa-spirale-guerriero-v484.svg')!important;
+  background-image:url('img/effetti/nebulosa-spirale-guerriero-v484.svg?v=485')!important;
 }
 .personaggio-scena-grafica.personaggio-berserker.shop-effetto-nebula > .rpg-nebulosa-presenza {
-  background-image:url('img/effetti/nebulosa-spirale-berserker-v484.svg')!important;
+  background-image:url('img/effetti/nebulosa-spirale-berserker-v484.svg?v=485')!important;
 }
 .personaggio-scena-grafica.rpg-render-live.rpg-fx-attiva.shop-effetto-nebula > .rpg-nebulosa-presenza {
   opacity:.77!important; /* la galassia resta leggibile sotto le stelle vive */
