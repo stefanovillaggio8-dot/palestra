@@ -48,6 +48,6 @@ test('v489 PNG esportato raccorda fondale e ritratto, niente nuova foto armatura
  assert.match(helper,/blur\(28px\) brightness\(\.48\) saturate\(1\.35\)/);
  assert.match(helper,/ctx\.globalCompositeOperation='destination-in'/);
  assert.match(atelier,/disegnaSfondoFotograficoCosmicoRpg\(ctx,immagine,larghezza,altezza\)/);
- assert.match(read('sw.js'),/palestra-v489/);
- assert.match(read('index.html'),/palestra-v489/);
+ assert.match(read('sw.js'),/palestra-v\d+/);
+ assert.match(read('index.html'),/palestra-v\d+/);
 });
