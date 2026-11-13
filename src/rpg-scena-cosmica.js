@@ -126,7 +126,71 @@ export function disegnaAtmosferaCosmicaRpg(ctx,w,h,effetto='nebulosa') {
     g.addColorStop(1,'rgba('+col+',0)');
     ctx.fillStyle=g;ctx.fillRect(0,0,w,h);
   }
+  // v492: stelle a profondità variabile, con posizioni DETERMINISTICHE per
+  // esportazioni coerenti. Le sorgenti luminose appartengono al fondale.
+  const fract=n=>n-Math.floor(n);
+  const random=n=>fract(Math.sin(n*127.1+19.37)*43758.5453);
+  for(let i=0;i<84;i++){
+    const x=random(i*3+1)*w,y=random(i*3+2)*h;
+    const radius=(.45+random(i*7+4)*1.5)*Math.min(w/780,1.8);
+    const opacity=.18+random(i*11+5)*.65;
+    ctx.fillStyle=effetto==='astrale'
+      ?'rgba(250,221,255,'+opacity+')'
+      :'rgba(205,237,255,'+opacity+')';
+    ctx.fillRect(x,y,Math.max(.65,radius),Math.max(.65,radius));
+  }
+  if(effetto==='astrale'&&typeof ctx.ellipse==='function'){
+    // L'eclisse d'oro è DIETRO al personaggio e non sopra viso/armatura.
+    ctx.save();
+    ctx.globalAlpha=.29;
+    ctx.strokeStyle='#f4c78e';
+    ctx.lineWidth=Math.max(1,w*.008);
+    ctx.shadowColor='#d38bff';
+    ctx.shadowBlur=Math.min(36,w*.038);
+    ctx.beginPath();
+    ctx.ellipse(w*.50,h*.41,w*.32,h*.30,-.11,Math.PI*.94,Math.PI*1.96);
+    ctx.stroke();
+    ctx.restore();
+  }
   ctx.restore();
+}
+/** v492: l'ultimo livello disegna soltanto gas e scintille PERIFERICHE.
+ * Non sovrascrive la foto, non disegna nessun personaggio o arma e
+ * mantiene la palette distinta fra Mitico e Leggendario.
+ */
+export function disegnaAccentiCosmiciRpg(ctx,w,h,effetto='nebulosa') {
+  if(!ctx||w<16||h<20||typeof ctx.createRadialGradient!=='function')return false;
+  const astrale=effetto==='astrale';
+  const luci=astrale
+    ?[[.09,.22,.13,'244,198,139',.43],[.94,.48,.17,'187,100,253',.42],
+      [.07,.73,.12,'203,124,246',.30],[.88,.81,.14,'98,187,255',.25]]
+    :[[.06,.27,.22,'69,204,240',.30],[.94,.56,.24,'194,91,235',.32],
+      [.13,.79,.19,'97,132,246',.25],[.91,.19,.16,'82,177,230',.21]];
+  ctx.save();
+  ctx.globalCompositeOperation='screen';
+  for(const [x,y,rad,rgb,alpha] of luci){
+    const R=rad*w;
+    const g=ctx.createRadialGradient(x*w,y*h,0,x*w,y*h,R);
+    g.addColorStop(0,'rgba('+rgb+','+alpha+')');
+    g.addColorStop(.42,'rgba('+rgb+','+(alpha*.40)+')');
+    g.addColorStop(1,'rgba('+rgb+',0)');
+    ctx.fillStyle=g;
+    ctx.fillRect(Math.max(0,x*w-R),Math.max(0,y*h-R),
+      Math.min(w,R*2),Math.min(h,R*2));
+  }
+  // Stelle soltanto ai bordi esterni della sagoma (niente punti sulla faccia).
+  const fract=n=>n-Math.floor(n);
+  const rand=n=>fract(Math.sin(n*92.71+48.19)*43578.6);
+  for(let i=0;i<(astrale?36:23);i++){
+    const left=i%2===0;
+    const x=(left?.03+.23*rand(i*3+1):.74+.23*rand(i*3+1))*w;
+    const y=(.07+.87*rand(i*7+4))*h;
+    const radius=(i%6===0?1.8:.75)*Math.min(w/680,1.6);
+    ctx.fillStyle=astrale?'rgba(255,228,242,.66)':'rgba(215,242,255,.59)';
+    ctx.fillRect(x,y,radius,radius);
+  }
+  ctx.restore();
+  return true;
 }
 // Esportazione coerente con l'anteprima: usa lo STESSO scatto
 // sfocato per raccordare la luce al nuovo fondale, mai il ritratto rettangolare.
