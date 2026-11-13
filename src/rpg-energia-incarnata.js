@@ -4,19 +4,28 @@
 const TAU = Math.PI * 2;
 const classi = ['assassino', 'guerriero', 'berserker'];
 export const ENERGIA_FOTOGRAFICA_RPG_URL=new URL('../img/effetti/energia-fotografica-v497.webp',import.meta.url).href;
+export const ENERGIA_ASTRALE_V498_URL=new URL('../img/effetti/astrale-particelle-v498.webp',import.meta.url).href;
+export const ENERGIA_NEBULOSA_V498_URL=new URL('../img/effetti/nebulosa-particelle-v498.webp',import.meta.url).href;
 let promessaEnergiaFotografica=null;
-/** Un solo atlante RGBA (~700 KB), cache comune ad atelier, esportazione e shop.
- * Nessun ritratto è contenuto nel file: i 18 personaggi restano gli originali.
+/** v498: due texture alpha INDIPENDENTI a risoluzione piena; un unico loader
+ * condiviso da anteprima, live ed export. Il vecchio atlante resta fallback
+ * offline, mai cambia l'immagine reale del personaggio.
  */
 export function caricaEnergiaFotograficaRpg(){
   if(promessaEnergiaFotografica)return promessaEnergiaFotografica;
   if(typeof Image==='undefined')return Promise.resolve(null);
-  promessaEnergiaFotografica=new Promise(resolve=>{
+  const carica=url=>new Promise(resolve=>{
     const img=new Image();
     img.onload=()=>resolve(img);
     img.onerror=()=>resolve(null);
-    img.decoding='async';img.src=ENERGIA_FOTOGRAFICA_RPG_URL;
+    img.decoding='async';img.src=url;
   });
+  promessaEnergiaFotografica=Promise.all([
+    carica(ENERGIA_ASTRALE_V498_URL),carica(ENERGIA_NEBULOSA_V498_URL),
+  ]).then(async ([astrale,nebulosa])=>({
+    astrale,nebulosa,
+    atlas:(!astrale||!nebulosa)?await carica(ENERGIA_FOTOGRAFICA_RPG_URL):null,
+  }));
   return promessaEnergiaFotografica;
 }
 const geometria = Object.freeze({
@@ -362,7 +371,10 @@ export function disegnaEnergiaIncarnataRpg(ctx,w,h,classe='assassino',effetto='a
 export function disegnaEnergiaFotograficaRpg(ctx,w,h,classe='assassino',effetto='astrale',t=0,
     {fase='fronte',texture=null,soggetto=null,buffer=null}={}){
   if(!ctx||w<16||h<20||!classi.includes(classe)||!['astrale','nebulosa'].includes(effetto))return false;
-  if(!(texture&&(texture.naturalWidth||texture.width)>=1024))return disegnaEnergiaIncarnataRpg(
+  const particolare=texture?.[effetto];
+  const altaDefinizione=Boolean(particolare&&(particolare.naturalWidth||particolare.width)>=1024);
+  const atlante=texture?.atlas||texture;
+  if(!altaDefinizione&&!(atlante&&(atlante.naturalWidth||atlante.width)>=1024))return disegnaEnergiaIncarnataRpg(
     ctx,w,h,classe,effetto,t,{fase,soggetto,buffer});
   const sx=(effetto==='astrale'?0:512),sy=classi.indexOf(classe)*512;
   ctx.save();
@@ -371,18 +383,24 @@ export function disegnaEnergiaFotograficaRpg(ctx,w,h,classe='assassino',effetto=
   ctx.imageSmoothingEnabled=true;
   ctx.imageSmoothingQuality='high';
   const disegnaTexture=()=>{
+    if(altaDefinizione){
+      // Fotoni, cristalli e filamenti sono ora un'immagine 1024x1536 per
+      // OGNI effetto, non una cella 512x512 deformata fino a tutto il corpo.
+      ctx.drawImage(particolare,0,0,1024,1536,0,0,w,h);
+      return;
+    }
     if(effetto!=='astrale'){
-      ctx.drawImage(texture,sx,sy,512,512,0,0,w,h);
+      ctx.drawImage(atlante,sx,sy,512,512,0,0,w,h);
       return;
     }
     // Il sigillo e' sotto i piedi, NON nel punto in cui cadono casualmente
     // le particelle. Separiamo il pavimento dall'energia verticale, poi
     // ancoriamo la proiezione all'asse del corpo (50%) e alla suola (94%).
     const taglio=404;
-    ctx.drawImage(texture,sx,sy,512,taglio,0,0,w,h*taglio/512);
+    ctx.drawImage(atlante,sx,sy,512,taglio,0,0,w,h*taglio/512);
     const diametro=w*.89;
     const pavimentoY=h*.875;
-    ctx.drawImage(texture,sx,sy+taglio,512,108,
+    ctx.drawImage(atlante,sx,sy+taglio,512,108,
       (w-diametro)/2,pavimentoY,diametro,h*.102);
   };
   if(fase==='retro'){
@@ -397,7 +415,8 @@ export function disegnaEnergiaFotograficaRpg(ctx,w,h,classe='assassino',effetto=
     const dx=Math.sin(t*.57+sy*.01)*w*.009;
     const dy=Math.cos(t*.49+sx*.01)*h*.006;
     ctx.globalAlpha=effetto==='astrale'?.105:.17;
-    ctx.drawImage(texture,sx+33,sy+35,446,330,
+    if(altaDefinizione)ctx.drawImage(particolare,0,0,1024,1536,dx,dy,w,h);
+    else ctx.drawImage(atlante,sx+33,sy+35,446,330,
       w*.064+dx,h*.07+dy,w*.872,h*.67);
   }else{
     // La luce attraversa parzialmente guanti/armi/scudo, senza sostituire
@@ -451,18 +470,21 @@ export function montaEnergiaIncarnataRpg(palco,grafica,foto,{classe='assassino',
   });
   const ios=typeof navigator!=='undefined' && /iPhone|iPad|iPod/.test(navigator.userAgent||'');
   const movimentoRidotto=typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion:reduce)').matches;
-  let w=0,h=0,ratio=1,finito=false,frame=0,ultimo=-Infinity,ultimaMisura=-Infinity;
+  let w=0,h=0,ratio=1,finito=false,frame=0,resizeFrame=0,ultimo=-Infinity,ultimaMisura=-Infinity;
   let visibile=true,attaccato=false,tentativi=0;
   let observer=null,resize=null;
   const misura=()=>{
     const fr=foto.getBoundingClientRect?.(),pr=palco.getBoundingClientRect?.();
     if(!fr||!pr||fr.width<16||fr.height<20)return false;
     const bw=Math.round(fr.width),bh=Math.round(fr.height),dpr=Math.min(ios?1.15:1.45,globalThis.devicePixelRatio||1);
-    fondale.style.left=(fr.left-pr.left)+'px';fondale.style.top=(fr.top-pr.top)+'px';
-    fondale.style.width=fr.width+'px';fondale.style.height=fr.height+'px';
+    const allinea=(elemento,proprieta,valore)=>{
+      if(elemento.style[proprieta]!==valore)elemento.style[proprieta]=valore;
+    };
+    allinea(fondale,'left',(fr.left-pr.left)+'px');allinea(fondale,'top',(fr.top-pr.top)+'px');
+    allinea(fondale,'width',fr.width+'px');allinea(fondale,'height',fr.height+'px');
     for(const can of [dietro,davanti]){
-      can.style.left=(fr.left-pr.left)+'px';can.style.top=(fr.top-pr.top)+'px';
-      can.style.width=fr.width+'px';can.style.height=fr.height+'px';
+      allinea(can,'left',(fr.left-pr.left)+'px');allinea(can,'top',(fr.top-pr.top)+'px');
+      allinea(can,'width',fr.width+'px');allinea(can,'height',fr.height+'px');
       if(w!==bw||h!==bh||ratio!==dpr){can.width=Math.round(bw*dpr);can.height=Math.round(bh*dpr);}
     }
     if(w!==bw||h!==bh||ratio!==dpr){w=bw;h=bh;ratio=dpr;retro.setTransform(dpr,0,0,dpr,0,0);front.setTransform(dpr,0,0,dpr,0,0);}
@@ -498,6 +520,7 @@ export function montaEnergiaIncarnataRpg(palco,grafica,foto,{classe='assassino',
   const fotoCaricata=()=>{aggiornaFoto();misura();riprendi();};
   const smonta=()=>{
     if(finito)return;finito=true;if(frame)cancelAnimationFrame(frame);
+    if(resizeFrame)cancelAnimationFrame(resizeFrame);
     observer?.disconnect();resize?.disconnect();documento.removeEventListener?.('visibilitychange',visibilita);
     foto.removeEventListener?.('load',fotoCaricata);
     fondale.remove?.();dietro.remove?.();davanti.remove?.();
@@ -508,7 +531,13 @@ export function montaEnergiaIncarnataRpg(palco,grafica,foto,{classe='assassino',
     });observer.observe(palco);
   }
   if(typeof ResizeObserver==='function'){
-    resize=new ResizeObserver(()=>{misura();riprendi();});
+    // Scrivere dimensioni canvas SINCRONAMENTE nel callback dell'osservatore
+    // scatena il warning "ResizeObserver loop" in Chrome. Misura al frame
+    // seguente; accorpa più notifiche senza perdere il corretto zoom.
+    resize=new ResizeObserver(()=>{
+      if(resizeFrame||finito)return;
+      resizeFrame=requestAnimationFrame(()=>{resizeFrame=0;if(!finito){misura();riprendi();}});
+    });
     resize.observe(foto);resize.observe(palco);
   }
   documento.addEventListener?.('visibilitychange',visibilita);

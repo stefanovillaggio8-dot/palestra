@@ -732,6 +732,12 @@ function installaSpiaErrori() {
   if (typeof window === 'undefined') return;
   window.addEventListener('error', (e) => {
     const testo = (e && (e.message || (e.error && e.error.message))) || 'errore sconosciuto';
+    // Warning del motore layout: il browser rimanda una notifica al frame
+    // seguente, ma non indica un errore applicativo o perdita di dati.
+    if (/^ResizeObserver loop (?:limit exceeded|completed with undelivered notifications)/i.test(String(testo))) {
+      console.debug('Notifica layout differita:', testo);
+      return;
+    }
     registraProblema(testo, 'browser');
     console.error('Errore:', testo, e && e.error && e.error.stack);
     avviso('Qualcosa e\' andato storto: ' + testo + ' (non e\' successo nessun danno ai tuoi dati, prova a rifare la stessa cosa)', { tipo: 'errore', durata: 12000 });
@@ -1922,7 +1928,7 @@ function apriAnteprimaAura(oggetto, profilo, st) {
   const pannello = el('section', { class: 'aura-preview-panel' }, [
     el('div', { class: 'aura-preview-heading' }, [
       el('div', {}, [
-        el('span', { class: 'aura-shop-kicker', testo: 'ANTEPRIMA · ' + oggetto.rarita.toUpperCase() + (cosmicoAnteprima?' · v492':'') }),
+        el('span', { class: 'aura-shop-kicker', testo: 'ANTEPRIMA · ' + oggetto.rarita.toUpperCase() + (cosmicoAnteprima?' · '+String(window.PALESTRA_VERSIONE||'v?').replace(/^palestra-/,''):'') }),
         el('h2', { testo: oggetto.nome }),
       ]),
       bottone('✕', { classe: 'fantasma aura-preview-close', titolo: 'Chiudi anteprima', onClick: chiudi }),

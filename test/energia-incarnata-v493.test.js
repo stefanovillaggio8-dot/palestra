@@ -84,7 +84,7 @@ test('v494: rendering live e PNG condividono il VFX fotografico, senza toccare i
   assert.match(testo('src/rpg-atelier.js'),/ctx\.drawImage\(fotoBase,dx,dy,dw,dh\)/);
   assert.match(testo('src/anteprima-combinata-rpg.js'),/ctx\.drawImage\(original,0,0,out\.width,out\.height\)/);
   assert.match(testo('sw.js'),/\.\/src\/rpg-energia-incarnata\.js/);
-  assert.match(testo('index.html'),/palestra-v497/);
+  assert.match(testo('index.html'),/palestra-v498/);
   assert.match(testo('anteprima-effetti-cosmici.html'),/cutout\/stati/);
   assert.match(testo('anteprima-effetti-cosmici.html'),/img\/personaggi\/stati/);
   assert.doesNotMatch(testo('src/rpg-energia-incarnata.js'),/localStorage|indexedDB|fetch\(|sessionStorage/);

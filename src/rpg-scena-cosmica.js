@@ -326,7 +326,7 @@ export function montaRitaglioRealeRpg(grafica,foto,palco,ambiente,ImageClass=typ
   ritaglio.onload=()=>{
     if(!verificaIntegritaRitaglioRpg(ritaglio))return;
     grafica.appendChild(ritaglio);
-    let pronto=false;
+    let pronto=false,frameMisura=0;
     const sincronizza=()=>{
       // Misure del RITRATTO reale: niente zoom inventato né max-height
       // indipendenti per il livello trasparente (errore v490 su mobile).
@@ -340,7 +340,9 @@ export function montaRitaglioRealeRpg(grafica,foto,palco,ambiente,ImageClass=typ
         height:f.height+'px'
       };
       for(const [proprieta,valore] of Object.entries(valori)){
-        ritaglio.style.setProperty(proprieta,valore,'important');
+        if(ritaglio.style.getPropertyValue?.(proprieta)!==valore){
+          ritaglio.style.setProperty(proprieta,valore,'important');
+        }
       }
       if(pronto)return;
       pronto=true;
@@ -357,7 +359,12 @@ export function montaRitaglioRealeRpg(grafica,foto,palco,ambiente,ImageClass=typ
     // iPhone: il viewport puo cambiare al cambio orientamento o anteprima.
     // Osservare foto e contenitore mantiene ESATTAMENTE lo stesso zoom.
     if(typeof ResizeObserver==='function'){
-      const osservatore=new ResizeObserver(sincronizza);
+      const osservatore=new ResizeObserver(()=>{
+        if(frameMisura)return;
+        if(typeof requestAnimationFrame==='function'){
+          frameMisura=requestAnimationFrame(()=>{frameMisura=0;sincronizza();});
+        }else sincronizza();
+      });
       osservatore.observe(foto);
       osservatore.observe(grafica);
     }
