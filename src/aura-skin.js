@@ -49,20 +49,29 @@ export function accessoSkin(oggetto, stato, classe, posseduto = false) {
  * Una sequenza interrotta ricomincia da zero; il record serve SOLO a
  * conservare i premi già conquistati e non viene cancellato.
  */
-export function progressoCoronaInfinito(streak = null) {
+function progressoRicompensaStreak(streak, soglia) {
   const sano = valore => {
     const n = Number(valore);
     return Number.isFinite(n) ? Math.max(0, Math.floor(n)) : 0;
   };
-  const giorni = streak?.interrotta === true ? 0 : Math.min(80, sano(streak?.giorni));
+  const giorni = streak?.interrotta === true ? 0 : Math.min(soglia, sano(streak?.giorni));
   const record = sano(streak?.record);
   return {
     giorni,
     record,
-    sbloccata: record >= 80,
-    mancanti: 80 - giorni,
-    percentuale: giorni / 80 * 100,
+    sbloccata: record >= soglia,
+    mancanti: soglia - giorni,
+    percentuale: giorni / soglia * 100,
   };
+}
+export function progressoCoronaInfinito(streak = null) {
+  return progressoRicompensaStreak(streak, 80);
+}
+
+/** Come la Corona: barra sulla streak ATTUALE (0 dopo un'interruzione),
+ * mentre il record serve esclusivamente a conservare l'Aura già ottenuta. */
+export function progressoAuraDivina(streak = null) {
+  return progressoRicompensaStreak(streak, 75);
 }
 
 // La Corona è una ricompensa gratuita, distinta da Skin, Armatura, Effetto

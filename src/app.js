@@ -2,7 +2,7 @@
 // Tutto in italiano, tema scuro, pulsanti grandi, fatto per essere usato
 // in palestra con le mani occupate.
 
-import { requisitoSkin, accessoSkin, scenarioSkin, statoCoronaInfinito, progressoCoronaInfinito, cambiaCoronaInfinito, CORONA_INFINITO_ID, ordinaPerRaritaAura } from './aura-skin.js';
+import { requisitoSkin, accessoSkin, scenarioSkin, statoCoronaInfinito, progressoCoronaInfinito, progressoAuraDivina, cambiaCoronaInfinito, CORONA_INFINITO_ID, ordinaPerRaritaAura } from './aura-skin.js';
 import { quadroSfideAutomatiche, premioSfidaAutomatica, premioSfidaAncoraValido, interpretaPremioSfida, INIZIO_SFIDE_AUTO, idSettimanaSfida } from './sfide-automatiche.js';
 import { segnaliDatiSospetti } from './controlli-missioni.js';
 import { equipaggiamentoRpgUnico, slotPerOggettoRpg, aggiornaEquipaggiamentoRpg } from './equipaggiamento-rpg.js';
@@ -2029,10 +2029,10 @@ function apriAnteprimaAuraDivinaRpg(profilo, st) {
   avatar.classList.add('aura-preview-character');
   for(const nodo of avatar.querySelectorAll('.riga-pezzi, .personaggio-equipaggiamento, button'))nodo.remove();
   pannello.appendChild(avatar);
-  const record=Math.max(0,Number(st?.streak?.record)||0);
-  pannello.appendChild(el('p',{class:'nota',testo:record>=75
+  const progresso=progressoAuraDivina(st?.streak);
+  pannello.appendChild(el('p',{class:'nota',testo:progresso.sbloccata
     ? 'Aura divina sbloccata: rimane tua e si combina con la Corona e gli effetti acquistati.'
-    : 'Ti mancano '+(75-record)+' giorni di record Streak per ottenerla gratuitamente.'}));
+    : 'Ti mancano '+progresso.mancanti+' giorni di Streak attuale per ottenerla gratuitamente.'}));
   pannello.appendChild(bottone('Salva foto con gli oggetti attuali', { classe:'fantasma aura-save-photo',
     onClick:()=>scaricaFotoCombinataRpg(pannello.querySelector('.personaggio-scena-grafica'),profilo.classe_rpg),
   }));
@@ -2118,6 +2118,7 @@ function vistaAuraShop(zona, soloInventario = false) {
     .filter(Boolean))];
   const streak = Math.max(0, Number(st.streak?.record) || 0);
   const streakShop = Math.max(0, Number(st.streak?.giorni) || 0);
+  const auraProgresso = progressoAuraDivina(st.streak);
   const coronaProgresso = progressoCoronaInfinito(st.streak);
   const statoCorona = statoCoronaInfinito(profilo.equipaggiamento_aura, streak);
   // Navigazione primaria dello shop: il bottone Indietro sta sopra i contenuti
@@ -2156,7 +2157,10 @@ function vistaAuraShop(zona, soloInventario = false) {
     el('span',{class:'aura-shop-kicker',testo:'RICOMPENSA GRATUITA · STREAK'}),
     el('h2',{testo:'Aura divina · 75 giorni'}),
     el('p',{class:'nota',testo:'Luce divina sul personaggio già completo, anche con le armature dello Shop. Un solo effetto visivo alla volta.'}),
-    el('strong',{testo:streak>=75?'✓ SBLOCCATA':streak+' / 75 giorni di record'}),
+    el('strong',{testo:auraProgresso.sbloccata?'✓ SBLOCCATA':auraProgresso.giorni+' / 75 giorni di streak'}),
+    el('div',{class:'aura-shop-progress',role:'progressbar',aria:{label:'Streak attuale per Aura divina',valuemin:'0',valuemax:'75',valuenow:String(auraProgresso.giorni)}},[
+      el('span',{style:'width:'+auraProgresso.percentuale+'%'})
+    ]),
     bottone('Anteprima Aura divina',{classe:'fantasma aura-divina-preview-btn',
       onClick:()=>apriAnteprimaAuraDivinaRpg(profiloAttivo(),statoMio())}),
   ]);
