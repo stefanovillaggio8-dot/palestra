@@ -5,10 +5,11 @@ import {ancoreEnergiaRpg,disegnaEnergiaIncarnataRpg} from '../src/rpg-energia-in
 const testo=file=>readFileSync(new URL('../'+file,import.meta.url),'utf8');
 
 function spia(){
-  const conti={linee:0,stelle:0,maschere:0,gradienti:0};
+  const conti={linee:0,stelle:0,maschere:0,gradienti:0,plasma:0};
   const ctx={
     save(){},restore(){},translate(){},scale(){},clearRect(){},
-    beginPath(){},moveTo(){conti.linee++;},lineTo(){conti.linee++;},arc(){},
+    beginPath(){},moveTo(){},lineTo(){conti.linee++;},arc(){},
+    bezierCurveTo(){conti.plasma++;},closePath(){},
     stroke(){},fill(){conti.stelle++;},
     drawImage(){conti.maschere++;},
     createRadialGradient(){conti.gradienti++;return {addColorStop(){}};},
@@ -22,8 +23,9 @@ test('v493: le tre classi hanno ancore materiali proprie, incluse armi distinte'
     const g=ancoreEnergiaRpg(classe);
     assert.equal(g.armi.length,2,classe);
     assert.equal(g.mani.length,2,classe);
+    assert.equal(g.stivali.length,2,classe);
     assert.ok(g.nuclei.length>=3,classe);
-    for(const punto of [...g.spalle,...g.mani,...g.giunture,...g.nuclei,...g.armi.flat()]){
+    for(const punto of [...g.spalle,...g.mani,...g.giunture,...g.nuclei,...g.stivali,g.cintura,...g.armi.flat()]){
       assert.equal(punto.length,2);
       assert.ok(punto.every(n=>Number.isFinite(n)&&n>=0&&n<=1),classe+': '+punto);
     }
@@ -38,9 +40,14 @@ test('v493: ogni coppia classe/rarità produce energia in profondità e sul corp
       const sotto=spia(),sopra=spia();
       assert.equal(disegnaEnergiaIncarnataRpg(sotto.ctx,340,510,classe,effetto,2.8,{fase:'retro'}),true);
       assert.equal(disegnaEnergiaIncarnataRpg(sopra.ctx,340,510,classe,effetto,2.8,{fase:'fronte'}),true);
-      assert.ok(sotto.conti.linee>70,classe+' '+effetto+' senza flussi dietro');
-      assert.ok(sopra.conti.linee>90,classe+' '+effetto+' senza emissioni dal corpo');
+      assert.ok(sotto.conti.gradienti>=20,classe+' '+effetto+' senza gas fisico attorno al corpo');
+      assert.equal(sotto.conti.linee,0,classe+' '+effetto+' mostra ancora le vecchie strisce di sfondo');
+      assert.ok(sopra.conti.linee>70,classe+' '+effetto+' senza emissioni dal corpo');
       assert.ok(sopra.conti.gradienti>=12,classe+' '+effetto+' senza riflessi sul metallo');
+      if(effetto==='astrale'){
+        assert.ok(sotto.conti.plasma>30,classe+' senza plasma ancorato');
+        assert.ok(sopra.conti.plasma>0,classe+' senza fiamme sugli oggetti');
+      }else assert.equal(sotto.conti.plasma,0,'Nebulosa e Astrale non sono lo stesso effetto ricolorato');
     }
   }
   assert.equal(disegnaEnergiaIncarnataRpg(null,340,510,'guerriero','astrale'),false);
@@ -59,6 +66,7 @@ test('v493: i riflessi usano la trasparenza della fotografia, non un ovale',()=>
   assert.equal(sopra.conti.maschere,1,'luce risultante integrata nel render');
   const motore=testo('src/rpg-energia-incarnata.js');
   assert.match(motore,/globalCompositeOperation='destination-in'/);
+  assert.doesNotMatch(motore,/for\(let fila=0/,'vietati i tubi luminosi verticali sul fondale');
   assert.doesNotMatch(motore,/\.src\s*=|\.outerHTML\s*=/,'nessuna nuova foto o corpo');
 });
 
