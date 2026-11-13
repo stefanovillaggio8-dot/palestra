@@ -3953,8 +3953,13 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
 .personaggio-scena > .rpg-cosmic-stage.rpg-energia-pronta > .personaggio-scena-grafica .rpg-effetti-canvas {
   display:none!important;
 }
-.aura-preview-panel.aura-preview-cosmic-panel .aura-preview-scene:has(.rpg-energia-pronta) {
-  background:linear-gradient(157deg,#100d21 0%,#141327 54%,#0a101e 100%)!important;
+.aura-preview-panel.aura-preview-cosmic-panel .aura-preview-scene.aura-preview-cosmic-scene:has(.rpg-energia-pronta) {
+  /* v499: la cornice delle particelle V498 è intenzionale, ma il cosmo
+     NON deve diventare uno sfondo viola/blu. Le vecchie regole .cosmic-astrale
+     e .cosmic-nebulosa avevano specificità più alta della vecchia v498.
+     Solo le texture RGBA trasparenti costituiscono l'effetto equipaggiato. */
+  background:transparent!important;
+  background-image:none!important;
 }
 .aura-preview-panel.aura-preview-cosmic-panel .aura-preview-scene:has(.rpg-energia-pronta)::before,
 .aura-preview-panel.aura-preview-cosmic-panel .aura-preview-scene:has(.rpg-energia-pronta)::after {
