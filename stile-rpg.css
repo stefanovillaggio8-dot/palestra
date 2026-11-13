@@ -3885,7 +3885,13 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
   position:absolute!important;
   display:none!important;
   z-index:0!important;
-  inset:auto!important;
+  /* v496: NON usare inset:auto!important. La posizione del ritratto e'
+     assegnata inline da misura(); il vecchio shorthand !important annullava
+     top/left e spostava l'immagine DOPO la foto, sopra la didascalia iPhone. */
+  top:0;
+  left:0;
+  right:auto!important;
+  bottom:auto!important;
   margin:0!important;
   padding:0!important;
   max-width:none!important;
@@ -3904,7 +3910,11 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
 .personaggio-scena > .rpg-cosmic-stage > :is(.rpg-energia-retro,.rpg-energia-fronte) {
   display:block!important;
   position:absolute!important;
-  inset:auto!important;
+  /* Le coordinate inline devono vincere: sono calcolate dalla stessa foto. */
+  top:0;
+  left:0;
+  right:auto!important;
+  bottom:auto!important;
   margin:0!important;
   padding:0!important;
   border:0!important;
