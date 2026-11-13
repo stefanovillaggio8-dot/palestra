@@ -4049,3 +4049,10 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
   flex-direction:column!important;
   align-items:center!important;
 }
+
+/* v504 · Il "respiro" globale faceva pulsare il personaggio insieme
+   all'aura. Per Astrale e Nebulosa la sagoma rimane immobile; continuano
+   soltanto le scintille e le scariche indipendenti dei due canvas. */
+.personaggio-scena > .rpg-cosmic-stage.rpg-energia-pronta > .personaggio-scena-grafica.personaggio {
+  animation:none!important;
+}

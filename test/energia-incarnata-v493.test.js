@@ -84,7 +84,7 @@ test('v494: rendering live e PNG condividono il VFX fotografico, senza toccare i
   assert.match(testo('src/rpg-atelier.js'),/ctx\.drawImage\(fotoBase,dx,dy,dw,dh\)/);
   assert.match(testo('src/anteprima-combinata-rpg.js'),/ctx\.drawImage\(original,0,0,out\.width,out\.height\)/);
   assert.match(testo('sw.js'),/\.\/src\/rpg-energia-incarnata\.js/);
-  assert.match(testo('index.html'),/palestra-v503/);
+  assert.match(testo('index.html'),/palestra-v504/);
   assert.match(testo('anteprima-effetti-cosmici.html'),/cutout\/stati/);
   assert.match(testo('anteprima-effetti-cosmici.html'),/img\/personaggi\/stati/);
   assert.doesNotMatch(testo('src/rpg-energia-incarnata.js'),/localStorage|indexedDB|fetch\(|sessionStorage/);
@@ -100,7 +100,9 @@ test('v494: atlante fotografico alpha disponibile nelle sei coppie e nelle armat
     const retro=spia(),fronte=spia();
     assert.equal(disegnaEnergiaFotograficaRpg(retro.ctx,340,510,classe,effetto,3,
       {fase:'retro',texture}),true);
-    assert.ok(retro.conti.maschere>=2,`${classe} ${effetto}: il VFX non appare dietro`);
+    // v504: Nebulosa usa una sola passata fissa; Astrale conserva anche il
+    // sigillo ai piedi. La seconda copia oscillante non va reintrodotta.
+    assert.ok(retro.conti.maschere>=1,`${classe} ${effetto}: il VFX non appare dietro`);
     assert.equal(disegnaEnergiaFotograficaRpg(fronte.ctx,340,510,classe,effetto,3,
       {fase:'fronte',texture,soggetto:null}),true);
     assert.ok(fronte.conti.maschere>=1,`${classe} ${effetto}: armatura senza alpha resta senza effetto`);

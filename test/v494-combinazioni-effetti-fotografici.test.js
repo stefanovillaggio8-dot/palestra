@@ -33,7 +33,9 @@ test('v494: texture giusta per ogni classe, nessun ritaglio di avatar o cambio a
       const ctx={save(){},restore(){},drawImage(...args){draw.push(args);}};
       assert.equal(disegnaEnergiaFotograficaRpg(ctx,400,600,classe,effetto,3,
         {fase:'retro',texture}),true);
-      assert.ok(draw.length>=2);
+      // v504: Nebulosa ha una sola passata stabile (niente copia oscillante),
+      // mentre Astrale ha anche il sigillo distinto sotto gli stivali.
+      assert.equal(draw.length,effetto==='astrale'?2:1);
       assert.equal(draw[0][0],texture);
       assert.deepEqual(draw[0].slice(1,5),[col*512,row*512,512,
         effetto==='astrale'?404:512],classe+' '+effetto);

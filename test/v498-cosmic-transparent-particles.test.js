@@ -131,3 +131,24 @@ test('v503: due scene fotografiche vere riempiono il palco senza incollare una s
   assert.match(leggi('sw.js'),/nebulosa-ambiente-v503\.webp/);
   assert.match(leggi('anteprima-effetti-cosmici.html'),/ritratto cosmic-/);
 });
+
+test('v504: niente pulsazione globale, ma le particelle restano animate',()=>{
+  const css=leggi('stile-rpg.css');
+  const regola=css.slice(css.indexOf('/* v504 · Il "respiro" globale'));
+  assert.match(regola,/\.rpg-cosmic-stage\.rpg-energia-pronta > \.personaggio-scena-grafica\.personaggio\s*\{\s*animation:none!important/);
+  assert.match(leggi('stile.css'),/\.personaggio\s*\{\s*animation:\s*personaggio-respira/,
+    'le altre skin non devono perdere l’animazione');
+
+  const energia=leggi('src/rpg-energia-incarnata.js');
+  assert.match(energia,/const pulso=1;/);
+  assert.doesNotMatch(energia,/\.86\+\.14\*Math\.sin\(t\*1\.52\)/);
+  assert.doesNotMatch(energia,/const dx=Math\.sin\(t\*\.57/);
+  assert.match(energia,/ciclo=\(rand\(i\*17\+3\)\+t\*/, 'le particelle continuano a spostarsi');
+
+  const texture={astrale:{naturalWidth:1024,naturalHeight:1536}};
+  const disegni=[];
+  const ctx={save(){},restore(){},drawImage(...args){disegni.push(args);}};
+  assert.equal(disegnaEnergiaFotograficaRpg(ctx,350,525,'assassino','astrale',10,
+    {fase:'retro',texture}),true);
+  assert.equal(disegni.length,1,'la texture retro deve essere ferma e disegnata una volta sola');
+});
