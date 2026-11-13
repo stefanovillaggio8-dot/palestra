@@ -3984,3 +3984,12 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
   content:none!important;
   display:none!important;
 }
+
+/* v501 · Ultimi globi luminosi non desiderati: la presenza V492 usava un
+   selettore con classe della professione, più specifico del display:none
+   generico della v498. In Chrome restava display:block anche con il Canvas
+   v498 già pronto. L'unico FX visibile ora è la texture alpha scelta. */
+.personaggio-scena > .rpg-cosmic-stage.rpg-cosmic-nebulosa.rpg-energia-pronta:is(.personaggio-assassino,.personaggio-guerriero,.personaggio-berserker) > .rpg-nebulosa-presenza,
+.personaggio-scena > .rpg-cosmic-stage.rpg-cosmic-astrale.rpg-energia-pronta:is(.personaggio-assassino,.personaggio-guerriero,.personaggio-berserker) > .rpg-astrale-presenza {
+  display:none!important;
+}

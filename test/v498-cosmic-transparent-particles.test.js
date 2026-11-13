@@ -75,3 +75,17 @@ test('v500: cornice delle particelle su sfondo identico alle anteprime comuni',(
   assert.match(leggi('src/rpg-energia-incarnata.js'),/astrale-particelle-v498\.webp/);
   assert.match(leggi('src/rpg-energia-incarnata.js'),/nebulosa-particelle-v498\.webp/);
 });
+
+test('v501: spegne la presenza cosmica precedente anche con classe personaggio specifica',()=>{
+  const css=leggi('stile-rpg.css');
+  const finale=css.slice(css.indexOf('/* v501 · Ultimi globi'));
+  for(const effetto of ['astrale','nebulosa']){
+    assert.match(finale,new RegExp('rpg-cosmic-'+effetto+'\\.rpg-energia-pronta:is\\('));
+    assert.match(finale,new RegExp('> \\.rpg-'+(effetto==='astrale'?'astrale':'nebulosa')+'-presenza'));
+  }
+  assert.match(finale,/personaggio-assassino,\.personaggio-guerriero,\.personaggio-berserker/);
+  assert.match(finale,/display:none!important/);
+  // Le particelle alpha rimangono su due Canvas distinti, con lo zoom della foto.
+  assert.match(css,/\.rpg-cosmic-stage > \.rpg-energia-retro\s*\{[^}]*mix-blend-mode:screen/);
+  assert.match(css,/\.rpg-cosmic-stage > \.rpg-energia-fronte\s*\{[^}]*mix-blend-mode:screen/);
+});
