@@ -3,7 +3,7 @@
 // alterazione di corpo, volto, arma, armatura, posa o fattore di zoom.
 const TAU = Math.PI * 2;
 const classi = ['assassino', 'guerriero', 'berserker'];
-export const ENERGIA_FOTOGRAFICA_RPG_URL=new URL('../img/effetti/energia-fotografica-v494.webp',import.meta.url).href;
+export const ENERGIA_FOTOGRAFICA_RPG_URL=new URL('../img/effetti/energia-fotografica-v497.webp',import.meta.url).href;
 let promessaEnergiaFotografica=null;
 /** Un solo atlante RGBA (~700 KB), cache comune ad atelier, esportazione e shop.
  * Nessun ritratto è contenuto nel file: i 18 personaggi restano gli originali.
@@ -366,12 +366,31 @@ export function disegnaEnergiaFotograficaRpg(ctx,w,h,classe='assassino',effetto=
     ctx,w,h,classe,effetto,t,{fase,soggetto,buffer});
   const sx=(effetto==='astrale'?0:512),sy=classi.indexOf(classe)*512;
   ctx.save();
+  // La texture e' realmente trasparente. I filamenti nitidi non devono
+  // perdere contrasto nella doppia sovrapposizione (retro/fronte).
+  ctx.imageSmoothingEnabled=true;
+  ctx.imageSmoothingQuality='high';
+  const disegnaTexture=()=>{
+    if(effetto!=='astrale'){
+      ctx.drawImage(texture,sx,sy,512,512,0,0,w,h);
+      return;
+    }
+    // Il sigillo e' sotto i piedi, NON nel punto in cui cadono casualmente
+    // le particelle. Separiamo il pavimento dall'energia verticale, poi
+    // ancoriamo la proiezione all'asse del corpo (50%) e alla suola (94%).
+    const taglio=404;
+    ctx.drawImage(texture,sx,sy,512,taglio,0,0,w,h*taglio/512);
+    const diametro=w*.89;
+    const pavimentoY=h*.875;
+    ctx.drawImage(texture,sx,sy+taglio,512,108,
+      (w-diametro)/2,pavimentoY,diametro,h*.102);
+  };
   if(fase==='retro'){
     // Il VFX è un elemento trasparente che avvolge il protagonista,
     // non una seconda fotografia né una nuova ambientazione. L'originale
     // resta come fondale e il suo cutout occlude questa passata.
     ctx.globalAlpha=effetto==='astrale'?.94:.91;
-    ctx.drawImage(texture,sx,sy,512,512,0,0,w,h);
+    disegnaTexture();
     // Flusso indipendente delle nubi/filamenti: movimento reale della materia
     // e non semplice scala/opacità dell'intero livello. Piccole traslazioni
     // rendono la turbolenza leggibile senza spostare le rune fuori cornice.
@@ -391,7 +410,7 @@ export function disegnaEnergiaFotograficaRpg(ctx,w,h,classe='assassino',effetto=
     ctx.globalAlpha=haSoggettoAlpha
       ? (effetto==='astrale'?.23:.32)
       : (effetto==='astrale'?.71:.73);
-    ctx.drawImage(texture,sx,sy,512,512,0,0,w,h);
+    disegnaTexture();
     // Scariche fini e riflessi metallici solo sui punti reali del soggetto:
     // la vecchia versione a forza piena era un accumulo di globi al neon.
     ctx.globalAlpha=haSoggettoAlpha?.24:.13;
