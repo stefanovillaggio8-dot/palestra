@@ -48,4 +48,63 @@ p{font-size:13px;color:#a9b4d0;margin:0;line-height:1.55}
 .boreale .stage{background:radial-gradient(ellipse at 50% 42%,#0c3e52 0%,#0c1d33 68%,#081225 100%)!important}
 .stage>.character{height:90%!important;max-height:575px!important}
 
-</style></head><body><header><h1>ASTRALE · MITICO / BOREALE · LEGGENDARIO</h1><p>Assassino, Guerriero e Berserker ORIGINALI dello stesso progetto. Nessun volto, corporatura, armatura, arma o posa viene rigenerato. Solo gli effetti esterni.</p></header><main class="grid"><article class="card astrale"><div class="heading"><strong>ASSASSINO · ASTRALE</strong><small>MITICO</small></div><div class="stage"><div class="fx" style="background-image:url('./img/effetti/astrale-assassino-aura-preview.svg?v=3')"></div><img class="character" src="./img/personaggi/cutout/stati/assassino-5.webp?v=491" alt="ASSASSINO originale senza modifiche"><div class="fx-front"></div></div><div class="foot">Portale astrale autentico, rune dorate e cristalli luminosi</div></article><article class="card boreale"><div class="heading"><strong>ASSASSINO · BOREALE</strong><small>LEGGENDARIO</small></div><div class="stage"><div class="fx" style="background-image:url('./img/effetti/boreale-aurora-preview.svg?v=3')"></div><img class="character" src="./img/personaggi/cutout/stati/assassino-5.webp?v=491" alt="ASSASSINO originale senza modifiche"><div class="fx-front"></div></div><div class="foot">Tendine di aurora verde/azzurra, cristalli e neve luminosa</div></article><article class="card astrale"><div class="heading"><strong>GUERRIERO · ASTRALE</strong><small>MITICO</small></div><div class="stage"><div class="fx" style="background-image:url('./img/effetti/astrale-guerriero-aura-preview.svg?v=3')"></div><img class="character" src="./img/personaggi/cutout/stati/guerriero-5.webp?v=491" alt="GUERRIERO originale senza modifiche"><div class="fx-front"></div></div><div class="foot">Rune oro/viola, portale e sigillo</div></article><article class="card boreale"><div class="heading"><strong>GUERRIERO · BOREALE</strong><small>LEGGENDARIO</small></div><div class="stage"><div class="fx" style="background-image:url('./img/effetti/boreale-aurora-preview.svg?v=3')"></div><img class="character" src="./img/personaggi/cutout/stati/guerriero-5.webp?v=491" alt="GUERRIERO originale senza modifiche"><div class="fx-front"></div></div><div class="foot">Veli aurorali verde-acqua e particelle glaciali</div></article><article class="card astrale"><div class="heading"><strong>BERSERKER · ASTRALE</strong><small>MITICO</small></div><div class="stage"><div class="fx" style="background-image:url('./img/effetti/astrale-berserker-aura-preview.svg?v=3')"></div><img class="character" src="./img/personaggi/cutout/stati/berserker-5.webp?v=491" alt="BERSERKER originale senza modifiche"><div class="fx-front"></div></div><div class="foot">Rune oro/viola, portale e sigillo</div></article><article class="card boreale"><div class="heading"><strong>BERSERKER · BOREALE</strong><small>LEGGENDARIO</small></div><div class="stage"><div class="fx" style="background-image:url('./img/effetti/boreale-aurora-preview.svg?v=3')"></div><img class="character" src="./img/personaggi/cutout/stati/berserker-5.webp?v=491" alt="BERSERKER originale senza modifiche"><div class="fx-front"></div></div><div class="foot">Veli aurorali verde-acqua e particelle glaciali</div></article></main></body></html>
+
+/* Rovine della stessa famiglia cinematografica dello Shop, mai un fondale piatto. */
+.stage{overflow:hidden!important;isolation:isolate!important}
+.stage::before,.stage::after{content:"";position:absolute;inset:0;pointer-events:none}
+.stage::before{
+ z-index:0!important;background:url('./img/personaggi/scene/guerriero-base.webp?v=492') center/100% 100% no-repeat!important;
+ filter:blur(6px) brightness(.70) saturate(.75) contrast(1.16);transform:scale(1.065);
+}
+.stage::after{z-index:0!important;background:
+ radial-gradient(ellipse 38% 65% at 50% 45%,rgba(11,7,23,.91),rgba(8,8,19,.77) 47%,rgba(10,8,22,.22) 86%,transparent 99%),
+ linear-gradient(180deg,rgba(4,5,13,.35),transparent 52%,rgba(3,4,8,.38));
+}
+.card.boreale .stage::before{filter:blur(6px) grayscale(.60) hue-rotate(178deg) brightness(.70) saturate(.7) contrast(1.23)}
+.card.boreale .stage::after{background:
+ radial-gradient(ellipse 40% 64% at 50% 45%,rgba(4,15,25,.92),rgba(8,18,28,.79) 46%,rgba(6,17,29,.24) 87%,transparent 99%),
+ linear-gradient(180deg,rgba(3,10,21,.37),transparent 54%,rgba(0,7,13,.46))!important;
+}
+.card.astrale .stage{background:linear-gradient(150deg,#130b24,#140d2a 50%,#140d1e)!important}
+.card.boreale .stage{background:linear-gradient(150deg,#091825,#0d2031 50%,#0a1724)!important}
+.stage>.environment{position:absolute;z-index:1;inset:0;pointer-events:none;overflow:hidden}
+.stage>.environment::before{content:"";position:absolute;inset:0;background:
+ radial-gradient(ellipse 25% 45% at 8% 50%,rgba(133,62,212,.40),transparent 95%),
+ radial-gradient(ellipse 31% 40% at 94% 50%,rgba(112,72,195,.34),transparent 96%),
+ radial-gradient(ellipse 65% 13% at 50% 93%,rgba(214,98,194,.22),transparent 97%);
+}
+.card.boreale .stage>.environment::before{background:
+ radial-gradient(ellipse 32% 46% at 7% 48%,rgba(37,202,180,.42),transparent 96%),
+ radial-gradient(ellipse 27% 45% at 95% 53%,rgba(64,153,229,.41),transparent 93%),
+ radial-gradient(ellipse 72% 18% at 50% 89%,rgba(51,192,226,.23),transparent 94%);
+}
+.stage>.environment::after{content:"";position:absolute;inset:0;background:
+ linear-gradient(to top,rgba(7,6,11,.73) 0%,rgba(11,8,21,.34) 10%,transparent 25%),
+ radial-gradient(ellipse 44% 14% at 50% 91%,rgba(235,155,223,.20),transparent 97%);
+}
+.card.boreale .stage>.environment::after{background:
+ linear-gradient(to top,rgba(4,13,18,.72) 0%,rgba(9,22,30,.36) 10%,transparent 25%),
+ radial-gradient(ellipse 48% 13% at 50% 91%,rgba(90,225,230,.25),transparent 97%);
+}
+/* Grounding: shadow and contact light coincide with the original boots. */
+.stage>.floor-contact{position:absolute;z-index:2;width:71%;height:11%;bottom:3.3%;left:14.5%;pointer-events:none;
+ background:
+ radial-gradient(ellipse 50% 33% at 50% 58%,rgba(0,0,0,.92),rgba(0,0,0,.57) 57%,transparent 96%),
+ radial-gradient(ellipse 58% 55% at 50% 61%,rgba(219,101,216,.22),transparent 97%);
+ filter:blur(6px);
+}
+.card.boreale .stage>.floor-contact{background:
+ radial-gradient(ellipse 51% 33% at 50% 59%,rgba(0,0,0,.91),rgba(0,0,0,.63) 58%,transparent 97%),
+ radial-gradient(ellipse 59% 54% at 50% 64%,rgba(83,228,223,.29),transparent 98%);
+}
+.stage>.fx{z-index:2!important;background-size:100% 100%!important;background-position:center!important;
+ opacity:.88!important;mix-blend-mode:screen!important}
+.stage>.character{z-index:4!important;height:95%!important;max-height:596px!important;transform:translateY(1.4%)!important;
+ filter:drop-shadow(0 3px 2px rgba(0,0,0,.75)) drop-shadow(0 10px 12px rgba(0,0,0,.54))!important}
+.card.astrale .stage>.character{filter:drop-shadow(-2px 0 10px rgba(194,117,244,.23)) drop-shadow(0 5px 5px rgba(0,0,0,.85))!important}
+.card.boreale .stage>.character{filter:drop-shadow(2px 0 10px rgba(94,224,244,.26)) drop-shadow(0 5px 5px rgba(0,0,0,.85))!important}
+.stage>.fx-front{z-index:5!important}
+.card.astrale .stage>.fx{filter:drop-shadow(0 0 8px rgba(245,181,229,.25))}
+.card.boreale .stage>.fx{filter:drop-shadow(0 0 10px rgba(87,231,215,.24))}
+
+</style></head><body><header><h1>ASTRALE MITICO / BOREALE LEGGENDARIO — STILE DELLO SHOP</h1><p>Assassino, Guerriero e Berserker ORIGINALI dello stesso progetto. Nessun volto, corporatura, armatura, arma o posa viene rigenerato. Stessa inquadratura, ambiente dark-fantasy, rovina e terreno reale, con effetti esterni alle figure.</p></header><main class="grid"><article class="card astrale"><div class="heading"><strong>ASSASSINO · ASTRALE</strong><small>MITICO</small></div><div class="stage"><div class="environment" aria-hidden="true"></div><div class="floor-contact" aria-hidden="true"></div><div class="fx" style="background-image:url('./img/effetti/astrale-assassino-aura-preview.svg?v=3')"></div><img class="character" src="./img/personaggi/cutout/stati/assassino-5.webp?v=491" alt="ASSASSINO originale senza modifiche"><div class="fx-front"></div></div><div class="foot">Portale astrale autentico, rune dorate e cristalli luminosi</div></article><article class="card boreale"><div class="heading"><strong>ASSASSINO · BOREALE</strong><small>LEGGENDARIO</small></div><div class="stage"><div class="environment" aria-hidden="true"></div><div class="floor-contact" aria-hidden="true"></div><div class="fx" style="background-image:url('./img/effetti/boreale-aurora-preview.svg?v=3')"></div><img class="character" src="./img/personaggi/cutout/stati/assassino-5.webp?v=491" alt="ASSASSINO originale senza modifiche"><div class="fx-front"></div></div><div class="foot">Tendine di aurora verde/azzurra, cristalli e neve luminosa</div></article><article class="card astrale"><div class="heading"><strong>GUERRIERO · ASTRALE</strong><small>MITICO</small></div><div class="stage"><div class="environment" aria-hidden="true"></div><div class="floor-contact" aria-hidden="true"></div><div class="fx" style="background-image:url('./img/effetti/astrale-guerriero-aura-preview.svg?v=3')"></div><img class="character" src="./img/personaggi/cutout/stati/guerriero-5.webp?v=491" alt="GUERRIERO originale senza modifiche"><div class="fx-front"></div></div><div class="foot">Rune oro/viola, portale e sigillo</div></article><article class="card boreale"><div class="heading"><strong>GUERRIERO · BOREALE</strong><small>LEGGENDARIO</small></div><div class="stage"><div class="environment" aria-hidden="true"></div><div class="floor-contact" aria-hidden="true"></div><div class="fx" style="background-image:url('./img/effetti/boreale-aurora-preview.svg?v=3')"></div><img class="character" src="./img/personaggi/cutout/stati/guerriero-5.webp?v=491" alt="GUERRIERO originale senza modifiche"><div class="fx-front"></div></div><div class="foot">Veli aurorali verde-acqua e particelle glaciali</div></article><article class="card astrale"><div class="heading"><strong>BERSERKER · ASTRALE</strong><small>MITICO</small></div><div class="stage"><div class="environment" aria-hidden="true"></div><div class="floor-contact" aria-hidden="true"></div><div class="fx" style="background-image:url('./img/effetti/astrale-berserker-aura-preview.svg?v=3')"></div><img class="character" src="./img/personaggi/cutout/stati/berserker-5.webp?v=491" alt="BERSERKER originale senza modifiche"><div class="fx-front"></div></div><div class="foot">Rune oro/viola, portale e sigillo</div></article><article class="card boreale"><div class="heading"><strong>BERSERKER · BOREALE</strong><small>LEGGENDARIO</small></div><div class="stage"><div class="environment" aria-hidden="true"></div><div class="floor-contact" aria-hidden="true"></div><div class="fx" style="background-image:url('./img/effetti/boreale-aurora-preview.svg?v=3')"></div><img class="character" src="./img/personaggi/cutout/stati/berserker-5.webp?v=491" alt="BERSERKER originale senza modifiche"><div class="fx-front"></div></div><div class="foot">Veli aurorali verde-acqua e particelle glaciali</div></article></main></body></html>
