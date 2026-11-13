@@ -93,7 +93,7 @@ test('v501: spegne la presenza cosmica precedente anche con classe personaggio s
 test('v502: sfondo fotografico originale visibile e sfumato, non poster né colore piatto',()=>{
   const css=leggi('stile-rpg.css');
   const selector='.personaggio-scena > .rpg-cosmic-stage.rpg-cosmic-cutout-ready.rpg-energia-pronta > .rpg-foto-fondale {';
-  const inizio=css.lastIndexOf(selector);
+  const inizio=css.indexOf(selector,css.indexOf('/* v502 · Come gli altri'));
   assert.ok(inizio>css.indexOf(selector),'la regola di ripristino deve prevalere sul precedente display:none');
   const regola=css.slice(inizio,css.indexOf('}',inizio));
   assert.match(regola,/display:block!important/);
@@ -108,4 +108,26 @@ test('v502: sfondo fotografico originale visibile e sfumato, non poster né colo
   assert.match(energia,/allinea\(fondale,'width',fr\.width\+'px'\)/);
   assert.match(css,/\.rpg-cosmic-stage > \.rpg-energia-retro\s*\{[^}]*mix-blend-mode:screen/);
   assert.match(css,/\.rpg-cosmic-stage > \.rpg-energia-fronte\s*\{[^}]*mix-blend-mode:screen/);
+});
+
+test('v503: due scene fotografiche vere riempiono il palco senza incollare una seconda foto del personaggio',()=>{
+  const css=leggi('stile-rpg.css');
+  const inizio=css.indexOf('/* v503 · Ambiente FOTOGRAFICO');
+  assert.ok(inizio>0);
+  const ultime=css.slice(inizio);
+  for(const effetto of ['astrale','nebulosa']){
+    const path='img/effetti/'+effetto+'-ambiente-v503.webp';
+    const bin=readFileSync(new URL('../'+path,import.meta.url));
+    assert.equal(bin.toString('ascii',0,4),'RIFF');
+    assert.equal(bin.toString('ascii',8,12),'WEBP');
+    assert.ok(bin.length>200_000,'deve essere una vera scena fotografica definita');
+    assert.ok(ultime.includes("url('./"+path+"')"));
+    assert.match(ultime,new RegExp('rpg-cosmic-'+effetto+'\\.rpg-energia-pronta'));
+  }
+  assert.match(ultime,/background-size:cover!important/);
+  assert.match(ultime,/rpg-foto-fondale\s*\{\s*display:none!important/);
+  assert.match(ultime,/\.personaggio-dati\s*\{\s*text-align:center!important/);
+  assert.match(leggi('sw.js'),/astrale-ambiente-v503\.webp/);
+  assert.match(leggi('sw.js'),/nebulosa-ambiente-v503\.webp/);
+  assert.match(leggi('anteprima-effetti-cosmici.html'),/ritratto cosmic-/);
 });
