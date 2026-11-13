@@ -4,7 +4,7 @@ on:
     branches: [preview/grounded-astrale-boreale-v2]
     paths:
       - 'anteprima-astrale-boreale-originali.html'
-      - '.github/workflows/cattura-astrale-boreale-originali.yml'
+      - '.github/workflows/cattura-terreno-cinematografico.yml'
 permissions:
   contents: write
 jobs:
