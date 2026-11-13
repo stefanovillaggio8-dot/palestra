@@ -304,6 +304,18 @@ export function montaEnergiaIncarnataRpg(palco,grafica,foto,{classe='assassino',
   if(!palco?.appendChild||!foto||!documento?.createElement||
       typeof requestAnimationFrame!=='function'||!classi.includes(classe))return false;
   const dietro=documento.createElement('canvas'),davanti=documento.createElement('canvas');
+  // Lo stesso scatto ORIGINALE della galleria fornisce la profondità fotografica;
+  // non è un nuovo panorama né un effetto disegnato in lontananza. Il cutout
+  // del medesimo scatto, davanti, copre le emissioni sul corpo (occlusione vera).
+  const fondale=documento.createElement('img');
+  fondale.className='rpg-foto-fondale';fondale.alt='';fondale.decoding='async';
+  fondale.setAttribute?.('aria-hidden','true');fondale.style.pointerEvents='none';
+  const aggiornaFoto=()=>{
+    const sorgente=foto.currentSrc||foto.getAttribute?.('src')||foto.src;
+    if(sorgente && fondale.src!==sorgente)fondale.src=sorgente;
+  };
+  aggiornaFoto();
+  palco.appendChild(fondale);
   for(const [can,tag] of [[dietro,'rpg-energia-retro'],[davanti,'rpg-energia-fronte']]){
     can.className=tag;can.setAttribute?.('aria-hidden','true');
     can.style.pointerEvents='none';palco.appendChild(can);
@@ -320,6 +332,8 @@ export function montaEnergiaIncarnataRpg(palco,grafica,foto,{classe='assassino',
     const fr=foto.getBoundingClientRect?.(),pr=palco.getBoundingClientRect?.();
     if(!fr||!pr||fr.width<16||fr.height<20)return false;
     const bw=Math.round(fr.width),bh=Math.round(fr.height),dpr=Math.min(ios?1.15:1.45,globalThis.devicePixelRatio||1);
+    fondale.style.left=(fr.left-pr.left)+'px';fondale.style.top=(fr.top-pr.top)+'px';
+    fondale.style.width=fr.width+'px';fondale.style.height=fr.height+'px';
     for(const can of [dietro,davanti]){
       can.style.left=(fr.left-pr.left)+'px';can.style.top=(fr.top-pr.top)+'px';
       can.style.width=fr.width+'px';can.style.height=fr.height+'px';
@@ -355,10 +369,12 @@ export function montaEnergiaIncarnataRpg(palco,grafica,foto,{classe='assassino',
   };
   const riprendi=()=>{if(!frame&&!finito&&!hidden()&&visibile)frame=requestAnimationFrame(loop);};
   const visibilita=()=>riprendi();
+  const fotoCaricata=()=>{aggiornaFoto();misura();riprendi();};
   const smonta=()=>{
     if(finito)return;finito=true;if(frame)cancelAnimationFrame(frame);
     observer?.disconnect();resize?.disconnect();documento.removeEventListener?.('visibilitychange',visibilita);
-    dietro.remove?.();davanti.remove?.();
+    foto.removeEventListener?.('load',fotoCaricata);
+    fondale.remove?.();dietro.remove?.();davanti.remove?.();
   };
   if(typeof IntersectionObserver==='function'){
     observer=new IntersectionObserver(entries=>{
@@ -370,5 +386,6 @@ export function montaEnergiaIncarnataRpg(palco,grafica,foto,{classe='assassino',
     resize.observe(foto);resize.observe(palco);
   }
   documento.addEventListener?.('visibilitychange',visibilita);
+  foto.addEventListener?.('load',fotoCaricata);
   riprendi();return true;
 }

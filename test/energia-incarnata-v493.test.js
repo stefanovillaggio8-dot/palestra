@@ -67,7 +67,8 @@ test('v493: i riflessi usano la trasparenza della fotografia, non un ovale',()=>
   const motore=testo('src/rpg-energia-incarnata.js');
   assert.match(motore,/globalCompositeOperation='destination-in'/);
   assert.doesNotMatch(motore,/for\(let fila=0/,'vietati i tubi luminosi verticali sul fondale');
-  assert.doesNotMatch(motore,/\.src\s*=|\.outerHTML\s*=/,'nessuna nuova foto o corpo');
+  assert.doesNotMatch(motore,/(?:foto|soggetto|cutout)\.src\s*=|\.outerHTML\s*=/,
+    'la sorgente del vero personaggio non deve essere mai sostituita');
 });
 
 test('v493: rendering live e PNG condividono il motore, senza toccare i dati',()=>{
@@ -77,9 +78,14 @@ test('v493: rendering live e PNG condividono il motore, senza toccare i dati',()
   const css=testo('stile-rpg.css');
   assert.match(css,/\.rpg-energia-retro/);
   assert.match(css,/\.rpg-energia-fronte/);
+  assert.match(css,/rpg-cosmic-cutout-ready\.rpg-energia-pronta > \.rpg-foto-fondale/);
   assert.match(css,/\.rpg-cosmic-stage\.rpg-energia-pronta/);
+  assert.match(testo('src/rpg-energia-incarnata.js'),/fondale\.className='rpg-foto-fondale'/);
+  assert.match(testo('src/rpg-atelier.js'),/ctx\.drawImage\(fotoBase,dx,dy,dw,dh\)/);
+  assert.match(testo('src/anteprima-combinata-rpg.js'),/ctx\.drawImage\(original,0,0,out\.width,out\.height\)/);
   assert.match(testo('sw.js'),/\.\/src\/rpg-energia-incarnata\.js/);
   assert.match(testo('index.html'),/palestra-v493/);
   assert.match(testo('anteprima-effetti-cosmici.html'),/cutout\/stati/);
+  assert.match(testo('anteprima-effetti-cosmici.html'),/img\/personaggi\/stati/);
   assert.doesNotMatch(testo('src/rpg-energia-incarnata.js'),/localStorage|indexedDB|fetch\(|sessionStorage/);
 });

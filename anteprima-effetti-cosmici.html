@@ -20,6 +20,7 @@
   .scheda p{text-align:center;font-size:.71rem}
   .ritratto{position:relative;width:100%;max-width:340px;margin:8px auto 0;aspect-ratio:2/3;isolation:isolate}
   .ritratto img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;z-index:2;filter:drop-shadow(0 8px 15px rgba(0,0,0,.42))}
+  .ritratto img.fondale{z-index:0;filter:brightness(.74) saturate(.89)}
   .ritratto canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
   .ritratto canvas.retro{z-index:1}
   .ritratto canvas.fronte{z-index:3;mix-blend-mode:screen}
@@ -52,15 +53,19 @@ for(const classe of classi)for(const effetto of ['astrale','nebulosa']){
     ?'<span class="etichetta mitico">MITICO · ASTRALE COSMICO</span>'
     :'<span class="etichetta leggendario">LEGGENDARIO · NEBULOSA COSMICA</span>';
   const ritratto=document.createElement('div');ritratto.className='ritratto';
+  const fondale=document.createElement('img');fondale.className='fondale';fondale.alt='';fondale.decoding='async';
   const retro=document.createElement('canvas');retro.className='retro';
   const img=document.createElement('img');img.alt=classe+' originale';img.decoding='async';
   const front=document.createElement('canvas');front.className='fronte';
-  ritratto.append(retro,img,front);box.append(titolo,descr,ritratto);galleria.append(box);
+  ritratto.append(fondale,retro,img,front);box.append(titolo,descr,ritratto);galleria.append(box);
   const buffer=document.createElement('canvas');
-  schede.push({classe,effetto,retro,front,img,ritratto,buffer});
+  schede.push({classe,effetto,retro,front,img,fondale,ritratto,buffer});
 }
 function cambiaStato(){
-  for(const c of schede)c.img.src=`./img/personaggi/cutout/stati/${c.classe}-${stato.value}.webp?v=493`;
+  for(const c of schede){
+    c.fondale.src=`./img/personaggi/stati/${c.classe}-${stato.value}.webp?v=493`;
+    c.img.src=`./img/personaggi/cutout/stati/${c.classe}-${stato.value}.webp?v=493`;
+  }
 }
 stato.addEventListener('change',cambiaStato);cambiaStato();
 const ridotto=matchMedia('(prefers-reduced-motion:reduce)').matches;

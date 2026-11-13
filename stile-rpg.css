@@ -3881,6 +3881,26 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
 /* v493 · ENERGIA INCARNATA. Le due tele sono agganciate alla posizione REALE
    della fotografia e non occupano tutto il panorama: il retro viene occultato
    dal personaggio, il fronte ne illumina armatura, guanti e armi. */
+.personaggio-scena > .rpg-cosmic-stage > .rpg-foto-fondale {
+  position:absolute!important;
+  display:none!important;
+  z-index:0!important;
+  inset:auto!important;
+  margin:0!important;
+  padding:0!important;
+  max-width:none!important;
+  max-height:none!important;
+  width:auto;
+  height:auto;
+  object-fit:fill!important;
+  border:0!important;
+  border-radius:0!important;
+  filter:brightness(.74) saturate(.89)!important;
+  pointer-events:none!important;
+}
+.personaggio-scena > .rpg-cosmic-stage.rpg-cosmic-cutout-ready.rpg-energia-pronta > .rpg-foto-fondale {
+  display:block!important;
+}
 .personaggio-scena > .rpg-cosmic-stage > :is(.rpg-energia-retro,.rpg-energia-fronte) {
   display:block!important;
   position:absolute!important;

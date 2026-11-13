@@ -249,7 +249,11 @@ export async function scaricaFotoCombinataRpg(grafica,classe='rpg') {
   const tipoCosmico=grafica.classList.contains('shop-skin-mitica')?'astrale'
     :grafica.classList.contains('shop-effetto-nebula')?'nebulosa':null;
   if(tipoCosmico){
-    disegnaAtmosferaCosmicaRpg(ctx,out.width,out.height,tipoCosmico);
+    if(alphaPronto){
+      ctx.drawImage(original,0,0,out.width,out.height);
+      ctx.fillStyle=tipoCosmico==='astrale'?'rgba(13,7,20,.27)':'rgba(6,13,22,.25)';
+      ctx.fillRect(0,0,out.width,out.height);
+    }else disegnaAtmosferaCosmicaRpg(ctx,out.width,out.height,tipoCosmico);
     disegnaEnergiaIncarnataRpg(ctx,out.width,out.height,
       ['assassino','guerriero','berserker'].find(c=>grafica.classList.contains('personaggio-'+c))||'assassino',
       tipoCosmico,2.8,{fase:'retro'});
@@ -259,9 +263,11 @@ export async function scaricaFotoCombinataRpg(grafica,classe='rpg') {
       ['assassino','guerriero','berserker'].find(c=>grafica.classList.contains('personaggio-'+c))||'assassino',
       tipoCosmico,2.8,{fase:'fronte',soggetto:alphaPronto?cutout:null,
         buffer:document.createElement('canvas')});
-    ctx.save();ctx.globalAlpha=.11;
-    disegnaAccentiCosmiciRpg(ctx,out.width,out.height,tipoCosmico);
-    ctx.restore();
+    if(!alphaPronto){
+      ctx.save();ctx.globalAlpha=.11;
+      disegnaAccentiCosmiciRpg(ctx,out.width,out.height,tipoCosmico);
+      ctx.restore();
+    }
   } else ctx.drawImage(original,0,0,out.width,out.height);
   const integrata=Boolean(original.dataset?.scenaCinematografica);
   const skin=grafica.querySelector('.rpg-skin-fedele');

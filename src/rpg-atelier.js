@@ -116,7 +116,13 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
   const dw=Math.round(immagine.naturalWidth*ratio),dh=Math.round(immagine.naturalHeight*ratio);
   const dx=(larghezza-dw)/2,dy=(altezza-dh)/2;
   if(fxSenzaFoto) {
-    disegnaAtmosferaCosmicaRpg(ctx,larghezza,altezza,c.effetto==='skin-mitica'?'astrale':'nebulosa');
+    if(alphaAutentico){
+      // La fotografia di partenza è lo stesso ambiente della galleria RPG.
+      // Non trasformiamo un effetto in uno sfondo cosmico inventato.
+      ctx.drawImage(fotoBase,dx,dy,dw,dh);
+      ctx.fillStyle=c.effetto==='skin-mitica'?'rgba(13,7,20,.27)':'rgba(6,13,22,.25)';
+      ctx.fillRect(dx,dy,dw,dh);
+    }else disegnaAtmosferaCosmicaRpg(ctx,larghezza,altezza,c.effetto==='skin-mitica'?'astrale':'nebulosa');
     ctx.save();ctx.translate(dx,dy);
     disegnaEnergiaIncarnataRpg(ctx,dw,dh,c.classe,c.effetto==='skin-mitica'?'astrale':'nebulosa',2.8,{fase:'retro'});
     ctx.restore();
@@ -190,12 +196,12 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
   // v493: stesso effetto ancorato al corpo anche nella foto salvata.
   // Il WebP alpha impedisce alla luce di invadere lo sfondo della foto.
   if(fxSenzaFoto){
-    // Compatibilità fotografica con le scene precedenti: un accenno delle
-    // vecchie scie resta visibile, ma non domina più il personaggio.
-    ctx.save();ctx.globalAlpha=.09;
-    if(c.effetto==='skin-mitica')disegnaAstraleExport(ctx,{classe:c.classe,x:dx,y:dy,width:dw,height:dh});
-    else {ctx.translate(dx,dy);dipingiNebulosaCosmica(ctx,dw,dh,c.classe,2.8,55);}
-    ctx.restore();
+    if(!alphaAutentico){
+      ctx.save();ctx.globalAlpha=.09;
+      if(c.effetto==='skin-mitica')disegnaAstraleExport(ctx,{classe:c.classe,x:dx,y:dy,width:dw,height:dh});
+      else {ctx.translate(dx,dy);dipingiNebulosaCosmica(ctx,dw,dh,c.classe,2.8,55);}
+      ctx.restore();
+    }
     ctx.save();ctx.translate(dx,dy);
     disegnaEnergiaIncarnataRpg(ctx,dw,dh,c.classe,
       c.effetto==='skin-mitica'?'astrale':'nebulosa',2.8,{
@@ -203,9 +209,11 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
         buffer:document.createElement('canvas'),
       });
     ctx.restore();
-    ctx.save();ctx.globalAlpha=.11;
-    disegnaAccentiCosmiciRpg(ctx,larghezza,altezza,c.effetto==='skin-mitica'?'astrale':'nebulosa');
-    ctx.restore();
+    if(!alphaAutentico){
+      ctx.save();ctx.globalAlpha=.11;
+      disegnaAccentiCosmiciRpg(ctx,larghezza,altezza,c.effetto==='skin-mitica'?'astrale':'nebulosa');
+      ctx.restore();
+    }
   }
 
   if(c.titolo) {
