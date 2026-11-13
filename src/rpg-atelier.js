@@ -7,7 +7,7 @@ import { fasciaSagoma, disegnaCoronaEnergetica } from './anteprima-combinata-rpg
 import { disegnaAstraleExport,dipingiNebulosaCosmica } from './effetti-rpg-canvas.js';
 import { fotoCinematograficaRpg } from './foto-cinematica-rpg.js';
 import {disegnaAtmosferaCosmicaRpg,disegnaAccentiCosmiciRpg,disegnaSoggettoCosmicoRpg,disegnaSfondoFotograficoCosmicoRpg} from './rpg-scena-cosmica.js';
-import {disegnaEnergiaIncarnataRpg} from './rpg-energia-incarnata.js';
+import {caricaEnergiaFotograficaRpg,disegnaEnergiaFotograficaRpg} from './rpg-energia-incarnata.js';
 import { percorsoFotoCoronaV360 } from './foto-corona-v360.js';
 import { percorsoFotoAuraDivinaV366 } from './foto-aura-divina-v366.js';
 import { percorsoFotoArmaturaArmataV371 } from './foto-armatura-armata-v371.js';
@@ -85,6 +85,7 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
   const ritaglioReale=ritaglioPresente?.complete && ritaglioPresente?.naturalWidth
     ? ritaglioPresente : null;
   const fxSenzaFoto = c.effetto==='skin-mitica' || c.effetto==='effetto-nebula';
+  const texturaCosmica=fxSenzaFoto?await caricaEnergiaFotograficaRpg():null;
   // Il file finale deve usare lo stesso scatto completo visibile in anteprima.
   // Se il collage non e' installato resta il renderer precedente.
   const fotoCorona=c.corona ? percorsoFotoCoronaV360({
@@ -124,7 +125,7 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
       ctx.fillRect(dx,dy,dw,dh);
     }else disegnaAtmosferaCosmicaRpg(ctx,larghezza,altezza,c.effetto==='skin-mitica'?'astrale':'nebulosa');
     ctx.save();ctx.translate(dx,dy);
-    disegnaEnergiaIncarnataRpg(ctx,dw,dh,c.classe,c.effetto==='skin-mitica'?'astrale':'nebulosa',2.8,{fase:'retro'});
+    disegnaEnergiaFotograficaRpg(ctx,dw,dh,c.classe,c.effetto==='skin-mitica'?'astrale':'nebulosa',2.8,{fase:'retro',texture:texturaCosmica});
     ctx.restore();
     if(alphaAutentico) {
       // La trasparenza è già nei pixel, vietato ripristinare il pavimento.
@@ -193,7 +194,7 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
 
   }
 
-  // v493: stesso effetto ancorato al corpo anche nella foto salvata.
+  // v494: stesso VFX fotografico ancorato al corpo anche nella foto salvata.
   // Il WebP alpha impedisce alla luce di invadere lo sfondo della foto.
   if(fxSenzaFoto){
     if(!alphaAutentico){
@@ -203,10 +204,10 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
       ctx.restore();
     }
     ctx.save();ctx.translate(dx,dy);
-    disegnaEnergiaIncarnataRpg(ctx,dw,dh,c.classe,
+    disegnaEnergiaFotograficaRpg(ctx,dw,dh,c.classe,
       c.effetto==='skin-mitica'?'astrale':'nebulosa',2.8,{
         fase:'fronte',soggetto:alphaAutentico?ritaglioReale:null,
-        buffer:document.createElement('canvas'),
+        buffer:document.createElement('canvas'),texture:texturaCosmica,
       });
     ctx.restore();
     if(!alphaAutentico){

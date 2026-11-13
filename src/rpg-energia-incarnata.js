@@ -3,6 +3,22 @@
 // alterazione di corpo, volto, arma, armatura, posa o fattore di zoom.
 const TAU = Math.PI * 2;
 const classi = ['assassino', 'guerriero', 'berserker'];
+export const ENERGIA_FOTOGRAFICA_RPG_URL=new URL('../img/effetti/energia-fotografica-v494.webp',import.meta.url).href;
+let promessaEnergiaFotografica=null;
+/** Un solo atlante RGBA (~700 KB), cache comune ad atelier, esportazione e shop.
+ * Nessun ritratto è contenuto nel file: i 18 personaggi restano gli originali.
+ */
+export function caricaEnergiaFotograficaRpg(){
+  if(promessaEnergiaFotografica)return promessaEnergiaFotografica;
+  if(typeof Image==='undefined')return Promise.resolve(null);
+  promessaEnergiaFotografica=new Promise(resolve=>{
+    const img=new Image();
+    img.onload=()=>resolve(img);
+    img.onerror=()=>resolve(null);
+    img.decoding='async';img.src=ENERGIA_FOTOGRAFICA_RPG_URL;
+  });
+  return promessaEnergiaFotografica;
+}
 const geometria = Object.freeze({
   assassino: {
     petto:[.50,.318], spalle:[[.33,.255],[.67,.255]], mani:[[.235,.529],[.753,.529]],
@@ -58,12 +74,40 @@ function traccia(ctx,punti,w,h,colore,forza,spessore=.003) {
 }
 
 function gas(ctx,x,y,rx,ry,rgba,opacita) {
-  // Tre gradienti sovrapposti con forme NON lineari: un vapore, non un tubo neon.
-  for(let strato=0;strato<3;strato++){
-    const offset=(strato-1)*rx*.28;
-    radiale(ctx,x+offset,y+(strato%2?-.20:.12)*ry,
-      rx*(strato===1?.90:.72),ry*(strato===2?1:.84),rgba,
-      opacita*(strato===1?.70:.36));
+  // Nuvola irregolare di gas a più profondità, non tre cerchi fluorescenti.
+  const seme=(x*.017+y*.011);
+  for(let strato=0;strato<7;strato++){
+    const a=strato*2.39996+seme;
+    const f=strato/7;
+    const xx=x+Math.cos(a)*rx*(.18+.33*f);
+    const yy=y+Math.sin(a)*ry*(.18+.33*f);
+    radiale(ctx,xx,yy,rx*(.48+.18*rand(strato*13+seme)),
+      ry*(.39+.24*rand(strato*9+seme)),rgba,
+      opacita*(strato===0?.24:.16));
+  }
+}
+
+function sciaFotografica(ctx,w,h,origine,arrivo,lato,colore,luce,forza,t,seme) {
+  // Seta di plasma curvata intorno a un avambraccio: 4 profondità ottiche,
+  // niente geometrie regolari o tubi verticali nel panorama. Gli estremi
+  // toccano ESATTAMENTE spalla e impugnatura del soggetto.
+  const dx=arrivo[0]-origine[0],dy=arrivo[1]-origine[1];
+  const centro=[origine[0]+dx*.33+lato*(.065+Math.sin(t*.55+seme)*.013),
+    origine[1]+dy*.34-.025];
+  const centro2=[origine[0]+dx*.65+lato*(.080+Math.cos(t*.42+seme)*.013),
+    origine[1]+dy*.72+.022];
+  const path=()=>{
+    ctx.beginPath();ctx.moveTo(origine[0]*w,origine[1]*h);
+    ctx.bezierCurveTo(centro[0]*w,centro[1]*h,centro2[0]*w,centro2[1]*h,
+      arrivo[0]*w,arrivo[1]*h);
+  };
+  for(let i=0;i<4;i++){
+    ctx.save();ctx.globalAlpha=forza*[.075,.13,.22,.38][i];
+    ctx.lineWidth=Math.max(.65,w*[.064,.034,.012,.0027][i]);
+    ctx.lineCap='round';ctx.strokeStyle=i===3?luce:colore;
+    ctx.shadowColor=i===3?luce:colore;
+    ctx.shadowBlur=Math.min(w*[.075,.053,.031,.012][i],29);
+    path();ctx.stroke();ctx.restore();
   }
 }
 
@@ -161,6 +205,15 @@ export function disegnaEnergiaIncarnataRpg(ctx,w,h,classe='assassino',effetto='a
         }
       }
     }
+    if(astrale){
+      // La firma del MITICO è una corrente viva agganciata agli arti,
+      // con la profondità della fotografia approvata (Aura Divina).
+      for(let i=0;i<2;i++){
+        const lato=i?-1:1;
+        sciaFotografica(ctx,w,h,a.spalle[i],a.mani[i],lato,
+          i?'#9851dc':'#ba69f8',i?'#f2bcff':'#ffd39f',.66*pulso,t,i+3);
+      }
+    }
     ctx.restore();return true;
   }
 
@@ -226,13 +279,17 @@ export function disegnaEnergiaIncarnataRpg(ctx,w,h,classe='assassino',effetto='a
       saetta(ctx,w,h,man,[man[0]+(i===0?-.045:.045),man[1]-.060],primario,1.05*pulso,37+i,t,true);
       const pet=a.petto;
       saetta(ctx,w,h,pet,a.nuclei[i],secondario,.39*pulso,41+i,t);
+      // Riflesso del pennacchio DAVANTI a manopola e bracciale, molto più
+      // corto rispetto alla controparte che passa dietro alla fotografia.
+      sciaFotografica(ctx,w,h,gi,man,i?-.55:.55,
+        '#b96af9','#fff1cf',.44*pulso,t,i+11);
     }else{
       for(let k=0;k<8;k++){
         const n=k/8,ang=n*TAU+t*(i?-.44:.38)+i*1.7;
         const cx=man[0]+Math.cos(ang)*(.054+.023*n);
         const cy=man[1]+Math.sin(ang)*(.041+.015*n);
         const co=k%3?'#9cfaff':'#d8aaff';
-        radiale(ctx,cx*w,cy*h,w*.027,h*.018,co,.54+.33*Math.sin(t*.6+k)**2);
+        radiale(ctx,cx*w,cy*h,w*.015,h*.011,co,.42+.23*Math.sin(t*.6+k)**2);
       }
       gas(ctx,gi[0]*w,gi[1]*h,w*.083,h*.046,
         i?'rgba(176,113,244,.59)':'rgba(69,211,246,.66)',.70*pulso);
@@ -297,6 +354,52 @@ export function disegnaEnergiaIncarnataRpg(ctx,w,h,classe='assassino',effetto='a
   return true;
 }
 
+/** v494: VFX pittorico/fotografico creato PER le tre classi, senza foto,
+ * sfondi né sagome nel file alpha. La stessa composizione è usata in live,
+ * anteprima ed esportazioni. Il livello retro passa dietro al WebP originale,
+ * quello fronte lascia scintillare gli equipaggiamenti senza ridisegnarli.
+ */
+export function disegnaEnergiaFotograficaRpg(ctx,w,h,classe='assassino',effetto='astrale',t=0,
+    {fase='fronte',texture=null,soggetto=null,buffer=null}={}){
+  if(!ctx||w<16||h<20||!classi.includes(classe)||!['astrale','nebulosa'].includes(effetto))return false;
+  if(!(texture&&(texture.naturalWidth||texture.width)>=1024))return disegnaEnergiaIncarnataRpg(
+    ctx,w,h,classe,effetto,t,{fase,soggetto,buffer});
+  const sx=(effetto==='astrale'?0:512),sy=classi.indexOf(classe)*512;
+  ctx.save();
+  if(fase==='retro'){
+    // Il VFX è un elemento trasparente che avvolge il protagonista,
+    // non una seconda fotografia né una nuova ambientazione. L'originale
+    // resta come fondale e il suo cutout occlude questa passata.
+    ctx.globalAlpha=effetto==='astrale'?.94:.91;
+    ctx.drawImage(texture,sx,sy,512,512,0,0,w,h);
+    // Flusso indipendente delle nubi/filamenti: movimento reale della materia
+    // e non semplice scala/opacità dell'intero livello. Piccole traslazioni
+    // rendono la turbolenza leggibile senza spostare le rune fuori cornice.
+    const dx=Math.sin(t*.57+sy*.01)*w*.009;
+    const dy=Math.cos(t*.49+sx*.01)*h*.006;
+    ctx.globalAlpha=effetto==='astrale'?.105:.17;
+    ctx.drawImage(texture,sx+33,sy+35,446,330,
+      w*.064+dx,h*.07+dy,w*.872,h*.67);
+  }else{
+    // La luce attraversa parzialmente guanti/armi/scudo, senza sostituire
+    // i pixel che ne definiscono anatomia o silhouette.
+    ctx.globalCompositeOperation='screen';
+    const haSoggettoAlpha=Boolean(soggetto&&(soggetto.naturalWidth||soggetto.width));
+    // Con le armature fotografiche Shop (senza ritaglio alpha dedicato) il
+    // ritratto intero copre il piano retro: il VFX deve comunque restare
+    // visibile. È un PNG trasparente con ciuffi morbidi, mai un rettangolo.
+    ctx.globalAlpha=haSoggettoAlpha
+      ? (effetto==='astrale'?.23:.32)
+      : (effetto==='astrale'?.71:.73);
+    ctx.drawImage(texture,sx,sy,512,512,0,0,w,h);
+    // Scariche fini e riflessi metallici solo sui punti reali del soggetto:
+    // la vecchia versione a forza piena era un accumulo di globi al neon.
+    ctx.globalAlpha=haSoggettoAlpha?.24:.13;
+    disegnaEnergiaIncarnataRpg(ctx,w,h,classe,effetto,t,{fase:'fronte',soggetto,buffer});
+  }
+  ctx.restore();return true;
+}
+
 /** Attacca la coppia di canvas al riquadro della FOTO, che mantiene il suo zoom.
  * Non cambia mai l'immagine originale né lo stato del giocatore.
  */
@@ -323,6 +426,10 @@ export function montaEnergiaIncarnataRpg(palco,grafica,foto,{classe='assassino',
   const retro=dietro.getContext?.('2d',{alpha:true}),front=davanti.getContext?.('2d',{alpha:true});
   if(!retro||!front){dietro.remove?.();davanti.remove?.();return false;}
   const buffer=documento.createElement('canvas');
+  let texture=null;
+  void caricaEnergiaFotograficaRpg().then(img=>{
+    if(!finito && img){texture=img;riprendi();}
+  });
   const ios=typeof navigator!=='undefined' && /iPhone|iPad|iPod/.test(navigator.userAgent||'');
   const movimentoRidotto=typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion:reduce)').matches;
   let w=0,h=0,ratio=1,finito=false,frame=0,ultimo=-Infinity,ultimaMisura=-Infinity;
@@ -347,8 +454,8 @@ export function montaEnergiaIncarnataRpg(palco,grafica,foto,{classe='assassino',
     retro.clearRect(0,0,w,h);front.clearRect(0,0,w,h);
     const cutout=grafica?.querySelector?.('.rpg-cosmic-cutout-asset');
     const alpha=palco.classList?.contains?.('rpg-cosmic-cutout-ready')&&cutout?.naturalWidth?cutout:null;
-    disegnaEnergiaIncarnataRpg(retro,w,h,classe,effetto,tempo,{fase:'retro'});
-    disegnaEnergiaIncarnataRpg(front,w,h,classe,effetto,tempo,{fase:'fronte',soggetto:alpha,buffer});
+    disegnaEnergiaFotograficaRpg(retro,w,h,classe,effetto,tempo,{fase:'retro',texture});
+    disegnaEnergiaFotograficaRpg(front,w,h,classe,effetto,tempo,{fase:'fronte',texture,soggetto:alpha,buffer});
     palco.classList?.add?.('rpg-energia-pronta');
     palco.parentNode?.classList?.add?.('rpg-energia-pronta');
   };

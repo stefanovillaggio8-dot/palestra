@@ -42,7 +42,9 @@
 </header>
 <main id="galleria" class="galleria"></main>
 <script type="module">
-import {disegnaEnergiaIncarnataRpg} from './src/rpg-energia-incarnata.js';
+import {caricaEnergiaFotograficaRpg,disegnaEnergiaFotograficaRpg} from './src/rpg-energia-incarnata.js';
+let texturaCosmica=null;
+void caricaEnergiaFotograficaRpg().then(img=>{texturaCosmica=img;});
 const classi=['assassino','guerriero','berserker'];
 const galleria=document.getElementById('galleria'),stato=document.getElementById('stato');
 let schede=[],tempo=0;
@@ -63,8 +65,8 @@ for(const classe of classi)for(const effetto of ['astrale','nebulosa']){
 }
 function cambiaStato(){
   for(const c of schede){
-    c.fondale.src=`./img/personaggi/stati/${c.classe}-${stato.value}.webp?v=493`;
-    c.img.src=`./img/personaggi/cutout/stati/${c.classe}-${stato.value}.webp?v=493`;
+    c.fondale.src=`./img/personaggi/stati/${c.classe}-${stato.value}.webp?v=494`;
+    c.img.src=`./img/personaggi/cutout/stati/${c.classe}-${stato.value}.webp?v=494`;
   }
 }
 stato.addEventListener('change',cambiaStato);cambiaStato();
@@ -84,9 +86,9 @@ function render(ms){
     }
     const behind=c.retro.getContext('2d'),fore=c.front.getContext('2d');
     behind.clearRect(0,0,width,height);fore.clearRect(0,0,width,height);
-    disegnaEnergiaIncarnataRpg(behind,width,height,c.classe,c.effetto,tempo,{fase:'retro'});
-    disegnaEnergiaIncarnataRpg(fore,width,height,c.classe,c.effetto,tempo,{
-      fase:'fronte',soggetto:c.img.complete&&c.img.naturalWidth?c.img:null,buffer:c.buffer,
+    disegnaEnergiaFotograficaRpg(behind,width,height,c.classe,c.effetto,tempo,{fase:'retro',texture:texturaCosmica});
+    disegnaEnergiaFotograficaRpg(fore,width,height,c.classe,c.effetto,tempo,{
+      fase:'fronte',texture:texturaCosmica,soggetto:c.img.complete&&c.img.naturalWidth?c.img:null,buffer:c.buffer,
     });
   }
 }
