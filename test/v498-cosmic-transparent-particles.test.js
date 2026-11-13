@@ -53,3 +53,18 @@ test('v498: numero di versione visibile corretto e ResizeObserver non mostra un 
   const scena=leggi('src/rpg-scena-cosmica.js');
   assert.match(scena,/frameMisura=requestAnimationFrame/);
 });
+
+test('v499: cornice delle particelle conservata, senza sfondo cosmico aggiunto',()=>{
+  const css=leggi('stile-rpg.css');
+  const selettore='.aura-preview-panel.aura-preview-cosmic-panel .aura-preview-scene.aura-preview-cosmic-scene:has(.rpg-energia-pronta) {';
+  const start=css.lastIndexOf(selettore);
+  assert.ok(start>0);
+  const regola=css.slice(start,css.indexOf('}',start)).replace(/\/\*[\s\S]*?\*\//g,'');
+  assert.match(regola,/background:transparent!important/);
+  assert.match(regola,/background-image:none!important/);
+  // La texture V498 non deve essere spenta: togliamo il fondale, non il VFX.
+  assert.match(css,/\.rpg-cosmic-stage > \.rpg-energia-retro\s*\{[^}]*mix-blend-mode:screen/);
+  assert.match(css,/\.rpg-cosmic-stage > \.rpg-energia-fronte\s*\{[^}]*mix-blend-mode:screen/);
+  assert.match(leggi('src/rpg-energia-incarnata.js'),/astrale-particelle-v498\.webp/);
+  assert.match(leggi('src/rpg-energia-incarnata.js'),/nebulosa-particelle-v498\.webp/);
+});
