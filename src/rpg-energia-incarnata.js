@@ -179,7 +179,9 @@ export function disegnaEnergiaIncarnataRpg(ctx,w,h,classe='assassino',effetto='a
   const primario=astrale?'#a65bff':'#55d9f8';
   const secondario=astrale?'#ffd18b':'#b58cff';
   const velluto=astrale?'rgba(126,34,233,.49)':'rgba(38,182,218,.48)';
-  const pulso=.86+.14*Math.sin(t*1.52);
+  // Intensità stabile: si muovono scintille e filamenti, ma l'intera aura
+  // non deve più gonfiarsi e sgonfiarsi ritmicamente.
+  const pulso=1;
   const xy=p=>[p[0]*w,p[1]*h];
   const nascosto=fase==='retro';
   ctx.save();
@@ -409,15 +411,9 @@ export function disegnaEnergiaFotograficaRpg(ctx,w,h,classe='assassino',effetto=
     // resta come fondale e il suo cutout occlude questa passata.
     ctx.globalAlpha=effetto==='astrale'?.94:.91;
     disegnaTexture();
-    // Flusso indipendente delle nubi/filamenti: movimento reale della materia
-    // e non semplice scala/opacità dell'intero livello. Piccole traslazioni
-    // rendono la turbolenza leggibile senza spostare le rune fuori cornice.
-    const dx=Math.sin(t*.57+sy*.01)*w*.009;
-    const dy=Math.cos(t*.49+sx*.01)*h*.006;
-    ctx.globalAlpha=effetto==='astrale'?.105:.17;
-    if(altaDefinizione)ctx.drawImage(particolare,0,0,1024,1536,dx,dy,w,h);
-    else ctx.drawImage(atlante,sx+33,sy+35,446,330,
-      w*.064+dx,h*.07+dy,w*.872,h*.67);
+    // Niente seconda copia dell'intera texture che oscilla avanti/indietro:
+    // dava l'impressione che il contorno pulsasse. Le singole particelle
+    // continuano a muoversi sul piano frontale, senza spostare la cornice.
   }else{
     // La luce attraversa parzialmente guanti/armi/scudo, senza sostituire
     // i pixel che ne definiscono anatomia o silhouette.
