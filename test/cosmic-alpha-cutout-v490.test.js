@@ -95,6 +95,7 @@ test('v490 esportazioni della stessa figura trasparente',()=>{
  assert.match(e,/alphaPronto/);
  assert.match(e,/disegnaAtmosferaCosmicaRpg/);
  assert.match(e,/ctx\.drawImage\(cutout,0,0,out\.width,out\.height\)/);
- assert.match(e,/astrale-celestial-/);
- assert.match(e,/nebulosa-spirale-/);
+ assert.match(e,/disegnaAccentiCosmiciRpg/);
+ assert.doesNotMatch(e,/astrale-celestial-/);
+ assert.doesNotMatch(e,/nebulosa-spirale-/);
 });
