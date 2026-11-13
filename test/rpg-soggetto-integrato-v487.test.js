@@ -28,7 +28,8 @@ test('v487 i pixel originali del ritratto restano, cambiata solo trasparenza del
    const names=[];
    const image={style:{},classList:{add:n=>names.push(n)}};
    assert.equal(applicaMascheraCosmicaRpg(image,classe),true);
-   assert.ok(image.style.maskImage.startsWith('url("data:image/svg+xml,'));
+   assert.match(image.style.maskImage,/^radial-gradient\(|^url\("data:image\/png/,
+     'le foto Shop devono avere margini sfumati senza sagome rigide');
    assert.equal(image.style.maskImage,image.style.webkitMaskImage);
    assert.equal(image.style.maskSize,'100% 100%');
    assert.equal(image.style.webkitMaskSize,'100% 100%');
@@ -52,9 +53,11 @@ test('v487 PNG: matte con alpha e stessa sagoma in tutte e tre le classi',()=>{
 });
 test('v487 PNG export conserva arma, skin e lo stesso scatto senza nuovo WebP',()=>{
  const a=read('src/rpg-atelier.js');
- assert.match(a,/disegnaAtmosferaCosmicaRpg\(ctx,larghezza,altezza/);
+ assert.doesNotMatch(a,/disegnaAtmosferaCosmicaRpg\(ctx,larghezza,altezza/,
+   'la foto non deve avere un fondale cosmico aggiunto');
  assert.ok(!a.includes('disegnaSoggettoCosmicoRpg(ctx,immagine,dx,dy,dw,dh,c.classe)'));
  assert.ok(a.includes('ctx.drawImage(immagine,dx,dy,dw,dh)'));
+ assert.match(a,/disegnaFotografiaFusaRpg\(ctx,immagine,dx,dy,dw,dh\)/);
  assert.match(a,/disegnaSoggettoCosmicoRpg\(ctx,pelle,dx,dy,dw,dh,c.classe\)/);
  const styles=read('stile-rpg.css').slice(read('stile-rpg.css').lastIndexOf('/* v487'));
  assert.match(styles,/rpg-cosmic-subject/);

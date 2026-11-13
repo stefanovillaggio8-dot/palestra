@@ -4056,3 +4056,42 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
 .personaggio-scena > .rpg-cosmic-stage.rpg-energia-pronta > .personaggio-scena-grafica.personaggio {
   animation:none!important;
 }
+
+/* v506 · compatibilita' di ogni effetto cosmico con le sei armature Shop.
+   Senza un cutout esatto, il rettangolo della foto deve dissolversi ai bordi
+   ma NON si puo' ritagliare l'equipaggiamento con un poligono di classe.
+   Il JS assegna una maschera PNG morbida precisa; questo gradiente e' il
+   fallback anche su browser senza Canvas/alpha. Nessun effetto pulsa. */
+.personaggio-scena .rpg-cosmic-stage:not(.rpg-cosmic-cutout-ready) > .personaggio-scena-grafica.con-foto > .personaggio-ritratto.rpg-cosmic-subject {
+  -webkit-mask-image:radial-gradient(ellipse 54% 57% at 50% 51%,#000 61%,rgba(0,0,0,.87) 77%,transparent 100%)!important;
+  mask-image:radial-gradient(ellipse 54% 57% at 50% 51%,#000 61%,rgba(0,0,0,.87) 77%,transparent 100%)!important;
+  -webkit-mask-repeat:no-repeat!important;
+  mask-repeat:no-repeat!important;
+  -webkit-mask-size:100% 100%!important;
+  mask-size:100% 100%!important;
+}
+.aura-preview-armor-field {
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px 14px;
+  margin:8px 0 12px;
+  color:#ded1ed;
+  font-size:.85rem;
+}
+.aura-preview-armor-select {
+  min-width:175px;
+  max-width:100%;
+  flex:1 1 200px;
+  padding:10px 12px;
+  border:1px solid rgba(178,156,226,.42);
+  border-radius:11px;
+  background:#1e1a32;
+  color:#f7edff;
+  font:inherit;
+}
+.aura-preview-armor-select:focus-visible {
+  outline:2px solid #d8b4fe;
+  outline-offset:2px;
+}

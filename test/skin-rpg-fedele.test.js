@@ -35,7 +35,8 @@ test('Le armature originali rimangono le immagini di progressione Streak',async(
  assert.doesNotMatch(app,/const overlayCosmetici = svgCosmeticiRpg\(/);
  assert.match(app,/corona-v361-original/); // anteprima finale illustrativa, separata dalle foto Streak
  assert.match(app,/classeAnteprima = oggetto\.classe/);
- assert.match(app,/id === 'skin-mitica'/);
+ assert.match(app,/if \(oggetto\.tipo === 'Effetto'\) \{/); // selettore classe per tutti gli effetti
+ assert.match(app,/oggetto\.id==='skin-mitica'/); // Astrale conserva il proprio ambiente
 });
 
 test('Le maschere non cambiano la progressione e non introducono armi',()=>{

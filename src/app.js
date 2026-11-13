@@ -77,6 +77,7 @@ import { montaScenaCosmicaRpg } from './rpg-scena-cosmica.js';
 import { montaFotoRpg } from './aura-foto-rpg.js';
 import { montaFotoCombinataRpg, scaricaFotoCombinataRpg } from './anteprima-combinata-rpg.js';
 import { apriAtelierRpg as mostraAtelierRpg } from './rpg-atelier-ui.js';
+import { ARMATURE_ATELIER } from './rpg-atelier.js';
 import { applicaSkinRpg } from './skin-rpg-fedele.js';
 import { montaScenaCinematograficaRpg, armaSbloccataRpg, percorsoScenaSpecialeRpg } from './foto-cinematica-rpg.js';
 import { elencoAvatar, avatarPerId, gradienteAvatar, iniziali } from './avatar.js';
@@ -1947,6 +1948,9 @@ function apriAnteprimaAura(oggetto, profilo, st) {
   // La skin Astrale e' un solo acquisto, con tre vere anteprime di classe.
   // Il selettore e' SOLO VISIVO e non cambia la classe o gli oggetti del profilo.
   let classeAnteprima = oggetto.classe || profilo.classe_rpg || 'guerriero';
+  const armaturaCorrente=equipaggiamentoRpgUnico(profilo.equipaggiamento_aura).Armatura||'';
+  let armaturaAnteprima=ARMATURE_ATELIER[classeAnteprima]?.includes(armaturaCorrente)
+    ? armaturaCorrente : '';
   const scena = el('div', { class: 'aura-preview-scene' + (cosmicoAnteprima?' aura-preview-cosmic-scene '+(oggetto.id==='skin-mitica'?'cosmic-astrale':'cosmic-nebulosa'):'') });
   // L'illustrazione promozionale scenarioSkin disegnava cerchi e rettangoli
   // dietro la foto. Qui la scena vive tutta in CSS con l'avatar ritagliato.
@@ -1957,9 +1961,11 @@ function apriAnteprimaAura(oggetto, profilo, st) {
   const contenitore = el('div',{class:'aura-preview-avatar-container'});
   scena.appendChild(contenitore);
   const disegnaAnteprima = () => {
+    const equipAnteprima=aggiornaEquipaggiamentoRpg(profilo.equipaggiamento_aura,oggetto,true);
+    if(oggetto.tipo==='Effetto')equipAnteprima.Armatura=armaturaAnteprima||null;
     const profiloAnteprima = {
       ...profilo, classe_rpg: classeAnteprima,
-      equipaggiamento_aura: aggiornaEquipaggiamentoRpg(profilo.equipaggiamento_aura,oggetto,true),
+      equipaggiamento_aura:equipAnteprima,
     };
     const personaggio = bloccoPersonaggio(profiloAnteprima, st);
     personaggio.classList.add('aura-preview-character');
@@ -1971,14 +1977,16 @@ function apriAnteprimaAura(oggetto, profilo, st) {
     svuota(contenitore);
     contenitore.appendChild(personaggio);
   };
-  if (oggetto.id === 'skin-mitica') {
+  if (oggetto.tipo === 'Effetto') {
     const selettore = el('div', { class:'aura-preview-classi', role:'group',
-      aria:{label:'Classe per anteprima Astrale'} });
+      aria:{label:'Classe per anteprima effetto'} });
     for (const id of ['guerriero','assassino','berserker']) {
       selettore.appendChild(bottone(CLASSE_AURA[id], {
         classe:'fantasma aura-classe-btn'+(id===classeAnteprima?' attiva':''),
         onClick:()=> {
           classeAnteprima=id;
+          armaturaAnteprima='';
+          aggiornaArmatureAnteprima();
           for (const b of selettore.querySelectorAll('button')) b.classList.toggle('attiva', b.textContent===CLASSE_AURA[id]);
           disegnaAnteprima();
         },
@@ -1988,6 +1996,31 @@ function apriAnteprimaAura(oggetto, profilo, st) {
   } else if (oggetto.classe && oggetto.classe !== profilo.classe_rpg) {
     pannello.appendChild(el('p', { class:'aura-preview-warning', testo:
       'Anteprima della classe '+CLASSE_AURA[oggetto.classe]+'. La tua classe non viene cambiata.' }));
+  }
+  // v506: tutti gli effetti (non solo Astrale) possono essere provati con
+  // entrambe le armature acquistabili della classe, senza comprarle o
+  // modificare lo slot Armatura del profilo vero.
+  const sceltaArmatura=oggetto.tipo==='Effetto'
+    ? el('select',{class:'aura-preview-armor-select',aria:{label:'Armatura Shop per anteprima'}})
+    : null;
+  const aggiornaArmatureAnteprima=()=>{
+    if(!sceltaArmatura)return;
+    svuota(sceltaArmatura);
+    for(const id of ARMATURE_ATELIER[classeAnteprima]||['']){
+      const item=OGGETTI_AURA.find(o=>o.id===id);
+      sceltaArmatura.appendChild(el('option',{value:id,testo:item?.nome||'Nessuna armatura Shop'}));
+    }
+    sceltaArmatura.value=armaturaAnteprima;
+  };
+  if(sceltaArmatura){
+    aggiornaArmatureAnteprima();
+    sceltaArmatura.addEventListener('change',()=>{
+      armaturaAnteprima=sceltaArmatura.value;
+      disegnaAnteprima();
+    });
+    pannello.appendChild(el('label',{class:'aura-preview-armor-field'},[
+      el('span',{testo:'Prova con una skin acquistabile'}),sceltaArmatura,
+    ]));
   }
   pannello.appendChild(scena);
   disegnaAnteprima();

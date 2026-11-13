@@ -6,7 +6,7 @@ import { FOTO_RPG_RIQUADRI, livelliFotoRpg } from './aura-foto-rpg.js';
 import { fasciaSagoma, disegnaCoronaEnergetica } from './anteprima-combinata-rpg.js';
 import { disegnaAstraleExport,dipingiNebulosaCosmica } from './effetti-rpg-canvas.js';
 import { fotoCinematograficaRpg } from './foto-cinematica-rpg.js';
-import {disegnaAtmosferaCosmicaRpg,disegnaAccentiCosmiciRpg,disegnaSoggettoCosmicoRpg,disegnaSfondoFotograficoCosmicoRpg} from './rpg-scena-cosmica.js';
+import {disegnaAtmosferaCosmicaRpg,disegnaAccentiCosmiciRpg,disegnaSoggettoCosmicoRpg,disegnaSfondoFotograficoCosmicoRpg,disegnaFotografiaFusaRpg} from './rpg-scena-cosmica.js';
 import {caricaEnergiaFotograficaRpg,disegnaEnergiaFotograficaRpg} from './rpg-energia-incarnata.js';
 import { percorsoFotoCoronaV360 } from './foto-corona-v360.js';
 import { percorsoFotoAuraDivinaV366 } from './foto-aura-divina-v366.js';
@@ -103,8 +103,10 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
     effetto:fxSenzaFoto?null:(c.effetto||null),armaSbloccata:c.stadio>=4,
   }) : null;
   const scena=fotoDivina||fotoCorona||fotoArmata||((c.divina||fxSenzaFoto)?null:await fotoCinematograficaRpg({...c,corona:false,divina:false}));
-  const immagine=scena ? await attesaImmagine(scena).catch(()=>fotoBase)
-    : (fxSenzaFoto && ritaglioReale ? ritaglioReale : fotoBase);
+  // Con Astrale/Nebulosa il ritratto mostrato nell'Atelier e' l'autorita':
+  // non caricare una seconda foto con armi diverse da quelle visibili.
+  const immagine=fxSenzaFoto ? (ritaglioReale||fotoBase)
+    : (scena ? await attesaImmagine(scena).catch(()=>fotoBase) : fotoBase);
   const alphaAutentico=Boolean(fxSenzaFoto && ritaglioReale && immagine===ritaglioReale);
   const giaFotografica=Boolean(scena&&immagine!==fotoBase);
   const larghezza=780,altezza=1170;
@@ -123,7 +125,9 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
       ctx.drawImage(fotoBase,dx,dy,dw,dh);
       ctx.fillStyle=c.effetto==='skin-mitica'?'rgba(13,7,20,.27)':'rgba(6,13,22,.25)';
       ctx.fillRect(dx,dy,dw,dh);
-    }else disegnaAtmosferaCosmicaRpg(ctx,larghezza,altezza,c.effetto==='skin-mitica'?'astrale':'nebulosa');
+    }else {
+      ctx.fillStyle='#0c0f1b';ctx.fillRect(0,0,larghezza,altezza);
+    }
     ctx.save();ctx.translate(dx,dy);
     disegnaEnergiaFotograficaRpg(ctx,dw,dh,c.classe,c.effetto==='skin-mitica'?'astrale':'nebulosa',2.8,{fase:'retro',texture:texturaCosmica});
     ctx.restore();
@@ -134,8 +138,8 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
       // v491: nelle combinazioni con armatura/corona senza un alpha ESATTO,
       // l'esportazione deve conservare integralmente armi, scudo, testa e piedi.
       // La vecchia maschera per classe amputava elementi non previsti.
-      disegnaSfondoFotograficoCosmicoRpg(ctx,immagine,larghezza,altezza);
-      ctx.drawImage(immagine,dx,dy,dw,dh);
+      if(!disegnaFotografiaFusaRpg(ctx,immagine,dx,dy,dw,dh))
+        ctx.drawImage(immagine,dx,dy,dw,dh);
     }
   } else ctx.drawImage(immagine,dx,dy,dw,dh);
   // Il rivestimento della skin in CSS e' un canvas separato dalla foto.
