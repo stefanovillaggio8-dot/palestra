@@ -4014,3 +4014,38 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
   -webkit-mask-repeat:no-repeat!important;
   mask-repeat:no-repeat!important;
 }
+
+/* v503 · Ambiente FOTOGRAFICO, non vuoto cromatico.
+   Nei comuni/epici il personaggio vive dentro una scena concreta di pietra,
+   ombre e pavimento. I due effetti cosmici avevano invece un fondale nero:
+   la v502 mostrava il muro originale, ma soltanto dietro alla sagoma.
+   Queste scene prive di persone riempiono l'intero riquadro; il soggetto,
+   il suo zoom, gli stati di armatura e le tele V498 restano gli stessi. */
+.aura-preview-panel.aura-preview-cosmic-panel .aura-preview-cosmic-scene .personaggio-scena > .rpg-cosmic-stage.rpg-cosmic-nebulosa.rpg-energia-pronta {
+  background-image:linear-gradient(180deg,rgba(5,9,20,.20),rgba(4,8,17,.16)),url('./img/effetti/nebulosa-ambiente-v503.webp')!important;
+  background-size:cover!important;
+  background-position:center 56%!important;
+  background-repeat:no-repeat!important;
+  border-radius:16px 16px 0 0!important;
+  overflow:hidden!important;
+}
+.aura-preview-panel.aura-preview-cosmic-panel .aura-preview-cosmic-scene .personaggio-scena > .rpg-cosmic-stage.rpg-cosmic-astrale.rpg-energia-pronta {
+  background-image:linear-gradient(180deg,rgba(10,6,18,.18),rgba(9,5,18,.22)),url('./img/effetti/astrale-ambiente-v503.webp')!important;
+  background-size:cover!important;
+  background-position:center 56%!important;
+  background-repeat:no-repeat!important;
+  border-radius:16px 16px 0 0!important;
+  overflow:hidden!important;
+}
+/* Niente foto sorgente sovrapposta al nuovo ambiente: il suo sfondo caldo
+   genererebbe un alone marrone centrale e un effetto poster. */
+.personaggio-scena > .rpg-cosmic-stage.rpg-cosmic-cutout-ready.rpg-energia-pronta > .rpg-foto-fondale {
+  display:none!important;
+}
+/* La targhetta rimane sotto la scena, come nello Shop, ma centrata. */
+.aura-preview-panel.aura-preview-cosmic-panel .aura-preview-cosmic-scene .personaggio-dati {
+  text-align:center!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+}

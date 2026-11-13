@@ -18,9 +18,11 @@
   .scheda{position:relative;overflow:hidden;border:1px solid #322d45;border-radius:15px;padding:11px 7px 12px;background:linear-gradient(152deg,#151322 0%,#161627 50%,#0b111c 100%)}
   .scheda h2{margin:0 0 2px;font-size:.9rem;text-align:center;letter-spacing:.01em}
   .scheda p{text-align:center;font-size:.71rem}
-  .ritratto{position:relative;width:100%;max-width:340px;margin:8px auto 0;aspect-ratio:2/3;isolation:isolate}
+  .ritratto{position:relative;width:100%;max-width:340px;margin:8px auto 0;aspect-ratio:2/3;isolation:isolate;background-size:cover;background-position:center 56%;background-repeat:no-repeat}
+  .ritratto.cosmic-astrale{background-image:linear-gradient(180deg,rgba(10,6,18,.18),rgba(9,5,18,.22)),url('./img/effetti/astrale-ambiente-v503.webp')}
+  .ritratto.cosmic-nebulosa{background-image:linear-gradient(180deg,rgba(5,9,20,.20),rgba(4,8,17,.16)),url('./img/effetti/nebulosa-ambiente-v503.webp')}
   .ritratto img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;z-index:2;filter:drop-shadow(0 8px 15px rgba(0,0,0,.42))}
-  .ritratto img.fondale{z-index:0;filter:brightness(.74) saturate(.89)}
+  .ritratto img.fondale{display:none;z-index:0}
   .ritratto canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
   .ritratto canvas.retro{z-index:1}
   .ritratto canvas.fronte{z-index:3;mix-blend-mode:screen}
@@ -54,7 +56,7 @@ for(const classe of classi)for(const effetto of ['astrale','nebulosa']){
   const descr=document.createElement('p');descr.innerHTML=effetto==='astrale'
     ?'<span class="etichetta mitico">MITICO · ASTRALE COSMICO</span>'
     :'<span class="etichetta leggendario">LEGGENDARIO · NEBULOSA COSMICA</span>';
-  const ritratto=document.createElement('div');ritratto.className='ritratto';
+  const ritratto=document.createElement('div');ritratto.className='ritratto cosmic-'+effetto;
   const fondale=document.createElement('img');fondale.className='fondale';fondale.alt='';fondale.decoding='async';
   const retro=document.createElement('canvas');retro.className='retro';
   const img=document.createElement('img');img.alt=classe+' originale';img.decoding='async';
@@ -65,8 +67,8 @@ for(const classe of classi)for(const effetto of ['astrale','nebulosa']){
 }
 function cambiaStato(){
   for(const c of schede){
-    c.fondale.src=`./img/personaggi/stati/${c.classe}-${stato.value}.webp?v=502`;
-    c.img.src=`./img/personaggi/cutout/stati/${c.classe}-${stato.value}.webp?v=502`;
+    c.fondale.src=`./img/personaggi/stati/${c.classe}-${stato.value}.webp?v=503`;
+    c.img.src=`./img/personaggi/cutout/stati/${c.classe}-${stato.value}.webp?v=503`;
   }
 }
 stato.addEventListener('change',cambiaStato);cambiaStato();
