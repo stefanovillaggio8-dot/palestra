@@ -3877,3 +3877,53 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
   mix-blend-mode:screen!important;
   pointer-events:none!important;
 }
+
+/* v493 · ENERGIA INCARNATA. Le due tele sono agganciate alla posizione REALE
+   della fotografia e non occupano tutto il panorama: il retro viene occultato
+   dal personaggio, il fronte ne illumina armatura, guanti e armi. */
+.personaggio-scena > .rpg-cosmic-stage > :is(.rpg-energia-retro,.rpg-energia-fronte) {
+  display:block!important;
+  position:absolute!important;
+  inset:auto!important;
+  margin:0!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  pointer-events:none!important;
+  transform:none!important;
+  max-width:none!important;
+  max-height:none!important;
+  opacity:1!important;
+}
+.personaggio-scena > .rpg-cosmic-stage > .rpg-energia-retro {
+  z-index:1!important;
+  mix-blend-mode:screen;
+}
+.personaggio-scena > .rpg-cosmic-stage > .rpg-energia-fronte {
+  z-index:5!important;
+  mix-blend-mode:screen;
+}
+/* Il vecchio cosmos v492 era sostanzialmente uno SFONDO pieno di nubi e
+   stelle. Quando il nuovo effetto è pronto, non gli permettiamo di competere
+   con il personaggio: resta la stessa tavolozza della scena, senza fondale FX. */
+.personaggio-scena.rpg-energia-pronta > .rpg-cosmic-stage {
+  background:transparent!important;
+}
+.personaggio-scena > .rpg-cosmic-stage.rpg-energia-pronta > .rpg-cosmic-ambiente,
+.personaggio-scena > .rpg-cosmic-stage.rpg-energia-pronta::before,
+.personaggio-scena > .rpg-cosmic-stage.rpg-energia-pronta > :is(.rpg-astrale-presenza,.rpg-nebulosa-presenza),
+.personaggio-scena.rpg-energia-pronta::before,
+.personaggio-scena.rpg-energia-pronta::after {
+  display:none!important;
+}
+.personaggio-scena > .rpg-cosmic-stage.rpg-energia-pronta > .personaggio-scena-grafica .rpg-effetti-canvas {
+  display:none!important;
+}
+.aura-preview-panel.aura-preview-cosmic-panel .aura-preview-scene:has(.rpg-energia-pronta) {
+  background:linear-gradient(157deg,#100d21 0%,#141327 54%,#0a101e 100%)!important;
+}
+.aura-preview-panel.aura-preview-cosmic-panel .aura-preview-scene:has(.rpg-energia-pronta)::before,
+.aura-preview-panel.aura-preview-cosmic-panel .aura-preview-scene:has(.rpg-energia-pronta)::after {
+  display:none!important;
+}

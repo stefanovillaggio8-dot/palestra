@@ -4,9 +4,10 @@
 import { AURA_FOTO_ATLAS } from './aura-foto-atlas.js';
 import { FOTO_RPG_RIQUADRI, livelliFotoRpg } from './aura-foto-rpg.js';
 import { fasciaSagoma, disegnaCoronaEnergetica } from './anteprima-combinata-rpg.js';
-import { fotoCinematograficaRpg } from './foto-cinematica-rpg.js';
 import { disegnaAstraleExport,dipingiNebulosaCosmica } from './effetti-rpg-canvas.js';
+import { fotoCinematograficaRpg } from './foto-cinematica-rpg.js';
 import {disegnaAtmosferaCosmicaRpg,disegnaAccentiCosmiciRpg,disegnaSoggettoCosmicoRpg,disegnaSfondoFotograficoCosmicoRpg} from './rpg-scena-cosmica.js';
+import {disegnaEnergiaIncarnataRpg} from './rpg-energia-incarnata.js';
 import { percorsoFotoCoronaV360 } from './foto-corona-v360.js';
 import { percorsoFotoAuraDivinaV366 } from './foto-aura-divina-v366.js';
 import { percorsoFotoArmaturaArmataV371 } from './foto-armatura-armata-v371.js';
@@ -116,6 +117,9 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
   const dx=(larghezza-dw)/2,dy=(altezza-dh)/2;
   if(fxSenzaFoto) {
     disegnaAtmosferaCosmicaRpg(ctx,larghezza,altezza,c.effetto==='skin-mitica'?'astrale':'nebulosa');
+    ctx.save();ctx.translate(dx,dy);
+    disegnaEnergiaIncarnataRpg(ctx,dw,dh,c.classe,c.effetto==='skin-mitica'?'astrale':'nebulosa',2.8,{fase:'retro'});
+    ctx.restore();
     if(alphaAutentico) {
       // La trasparenza è già nei pixel, vietato ripristinare il pavimento.
       ctx.drawImage(immagine,dx,dy,dw,dh);
@@ -183,20 +187,26 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
 
   }
 
-  // v492: micro-dettagli ereditati a bassa opacità (solo periferici);
-  // la scena e l'illuminazione vengono dal medesimo motore dei PNG Shop.
-  if(c.effetto==='skin-mitica'){
-    ctx.save();ctx.globalAlpha=.26;
-    disegnaAstraleExport(ctx,{classe:c.classe,x:dx,y:dy,width:dw,height:dh});
+  // v493: stesso effetto ancorato al corpo anche nella foto salvata.
+  // Il WebP alpha impedisce alla luce di invadere lo sfondo della foto.
+  if(fxSenzaFoto){
+    // Compatibilità fotografica con le scene precedenti: un accenno delle
+    // vecchie scie resta visibile, ma non domina più il personaggio.
+    ctx.save();ctx.globalAlpha=.09;
+    if(c.effetto==='skin-mitica')disegnaAstraleExport(ctx,{classe:c.classe,x:dx,y:dy,width:dw,height:dh});
+    else {ctx.translate(dx,dy);dipingiNebulosaCosmica(ctx,dw,dh,c.classe,2.8,55);}
     ctx.restore();
-  }
-  if(c.effetto==='effetto-nebula'){
-    ctx.save();ctx.globalAlpha=.24;ctx.translate(dx,dy);
-    dipingiNebulosaCosmica(ctx,dw,dh,c.classe,1.6,95);
+    ctx.save();ctx.translate(dx,dy);
+    disegnaEnergiaIncarnataRpg(ctx,dw,dh,c.classe,
+      c.effetto==='skin-mitica'?'astrale':'nebulosa',2.8,{
+        fase:'fronte',soggetto:alphaAutentico?ritaglioReale:null,
+        buffer:document.createElement('canvas'),
+      });
     ctx.restore();
-  }
-  if(fxSenzaFoto)
+    ctx.save();ctx.globalAlpha=.11;
     disegnaAccentiCosmiciRpg(ctx,larghezza,altezza,c.effetto==='skin-mitica'?'astrale':'nebulosa');
+    ctx.restore();
+  }
 
   if(c.titolo) {
     const titolo= c.titolo.replace(/^titolo-/,'').replaceAll('-',' ').toUpperCase();

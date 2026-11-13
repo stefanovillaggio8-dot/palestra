@@ -3,6 +3,7 @@
 // Manteniamo i pixel originali del personaggio, l'arma, l'armatura e lo zoom.
 // Niente servizi remoti, niente nuovi asset e nessuna modifica al salvataggio.
 import { CONTORNI_RPG } from './effetti-rpg-canvas.js';
+import { montaEnergiaIncarnataRpg } from './rpg-energia-incarnata.js';
 
 const CLASSI=Object.freeze(['assassino','guerriero','berserker']);
 const MASK_CACHE=new Map();
@@ -257,6 +258,12 @@ export function montaScenaCosmicaRpg(scena,grafica,{classe='assassino',effetto=n
   palco.appendChild(layer);
   scena.appendChild(palco);
   montaRitaglioRealeRpg(grafica,foto,palco,ambiente);
+  // Astrale e Nebulosa sono ora una corrente di luce CONNESSA al corpo:
+  // l'energia segue la foto, con un piano dietro e uno davanti, e usa
+  // il ritaglio alpha reale quando disponibile. Nessuna skin sostitutiva.
+  montaEnergiaIncarnataRpg(palco,grafica,foto,{
+    classe:classeId,effetto,documento:scena.ownerDocument||globalThis.document,
+  });
   return true;
 }
 
@@ -302,7 +309,7 @@ export function percorsoRitaglioCosmicoRpg(source) {
   const match=src.match(/(?:^|\/)img\/personaggi\/stati\/(assassino|guerriero|berserker)-([0-5])\.webp$/);
   if(!match)return null;
   const key=match[1]+'-'+match[2];
-  return CUTOUT_PRESENTI_RPG.has(key)?'./img/personaggi/cutout/stati/'+key+'.webp?v=492':null;
+  return CUTOUT_PRESENTI_RPG.has(key)?'./img/personaggi/cutout/stati/'+key+'.webp?v=493':null;
 }
 /** Fotografia intatta nel DOM, vero soggetto alpha inserito SOPRA di essa.
   * Solo quando il ritaglio e' stato caricato si nasconde la foto col fondale.
