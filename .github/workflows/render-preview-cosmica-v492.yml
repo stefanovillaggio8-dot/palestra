@@ -1,0 +1,46 @@
+name: Cattura preview reale v492
+on:
+  push:
+    branches: [preview/v492-scenes]
+    paths:
+      - 'preview-cosmica-v492.html'
+      - '.github/workflows/render-preview-cosmica-v492.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  render-preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: preview/v492-scenes
+          fetch-depth: 0
+      - name: Browser Chrome disponibile
+        run: |
+          (command -v google-chrome || command -v google-chrome-stable || command -v chromium || true)
+      - name: Fotografa i CSS e i personaggi REALI dell'app v492
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 > /tmp/preview-http.log 2>&1 &
+          sleep 2
+          CHROME=$(command -v google-chrome || command -v google-chrome-stable || command -v chromium)
+          if [ -z "$CHROME" ]; then echo "Chrome non trovato"; exit 1; fi
+          timeout 90s "$CHROME" --headless=new --no-sandbox --disable-gpu --hide-scrollbars \
+            --disable-extensions --force-device-scale-factor=1 \
+            --window-size=1450,1020 --virtual-time-budget=10000 \
+            --screenshot="$GITHUB_WORKSPACE/preview-cosmica-v492.png" \
+            "http://127.0.0.1:8765/preview-cosmica-v492.html"
+          test -s preview-cosmica-v492.png
+          file preview-cosmica-v492.png
+          stat -c "%s bytes" preview-cosmica-v492.png
+      - name: Commit SOLO screenshot sul ramo preview
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add preview-cosmica-v492.png
+          if ! git diff --cached --quiet; then
+            git commit -m "preview(v492): screenshot Chrome delle vere scene Astrale e Nebulosa"
+            git push origin HEAD:preview/v492-scenes
+          fi
