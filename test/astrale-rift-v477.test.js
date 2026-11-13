@@ -37,7 +37,7 @@ test('v477: l immagine esistente resta il personaggio, Astrale occupa solo lo sl
    assert.equal(percorsoScenaSpecialeRpg({classe,stato:5,skin:'skin-mitica',armaSbloccata:true}),null);
  }
  assert.match(app,/equipaggiamentoRpg\.Effetto === 'skin-mitica'/);
- assert.match(app,/if \(\(effettoCosmicoAttivo && effettoVivo\)/);
+ assert.match(app,/if \(!effettoCosmicoAttivo && !fotoCoronaRpg && !fotoArmaturaArmataRpg/);
  assert.match(img,/if\(opzioni\.skin==='skin-mitica'\)return false/);
  assert.match(x,/astrale-rift-v477\.svg/);
  assert.match(x,/content:none!important/);

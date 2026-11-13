@@ -8334,9 +8334,12 @@ function bloccoPersonaggio(profilo, st) {
     });
     // La classe rpg-composite-active viene attivata dal renderer, SOLO
     // quando la fotografia è pronta: nessun avatar senza effetti su Safari.
-    if ((effettoCosmicoAttivo && effettoVivo) ||
-       (!effettoCosmicoAttivo && !fotoCoronaRpg && !fotoArmaturaArmataRpg &&
-        (effettoVivo || (!scenaFotografica && !combinata)))) {
+    // v495: Astrale e Nebulosa usano già i DUE piani fotografici animati da
+    // montaScenaCosmicaRpg. Il vecchio canvas era invisibile dopo il caricamento,
+    // ma il suo requestAnimationFrame continuava a girare inutilmente su iPhone.
+    // Conserviamo il vecchio renderer soltanto per gli effetti NON cosmici.
+    if (!effettoCosmicoAttivo && !fotoCoronaRpg && !fotoArmaturaArmataRpg &&
+        (effettoVivo || (!scenaFotografica && !combinata))) {
       montaEffettiRpg(grafica, effettoVivo ? (astraleAttiva ? null : effettoEquipaggiato?.id || null) : null, {
         divina: false, // La fotografia già conserva l'Aura originale
         corona: false,

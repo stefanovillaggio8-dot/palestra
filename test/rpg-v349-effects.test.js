@@ -42,9 +42,9 @@ test('Il compositore statico non copre il rendering live, anche con corona e arm
  assert.ok(start>0&&end>start);
  const b=app.slice(start,end);
  assert.match(b,/effettoCosmicoAttivo \|\| \(!fotoCoronaRpg && !fotoArmaturaArmataRpg && !fotoEffettoPremium\)/,
-   'Astrale conserva il Canvas solo dove non esiste una foto completa della configurazione');
- assert.match(b,/\(effettoCosmicoAttivo && effettoVivo\)/,
-   'Il motore astrale viene montato anche dove gli altri effetti usano solo foto');
+   'La condizione di disponibilita del vecchio renderer resta coerente con la scena');
+ assert.match(b,/if \(!effettoCosmicoAttivo && !fotoCoronaRpg && !fotoArmaturaArmataRpg/,
+   'Il Canvas legacy non deve continuare ad animarsi nascosto dietro Astrale e Nebulosa');
  assert.match(b,/!effettoCosmicoAttivo && \(!effettoVivo \|\| auraDivinaAttiva\) && montaFotoRpg/);
  assert.match(b,/!effettoCosmicoAttivo && !fotoCoronaRpg && !fotoArmaturaArmataRpg && !effettoVivo && !auraDivinaAttiva && montaFotoCombinataRpg/);
  assert.match(b,/scenaRichiesta && !effettoCosmicoAttivo && !fotoCoronaRpg && !fotoArmaturaArmataRpg && !effettoVivo/);
