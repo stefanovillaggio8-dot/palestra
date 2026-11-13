@@ -35,7 +35,8 @@ test('v494: texture giusta per ogni classe, nessun ritaglio di avatar o cambio a
         {fase:'retro',texture}),true);
       assert.ok(draw.length>=2);
       assert.equal(draw[0][0],texture);
-      assert.deepEqual(draw[0].slice(1,5),[col*512,row*512,512,512],classe+' '+effetto);
+      assert.deepEqual(draw[0].slice(1,5),[col*512,row*512,512,
+        effetto==='astrale'?404:512],classe+' '+effetto);
     }
     for(const armatura of ARMATURE_ATELIER[classe]){
       if(!armatura)continue;

@@ -84,7 +84,7 @@ test('v494: rendering live e PNG condividono il VFX fotografico, senza toccare i
   assert.match(testo('src/rpg-atelier.js'),/ctx\.drawImage\(fotoBase,dx,dy,dw,dh\)/);
   assert.match(testo('src/anteprima-combinata-rpg.js'),/ctx\.drawImage\(original,0,0,out\.width,out\.height\)/);
   assert.match(testo('sw.js'),/\.\/src\/rpg-energia-incarnata\.js/);
-  assert.match(testo('index.html'),/palestra-v496/);
+  assert.match(testo('index.html'),/palestra-v497/);
   assert.match(testo('anteprima-effetti-cosmici.html'),/cutout\/stati/);
   assert.match(testo('anteprima-effetti-cosmici.html'),/img\/personaggi\/stati/);
   assert.doesNotMatch(testo('src/rpg-energia-incarnata.js'),/localStorage|indexedDB|fetch\(|sessionStorage/);
@@ -107,5 +107,24 @@ test('v494: atlante fotografico alpha disponibile nelle sei coppie e nelle armat
   }
   const live=testo('src/rpg-energia-incarnata.js');
   assert.match(live,/haSoggettoAlpha/);
-  assert.match(testo('sw.js'),/energia-fotografica-v494\.webp/);
+  assert.match(testo('sw.js'),/energia-fotografica-v497\.webp/);
+});
+
+test('v497: sigillo Astrale centrato sotto i piedi in tutte le classi e mai nella Nebulosa',()=>{
+  const texture={naturalWidth:1024,naturalHeight:1536};
+  for(const classe of ['assassino','guerriero','berserker']){
+    for(const effetto of ['astrale','nebulosa']){
+      const draw=[];
+      const ctx={save(){},restore(){},drawImage(...a){draw.push(a);}};
+      disegnaEnergiaFotograficaRpg(ctx,340,510,classe,effetto,0,{fase:'retro',texture});
+      const proiezioni=draw.filter(args=>args.length===9&&args[3]===512&&args[4]===108&&args[6]>420);
+      if(effetto==='nebulosa')assert.equal(proiezioni.length,0,'la Nebulosa non ha sigillo dorato');
+      else{
+        assert.equal(proiezioni.length,1,`${classe}: sigillo unico`);
+        const [, , , , ,x,y,w,h]=proiezioni[0];
+        assert.ok(Math.abs(x+w/2-170)<.1,`${classe}: asse centrale sbagliato`);
+        assert.ok(y>440&&y+h<510,`${classe}: il sigillo deve restare sul pavimento`);
+      }
+    }
+  }
 });
