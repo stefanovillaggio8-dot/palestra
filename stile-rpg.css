@@ -3607,3 +3607,255 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
   object-position:center!important;
   overflow:visible!important;
 }
+
+
+/* v492 · COSMO DIEGETICO — due mondi diversi, una sola figura originale.
+   Sostituisce gli SVG rettangolari sopra le foto con luce, gas e profondità
+   della stage. Non altera dimensioni, corpo, armi, corazze o zoom.
+   Soprattutto: le nubi dietro il personaggio NON sono un'immagine incollata. */
+.personaggio-scena > .rpg-cosmic-stage:is(.rpg-cosmic-astrale,.rpg-cosmic-nebulosa) {
+  --cosmo-cielo:#080e24;
+  position:relative!important;
+  isolation:isolate!important;
+  overflow:visible!important;
+  background:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+}
+.personaggio-scena > .rpg-cosmic-stage.rpg-cosmic-astrale {
+  --cosmo-cielo:#120724;
+  --cosmo-profondita:#201042;
+  --cosmo-alone:rgba(188,91,255,.68);
+}
+.personaggio-scena > .rpg-cosmic-stage.rpg-cosmic-nebulosa {
+  --cosmo-cielo:#071629;
+  --cosmo-profondita:#0d2445;
+  --cosmo-alone:rgba(76,187,246,.53);
+}
+/* La preview è un SOLO set continuo, nessuna card colorata nella card. */
+.aura-preview-panel.aura-preview-cosmic-panel .aura-preview-scene.aura-preview-cosmic-scene.cosmic-astrale {
+  background:
+    radial-gradient(ellipse 65% 43% at 48% 28%,rgba(116,50,202,.36),transparent 90%),
+    radial-gradient(ellipse 57% 40% at 94% 72%,rgba(71,87,191,.25),transparent 96%),
+    linear-gradient(156deg,#080718 0%,#1b103c 50%,#070a22 100%)!important;
+}
+.aura-preview-panel.aura-preview-cosmic-panel .aura-preview-scene.aura-preview-cosmic-scene.cosmic-nebulosa {
+  background:
+    radial-gradient(ellipse 64% 55% at 10% 35%,rgba(40,118,190,.32),transparent 92%),
+    radial-gradient(ellipse 63% 52% at 92% 59%,rgba(133,52,178,.30),transparent 94%),
+    linear-gradient(147deg,#061523 0%,#111334 53%,#060e25 100%)!important;
+}
+/* Il vero cielo sta dietro alla FIGURA. Sono nubi volumetriche continue
+   e non c'è più una seconda fotografia o un file SVG sopra il corpo. */
+.personaggio-scena > .rpg-cosmic-stage > .rpg-cosmic-ambiente {
+  position:absolute!important;
+  z-index:0!important;
+  inset:-9% -10% -10%!important;
+  border:0!important;
+  border-radius:0!important;
+  pointer-events:none!important;
+  background-repeat:no-repeat!important;
+  background-size:cover!important;
+  background-position:center!important;
+  filter:none!important;
+  mix-blend-mode:normal!important;
+  animation:none!important;
+  opacity:1!important;
+}
+.personaggio-scena > .rpg-cosmic-stage.rpg-cosmic-astrale > .rpg-cosmic-ambiente {
+  background:
+    radial-gradient(ellipse 37% 31% at 14% 29%,rgba(154,59,229,.43),transparent 98%),
+    radial-gradient(ellipse 47% 36% at 89% 57%,rgba(93,69,220,.45),transparent 98%),
+    radial-gradient(ellipse 29% 36% at 48% 16%,rgba(194,115,240,.32),transparent 96%),
+    radial-gradient(ellipse 65% 22% at 52% 91%,rgba(224,144,103,.20),transparent 95%),
+    linear-gradient(145deg,#0b0926,#211042 49%,#080d2c)!important;
+}
+.personaggio-scena > .rpg-cosmic-stage.rpg-cosmic-nebulosa > .rpg-cosmic-ambiente {
+  background:
+    radial-gradient(ellipse 42% 35% at 12% 29%,rgba(59,177,235,.49),transparent 97%),
+    radial-gradient(ellipse 43% 49% at 90% 61%,rgba(172,72,198,.45),transparent 98%),
+    radial-gradient(ellipse 58% 25% at 43% 77%,rgba(53,93,207,.35),transparent 95%),
+    radial-gradient(ellipse 41% 21% at 65% 13%,rgba(65,128,204,.22),transparent 96%),
+    linear-gradient(149deg,#061523,#102441 50%,#170f35)!important;
+}
+/* I due sottolivelli appartengono alla stessa atmosfera: uno gas, uno stelle.
+   Tutte le dissolvenze finiscono in alpha zero, niente margini rettangolari. */
+.personaggio-scena .rpg-cosmic-stage > .rpg-cosmic-ambiente::before,
+.personaggio-scena .rpg-cosmic-stage > .rpg-cosmic-ambiente::after {
+  content:"";
+  position:absolute;
+  pointer-events:none;
+  inset:-7%;
+  background-repeat:no-repeat;
+}
+.personaggio-scena .rpg-cosmic-stage > .rpg-cosmic-ambiente::after {
+  opacity:.62;
+  background:
+    radial-gradient(circle at 11% 18%,rgba(250,250,255,.9) 0 1px,transparent 2px),
+    radial-gradient(circle at 27% 8%,rgba(209,237,255,.82) 0 1px,transparent 2.6px),
+    radial-gradient(circle at 89% 21%,rgba(253,223,255,.9) 0 1.1px,transparent 3px),
+    radial-gradient(circle at 96% 52%,rgba(255,238,255,.77) 0 1px,transparent 3px),
+    radial-gradient(circle at 14% 66%,rgba(210,238,255,.95) 0 1px,transparent 2.8px),
+    radial-gradient(circle at 82% 83%,rgba(255,231,245,.85) 0 1px,transparent 2.8px),
+    radial-gradient(circle at 35% 95%,rgba(198,235,255,.8) 0 1px,transparent 2.7px);
+  animation:rpg-v492-stelle 9.4s ease-in-out infinite alternate;
+}
+.personaggio-scena .rpg-cosmic-stage.rpg-cosmic-astrale > .rpg-cosmic-ambiente::before {
+  background:
+    radial-gradient(ellipse 28% 23% at 13% 30%,rgba(208,62,255,.45),transparent 100%),
+    radial-gradient(ellipse 34% 33% at 83% 55%,rgba(107,85,245,.47),transparent 98%),
+    radial-gradient(ellipse 21% 18% at 52% 16%,rgba(255,204,155,.34),transparent 98%);
+  filter:blur(19px);
+  animation:rpg-v492-respiro 13s ease-in-out infinite alternate;
+}
+.personaggio-scena .rpg-cosmic-stage.rpg-cosmic-nebulosa > .rpg-cosmic-ambiente::before {
+  background:
+    radial-gradient(ellipse 39% 22% at 5% 39%,rgba(54,201,243,.43),transparent 98%),
+    radial-gradient(ellipse 42% 34% at 84% 53%,rgba(207,80,219,.39),transparent 98%),
+    radial-gradient(ellipse 35% 25% at 23% 81%,rgba(53,89,231,.37),transparent 98%);
+  filter:blur(24px);
+  animation:rpg-v492-deriva 17s ease-in-out infinite alternate;
+}
+/* LUCE DIETRO LA SAGOMA, mai adesivi sulla pelle. */
+.personaggio-scena > .rpg-cosmic-stage::before {
+  content:"";
+  position:absolute;
+  z-index:0;
+  inset:-8% -8% -6%;
+  pointer-events:none;
+  border:0;
+  filter:blur(19px);
+  border-radius:48%;
+  animation:rpg-v492-respiro 11s ease-in-out infinite alternate;
+}
+.personaggio-scena > .rpg-cosmic-stage.rpg-cosmic-astrale::before {
+  background:
+    radial-gradient(ellipse 46% 63% at 49% 46%,rgba(178,74,255,.38),transparent 89%),
+    radial-gradient(ellipse 28% 54% at 68% 50%,rgba(255,181,112,.21),transparent 91%);
+}
+.personaggio-scena > .rpg-cosmic-stage.rpg-cosmic-nebulosa::before {
+  background:
+    radial-gradient(ellipse 52% 68% at 48% 48%,rgba(63,176,241,.31),transparent 91%),
+    radial-gradient(ellipse 30% 40% at 71% 61%,rgba(214,72,204,.24),transparent 95%);
+}
+/* Il soggetto rimane davanti a TUTTO il fondale.
+   Manteniamo letteralmente la misura stabilita dalla foto v491. */
+.personaggio-scena > .rpg-cosmic-stage > .personaggio-scena-grafica.con-foto {
+  z-index:2!important;
+  isolation:isolate;
+  background:transparent!important;
+}
+.personaggio-scena .rpg-cosmic-stage.rpg-cosmic-astrale .rpg-cosmic-cutout-asset {
+  filter:
+    drop-shadow(0 0 8px rgba(255,210,165,.30))
+    drop-shadow(0 0 19px rgba(191,93,255,.42))
+    drop-shadow(0 18px 23px rgba(4,3,15,.43))!important;
+}
+.personaggio-scena .rpg-cosmic-stage.rpg-cosmic-nebulosa .rpg-cosmic-cutout-asset {
+  filter:
+    drop-shadow(-2px 0 12px rgba(65,207,245,.38))
+    drop-shadow(4px 0 19px rgba(179,83,230,.29))
+    drop-shadow(0 18px 22px rgba(3,7,18,.45))!important;
+}
+/* Vietiamo i vecchi poster SVG a tutto quadro, anche per le tre varianti.
+   La presenza diventa un sottilissimo PRIMO PIANO di luce ai margini. */
+.personaggio-scena > .rpg-cosmic-stage.rpg-cosmic-astrale:is(.personaggio-assassino,.personaggio-guerriero,.personaggio-berserker) > .rpg-astrale-presenza,
+.personaggio-scena > .rpg-cosmic-stage.rpg-cosmic-nebulosa:is(.personaggio-assassino,.personaggio-guerriero,.personaggio-berserker) > .rpg-nebulosa-presenza {
+  display:block!important;
+  position:absolute!important;
+  z-index:3!important;
+  inset:-8% -6% -9%!important;
+  background:none!important;
+  background-image:none!important;
+  border:0!important;
+  border-radius:0!important;
+  filter:none!important;
+  opacity:1!important;
+  transform:none!important;
+  mix-blend-mode:screen!important;
+  -webkit-mask-image:radial-gradient(ellipse 57% 68% at 50% 49%,transparent 0 56%,rgba(0,0,0,.65) 80%,black 100%)!important;
+  mask-image:radial-gradient(ellipse 57% 68% at 50% 49%,transparent 0 56%,rgba(0,0,0,.65) 80%,black 100%)!important;
+  animation:none!important;
+  pointer-events:none!important;
+}
+.personaggio-scena .rpg-cosmic-stage > :is(.rpg-astrale-presenza,.rpg-nebulosa-presenza)::before,
+.personaggio-scena .rpg-cosmic-stage > :is(.rpg-astrale-presenza,.rpg-nebulosa-presenza)::after {
+  content:""!important;
+  position:absolute!important;
+  inset:0!important;
+  width:auto!important;
+  height:auto!important;
+  -webkit-mask-image:none!important;
+  mask-image:none!important;
+  transform:none;
+  pointer-events:none;
+}
+.personaggio-scena .rpg-cosmic-stage.rpg-cosmic-astrale > .rpg-astrale-presenza::before {
+  background:
+    conic-gradient(from 175deg at 50% 43%,transparent 0deg,rgba(210,147,255,.24) 38deg,transparent 89deg,rgba(249,205,135,.24) 167deg,transparent 238deg,rgba(141,89,255,.27) 290deg,transparent 355deg)!important;
+  filter:blur(15px)!important;
+  animation:rpg-v492-portale 19s linear infinite!important;
+}
+.personaggio-scena .rpg-cosmic-stage.rpg-cosmic-astrale > .rpg-astrale-presenza::after {
+  background:
+    radial-gradient(circle at 9% 27%,#fff5d2 0 1.4px,rgba(250,200,115,.65) 2px,transparent 17px),
+    radial-gradient(circle at 90% 45%,#f9dcff 0 1px,rgba(184,120,253,.53) 2px,transparent 21px),
+    radial-gradient(circle at 7% 70%,#f8e6ff 0 1px,transparent 19px),
+    radial-gradient(circle at 89% 81%,#dff4ff 0 1px,transparent 22px),
+    radial-gradient(ellipse 33% 15% at 50% 92%,rgba(240,171,130,.32),transparent 98%)!important;
+  animation:rpg-v492-stelle 7.4s ease-in-out infinite alternate!important;
+}
+.personaggio-scena .rpg-cosmic-stage.rpg-cosmic-nebulosa > .rpg-nebulosa-presenza::before {
+  background:
+    radial-gradient(ellipse 29% 27% at 6% 30%,rgba(52,213,241,.38),transparent 98%),
+    radial-gradient(ellipse 37% 39% at 95% 60%,rgba(213,80,225,.39),transparent 99%),
+    radial-gradient(ellipse 34% 23% at 23% 77%,rgba(98,122,241,.26),transparent 99%)!important;
+  filter:blur(19px)!important;
+  animation:rpg-v492-deriva 15s ease-in-out infinite alternate!important;
+}
+.personaggio-scena .rpg-cosmic-stage.rpg-cosmic-nebulosa > .rpg-nebulosa-presenza::after {
+  background:
+    radial-gradient(circle at 11% 24%,#e0faff 0 1px,rgba(97,215,255,.54) 3px,transparent 21px),
+    radial-gradient(circle at 91% 56%,#f9d6ff 0 1.2px,rgba(216,112,247,.51) 3px,transparent 20px),
+    radial-gradient(circle at 14% 81%,#b4edff 0 1px,transparent 17px),
+    radial-gradient(circle at 88% 14%,#ecddff 0 1px,transparent 16px)!important;
+  animation:rpg-v492-stelle 11s ease-in-out infinite alternate!important;
+}
+@keyframes rpg-v492-deriva {
+  from{opacity:.75;transform:translate3d(-5px,2px,0) scale(.985)}
+  to{opacity:1;transform:translate3d(5px,-4px,0) scale(1.015)}
+}
+@keyframes rpg-v492-respiro {
+  from{opacity:.72;transform:translate3d(-2px,3px,0) scale(.984)}
+  to{opacity:1;transform:translate3d(2px,-3px,0) scale(1.02)}
+}
+@keyframes rpg-v492-stelle {
+  from{opacity:.48}
+  to{opacity:1}
+}
+@keyframes rpg-v492-portale {
+  from{transform:rotate(0deg)}
+  to{transform:rotate(360deg)}
+}
+/* Più leggero su Safari/iPhone: nessuna animazione sulla FOTO. */
+@media(max-width:540px) {
+  .personaggio-scena > .rpg-cosmic-stage.rpg-cosmic-nebulosa > .rpg-cosmic-ambiente::before {
+    filter:blur(13px);
+  }
+  .personaggio-scena > .rpg-cosmic-stage.rpg-cosmic-astrale > .rpg-cosmic-ambiente::before {
+    filter:blur(12px);
+  }
+  .personaggio-scena .rpg-cosmic-stage > :is(.rpg-astrale-presenza,.rpg-nebulosa-presenza)::before {
+    filter:blur(10px)!important;
+  }
+}
+@media(prefers-reduced-motion:reduce) {
+  .personaggio-scena .rpg-cosmic-stage > .rpg-cosmic-ambiente::before,
+  .personaggio-scena .rpg-cosmic-stage > .rpg-cosmic-ambiente::after,
+  .personaggio-scena > .rpg-cosmic-stage::before,
+  .personaggio-scena .rpg-cosmic-stage > :is(.rpg-astrale-presenza,.rpg-nebulosa-presenza)::before,
+  .personaggio-scena .rpg-cosmic-stage > :is(.rpg-astrale-presenza,.rpg-nebulosa-presenza)::after {
+    animation:none!important;
+    transform:none!important;
+  }
+}
