@@ -10,7 +10,7 @@ test('v491 usa soltanto cutout dichiarati e mai foto di armature differenti',()=
  for(const key of CUTOUT_VERIFICATI_RPG){
    assert.match(key,/^(assassino|guerriero|berserker)-[0-5]$/);
    assert.equal(percorsoRitaglioCosmicoRpg('./img/personaggi/stati/'+key+'.webp?v=490'),
-     './img/personaggi/cutout/stati/'+key+'.webp?v=491');
+     './img/personaggi/cutout/stati/'+key+'.webp?v=492');
  }
  assert.equal(percorsoRitaglioCosmicoRpg('./img/personaggi/stati/assassino-9.webp'),null);
  assert.equal(percorsoRitaglioCosmicoRpg('./img/personaggi/armatura-con-arma-v371/assassino/armatura-assassino-notte/base.webp'),null);
