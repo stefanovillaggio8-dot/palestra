@@ -1,0 +1,38 @@
+name: Screenshot approvato v493 (anteprima)
+on:
+  push:
+    branches: [preview/v493-astrale-approvato]
+    paths:
+      - 'preview-cosmica-v492.html'
+      - '.github/workflows/cattura-preview-v493.yml'
+permissions:
+  contents: write
+jobs:
+  screenshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: preview/v493-astrale-approvato
+      - name: Screenshot reale Chrome
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/preview-v493-http.log 2>&1 &
+          sleep 2
+          CHROME=$(command -v google-chrome || command -v google-chrome-stable || command -v chromium)
+          if [ -z "$CHROME" ]; then echo "Chrome mancante"; exit 1; fi
+          timeout 90s "$CHROME" --headless=new --no-sandbox --disable-gpu --hide-scrollbars \
+            --disable-extensions --force-device-scale-factor=1 \
+            --window-size=1450,1020 --virtual-time-budget=12000 \
+            --screenshot="$GITHUB_WORKSPACE/preview-astrale-recuperato-v493.png" \
+            "http://127.0.0.1:8765/preview-cosmica-v492.html"
+          test -s preview-astrale-recuperato-v493.png
+      - name: Commit screenshot solo sul ramo preview
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add preview-astrale-recuperato-v493.png
+          if ! git diff --cached --quiet; then
+            git commit -m "preview: screenshot autentico Astrale v483 e Nebulosa v484"
+            git push origin HEAD:preview/v493-astrale-approvato
+          fi
