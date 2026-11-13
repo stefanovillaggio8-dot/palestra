@@ -4,7 +4,7 @@
 // Le texture degli effetti vengono applicate solo ATTORNO alla silhouette.
 // Le combinazioni sono composte al momento: nessun limite prefissato di varianti.
 import { AURA_FOTO_ATLAS } from './aura-foto-atlas.js';
-import { disegnaAtmosferaCosmicaRpg,disegnaAccentiCosmiciRpg } from './rpg-scena-cosmica.js';
+import { disegnaAtmosferaCosmicaRpg,disegnaAccentiCosmiciRpg,disegnaFotografiaFusaRpg } from './rpg-scena-cosmica.js';
 import { caricaEnergiaFotograficaRpg,disegnaEnergiaFotograficaRpg } from './rpg-energia-incarnata.js';
 
 export const CLASSI_FOTO_RPG = Object.freeze(['guerriero','assassino','berserker']);
@@ -254,12 +254,17 @@ export async function scaricaFotoCombinataRpg(grafica,classe='rpg') {
       ctx.drawImage(original,0,0,out.width,out.height);
       ctx.fillStyle=tipoCosmico==='astrale'?'rgba(13,7,20,.27)':'rgba(6,13,22,.25)';
       ctx.fillRect(0,0,out.width,out.height);
-    }else disegnaAtmosferaCosmicaRpg(ctx,out.width,out.height,tipoCosmico);
+    }else {
+      // La foto salvata non deve aggiungere un cielo cosmico che non esiste
+      // nella scena: lo stesso fondale neutro e la fotografia sfumata.
+      ctx.fillStyle='#0c0f1b';ctx.fillRect(0,0,out.width,out.height);
+    }
     disegnaEnergiaFotograficaRpg(ctx,out.width,out.height,
       ['assassino','guerriero','berserker'].find(c=>grafica.classList.contains('personaggio-'+c))||'assassino',
       tipoCosmico,2.8,{fase:'retro',texture});
     if(alphaPronto)ctx.drawImage(cutout,0,0,out.width,out.height);
-    else ctx.drawImage(original,0,0,out.width,out.height);
+    else if(!disegnaFotografiaFusaRpg(ctx,original,0,0,out.width,out.height))
+      ctx.drawImage(original,0,0,out.width,out.height);
     disegnaEnergiaFotograficaRpg(ctx,out.width,out.height,
       ['assassino','guerriero','berserker'].find(c=>grafica.classList.contains('personaggio-'+c))||'assassino',
       tipoCosmico,2.8,{fase:'fronte',soggetto:alphaPronto?cutout:null,

@@ -8,6 +8,67 @@ import { montaEnergiaIncarnataRpg } from './rpg-energia-incarnata.js';
 const CLASSI=Object.freeze(['assassino','guerriero','berserker']);
 const MASK_CACHE=new Map();
 const MASK_RASTER_CACHE=new Map();
+let mascheraBordiFoto=null;
+// Le armature acquistabili, le armi e le fotografie con Corona non hanno
+// sempre un ritaglio alpha dedicato. Una sagoma poligonale cancella pezzi
+// reali di scudo, mantello, pugnali e corna; una foto opaca, invece, lascia
+// il vecchio poster rettangolare. Sfuma SOLO i bordi esterni della foto.
+// La zona interna (compresa l'intera silhouette) resta pixel-per-pixel fedele.
+function dipingiMascheraBordiRpg(ctx,w,h) {
+  if(!ctx?.createLinearGradient || !ctx?.fillRect)return false;
+  ctx.fillStyle='#fff';ctx.fillRect(0,0,w,h);
+  ctx.globalCompositeOperation='destination-in';
+  const x=ctx.createLinearGradient(0,0,w,0);
+  x.addColorStop(0,'rgba(0,0,0,0)');
+  x.addColorStop(.095,'rgba(0,0,0,1)');
+  x.addColorStop(.905,'rgba(0,0,0,1)');
+  x.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=x;ctx.fillRect(0,0,w,h);
+  const y=ctx.createLinearGradient(0,0,0,h);
+  y.addColorStop(0,'rgba(0,0,0,0)');
+  y.addColorStop(.075,'rgba(0,0,0,1)');
+  y.addColorStop(.925,'rgba(0,0,0,1)');
+  y.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=y;ctx.fillRect(0,0,w,h);
+  return true;
+}
+export function mascheraBordiFotografiaRpg(documento=globalThis.document) {
+  if(mascheraBordiFoto)return mascheraBordiFoto;
+  if(!documento?.createElement)return null;
+  try{
+    const c=documento.createElement('canvas');
+    c.width=180;c.height=270;
+    const ctx=c.getContext?.('2d',{alpha:true});
+    if(!ctx||!dipingiMascheraBordiRpg(ctx,c.width,c.height)||!c.toDataURL)return null;
+    mascheraBordiFoto='url('+JSON.stringify(c.toDataURL('image/png'))+')';
+    return mascheraBordiFoto;
+  }catch{return null;}
+}
+// La foto scaricata dall'Atelier usa la STESSA dissolvenza della scena.
+// Non cambia il file sorgente e non ritocca volto/corpo/armatura.
+export function disegnaFotografiaFusaRpg(ctx,foto,x,y,w,h,documento=globalThis.document) {
+  if(!ctx?.drawImage||!foto||!documento?.createElement||w<2||h<2)return false;
+  try{
+    const c=documento.createElement('canvas');
+    c.width=Math.max(2,Math.round(w));c.height=Math.max(2,Math.round(h));
+    const t=c.getContext?.('2d',{alpha:true});
+    if(!t)return false;
+    t.drawImage(foto,0,0,c.width,c.height);
+    t.globalCompositeOperation='destination-in';
+    // Il riempimento bianco del livello maschera non deve cancellare la foto:
+    // dopo drawImage applichiamo soltanto i due gradienti di alpha.
+    const gx=t.createLinearGradient(0,0,c.width,0);
+    gx.addColorStop(0,'transparent');gx.addColorStop(.095,'#000');
+    gx.addColorStop(.905,'#000');gx.addColorStop(1,'transparent');
+    t.fillStyle=gx;t.fillRect(0,0,c.width,c.height);
+    const gy=t.createLinearGradient(0,0,0,c.height);
+    gy.addColorStop(0,'transparent');gy.addColorStop(.075,'#000');
+    gy.addColorStop(.925,'#000');gy.addColorStop(1,'transparent');
+    t.fillStyle=gy;t.fillRect(0,0,c.width,c.height);
+    ctx.drawImage(c,x,y,w,h);
+    return true;
+  }catch{return false;}
+}
 // La foto dell'eroe NON comincia al bordo superiore dello scatto.
 // La maschera v487 iniziava a y=0 e lasciava una piramide di fondale sopra
 // il cappuccio. Questi contorni includono mantelli, braccia, armi e scudi,
@@ -74,9 +135,18 @@ export function mascheraCosmicaSvgRpg(classe='assassino') {
 }
 export function applicaMascheraCosmicaRpg(foto,classe='assassino') {
   if(!foto?.style)return false;
-  const src=mascheraCosmicaRasterRpg(classe)||mascheraCosmicaSvgRpg(classe);
-  foto.style.webkitMaskImage=src;
-  foto.style.maskImage=src;
+  // v506: il soggetto alpha esatto, quando disponibile, rimane prioritario.
+  // Per le altre fotografie NON seguiamo un contorno inventato: la dissolvenza
+  // ai bordi mantiene interi i dettagli di qualunque armatura acquistata.
+  const src=mascheraBordiFotografiaRpg()||
+    'radial-gradient(ellipse 53% 56% at 50% 50%,#000 65%,transparent 100%)';
+  if(typeof foto.style.setProperty==='function'){
+    foto.style.setProperty('-webkit-mask-image',src,'important');
+    foto.style.setProperty('mask-image',src,'important');
+  }else { // DOM finto / browser legacy: non lanciare eccezioni
+    foto.style.webkitMaskImage=src;
+    foto.style.maskImage=src;
+  }
   foto.style.webkitMaskSize='100% 100%';
   foto.style.maskSize='100% 100%';
   foto.style.webkitMaskPosition='center';
