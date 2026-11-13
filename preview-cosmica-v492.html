@@ -59,30 +59,41 @@ html,body{margin:0;min-height:100%;background:#080c1c;color:#efebff;font-family:
  animation:v493-celestial 7s ease-in-out infinite alternate!important;
 }
 .pv-stage .personaggio-scena > .rpg-cosmic-stage.rpg-cosmic-astrale > .rpg-astrale-presenza{
- background-image:url('./img/effetti/astrale-celestial-guerriero-v483.svg?v=493')!important;
+ background-image:url('./img/effetti/astrale-celestial-guerriero-v493-preview.svg?v=493')!important;
 }
 .pv-stage .personaggio-scena > .rpg-cosmic-stage.rpg-cosmic-astrale.personaggio-assassino > .rpg-astrale-presenza{
- background-image:url('./img/effetti/astrale-celestial-assassino-v483.svg?v=493')!important;
+ background-image:url('./img/effetti/astrale-celestial-assassino-v493-preview.svg?v=493')!important;
 }
 .pv-stage .personaggio-scena > .rpg-cosmic-stage.rpg-cosmic-astrale.personaggio-berserker > .rpg-astrale-presenza{
- background-image:url('./img/effetti/astrale-celestial-berserker-v483.svg?v=493')!important;
+ background-image:url('./img/effetti/astrale-celestial-berserker-v493-preview.svg?v=493')!important;
 }
 .pv-stage .personaggio-scena > .rpg-cosmic-stage.rpg-cosmic-nebulosa > .rpg-nebulosa-presenza{
- background-image:url('./img/effetti/nebulosa-spirale-guerriero-v484.svg?v=493')!important;
+ background-image:url('./img/effetti/nebulosa-spirale-guerriero-v493-preview.svg?v=493')!important;
  opacity:.89!important;
  animation:v493-nebula 14s ease-in-out infinite alternate!important;
 }
 .pv-stage .personaggio-scena > .rpg-cosmic-stage.rpg-cosmic-nebulosa.personaggio-assassino > .rpg-nebulosa-presenza{
- background-image:url('./img/effetti/nebulosa-spirale-assassino-v484.svg?v=493')!important;
+ background-image:url('./img/effetti/nebulosa-spirale-assassino-v493-preview.svg?v=493')!important;
 }
 .pv-stage .personaggio-scena > .rpg-cosmic-stage.rpg-cosmic-nebulosa.personaggio-berserker > .rpg-nebulosa-presenza{
- background-image:url('./img/effetti/nebulosa-spirale-berserker-v484.svg?v=493')!important;
+ background-image:url('./img/effetti/nebulosa-spirale-berserker-v493-preview.svg?v=493')!important;
 }
 @keyframes v493-celestial{from{opacity:.83;filter:saturate(1) brightness(.94)}to{opacity:1;filter:saturate(1.23) brightness(1.15)}}
 @keyframes v493-nebula{from{opacity:.73;filter:saturate(1.05)}to{opacity:.95;filter:saturate(1.22)}}
 @media(prefers-reduced-motion:reduce){
  .pv-stage .personaggio-scena > .rpg-cosmic-stage > :is(.rpg-astrale-presenza,.rpg-nebulosa-presenza) {animation:none!important}
 }
+
+
+/* La galassia e il portale sono DIETRO lo stesso ritratto alpha:
+   niente sagoma vuota, niente luce che nasconde armature o faccia. */
+.pv-stage .personaggio-scena > .rpg-cosmic-stage > :is(.rpg-astrale-presenza,.rpg-nebulosa-presenza) {
+  z-index:1!important;
+}
+.pv-stage .personaggio-scena > .rpg-cosmic-stage > .personaggio-scena-grafica.con-foto {
+  z-index:3!important;
+}
+.pv-stage .personaggio-scena > .rpg-cosmic-stage > .rpg-cosmic-ambiente {z-index:0!important}
 
 </style></head>
 <body>
