@@ -59,7 +59,7 @@ test('v483 combinazioni 3 classi x 6 livelli x armature x armi x corona x aura: 
  assert.equal(montaScenaCinematograficaRpg({}, {}, {classe:'guerriero',skin:'skin-mitica'}),false);
  const code=read('src/app.js'),atelier=read('src/rpg-atelier.js');
  assert.match(code,/const effettoCosmicoAttivo = astraleAttiva \|\| nebulosaAttiva/);
- assert.match(code,/if \(\(effettoCosmicoAttivo && effettoVivo\)/);
+ assert.match(code,/if \(!effettoCosmicoAttivo && !fotoCoronaRpg && !fotoArmaturaArmataRpg/);
  assert.match(code,/if\(scenaRichiesta && !effettoCosmicoAttivo/);
  assert.match(atelier,/fxSenzaFoto = c.effetto==='skin-mitica' \|\| c.effetto==='effetto-nebula'/);
  assert.match(atelier,/disegnaAstraleExport\(ctx/);

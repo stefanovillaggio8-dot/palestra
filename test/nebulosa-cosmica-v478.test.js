@@ -31,7 +31,7 @@ test('v481: identico zoom di Astrale, maschera originale per tre personaggi',()=
  assert.match(app,/if\(scenaRichiesta && !effettoCosmicoAttivo/);
  assert.match(app,/if \(effettoEquipaggiato\) grafica\.classList\.add\('shop-' \+ effettoEquipaggiato\.id\)/);
  assert.match(app,/rpg-nebulosa-presenza/);
- assert.match(app,/if \(\(effettoCosmicoAttivo && effettoVivo\)/);
+ assert.match(app,/if \(!effettoCosmicoAttivo && !fotoCoronaRpg && !fotoArmaturaArmataRpg/);
  assert.match(atelier,/dipingiNebulosaCosmica\(ctx,dw,dh,c.classe/);
  assert.match(atelier,/fxSenzaFoto = c.effetto==='skin-mitica' \|\| c.effetto==='effetto-nebula'/);
  const v481=css.slice(css.indexOf('/* v481 — Nebulosa LEGGENDARIA'));
