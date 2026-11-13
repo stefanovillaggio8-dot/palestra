@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="it"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Anteprima fedele Astrale / Nebulosa · v492</title>
+<title>Recupero Astrale approvato · confronto v493</title>
 <link rel="stylesheet" href="./stile.css?v=492">
 <link rel="stylesheet" href="./stile-rpg.css?v=492">
 <style>
@@ -40,11 +40,55 @@ html,body{margin:0;min-height:100%;background:#080c1c;color:#efebff;font-family:
 .pv-note{font-size:12px;color:#858faa;margin-top:16px}
 @media(max-width:760px){#preview-v492{width:calc(100% - 20px);padding-top:14px}.pv-grid{grid-template-columns:1fr}.pv-card .pv-stage{height:570px}.pv-stage .rpg-cosmic-stage > .personaggio-scena-grafica.con-foto > .personaggio-ritratto{max-height:470px!important}.pv-head h1{font-size:22px}}
 @media(prefers-reduced-motion:reduce){*{animation-duration:0.01ms!important;transition-duration:0.01ms!important}}
+
+/* RESTAURO V493: riutilizza le grafiche storiche, non un concept nuovo.
+   Astrale Celestiale v483 è quello che l'utente aveva approvato.
+   Nebulosa v484 è riferimento storico, non dichiarata approvata. */
+.pv-stage .personaggio-scena > .rpg-cosmic-stage.rpg-cosmic-astrale > .rpg-astrale-presenza,
+.pv-stage .personaggio-scena > .rpg-cosmic-stage.rpg-cosmic-nebulosa > .rpg-nebulosa-presenza{
+ background-size:100% 100%!important;
+ background-position:center!important;
+ background-repeat:no-repeat!important;
+ opacity:1!important;
+ filter:saturate(1.14) brightness(1.05)!important;
+ mix-blend-mode:screen!important;
+ -webkit-mask-image:none!important;mask-image:none!important;
+ z-index:5!important;
+ inset:-6% -6% -7%!important;
+ transform:none!important;
+ animation:v493-celestial 7s ease-in-out infinite alternate!important;
+}
+.pv-stage .personaggio-scena > .rpg-cosmic-stage.rpg-cosmic-astrale > .rpg-astrale-presenza{
+ background-image:url('./img/effetti/astrale-celestial-guerriero-v483.svg?v=493')!important;
+}
+.pv-stage .personaggio-scena > .rpg-cosmic-stage.rpg-cosmic-astrale.personaggio-assassino > .rpg-astrale-presenza{
+ background-image:url('./img/effetti/astrale-celestial-assassino-v483.svg?v=493')!important;
+}
+.pv-stage .personaggio-scena > .rpg-cosmic-stage.rpg-cosmic-astrale.personaggio-berserker > .rpg-astrale-presenza{
+ background-image:url('./img/effetti/astrale-celestial-berserker-v483.svg?v=493')!important;
+}
+.pv-stage .personaggio-scena > .rpg-cosmic-stage.rpg-cosmic-nebulosa > .rpg-nebulosa-presenza{
+ background-image:url('./img/effetti/nebulosa-spirale-guerriero-v484.svg?v=493')!important;
+ opacity:.89!important;
+ animation:v493-nebula 14s ease-in-out infinite alternate!important;
+}
+.pv-stage .personaggio-scena > .rpg-cosmic-stage.rpg-cosmic-nebulosa.personaggio-assassino > .rpg-nebulosa-presenza{
+ background-image:url('./img/effetti/nebulosa-spirale-assassino-v484.svg?v=493')!important;
+}
+.pv-stage .personaggio-scena > .rpg-cosmic-stage.rpg-cosmic-nebulosa.personaggio-berserker > .rpg-nebulosa-presenza{
+ background-image:url('./img/effetti/nebulosa-spirale-berserker-v484.svg?v=493')!important;
+}
+@keyframes v493-celestial{from{opacity:.83;filter:saturate(1) brightness(.94)}to{opacity:1;filter:saturate(1.23) brightness(1.15)}}
+@keyframes v493-nebula{from{opacity:.73;filter:saturate(1.05)}to{opacity:.95;filter:saturate(1.22)}}
+@media(prefers-reduced-motion:reduce){
+ .pv-stage .personaggio-scena > .rpg-cosmic-stage > :is(.rpg-astrale-presenza,.rpg-nebulosa-presenza) {animation:none!important}
+}
+
 </style></head>
 <body>
 <main id="preview-v492">
 <header class="pv-head">
-<div><h1>Anteprima effetti cosmici · v492</h1><p>Stesso personaggio originale, stesso equipaggiamento e inquadratura; cambia solo l'effetto.</p></div>
+<div><h1>Confronto recupero effetti cosmici · v493</h1><p>Stesso personaggio originale, stesso equipaggiamento e inquadratura; cambia solo l'effetto.</p></div>
 <div class="pv-controls" aria-label="Seleziona personaggio">
 <button type="button" data-classe="assassino" aria-pressed="false">Assassino</button>
 <button type="button" data-classe="guerriero" aria-pressed="true">Guerriero</button>
@@ -53,10 +97,10 @@ html,body{margin:0;min-height:100%;background:#080c1c;color:#efebff;font-family:
 </div>
 </header>
 <div class="pv-grid">
-<section class="pv-card mitico"><div class="pv-card-title"><strong>Astrale Cosmico</strong><small>MITICO</small></div><div class="pv-stage" id="preview-astrale"></div><div class="pv-card-caption"><b>Oro e viola.</b> Luce esterna, atmosfera profonda, bagliore e particelle in movimento.</div></section>
-<section class="pv-card leggendario"><div class="pv-card-title"><strong>Nebulosa Cosmica</strong><small>LEGGENDARIO</small></div><div class="pv-stage" id="preview-nebulosa"></div><div class="pv-card-caption"><b>Azzurro e magenta.</b> Nubi, polvere stellare e illuminazione ambientale più morbida.</div></section>
+<section class="pv-card mitico"><div class="pv-card-title"><strong>Astrale Cosmico</strong><small>MITICO</small></div><div class="pv-stage" id="preview-astrale"></div><div class="pv-card-caption"><b>Ripristino Astrale approvato (v483).</b> Rune dorate, cristalli e portale celestiale mitico.</div></section>
+<section class="pv-card leggendario"><div class="pv-card-title"><strong>Nebulosa Cosmica</strong><small>LEGGENDARIO</small></div><div class="pv-stage" id="preview-nebulosa"></div><div class="pv-card-caption"><b>Riferimento Nebulosa v484.</b> Spirale galattica e gas, ancora da approvare.</div></section>
 </div>
-<p class="pv-note">Questa pagina ricompone le vere classi CSS, il codice di montaggio e i file avatar della v492. È una preview isolata: non cambia account, schede, inventario né Streak.</p>
+<p class="pv-note">Confronto di prova: recupera gli asset originali v483/v484 dentro il motore v492. Non pubblicato nell'app: serve per valutare l'effetto senza altre regressioni.</p>
 </main>
 <script type="module">
 import {montaScenaCosmicaRpg} from './src/rpg-scena-cosmica.js?v=492';
