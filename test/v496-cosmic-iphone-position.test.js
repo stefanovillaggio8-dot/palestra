@@ -21,8 +21,8 @@ test('v496: i due canvas e il fondale seguono la foto anche nell’anteprima iPh
     assert.match(declarations,/bottom\s*:\s*auto\s*!important/i);
     assert.doesNotMatch(declarations,/(?:top|left)\s*:[^;]*!important/i);
   }
-  assert.match(js,/fondale\.style\.left=\(fr\.left-pr\.left\)/);
-  assert.match(js,/fondale\.style\.top=\(fr\.top-pr\.top\)/);
-  assert.match(js,/can\.style\.left=\(fr\.left-pr\.left\)/);
-  assert.match(js,/can\.style\.top=\(fr\.top-pr\.top\)/);
+  assert.match(js,/allinea\(fondale,'left',\(fr\.left-pr\.left\)/);
+  assert.match(js,/allinea\(fondale,'top',\(fr\.top-pr\.top\)/);
+  assert.match(js,/allinea\(can,'left',\(fr\.left-pr\.left\)/);
+  assert.match(js,/allinea\(can,'top',\(fr\.top-pr\.top\)/);
 });

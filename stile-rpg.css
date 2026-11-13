@@ -3905,7 +3905,10 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
   pointer-events:none!important;
 }
 .personaggio-scena > .rpg-cosmic-stage.rpg-cosmic-cutout-ready.rpg-energia-pronta > .rpg-foto-fondale {
-  display:block!important;
+  /* v498: il ritaglio autentico copre gia' il corpo. Mostrare di nuovo la
+     fotografia completa alle sue spalle ricrea il rettangolo marrone/nero
+     che fa sembrare Nebulosa e Astrale sfondi incollati. */
+  display:none!important;
 }
 .personaggio-scena > .rpg-cosmic-stage > :is(.rpg-energia-retro,.rpg-energia-fronte) {
   display:block!important;
