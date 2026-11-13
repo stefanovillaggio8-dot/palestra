@@ -27,11 +27,14 @@ jobs:
             --screenshot="$GITHUB_WORKSPACE/preview-astrale-recuperato-v493.png" \
             "http://127.0.0.1:8765/preview-cosmica-v492.html"
           test -s preview-astrale-recuperato-v493.png
+          python3 -m pip install -q pillow
+          python3 -c "from PIL import Image; im=Image.open('preview-astrale-recuperato-v493.png').convert('RGB'); im.save('preview-astrale-recuperato-v493.jpg',quality=76,optimize=True)"
+          test -s preview-astrale-recuperato-v493.jpg
       - name: Commit screenshot solo sul ramo preview
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add preview-astrale-recuperato-v493.png
+          git add preview-astrale-recuperato-v493.png preview-astrale-recuperato-v493.jpg
           if ! git diff --cached --quiet; then
             git commit -m "preview: screenshot autentico Astrale v483 e Nebulosa v484"
             git push origin HEAD:preview/v493-astrale-approvato
