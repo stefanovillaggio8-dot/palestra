@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="it"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Anteprima fedele Astrale / Nebulosa · v492</title>
+<link rel="stylesheet" href="./stile.css?v=492">
+<link rel="stylesheet" href="./stile-rpg.css?v=492">
+<style>
+:root{color-scheme:dark}
+html,body{margin:0;min-height:100%;background:#080c1c;color:#efebff;font-family:system-ui,-apple-system,Segoe UI,sans-serif}
+*{box-sizing:border-box}
+#preview-v492{width:min(1330px,calc(100% - 36px));margin:0 auto;padding:25px 0 28px}
+.pv-head{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;margin-bottom:16px}
+.pv-head h1{font-weight:800;letter-spacing:-.035em;font-size:28px;line-height:1.2;margin:0 0 8px}
+.pv-head p{margin:0;color:#aeb5d8;font-size:13px}
+.pv-controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.pv-controls button{padding:10px 13px;border:1px solid #3b436f;color:#eceaff;background:#181d38;border-radius:12px;font:600 13px system-ui;cursor:pointer}
+.pv-controls button[aria-pressed="true"]{background:#53368b;border-color:#b593ff;box-shadow:0 0 0 1px #be8cff}
+.pv-controls label{font-size:13px;color:#abb5d5;display:flex;gap:8px;align-items:center}
+.pv-controls select{background:#151a32;color:#fff;border:1px solid #49517b;border-radius:10px;padding:8px}
+.pv-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.pv-card{position:relative;isolation:isolate;border:1px solid rgba(162,169,244,.22);border-radius:26px;overflow:hidden;background:#0e132d;box-shadow:0 18px 48px rgba(0,0,0,.24)}
+.pv-card.mitico{border-color:rgba(190,111,244,.43)}
+.pv-card.leggendario{border-color:rgba(95,181,246,.38)}
+.pv-card-title{padding:19px 25px 14px;display:flex;align-items:center;gap:12px;justify-content:space-between;background:#0d1024}
+.pv-card-title strong{font-size:19px;letter-spacing:-.02em}
+.pv-card-title small{font-weight:700;font-size:11px;letter-spacing:.12em}
+.pv-card.mitico .pv-card-title small{color:#f3c3ff}
+.pv-card.leggendario .pv-card-title small{color:#8bdfff}
+.pv-card .pv-stage{height:680px;position:relative;isolation:isolate;display:flex;align-items:stretch;overflow:hidden}
+.pv-card.mitico .pv-stage{background:radial-gradient(ellipse at 48% 36%,rgba(107,46,190,.26),transparent 62%),linear-gradient(160deg,#0c0721,#19103d 50%,#0a0e28)}
+.pv-card.leggendario .pv-stage{background:radial-gradient(ellipse at 33% 35%,rgba(57,155,204,.25),transparent 67%),linear-gradient(160deg,#071427,#101a35 54%,#10122d)}
+.pv-stage .personaggio-scena{width:100%!important;max-width:100%!important;min-height:100%;margin:0!important;padding:0!important;display:block!important;overflow:visible!important;background:transparent!important;border:0!important;box-shadow:none!important;isolation:isolate}
+.pv-stage .personaggio-scena > .rpg-cosmic-stage{width:100%!important;height:100%!important;min-height:100%;margin:0!important;overflow:visible!important;display:block!important;background:transparent!important}
+.pv-stage .rpg-cosmic-stage > .personaggio-scena-grafica.con-foto{height:100%!important;display:flex!important;justify-content:center;align-items:center;padding:0!important;margin:0!important;background:transparent!important;overflow:visible!important}
+.pv-stage .rpg-cosmic-stage > .personaggio-scena-grafica.con-foto > .personaggio-ritratto{display:block!important;max-height:560px!important;max-width:94%!important;width:auto!important;height:auto!important;margin:0 auto!important;object-fit:contain!important}
+.pv-stage .rpg-cosmic-stage > .rpg-cosmic-ambiente{inset:-8% -10% -8%!important}
+.pv-stage .rpg-cosmic-stage > :is(.rpg-astrale-presenza,.rpg-nebulosa-presenza){inset:-4% -7% -5%!important}
+.pv-card-caption{padding:12px 20px 16px;background:rgba(12,14,30,.96);color:#b9c1df;font-size:12px;min-height:50px}
+.pv-card-caption b{color:#e2e9ff}
+.pv-note{font-size:12px;color:#858faa;margin-top:16px}
+@media(max-width:760px){#preview-v492{width:calc(100% - 20px);padding-top:14px}.pv-grid{grid-template-columns:1fr}.pv-card .pv-stage{height:570px}.pv-stage .rpg-cosmic-stage > .personaggio-scena-grafica.con-foto > .personaggio-ritratto{max-height:470px!important}.pv-head h1{font-size:22px}}
+@media(prefers-reduced-motion:reduce){*{animation-duration:0.01ms!important;transition-duration:0.01ms!important}}
+</style></head>
+<body>
+<main id="preview-v492">
+<header class="pv-head">
+<div><h1>Anteprima effetti cosmici · v492</h1><p>Stesso personaggio originale, stesso equipaggiamento e inquadratura; cambia solo l'effetto.</p></div>
+<div class="pv-controls" aria-label="Seleziona personaggio">
+<button type="button" data-classe="assassino" aria-pressed="false">Assassino</button>
+<button type="button" data-classe="guerriero" aria-pressed="true">Guerriero</button>
+<button type="button" data-classe="berserker" aria-pressed="false">Berserker</button>
+<label>Stato <select id="stato"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4" selected>4 · arma</option><option value="5">5 · completo</option></select></label>
+</div>
+</header>
+<div class="pv-grid">
+<section class="pv-card mitico"><div class="pv-card-title"><strong>Astrale Cosmico</strong><small>MITICO</small></div><div class="pv-stage" id="preview-astrale"></div><div class="pv-card-caption"><b>Oro e viola.</b> Luce esterna, atmosfera profonda, bagliore e particelle in movimento.</div></section>
+<section class="pv-card leggendario"><div class="pv-card-title"><strong>Nebulosa Cosmica</strong><small>LEGGENDARIO</small></div><div class="pv-stage" id="preview-nebulosa"></div><div class="pv-card-caption"><b>Azzurro e magenta.</b> Nubi, polvere stellare e illuminazione ambientale più morbida.</div></section>
+</div>
+<p class="pv-note">Questa pagina ricompone le vere classi CSS, il codice di montaggio e i file avatar della v492. È una preview isolata: non cambia account, schede, inventario né Streak.</p>
+</main>
+<script type="module">
+import {montaScenaCosmicaRpg} from './src/rpg-scena-cosmica.js?v=492';
+let classe='guerriero', stato=4;
+const make=(tag,attrs={})=>{
+  const e=document.createElement(tag);
+  if(attrs.class)e.className=attrs.class;
+  if(attrs.aria)for(const [k,v] of Object.entries(attrs.aria))e.setAttribute('aria-'+k,v);
+  return e;
+};
+function draw(tipo){
+ const root=document.getElementById('preview-'+tipo);
+ root.replaceChildren();
+ const scena=make('div',{class:'personaggio-scena rpg-scena-'+tipo});
+ const grafica=make('div',{class:'personaggio-scena-grafica con-foto personaggio-'+classe+' '+(tipo==='astrale'?'shop-skin-mitica':'shop-effetto-nebula')});
+ const foto=make('img',{class:'personaggio-ritratto'});
+ foto.src='./img/personaggi/stati/'+classe+'-'+stato+'.webp?v=492';
+ foto.alt=classe+' con equipaggiamento dello stato '+stato;
+ const fx=make('div',{class:tipo==='astrale'?'rpg-astrale-presenza':'rpg-nebulosa-presenza'});
+ fx.setAttribute('aria-hidden','true');
+ grafica.append(foto,fx);
+ montaScenaCosmicaRpg(scena,grafica,{classe,effetto:tipo,creaElemento:make});
+ root.appendChild(scena);
+}
+function update(){draw('astrale');draw('nebulosa');}
+for(const button of document.querySelectorAll('[data-classe]'))button.addEventListener('click',()=>{
+ classe=button.dataset.classe;for(const b of document.querySelectorAll('[data-classe]'))b.setAttribute('aria-pressed',String(b===button));update();
+});
+document.querySelector('#stato').addEventListener('change',e=>{stato=Number(e.target.value);update();});
+update();
+</script>
+</body></html>
