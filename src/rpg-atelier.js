@@ -4,9 +4,10 @@
 import { AURA_FOTO_ATLAS } from './aura-foto-atlas.js';
 import { FOTO_RPG_RIQUADRI, livelliFotoRpg } from './aura-foto-rpg.js';
 import { fasciaSagoma, disegnaCoronaEnergetica } from './anteprima-combinata-rpg.js';
-import { fotoCinematograficaRpg } from './foto-cinematica-rpg.js';
 import { disegnaAstraleExport,dipingiNebulosaCosmica } from './effetti-rpg-canvas.js';
+import { fotoCinematograficaRpg } from './foto-cinematica-rpg.js';
 import {disegnaAtmosferaCosmicaRpg,disegnaAccentiCosmiciRpg,disegnaSoggettoCosmicoRpg,disegnaSfondoFotograficoCosmicoRpg} from './rpg-scena-cosmica.js';
+import {caricaEnergiaFotograficaRpg,disegnaEnergiaFotograficaRpg} from './rpg-energia-incarnata.js';
 import { percorsoFotoCoronaV360 } from './foto-corona-v360.js';
 import { percorsoFotoAuraDivinaV366 } from './foto-aura-divina-v366.js';
 import { percorsoFotoArmaturaArmataV371 } from './foto-armatura-armata-v371.js';
@@ -84,6 +85,7 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
   const ritaglioReale=ritaglioPresente?.complete && ritaglioPresente?.naturalWidth
     ? ritaglioPresente : null;
   const fxSenzaFoto = c.effetto==='skin-mitica' || c.effetto==='effetto-nebula';
+  const texturaCosmica=fxSenzaFoto?await caricaEnergiaFotograficaRpg():null;
   // Il file finale deve usare lo stesso scatto completo visibile in anteprima.
   // Se il collage non e' installato resta il renderer precedente.
   const fotoCorona=c.corona ? percorsoFotoCoronaV360({
@@ -115,7 +117,16 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
   const dw=Math.round(immagine.naturalWidth*ratio),dh=Math.round(immagine.naturalHeight*ratio);
   const dx=(larghezza-dw)/2,dy=(altezza-dh)/2;
   if(fxSenzaFoto) {
-    disegnaAtmosferaCosmicaRpg(ctx,larghezza,altezza,c.effetto==='skin-mitica'?'astrale':'nebulosa');
+    if(alphaAutentico){
+      // La fotografia di partenza è lo stesso ambiente della galleria RPG.
+      // Non trasformiamo un effetto in uno sfondo cosmico inventato.
+      ctx.drawImage(fotoBase,dx,dy,dw,dh);
+      ctx.fillStyle=c.effetto==='skin-mitica'?'rgba(13,7,20,.27)':'rgba(6,13,22,.25)';
+      ctx.fillRect(dx,dy,dw,dh);
+    }else disegnaAtmosferaCosmicaRpg(ctx,larghezza,altezza,c.effetto==='skin-mitica'?'astrale':'nebulosa');
+    ctx.save();ctx.translate(dx,dy);
+    disegnaEnergiaFotograficaRpg(ctx,dw,dh,c.classe,c.effetto==='skin-mitica'?'astrale':'nebulosa',2.8,{fase:'retro',texture:texturaCosmica});
+    ctx.restore();
     if(alphaAutentico) {
       // La trasparenza è già nei pixel, vietato ripristinare il pavimento.
       ctx.drawImage(immagine,dx,dy,dw,dh);
@@ -183,20 +194,28 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
 
   }
 
-  // v492: micro-dettagli ereditati a bassa opacità (solo periferici);
-  // la scena e l'illuminazione vengono dal medesimo motore dei PNG Shop.
-  if(c.effetto==='skin-mitica'){
-    ctx.save();ctx.globalAlpha=.26;
-    disegnaAstraleExport(ctx,{classe:c.classe,x:dx,y:dy,width:dw,height:dh});
+  // v494: stesso VFX fotografico ancorato al corpo anche nella foto salvata.
+  // Il WebP alpha impedisce alla luce di invadere lo sfondo della foto.
+  if(fxSenzaFoto){
+    if(!alphaAutentico){
+      ctx.save();ctx.globalAlpha=.09;
+      if(c.effetto==='skin-mitica')disegnaAstraleExport(ctx,{classe:c.classe,x:dx,y:dy,width:dw,height:dh});
+      else {ctx.translate(dx,dy);dipingiNebulosaCosmica(ctx,dw,dh,c.classe,2.8,55);}
+      ctx.restore();
+    }
+    ctx.save();ctx.translate(dx,dy);
+    disegnaEnergiaFotograficaRpg(ctx,dw,dh,c.classe,
+      c.effetto==='skin-mitica'?'astrale':'nebulosa',2.8,{
+        fase:'fronte',soggetto:alphaAutentico?ritaglioReale:null,
+        buffer:document.createElement('canvas'),texture:texturaCosmica,
+      });
     ctx.restore();
+    if(!alphaAutentico){
+      ctx.save();ctx.globalAlpha=.11;
+      disegnaAccentiCosmiciRpg(ctx,larghezza,altezza,c.effetto==='skin-mitica'?'astrale':'nebulosa');
+      ctx.restore();
+    }
   }
-  if(c.effetto==='effetto-nebula'){
-    ctx.save();ctx.globalAlpha=.24;ctx.translate(dx,dy);
-    dipingiNebulosaCosmica(ctx,dw,dh,c.classe,1.6,95);
-    ctx.restore();
-  }
-  if(fxSenzaFoto)
-    disegnaAccentiCosmiciRpg(ctx,larghezza,altezza,c.effetto==='skin-mitica'?'astrale':'nebulosa');
 
   if(c.titolo) {
     const titolo= c.titolo.replace(/^titolo-/,'').replaceAll('-',' ').toUpperCase();

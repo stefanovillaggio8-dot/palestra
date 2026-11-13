@@ -64,9 +64,9 @@ test('v492: scena animata senza SVG poster sul ritratto, zoom e riduzione movime
 
 test('v492: cache e anteprima condividono davvero il numero di release',()=>{
  const sw=read('sw.js'),html=read('index.html'),preview=read('anteprima-aura.html');
- assert.match(sw,/const VERSIONE = 'palestra-v492'/);
- assert.match(html,/window\.PALESTRA_VERSIONE = 'palestra-v492'/);
- assert.match(html,/stile-rpg\.css\?v=492/);
- assert.match(preview,/stile\.css\?v=492/);
- assert.match(read('src/rpg-scena-cosmica.js'),/cutout\/stati\/.*webp\?v=492/);
+ assert.match(sw,/const VERSIONE = 'palestra-v494'/);
+ assert.match(html,/window\.PALESTRA_VERSIONE = 'palestra-v494'/);
+ assert.match(html,/stile-rpg\.css\?v=494/);
+ assert.match(preview,/stile\.css\?v=494/);
+ assert.match(read('src/rpg-scena-cosmica.js'),/cutout\/stati\/.*webp\?v=493/);
 });

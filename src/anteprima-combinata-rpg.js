@@ -5,6 +5,7 @@
 // Le combinazioni sono composte al momento: nessun limite prefissato di varianti.
 import { AURA_FOTO_ATLAS } from './aura-foto-atlas.js';
 import { disegnaAtmosferaCosmicaRpg,disegnaAccentiCosmiciRpg } from './rpg-scena-cosmica.js';
+import { caricaEnergiaFotograficaRpg,disegnaEnergiaFotograficaRpg } from './rpg-energia-incarnata.js';
 
 export const CLASSI_FOTO_RPG = Object.freeze(['guerriero','assassino','berserker']);
 export const EFFETTI_FOTO_RPG = Object.freeze([
@@ -248,10 +249,26 @@ export async function scaricaFotoCombinataRpg(grafica,classe='rpg') {
   const tipoCosmico=grafica.classList.contains('shop-skin-mitica')?'astrale'
     :grafica.classList.contains('shop-effetto-nebula')?'nebulosa':null;
   if(tipoCosmico){
-    disegnaAtmosferaCosmicaRpg(ctx,out.width,out.height,tipoCosmico);
+    const texture=await caricaEnergiaFotograficaRpg();
+    if(alphaPronto){
+      ctx.drawImage(original,0,0,out.width,out.height);
+      ctx.fillStyle=tipoCosmico==='astrale'?'rgba(13,7,20,.27)':'rgba(6,13,22,.25)';
+      ctx.fillRect(0,0,out.width,out.height);
+    }else disegnaAtmosferaCosmicaRpg(ctx,out.width,out.height,tipoCosmico);
+    disegnaEnergiaFotograficaRpg(ctx,out.width,out.height,
+      ['assassino','guerriero','berserker'].find(c=>grafica.classList.contains('personaggio-'+c))||'assassino',
+      tipoCosmico,2.8,{fase:'retro',texture});
     if(alphaPronto)ctx.drawImage(cutout,0,0,out.width,out.height);
     else ctx.drawImage(original,0,0,out.width,out.height);
-    disegnaAccentiCosmiciRpg(ctx,out.width,out.height,tipoCosmico);
+    disegnaEnergiaFotograficaRpg(ctx,out.width,out.height,
+      ['assassino','guerriero','berserker'].find(c=>grafica.classList.contains('personaggio-'+c))||'assassino',
+      tipoCosmico,2.8,{fase:'fronte',soggetto:alphaPronto?cutout:null,
+        buffer:document.createElement('canvas'),texture});
+    if(!alphaPronto){
+      ctx.save();ctx.globalAlpha=.11;
+      disegnaAccentiCosmiciRpg(ctx,out.width,out.height,tipoCosmico);
+      ctx.restore();
+    }
   } else ctx.drawImage(original,0,0,out.width,out.height);
   const integrata=Boolean(original.dataset?.scenaCinematografica);
   const skin=grafica.querySelector('.rpg-skin-fedele');
