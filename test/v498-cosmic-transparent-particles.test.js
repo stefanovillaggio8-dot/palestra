@@ -89,3 +89,23 @@ test('v501: spegne la presenza cosmica precedente anche con classe personaggio s
   assert.match(css,/\.rpg-cosmic-stage > \.rpg-energia-retro\s*\{[^}]*mix-blend-mode:screen/);
   assert.match(css,/\.rpg-cosmic-stage > \.rpg-energia-fronte\s*\{[^}]*mix-blend-mode:screen/);
 });
+
+test('v502: sfondo fotografico originale visibile e sfumato, non poster né colore piatto',()=>{
+  const css=leggi('stile-rpg.css');
+  const selector='.personaggio-scena > .rpg-cosmic-stage.rpg-cosmic-cutout-ready.rpg-energia-pronta > .rpg-foto-fondale {';
+  const inizio=css.lastIndexOf(selector);
+  assert.ok(inizio>css.indexOf(selector),'la regola di ripristino deve prevalere sul precedente display:none');
+  const regola=css.slice(inizio,css.indexOf('}',inizio));
+  assert.match(regola,/display:block!important/);
+  assert.match(regola,/opacity:\.98!important/);
+  assert.match(regola,/-webkit-mask-image:radial-gradient\(/);
+  assert.match(regola,/(?<!-)mask-image:radial-gradient\(/);
+  assert.match(regola,/transparent 100%/,'i bordi della foto devono sfumare fino a zero');
+  const energia=leggi('src/rpg-energia-incarnata.js');
+  assert.match(energia,/const fondale=documento\.createElement\('img'\)/);
+  assert.match(energia,/const sorgente=foto\.currentSrc\|\|foto\.getAttribute\?\.\('src'\)\|\|foto\.src/);
+  assert.match(energia,/allinea\(fondale,'left',\(fr\.left-pr\.left\)\+'px'\)/);
+  assert.match(energia,/allinea\(fondale,'width',fr\.width\+'px'\)/);
+  assert.match(css,/\.rpg-cosmic-stage > \.rpg-energia-retro\s*\{[^}]*mix-blend-mode:screen/);
+  assert.match(css,/\.rpg-cosmic-stage > \.rpg-energia-fronte\s*\{[^}]*mix-blend-mode:screen/);
+});

@@ -3993,3 +3993,24 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
 .personaggio-scena > .rpg-cosmic-stage.rpg-cosmic-astrale.rpg-energia-pronta:is(.personaggio-assassino,.personaggio-guerriero,.personaggio-berserker) > .rpg-astrale-presenza {
   display:none!important;
 }
+
+/* v502 · Come gli altri EFFETTI fotografici dello Shop.
+   La v500 aveva uniformato soltanto il colore della card, lasciando
+   l'assassino/guerriero/berserker su un fondo piatto quasi nero. Gli altri
+   effetti, invece, conservano l'ambiente della stessa FOTO originale.
+   Rimettiamo quello scatto esatto (gia' in DOM) dietro al cutout verificato:
+   stesso crop e zoom sincronizzati dal JS, non una nuova ambientazione.
+   Il bordo della foto sfuma in alpha, perche' non deve formare il vecchio
+   poster rettangolare incollato dentro il pannello. La particelle V498
+   restano due livelli separati e mantengono l'occlusione del personaggio. */
+.personaggio-scena > .rpg-cosmic-stage.rpg-cosmic-cutout-ready.rpg-energia-pronta > .rpg-foto-fondale {
+  display:block!important;
+  opacity:.98!important;
+  filter:brightness(.92) contrast(1.06) saturate(.98)!important;
+  /* Ai bordi dello scatto l'alpha DEVE arrivare a zero: cosi' il muro,
+     pavimento e le ombre originali compaiono senza un rettangolo visibile. */
+  -webkit-mask-image:radial-gradient(ellipse 48% 48% at 50% 52%,#000 43%,rgba(0,0,0,.96) 61%,rgba(0,0,0,.48) 81%,transparent 100%)!important;
+  mask-image:radial-gradient(ellipse 48% 48% at 50% 52%,#000 43%,rgba(0,0,0,.96) 61%,rgba(0,0,0,.48) 81%,transparent 100%)!important;
+  -webkit-mask-repeat:no-repeat!important;
+  mask-repeat:no-repeat!important;
+}
