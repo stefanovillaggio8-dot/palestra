@@ -3859,3 +3859,21 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
     transform:none!important;
   }
 }
+
+
+/* v492 · la specificità deve superare il vecchio filtro del ritaglio v490.
+   L'alpha resta integro e lo scontorno riceve SOLO un riflesso esterno. */
+.personaggio-scena .rpg-cosmic-stage.rpg-cosmic-astrale.rpg-cosmic-cutout-ready > .personaggio-scena-grafica.con-foto > .rpg-cosmic-cutout-asset {
+  filter:drop-shadow(0 0 8px rgba(255,215,168,.37)) drop-shadow(0 0 21px rgba(193,89,255,.47)) drop-shadow(0 18px 25px rgba(4,3,15,.43))!important;
+}
+.personaggio-scena .rpg-cosmic-stage.rpg-cosmic-nebulosa.rpg-cosmic-cutout-ready > .personaggio-scena-grafica.con-foto > .rpg-cosmic-cutout-asset {
+  filter:drop-shadow(-3px 0 12px rgba(57,208,244,.43)) drop-shadow(4px 0 19px rgba(180,79,224,.33)) drop-shadow(0 18px 22px rgba(3,7,18,.45))!important;
+}
+/* L'antico Canvas (laddove attivo) aggiunge soltanto micro-scintille; 
+   non deve riempire il volto con un secondo poster. */
+.personaggio-scena .rpg-cosmic-stage.rpg-cosmic-astrale .rpg-render-live > .rpg-effetti-canvas,
+.personaggio-scena .rpg-cosmic-stage.rpg-cosmic-nebulosa .rpg-render-live > .rpg-effetti-canvas {
+  opacity:.33!important;
+  mix-blend-mode:screen!important;
+  pointer-events:none!important;
+}
