@@ -3953,15 +3953,34 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
 .personaggio-scena > .rpg-cosmic-stage.rpg-energia-pronta > .personaggio-scena-grafica .rpg-effetti-canvas {
   display:none!important;
 }
-.aura-preview-panel.aura-preview-cosmic-panel .aura-preview-scene.aura-preview-cosmic-scene:has(.rpg-energia-pronta) {
-  /* v499: la cornice delle particelle V498 è intenzionale, ma il cosmo
-     NON deve diventare uno sfondo viola/blu. Le vecchie regole .cosmic-astrale
-     e .cosmic-nebulosa avevano specificità più alta della vecchia v498.
-     Solo le texture RGBA trasparenti costituiscono l'effetto equipaggiato. */
+/* v500 · Il fondale NON è parte degli effetti equipaggiabili.
+   Unifica l'anteprima con il normale .aura-preview-scene: il vecchio cielo
+   blu/viola proveniva SIA dal riquadro esterno SIA da .personaggio-scena,
+   e i pallini luminosi provenivano dai loro pseudo-elementi. Non dipendiamo
+   da :has(.rpg-energia-pronta): la scena deve essere uniforme anche mentre
+   il rendering si inizializza o quando viene cambiata la classe. */
+.aura-preview-panel.aura-preview-cosmic-panel .aura-preview-scene.aura-preview-cosmic-scene,
+.aura-preview-panel.aura-preview-cosmic-panel .aura-preview-scene.aura-preview-cosmic-scene.cosmic-astrale,
+.aura-preview-panel.aura-preview-cosmic-panel .aura-preview-scene.aura-preview-cosmic-scene.cosmic-nebulosa {
+  /* Stesso background della normale anteprima alla riga .aura-preview-scene. */
+  background:radial-gradient(circle at 50% 36%,rgba(89,56,133,.18),transparent 72%),#0c0f1b!important;
+}
+.aura-preview-panel.aura-preview-cosmic-panel .aura-preview-scene.aura-preview-cosmic-scene::before,
+.aura-preview-panel.aura-preview-cosmic-panel .aura-preview-scene.aura-preview-cosmic-scene::after {
+  content:none!important;
+  display:none!important;
+}
+.aura-preview-panel.aura-preview-cosmic-panel .aura-preview-cosmic-scene .personaggio-scena.rpg-scena-astrale,
+.aura-preview-panel.aura-preview-cosmic-panel .aura-preview-cosmic-scene .personaggio-scena.rpg-scena-nebulosa {
+  /* Niente seconda superficie (o gradiente) dentro il pannello comune. */
   background:transparent!important;
   background-image:none!important;
+  box-shadow:none!important;
 }
-.aura-preview-panel.aura-preview-cosmic-panel .aura-preview-scene:has(.rpg-energia-pronta)::before,
-.aura-preview-panel.aura-preview-cosmic-panel .aura-preview-scene:has(.rpg-energia-pronta)::after {
+.aura-preview-panel.aura-preview-cosmic-panel .aura-preview-cosmic-scene .personaggio-scena.rpg-scena-astrale::before,
+.aura-preview-panel.aura-preview-cosmic-panel .aura-preview-cosmic-scene .personaggio-scena.rpg-scena-astrale::after,
+.aura-preview-panel.aura-preview-cosmic-panel .aura-preview-cosmic-scene .personaggio-scena.rpg-scena-nebulosa::before,
+.aura-preview-panel.aura-preview-cosmic-panel .aura-preview-cosmic-scene .personaggio-scena.rpg-scena-nebulosa::after {
+  content:none!important;
   display:none!important;
 }

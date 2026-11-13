@@ -54,14 +54,21 @@ test('v498: numero di versione visibile corretto e ResizeObserver non mostra un 
   assert.match(scena,/frameMisura=requestAnimationFrame/);
 });
 
-test('v499: cornice delle particelle conservata, senza sfondo cosmico aggiunto',()=>{
+test('v500: cornice delle particelle su sfondo identico alle anteprime comuni',()=>{
   const css=leggi('stile-rpg.css');
-  const selettore='.aura-preview-panel.aura-preview-cosmic-panel .aura-preview-scene.aura-preview-cosmic-scene:has(.rpg-energia-pronta) {';
+  const selettore='.aura-preview-panel.aura-preview-cosmic-panel .aura-preview-scene.aura-preview-cosmic-scene.cosmic-nebulosa {';
   const start=css.lastIndexOf(selettore);
   assert.ok(start>0);
   const regola=css.slice(start,css.indexOf('}',start)).replace(/\/\*[\s\S]*?\*\//g,'');
-  assert.match(regola,/background:transparent!important/);
-  assert.match(regola,/background-image:none!important/);
+  const fondoComune=css.match(/\.aura-preview-scene\s*\{[^}]*background:\s*([^;]+);/);
+  const fondoCosmico=regola.match(/background:\s*([^;]+)!important/);
+  assert.ok(fondoComune&&fondoCosmico);
+  assert.equal(fondoComune[1].replace(/\s+/g,''),fondoCosmico[1].replace(/\s+/g,''),
+    'l’anteprima cosmica deve usare esattamente lo sfondo base');
+  assert.match(css.slice(start),/\.aura-preview-cosmic-scene \.personaggio-scena\.rpg-scena-nebulosa\s*\{[^}]*background:transparent!important/);
+  assert.match(css.slice(start),/\.personaggio-scena\.rpg-scena-nebulosa::after\s*\{[^}]*content:none!important/);
+  assert.doesNotMatch(css.slice(start),/:has\(\.rpg-energia-pronta\)/,
+    'il fondale non deve riapparire al cambio classe o prima del primo frame');
   // La texture V498 non deve essere spenta: togliamo il fondale, non il VFX.
   assert.match(css,/\.rpg-cosmic-stage > \.rpg-energia-retro\s*\{[^}]*mix-blend-mode:screen/);
   assert.match(css,/\.rpg-cosmic-stage > \.rpg-energia-fronte\s*\{[^}]*mix-blend-mode:screen/);
