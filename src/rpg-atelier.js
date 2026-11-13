@@ -6,7 +6,7 @@ import { FOTO_RPG_RIQUADRI, livelliFotoRpg } from './aura-foto-rpg.js';
 import { fasciaSagoma, disegnaCoronaEnergetica } from './anteprima-combinata-rpg.js';
 import { fotoCinematograficaRpg } from './foto-cinematica-rpg.js';
 import { disegnaAstraleExport,dipingiNebulosaCosmica } from './effetti-rpg-canvas.js';
-import {disegnaAtmosferaCosmicaRpg,disegnaSoggettoCosmicoRpg,disegnaSfondoFotograficoCosmicoRpg} from './rpg-scena-cosmica.js';
+import {disegnaAtmosferaCosmicaRpg,disegnaAccentiCosmiciRpg,disegnaSoggettoCosmicoRpg,disegnaSfondoFotograficoCosmicoRpg} from './rpg-scena-cosmica.js';
 import { percorsoFotoCoronaV360 } from './foto-corona-v360.js';
 import { percorsoFotoAuraDivinaV366 } from './foto-aura-divina-v366.js';
 import { percorsoFotoArmaturaArmataV371 } from './foto-armatura-armata-v371.js';
@@ -183,14 +183,20 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
 
   }
 
-  // EFFETTO ORIGINALE: la foto del personaggio resta sotto completamente invariata.
-  if(c.effetto==='skin-mitica')
+  // v492: micro-dettagli ereditati a bassa opacità (solo periferici);
+  // la scena e l'illuminazione vengono dal medesimo motore dei PNG Shop.
+  if(c.effetto==='skin-mitica'){
+    ctx.save();ctx.globalAlpha=.26;
     disegnaAstraleExport(ctx,{classe:c.classe,x:dx,y:dy,width:dw,height:dh});
+    ctx.restore();
+  }
   if(c.effetto==='effetto-nebula'){
-    ctx.save();ctx.translate(dx,dy);
+    ctx.save();ctx.globalAlpha=.24;ctx.translate(dx,dy);
     dipingiNebulosaCosmica(ctx,dw,dh,c.classe,1.6,95);
     ctx.restore();
   }
+  if(fxSenzaFoto)
+    disegnaAccentiCosmiciRpg(ctx,larghezza,altezza,c.effetto==='skin-mitica'?'astrale':'nebulosa');
 
   if(c.titolo) {
     const titolo= c.titolo.replace(/^titolo-/,'').replaceAll('-',' ').toUpperCase();
