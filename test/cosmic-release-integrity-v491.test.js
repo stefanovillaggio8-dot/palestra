@@ -21,7 +21,7 @@ test('v491: tutti i 18 stati conservano un WebP realmente trasparente',()=>{
    assert.ok(bin[pos+8]&16,'alpha non dichiarato '+key);
    assert.ok(bin.indexOf(Buffer.from('ALPH'))>0,'chunk alpha mancante '+key);
    assert.ok(bin.length>20_000,'asset insolitamente piccolo '+key);
-   assert.match(percorsoRitaglioCosmicoRpg('./img/personaggi/stati/'+key+'.webp'),/webp\?v=491$/);
+   assert.match(percorsoRitaglioCosmicoRpg('./img/personaggi/stati/'+key+'.webp'),/webp\?v=492$/);
   }
  }
 });
