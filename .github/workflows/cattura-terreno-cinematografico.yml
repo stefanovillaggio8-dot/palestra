@@ -1,0 +1,46 @@
+name: Cattura anteprima scenografica fedele alle skin
+on:
+  push:
+    branches: [preview/grounded-astrale-boreale-v2]
+    paths:
+      - 'anteprima-astrale-boreale-originali.html'
+      - '.github/workflows/cattura-astrale-boreale-originali.yml'
+permissions:
+  contents: write
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: preview/grounded-astrale-boreale-v2
+          fetch-depth: 0
+      - name: Screenshot browser in pagina
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/local-render.log 2>&1 &
+          sleep 2
+          CHROME=$(command -v google-chrome || command -v google-chrome-stable || command -v chromium)
+          if [ -z "$CHROME" ]; then echo "Browser non trovato"; exit 1; fi
+          timeout 75s "$CHROME" --headless=new --no-sandbox --disable-gpu --hide-scrollbars \
+            --disable-extensions --force-device-scale-factor=1 \
+            --window-size=1450,2410 --virtual-time-budget=10000 \
+            --screenshot="$GITHUB_WORKSPACE/anteprima-terreno-cinematografico.png" \
+            "http://127.0.0.1:8765/anteprima-astrale-boreale-originali.html"
+          test -s anteprima-terreno-cinematografico.png
+          python3 -m pip -q install pillow
+          python3 - <<'PY'
+          from PIL import Image
+          im=Image.open('anteprima-terreno-cinematografico.png').convert('RGB')
+          im.save('anteprima-terreno-cinematografico.jpg',quality=79,optimize=True)
+          print('DIMENSIONI',im.size)
+          PY
+      - name: Aggiorna solo foto preview, mai la main
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add anteprima-terreno-cinematografico.png anteprima-terreno-cinematografico.jpg
+          if ! git diff --cached --quiet; then
+            git commit -m "preview: sei personaggi originali con Astrale e Boreale, screenshot esatto"
+            git push origin HEAD:preview/grounded-astrale-boreale-v2
+          fi
