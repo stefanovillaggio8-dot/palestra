@@ -1,7 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {existsSync,readFileSync} from 'node:fs';
-import {CONTORNI_ARMATURE_COSMICHE_RPG,INCAVI_GAMBE_ARMATURE_RPG,idContornoArmaturaCosmicaRpg,
+import {CONTORNI_ARMATURE_COSMICHE_RPG,INCAVI_GAMBE_ARMATURE_RPG,STIVALI_SPETTRO_COSMICI_RPG,idContornoArmaturaCosmicaRpg,
   mascheraArmaturaCosmicaRpg,applicaMascheraCosmicaRpg,disegnaFotografiaFusaRpg}
   from '../src/rpg-scena-cosmica.js';
 
@@ -53,21 +53,36 @@ test('v509: Spettro Cremisi lascia fuori fumo e ruderi ai lati delle gambe',()=>
     'mani e spallacci del personaggio devono restare visibili');
 });
 
-test('v511: la sagoma nuova non resta nella cache di Atelier, anteprima e app',()=>{
-  const scena='./rpg-scena-cosmica.js?v=511';
+test('v512: la sagoma nuova non resta nella cache di Atelier, anteprima e app',()=>{
+  const scena='./rpg-scena-cosmica.js?v=512';
   assert.ok(read('src/app.js').includes("from '"+scena+"'"));
   assert.ok(read('src/rpg-atelier.js').includes("from '"+scena+"'"));
   assert.ok(read('src/anteprima-combinata-rpg.js').includes("from '"+scena+"'"));
-  assert.ok(read('anteprima-armature-cosmiche.html').includes("./src/rpg-scena-cosmica.js?v=511"));
-  assert.ok(read('src/rpg-atelier-ui.js').includes("./rpg-atelier.js?v=511"));
+  assert.ok(read('anteprima-armature-cosmiche.html').includes("./src/rpg-scena-cosmica.js?v=512"));
+  assert.ok(read('src/rpg-atelier-ui.js').includes("./rpg-atelier.js?v=512"));
 });
 
-test('v511: il ritaglio apre lo spazio fra gli stivali prima del terreno rosso',()=>{
-  const incavo=INCAVI_GAMBE_ARMATURE_RPG['assassino-spettro'];
-  assert.ok(incavo[0][0]<.8,'apri il vuoto prima delle fiamme sul pavimento');
-  assert.ok(incavo.at(-1)[0]===1,'il vuoto continua fino al bordo inferiore');
-  assert.ok(incavo.some(([y,left,right])=>y>=.85&&y<=.925&&left<=.45&&right>=.56),
-    'separa il terreno infuocato fra i due stivali senza tagliare le scarpe');
+test('v512: due sagome indipendenti conservano le scarpe senza il pavimento infuocato',()=>{
+  // Le scarpe vere terminano a ~91% del fotogramma, il terreno rosso e'
+  // subito sotto. Un vecchio incavo centrale lasciava due colonne di terreno.
+  const corpo=CONTORNI_ARMATURE_COSMICHE_RPG['assassino-spettro'];
+  assert.ok(corpo.at(-1)[0]<=.82,'il mantello non deve inglobare il suolo');
+  assert.equal(INCAVI_GAMBE_ARMATURE_RPG['assassino-spettro'],undefined,
+    'l incavo di un poligono unico non separa lo sfondo dalle scarpe');
+  const sinistro=STIVALI_SPETTRO_COSMICI_RPG.sinistro;
+  const destro=STIVALI_SPETTRO_COSMICI_RPG.destro;
+  assert.ok(sinistro[0][0]<.73&&destro[0][0]<.73,'le gambe raggiungono il mantello');
+  assert.ok(sinistro.at(-1)[0]<=.92&&destro.at(-1)[0]<=.92,
+    'nessun terreno sotto le suole');
+  for(const y of [.78,.835,.86,.90]){
+    const get=righe=>righe.find((r,i)=>r[0]>=y&&i>0);
+    const s=get(sinistro),d=get(destro);
+    assert.ok(s&&d&&s[2]<.43&&d[1]>.61,
+      'il centro tra le scarpe resta trasparente a y='+y);
+  }
+  const scene=read('src/rpg-scena-cosmica.js');
+  assert.match(scene,/disegnaIsola\(STIVALI_SPETTRO_COSMICI_RPG\.sinistro\)/);
+  assert.match(scene,/disegnaIsola\(STIVALI_SPETTRO_COSMICI_RPG\.destro\)/);
 });
 
 test('v507: maschera su foto e PNG preserva i pixel RGB originali',()=>{

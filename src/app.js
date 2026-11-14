@@ -73,11 +73,11 @@ import { confrontoGiorno, confrontiMensili, GIORNI_UN_MESE } from './confronto-m
 import { profiloEsercizio, profiloPerPesoCorporeo, RANK, ETICHETTE_MISURA, descriviPunteggio, descrizioneLivello, livelloEsercizio, impostaLivelliImparati, livelliImparati, rapportoDifficolta, MOLTIPLICATORI_SOGLIA, passoCaricabile } from './rank-config.js';
 import { formattaAura } from './aura.js';
 import { montaEffettiRpg, smontaEffettiRpg, usaEffettiViviRpg } from './effetti-rpg-canvas.js';
-import { montaScenaCosmicaRpg } from './rpg-scena-cosmica.js?v=511';
+import { montaScenaCosmicaRpg } from './rpg-scena-cosmica.js?v=512';
 import { montaFotoRpg } from './aura-foto-rpg.js';
-import { montaFotoCombinataRpg, scaricaFotoCombinataRpg } from './anteprima-combinata-rpg.js?v=511';
-import { apriAtelierRpg as mostraAtelierRpg } from './rpg-atelier-ui.js?v=511';
-import { ARMATURE_ATELIER } from './rpg-atelier.js?v=511';
+import { montaFotoCombinataRpg, scaricaFotoCombinataRpg } from './anteprima-combinata-rpg.js?v=512';
+import { apriAtelierRpg as mostraAtelierRpg } from './rpg-atelier-ui.js?v=512';
+import { ARMATURE_ATELIER } from './rpg-atelier.js?v=512';
 import { applicaSkinRpg } from './skin-rpg-fedele.js';
 import { montaScenaCinematograficaRpg, armaSbloccataRpg, percorsoScenaSpecialeRpg } from './foto-cinematica-rpg.js';
 import { elencoAvatar, avatarPerId, gradienteAvatar, iniziali } from './avatar.js';
