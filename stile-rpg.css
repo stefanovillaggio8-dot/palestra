@@ -4057,11 +4057,9 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
   animation:none!important;
 }
 
-/* v506 · compatibilita' di ogni effetto cosmico con le sei armature Shop.
-   Senza un cutout esatto, il rettangolo della foto deve dissolversi ai bordi
-   ma NON si puo' ritagliare l'equipaggiamento con un poligono di classe.
-   Il JS assegna una maschera PNG morbida precisa; questo gradiente e' il
-   fallback anche su browser senza Canvas/alpha. Nessun effetto pulsa. */
+/* v506 · vecchio fallback per foto sconosciute, sostituito in v507 per
+   le sei armature con sagome separate e dettagli di armi/scudi/corna.
+   Questo gradiente resta solo su browser senza Canvas/alpha. */
 .personaggio-scena .rpg-cosmic-stage:not(.rpg-cosmic-cutout-ready) > .personaggio-scena-grafica.con-foto > .personaggio-ritratto.rpg-cosmic-subject {
   -webkit-mask-image:radial-gradient(ellipse 54% 57% at 50% 51%,#000 61%,rgba(0,0,0,.87) 77%,transparent 100%)!important;
   mask-image:radial-gradient(ellipse 54% 57% at 50% 51%,#000 61%,rgba(0,0,0,.87) 77%,transparent 100%)!important;
@@ -4069,6 +4067,32 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
   mask-repeat:no-repeat!important;
   -webkit-mask-size:100% 100%!important;
   mask-size:100% 100%!important;
+}
+/* v507 · il rettangolo caldo delle armature Shop non fa parte del cosmo.
+   La maschera alpha per costume viene applicata inline dal JS; non ripetere
+   la stessa foto come fondale blur, perche' ricreerebbe il poster originale.
+   Volto, equipaggiamento e scala sono sempre i pixel della foto comprata. */
+.personaggio-scena .rpg-cosmic-stage.rpg-cosmic-armor-contoured > .rpg-cosmic-ambiente.rpg-cosmic-armor-environment {
+  opacity:1!important;
+  filter:none!important;
+  mix-blend-mode:normal!important;
+  background:
+    radial-gradient(ellipse 62% 43% at 48% 34%,rgba(132,54,205,.38),transparent 94%),
+    radial-gradient(ellipse 47% 33% at 10% 68%,rgba(176,78,240,.40),transparent 95%),
+    radial-gradient(ellipse 48% 39% at 94% 65%,rgba(73,119,242,.34),transparent 96%),
+    linear-gradient(152deg,#0a0624,#1b1037 54%,#090b29)!important;
+}
+.personaggio-scena .rpg-cosmic-stage.rpg-cosmic-nebulosa.rpg-cosmic-armor-contoured > .rpg-cosmic-ambiente.rpg-cosmic-armor-environment {
+  background:
+    radial-gradient(ellipse 58% 40% at 22% 41%,rgba(75,179,225,.43),transparent 94%),
+    radial-gradient(ellipse 50% 41% at 89% 67%,rgba(169,78,232,.43),transparent 95%),
+    linear-gradient(152deg,#070d27,#151139 54%,#090f2b)!important;
+}
+.personaggio-scena > .rpg-cosmic-stage.rpg-cosmic-armor-contoured.rpg-energia-pronta > .rpg-foto-fondale {
+  display:none!important;
+}
+.personaggio-scena > .rpg-cosmic-stage.rpg-cosmic-armor-contoured.rpg-energia-pronta > .personaggio-scena-grafica.personaggio {
+  animation:none!important;
 }
 .aura-preview-armor-field {
   display:flex;

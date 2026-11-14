@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Palestra · Tutte le armature con effetti cosmici</title>
+<style>
+*{box-sizing:border-box}body{margin:0;padding:18px;font:14px system-ui;color:#eee;background:#080a18}
+h1{font-size:22px;margin:0 0 6px}p{color:#b9b6c8;margin:0 0 14px}
+label{display:inline-flex;gap:8px;align-items:center;margin:0 0 12px}
+select{padding:8px;color:#fff;background:#25213e;border:1px solid #625080;border-radius:8px}
+.gallery{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;max-width:1100px}
+.item{background:#161426;border:1px solid #514166;border-radius:14px;padding:11px}
+.item strong{display:block;margin:0 0 6px}
+.stage{position:relative;aspect-ratio:2/3;width:100%;max-width:330px;margin:auto;overflow:hidden;
+background-position:center;background-size:cover;border-radius:10px}
+.stage.astrale{background-image:url('./img/effetti/astrale-ambiente-v503.webp')}
+.stage.nebulosa{background-image:url('./img/effetti/nebulosa-ambiente-v503.webp')}
+.stage img,.stage canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.stage canvas.back{z-index:1}.stage img{z-index:2}.stage canvas.front{z-index:3;mix-blend-mode:screen}
+@media(max-width:650px){.gallery{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.item{padding:6px}}
+</style></head><body>
+<h1>Verifica: ogni armatura con ogni effetto cosmico</h1>
+<p>Fotografie originali senza rigenerazione; contorno morbido specifico e identico zoom per armi bloccate o sbloccate.</p>
+<label>Foto progressione: <select id="armi"><option value="0">Prima delle armi</option><option value="1">Armi sbloccate</option></select></label>
+<main class="gallery" id="gallery"></main>
+<script type="module">
+import {mascheraArmaturaCosmicaRpg} from './src/rpg-scena-cosmica.js';
+import {disegnaEnergiaFotograficaRpg,caricaEnergiaFotograficaRpg} from './src/rpg-energia-incarnata.js';
+const armature=['assassino-notte','assassino-spettro','guerriero-braci','guerriero-abisso','berserker-rabbia','berserker-apocalisse'];
+const items=[],host=document.querySelector('#gallery');
+let texture=null;void caricaEnergiaFotograficaRpg().then(x=>texture=x);
+for(const id of armature)for(const tipo of ['astrale','nebulosa']){
+ const e=document.createElement('article');e.className='item';
+ const name=document.createElement('strong');name.textContent=id+' · '+tipo;
+ const stage=document.createElement('div');stage.className='stage '+tipo;
+ const back=document.createElement('canvas');back.className='back';
+ const foto=document.createElement('img');foto.alt=id+' '+tipo;
+ const front=document.createElement('canvas');front.className='front';
+ const mask=mascheraArmaturaCosmicaRpg(id);
+ if(mask){foto.style.webkitMaskImage=mask;foto.style.maskImage=mask;foto.style.webkitMaskSize='100% 100%';foto.style.maskSize='100% 100%'}
+ stage.append(back,foto,front);e.append(name,stage);host.append(e);
+ items.push({id,tipo,back,front,foto,stage,buffer:document.createElement('canvas')});
+}
+function update(){
+ const armed=document.querySelector('#armi').value==='1';
+ for(const i of items){const [classe,nome]=i.id.split('-');
+ const mask=mascheraArmaturaCosmicaRpg(i.id,document,false,armed);
+ if(mask){i.foto.style.webkitMaskImage=mask;i.foto.style.maskImage=mask;}
+ i.foto.src=armed?'./img/personaggi/armatura-con-arma-v371/'+classe+'/armatura-'+i.id+'/base.webp?v=507':
+ './img/personaggi/armature/'+i.id+'.webp?v=507';
+ }}
+document.querySelector('#armi').addEventListener('change',update);update();
+let last=-1;function render(ms){requestAnimationFrame(render);if(ms-last<90)return;last=ms;
+for(const i of items){const w=i.stage.clientWidth,h=i.stage.clientHeight;if(w<5)return;
+for(const c of [i.back,i.front]){if(c.width!==w||c.height!==h){c.width=w;c.height=h;}}
+const a=i.back.getContext('2d'),b=i.front.getContext('2d');a.clearRect(0,0,w,h);b.clearRect(0,0,w,h);
+const cls=i.id.split('-')[0];disegnaEnergiaFotograficaRpg(a,w,h,cls,i.tipo,ms/1000,{fase:'retro',texture});
+disegnaEnergiaFotograficaRpg(b,w,h,cls,i.tipo,ms/1000,{fase:'fronte',soggetto:i.foto,buffer:i.buffer,texture});
+}}requestAnimationFrame(render);
+</script></body></html>
