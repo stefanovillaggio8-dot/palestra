@@ -9,7 +9,7 @@ const CLASSI=Object.freeze(['assassino','guerriero','berserker']);
 const MASK_CACHE=new Map();
 const MASK_RASTER_CACHE=new Map();
 let mascheraBordiFoto=null;
-// v508: le armature Shop sono fotografie opache 2:3 con il paesaggio
+// v509: le armature Shop sono fotografie opache 2:3 con il paesaggio
 // incorporato. Una sfumatura del rettangolo NON separa il personaggio.
 // Questi contorni seguono invece i sei costumi REALI (mantelli, scudi,
 // corna e piedi compresi). L'immagine non viene rigenerata o ridimensionata:
@@ -30,10 +30,10 @@ export const CONTORNI_ARMATURE_COSMICHE_RPG=Object.freeze({
     // busto, braccia, pugnali e scarpe, ma NON il paesaggio infuocato.
     [.052,.50,.50],[.065,.466,.540],[.090,.436,.563],[.13,.402,.600],
     [.17,.397,.603],[.20,.349,.663],[.25,.303,.704],[.31,.290,.718],
-    [.39,.282,.733],[.47,.266,.750],[.55,.271,.751],[.62,.287,.738],
-    [.69,.300,.730],[.735,.308,.724],[.766,.319,.713],[.79,.333,.698],
-    [.815,.344,.689],[.845,.347,.684],[.875,.349,.672],[.922,.343,.667],
-    [.938,.326,.685],[.950,.360,.659]],
+    [.39,.282,.733],[.47,.266,.750],[.55,.271,.751],[.62,.313,.717],
+    [.69,.351,.676],[.735,.350,.671],[.766,.352,.664],[.79,.357,.666],
+    [.815,.358,.663],[.845,.355,.663],[.875,.354,.660],[.922,.352,.663],
+    [.938,.354,.671],[.950,.373,.655]],
   'guerriero-braci':[
     [.036,.50,.50],[.052,.457,.550],[.075,.429,.576],[.115,.422,.576],
     [.160,.426,.578],[.18,.371,.639],[.205,.306,.695],[.25,.269,.739],
@@ -126,6 +126,15 @@ function dipingiSagomaArmaturaRpg(ctx,w,h,id,conCorona=false,conArma=false){
     ctx.quadraticCurveTo(w*.078,h*.232,w*.090,h*.282);
     ctx.quadraticCurveTo(w*.107,h*.332,w*.150,h*.325);
     ctx.lineTo(w*.208,h*.295);ctx.closePath();ctx.fill();
+  }
+  if(conArma&&id==='assassino-spettro'){
+    // I due pugnali argentati sporgono ai lati delle gambe. Il contorno
+    // stretto elimina le fiamme del vecchio scenario: reinseriamo SOLO le
+    // lame senza riaprire tutto il paesaggio fotografico attorno.
+    ctx.beginPath();ctx.moveTo(w*.306,h*.536);ctx.lineTo(w*.337,h*.532);
+    ctx.lineTo(w*.376,h*.756);ctx.lineTo(w*.357,h*.774);ctx.closePath();ctx.fill();
+    ctx.beginPath();ctx.moveTo(w*.694,h*.530);ctx.lineTo(w*.719,h*.535);
+    ctx.lineTo(w*.662,h*.776);ctx.lineTo(w*.646,h*.762);ctx.closePath();ctx.fill();
   }
   const incavo=INCAVI_GAMBE_ARMATURE_RPG[id];
   if(incavo){
