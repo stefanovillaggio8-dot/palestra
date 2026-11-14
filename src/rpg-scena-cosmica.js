@@ -62,9 +62,13 @@ export const CONTORNI_ARMATURE_COSMICHE_RPG=Object.freeze({
 });
 // La silhouette del mantello termina prima delle scarpe: senza questi vuoti
 // rimarrebbe una striscia di pavimento fotografico tra le due gambe.
-const INCAVI_GAMBE_ARMATURE_RPG=Object.freeze({
+export const INCAVI_GAMBE_ARMATURE_RPG=Object.freeze({
   'assassino-notte':[[.80,.478,.531],[.84,.469,.548],[.90,.449,.553],[.957,.425,.565],[1,.40,.60]],
-  'assassino-spettro':[[.848,.493,.537],[.875,.479,.564],[.92,.424,.608],[.961,.418,.629],[1,.41,.63]],
+  // Il terreno arancione originale resta visibile fra gli stivali se si
+  // apre il vuoto solo all'85% dell'altezza: separiamo le due gambe appena
+  // termina il grembiule, senza intaccare i bordi esterni degli stivali.
+  'assassino-spettro':[[.775,.493,.532],[.815,.469,.549],[.85,.461,.558],
+    [.875,.449,.568],[.92,.437,.583],[.961,.430,.601],[1,.412,.625]],
   'guerriero-braci':[[.866,.461,.546],[.89,.429,.567],[.94,.412,.582],[.985,.390,.605],[1,.39,.61]],
   'guerriero-abisso':[[.905,.462,.546],[.928,.432,.576],[.96,.414,.603],[.985,.402,.604],[1,.40,.61]],
   'berserker-rabbia':[[.786,.476,.537],[.845,.444,.575],[.925,.419,.590],[.968,.410,.610],[1,.40,.62]],

@@ -4,7 +4,7 @@
 // Le texture degli effetti vengono applicate solo ATTORNO alla silhouette.
 // Le combinazioni sono composte al momento: nessun limite prefissato di varianti.
 import { AURA_FOTO_ATLAS } from './aura-foto-atlas.js';
-import { disegnaAtmosferaCosmicaRpg,disegnaAccentiCosmiciRpg,disegnaFotografiaFusaRpg } from './rpg-scena-cosmica.js?v=510';
+import { disegnaAtmosferaCosmicaRpg,disegnaAccentiCosmiciRpg,disegnaFotografiaFusaRpg } from './rpg-scena-cosmica.js?v=511';
 import { caricaEnergiaFotograficaRpg,disegnaEnergiaFotograficaRpg } from './rpg-energia-incarnata.js';
 
 export const CLASSI_FOTO_RPG = Object.freeze(['guerriero','assassino','berserker']);
