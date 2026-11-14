@@ -44,8 +44,8 @@ function update(){
  for(const i of items){const [classe,nome]=i.id.split('-');
  const mask=mascheraArmaturaCosmicaRpg(i.id,document,false,armed);
  if(mask){i.foto.style.webkitMaskImage=mask;i.foto.style.maskImage=mask;}
- i.foto.src=armed?'./img/personaggi/armatura-con-arma-v371/'+classe+'/armatura-'+i.id+'/base.webp?v=507':
- './img/personaggi/armature/'+i.id+'.webp?v=507';
+ i.foto.src=armed?'./img/personaggi/armatura-con-arma-v371/'+classe+'/armatura-'+i.id+'/base.webp?v=508':
+ './img/personaggi/armature/'+i.id+'.webp?v=508';
  }}
 document.querySelector('#armi').addEventListener('change',update);update();
 let last=-1;function render(ms){requestAnimationFrame(render);if(ms-last<90)return;last=ms;
