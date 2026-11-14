@@ -1,0 +1,46 @@
+name: Cattura anteprima sei personaggi originali
+on:
+  push:
+    branches: [preview/astrale-mitico-boreale-leggendario-originali]
+    paths:
+      - 'anteprima-astrale-boreale-originali.html'
+      - '.github/workflows/cattura-astrale-boreale-originali.yml'
+permissions:
+  contents: write
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: preview/astrale-mitico-boreale-leggendario-originali
+          fetch-depth: 0
+      - name: Screenshot browser in pagina
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/local-render.log 2>&1 &
+          sleep 2
+          CHROME=$(command -v google-chrome || command -v google-chrome-stable || command -v chromium)
+          if [ -z "$CHROME" ]; then echo "Browser non trovato"; exit 1; fi
+          timeout 75s "$CHROME" --headless=new --no-sandbox --disable-gpu --hide-scrollbars \
+            --disable-extensions --force-device-scale-factor=1 \
+            --window-size=1450,2410 --virtual-time-budget=10000 \
+            --screenshot="$GITHUB_WORKSPACE/anteprima-astrale-boreale-originali.png" \
+            "http://127.0.0.1:8765/anteprima-astrale-boreale-originali.html"
+          test -s anteprima-astrale-boreale-originali.png
+          python3 -m pip -q install pillow
+          python3 - <<'PY'
+          from PIL import Image
+          im=Image.open('anteprima-astrale-boreale-originali.png').convert('RGB')
+          im.save('anteprima-astrale-boreale-originali.jpg',quality=79,optimize=True)
+          print('DIMENSIONI',im.size)
+          PY
+      - name: Aggiorna solo foto preview, mai la main
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add anteprima-astrale-boreale-originali.png anteprima-astrale-boreale-originali.jpg
+          if ! git diff --cached --quiet; then
+            git commit -m "preview: sei personaggi originali con Astrale e Boreale, screenshot esatto"
+            git push origin HEAD:preview/astrale-mitico-boreale-leggendario-originali
+          fi
