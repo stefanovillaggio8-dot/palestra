@@ -59,7 +59,9 @@ test('ogni modulo importa solo cose che esistono davvero', () => {
     const testo = readFileSync(f, 'utf8');
     for (const imp of importazioni(testo)) {
       if (!imp.percorso.startsWith('.')) continue; // solo moduli nostri
-      const bersaglio = join(SRC, imp.percorso.replace('./', ''));
+      // Un import ESM valido può contenere ?v=VERSIONE per invalidare la
+      // cache HTTP. La verifica sul disco controlla il pathname, non la query.
+      const bersaglio = join(SRC, imp.percorso.split(/[?#]/)[0].replace('./', ''));
       const disponibili = esporta(bersaglio);
       for (const nome of imp.nomi) {
         if (!disponibili.has(nome)) {
@@ -77,7 +79,7 @@ test('ogni modulo importa solo da file che esistono', () => {
     const testo = readFileSync(f, 'utf8');
     for (const imp of importazioni(testo)) {
       if (!imp.percorso.startsWith('.')) continue;
-      const bersaglio = join(SRC, imp.percorso.replace('./', ''));
+      const bersaglio = join(SRC, imp.percorso.split(/[?#]/)[0].replace('./', ''));
       try { readFileSync(bersaglio); }
       catch { problemi.push(`${f.split(/[\\/]/).pop()} importa da ${imp.percorso} che non c'è`); }
     }

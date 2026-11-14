@@ -21,7 +21,8 @@ test('audit generale: nessun import/export relativo verso moduli mancanti',()=>{
     const testo=readFileSync(file,'utf8');
     const imports=/(?:^|\n)\s*(?:import|export)\s+(?:[^'"\n]*?from\s*)?['"](\.[^'"\n]+)['"]/g;
     for(const m of testo.matchAll(imports)){
-      const destinazione=resolve(dirname(file),m[1]);
+      // I parametri ?v= servono al cache busting, non sono nel nome del file.
+      const destinazione=resolve(dirname(file),m[1].split(/[?#]/)[0]);
       assert.ok(existsSync(destinazione),'Modulo mancante in '+file+': '+m[1]);
       verificati++;
     }
