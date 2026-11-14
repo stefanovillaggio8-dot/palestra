@@ -1,7 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {existsSync,readFileSync} from 'node:fs';
-import {CONTORNI_ARMATURE_COSMICHE_RPG,idContornoArmaturaCosmicaRpg,
+import {CONTORNI_ARMATURE_COSMICHE_RPG,INCAVI_GAMBE_ARMATURE_RPG,idContornoArmaturaCosmicaRpg,
   mascheraArmaturaCosmicaRpg,applicaMascheraCosmicaRpg,disegnaFotografiaFusaRpg}
   from '../src/rpg-scena-cosmica.js';
 
@@ -53,13 +53,21 @@ test('v509: Spettro Cremisi lascia fuori fumo e ruderi ai lati delle gambe',()=>
     'mani e spallacci del personaggio devono restare visibili');
 });
 
-test('v510: la sagoma nuova non resta nella cache di Atelier, anteprima e app',()=>{
-  const scena='./rpg-scena-cosmica.js?v=510';
+test('v511: la sagoma nuova non resta nella cache di Atelier, anteprima e app',()=>{
+  const scena='./rpg-scena-cosmica.js?v=511';
   assert.ok(read('src/app.js').includes("from '"+scena+"'"));
   assert.ok(read('src/rpg-atelier.js').includes("from '"+scena+"'"));
   assert.ok(read('src/anteprima-combinata-rpg.js').includes("from '"+scena+"'"));
-  assert.ok(read('anteprima-armature-cosmiche.html').includes("./src/rpg-scena-cosmica.js?v=510"));
-  assert.ok(read('src/rpg-atelier-ui.js').includes("./rpg-atelier.js?v=510"));
+  assert.ok(read('anteprima-armature-cosmiche.html').includes("./src/rpg-scena-cosmica.js?v=511"));
+  assert.ok(read('src/rpg-atelier-ui.js').includes("./rpg-atelier.js?v=511"));
+});
+
+test('v511: il ritaglio apre lo spazio fra gli stivali prima del terreno rosso',()=>{
+  const incavo=INCAVI_GAMBE_ARMATURE_RPG['assassino-spettro'];
+  assert.ok(incavo[0][0]<.8,'apri il vuoto prima delle fiamme sul pavimento');
+  assert.ok(incavo.at(-1)[0]===1,'il vuoto continua fino al bordo inferiore');
+  assert.ok(incavo.some(([y,left,right])=>y>=.85&&y<=.925&&left<=.45&&right>=.56),
+    'separa il terreno infuocato fra i due stivali senza tagliare le scarpe');
 });
 
 test('v507: maschera su foto e PNG preserva i pixel RGB originali',()=>{
