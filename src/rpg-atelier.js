@@ -3,10 +3,10 @@
 // Nessun acquisto/record viene modificato dalle anteprime o dal download.
 import { AURA_FOTO_ATLAS } from './aura-foto-atlas.js';
 import { FOTO_RPG_RIQUADRI, livelliFotoRpg } from './aura-foto-rpg.js';
-import { fasciaSagoma, disegnaCoronaEnergetica } from './anteprima-combinata-rpg.js?v=512';
+import { fasciaSagoma, disegnaCoronaEnergetica } from './anteprima-combinata-rpg.js?v=513';
 import { disegnaAstraleExport,dipingiNebulosaCosmica } from './effetti-rpg-canvas.js';
 import { fotoCinematograficaRpg } from './foto-cinematica-rpg.js';
-import {disegnaAtmosferaCosmicaRpg,disegnaAccentiCosmiciRpg,disegnaSoggettoCosmicoRpg,disegnaSfondoFotograficoCosmicoRpg,disegnaFotografiaFusaRpg} from './rpg-scena-cosmica.js?v=512';
+import {disegnaAtmosferaCosmicaRpg,disegnaAccentiCosmiciRpg,disegnaSoggettoCosmicoRpg,disegnaSfondoFotograficoCosmicoRpg,disegnaFotografiaFusaRpg} from './rpg-scena-cosmica.js?v=513';
 import {caricaEnergiaFotograficaRpg,disegnaEnergiaFotograficaRpg} from './rpg-energia-incarnata.js';
 import { percorsoFotoCoronaV360 } from './foto-corona-v360.js';
 import { percorsoFotoAuraDivinaV366 } from './foto-aura-divina-v366.js';
@@ -86,6 +86,9 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
     ? ritaglioPresente : null;
   const fxSenzaFoto = c.effetto==='skin-mitica' || c.effetto==='effetto-nebula';
   const texturaCosmica=fxSenzaFoto?await caricaEnergiaFotograficaRpg():null;
+  const ambienteCosmico=fxSenzaFoto?await attesaImmagine(new URL(
+    c.effetto==='skin-mitica'?'../img/effetti/astrale-ambiente-v503.webp'
+      :'../img/effetti/nebulosa-ambiente-v503.webp',import.meta.url).href).catch(()=>null):null;
   // Il file finale deve usare lo stesso scatto completo visibile in anteprima.
   // Se il collage non e' installato resta il renderer precedente.
   const fotoCorona=c.corona ? percorsoFotoCoronaV360({
@@ -119,17 +122,29 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
   const dw=Math.round(immagine.naturalWidth*ratio),dh=Math.round(immagine.naturalHeight*ratio);
   const dx=(larghezza-dw)/2,dy=(altezza-dh)/2;
   if(fxSenzaFoto) {
-    if(alphaAutentico){
-      // La fotografia di partenza è lo stesso ambiente della galleria RPG.
-      // Non trasformiamo un effetto in uno sfondo cosmico inventato.
-      ctx.drawImage(fotoBase,dx,dy,dw,dh);
-      ctx.fillStyle=c.effetto==='skin-mitica'?'rgba(13,7,20,.27)':'rgba(6,13,22,.25)';
-      ctx.fillRect(dx,dy,dw,dh);
-    }else {
-      ctx.fillStyle='#0c0f1b';ctx.fillRect(0,0,larghezza,altezza);
-    }
+    // L'Atelier usa lo stesso ambiente fotografico della card, anche nel PNG
+    // scaricato: le foto opache delle armature non devono far ricomparire il
+    // pavimento rosso né lasciare un blocco blu dietro ai piedi.
+    if(ambienteCosmico){
+      const scale=Math.max(larghezza/ambienteCosmico.naturalWidth,
+        altezza/ambienteCosmico.naturalHeight);
+      const aw=ambienteCosmico.naturalWidth*scale,ah=ambienteCosmico.naturalHeight*scale;
+      ctx.drawImage(ambienteCosmico,(larghezza-aw)/2,0,aw,ah);
+      const vignetta=ctx.createLinearGradient(0,0,0,altezza);
+      vignetta.addColorStop(0,'rgba(7,9,19,.1)');
+      vignetta.addColorStop(.75,'rgba(9,11,22,.28)');
+      vignetta.addColorStop(1,'rgba(12,14,27,.88)');
+      ctx.fillStyle=vignetta;ctx.fillRect(0,0,larghezza,altezza);
+    }else{ctx.fillStyle='#0c0f1b';ctx.fillRect(0,0,larghezza,altezza);}
     ctx.save();ctx.translate(dx,dy);
     disegnaEnergiaFotograficaRpg(ctx,dw,dh,c.classe,c.effetto==='skin-mitica'?'astrale':'nebulosa',2.8,{fase:'retro',texture:texturaCosmica});
+    if(!alphaAutentico){
+      // Come nel live: tutto il ritratto opaco è DAVANTI alla magia, compresi
+      // gli stivali. Il sigillo cosmico passa sotto le suole, non sopra.
+      disegnaEnergiaFotograficaRpg(ctx,dw,dh,c.classe,
+        c.effetto==='skin-mitica'?'astrale':'nebulosa',2.8,
+        {fase:'fronte',texture:texturaCosmica});
+    }
     ctx.restore();
     if(alphaAutentico) {
       // La trasparenza è già nei pixel, vietato ripristinare il pavimento.
@@ -207,13 +222,15 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
       else {ctx.translate(dx,dy);dipingiNebulosaCosmica(ctx,dw,dh,c.classe,2.8,55);}
       ctx.restore();
     }
-    ctx.save();ctx.translate(dx,dy);
-    disegnaEnergiaFotograficaRpg(ctx,dw,dh,c.classe,
-      c.effetto==='skin-mitica'?'astrale':'nebulosa',2.8,{
-        fase:'fronte',soggetto:alphaAutentico?ritaglioReale:null,
-        buffer:document.createElement('canvas'),texture:texturaCosmica,
-      });
-    ctx.restore();
+    if(alphaAutentico){
+      ctx.save();ctx.translate(dx,dy);
+      disegnaEnergiaFotograficaRpg(ctx,dw,dh,c.classe,
+        c.effetto==='skin-mitica'?'astrale':'nebulosa',2.8,{
+          fase:'fronte',soggetto:ritaglioReale,
+          buffer:document.createElement('canvas'),texture:texturaCosmica,
+        });
+      ctx.restore();
+    }
     if(!alphaAutentico){
       ctx.save();ctx.globalAlpha=.11;
       disegnaAccentiCosmiciRpg(ctx,larghezza,altezza,c.effetto==='skin-mitica'?'astrale':'nebulosa');

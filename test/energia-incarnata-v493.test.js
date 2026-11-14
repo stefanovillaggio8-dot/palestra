@@ -81,7 +81,10 @@ test('v494: rendering live e PNG condividono il VFX fotografico, senza toccare i
   assert.match(css,/rpg-cosmic-cutout-ready\.rpg-energia-pronta > \.rpg-foto-fondale/);
   assert.match(css,/\.rpg-cosmic-stage\.rpg-energia-pronta/);
   assert.match(testo('src/rpg-energia-incarnata.js'),/fondale\.className='rpg-foto-fondale'/);
-  assert.match(testo('src/rpg-atelier.js'),/ctx\.drawImage\(fotoBase,dx,dy,dw,dh\)/);
+  // v513: il PNG dell'Atelier segue il fondale fotografico della preview.
+  // Disegnare di nuovo fotoBase opaca ripristinava il vecchio pavimento
+  // attorno agli stivali quando l'effetto cosmico era selezionato.
+  assert.match(testo('src/rpg-atelier.js'),/const ambienteCosmico=fxSenzaFoto\?await attesaImmagine/);
   assert.match(testo('src/anteprima-combinata-rpg.js'),/ctx\.drawImage\(original,0,0,out\.width,out\.height\)/);
   assert.match(testo('sw.js'),/\.\/src\/rpg-energia-incarnata\.js/);
   assert.match(testo('index.html'),/palestra-v\d+/);
