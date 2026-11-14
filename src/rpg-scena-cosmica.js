@@ -24,16 +24,14 @@ export const CONTORNI_ARMATURE_COSMICHE_RPG=Object.freeze({
     [.835,.287,.722],[.86,.324,.691],[.915,.322,.684],[.944,.305,.716],
     [.951,.329,.701],[.957,.402,.623]],
   'assassino-spettro':[
-    // La precedente sagoma includeva quasi l'intero fumo rosso e i ruderi
-    // fotografati ai lati del mantello (x=.06..94 fra y=.69 e .77).
-    // Spettro Cremisi ha invece il mantello/armatura centrati: conserviamo
-    // busto, braccia, pugnali e scarpe, ma NON il paesaggio infuocato.
+    // Il corpo termina in un grembiule centrale: più in basso le gambe
+    // sono due isole distinte, non una singola fascia di terreno rosso.
     [.052,.50,.50],[.065,.466,.540],[.090,.436,.563],[.13,.402,.600],
     [.17,.397,.603],[.20,.349,.663],[.25,.303,.704],[.31,.290,.718],
     [.39,.282,.733],[.47,.266,.750],[.55,.271,.751],[.62,.313,.717],
-    [.69,.351,.676],[.735,.350,.671],[.766,.352,.664],[.79,.357,.666],
-    [.815,.358,.663],[.845,.355,.663],[.875,.354,.660],[.922,.352,.663],
-    [.938,.354,.671],[.950,.373,.655]],
+    [.66,.335,.694],[.69,.351,.676],[.72,.350,.676],[.735,.378,.645],
+    [.755,.428,.606],[.775,.467,.584],[.795,.490,.554],[.805,.498,.542],
+    [.812,.505,.526]],
   'guerriero-braci':[
     [.036,.50,.50],[.052,.457,.550],[.075,.429,.576],[.115,.422,.576],
     [.160,.426,.578],[.18,.371,.639],[.205,.306,.695],[.25,.269,.739],
@@ -60,15 +58,27 @@ export const CONTORNI_ARMATURE_COSMICHE_RPG=Object.freeze({
     [.68,.147,.917],[.77,.181,.893],[.835,.208,.868],[.885,.244,.818],
     [.935,.286,.751],[.95,.303,.744],[.965,.320,.744],[.972,.354,.724]],
 });
+// v512: i piedi di Spettro Cremisi sono CIRCONDATI da pietre incandescenti
+// nella foto originale. Un poligono largo (anche con un piccolo incavo al
+// centro) lascia visibile quel pavimento e contemporaneamente tronca le punte
+// delle scarpe. Conserviamo separatamente le vere due gambe e il mantello.
+// Queste coordinate sono relative alla FOTO originale, non all'effetto.
+export const STIVALI_SPETTRO_COSMICI_RPG=Object.freeze({
+  sinistro:[
+    [.71,.347,.424],[.75,.333,.404],[.78,.324,.397],
+    [.805,.322,.394],[.835,.319,.390],[.86,.313,.390],
+    [.883,.302,.400],[.900,.275,.416],[.909,.270,.421],
+    [.916,.287,.417],[.920,.338,.401]],
+  destro:[
+    [.71,.618,.690],[.75,.629,.693],[.78,.630,.704],
+    [.805,.632,.703],[.835,.632,.704],[.860,.628,.709],
+    [.883,.624,.721],[.900,.619,.745],[.909,.619,.754],
+    [.916,.641,.748],[.920,.679,.727]],
+});
 // La silhouette del mantello termina prima delle scarpe: senza questi vuoti
 // rimarrebbe una striscia di pavimento fotografico tra le due gambe.
 export const INCAVI_GAMBE_ARMATURE_RPG=Object.freeze({
   'assassino-notte':[[.80,.478,.531],[.84,.469,.548],[.90,.449,.553],[.957,.425,.565],[1,.40,.60]],
-  // Il terreno arancione originale resta visibile fra gli stivali se si
-  // apre il vuoto solo all'85% dell'altezza: separiamo le due gambe appena
-  // termina il grembiule, senza intaccare i bordi esterni degli stivali.
-  'assassino-spettro':[[.775,.493,.532],[.815,.469,.549],[.85,.461,.558],
-    [.875,.449,.568],[.92,.437,.583],[.961,.430,.601],[1,.412,.625]],
   'guerriero-braci':[[.866,.461,.546],[.89,.429,.567],[.94,.412,.582],[.985,.390,.605],[1,.39,.61]],
   'guerriero-abisso':[[.905,.462,.546],[.928,.432,.576],[.96,.414,.603],[.985,.402,.604],[1,.40,.61]],
   'berserker-rabbia':[[.786,.476,.537],[.845,.444,.575],[.925,.419,.590],[.968,.410,.610],[1,.40,.62]],
@@ -98,10 +108,17 @@ function fotoConArmaCosmicaRpg(foto){
 function dipingiSagomaArmaturaRpg(ctx,w,h,id,conCorona=false,conArma=false){
   const punti=CONTORNI_ARMATURE_COSMICHE_RPG[id];
   if(!punti||!ctx?.beginPath)return false;
-  ctx.beginPath();
-  punti.forEach(([y,l],i)=>i?ctx.lineTo(l*w,y*h):ctx.moveTo(l*w,y*h));
-  for(let i=punti.length-1;i>=0;i--){const [y,,r]=punti[i];ctx.lineTo(r*w,y*h);}
-  ctx.closePath();ctx.fill();
+  const disegnaIsola=righe=>{
+    ctx.beginPath();
+    righe.forEach(([y,l],i)=>i?ctx.lineTo(l*w,y*h):ctx.moveTo(l*w,y*h));
+    for(let i=righe.length-1;i>=0;i--){const [y,,r]=righe[i];ctx.lineTo(r*w,y*h);}
+    ctx.closePath();ctx.fill();
+  };
+  disegnaIsola(punti);
+  if(id==='assassino-spettro'){
+    disegnaIsola(STIVALI_SPETTRO_COSMICI_RPG.sinistro);
+    disegnaIsola(STIVALI_SPETTRO_COSMICI_RPG.destro);
+  }
   if(id==='berserker-apocalisse'&&typeof ctx.quadraticCurveTo==='function'){
     // La foto SVG pre-arma include le due corna del vero Berserker; i
     // punti superano il contorno dell'elmo. Non tagliarle nel ritaglio.
@@ -161,7 +178,7 @@ export function mascheraArmaturaCosmicaRpg(id,documento=globalThis.document,conC
     const ctx=c.getContext?.('2d',{alpha:true});
     if(!ctx||!c.toDataURL)return null;
     ctx.fillStyle='#fff';
-    if('filter' in ctx)ctx.filter='blur(5px)';
+    if('filter' in ctx)ctx.filter='blur('+(id==='assassino-spettro'?3:5)+'px)';
     if(!dipingiSagomaArmaturaRpg(ctx,c.width,c.height,id,conCorona,conArma))return null;
     const result='url('+JSON.stringify(c.toDataURL('image/png'))+')';
     MASCHERE_ARMATURE_CACHE.set(chiave,result);return result;
@@ -220,7 +237,7 @@ export function disegnaFotografiaFusaRpg(ctx,foto,x,y,w,h,documento=globalThis.d
       const mc=m.getContext?.('2d',{alpha:true});
       if(!mc)return false;
       mc.fillStyle='#fff';
-      if('filter' in mc)mc.filter='blur('+Math.max(3,Math.round(c.width*.014))+'px)';
+      if('filter' in mc)mc.filter='blur('+Math.max(2,Math.round(c.width*(idArmatura==='assassino-spettro'?.008:.014)))+'px)';
       dipingiSagomaArmaturaRpg(mc,c.width,c.height,idArmatura,fotoConCoronaCosmicaRpg(foto),fotoConArmaCosmicaRpg(foto));
       // drawImage copre TUTTO il rettangolo con il mask alpha, inclusi
       // i pixel realmente trasparenti. Un fill(path) lascerebbe intatto

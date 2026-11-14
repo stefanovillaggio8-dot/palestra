@@ -2,7 +2,7 @@
 // Immagini: sempre il ritratto originale dello stato Streak selezionato.
 // Il dialogo non salva sul profilo, non compra nulla e non modifica la Streak.
 import { CLASSI_ATELIER, ARMATURE_ATELIER, EFFETTI_ATELIER,
-  STADI_ATELIER, NUMERO_COMBINAZIONI_ATELIER, opzioniAtelier, salvaFotoAtelier } from './rpg-atelier.js?v=511';
+  STADI_ATELIER, NUMERO_COMBINAZIONI_ATELIER, opzioniAtelier, salvaFotoAtelier } from './rpg-atelier.js?v=512';
 const CLASSI={guerriero:'Guerriero',assassino:'Assassino',berserker:'Berserker'};
 const STATI=['Senza armatura','Bracciali','Corazza','Armatura','Arma','Completo'];
 export function apriAtelierRpg({profilo,st,oggetto=null,stadioAttuale=0,renderPersonaggio,oggetti=[]}) {
