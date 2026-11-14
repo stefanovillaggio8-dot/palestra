@@ -37,15 +37,16 @@ test('v507: tutte le armature comprabili hanno una sagoma specifica e non un ret
   }
 });
 
-test('v508: Spettro Cremisi non trascina il paesaggio infuocato nei due effetti',()=>{
+test('v509: Spettro Cremisi lascia fuori fumo e ruderi ai lati delle gambe',()=>{
   const spettro=CONTORNI_ARMATURE_COSMICHE_RPG['assassino-spettro'];
   // v507 lasciava visibile fino all'87% del fotogramma tra le gambe e il
   // mantello. Sono i pixel di rovine/fiamme, non quelli del personaggio.
   const sezioni=spettro.filter(([y])=>y>=.62&&y<=.875);
   assert.ok(sezioni.length>=6);
   for(const [y,sinistra,destra] of sezioni){
-    assert.ok(destra-sinistra<.46,`fondo fotografico a quota ${y}`);
-    assert.ok(sinistra>=.28 && destra<=.74,`paesaggio laterale a quota ${y}`);
+    assert.ok(destra-sinistra<.43,`fondo fotografico a quota ${y}`);
+    if(y>=.69)assert.ok(sinistra>=.35 && destra<=.68,
+      `fumo e fiamme fuori dalla silhouette delle gambe a quota ${y}`);
   }
   assert.ok(spettro.at(-1)[0]<=.95,'non mostrare il terreno sotto gli stivali');
   assert.ok(spettro.some(([y,l,r])=>y>=.25&&y<=.4&&l<.31&&r>.7),
