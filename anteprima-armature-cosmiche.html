@@ -22,7 +22,7 @@ background-position:center;background-size:cover;border-radius:10px}
 <label>Foto progressione: <select id="armi"><option value="0">Prima delle armi</option><option value="1">Armi sbloccate</option></select></label>
 <main class="gallery" id="gallery"></main>
 <script type="module">
-import {mascheraArmaturaCosmicaRpg} from './src/rpg-scena-cosmica.js?v=512';
+import {mascheraArmaturaCosmicaRpg} from './src/rpg-scena-cosmica.js?v=513';
 import {disegnaEnergiaFotograficaRpg,caricaEnergiaFotograficaRpg} from './src/rpg-energia-incarnata.js';
 const armature=['assassino-notte','assassino-spettro','guerriero-braci','guerriero-abisso','berserker-rabbia','berserker-apocalisse'];
 const items=[],host=document.querySelector('#gallery');
@@ -44,8 +44,8 @@ function update(){
  for(const i of items){const [classe,nome]=i.id.split('-');
  const mask=mascheraArmaturaCosmicaRpg(i.id,document,false,armed);
  if(mask){i.foto.style.webkitMaskImage=mask;i.foto.style.maskImage=mask;}
- i.foto.src=armed?'./img/personaggi/armatura-con-arma-v371/'+classe+'/armatura-'+i.id+'/base.webp?v=512':
- './img/personaggi/armature/'+i.id+'.webp?v=512';
+ i.foto.src=armed?'./img/personaggi/armatura-con-arma-v371/'+classe+'/armatura-'+i.id+'/base.webp?v=513':
+ './img/personaggi/armature/'+i.id+'.webp?v=513';
  }}
 document.querySelector('#armi').addEventListener('change',update);update();
 let last=-1;function render(ms){requestAnimationFrame(render);if(ms-last<90)return;last=ms;

@@ -58,22 +58,21 @@ export const CONTORNI_ARMATURE_COSMICHE_RPG=Object.freeze({
     [.68,.147,.917],[.77,.181,.893],[.835,.208,.868],[.885,.244,.818],
     [.935,.286,.751],[.95,.303,.744],[.965,.320,.744],[.972,.354,.724]],
 });
-// v512: i piedi di Spettro Cremisi sono CIRCONDATI da pietre incandescenti
-// nella foto originale. Un poligono largo (anche con un piccolo incavo al
-// centro) lascia visibile quel pavimento e contemporaneamente tronca le punte
-// delle scarpe. Conserviamo separatamente le vere due gambe e il mantello.
-// Queste coordinate sono relative alla FOTO originale, non all'effetto.
+// v513: misurati sugli scatti 1024x1536 e 720x1080 di Spettro Cremisi.
+// Le suole sono a y~.916 (NON a .94: quello è terreno). La v512 sfumava
+// troppo i piedi e toglieva la punta esterna di entrambi gli stivali.
+// I due contorni ora restano nitidi e seguono le vere scarpe separatamente.
 export const STIVALI_SPETTRO_COSMICI_RPG=Object.freeze({
   sinistro:[
-    [.71,.347,.424],[.75,.333,.404],[.78,.324,.397],
-    [.805,.322,.394],[.835,.319,.390],[.86,.313,.390],
-    [.883,.302,.400],[.900,.275,.416],[.909,.270,.421],
-    [.916,.287,.417],[.920,.338,.401]],
+    [.71,.347,.429],[.75,.336,.413],[.78,.330,.407],
+    [.805,.323,.403],[.835,.316,.405],[.86,.309,.403],
+    [.883,.297,.406],[.898,.270,.412],[.908,.264,.410],
+    [.916,.275,.405],[.921,.298,.395]],
   destro:[
-    [.71,.618,.690],[.75,.629,.693],[.78,.630,.704],
-    [.805,.632,.703],[.835,.632,.704],[.860,.628,.709],
-    [.883,.624,.721],[.900,.619,.745],[.909,.619,.754],
-    [.916,.641,.748],[.920,.679,.727]],
+    [.71,.620,.690],[.75,.630,.700],[.78,.634,.701],
+    [.805,.640,.701],[.835,.641,.708],[.860,.635,.711],
+    [.883,.628,.732],[.898,.621,.759],[.908,.616,.770],
+    [.916,.626,.770],[.921,.651,.746]],
 });
 // La silhouette del mantello termina prima delle scarpe: senza questi vuoti
 // rimarrebbe una striscia di pavimento fotografico tra le due gambe.
@@ -108,16 +107,21 @@ function fotoConArmaCosmicaRpg(foto){
 function dipingiSagomaArmaturaRpg(ctx,w,h,id,conCorona=false,conArma=false){
   const punti=CONTORNI_ARMATURE_COSMICHE_RPG[id];
   if(!punti||!ctx?.beginPath)return false;
-  const disegnaIsola=righe=>{
+  const disegnaIsola=(righe,stivale=false)=>{
+    // Gli stivali sono larghi appena 25-60 px nella maschera a risoluzione
+    // anteprima: applicare loro la sfocatura del mantello li rendeva traslucidi.
+    // Solo il bordo estremo riceve feather, l'interno resta opaco al 100%.
+    ctx.save();
+    if(stivale&&'filter' in ctx)ctx.filter='blur(.75px)';
     ctx.beginPath();
     righe.forEach(([y,l],i)=>i?ctx.lineTo(l*w,y*h):ctx.moveTo(l*w,y*h));
     for(let i=righe.length-1;i>=0;i--){const [y,,r]=righe[i];ctx.lineTo(r*w,y*h);}
-    ctx.closePath();ctx.fill();
+    ctx.closePath();ctx.fill();ctx.restore();
   };
   disegnaIsola(punti);
   if(id==='assassino-spettro'){
-    disegnaIsola(STIVALI_SPETTRO_COSMICI_RPG.sinistro);
-    disegnaIsola(STIVALI_SPETTRO_COSMICI_RPG.destro);
+    disegnaIsola(STIVALI_SPETTRO_COSMICI_RPG.sinistro,true);
+    disegnaIsola(STIVALI_SPETTRO_COSMICI_RPG.destro,true);
   }
   if(id==='berserker-apocalisse'&&typeof ctx.quadraticCurveTo==='function'){
     // La foto SVG pre-arma include le due corna del vero Berserker; i
@@ -178,7 +182,7 @@ export function mascheraArmaturaCosmicaRpg(id,documento=globalThis.document,conC
     const ctx=c.getContext?.('2d',{alpha:true});
     if(!ctx||!c.toDataURL)return null;
     ctx.fillStyle='#fff';
-    if('filter' in ctx)ctx.filter='blur('+(id==='assassino-spettro'?3:5)+'px)';
+    if('filter' in ctx)ctx.filter='blur('+(id==='assassino-spettro'?1.7:5)+'px)';
     if(!dipingiSagomaArmaturaRpg(ctx,c.width,c.height,id,conCorona,conArma))return null;
     const result='url('+JSON.stringify(c.toDataURL('image/png'))+')';
     MASCHERE_ARMATURE_CACHE.set(chiave,result);return result;

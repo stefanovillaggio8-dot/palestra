@@ -4094,6 +4094,35 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
 .personaggio-scena > .rpg-cosmic-stage.rpg-cosmic-armor-contoured.rpg-energia-pronta > .personaggio-scena-grafica.personaggio {
   animation:none!important;
 }
+/* v513 · L'Atelier NON monta .aura-preview-cosmic-panel, perciò il fondale
+   fotografico v503 della preview Shop non gli veniva mai applicato: rimaneva
+   quel pannello viola piatto degli screenshot. Una sola scena continua dietro
+   alla foto, compresa la zona dei piedi, e nessuna seconda cornice incollata. */
+.rpg-atelier-avatar .personaggio-scena.rpg-scena-astrale {
+  background:
+    linear-gradient(180deg,rgba(8,6,17,.12) 0%,rgba(9,8,19,.08) 51%,rgba(10,11,23,.36) 74%,#0d0f1d 97%),
+    url('./img/effetti/astrale-ambiente-v503.webp') center top / cover no-repeat!important;
+}
+.rpg-atelier-avatar .personaggio-scena.rpg-scena-nebulosa {
+  background:
+    linear-gradient(180deg,rgba(5,10,19,.13) 0%,rgba(6,11,19,.07) 51%,rgba(8,12,23,.39) 74%,#0d0f1d 97%),
+    url('./img/effetti/nebulosa-ambiente-v503.webp') center top / cover no-repeat!important;
+}
+.rpg-atelier-avatar .personaggio-scena > .rpg-cosmic-stage {
+  background:transparent!important;
+}
+/* La maschera cambia solo l'alpha, mai l'opacità del personaggio. La texture
+   luminosa abbraccia la sagoma DA DIETRO: non può rendere translucidi il torso
+   o gli stivali, né disegnare il cerchio mitico sopra le punte delle scarpe. */
+.personaggio-scena .rpg-cosmic-stage.rpg-cosmic-armor-contoured > .personaggio-scena-grafica.con-foto > .personaggio-ritratto.rpg-cosmic-armor-subject {
+  opacity:1!important;
+  mix-blend-mode:normal!important;
+  filter:contrast(1.09) saturate(1.07) brightness(1.07)!important;
+}
+.personaggio-scena > .rpg-cosmic-stage.rpg-cosmic-armor-contoured > .rpg-energia-fronte {
+  z-index:1!important;
+  opacity:.83!important;
+}
 .aura-preview-armor-field {
   display:flex;
   flex-wrap:wrap;

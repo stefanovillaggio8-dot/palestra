@@ -53,18 +53,18 @@ test('v509: Spettro Cremisi lascia fuori fumo e ruderi ai lati delle gambe',()=>
     'mani e spallacci del personaggio devono restare visibili');
 });
 
-test('v512: la sagoma nuova non resta nella cache di Atelier, anteprima e app',()=>{
-  const scena='./rpg-scena-cosmica.js?v=512';
+test('v513: la sagoma nuova non resta nella cache di Atelier, anteprima e app',()=>{
+  const scena='./rpg-scena-cosmica.js?v=513';
   assert.ok(read('src/app.js').includes("from '"+scena+"'"));
   assert.ok(read('src/rpg-atelier.js').includes("from '"+scena+"'"));
   assert.ok(read('src/anteprima-combinata-rpg.js').includes("from '"+scena+"'"));
-  assert.ok(read('anteprima-armature-cosmiche.html').includes("./src/rpg-scena-cosmica.js?v=512"));
-  assert.ok(read('src/rpg-atelier-ui.js').includes("./rpg-atelier.js?v=512"));
+  assert.ok(read('anteprima-armature-cosmiche.html').includes("./src/rpg-scena-cosmica.js?v=513"));
+  assert.ok(read('src/rpg-atelier-ui.js').includes("./rpg-atelier.js?v=513"));
 });
 
-test('v512: due sagome indipendenti conservano le scarpe senza il pavimento infuocato',()=>{
-  // Le scarpe vere terminano a ~91% del fotogramma, il terreno rosso e'
-  // subito sotto. Un vecchio incavo centrale lasciava due colonne di terreno.
+test('v513: due sagome indipendenti raggiungono le suole senza il pavimento infuocato',()=>{
+  // Sulle foto originali le suole arrivano circa al 92% del fotogramma.
+  // Il difetto v512 era il bordo sfocato e stretto: non la loro altezza.
   const corpo=CONTORNI_ARMATURE_COSMICHE_RPG['assassino-spettro'];
   assert.ok(corpo.at(-1)[0]<=.82,'il mantello non deve inglobare il suolo');
   assert.equal(INCAVI_GAMBE_ARMATURE_RPG['assassino-spettro'],undefined,
@@ -72,17 +72,35 @@ test('v512: due sagome indipendenti conservano le scarpe senza il pavimento infu
   const sinistro=STIVALI_SPETTRO_COSMICI_RPG.sinistro;
   const destro=STIVALI_SPETTRO_COSMICI_RPG.destro;
   assert.ok(sinistro[0][0]<.73&&destro[0][0]<.73,'le gambe raggiungono il mantello');
-  assert.ok(sinistro.at(-1)[0]<=.92&&destro.at(-1)[0]<=.92,
-    'nessun terreno sotto le suole');
-  for(const y of [.78,.835,.86,.90]){
+  assert.ok(sinistro.at(-1)[0]>=.917&&destro.at(-1)[0]>=.917,
+    'la maschera deve arrivare alla parte inferiore delle scarpe');
+  assert.ok(sinistro.at(-1)[0]<=.925&&destro.at(-1)[0]<=.925,
+    'non mostrare il terreno sotto le suole');
+  for(const y of [.78,.835,.86,.90,.916]){
     const get=righe=>righe.find((r,i)=>r[0]>=y&&i>0);
     const s=get(sinistro),d=get(destro);
-    assert.ok(s&&d&&s[2]<.43&&d[1]>.61,
+    assert.ok(s&&d&&s[2]<.45&&d[1]>.59,
       'il centro tra le scarpe resta trasparente a y='+y);
   }
   const scene=read('src/rpg-scena-cosmica.js');
-  assert.match(scene,/disegnaIsola\(STIVALI_SPETTRO_COSMICI_RPG\.sinistro\)/);
-  assert.match(scene,/disegnaIsola\(STIVALI_SPETTRO_COSMICI_RPG\.destro\)/);
+  assert.match(scene,/disegnaIsola\(STIVALI_SPETTRO_COSMICI_RPG\.sinistro,true\)/);
+  assert.match(scene,/disegnaIsola\(STIVALI_SPETTRO_COSMICI_RPG\.destro,true\)/);
+  assert.match(scene,/ctx\.filter='blur\(\.75px\)'/,
+    'le isole degli stivali non ereditano la sfocatura del mantello');
+});
+
+test('v513: Atelier e PNG hanno lo stesso fondale e la foto Shop resta opaca',()=>{
+  const style=read('stile-rpg.css'),atelier=read('src/rpg-atelier.js');
+  assert.match(style,/\.rpg-atelier-avatar \.personaggio-scena\.rpg-scena-astrale[\s\S]*?astrale-ambiente-v503\.webp/);
+  assert.match(style,/\.rpg-atelier-avatar \.personaggio-scena\.rpg-scena-nebulosa[\s\S]*?nebulosa-ambiente-v503\.webp/);
+  assert.match(style,/\.personaggio-ritratto\.rpg-cosmic-armor-subject\s*\{\s*opacity:1!important/);
+  assert.match(style,/\.rpg-cosmic-armor-contoured > \.rpg-energia-fronte\s*\{\s*z-index:1!important/,
+    'le scarpe devono stare sopra il sigillo, non essere coperte dal VFX');
+  assert.match(atelier,/const ambienteCosmico=fxSenzaFoto\?await attesaImmagine/);
+  assert.match(atelier,/if\(!alphaAutentico\)\{[\s\S]*?fase:'fronte',texture:texturaCosmica/,
+    'lo stesso ordine dei livelli vale anche nel PNG');
+  assert.ok(existsSync(new URL('../img/effetti/astrale-ambiente-v503.webp',import.meta.url)));
+  assert.ok(existsSync(new URL('../img/effetti/nebulosa-ambiente-v503.webp',import.meta.url)));
 });
 
 test('v507: maschera su foto e PNG preserva i pixel RGB originali',()=>{
