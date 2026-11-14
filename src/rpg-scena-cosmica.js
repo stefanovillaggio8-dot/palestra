@@ -9,6 +9,147 @@ const CLASSI=Object.freeze(['assassino','guerriero','berserker']);
 const MASK_CACHE=new Map();
 const MASK_RASTER_CACHE=new Map();
 let mascheraBordiFoto=null;
+// v507: le armature Shop sono fotografie opache 2:3 con il paesaggio
+// incorporato. Una sfumatura del rettangolo NON separa il personaggio.
+// Questi contorni seguono invece i sei costumi REALI (mantelli, scudi,
+// corna e piedi compresi). L'immagine non viene rigenerata o ridimensionata:
+// cambia soltanto l'alpha, su browser e nell'esportazione PNG.
+// Coordinate normalizzate [altezza, bordo sinistro, bordo destro].
+export const CONTORNI_ARMATURE_COSMICHE_RPG=Object.freeze({
+  'assassino-notte':[
+    [.061,.50,.50],[.070,.465,.535],[.095,.441,.560],[.13,.408,.594],
+    [.185,.394,.612],[.21,.363,.650],[.24,.334,.678],[.29,.310,.703],
+    [.36,.297,.717],[.44,.292,.732],[.54,.269,.744],[.64,.246,.771],
+    [.72,.230,.797],[.775,.206,.821],[.795,.210,.817],[.815,.253,.765],
+    [.835,.287,.722],[.86,.324,.691],[.915,.322,.684],[.944,.305,.716],
+    [.951,.329,.701],[.957,.402,.623]],
+  'assassino-spettro':[
+    [.052,.50,.50],[.065,.466,.540],[.090,.436,.563],[.13,.402,.600],
+    [.17,.397,.603],[.20,.323,.689],[.25,.294,.710],[.31,.278,.733],
+    [.39,.266,.744],[.47,.245,.763],[.55,.182,.815],[.62,.126,.864],
+    [.69,.084,.919],[.735,.062,.935],[.766,.072,.929],[.79,.105,.901],
+    [.815,.160,.856],[.845,.260,.777],[.875,.293,.739],[.922,.266,.744],
+    [.943,.267,.753],[.951,.322,.705],[.962,.410,.627]],
+  'guerriero-braci':[
+    [.036,.50,.50],[.052,.457,.550],[.075,.429,.576],[.115,.422,.576],
+    [.160,.426,.578],[.18,.371,.639],[.205,.306,.695],[.25,.269,.739],
+    [.32,.249,.781],[.355,.220,.841],[.43,.218,.857],[.55,.217,.863],
+    [.645,.209,.859],[.70,.174,.849],[.785,.151,.863],[.835,.167,.837],
+    [.87,.240,.777],[.915,.240,.760],[.95,.198,.784],[.975,.204,.785],
+    [.985,.295,.721]],
+  'guerriero-abisso':[
+    [.029,.50,.50],[.043,.461,.542],[.072,.428,.570],[.11,.420,.578],
+    [.16,.419,.580],[.19,.331,.675],[.24,.274,.739],[.30,.245,.762],
+    [.36,.213,.849],[.46,.170,.866],[.56,.132,.885],[.65,.084,.922],
+    [.72,.052,.958],[.79,.032,.973],[.835,.039,.965],[.88,.090,.922],
+    [.915,.201,.793],[.945,.214,.796],[.975,.195,.802],[.985,.288,.721]],
+  'berserker-rabbia':[
+    [.012,.50,.50],[.019,.387,.650],[.045,.359,.670],[.085,.352,.663],
+    [.13,.388,.624],[.16,.306,.706],[.20,.230,.764],[.265,.189,.804],
+    [.33,.190,.866],[.38,.171,.914],[.47,.161,.931],[.59,.166,.935],
+    [.64,.183,.938],[.72,.186,.895],[.81,.203,.859],[.865,.233,.823],
+    [.90,.264,.767],[.935,.236,.767],[.955,.230,.772],[.964,.306,.744]],
+  'berserker-apocalisse':[
+    [.037,.50,.50],[.048,.446,.552],[.075,.414,.586],[.115,.414,.585],
+    [.135,.345,.659],[.16,.274,.726],[.19,.201,.791],[.24,.157,.821],
+    [.32,.143,.863],[.37,.126,.908],[.45,.136,.930],[.58,.140,.930],
+    [.68,.147,.917],[.77,.181,.893],[.835,.208,.868],[.885,.244,.818],
+    [.935,.263,.762],[.95,.255,.769],[.965,.265,.769],[.972,.331,.739]],
+});
+// La silhouette del mantello termina prima delle scarpe: senza questi vuoti
+// rimarrebbe una striscia di pavimento fotografico tra le due gambe.
+const INCAVI_GAMBE_ARMATURE_RPG=Object.freeze({
+  'assassino-notte':[[.80,.478,.531],[.84,.469,.548],[.90,.449,.553],[.957,.425,.565],[1,.40,.60]],
+  'assassino-spettro':[[.848,.493,.537],[.875,.479,.564],[.92,.424,.608],[.961,.418,.629],[1,.41,.63]],
+  'guerriero-braci':[[.866,.461,.546],[.89,.429,.567],[.94,.412,.582],[.985,.390,.605],[1,.39,.61]],
+  'guerriero-abisso':[[.905,.462,.546],[.928,.432,.576],[.96,.414,.603],[.985,.402,.604],[1,.40,.61]],
+  'berserker-rabbia':[[.786,.476,.537],[.845,.444,.575],[.925,.419,.590],[.968,.410,.610],[1,.40,.62]],
+  'berserker-apocalisse':[[.814,.478,.534],[.87,.455,.559],[.927,.421,.589],[.975,.418,.596],[1,.41,.61]],
+});
+const MASCHERE_ARMATURE_CACHE=new Map();
+/** L'identita' dell'armatura resta la stessa anche con spada/ascia/pugnali:
+ * i file armatura-con-arma-v371 hanno la medesima posa e inquadratura. */
+export function idContornoArmaturaCosmicaRpg(foto) {
+  const url=typeof foto==='string'?foto:(foto?.currentSrc||foto?.getAttribute?.('src')||foto?.src||'');
+  const src=String(url).split(/[?#]/)[0].replaceAll('\\','/');
+  if(!/(?:^|\/)img\/personaggi\/(?:armature\/|armatura-con-arma-v371\/|corona-v360\/)/.test(src))return null;
+  const match=src.match(/(?:^|\/)(assassino|guerriero|berserker)-(notte|spettro|braci|abisso|rabbia|apocalisse)(?:-mini)?\.webp$/)
+    ||src.match(/(?:^|\/)(assassino|guerriero|berserker)-(notte|spettro|braci|abisso|rabbia|apocalisse)-corna\.svg$/)
+    ||src.match(/(?:^|\/)armatura-(assassino|guerriero|berserker)-(notte|spettro|braci|abisso|rabbia|apocalisse)\//);
+  const id=match?match[1]+'-'+match[2]:null;
+  return Object.hasOwn(CONTORNI_ARMATURE_COSMICHE_RPG,id)?id:null;
+}
+function fotoConCoronaCosmicaRpg(foto){
+  const url=typeof foto==='string'?foto:(foto?.currentSrc||foto?.getAttribute?.('src')||foto?.src||'');
+  return /(?:^|\/)img\/personaggi\/corona-v360\//.test(String(url));
+}
+function fotoConArmaCosmicaRpg(foto){
+  const url=typeof foto==='string'?foto:(foto?.currentSrc||foto?.getAttribute?.('src')||foto?.src||'');
+  return /(?:^|\/)img\/personaggi\/(?:armatura-con-arma-v371\/|corona-v360\/[^/]+\/stato-[45]\/)/.test(String(url));
+}
+function dipingiSagomaArmaturaRpg(ctx,w,h,id,conCorona=false,conArma=false){
+  const punti=CONTORNI_ARMATURE_COSMICHE_RPG[id];
+  if(!punti||!ctx?.beginPath)return false;
+  ctx.beginPath();
+  punti.forEach(([y,l],i)=>i?ctx.lineTo(l*w,y*h):ctx.moveTo(l*w,y*h));
+  for(let i=punti.length-1;i>=0;i--){const [y,,r]=punti[i];ctx.lineTo(r*w,y*h);}
+  ctx.closePath();ctx.fill();
+  if(id==='berserker-apocalisse'&&typeof ctx.quadraticCurveTo==='function'){
+    // La foto SVG pre-arma include le due corna del vero Berserker; i
+    // punti superano il contorno dell'elmo. Non tagliarle nel ritaglio.
+    for(const specchio of [false,true]){
+      const x=v=>(specchio?1-v:v)*w;
+      ctx.beginPath();ctx.moveTo(x(.425),h*.159);
+      ctx.quadraticCurveTo(x(.333),h*.129,x(.335),h*.019);
+      ctx.quadraticCurveTo(x(.303),h*.073,x(.353),h*.139);
+      ctx.lineTo(x(.412),h*.172);ctx.closePath();ctx.fill();
+    }
+  }
+  if(conCorona && typeof ctx.ellipse==='function'){
+    // La Corona dell'Infinito e' un oggetto staccato dalla testa: il
+    // ritaglio dell'armatura non deve far scomparire il premio da 80 giorni.
+    ctx.beginPath();ctx.ellipse(w*.50,h*.057,w*.207,h*.053,0,0,Math.PI*2);ctx.fill();
+  }
+  if(conArma&&id.startsWith('berserker-')){
+    // Il Berserker impugna un'ascia verticale FUORI dal mantello. La testa
+    // a mezzaluna e l'asta sono parti distinte: non ritagliare mai l'arma
+    // guadagnata soltanto per eliminare il paesaggio fotografico.
+    ctx.beginPath();
+    ctx.moveTo(w*.195,h*.193);ctx.lineTo(w*.233,h*.193);
+    ctx.lineTo(w*.230,h*.979);ctx.lineTo(w*.192,h*.979);ctx.closePath();ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(w*.215,h*.182);ctx.quadraticCurveTo(w*.155,h*.175,w*.111,h*.183);
+    ctx.quadraticCurveTo(w*.078,h*.232,w*.090,h*.282);
+    ctx.quadraticCurveTo(w*.107,h*.332,w*.150,h*.325);
+    ctx.lineTo(w*.208,h*.295);ctx.closePath();ctx.fill();
+  }
+  const incavo=INCAVI_GAMBE_ARMATURE_RPG[id];
+  if(incavo){
+    ctx.save();ctx.globalCompositeOperation='destination-out';
+    if('filter' in ctx)ctx.filter='blur('+Math.max(1.5,w*.009)+'px)';
+    ctx.beginPath();
+    incavo.forEach(([y,l],i)=>i?ctx.lineTo(l*w,y*h):ctx.moveTo(l*w,y*h));
+    for(let i=incavo.length-1;i>=0;i--){const [y,,r]=incavo[i];ctx.lineTo(r*w,y*h);}
+    ctx.closePath();ctx.fill();ctx.restore();
+  }
+  return true;
+}
+export function mascheraArmaturaCosmicaRpg(id,documento=globalThis.document,conCorona=false,conArma=false){
+  if(!Object.hasOwn(CONTORNI_ARMATURE_COSMICHE_RPG,id))return null;
+  const chiave=id+(conCorona?':corona':'')+(conArma?':arma':'');
+  if(MASCHERE_ARMATURE_CACHE.has(chiave))return MASCHERE_ARMATURE_CACHE.get(chiave);
+  if(!documento?.createElement)return null;
+  try{
+    const c=documento.createElement('canvas');c.width=360;c.height=540;
+    const ctx=c.getContext?.('2d',{alpha:true});
+    if(!ctx||!c.toDataURL)return null;
+    ctx.fillStyle='#fff';
+    if('filter' in ctx)ctx.filter='blur(5px)';
+    if(!dipingiSagomaArmaturaRpg(ctx,c.width,c.height,id,conCorona,conArma))return null;
+    const result='url('+JSON.stringify(c.toDataURL('image/png'))+')';
+    MASCHERE_ARMATURE_CACHE.set(chiave,result);return result;
+  }catch{return null;}
+}
 // Le armature acquistabili, le armi e le fotografie con Corona non hanno
 // sempre un ritaglio alpha dedicato. Una sagoma poligonale cancella pezzi
 // reali di scudo, mantello, pugnali e corna; una foto opaca, invece, lascia
@@ -55,6 +196,22 @@ export function disegnaFotografiaFusaRpg(ctx,foto,x,y,w,h,documento=globalThis.d
     if(!t)return false;
     t.drawImage(foto,0,0,c.width,c.height);
     t.globalCompositeOperation='destination-in';
+    const idArmatura=idContornoArmaturaCosmicaRpg(foto);
+    if(idArmatura){
+      const m=documento.createElement('canvas');
+      m.width=c.width;m.height=c.height;
+      const mc=m.getContext?.('2d',{alpha:true});
+      if(!mc)return false;
+      mc.fillStyle='#fff';
+      if('filter' in mc)mc.filter='blur('+Math.max(3,Math.round(c.width*.014))+'px)';
+      dipingiSagomaArmaturaRpg(mc,c.width,c.height,idArmatura,fotoConCoronaCosmicaRpg(foto),fotoConArmaCosmicaRpg(foto));
+      // drawImage copre TUTTO il rettangolo con il mask alpha, inclusi
+      // i pixel realmente trasparenti. Un fill(path) lascerebbe intatto
+      // il vecchio fondale fuori dalla silhouette.
+      t.drawImage(m,0,0,c.width,c.height);
+      ctx.drawImage(c,x,y,w,h);
+      return true;
+    }
     // Il riempimento bianco del livello maschera non deve cancellare la foto:
     // dopo drawImage applichiamo soltanto i due gradienti di alpha.
     const gx=t.createLinearGradient(0,0,c.width,0);
@@ -135,10 +292,11 @@ export function mascheraCosmicaSvgRpg(classe='assassino') {
 }
 export function applicaMascheraCosmicaRpg(foto,classe='assassino') {
   if(!foto?.style)return false;
-  // v506: il soggetto alpha esatto, quando disponibile, rimane prioritario.
-  // Per le altre fotografie NON seguiamo un contorno inventato: la dissolvenza
-  // ai bordi mantiene interi i dettagli di qualunque armatura acquistata.
-  const src=mascheraBordiFotografiaRpg()||
+  // v507: per una foto Shop opaca usiamo il contorno della sua vera armatura.
+  // Il vecchio feather rettangolare sopravvive solo per sorgenti sconosciute.
+  const idArmatura=idContornoArmaturaCosmicaRpg(foto);
+  const src=(idArmatura&&mascheraArmaturaCosmicaRpg(idArmatura,globalThis.document,
+    fotoConCoronaCosmicaRpg(foto),fotoConArmaCosmicaRpg(foto)))||mascheraBordiFotografiaRpg()||
     'radial-gradient(ellipse 53% 56% at 50% 50%,#000 65%,transparent 100%)';
   if(typeof foto.style.setProperty==='function'){
     foto.style.setProperty('-webkit-mask-image',src,'important');
@@ -154,6 +312,7 @@ export function applicaMascheraCosmicaRpg(foto,classe='assassino') {
   foto.style.webkitMaskRepeat='no-repeat';
   foto.style.maskRepeat='no-repeat';
   foto.classList?.add?.('rpg-cosmic-subject');
+  if(idArmatura)foto.classList?.add?.('rpg-cosmic-armor-subject');
   return true;
 }
 // Stessa sagoma nell'esportazione PNG: non ricompare il rettangolo quando
@@ -303,10 +462,15 @@ export function montaScenaCosmicaRpg(scena,grafica,{classe='assassino',effetto=n
   const ambiente=creaElemento('div',{class:'rpg-cosmic-ambiente',aria:{hidden:'true'}});
   const foto=grafica.querySelector?.(':scope > .personaggio-ritratto');
   applicaMascheraCosmicaRpg(foto,classeId);
+  const contornoArmatura=idContornoArmaturaCosmicaRpg(foto);
+  if(contornoArmatura){
+    palco.classList?.add?.('rpg-cosmic-armor-contoured');
+    ambiente.classList?.add?.('rpg-cosmic-armor-environment');
+  }
   // Un raccordo fotografico reale: il fondale cosmico deriva dalla STESSA
   // immagine che viene mascherata, quindi illuminazione e toni coincidono.
   // La foto e l'equipaggiamento restano intatti.
-  if(foto?.addEventListener && ambiente?.style){
+  if(!contornoArmatura && foto?.addEventListener && ambiente?.style){
     const aggiornaSfondo=()=>{
       const src=foto.currentSrc||foto.src;
       if(!src)return;
