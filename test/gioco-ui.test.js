@@ -236,9 +236,19 @@ test('11. il profilo di un amico si vede senza codici', async () => {
   // nessuna richiesta di codice, e il confronto si vede sempre.
   await vai('#/amico/account-2', () => app.textContent.includes('allenamenti finiti'));
   assert.match(app.textContent, /allenamenti finiti/, 'i suoi dati si vedono');
-  assert.match(app.textContent, /Essercizio per esercizio/, 'e il confronto è sempre aperto');
+  assert.match(app.textContent, /Record a confronto/, 'e il confronto è sempre aperto');
   assert.ok(!/INSERISCI IL CODICE/.test(app.textContent), 'e non c\'è più nessun codice');
-  assert.ok(perClasse(app, 'testa-amico').length === 1, 'compare il profilo dell\'amico');
+  assert.equal(perClasse(app, 'confronto-duello').length, 1, 'compaiono i due profili nel duello');
+  assert.equal(perClasse(app, 'confronto-punteggio').length, 3, 'vittorie e pareggi sono separati');
+  assert.ok(perClasse(app, 'confronto-esercizio').length >= 1, 'ogni esercizio ha una scheda leggibile');
+  const filtri = perClasse(app, 'confronto-filtro');
+  assert.equal(filtri.length, 4, 'ci sono i quattro filtri');
+  await filtri.find((n) => n.textContent === 'Suoi migliori').click();
+  assert.equal(filtri.find((n) => n.textContent === 'Suoi migliori').getAttribute('aria-pressed'), 'true');
+  assert.equal(perClasse(app, 'confronto-esercizio').filter((n) => !n.hidden).length, 0,
+    'senza record dell’amico, il filtro Suoi migliori non inventa risultati');
+  await filtri.find((n) => n.textContent === 'Tutti').click();
+  assert.ok(perClasse(app, 'confronto-esercizio').some((n) => !n.hidden), 'Tutti ripristina le schede');
 });
 
 test('12. il Profilo ha avatar grande, statistiche, medaglie e privacy', async () => {
@@ -308,7 +318,7 @@ test('17. la barra di sotto ha le cinque voci, e lo STORICO e\' una di queste', 
   // non c'era. Quindi dentro c'e' lo Storico, e Amici e' uscito (e' nelle
   // scorciatoie di Casa e Profilo).
   await vai('#/', () => perClasse(app, 'scheda-giorno').length === 4);
-  const voci = perClasse(app, 'voce-menu').map((v) => v.textContent.trim());
+  const voci = perClasse(document.body, 'voce-menu').map((v) => v.textContent.trim());
   assert.deepEqual(voci, ['Allenamento', 'Rank', 'Storico', 'Casa', 'Profilo']);
   assert.ok(voci.includes('Storico'),
     'lo storico deve essere un tocco, non una ricerca: e\' la schermata che Ste apre di meno');

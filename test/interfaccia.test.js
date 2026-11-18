@@ -869,9 +869,11 @@ test('29. durante la seduta vedi a che punto sei e dove ti trovi', async () => {
   assert.match(avanti.textContent, /\d+\/\d+/, 'e dice quante ne hai fatte su quante sono');
 
   // e la voce del menu in cui sei risulta accesa
-  const attive = perClasse(app, 'voce-menu').filter((v) => v.classList.contains('attiva'));
+  const attive = perClasse(document.body, 'voce-menu').filter((v) => v.classList.contains('attiva'));
   assert.equal(attive.length, 1, 'una sola voce di menu accesa');
   assert.equal((attive[0].textContent || '').trim(), 'Allenamento', 'e\' quella giusta');
+  assert.equal(perClasse(app, 'menu-basso').length, 0, 'la barra non scorre nel contenuto della pagina');
+  assert.equal(perClasse(document.body, 'menu-basso').length, 1, 'la barra fissa non si duplica al ridisegno');
 });
 
 test('30. le note della seduta si ritrovano dopo, nello storico', async () => {
