@@ -109,9 +109,9 @@ test('v423: dips corpo libero a 0 kg di zavorra senza input di peso fittizio',()
   });
   assert.ok(guida.frasi.some(x=>x.includes('a corpo libero')));
   assert.ok(!guida.frasi.some(x=>x.includes('66 kg di zavorra')));
-  const code=readFileSync(new URL('../src/app.js',import.meta.url),'utf8');
-  assert.ok(code.includes('eZavorra ? peso < 0 : peso <= 0'));
-  assert.match(code,/peso_assistenza: peso/);
+  const code=readFileSync(new URL('../src/prova-rank.js',import.meta.url),'utf8');
+  assert.match(code,/zavorra \? kg < 0 :/);
+  assert.match(code,/peso_assistenza: kg/);
 });
 
 test('v423: ricerca unica usata anche nella prova e dettagli non mostrano soglie false',()=>{

@@ -1360,7 +1360,7 @@ body > #navigazione-principale {position:fixed;z-index:40;}
   border-radius:50%;background:rgba(130,90,187,.18);
   color:#e6caff;font-weight:900;font-size:1rem;letter-spacing:-.06em;
 }
-.confronto-punteggi {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-bottom:20px;}
+.confronto-punteggi {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-bottom:14px;}
 .confronto-punteggio {
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
   min-width:0;min-height:82px;padding:11px 4px;border-radius:16px;
@@ -1371,6 +1371,8 @@ body > #navigazione-principale {position:fixed;z-index:40;}
 .confronto-punteggio.tuo strong {color:#92f3d2;}
 .confronto-punteggio.pari strong {color:#ddd6ff;}
 .confronto-punteggio.amico strong {color:#f1b1b8;}
+.confronto-punteggio.incompleto strong {color:#d7c1f5;}
+.confronto-avviso {padding:13px 16px;border:1px solid rgba(175,147,223,.25);border-radius:14px;background:rgba(76,61,108,.15);line-height:1.5;}
 .confronto-pannello {min-width:0;}
 .confronto-sezione-testa {display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:5px 10px;}
 .confronto-sezione-testa h2 {margin:0;}
@@ -1396,6 +1398,8 @@ body > #navigazione-principale {position:fixed;z-index:40;}
 .confronto-esercizio-mio {border-left:3px solid #68ceaa;}
 .confronto-esercizio-suo {border-left:3px solid #e29aa3;}
 .confronto-esercizio-pareggio {border-left:3px solid #a7a0ef;}
+.confronto-esercizio-non_confrontabile {border-left:3px solid #b8a1d2;}
+.confronto-esercizio-non_confrontabile .confronto-esito {color:#e7d8ff;}
 .confronto-esercizio-testa {display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap;margin-bottom:11px;}
 .confronto-esercizio-testa h3 {margin:0;min-width:0;font-size:.95rem;line-height:1.35;overflow-wrap:anywhere;}
 .confronto-esito {font-size:.66rem;font-weight:800;color:#c3d3e1;background:rgba(139,168,193,.12);padding:4px 8px;border-radius:999px;white-space:nowrap;}
@@ -1415,4 +1419,7 @@ body > #navigazione-principale {position:fixed;z-index:40;}
   .confronto-vs {width:36px;height:36px;font-size:.8rem;}
   .confronto-esercizio {padding:11px;}
   .confronto-lato {padding:9px;}
+  .confronto-punteggi {grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+  .confronto-punteggio {min-height:70px;padding:9px 7px;}
+  .confronto-punteggio span {font-size:.75rem;}
 }

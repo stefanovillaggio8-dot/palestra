@@ -199,6 +199,32 @@ test('7. i Rank mostrano le card con rank e LP', async () => {
   assert.match(app.textContent, /FRIENDS/);
 });
 
+test('7b. Prova un esercizio valida i campi, apre il Rank e non salva serie', async () => {
+  await vai('#/rank', () => app.textContent.includes('PROVA UN ESERCIZIO'));
+  await pulsante(app, 'PROVA UN ESERCIZIO').click();
+  assert.match(app.textContent, /Cerca un esercizio/);
+  const selezione = perClasse(app, 'voce-scelta').find(n => n.textContent.includes('Dumbbell Curl'));
+  assert.ok(selezione, 'la ricerca condivisa elenca il curl con manubrio');
+  await selezione.click();
+  const campi = perClasse(perClasse(app, 'riga-campi-prova')[0], 'campo-num');
+  assert.equal(campi.length, 3);
+  const [peso, rip, corpo] = campi;
+  assert.equal(corpo.value, '', 'senza pesatura non inventare 66 kg');
+  peso.value = '30'; rip.value = '3';
+  const totalePrima = (await db.tutti('serie')).length;
+  await pulsante(app, 'Calcola il Rank').click();
+  assert.match(app.textContent, /Inserisci il tuo peso corporeo reale/);
+  corpo.value = '72';
+  await pulsante(app, 'Calcola il Rank').click();
+  const dialogo = perClasse(body, 'pannello-prova')[0];
+  assert.ok(dialogo, 'la simulazione apre il pannello a tutto schermo');
+  assert.match(dialogo.textContent, /PLATINUM I/i);
+  assert.match(dialogo.textContent, /SIMULAZIONE/);
+  await pulsante(body, 'Chiudi').click();
+  assert.equal(perClasse(body, 'pannello-prova').length, 0);
+  assert.equal((await db.tutti('serie')).length, totalePrima, 'la prova non deve aggiungere allenamenti');
+});
+
 test('8. la scheda del singolo esercizio mostra record, soglie e progressi', async () => {
   await vai('#/esercizio/ex-chest-press', () => app.textContent.includes('Chest Press'));
   assert.match(app.textContent, /Record personale/);
@@ -234,17 +260,23 @@ test('10. gli Amici si vedono e si aprono', async () => {
 test('11. il profilo di un amico si vede senza codici', async () => {
   // Ste ha tolto il codice 030226 il 04/10/2026: qui non deve più esserci
   // nessuna richiesta di codice, e il confronto si vede sempre.
+  // Il confronto usa la forza relativa, quindi il peso reale e' necessario:
+  // senza il test finirebbe sul vecchio massimale stimato.
+  await db.salva('pesi', { id: 'peso-test-confronto', account_id: accountId('1'),
+    data: '2026-11-18', kg: 72 });
+  await rilanciaAvvio();
+  V.profili.push(await db.prendi('profili', accountId('2')));
   await vai('#/amico/account-2', () => app.textContent.includes('allenamenti finiti'));
   assert.match(app.textContent, /allenamenti finiti/, 'i suoi dati si vedono');
   assert.match(app.textContent, /Record a confronto/, 'e il confronto è sempre aperto');
   assert.ok(!/INSERISCI IL CODICE/.test(app.textContent), 'e non c\'è più nessun codice');
   assert.equal(perClasse(app, 'confronto-duello').length, 1, 'compaiono i due profili nel duello');
-  assert.equal(perClasse(app, 'confronto-punteggio').length, 3, 'vittorie e pareggi sono separati');
+  assert.equal(perClasse(app, 'confronto-punteggio').length, 4, 'vittorie, pareggi e risultati mancanti sono separati');
   assert.ok(perClasse(app, 'confronto-esercizio').length >= 1, 'ogni esercizio ha una scheda leggibile');
   const filtri = perClasse(app, 'confronto-filtro');
-  assert.equal(filtri.length, 4, 'ci sono i quattro filtri');
-  await filtri.find((n) => n.textContent === 'Suoi migliori').click();
-  assert.equal(filtri.find((n) => n.textContent === 'Suoi migliori').getAttribute('aria-pressed'), 'true');
+  assert.equal(filtri.length, 5, 'ci sono cinque filtri, inclusi i risultati incompleti');
+  await filtri.find((n) => n.textContent === 'Punti suoi').click();
+  assert.equal(filtri.find((n) => n.textContent === 'Punti suoi').getAttribute('aria-pressed'), 'true');
   assert.equal(perClasse(app, 'confronto-esercizio').filter((n) => !n.hidden).length, 0,
     'senza record dell’amico, il filtro Suoi migliori non inventa risultati');
   await filtri.find((n) => n.textContent === 'Tutti').click();

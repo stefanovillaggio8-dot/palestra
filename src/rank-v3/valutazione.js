@@ -64,6 +64,17 @@ export const RIP_MINIME_PER_PESO = 5;
  * Il movimento di un esercizio, con la sua unita' di carico.
  */
 export function movimentoDi(esercizio) {
+  // Dip e trazioni senza zavorra sono gli STESSI movimenti delle varianti
+  // zavorrate con 0 kg aggiunti: un vecchio classificatore li considerava
+  // solo "ripetizioni" e assegnava Titan col massimale immaginario.
+  const corpoLibero = {
+    'ex-trazioni-corpo-libero': 'tirata_verticale_corpo',
+    'ex-dips-corpo-libero': 'spinta_corpo_libero',
+  };
+  if (corpoLibero[esercizio?.id]) {
+    return { ...classificaEsercizio({ nome: esercizio.nome, convenzione: 'zavorri' }),
+      movimento: corpoLibero[esercizio.id], riconosciutoDa: 'variante corpo libero' };
+  }
   return classificaEsercizio({
     nome: (esercizio && esercizio.nome) || '',
     descrizione: (esercizio && esercizio.descrizione) || '',
