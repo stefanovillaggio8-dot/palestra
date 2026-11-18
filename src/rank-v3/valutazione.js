@@ -397,7 +397,11 @@ export function descriviAffidabilitaRank(standard, cfg, rank, migliore, pesoCorp
     motivi.push('Una singola eseguita e un 1RM misurato direttamente, non una stima. La conformita tecnica al regolamento agonistico non e stata verificata');
   } else if (Number(migliore?.ripetizioni) < 5) {
     livello = 'bassa';
-    motivi.push('Per 2-4 ripetizioni la conversione alle soglie 1RM e indicativa; a 1 ripetizione lo Strict Curl usa il massimale realmente eseguito');
+    // La nota sulle singole dello Strict Curl riguarda SOLO quella variante:
+    // inserirla nel Dumbbell Curl da 3 ripetizioni confondeva la spiegazione.
+    motivi.push(Number(migliore?.ripetizioni) === 1
+      ? 'Una ripetizione singola: il carico e reale, ma la precisione del confronto dipende dalla tecnica e dal modello di soglie'
+      : 'Con 2-4 ripetizioni il confronto con soglie derivate da riferimenti 1RM e indicativo');
   }
   if (fuoriDati) {
     livello = 'bassa';
@@ -421,7 +425,8 @@ export function descriviAffidabilitaRank(standard, cfg, rank, migliore, pesoCorp
     fonteUrl: s.fonteUrl || null,
     riferimentoNome: s.riferimentoNome || null,
     fonteData: s.dataFonte || null,
-    descrizione: motivi.join('. ') + '.',
+    // Alcuni limiti arrivano gia' con un punto finale: non produrre "..".
+    descrizione: motivi.map(x => String(x).replace(/[.\s]+$/, '')).join('. ') + '.',
     attrezzatura: cfg?.notaAttrezzatura || '',
     ripetizioni: modelloReps?.tipo || 'generico',
     notaHyperextension: hyperNonValidato ? s.nota : null,
