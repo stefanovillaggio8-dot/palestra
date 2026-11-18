@@ -121,8 +121,9 @@ export function confronta(mio, suo, mieiRecord = [], suoiRecord = []) {
       if (riga.mio.punteggio > riga.suo.punteggio) riga.esito = 'mio';
       else if (riga.mio.punteggio < riga.suo.punteggio) riga.esito = 'suo';
       else riga.esito = 'pareggio';
-    } else if (riga.mio) riga.esito = 'mio';
-    else if (riga.suo) riga.esito = 'suo';
+    // Una sfida richiede DUE prestazioni: chi non ha mai provato un esercizio
+    // non ha perso. Conserviamo comunque la riga per far vedere cosa manca.
+    } else if (riga.mio || riga.suo) riga.esito = 'non_confrontabile';
     else riga.esito = 'nessuno';
     righe.push(riga);
   }
@@ -136,7 +137,8 @@ export function confronta(mio, suo, mieiRecord = [], suoiRecord = []) {
     righe,
     vinti: righe.filter((r) => r.esito === 'mio').length,
     persi: righe.filter((r) => r.esito === 'suo').length,
-    pari: righe.filter((r) => r.esito === 'pareggio').length,
+    pari: righe.filter((r) => r.esito === 'pareggio' && r.mio && r.suo).length,
+    nonConfrontabili: righe.filter((r) => r.esito === 'non_confrontabile').length,
   };
 }
 

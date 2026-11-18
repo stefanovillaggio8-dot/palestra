@@ -107,8 +107,10 @@ test('8. il confronto e\' esercizio per esercizio', () => {
 
 test('9. chi non ha un record non vince niente', () => {
   const r = confronta(stefano, andrea, [rec(50, 8, chest)], []);
-  assert.equal(r.righe[0].esito, 'mio');
+  assert.equal(r.righe[0].esito, 'non_confrontabile');
   assert.equal(r.righe[0].suo, null);
+  assert.equal(r.vinti, 0);
+  assert.equal(r.nonConfrontabili, 1);
 });
 
 test('10. le classifiche sono una per esercizio e non sommano muscoli diversi', () => {

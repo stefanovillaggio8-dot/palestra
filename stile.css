@@ -855,6 +855,9 @@ body.scorso .banda-cronometro .bot.grande {
 }
 .riga-campi-prova { display: flex; gap: 12px; flex-wrap: wrap; margin: 10px 0; }
 .campo-prova { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.campo-prova[hidden] { display: none; }
+.prova-guida-carico { margin: 4px 0 15px; line-height: 1.5; }
+.prova-errore { color: #ffd1ce; padding: 11px 14px; border: 1px solid #b06c78; border-radius: 12px; }
 .etichetta-prova {
   font-size: .55rem; font-weight: 900; letter-spacing: .08em; color: var(--testo-3);
 }
@@ -862,22 +865,30 @@ body.scorso .banda-cronometro .bot.grande {
 .sfondo-prova {
   position: fixed; inset: 0; z-index: 120;
   background: rgba(5, 4, 8, .93);
-  display: flex; align-items: center; justify-content: center; padding: 22px;
+  display: flex; align-items: center; justify-content: center;
+  padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom));
   animation: dialogo-entra .28s ease-out;
   backdrop-filter: blur(6px);
 }
 .pannello-prova {
   width: 100%; max-width: 420px; text-align: center;
   background: var(--card); border: 1px solid var(--bordo); border-radius: 20px;
-  padding: 26px 22px 20px;
-  animation: numero-pulse .5s ease-out;
+  padding: 22px 18px 18px;
+  max-height: min(90dvh, 780px); overflow-y: auto; overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  animation: dialogo-entra .28s ease-out;
 }
 .pannello-prova-titolo {
-  font-size: 2.6rem; font-weight: 900; letter-spacing: .02em; line-height: 1.05;
+  font-size: clamp(1.75rem, 8vw, 2.6rem); font-weight: 900; letter-spacing: .02em; line-height: 1.05;
   color: var(--viola); margin-bottom: 12px;
 }
 .pannello-prova .nota { margin: 4px 0; }
 .pannello-prova .bot { margin-top: 18px; }
+.prova-solo-simulazione { font-size: .72rem; letter-spacing: .025em; }
+.prova-metrica { padding: 10px 12px; border-radius: 12px; background: rgba(129,92,216,.14); color: var(--testo); font-size: .85rem; overflow-wrap: anywhere; }
+.prova-dettagli { margin-top: 15px; padding: 12px; border: 1px solid var(--bordo); border-radius: 12px; text-align: left; }
+.prova-dettagli summary { cursor: pointer; font-weight: 800; }
+.prova-dettagli .nota { margin-top: 9px; overflow-wrap: anywhere; }
 
 .bot.bottone-filtri {
   align-self: flex-start;

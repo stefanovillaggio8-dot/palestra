@@ -893,27 +893,27 @@ export function giudizioPerformanceRecord(record) {
   let fraseBase;
   if (n < soglie[0]) {
     giudizio = 'sotto';
-    fraseBase = 'sotto il bronzo: hai appena mosso i pesi su questo esercizio';
+    fraseBase = 'Prestazione sotto la prima soglia di questo esercizio';
   } else if (q < 0.72) {
     giudizio = 'poco';
-    fraseBase = 'poco, ma e\' il primo gradino e l\'hai preso';
+    fraseBase = 'Livello iniziale: la prestazione è stata registrata';
   } else if (q < 0.88) {
     giudizio = 'discreto';
-    fraseBase = 'discreto: e\' un buon livello per un esercizio';
+    fraseBase = 'Buona base rispetto alla scala di questo esercizio';
   } else if (q < 1.00) {
     giudizio = 'tanto';
-    fraseBase = 'tanto: sei vicino al platino';
+    fraseBase = 'Prestazione solida: stai progredendo verso i riferimenti più alti';
   } else {
     giudizio = 'molto';
-    fraseBase = 'molto: questo e\' un livello alto, guarda solo te';
+    fraseBase = 'Prestazione elevata rispetto ai riferimenti disponibili';
   }
   let frase = fraseBase;
   if (livello === 'isolamento' && (giudizio === 'discreto' || giudizio === 'tanto' || giudizio === 'molto')) {
-    frase += '. E su un esercizio di isolamento il numero e\' basso ma il lavoro e\' vero';
+    frase += '. Negli esercizi di isolamento vanno confrontati movimenti e attrezzature equivalenti';
   } else if (livello === 'grande' && (giudizio === 'poco' || giudizio === 'sotto')) {
-    frase += '. Qui i numeri sono alti per natura, non ti preoccupare';
+    frase += '. Il carico assoluto dipende molto dal tipo di movimento';
   } else if (livello === 'assistito' && (giudizio === 'tanto' || giudizio === 'molto')) {
-    frase += '. E su questo esercizio contano le ripetizioni, non i kg';
+    frase += '. La qualità delle ripetizioni e l’assistenza influenzano il confronto';
   }
   return {
     valido: true,
@@ -1169,7 +1169,9 @@ export function storicoMiglioramenti(serie, esercizio, sedute, profilo = null) {
  * Tutti i record di un account, dal rank più alto al più basso.
  * esercizi = catalogo, gruppi = [{esercizio_id, seduta_id, serie}]
  */
-export function recordAccount(esercizi, gruppi, { soloConDati = true, pesoAttuale = null } = {}) {
+export function recordAccount(esercizi, gruppi, {
+  soloConDati = true, pesoAttuale = null, richiediPesoCorporeo = false,
+} = {}) {
   const perEsercizio = new Map();
   for (const g of (gruppi || [])) {
     if (!g || !g.esercizio_id) continue;
@@ -1180,6 +1182,17 @@ export function recordAccount(esercizi, gruppi, { soloConDati = true, pesoAttual
   for (const e of (esercizi || [])) {
     const serie = perEsercizio.get(e.id);
     if (soloConDati && (!serie || !serie.length)) continue;
+    // Nei confronti tra account non usare la scala del vecchio massimale
+    // quando manca il peso corporeo (o per l'atleta o nella serie storica).
+    // Lo stesso carico diventava Diamond qui e Gold nel Rank personale.
+    const haPeso = [pesoAttuale, ...(serie || []).map(s => s?.peso_corpo)]
+      .some(p => p !== null && p !== undefined && p !== ''
+        && Number.isFinite(Number(p)) && Number(p) >= 25 && Number(p) <= 300);
+    if (richiediPesoCorporeo && serie?.length && !haPeso) {
+      out.push({ esercizio: e, valido: false, motivo: 'Peso corporeo non disponibile per un confronto attendibile',
+        rank: null, lp: 0, testo: '', punteggio: null });
+      continue;
+    }
     const rec = recordEsercizio(serie || [], e, null, pesoAttuale);
     out.push(rec);
   }

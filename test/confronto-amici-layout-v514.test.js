@@ -22,7 +22,7 @@ test('v514: la pagina confronta mostra un duello leggibile e filtra senza rifare
     assert.ok(paginaAmico.includes(classe), `manca ${classe}`);
     assert.ok(css.includes(`.${classe}`), `manca lo stile di ${classe}`);
   }
-  for (const opzione of ["['tutti', 'Tutti']", "['mio', 'Miei migliori']", "['suo', 'Suoi migliori']", "['pareggio', 'Pari']"]) {
+  for (const opzione of ["['tutti', 'Tutti']", "['mio', 'Punti miei']", "['suo', 'Punti suoi']", "['pareggio', 'Pari']", "['non_confrontabile', 'Da completare']"]) {
     assert.ok(paginaAmico.includes(opzione), `manca il filtro ${opzione}`);
   }
   assert.match(paginaAmico, /scheda\.hidden = !mostra/);
@@ -31,7 +31,7 @@ test('v514: la pagina confronta mostra un duello leggibile e filtra senza rifare
     'i controlli della privacy devono precedere ogni record');
 });
 
-test('v514: record assenti non diventano un risultato falso e le varianti restano separate', () => {
+test('v517: record assenti non diventano vittorie e le varianti restano separate', () => {
   const esercizio = (id, nome) => ({ id, nome });
   const mio = [{ esercizio: esercizio('lat-neutra', 'Lat neutra'), valido: true, punteggio: 400, testo: '75 kg × 8' }];
   const suo = [
@@ -40,7 +40,8 @@ test('v514: record assenti non diventano un risultato falso e le varianti restan
   ];
   const risultato = confronta({}, {}, mio, suo);
   assert.equal(risultato.vinti, 1);
-  assert.equal(risultato.persi, 1);
+  assert.equal(risultato.persi, 0);
+  assert.equal(risultato.nonConfrontabili, 1);
   assert.equal(risultato.righe.length, 2);
   assert.equal(risultato.righe.find((r) => r.esercizio_id === 'lat-larga').mio, null);
   assert.match(paginaAmico, /r\.mio \? r\.mio\.testo : 'Nessun record'/);

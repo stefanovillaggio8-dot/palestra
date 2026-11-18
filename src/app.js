@@ -23,6 +23,8 @@ import {
   ETICHETTE_CONVENZIONE, CONVENZIONI, convenzioneMisuraCarico, convenzioneConCorpo, etichettaUnita, campoCarico,
 } from './numeri.js';
 import { confrontaEsercizio, riassuntoEsercizio, NON_DISPONIBILE } from './confronto.js';
+import { erroreInvitoDefinitivo, scartaInvitoNonUtilizzabile } from './inviti-pendenti.js';
+import { calcolaRankDiProva } from './prova-rank.js';
 import { indiceProssimoGiorno, prossimoOrdine, apriSeduta, nuovaSerie, seduteFinite, eFatta, commutaFatta, pulsa, segnaAspettoFatto, registra, REGISTRO, cambiaSerie, etichettaSpotterSerie, aspettaSalvataggi, cambiaGiro, sovrapponiGiri } from './sedute.js';
 import {
   MODALITA, raccogliPerEsercizio, proposta as propostaAggiornamento, notaSulNumeroSerie,
@@ -215,7 +217,8 @@ async function risolviPersona({ daConfermaEmail = false } = {}) {
       // non deve tornare ad ogni avvio; un nuovo link esplicito vince sempre.
       const giaCollegato = ripresa && (() => {
         try { return localStorage.getItem(
-          'palestra-invito-completato:' + utente.id + ':' + ripresa.invito) === '1'; }
+          'palestra-invito-completato:' + utente.id + ':' + ripresa.invito) === '1'
+          || localStorage.getItem('palestra-invito-rifiutato:' + utente.id + ':' + ripresa.invito) === '1'; }
         catch { return false; }
       })();
       if (ripresa && !giaCollegato
@@ -874,6 +877,7 @@ async function ricaricaTutto({ caricaAmiciOnline = true } = {}) {
   V.versi = await db.tutti('versioni');
   V.sedute = await db.tutti('sedute');
   V.serie = await db.tutti('serie');
+  V.pesi = await db.tutti('pesi');
   V.note = await db.tutti('note');
 
   // Gli amici sono cache di sola lettura autorizzata dall'RPC, MAI record locali.
@@ -1435,6 +1439,7 @@ async function accodaDatiAndreaMancanti(dati) {
 let completamentoInvitoInCorso = null;
 async function completaInvitoPendente() {
   if (completamentoInvitoInCorso) return completamentoInvitoInCorso;
+  const tokenInTentativo = invitoPendente();
   const lavoro = (async () => {
   const token = invitoPendente();
   if (!token || !sb.collegato()) return false;
@@ -1494,6 +1499,22 @@ async function completaInvitoPendente() {
   })();
   completamentoInvitoInCorso = lavoro;
   try { return await lavoro; }
+  catch (errore) {
+    if (!erroreInvitoDefinitivo(errore) || invitoPendente() !== tokenInTentativo) throw errore;
+    // Il token e' definitivamente inutilizzabile, ma l'accesso all'account
+    // rimane valido. Non bloccare il cloud e non ripetere lo stesso claim.
+    try {
+      const uid = sb.sessione()?.user?.id;
+      if (uid) localStorage.setItem('palestra-invito-rifiutato:' + uid + ':' + tokenInTentativo, '1');
+    } catch { /* memoria non disponibile */ }
+    scartaInvitoNonUtilizzabile(tokenInTentativo, {
+      memoria: localStorage, posizione: window.location, cronologia: window.history,
+      chiave: CHIAVE_INVITO_PENDENTE,
+    });
+    V.erroreAmici = 'Questo invito non è più utilizzabile. Chiedi un nuovo link: il tuo account e i tuoi allenamenti restano collegati.';
+    console.info('Invito scaduto o non valido: rimosso dai tentativi automatici.');
+    return preparaAccountOnline();
+  }
   finally {
     if (completamentoInvitoInCorso === lavoro) completamentoInvitoInCorso = null;
   }
@@ -1515,7 +1536,7 @@ function attivaInvitiAutomatici() {
     prossimoTentativoAmici = Date.now() + 15000;
     void completaInvitoPendente().catch((e) => {
       const testo = String(e?.message || e || '');
-      if (/scadut|già stato utilizzato|non valido|stesso account|già il tuo profilo/i.test(testo)) {
+      if (erroreInvitoDefinitivo(e)) {
         prossimoTentativoAmici = Date.now() + 10 * 60 * 1000;
       }
       V.erroreAmici = 'Invito in attesa: ' + testo;
@@ -7228,6 +7249,16 @@ function statoMio(oggi = null) {
 }
 
 /** I record di ogni account che ha allenato qualcosa su questo dispositivo. */
+function pesoConosciutoPerAccount(id) {
+  if (id === accountAttivo()) return pesoCorporeoOra();
+  // Non prendere il peso del proprietario quando l'amico non ne ha uno:
+  // lo storico legacy senza account può appartenere solo a chi lo ha creato.
+  const sue = (V.pesi || []).filter(p => p && !p.eliminata
+    && p.account_id === id && Number(p.kg) >= 25 && Number(p.kg) <= 300);
+  sue.sort((a, b) => String(a.data || '').localeCompare(String(b.data || '')));
+  return sue.length ? Number(sue[sue.length - 1].kg) : null;
+}
+
 function vociPerClassifica() {
   const voci = [];
   for (const p of personeDiQuestaApp()) {
@@ -7248,7 +7279,9 @@ function vociPerClassifica() {
     const completate = miei.filter((s) => s && !s.eliminata && s.stato === 'completata');
     const mieiId = new Set(completate.map((s) => s.id));
     const mie = (V.serie || []).filter((x) => x && !x.eliminata && mieiId.has(x.seduta_id));
-    const record = recordAccount(V.esercizi, gruppiDaSerie(completate, mie, V.esercizi));
+    const record = recordAccount(V.esercizi, gruppiDaSerie(completate, mie, V.esercizi), {
+      pesoAttuale: pesoConosciutoPerAccount(id), richiediPesoCorporeo: true,
+    });
     voci.push({
       account: id,
       username: profilo.username,
@@ -9419,6 +9452,9 @@ function vistaRank(zona) {
     // miniature, filtri muscolari e ricerca per parole OVUNQUE nel nome.
     let scelto = null;
     const sceltaAttuale = el('div', { class: 'esercizio-prova-scelto' });
+    const guidaCarico = el('p', { class: 'nota nota-piccola prova-guida-carico', testo:
+      'Il peso è quello segnato sull’attrezzo. Per un manubrio inserisci i kg di un solo manubrio.' });
+    let campoPesoAvvolto = null;
     const aggiornaScelta = () => {
       svuota(sceltaAttuale);
       if (!scelto) {
@@ -9438,18 +9474,35 @@ function vistaRank(zona) {
       scelto = e;
       aggiornaScelta();
       svuota(esito);
+      if (campoPesoAvvolto) {
+        const soloRip = e.convenzione === 'corpo_libero';
+        campoPesoAvvolto.hidden = soloRip;
+        if (soloRip) pesoCampo.value = '0';
+        else if (pesoCampo.value === '0') pesoCampo.value = '';
+      }
+      guidaCarico.textContent = e.convenzione === 'corpo_libero'
+        ? 'A corpo libero bastano le ripetizioni e il peso corporeo. Nessun carico esterno.'
+        : e.convenzione === 'zavorri'
+          ? 'Inserisci solo la zavorra aggiunta: 0 kg significa corpo libero. Il tuo corpo viene contato una sola volta.'
+          : e.convenzione === 'per_manubrio' || e.convenzione === 'per_braccio'
+            ? 'Inserisci i kg di UN manubrio o di UN braccio, non la somma dei due.'
+            : e.carrucola === 'carrucola_doppia'
+              ? 'Inserisci i kg letti sul carrello; la doppia carrucola 2:1 viene considerata dal modello.'
+              : 'Inserisci il peso realmente indicato sull’attrezzo.';
     }));
 
     // I CAMPI: con l'etichetta VISTA (il peso, le ripetizioni, il peso corporeo)
     const pesoCampo = campoNumero(null, { etichetta: 'PESO', onCambio: () => { } });
     const repCampo = campoNumero(null, { etichetta: 'REPS', onCambio: () => { } });
-    const corpCampo = campoNumero(pesoCorporeoOra() || 66, { etichetta: 'PESO CORPOREO', onCambio: () => { } });
+    const corpCampo = campoNumero(pesoCorporeoOra(), { etichetta: 'PESO CORPOREO', onCambio: () => { } });
     const campo = (nodo, etichetta) => el('div', { class: 'campo-prova' }, [
       nodo, el('span', { class: 'etichetta-prova', testo: etichetta }),
     ]);
+    campoPesoAvvolto = campo(pesoCampo, 'KG');
     contenitore.appendChild(el('div', { class: 'riga-campi-prova' }, [
-      campo(pesoCampo, 'KG'), campo(repCampo, 'REPS'), campo(corpCampo, 'PESO CORPOREO'),
+      campoPesoAvvolto, campo(repCampo, 'REPS'), campo(corpCampo, 'PESO CORPOREO'),
     ]));
+    contenitore.appendChild(guidaCarico);
 
     const esito = el('div');
     contenitore.appendChild(esito);
@@ -9462,32 +9515,18 @@ function vistaRank(zona) {
     // rank a tutto schermo"
     const calcola = () => {
       svuota(esito);
+      const prova = calcolaRankDiProva({
+        esercizio: scelto, peso: pesoCampo.value,
+        ripetizioni: repCampo.value, pesoCorporeo: corpCampo.value,
+      });
+      if (!prova.valido) {
+        esito.appendChild(el('p', { class: 'nota prova-errore', role: 'alert', testo: prova.errore }));
+        return;
+      }
       const e = scelto;
-      if (!e) {
-        esito.appendChild(el('p', { class: 'nota', testo: 'Scegli un esercizio dall\'elenco.' }));
-        return;
-      }
-      const pesoInserito = String(pesoCampo.value ?? '').trim();
-      const peso = Number(pesoInserito.replace(',', '.'));
-      const rip = Number(repCampo.value);
-      const corp = Number(corpCampo.value);
+      const { peso, ripetizioni: rip, pesoCorporeo: corp, record } = prova;
       const eZavorra = e.convenzione === 'zavorri';
-      // Nei dips e nelle trazioni ZERO e' una prestazione a corpo libero,
-      // non un peso mancante. Il campo resta obbligatorio (scrivi 0).
-      if (!pesoInserito || !Number.isFinite(peso)
-          || (eZavorra ? peso < 0 : peso <= 0) || !(rip > 0)) {
-        esito.appendChild(el('p', { class: 'nota',
-          testo: eZavorra
-            ? 'Inserisci la zavorra (0 kg per corpo libero) e le ripetizioni.'
-            : 'Metti il peso e le ripetizioni.' }));
-        return;
-      }
-      const serie = [{
-        peso: eZavorra ? null : peso,
-        ...(eZavorra ? { peso_assistenza: peso } : {}),
-        ripetizioni: rip, stato: 'fatta', ordine: 1,
-      }];
-      const record = recordEsercizio(serie, e, null, corp > 0 ? corp : null);
+      const soloRip = e.convenzione === 'corpo_libero';
       const rango = record && record.rank ? record.rank : null;
       const divisione = record && record.divisione ? record.divisione : null;
       const kgReali = record && record.caricoReale !== null && record.caricoReale !== undefined
@@ -9512,7 +9551,7 @@ function vistaRank(zona) {
               + ' (' + kgReali + ' kg x ' + rip + ' rip su ' + corpPerForza + ' kg^0,67)'
             : '',
         e.nome,
-        (eZavorra ? (peso === 0 ? 'Corpo libero' : peso + ' kg di zavorra') : peso + ' kg')
+        (soloRip ? 'Corpo libero' : eZavorra ? (peso === 0 ? 'Corpo libero' : peso + ' kg di zavorra') : peso + ' kg')
           + ' x ' + rip + (corp > 0 ? ' | peso corporeo ' + corp + ' kg' : ''),
         rango ? rango.nome + (divisione ? ' ' + divisione.nome : '') : (record && record.motivo ? record.motivo : 'Non valutabile'),
         record && record.lp ? 'LP: ' + Math.round(record.lp) : '',
@@ -9529,16 +9568,28 @@ function vistaRank(zona) {
           ? 'Per il prossimo Rank: ' + record.distanza.frase : '',
       ].filter(Boolean);
 
-      // il pannello a tutto schermo, con l’animazione che c’è già per i dialoghi
-      const sfondo = el('div', { class: 'sfondo-prova' });
+      // Il risultato e' solo una SIMULAZIONE: non viene salvato nello storico.
+      // Dialogo navigabile, scorrevole anche sul piccolo schermo di Safari iOS.
+      const prima = document.activeElement;
+      const sfondo = el('div', { class: 'sfondo-prova', role: 'dialog',
+        'aria-modal': 'true', 'aria-label': 'Risultato della prova del Rank' });
+      const chiudi = () => { sfondo.remove(); prima?.focus?.(); };
       const pannello = el('div', { class: 'pannello-prova' }, [
         el('div', { class: 'pannello-prova-titolo', testo: rango ? rango.nome + (divisione ? ' ' + divisione.nome : '') : 'Non valutabile' }),
-        ...testo.slice(1).map((t) => el('p', { class: 'nota', testo: t })),
-        bottone('Chiudi', { onClick: () => sfondo.remove(), classe: 'principale grande' }),
+        el('p', { class: 'nota prova-solo-simulazione', testo: 'SIMULAZIONE · Nessun allenamento o record è stato modificato' }),
+        ...(testo[0] ? [el('p', { class: 'prova-metrica', testo: testo[0] })] : []),
+        ...testo.slice(1, 5).map((t) => el('p', { class: 'nota', testo: t })),
+        el('details', { class: 'prova-dettagli' }, [
+          el('summary', { testo: 'Dettagli del calcolo e attendibilità' }),
+          ...testo.slice(5).map(t => el('p', { class: 'nota', testo: t })),
+        ]),
+        bottone('Chiudi', { onClick: chiudi, classe: 'principale grande' }),
       ]);
       sfondo.appendChild(pannello);
-      sfondo.addEventListener('click', (ev) => { if (ev.target === sfondo) sfondo.remove(); });
+      sfondo.addEventListener('click', (ev) => { if (ev.target === sfondo) chiudi(); });
+      sfondo.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') chiudi(); });
       document.body.appendChild(sfondo);
+      pannello.querySelector('button')?.focus?.();
     };
     contenitore.appendChild(el('div', { class: 'riga-pulsanti' }, [
       bottone('Calcola il Rank', { onClick: calcola, classe: 'principale' }),
@@ -10254,7 +10305,7 @@ function vistaAmico(zona, idAmico) {
   const confronto = confronta(
     profiloAttivo(),
     amico,
-    recordAccount(V.esercizi, mieiGruppi()),
+    voci.find(v => v.account === accountAttivo())?.record || [],
     voce.record,
   );
   zona.appendChild(el('section', { class: 'confronto-punteggi', 'aria-label': 'Risultato del confronto' }, [
@@ -10270,13 +10321,23 @@ function vistaAmico(zona, idAmico) {
       el('strong', { testo: String(confronto.persi) }),
       el('span', { testo: 'A suo favore' }),
     ]),
+    el('div', { class: 'confronto-punteggio incompleto' }, [
+      el('strong', { testo: String(confronto.nonConfrontabili) }),
+      el('span', { testo: 'Da confrontare' }),
+    ]),
   ]));
+
+  if (!confronto.vinti && !confronto.persi && !confronto.pari && confronto.nonConfrontabili) {
+    zona.appendChild(el('p', { class: 'confronto-avviso nota', testo:
+      `Non c'è ancora una sfida completa: ${nomeAmico} e tu dovete avere almeno un record valido nello stesso esercizio. I risultati mancanti non contano come sconfitte.` }));
+  }
 
   const righeConfrontabili = confronto.righe.filter((r) => r.mio || r.suo);
   const listaRecord = el('div', { class: 'confronto-lista' });
   const contatore = el('p', { class: 'nota confronto-contatore' });
   const opzioni = [
-    ['tutti', 'Tutti'], ['mio', 'Miei migliori'], ['suo', 'Suoi migliori'], ['pareggio', 'Pari'],
+    ['tutti', 'Tutti'], ['mio', 'Punti miei'], ['suo', 'Punti suoi'],
+    ['pareggio', 'Pari'], ['non_confrontabile', 'Da completare'],
   ];
   const pulsanti = [];
   const filtra = (filtro) => {
@@ -10305,7 +10366,7 @@ function vistaAmico(zona, idAmico) {
     const entrambe = !!(r.mio && r.suo);
     const esito = r.esito;
     const etichettaEsito = !entrambe
-      ? (r.mio ? 'Solo un tuo record' : 'Solo un suo record')
+      ? (r.mio ? 'Manca il suo record' : 'Manca il tuo record')
       : esito === 'mio' ? 'Punto tuo' : esito === 'suo' ? 'Punto suo' : 'Parità';
     listaRecord.appendChild(el('article', {
       class: 'confronto-esercizio confronto-esercizio-' + esito,
@@ -10332,7 +10393,7 @@ function vistaAmico(zona, idAmico) {
     el('div', { class: 'confronto-sezione-testa' }, [
       el('h2', { testo: 'Record a confronto' }), contatore,
     ]),
-    el('p', { class: 'nota nota-piccola', testo: 'Un risultato conta a favore anche quando solo uno dei due ha un record valido. Le varianti degli esercizi restano separate.' }),
+    el('p', { class: 'nota nota-piccola', testo: 'Una vittoria si assegna solo quando entrambi avete un record valido dello stesso esercizio. Le varianti restano separate e i record mancanti non sono sconfitte.' }),
     filtri,
     righeConfrontabili.length ? listaRecord : el('p', { class: 'nota', testo: 'Nessun record disponibile per il confronto.' }),
   ]));
@@ -11000,7 +11061,7 @@ const carrucola = el('select', { class: 'selettore' }, [
         el('p', { testo: 'Sotto la riga del campo vedi già la scala vera che verrà usata, quindi sai cosa aspettarti prima di salvare.' }),
         el('p', { testo: 'Il numero si sceglie in base al tipo di misura che hai messo sopra (kg e ripetizioni, solo ripetizioni, tempo, distanza) e poi si scala sul peso corporeo di chi si allena: se sei più pesante e più forte, il tuo PLATINUM sale. Eccolo per i due casi più comuni:' }),
         el('ul', {}, [
-          el('li', { testo: 'Se l\'esercizio si misura in kg e ripetizioni, il numero NON è il peso che alzi: è il massimale stimato, cioè quanto peseresti facendo una ripetizione sola. Se fai 60 kg per 10 ripetizioni, la stima è circa 80.' }),
+          el('li', { testo: 'Nei Rank attuali si valuta la serie reale: kg effettivi, ripetizioni e peso corporeo, con una scala specifica per il movimento. Il massimale ipotetico non decide il Rank.' }),
           el('li', { testo: 'Se l\'esercizio è a sole ripetizioni (trazioni, dip), il numero sono le ripetizioni vere. Se è a tempo, i secondi.' }),
         ]),
         el('p', { testo: 'Quando serve un numero tutto tuo? Solo per esercizi particolari, dove il numero scelto dall\'app non è adatto. In quel caso scrivilo tu e vince quello.' }),
