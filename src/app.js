@@ -7337,13 +7337,28 @@ function distanzaObiettivo(record) {
 function etichettaLp(record) {
   if (!record || !record.rankId) return '';
   if (record.fuoriScalaProvvisoria)
-    return 'FUORI SCALA · soglia Titan non validata';
+    return 'LIMITE DEL MODELLO · Titan non valutabile';
   if (record.inTop) return `TOP · +${record.lp}% sulla soglia`;
   // Quando il bonus È stato fermato, i LP NON sono la posizione nella fascia: sono
   // il posto dove ti hanno portato dentro. Scrivere "/ 100" accanto a una barra
   // mezza piena È una promessa falsa, quindi l'etichetta non lo promette più.
   if (record.bonusBloccato) return `${record.lp} LP`;
   return `${record.lp} LP / 100`;
+}
+
+/** Unita' dei kg registrati: evita di confondere manubri, barre e zavorra. */
+function notaUnitaCaricoRank(record) {
+  const esercizio = record?.esercizio || {};
+  const nome = String(esercizio.nome || '');
+  if (/^ex-back-extension/.test(String(esercizio.id || '')))
+    return 'Kg di zavorra esterna, senza sommare il peso corporeo.';
+  if (esercizio.id === 'ex-strict-curl-ez-wall')
+    return 'Kg totali: barra EZ e dischi dei due lati inclusi.';
+  if (esercizio.convenzione === 'per_manubrio' && /EZ Bar/i.test(nome))
+    return 'Unita impostata per lato: verifica la convenzione della barra EZ.';
+  if (esercizio.convenzione === 'per_manubrio')
+    return 'Kg per un singolo manubrio, non la somma dei due.';
+  return null;
 }
 
 /**
@@ -7570,7 +7585,7 @@ function cardRank(record, { compatta = false } = {}) {
   const prossimoNome = (r.prossimoObiettivo || {}).etichetta || (r.prossimoRank ? r.prossimoRank.nome : null);
   const kgPerIlProssimo = r.distanza && r.distanza.kgNecessari;
   const verso = r.fuoriScalaProvvisoria
-    ? 'Sei oltre il massimo del benchmark disponibile. I 99 LP sono il limite della scala provvisoria, NON 1 LP dalla promozione: per questa variante non ci sono soglie Titan misurate. Il carico e le ripetizioni reali restano registrati.'
+    ? 'La serie supera il massimo del benchmark modellato. I 99 LP sono il limite della scala provvisoria: non indicano che manchi 1 LP alla promozione. Titan non è valutabile senza soglie verificate per questa variante. Il record resta registrato.'
     : r.inTop
     ? `Sei nel rank più alto: non cÈ un passo dopo, e ogni LP È un punto di percentuale sopra la soglia dell'OLYMPIAN (+${r.lp}% adesso).`
     : (kgPerIlProssimo
@@ -7586,6 +7601,9 @@ function cardRank(record, { compatta = false } = {}) {
       ]),
       badgeRank(r.rankId, r.lp, r.divisione),
     ]),
+    notaUnitaCaricoRank(r) ? el('span', {
+      class: 'card-rank-unita', testo: notaUnitaCaricoRank(r),
+    }) : null,
     // COME È DIFFICILE l'esercizio e QUANTO ho fatto. Ste: "aggiungi un
     // qualcosa che identifica se l'esercizio È facile o difficile e capisce
     // se È tanto quello che fai o poco". Il numero da solo non basta: 12 kg
@@ -7595,7 +7613,9 @@ function cardRank(record, { compatta = false } = {}) {
         class: 'tag-livello piccolo liv-' + (r.profilo.livello || 'composto'),
         testo: (r.profilo.livello || 'composto').toUpperCase(),
       }),
-      el('span', { class: 'nota nota-piccola', testo: giudizioPerformanceRecord(r).frase }),
+      el('span', { class: 'nota nota-piccola', testo: r.fuoriScalaProvvisoria
+        ? 'Prestazione oltre i riferimenti disponibili, senza soglia Titan verificata.'
+        : giudizioPerformanceRecord(r).frase }),
     ]),
 el('div', { class: 'card-rank-basso' }, [
       // la barra degli LP si riempie con gli LP (vedi frazioneLp): il numero che dice

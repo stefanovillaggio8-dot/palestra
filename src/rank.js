@@ -707,7 +707,10 @@ return {
     bonusSerie: 0,
     bonusBloccato: !!r.volumeBloccato,
     bonusLp: 0,
-    spiegaBonus: r.volumeBloccato
+    // Per le Hyperextension oltre il modello non c'e' una soglia Titan
+    // validata. Dire che "la serie migliore non e' vicina alla soglia"
+    // sarebbe falso: è già SOPRA il massimo noto del benchmark.
+    spiegaBonus: r.volumeBloccato && !r.fuoriScalaProvvisoria
       ? 'Il volume ti spingerebbe su, ma la serie migliore non e\' ancora vicina alla soglia.'
       : null,
     serie: { peso: r.caricoReale, ripetizioni: r.ripetizioni },
@@ -824,19 +827,19 @@ export function giudizioPerformance(profilo, punteggio) {
   let fraseBase;
   if (n < s[0]) {
     giudizio = 'sotto';
-    fraseBase = 'sotto il bronzo: hai appena mosso i pesi su questo esercizio';
+    fraseBase = 'Prestazione sotto la prima soglia del modello';
   } else if (q < 0.72) {
     giudizio = 'poco';
-    fraseBase = 'poco, ma e\' il primo gradino e l\'hai preso';
+    fraseBase = 'Prestazione iniziale su questo esercizio';
   } else if (q < 0.88) {
     giudizio = 'discreto';
-    fraseBase = 'discreto: e\' un buon livello per un esercizio';
+    fraseBase = 'Prestazione in crescita';
   } else if (q < 1.00) {
     giudizio = 'tanto';
-    fraseBase = 'tanto: sei vicino al platino';
+    fraseBase = 'Buon livello rispetto ai riferimenti di questo esercizio';
   } else {
     giudizio = 'molto';
-    fraseBase = 'molto: questo e\' un livello alto, guarda solo te';
+    fraseBase = 'Prestazione elevata rispetto alla scala di questo esercizio';
   }
 
   // la frase finale tiene conto del livello dell'esercizio, che È il punto

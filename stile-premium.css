@@ -1168,6 +1168,36 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-aura-divina-premium {animati
   .finale-cine-numeri strong{font-size:1.3rem}.finale-cine-numeri span{font-size:.65rem}}
 
 
+/* v515 · Rank: carichi comprensibili, note ordinate e badge non schiacciati. */
+.app-vista-rank .card-rank {gap:12px;}
+.app-vista-rank .card-rank-unita {
+  display:inline-flex;align-items:center;align-self:flex-start;
+  max-width:100%;padding:7px 10px;
+  color:#b9e5da;background:rgba(66,139,126,.11);
+  border:1px solid rgba(108,192,166,.22);border-radius:10px;
+  font-size:.75rem;font-weight:700;line-height:1.4;overflow-wrap:anywhere;
+}
+.app-vista-rank .card-rank-basso {gap:12px;}
+.app-vista-rank .card-rank-basso > .nota {
+  margin:0;line-height:1.55;overflow-wrap:anywhere;
+}
+.app-vista-rank .card-rank-alto:has(.tag-livello) {
+  justify-content:flex-start;align-items:center;flex-wrap:wrap;gap:8px 12px;
+}
+.app-vista-rank .card-rank-alto:has(.tag-livello) > .nota-piccola {
+  flex:1 1 180px;font-size:.78rem;line-height:1.45;
+}
+@media (max-width:600px) {
+  .app-vista-rank .card-rank > .card-rank-alto:first-child {
+    display:grid;grid-template-columns:minmax(0,1fr);gap:10px;
+  }
+  .app-vista-rank .card-rank > .card-rank-alto:first-child > :first-child {min-width:0;}
+  .app-vista-rank .card-rank > .card-rank-alto:first-child .badge-rank {
+    justify-self:start;max-width:100%;
+  }
+  .app-vista-rank .card-rank-nome {font-size:clamp(1.13rem,4.3vw,1.4rem);}
+}
+
 /* v409 · Rank della sola CASA: una fascia sottile anziche' la quinta card
    alta quanto le statistiche. Tutte le altre medaglie restano invariate. */
 .app-vista-casa .riga-teschio > .teschio-rank.casa-rank-compatto {
