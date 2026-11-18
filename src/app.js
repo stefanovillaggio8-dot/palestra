@@ -2405,7 +2405,22 @@ function vistaAuraShop(zona, soloInventario = false) {
 }
 
 function disegnaDentro(zona) {
-  zona.appendChild(cornice());
+  // Su Safari iOS un elemento `fixed` dentro l'albero che viene ridisegnato
+  // durante lo scroll può essere agganciato alla posizione del contenitore:
+  // il menu finisce a metà pagina e copre le schede. La navigazione è chrome
+  // dell'app, non contenuto della vista: la montiamo direttamente nel body.
+  const rottaMenu = (window.location.hash || '#/').replace(/^#/, '');
+  const vecchiaNavigazione = Array.from(document.body.children)
+    .find((nodo) => nodo.id === 'navigazione-principale');
+  // Se si aggiorna la stessa pagina non rimontare la barra: evita anche
+  // l'animazione di ingresso a ogni salvataggio di una serie.
+  if (!vecchiaNavigazione || vecchiaNavigazione.dataset.rotta !== rottaMenu) {
+    if (vecchiaNavigazione) vecchiaNavigazione.remove();
+    const navigazione = cornice();
+    navigazione.id = 'navigazione-principale';
+    navigazione.dataset.rotta = rottaMenu;
+    document.body.appendChild(navigazione);
+  }
   const contenuto = el('main', { class: 'contenuto', id: 'contenuto' });
   zona.appendChild(contenuto);
   disegnaStatoSalvataggio();
@@ -10087,11 +10102,19 @@ function vistaAmici(zona) {
       const data = Number.isFinite(quando.getTime())
         ? quando.toLocaleString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '';
       const stato = invito.accettato ? 'Accettato' : invito.scaduto ? 'Scaduto' : 'In attesa';
-      const riga = el('div', { class: 'riga-amico' }, [
-        el('div', { class: 'cresci' }, [
-          el('strong', { testo: (speciale ? 'Trasferimento Andrea' : 'Invito normale') + ' · ' + stato }),
-          el('span', { class: 'nota', testo: data
-            + (speciale ? ' · trasferisce la vecchia scheda di Andrea' : ' · il link non memorizza il nome del destinatario') }),
+      const riga = el('div', { class: 'riga-amico invito-carta' }, [
+        el('div', { class: 'cresci invito-dettagli' }, [
+          el('div', { class: 'invito-intestazione' }, [
+            el('strong', { testo: speciale ? 'Trasferimento Andrea' : 'Invito normale' }),
+            el('span', {
+              class: 'invito-stato ' + (invito.accettato ? 'accettato' : invito.scaduto ? 'scaduto' : 'attesa'),
+              testo: stato,
+            }),
+          ]),
+          el('span', { class: 'nota', testo: data }),
+          el('span', { class: 'nota nota-piccola', testo: speciale
+            ? 'trasferisce la vecchia scheda di Andrea'
+            : 'il link non memorizza il nome del destinatario' }),
         ]),
       ]);
       if (!invito.accettato && !invito.scaduto && invito.token) {
@@ -10132,9 +10155,9 @@ function vistaAmici(zona) {
         // sbagliata, e gli facevi vedere una streak che non era la sua
         profilo: voce.profilo || null,
       }) : null;
-      zona.appendChild(el('div', { class: 'riga-amico' }, [
+      zona.appendChild(el('div', { class: 'riga-amico amico-profilo-card' }, [
         avatarNodo(a, { dimensione: 54 }),
-        el('div', { class: 'cresci' }, [
+        el('div', { class: 'cresci amico-profilo-dettagli' }, [
           el('strong', { testo: a.username }),
           el('span', { class: 'nota', testo: suoStato
             ? `livello account ${suoStato.livello.livello} · ${formattaAura(suoStato.aura)} Aura · ${suoStato.streak.attiva ? suoStato.streak.giorni + ' giorni di fila' : 'streak spenta'}`
@@ -10142,7 +10165,12 @@ function vistaAmici(zona) {
           el('span', { class: 'nota', testo: suoStato && suoStato.rankPrincipale
             ? 'rank migliore: ' + suoStato.rankPrincipale.rank.nome : '' }),
         ]),
-        el('a', { href: '#/amico/' + a.id, class: 'bottone-guarda', testo: 'Confronta' }),
+        el('a', {
+          href: '#/amico/' + a.id,
+          class: 'bottone-guarda amico-profilo-azione',
+          'aria-label': 'Confronta i record con ' + a.username,
+          testo: 'Confronta →',
+        }),
       ]));
     }
   }
@@ -10173,49 +10201,124 @@ function vistaAmico(zona, idAmico) {
   // Quindi qui non c'è più nessuna porta: il profilo dell'amico e la sua
   // scheda si vedono come prima, e la privacy normale (privato o pubblico)
   // decide cosa è nascosto. Il confronto resta sempre qui sotto.
-  zona.appendChild(el('div', { class: 'testa-amico' }, [
-    avatarNodo(amico, { grande: true, dimensione: 84 }),
-    el('div', {}, [
-      el('h1', { testo: amico.username }),
-      el('p', { class: 'nota', testo: `${voce.sedute.length} allenamenti finiti · ${voce.record.filter((r) => r.valido).length} esercizi con record` }),
+  const nomeAmico = amico.username || 'Amico';
+  zona.appendChild(el('header', { class: 'confronto-testa' }, [
+    el('p', { class: 'confronto-soprattitolo', testo: 'SFIDA TRA AMICI' }),
+    el('h1', { testo: 'Confronto record' }),
+    el('p', { class: 'nota', testo: 'I vostri migliori risultati, esercizio per esercizio.' }),
+    el('div', { class: 'confronto-duello' }, [
+      el('div', { class: 'confronto-giocatore' }, [
+        avatarNodo(profiloAttivo(), { dimensione: 72 }),
+        el('span', { class: 'confronto-giocatore-nome', testo: 'Tu' }),
+        el('span', { class: 'confronto-giocatore-ruolo', testo: 'I tuoi record' }),
+      ]),
+      el('span', { class: 'confronto-vs', 'aria-label': 'contro', testo: 'VS' }),
+      el('div', { class: 'confronto-giocatore' }, [
+        avatarNodo(amico, { dimensione: 72 }),
+        el('span', { class: 'confronto-giocatore-nome', testo: nomeAmico }),
+        el('span', { class: 'confronto-giocatore-ruolo', testo: `${voce.sedute.length} allenamenti finiti` }),
+      ]),
     ]),
   ]));
 
-  // --- i suoi allenamenti: senza codice, quindi semplicemente qui ---
-  zona.appendChild(el('section', { class: 'blocco' }, [
-    el('h2', { testo: 'I suoi allenamenti' }),
-    voce.sedute.length
-      ? el('ul', { class: 'lista-sedute-amico' }, voce.sedute.slice(0, 20).map((s) => {
-        // IL NUMERO DI SERIE VA CONTATO, non letto da un campo che non esiste.
-        //
-        // Qui c'era `s.serie_fatte || 0`: quel campo non è scritto da nessuna parte
-        // dell'app (le serie stanno in un'altra tabella, collegate da `seduta_id`), e
-        // quindi la pagina dell'amico diceva SEMPRE "0 serie". Non un numero sbagliato:
-        // un numero che non era mai esistito. Ora si contano davvero.
-        const n = (voce.serie || []).filter((x) => x && x.seduta_id === s.id && !x.eliminata).length;
-        return el('li', {
-          testo: `${s.nome_giorno || 'Allenamento'} · ${s.data} · ${n} serie`,
-        });
-      }))
-      : el('p', { class: 'nota', testo: 'Nessun allenamento finito.' }),
-  ]));
-
-  // --- il confronto: sempre aperto ---
+  // Il confronto numerico rimane quello già usato dall'app: solo la
+  // presentazione cambia. Niente dati di altri account o record inventati.
   const confronto = confronta(
     profiloAttivo(),
     amico,
     recordAccount(V.esercizi, mieiGruppi()),
     voce.record,
   );
-  zona.appendChild(el('p', { class: 'nota', testo: `Essercizio per esercizio: vince ${confronto.vinti}, ne perdi ${confronto.persi}, pari ${confronto.pari}.` }));
-  for (const r of confronto.righe) {
-    if (!r.mio && !r.suo) continue;
-    zona.appendChild(el('div', { class: 'riga-confronto' + (r.esito === 'mio' ? ' mia' : r.esito === 'suo' ? ' sua' : '') }, [
-      el('span', { class: 'nota', testo: r.nome }),
-      el('span', { class: 'cresci', testo: (r.mio ? r.mio.testo : '—') }),
-      el('span', { class: 'nota', testo: (r.suo ? r.suo.testo : '—') }),
+  zona.appendChild(el('section', { class: 'confronto-punteggi', 'aria-label': 'Risultato del confronto' }, [
+    el('div', { class: 'confronto-punteggio tuo' }, [
+      el('strong', { testo: String(confronto.vinti) }),
+      el('span', { testo: 'A tuo favore' }),
+    ]),
+    el('div', { class: 'confronto-punteggio pari' }, [
+      el('strong', { testo: String(confronto.pari) }),
+      el('span', { testo: 'Pari' }),
+    ]),
+    el('div', { class: 'confronto-punteggio amico' }, [
+      el('strong', { testo: String(confronto.persi) }),
+      el('span', { testo: 'A suo favore' }),
+    ]),
+  ]));
+
+  const righeConfrontabili = confronto.righe.filter((r) => r.mio || r.suo);
+  const listaRecord = el('div', { class: 'confronto-lista' });
+  const contatore = el('p', { class: 'nota confronto-contatore' });
+  const opzioni = [
+    ['tutti', 'Tutti'], ['mio', 'Miei migliori'], ['suo', 'Suoi migliori'], ['pareggio', 'Pari'],
+  ];
+  const pulsanti = [];
+  const filtra = (filtro) => {
+    let visibili = 0;
+    for (const scheda of listaRecord.children) {
+      const mostra = filtro === 'tutti' || scheda.dataset.esito === filtro;
+      scheda.hidden = !mostra;
+      if (mostra) visibili++;
+    }
+    for (const [tipo, pulsante] of pulsanti) {
+      pulsante.setAttribute('aria-pressed', String(tipo === filtro));
+    }
+    contatore.textContent = `${visibili} ${visibili === 1 ? 'esercizio' : 'esercizi'} mostrati`;
+  };
+  const filtri = el('div', { class: 'confronto-filtri', role: 'group', 'aria-label': 'Filtra i record' });
+  for (const [tipo, etichetta] of opzioni) {
+    const pulsante = el('button', {
+      type: 'button', class: 'confronto-filtro', 'aria-pressed': String(tipo === 'tutti'),
+      onClick: () => filtra(tipo), testo: etichetta,
+    });
+    pulsanti.push([tipo, pulsante]);
+    filtri.appendChild(pulsante);
+  }
+
+  for (const r of righeConfrontabili) {
+    const entrambe = !!(r.mio && r.suo);
+    const esito = r.esito;
+    const etichettaEsito = !entrambe
+      ? (r.mio ? 'Solo un tuo record' : 'Solo un suo record')
+      : esito === 'mio' ? 'Punto tuo' : esito === 'suo' ? 'Punto suo' : 'Parità';
+    listaRecord.appendChild(el('article', {
+      class: 'confronto-esercizio confronto-esercizio-' + esito,
+      dati: { esito },
+    }, [
+      el('div', { class: 'confronto-esercizio-testa' }, [
+        el('h3', { testo: r.nome }),
+        el('span', { class: 'confronto-esito', testo: etichettaEsito }),
+      ]),
+      el('div', { class: 'confronto-colonne' }, [
+        el('div', { class: 'confronto-lato' + (esito === 'mio' ? ' vincente' : '') }, [
+          el('span', { class: 'confronto-lato-label', testo: 'TU' }),
+          el('strong', { class: 'confronto-misura', testo: r.mio ? r.mio.testo : 'Nessun record' }),
+        ]),
+        el('div', { class: 'confronto-lato' + (esito === 'suo' ? ' vincente' : '') }, [
+          el('span', { class: 'confronto-lato-label', testo: nomeAmico }),
+          el('strong', { class: 'confronto-misura', testo: r.suo ? r.suo.testo : 'Nessun record' }),
+        ]),
+      ]),
     ]));
   }
+  filtra('tutti');
+  zona.appendChild(el('section', { class: 'blocco confronto-pannello' }, [
+    el('div', { class: 'confronto-sezione-testa' }, [
+      el('h2', { testo: 'Record a confronto' }), contatore,
+    ]),
+    el('p', { class: 'nota nota-piccola', testo: 'Un risultato conta a favore anche quando solo uno dei due ha un record valido. Le varianti degli esercizi restano separate.' }),
+    filtri,
+    righeConfrontabili.length ? listaRecord : el('p', { class: 'nota', testo: 'Nessun record disponibile per il confronto.' }),
+  ]));
+
+  // La cronologia rimane disponibile, ma non occupa più il primo schermo.
+  zona.appendChild(el('details', { class: 'blocco confronto-allenamenti' }, [
+    el('summary', { testo: `Allenamenti di ${nomeAmico} (${voce.sedute.length})` }),
+    voce.sedute.length
+      ? el('ul', { class: 'lista-sedute-amico' }, voce.sedute.slice(0, 20).map((s) => {
+        const n = (voce.serie || []).filter((x) => x && x.seduta_id === s.id && !x.eliminata).length;
+        return el('li', { testo: `${s.nome_giorno || 'Allenamento'} · ${s.data} · ${n} serie` });
+      }))
+      : el('p', { class: 'nota', testo: 'Nessun allenamento finito.' }),
+  ]));
 }
 
 function puoVedereAmico(mio, altro) {

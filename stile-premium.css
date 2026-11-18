@@ -1252,3 +1252,130 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-aura-divina-premium {animati
     font-size:.62rem;
   }
 }
+
+/* v514: la navigazione è figlia diretta del body, mai della vista in scroll.
+   Niente elementi trasformati tra il menu fixed e il viewport di Safari. */
+body > #navigazione-principale {position:fixed;z-index:40;}
+@media (max-width:859px) {
+  body > #navigazione-principale {
+    top:auto;bottom:0;left:0;right:0;width:100%;transform:none;
+    margin:0;isolation:isolate;
+  }
+  #navigazione-principale .menu-basso {
+    width:100%;max-width:none;display:grid;
+    grid-template-columns:repeat(5,minmax(0,1fr));
+    gap:0;margin:0;padding:6px max(4px,env(safe-area-inset-right))
+      calc(7px + env(safe-area-inset-bottom)) max(4px,env(safe-area-inset-left));
+    border-radius:18px 18px 0 0;
+  }
+  #navigazione-principale .menu-basso.menu-aura-shop {grid-template-columns:repeat(2,minmax(0,1fr));}
+  #navigazione-principale .voce-menu {min-width:0;max-width:100%;padding:7px 1px;white-space:nowrap;}
+  #navigazione-principale .parola-menu {max-width:100%;overflow:hidden;text-overflow:ellipsis;font-size:clamp(.59rem,2.75vw,.76rem);}
+  #navigazione-principale .icona-menu {flex-shrink:0;}
+}
+
+/* Stato degli inviti leggibile: stato, data e spiegazione non si incollano. */
+.invito-carta {align-items:flex-start;gap:10px;}
+.invito-dettagli {min-width:0;display:grid;gap:7px;overflow-wrap:anywhere;}
+.invito-intestazione {display:flex;flex-wrap:wrap;align-items:center;gap:8px;line-height:1.3;}
+.invito-intestazione strong {font-size:.93rem;color:#f4f8ff;}
+.invito-stato {
+  display:inline-flex;align-items:center;flex-shrink:0;
+  font-size:.69rem;font-weight:800;padding:3px 9px;border-radius:999px;
+  border:1px solid rgba(255,255,255,.13);
+}
+.invito-stato.scaduto {color:#d3b6a5;background:rgba(160,107,76,.14);}
+.invito-stato.accettato {color:#a2e9cc;background:rgba(47,177,126,.13);}
+.invito-stato.attesa {color:#eed3a1;background:rgba(226,167,57,.14);}
+.invito-carta .nota {display:block;line-height:1.4;}
+.amico-profilo-card {display:flex;flex-wrap:wrap;gap:12px;align-items:center;}
+.amico-profilo-dettagli {display:grid;gap:5px;min-width:160px;overflow-wrap:anywhere;}
+.amico-profilo-dettagli .nota {display:block;line-height:1.4;}
+.amico-profilo-azione {white-space:nowrap;min-height:42px;display:inline-flex;align-items:center;justify-content:center;}
+
+/* Confronto amici: duello, punteggio e singoli record mobile-first. */
+.confronto-testa {text-align:center;margin:4px 0 18px;}
+.confronto-soprattitolo {
+  margin:0 0 5px;color:#9debd4;font-size:.7rem;font-weight:850;
+  letter-spacing:.19em;
+}
+.confronto-testa > h1 {font-size:clamp(1.75rem,5vw,2.55rem);margin:2px 0 6px;letter-spacing:-.045em;}
+.confronto-testa > .nota {margin:0 auto 17px;max-width:42ch;}
+.confronto-duello {
+  display:grid;grid-template-columns:minmax(0,1fr) 52px minmax(0,1fr);
+  align-items:center;gap:4px;
+  padding:18px 14px;border-radius:23px;
+  background:radial-gradient(circle at 50% 35%,rgba(143,95,224,.2),transparent 62%),
+    linear-gradient(145deg,rgba(31,39,62,.96),rgba(14,25,41,.97));
+  border:1px solid rgba(154,149,222,.33);
+  box-shadow:inset 0 1px rgba(255,255,255,.07),0 18px 40px rgba(0,0,0,.2);
+}
+.confronto-giocatore {display:flex;flex-direction:column;align-items:center;gap:5px;min-width:0;}
+.confronto-giocatore > :first-child {max-width:100%;}
+.confronto-giocatore-nome {
+  font-size:1.08rem;font-weight:850;max-width:100%;text-align:center;
+  overflow-wrap:anywhere;line-height:1.2;
+}
+.confronto-giocatore-ruolo {font-size:.72rem;color:#aebdd0;text-align:center;}
+.confronto-vs {
+  justify-self:center;display:grid;place-items:center;
+  width:46px;height:46px;border:1px solid rgba(202,171,255,.38);
+  border-radius:50%;background:rgba(130,90,187,.18);
+  color:#e6caff;font-weight:900;font-size:1rem;letter-spacing:-.06em;
+}
+.confronto-punteggi {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-bottom:20px;}
+.confronto-punteggio {
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  min-width:0;min-height:82px;padding:11px 4px;border-radius:16px;
+  border:1px solid rgba(147,181,211,.2);background:rgba(22,37,52,.82);text-align:center;
+}
+.confronto-punteggio strong {font-size:clamp(1.45rem,5.7vw,2.1rem);line-height:1;font-variant-numeric:tabular-nums;}
+.confronto-punteggio span {color:#b4c4d4;font-size:clamp(.61rem,2.5vw,.8rem);line-height:1.35;}
+.confronto-punteggio.tuo strong {color:#92f3d2;}
+.confronto-punteggio.pari strong {color:#ddd6ff;}
+.confronto-punteggio.amico strong {color:#f1b1b8;}
+.confronto-pannello {min-width:0;}
+.confronto-sezione-testa {display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:5px 10px;}
+.confronto-sezione-testa h2 {margin:0;}
+.confronto-contatore {margin:0;font-size:.76rem;}
+.confronto-filtri {display:flex;gap:7px;overflow-x:auto;padding:4px 0 12px;margin-top:12px;scrollbar-width:thin;}
+.confronto-filtro {
+  appearance:none;border:1px solid rgba(147,181,211,.24);border-radius:999px;
+  background:rgba(28,43,59,.9);color:#bfcddb;cursor:pointer;
+  font:inherit;font-size:.74rem;font-weight:750;padding:10px 12px;
+  white-space:nowrap;min-height:42px;flex-shrink:0;
+}
+.confronto-filtro[aria-pressed="true"] {
+  color:#f3fff9;border-color:rgba(115,224,185,.65);
+  background:linear-gradient(135deg,rgba(55,135,116,.52),rgba(58,82,130,.49));
+}
+.confronto-lista {display:grid;gap:11px;}
+.confronto-esercizio {
+  padding:14px;border:1px solid rgba(142,177,201,.2);border-radius:16px;
+  background:linear-gradient(140deg,rgba(26,42,57,.92),rgba(15,27,40,.94));
+  min-width:0;
+}
+.confronto-esercizio[hidden] {display:none;}
+.confronto-esercizio-mio {border-left:3px solid #68ceaa;}
+.confronto-esercizio-suo {border-left:3px solid #e29aa3;}
+.confronto-esercizio-pareggio {border-left:3px solid #a7a0ef;}
+.confronto-esercizio-testa {display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap;margin-bottom:11px;}
+.confronto-esercizio-testa h3 {margin:0;min-width:0;font-size:.95rem;line-height:1.35;overflow-wrap:anywhere;}
+.confronto-esito {font-size:.66rem;font-weight:800;color:#c3d3e1;background:rgba(139,168,193,.12);padding:4px 8px;border-radius:999px;white-space:nowrap;}
+.confronto-colonne {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;}
+.confronto-lato {min-width:0;padding:11px;border-radius:11px;background:rgba(5,12,21,.34);border:1px solid rgba(157,190,212,.13);}
+.confronto-lato.vincente {border-color:rgba(100,221,177,.43);background:rgba(49,136,111,.1);}
+.confronto-esercizio-suo .confronto-lato.vincente {border-color:rgba(230,152,163,.42);background:rgba(170,78,94,.1);}
+.confronto-lato-label {display:block;font-size:.63rem;font-weight:850;color:#a6bbcc;text-transform:uppercase;letter-spacing:.065em;overflow-wrap:anywhere;margin-bottom:7px;}
+.confronto-misura {display:block;font-size:clamp(.79rem,2.95vw,.98rem);color:#f5faff;line-height:1.38;font-weight:800;overflow-wrap:anywhere;font-variant-numeric:tabular-nums;}
+.confronto-allenamenti {margin-top:16px;}
+.confronto-allenamenti summary {cursor:pointer;font-weight:800;line-height:1.5;}
+.confronto-allenamenti .lista-sedute-amico {margin-top:16px;}
+@media (max-width:430px) {
+  .amico-profilo-azione {width:100%;}
+  .invito-carta {flex-wrap:wrap;}
+  .confronto-duello {grid-template-columns:minmax(0,1fr) 40px minmax(0,1fr);padding:15px 7px;}
+  .confronto-vs {width:36px;height:36px;font-size:.8rem;}
+  .confronto-esercizio {padding:11px;}
+  .confronto-lato {padding:9px;}
+}
