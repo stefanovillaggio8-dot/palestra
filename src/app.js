@@ -7337,7 +7337,7 @@ function distanzaObiettivo(record) {
 function etichettaLp(record) {
   if (!record || !record.rankId) return '';
   if (record.fuoriScalaProvvisoria)
-    return 'LIMITE DEL MODELLO · Titan non valutabile';
+    return 'FUORI MODELLO · Titan/Olympian non verificati';
   if (record.inTop) return `TOP · +${record.lp}% sulla soglia`;
   // Quando il bonus È stato fermato, i LP NON sono la posizione nella fascia: sono
   // il posto dove ti hanno portato dentro. Scrivere "/ 100" accanto a una barra
@@ -7350,6 +7350,8 @@ function etichettaLp(record) {
 function notaUnitaCaricoRank(record) {
   const esercizio = record?.esercizio || {};
   const nome = String(esercizio.nome || '');
+  if (esercizio.id === 'ex-back-extension')
+    return 'Kg di zavorra esterna. Variante non specificata: per confronti futuri registra “Hyperextension braccia tese verso il basso” quando corrisponde alla tua esecuzione.';
   if (/^ex-back-extension/.test(String(esercizio.id || '')))
     return 'Kg di zavorra esterna, senza sommare il peso corporeo.';
   if (esercizio.id === 'ex-strict-curl-ez-wall')
@@ -7585,7 +7587,7 @@ function cardRank(record, { compatta = false } = {}) {
   const prossimoNome = (r.prossimoObiettivo || {}).etichetta || (r.prossimoRank ? r.prossimoRank.nome : null);
   const kgPerIlProssimo = r.distanza && r.distanza.kgNecessari;
   const verso = r.fuoriScalaProvvisoria
-    ? 'La serie supera il massimo del benchmark modellato. I 99 LP sono il limite della scala provvisoria: non indicano che manchi 1 LP alla promozione. Titan non è valutabile senza soglie verificate per questa variante. Il record resta registrato.'
+    ? 'Prestazione oltre i riferimenti disponibili. I 99 LP sono il limite della scala provvisoria, non significano che manchi 1 LP alla promozione. Titan e Olympian richiedono dati affidabili per questa variante; il record resta salvato.'
     : r.inTop
     ? `Sei nel rank più alto: non cÈ un passo dopo, e ogni LP È un punto di percentuale sopra la soglia dell'OLYMPIAN (+${r.lp}% adesso).`
     : (kgPerIlProssimo
@@ -7604,6 +7606,12 @@ function cardRank(record, { compatta = false } = {}) {
     notaUnitaCaricoRank(r) ? el('span', {
       class: 'card-rank-unita', testo: notaUnitaCaricoRank(r),
     }) : null,
+    r.serie && Number(r.serie.ripetizioni) > 0 && Number(r.serie.ripetizioni) < 5
+      ? el('span', {
+        class: 'card-rank-breve',
+        testo: `${formattaNumero(r.serie.ripetizioni)} rip. reali · considerate nel Rank`,
+        title: 'Una serie breve completata contribuisce al punteggio. Il confronto statistico è meno preciso rispetto a 5 o più ripetizioni.',
+      }) : null,
     // COME È DIFFICILE l'esercizio e QUANTO ho fatto. Ste: "aggiungi un
     // qualcosa che identifica se l'esercizio È facile o difficile e capisce
     // se È tanto quello che fai o poco". Il numero da solo non basta: 12 kg

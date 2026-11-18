@@ -51,12 +51,12 @@ import { modelloRipetizioniRank, ripetizioniPieneRank } from './ripetizioni-rank
 export const PENALITA_SPOTTER = 0.9;
 
 /**
- * Le ripetizioni minime perché una serie possa diventare il record.
+ * Ripetizioni raccomandate per confronti meno incerti, NON un requisito
+ * per far contare un carico realmente sollevato.
  *
- * Ste (18/10/2026): "conta come migliore serie con un peso piu' alto solo se la
- * serie col peso piu' alto ha fatto 5 o piu' ripetizioni". Quindi fra le serie
- * con almeno 5 ripetizioni vince il peso piu' alto, e a parita' di peso vince
- * la serie con piu' ripetizioni.
+ * Ste (18/11/2026): anche 30 kg x 3 di Dumbbell Curl per un braccio sono una
+ * serie reale e devono poter battere una serie da 5+ con score inferiore.
+ * La soglia 5 resta utile per descrivere l'affidabilita', non per escludere PR.
  */
 export const RIP_MINIME_PER_PESO = 5;
 
@@ -192,16 +192,16 @@ export function valutaPrestazione({ esercizio, serie = [], pesoCorporeo = null, 
     };
   }
 
-  // Nello Strict Curl con riferimenti 1RM le singole sono prove massimali
-  // legittime: non escluderle se esiste una serie piu leggera da 5+ rip.
-  // Per gli altri esercizi resta la preferenza storica per 5+ ripetizioni.
-  // Si confronta SEMPRE lo score delle serie REALI; nessuna stima del 1RM.
-  const strictCurlMassimale = esercizio?.id === 'ex-strict-curl-ez-wall' && standardPercentili;
-  const serieConRip = valutabili.filter((v) => v.ripetizioni >= RIP_MINIME_PER_PESO);
-  const pool = strictCurlMassimale ? valutabili : (serieConRip.length ? serieConRip : valutabili);
-  const migliore = pool.reduce((a, b) => {
+  // Ste, 18/11: 1-4 ripetizioni COMPLETATE contano quando superano nello score
+  // la migliore serie lunga. Non favorire automaticamente una serie da 20x8
+  // rispetto a 30x3: il carico pesante e' stato sollevato davvero.
+  // Non si inventa un 1RM; lo score usa ancora kg reali, ripetizioni, spotter.
+  // A parita' di score vince la serie con almeno 5 rip (piu' affidabile).
+  const migliore = valutabili.reduce((a, b) => {
     if (b.score > a.score) return b;
     if (b.score < a.score) return a;
+    if ((b.ripetizioni >= RIP_MINIME_PER_PESO) !== (a.ripetizioni >= RIP_MINIME_PER_PESO))
+      return b.ripetizioni >= RIP_MINIME_PER_PESO ? b : a;
     if (b.carico > a.carico) return b;
     if (b.carico < a.carico) return a;
     return b.ripetizioni > a.ripetizioni ? b : a;

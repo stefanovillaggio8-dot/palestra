@@ -119,7 +119,7 @@ export function valutaEsercizio({ esercizio, serie = [], pesoCorporeo = null, ri
     return { valido: false, motivo: 'nessuna serie registrata', movimento, livello };
   }
   // LA MIGLIORE SERIE: IL PESO PIU' ALTO, SE HA FATTO ALMENO 5 RIPETIZIONI
-// (Ste, 18/10/2026)
+  // (Ste, 18/10/2026)
   //
   // "conta come migliore serie con un peso piu' alto solo se la serie col peso piu' alto
   // ha fatto 5 o piu' ripetizioni. quindi se per esempio ho fatto 85kg x8 di pulley, se
@@ -134,14 +134,26 @@ export function valutaEsercizio({ esercizio, serie = [], pesoCorporeo = null, ri
   // puo' diventare il record solo perche' pesa di piu': se non c'e' niente con 5 o piu',
   // si sceglie comunque la piu' buona fra quelle che ci sono, altrimenti non ci sarebbe
   // nessun record.
+  // REVISIONE (18/11/2026): una serie corta non viene ignorata se il suo score
+  // reale supera quello della serie lunga prescelta. Per esempio 30x3 al curl
+  // batte 20x8, mentre 95x2 non batte automaticamente 85x8. Si conserva la
+  // priorita' per il maggior carico fra le serie da almeno 5 ripetizioni.
   const RIP_MINIME_PER_PESO = 5;
   const serieConRip = valutabili.filter((v) => v.ripetizioni >= RIP_MINIME_PER_PESO);
   const pool = serieConRip.length ? serieConRip : valutabili;
-  const migliore = pool.reduce((a, b) => {
+  const campioneLungo = pool.reduce((a, b) => {
+    if (!serieConRip.length) {
+      if (b.score > a.score) return b;
+      if (b.score < a.score) return a;
+    }
     if (b.carico > a.carico) return b;
     if (b.carico < a.carico) return a;
     return b.ripetizioni > a.ripetizioni ? b : a;
   });
+  const migliore = valutabili.reduce((a, b) => {
+    if (b.ripetizioni >= RIP_MINIME_PER_PESO || b.score <= a.score) return a;
+    return b;
+  }, campioneLungo);
 
   // le soglie: tre valori dell'esercizio, riportati sul tuo corpo e convertiti
   // nell'unita' dello score (kg-equivalenti per 8 rip)

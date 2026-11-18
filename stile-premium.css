@@ -1177,6 +1177,13 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-aura-divina-premium {animati
   border:1px solid rgba(108,192,166,.22);border-radius:10px;
   font-size:.75rem;font-weight:700;line-height:1.4;overflow-wrap:anywhere;
 }
+.app-vista-rank .card-rank-breve {
+  display:inline-flex;align-items:center;align-self:flex-start;
+  max-width:100%;padding:7px 10px;
+  color:#ffdba1;background:rgba(203,141,56,.13);
+  border:1px solid rgba(238,185,95,.31);border-radius:10px;
+  font-size:.75rem;font-weight:800;line-height:1.4;overflow-wrap:anywhere;
+}
 .app-vista-rank .card-rank-basso {gap:12px;}
 .app-vista-rank .card-rank-basso > .nota {
   margin:0;line-height:1.55;overflow-wrap:anywhere;
