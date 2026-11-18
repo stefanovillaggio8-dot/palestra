@@ -29,12 +29,29 @@ test('v515: Dumbbell Curl 30 kg x 3 a 72 kg resta Platinum I, con kg per un manu
   assert.doesNotMatch(r.calibrazione.descrizione,/\.\./);
 });
 
-test('v515: la preferenza storica per 5+ ripetizioni resta esplicita',()=>{
+test('v516: una serie reale da 3 ripetizioni non viene scartata per una piu leggera da 8',()=>{
   const e=esercizio('ex-dumbbell-curl');
   const r=valuta(e,[[30,3],[20,8]]);
-  assert.equal(r.caricoReale,20);
-  assert.equal(r.ripetizioni,8);
-  assert.equal(r.rank.id,'gold');
+  assert.equal(r.caricoReale,30);
+  assert.equal(r.ripetizioni,3);
+  assert.equal(r.rank.id,'platinum');
+  assert.equal(r.divisione.id,1);
+  assert.equal(r.lp,18,'seconda serie completata: +2 LP di volume senza cambiare Rank');
+  assert.equal(r.calibrazione.livello,'bassa');
+});
+
+test('v516: il carico breve conta ma non vince automaticamente una serie migliore',()=>{
+  const e=esercizio('ex-dumbbell-curl');
+  const forte=valuta(e,[[30,3],[26,5]]);
+  assert.equal(forte.caricoReale,30);
+  assert.equal(forte.ripetizioni,3);
+  const lungo=valuta(e,[[30,3],[28,8]]);
+  assert.equal(lungo.caricoReale,28);
+  assert.equal(lungo.ripetizioni,8);
+  assert.ok(lungo.score>forte.score);
+  const cortissimo=valuta(e,[[30,1],[24,8]]);
+  assert.equal(cortissimo.caricoReale,24);
+  assert.equal(cortissimo.ripetizioni,8);
 });
 
 test('v515: Hyperextension fuori dal modello non mente sul volume né regala Titan',()=>{
@@ -70,8 +87,9 @@ test('v515: monotonia carichi, penalita spotter e soglie ordinate in tutto il ca
 
 test('v515: le schede rank distinguono limiti dei dati e convenzioni del carico',()=>{
   const app=readFileSync(new URL('../src/app.js',import.meta.url),'utf8');
-  assert.match(app,/LIMITE DEL MODELLO · Titan non valutabile/);
+  assert.match(app,/FUORI MODELLO · Titan\/Olympian non verificati/);
   assert.match(app,/Kg per un singolo manubrio, non la somma dei due/);
   assert.match(app,/Kg di zavorra esterna, senza sommare il peso corporeo/);
   assert.match(app,/I 99 LP sono il limite della scala provvisoria/);
+  assert.match(app,/rip\. reali · considerate nel Rank/);
 });
