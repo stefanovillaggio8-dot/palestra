@@ -54,18 +54,18 @@ test('v516: il carico breve conta ma non vince automaticamente una serie miglior
   assert.equal(cortissimo.ripetizioni,8);
 });
 
-test('v518: Hyperextension con carico reale raggiunge Olympian come modello, senza sommare volume',()=>{
+test('v519: Hyperextension con carico reale non ottiene Olympian senza leve misurate',()=>{
   const e=esercizio('ex-back-extension-hanging');
   const r=valuta(e,[[80,7]],72);
   assert.equal(r.valido,true);
-  assert.equal(r.fuoriScalaProvvisoria,false);
-  assert.equal(r.rank.id,'olympian');
-  assert.equal(r.divisione,null);
-  assert.ok(r.lp>=0);
+  assert.equal(r.fuoriScalaProvvisoria,true);
+  assert.equal(r.rank.id,'diamond');
+  assert.equal(r.divisione.id,3);
+  assert.equal(r.lp,99);
   assert.equal(r.distanza,null);
   const card=recordEsercizio([{id:'hyper',esercizio_id:e.id,seduta_id:'audit',peso:80,
     ripetizioni:7,stato:'fatta'}],e,null,72);
-  assert.equal(card.fuoriScalaProvvisoria,false);
+  assert.equal(card.fuoriScalaProvvisoria,true);
   assert.equal(card.spiegaBonus,null,'non dire che il record e lontano da una soglia gia superata');
 });
 
@@ -90,6 +90,6 @@ test('v515: le schede rank distinguono limiti dei dati e convenzioni del carico'
   assert.match(app,/FUORI MODELLO · Titan\/Olympian non verificati/);
   assert.match(app,/Kg per un singolo manubrio, non la somma dei due/);
   assert.match(app,/Kg di zavorra esterna, senza sommare il peso corporeo/);
-  assert.match(app,/I 99 LP sono il limite della scala provvisoria/);
+  assert.match(app,/I 99 LP NON significano che manchi 1 LP a Titan/);
   assert.match(app,/rip\. reali · considerate nel Rank/);
 });
