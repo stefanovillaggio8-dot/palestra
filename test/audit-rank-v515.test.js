@@ -13,7 +13,7 @@ const valuta = (e, pesiRip, pesoCorporeo = 72, extra = {}) => valutaPrestazione(
   })),
 });
 
-test('v515: Dumbbell Curl 30 kg x 3 a 72 kg resta Platinum I, con kg per un manubrio', () => {
+test('v521: Dumbbell Curl 30 kg x 3 a 72 kg resta Platinum I, ma conta meglio con Brzycki', () => {
   const e=esercizio('ex-dumbbell-curl');
   assert.equal(e.convenzione,'per_manubrio');
   const r=valuta(e,[[30,3]]);
@@ -22,7 +22,8 @@ test('v515: Dumbbell Curl 30 kg x 3 a 72 kg resta Platinum I, con kg per un manu
   assert.equal(r.ripetizioni,3);
   assert.equal(r.rank.id,'platinum');
   assert.equal(r.divisione.id,1);
-  assert.equal(r.lp,16);
+  assert.equal(r.lp,28);
+  assert.equal(r.modelloRipetizioni.fonte,'brzycki_normalizzato_8rip');
   assert.match(r.calibrazione.fonteUrl,/strength-standards\/dumbbell-curl\/kg/);
   assert.match(r.calibrazione.descrizione,/2-4 ripetizioni/);
   assert.doesNotMatch(r.calibrazione.descrizione,/Strict Curl/);
@@ -36,7 +37,7 @@ test('v516: una serie reale da 3 ripetizioni non viene scartata per una piu legg
   assert.equal(r.ripetizioni,3);
   assert.equal(r.rank.id,'platinum');
   assert.equal(r.divisione.id,1);
-  assert.equal(r.lp,18,'seconda serie completata: +2 LP di volume senza cambiare Rank');
+  assert.equal(r.lp,30,'seconda serie completata: +2 LP di volume senza cambiare Rank');
   assert.equal(r.calibrazione.livello,'bassa');
 });
 
@@ -49,8 +50,8 @@ test('v516: il carico breve conta ma non vince automaticamente una serie miglior
   assert.equal(lungo.caricoReale,28);
   assert.equal(lungo.ripetizioni,8);
   assert.ok(lungo.score>forte.score);
-  const cortissimo=valuta(e,[[30,1],[24,8]]);
-  assert.equal(cortissimo.caricoReale,24);
+  const cortissimo=valuta(e,[[30,1],[25,8]]);
+  assert.equal(cortissimo.caricoReale,25);
   assert.equal(cortissimo.ripetizioni,8);
 });
 
