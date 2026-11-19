@@ -58,7 +58,7 @@ export function riferimentoHyperextension(esercizio) {
     dataFonte: '2026-03-29',
     tipoAttrezzatura: 'dischi_esterni',
     varianteHyperextension: variante,
-    limite: 'Le soglie Titan/Olympian sono proiezioni statistiche e NON possono essere assegnate a questa variante senza misurare geometria, appoggio della panca e ROM. I 5 livelli FitnessVolt sono anch’essi un modello, non percentili misurati.',
+    limite: 'La fonte FitnessVolt pubblica livelli MODELLATI, non percentili misurati. Strength Level pubblica per Back Extension standard in RIPETIZIONI, non valori confrontabili con 80 kg di sovraccarico. Senza un campione compatibile per attrezzo, carico e ROM, Titan/Olympian restano proiezioni non assegnabili. Non servono altre misure da inserire nell’app.',
     nota: 'Il carico indica SOLO kg esterni, senza sommare il peso corporeo ai kg scritti. Il momento del carico vale M = kg × 9,80665 × distanza orizzontale dall’anca (metri), ma la leva varia durante il movimento e si somma il momento dei segmenti corporei. Con braccia tese verso il pavimento, senza conoscere panca 45/90°, appoggio del bacino, posizione dei pesi e ROM non è corretto trasformare 80 kg in un percentile di forza. Le varianti restano separate e nessun bonus di leva viene inventato.',
     proiezioneAlti: 'lognormale_advanced_elite',
     richiedeGeometria: true,

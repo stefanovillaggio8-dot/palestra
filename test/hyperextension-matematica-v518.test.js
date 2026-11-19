@@ -30,7 +30,9 @@ test('v518: Titan e Olympian proiettati con logaritmo, senza modificare le cinqu
   assert.ok(Math.abs(livelli[5] - base[4] * Math.exp((z98-z95)*slope)) < 1e-9);
   assert.ok(Math.abs(livelli[6] - base[4] * Math.exp((z995-z95)*slope)) < 1e-9);
   assert.equal(standard.proiezioneAlti, 'lognormale_advanced_elite');
-  assert.match(standard.limite, /non si assegnano|non possono essere assegnate/i);
+  assert.match(standard.limite, /Titan\/Olympian restano proiezioni non assegnabili/i);
+  assert.match(standard.limite, /Strength Level pubblica per Back Extension standard in RIPETIZIONI/i);
+  assert.match(standard.limite, /Non servono altre misure da inserire nell’app/i);
 });
 
 test('v519: la stessa massa produce momenti diversi se cambia la leva', () => {

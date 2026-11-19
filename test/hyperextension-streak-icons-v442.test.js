@@ -22,7 +22,7 @@ test('v442: Hyperextension ha proprio movimento, non le soglie quadricipiti', ()
     assert.equal(standard.massimoRankSupportato,4);
     assert.equal(standard.richiedeGeometria,true);
     assert.equal(standard.proiezioneAlti,'lognormale_advanced_elite');
-    assert.match(standard.limite,/senza misurare geometria/i);
+    assert.match(standard.limite,/Senza un campione compatibile per attrezzo, carico e ROM/i);
     assert.match(standard.nota,/VERSO IL PAVIMENTO|verso il pavimento/i);
   }
   assert.equal(varianteHyperextension(e('ex-back-extension')),'non_specificata');

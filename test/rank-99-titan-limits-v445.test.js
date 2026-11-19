@@ -31,8 +31,8 @@ test('v519: UI spiega quali misure biomeccaniche mancano prima di Titan',()=>{
   assert.equal(rec.distanza,null);
   const app=readFileSync(new URL('../src/app.js',import.meta.url),'utf8');
   assert.match(app,/RIFERIMENTO MODELLATO · Titan\/Olympian non assegnabili/);
-  assert.match(app,/distanza orizzontale del carico dall’anca/);
-  assert.match(app,/Per valutare anche le leve servono tipo di panca/);
+  assert.match(app,/Non devi inserire altre misure/);
+  assert.match(app,/il Rank è una stima prudente e non richiede altre misure/);
 });
 
 test('v445: Titan è realmente raggiungibile con migliore serie a soglia',()=>{
