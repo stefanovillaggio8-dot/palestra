@@ -9559,8 +9559,9 @@ function vistaRank(zona) {
         : null;
       const testo = [
           forzaRelativa !== null
-            ? 'forza relativa ' + (Math.round(forzaRelativa * 10) / 10)
-              + ' (' + kgReali + ' kg x ' + rip + ' rip su ' + corpPerForza + ' kg^0,67)'
+            ? 'Indice di forza ' + (Math.round(forzaRelativa * 10) / 10)
+              + ' (' + kgReali + ' kg x ' + rip + ' rip: fattore ripetizioni, attrezzo e peso corporeo '
+              + corpPerForza + ' kg considerati)'
             : '',
         e.nome,
         (soloRip ? 'Corpo libero' : eZavorra ? (peso === 0 ? 'Corpo libero' : peso + ' kg di zavorra') : peso + ' kg')
@@ -9576,6 +9577,14 @@ function vistaRank(zona) {
         record && record.calibrazione ? record.calibrazione.titolo + ' · ' + record.calibrazione.origine : '',
         record && record.calibrazione ? record.calibrazione.attrezzatura : '',
         record && record.calibrazione ? record.calibrazione.notaMassimale : '',
+        record && Number.isFinite(record.modelloRipetizioni?.massimo)
+          && rip > record.modelloRipetizioni.massimo
+          ? 'Hai dichiarato ' + rip + ' ripetizioni: per prudenza il punteggio considera al massimo '
+            + record.modelloRipetizioni.massimo + ' ripetizioni. La serie resta quella inserita.'
+          : '',
+        record && record.fuoriScalaProvvisoria
+          ? 'FUORI SCALA PROVVISORIA: 99 LP è il limite del modello per questo esercizio, NON significa che manchi 1 LP a Titan. Titan/Olympian non sono validati per questa variante.'
+          : '',
         record && record.distanza && record.distanza.frase
           ? 'Per il prossimo Rank: ' + record.distanza.frase : '',
       ].filter(Boolean);

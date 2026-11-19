@@ -7,7 +7,8 @@
 // bench press e ~13.1 sulla leg press. E' una differenza di endurance,
 // NON un coefficiente di Rank validato. La correzione 8.8/13.1 qui e'
 // una scelta prudenziale del modello, trasparente e testabile.
-// Per gli altri movimenti manteniamo l'esponente 0.20 approvato in v420.
+// Per i movimenti senza un riferimento 1RM specifico manteniamo
+// l'esponente 0.20 approvato in v420.
 // Oltre 12 reps l'evidenza e la variabilita' tecnica non giustificano
 // una progressione illimitata: la curva cresce con pendenza attenuata.
 export const RIP_RIFERIMENTO_RANK = 8;
@@ -42,9 +43,30 @@ export function modelloRipetizioniRank(movimento, esercizio = {}, standard = nul
     && (e.id === 'ex-one-arm-preacher-curl' || /one.arm|single.arm/i.test(e.nome || ''));
   if (oneArmPreacher) return {
     tipo:'isolamento_preacher', esponente: ESPONENTE_BASE_RANK,
-    massimo:12, oltre12:0, fonte:'curva_conservativa',
-    avviso: 'Oltre 12 ripetizioni non vengono dati ulteriori punti: non esistono dati tecnici abbastanza omogenei.',
+    massimo:12, oltre12:0, fonte:'brzycki_normalizzato_8rip',
+    avviso: 'Per 1-7 ripetizioni: confronto Brzycki normalizzato a 8 rip, coerente con le soglie 1RM della fonte. Oltre 12 ripetizioni non vengono dati altri punti. Non si inventa il massimale dell’atleta.',
   };
+  // I cinque standard Strength Level rappresentano 1RM. Anche i proxy CAD
+  // e lat sono espressi nelle stesse unita' 1RM del riferimento originario:
+  // devono quindi usare la STESSA curva, per non creare sconti artificiali
+  // soltanto per avere cambiato la variante nel catalogo.
+  // Per 1-7 rip Strength Level usa
+  // Brzycki: a parita' di peso, un triplo non deve essere quasi ignorato
+  // dalla curva generica (3/8)^0.20. Il rapporto Brzycki(r)/Brzycki(8)
+  // confronta serie REALI con le soglie riportate a otto ripetizioni.
+  // Non produciamo ne' memorizziamo il massimale ipotetico dell'utente.
+  // Restano intatti gli esercizi senza fonte specifica e lo Strict Curl,
+  // che ha gia' la sua calibrazione dedicata approvata.
+  if (['strengthlevel_esercizio','proxy_cad_non_validato','proxy_lat_presa_non_validato'].includes(standard?.fonte)
+      && Array.isArray(standard.soglie1RMPerPeso)) {
+    const isolamento = ISOLAMENTI.has(movimento);
+    return {
+      tipo:'standard_specifico_basse_rip', esponente: ESPONENTE_BASE_RANK,
+      massimo: isolamento ? 15 : 20, oltre12:0.35,
+      fonte:'brzycki_normalizzato_8rip',
+      avviso:'Le serie da 1 a 7 ripetizioni valgono secondo il rapporto Brzycki rispetto a 8 rip: il carico eseguito e reale, il confronto con le soglie 1RM resta una stima dipendente dalla tecnica.',
+    };
+  }
   const pressaBilateral = movimento === 'gambe_pressa' && e.convenzione !== 'per_gamba';
   if (pressaBilateral) return {
     tipo:'pressa_bilaterale', esponente:ESPONENTE_PRESSA,
@@ -69,6 +91,13 @@ export function ripetizioniPieneRank(reps, modello = null) {
   const limite = Number.isFinite(m.massimo) ? Math.min(Math.max(1,m.massimo),40) : 20;
   const rValido = Math.min(r, limite);
   const ex = Number.isFinite(m.esponente) ? m.esponente : ESPONENTE_BASE_RANK;
+  if ((m.tipo === 'standard_specifico_basse_rip' || m.tipo === 'isolamento_preacher')
+      && rValido <= RIP_RIFERIMENTO_RANK) {
+    // Brzycki: 1RM stimato = kg * 36/(37-r). Il rapporto con 8 rip elimina
+    // tanto il kg quanto il 36: (37-8)/(37-r). E' soltanto un moltiplicatore
+    // per comparare serie osservate, NON un 1RM attribuito alla persona.
+    return (37 - RIP_RIFERIMENTO_RANK) / (37 - rValido);
+  }
   if (m.tipo === 'strict_curl_basse_rip' && rValido <= RIP_RIFERIMENTO_RANK) {
     return (1 + rValido / 30) / (1 + RIP_RIFERIMENTO_RANK / 30);
   }

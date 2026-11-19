@@ -7,9 +7,10 @@
 // LA CATENA (tutta in `modello.js`, i numeri):
 //
 //   serie + peso corporeo -> carico effettivo (col corpo dentro, se serve)
-//                         -> 1RM stimato (Epley)
-//                         -> punteggio normalizzato (1RM / peso^0,67)
-//   esercizio + peso      -> soglie normalizzate (i numeri di Ste, convertiti)
+//                         -> fattore ripetizioni della variante (senza 1RM inventati)
+//                         -> punteggio della serie vera / peso^0,67
+//   esercizio + peso      -> soglie 1RM della fonte riportate a 8 rip,
+//                            oppure scala provvisoria di movimento
 //   punteggio + soglie    -> Rank (la scala e i LP di `rank-v2/scalata.js`)
 //
 // PERCHE' LA SCALA E I LP RESTANO QUELLI DI `rank-v2`:
@@ -17,7 +18,8 @@
 //  - i NOMI, le icone, gli avatar e la progressione grafica del Rank non si
 //    toccano (Ste: "conserva i nomi, le icone, gli avatar e la progressione
 //    grafica attuali");
-//  - la curva delle soglie (BRONZE -> OLYMPIAN) e' gia' severa e verificata;
+//  - la curva delle soglie (BRONZE -> OLYMPIAN) resta quella di gioco;
+//    i suoi estremi sono estrapolazioni, non percentili misurati;
 //  - i LP dentro il Rank, la divisione (I/II/III) e la regola "il volume non
 //    compra mai il Rank" restano quelle scritte da Ste.
 //
@@ -162,7 +164,7 @@ export function valutaPrestazione({ esercizio, serie = [], pesoCorporeo = null, 
     //
     // Ste: "non devi basarti sul massimale, ma sulla serie migliore". Quindi
     // entrano i kg che ha davvero spostato e le ripetizioni che ha davvero
-    // fatto, con la curva delle ripetizioni che c'e' gia' in v2. La soglia e'
+    // fatto, con la curva delle ripetizioni specifica del riferimento. La soglia e'
     // riportata a 8 ripetizioni una volta sola (vedi `soglieNormalizzate`).
     // Tutti gli esercizi usano la SERIE realmente eseguita.
     // A 8 ripetizioni il fattore e' 1; piu' ripetizioni aumentano lo score
@@ -362,6 +364,7 @@ export function descriviAffidabilitaRank(standard, cfg, rank, migliore, pesoCorp
   const macchina = String(cfg?.tipoAttrezzatura || '');
   const specifico = s.fonte === 'strengthlevel_esercizio';
   const cadNonValidato = s.fonte === 'proxy_cad_non_validato';
+  const latNonValidato = s.fonte === 'proxy_lat_presa_non_validato';
   const hyperNonValidato = s.fonte === 'modello_hyperextension_non_validato';
   const estremo = (rank?.indice ?? -1) >= 5;
   const ripLunghe = Number(migliore?.ripetizioni) > 12;
@@ -378,6 +381,9 @@ export function descriviAffidabilitaRank(standard, cfg, rank, migliore, pesoCorp
     motivi.push('Il CAD Curl si esegue sulla Scott al contrario, con gomiti appoggiati e busto arretrato: posizione muscolare e momento torcente cambiano, ma non è dimostrata una percentuale universale di maggiore difficoltà');
     motivi.push('Riferimento numerico temporaneo: Dumbbell Curl, senza alcun bonus percentuale. Questi NON sono percentili scientifici del CAD Curl');
     motivi.push('Studi sull’influenza della posizione: Oliveira 2009 (PMID 24150552), Attarieh 2025 (PMID 40082069), Kobayashi 2026 (PMID 42829982). Nessuno confronta direttamente il CAD Curl con il curl normale');
+  } else if (latNonValidato) {
+    motivi.push('Lat pulldown: le cinque soglie di base derivano dalla community Strength Level, ma la correzione per la presa e un proxy ricavato da uno studio su prese PRONE');
+    motivi.push('Il triangolo e la presa neutra non sono stati misurati direttamente in quello studio. Cavi, camme e rapporto delle pulegge possono cambiare la resistenza');
   } else if (hyperNonValidato) {
     motivi.push('Hyperextension: kg ESTERNI e ripetizioni della serie migliore. Benchmark FitnessVolt modellato in libbre, non percentile misurato di atleti. Il titolo è un livello di gioco, non un riconoscimento agonistico');
     motivi.push('Panca, ROM e leva del carico cambiano il momento resistente. Petto e braccia tese verso il pavimento sono varianti distinte senza coefficienti sperimentali di conversione');
@@ -386,7 +392,7 @@ export function descriviAffidabilitaRank(standard, cfg, rank, migliore, pesoCorp
   } else {
     motivi.push('Soglie derivate da un modello di movimento, senza cinque percentili specifici per questa variante');
   }
-  if (s.limite && (specifico || cadNonValidato || hyperNonValidato)) motivi.push(s.limite);
+  if (s.limite && (specifico || cadNonValidato || latNonValidato || hyperNonValidato)) motivi.push(s.limite);
   if (s.nota && specifico && s.affidabilitaBase === 'indicativa') motivi.push(s.nota);
   if (estremo) {
     livello = 'bassa';
@@ -424,6 +430,11 @@ export function descriviAffidabilitaRank(standard, cfg, rank, migliore, pesoCorp
     livello = 'bassa';
     motivi.push('Tipo di carico o rapporto della macchina non verificato');
   }
+  if ((modelloReps?.tipo === 'standard_specifico_basse_rip'
+      || modelloReps?.tipo === 'isolamento_preacher')
+      && Number(migliore?.ripetizioni) < 8) {
+    motivi.push('Con 1-7 ripetizioni si usa il rapporto Brzycki rispetto a 8 rip: il peso della serie resta quello realmente sollevato, non viene calcolato un massimale personale');
+  }
   if (macchina.includes('stack') || macchina.includes('cavo')) {
     motivi.push('Su cavi e macchine marche, pulegge e camme cambiano la resistenza: confronta soprattutto la stessa macchina');
   }
@@ -433,6 +444,7 @@ export function descriviAffidabilitaRank(standard, cfg, rank, migliore, pesoCorp
       livello === 'indicativa' ? 'Attendibilita indicativa' : 'Attendibilita limitata',
     origine: specifico ? 'Riferimento statistico specifico'
       : cadNonValidato ? 'CAD Curl: calibrazione scientifica non disponibile'
+        : latNonValidato ? 'Lat pulldown: proxy della presa non validato'
         : hyperNonValidato ? 'Hyperextension: benchmark MODELLATO non agonistico'
           : 'Modello provvisorio per famiglia',
     fonteUrl: s.fonteUrl || null,
