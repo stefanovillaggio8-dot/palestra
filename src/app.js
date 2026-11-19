@@ -7623,7 +7623,7 @@ function cardRank(record, { compatta = false } = {}) {
   const kgPerIlProssimo = r.distanza && r.distanza.kgNecessari;
   const verso = r.fuoriScalaProvvisoria
     ? (r.fonte === 'modello_hyperextension_non_validato'
-      ? 'Prestazione oltre il riferimento disponibile. I 99 LP NON significano che manchi 1 LP a Titan: per Hyperextension servono tipo di panca, distanza orizzontale del carico dall’anca, punto d’appoggio e ROM. I tuoi kg e le ripetizioni restano salvati.'
+      ? 'Prestazione oltre il riferimento modellato disponibile. I 99 LP NON significano che manchi 1 LP a Titan: per questa variante non ci sono soglie Titan/Olympian misurate e confrontabili. Non devi inserire altre misure: i tuoi kg e le ripetizioni restano salvati.'
       : 'Prestazione oltre il massimo del benchmark disponibile. I 99 LP sono il limite della scala provvisoria, NON 1 LP dalla promozione: per questa variante mancano soglie Titan validate. Il carico e le ripetizioni reali restano registrati.')
     : r.fonte === 'modello_hyperextension_non_validato' && r.inTop
     ? 'Olympian raggiunto secondo la proiezione matematica: è un titolo di gioco, NON una posizione percentuale misurata tra gli atleti. La serie reale rimane registrata senza trasformazioni.'
@@ -7647,7 +7647,7 @@ function cardRank(record, { compatta = false } = {}) {
     }) : null,
     r.fonte === 'modello_hyperextension_non_validato'
       ? el('span', { class: 'card-rank-unita', testo:
-        'RIFERIMENTO MODELLATO · Titan/Olympian non assegnabili senza misure delle leve e del movimento' })
+        'RIFERIMENTO MODELLATO · Titan/Olympian non assegnabili senza dati statistici confrontabili' })
       : null,
     r.serie && Number(r.serie.ripetizioni) > 0 && Number(r.serie.ripetizioni) < 5
       ? el('span', {
@@ -9491,7 +9491,7 @@ function vistaRank(zona) {
         else if (pesoCampo.value === '0') pesoCampo.value = '';
       }
       guidaCarico.textContent = /^ex-back-extension/.test(e.id)
-        ? 'Inserisci SOLO i kg esterni. Per valutare anche le leve servono tipo di panca, punto di appoggio, distanza orizzontale del peso dall’anca e ROM: senza queste misure Titan/Olympian restano ipotesi, non Rank assegnati.'
+        ? 'Inserisci SOLO i kg esterni e le ripetizioni, come sempre. La panca romana, il ROM e la posizione del carico cambiano la difficoltà: il Rank è una stima prudente e non richiede altre misure da parte tua.'
         : e.convenzione === 'corpo_libero'
         ? 'A corpo libero bastano le ripetizioni e il peso corporeo. Nessun carico esterno.'
         : e.convenzione === 'zavorri'

@@ -382,7 +382,7 @@ export function descriviAffidabilitaRank(standard, cfg, rank, migliore, pesoCorp
     motivi.push('Hyperextension: kg ESTERNI e ripetizioni della serie migliore. Benchmark FitnessVolt modellato in libbre, non percentile misurato di atleti. Il titolo è un livello di gioco, non un riconoscimento agonistico');
     motivi.push('Panca, ROM e leva del carico cambiano il momento resistente. Petto e braccia tese verso il pavimento sono varianti distinte senza coefficienti sperimentali di conversione');
     motivi.push('Momento esterno ≈ kg × 9,81 × distanza orizzontale del carico dall’anca. Senza misure di angoli e leve non si aggiunge alcun bonus numerico alla variante');
-    if (s.richiedeGeometria) motivi.push('Soglie Titan/Olympian disponibili solo come ipotesi matematiche: non si assegnano automaticamente senza leva individuale, tipo di panca e ampiezza del movimento');
+    if (s.richiedeGeometria) motivi.push('Soglie Titan/Olympian disponibili solo come ipotesi matematiche: non si assegnano automaticamente senza un campione confrontabile per tecnica, panca e ROM. Non si richiedono misure aggiuntive agli utenti');
   } else {
     motivi.push('Soglie derivate da un modello di movimento, senza cinque percentili specifici per questa variante');
   }
