@@ -1,5 +1,17 @@
 ﻿# Palestra — memoria del progetto
 
+## 19/11/2026 — v523, stabilità «Prova un esercizio»
+
+- Dopo la pubblicazione della v522 il controllo sul sito reale ha rilevato che
+  una sincronizzazione poteva ridisegnare Rank e far tornare «MY RANKS» mentre
+  Ste stava provando un esercizio. La causa era `let scheda = 'miei'`
+  ricreato a ogni `vistaRank`.
+- La v523 conserva nell'attuale sessione la scheda scelta, l'esercizio di prova,
+  i kg, le ripetizioni, il peso corporeo e i filtri di ricerca anche dopo un
+  ridisegno. Cambiando account azzera tutto. Nessun campo aggiunto e formule
+  Rank, benchmark, storia dei record e database invariati.
+- Versione PWA/cache portata a 523; aggiunti i test di regressione specifici.
+
 ## 19/11/2026 — v522, correzione esercizi cloud (DATABASE AGGIORNATO)
 
 - Audit v521: gli esercizi globali creati dall'amministratore non venivano pubblicati;

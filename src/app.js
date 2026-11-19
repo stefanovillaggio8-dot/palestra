@@ -5332,7 +5332,7 @@ const FILTRO_GENERALE = {
  * Stessi filtri, nomi dei muscoli, miniature e ricerca per parole ovunque
  * nel nome, senza richiedere che la parola sia all'inizio.
  */
-function costruisciSelettoreEsercizi(esercizi, onScelta) {
+function costruisciSelettoreEsercizi(esercizi, onScelta, memoria = null) {
   const contenitoreElenco = el('div', { class: 'selettore-esercizi-condiviso' });
   // LA RICERCA E I FILTRI (Ste, 21/10/2026)
   //
@@ -5356,13 +5356,16 @@ function costruisciSelettoreEsercizi(esercizi, onScelta) {
     };
   });
 
-  let testoRicerca = '';
-  let filtroGenerale = '';
-  let filtroGruppo = '';
+  let testoRicerca = String(memoria?.ricerca || '');
+  let filtroGenerale = String(memoria?.filtroGenerale || '');
+  let filtroGruppo = String(memoria?.filtroGruppo || '');
+  const ricordaFiltri = () => {
+    if (memoria) Object.assign(memoria, { ricerca: testoRicerca, filtroGenerale, filtroGruppo });
+  };
 
-  const campo = campoTesto('', {
+  const campo = campoTesto(testoRicerca, {
     segnaposto: 'Cerca per nome o per muscolo...',
-    onCambio: (v) => { testoRicerca = String(v || ''); ridisegna(); },
+    onCambio: (v) => { testoRicerca = String(v || ''); ricordaFiltri(); ridisegna(); },
   });
   contenitoreElenco.appendChild(el('div', { class: 'zona-ricerca' }, [campo]));
 
@@ -5379,9 +5382,13 @@ function costruisciSelettoreEsercizi(esercizi, onScelta) {
   //
   // Il bottone dice sempre COME STAI filtrando: "Filtri · petto, tricipiti", così
   // non resti a chiederti perché la lista è corta.
-  let filtriAperti = false;
+  let filtriAperti = !!memoria?.filtriAperti;
   const bottoneFiltri = bottone('Filtri', {
-    onClick: () => { filtriAperti = !filtriAperti; disegnaFiltri(); },
+    onClick: () => {
+      filtriAperti = !filtriAperti;
+      if (memoria) memoria.filtriAperti = filtriAperti;
+      disegnaFiltri();
+    },
     classe: 'bottone-filtri',
   });
   const rigaFiltri = el('div', { class: 'riga-filtri' });
@@ -5416,10 +5423,11 @@ function costruisciSelettoreEsercizi(esercizi, onScelta) {
     if (generali.length > 1) {
       zonaFiltri.appendChild(el('div', { class: 'riga-filtri' }, [
         el('span', { class: 'etichetta-filtro', testo: 'argomento' }),
-        chip('tutti', !filtroGenerale, () => { filtroGenerale = ''; filtroGruppo = ''; ridisegna(); }),
+        chip('tutti', !filtroGenerale, () => { filtroGenerale = ''; filtroGruppo = ''; ricordaFiltri(); ridisegna(); }),
         ...generali.map((gr) => chip(gr, filtroGenerale === gr, () => {
           filtroGenerale = filtroGenerale === gr ? '' : gr;
           filtroGruppo = '';
+          ricordaFiltri();
           ridisegna();
         })),
       ]));
@@ -5433,9 +5441,10 @@ function costruisciSelettoreEsercizi(esercizi, onScelta) {
     if (disponibili.length > 1) {
       zonaFiltri.appendChild(el('div', { class: 'riga-filtri' }, [
         el('span', { class: 'etichetta-filtro', testo: 'muscolo' }),
-        chip('tutti', !filtroGruppo, () => { filtroGruppo = ''; ridisegna(); }),
+        chip('tutti', !filtroGruppo, () => { filtroGruppo = ''; ricordaFiltri(); ridisegna(); }),
         ...disponibili.map((gr) => chip(gr, filtroGruppo === gr, () => {
           filtroGruppo = filtroGruppo === gr ? '' : gr;
+          ricordaFiltri();
           ridisegna();
         })),
       ]));
@@ -9355,12 +9364,22 @@ function tesseraSfidaAutomatica(voce) {
   return box;
 }
 
+// Le risposte e la scheda del simulatore sono dati temporanei della schermata:
+// un refresh provocato dal sync non deve annullare quello che stai digitando.
+// Cambiando account si riparte invece da zero, senza mostrare i dati altrui.
+let memoriaVistaRank = { account: null, scheda: 'miei', prova: {} };
+
 function vistaRank(zona) {
   const st = statoMio();
+  const account = accountAttivo();
+  if (memoriaVistaRank.account !== account) {
+    memoriaVistaRank = { account, scheda: 'miei', prova: {} };
+  }
+  const memoria = memoriaVistaRank;
   zona.appendChild(el('h1', { testo: 'Rank' }));
   const contenitore = el('div');
   zona.appendChild(contenitore);
-  let scheda = 'miei';
+  let scheda = memoria.scheda;
 
   const bottoni = el('div', { class: 'chip-scelte' });
   const voci = [
@@ -9375,6 +9394,7 @@ function vistaRank(zona) {
     bottoni.appendChild(bottone(t, {
       onClick: (ev) => {
         scheda = k;
+        memoria.scheda = k;
         for (const b of bottoni.children) b.classList.remove('attivo');
         ev.currentTarget.classList.add('attivo');
         disegnaSezione();
@@ -9466,10 +9486,24 @@ function vistaRank(zona) {
 
     // Il catalogo e' lo stesso della modifica della scheda:
     // miniature, filtri muscolari e ricerca per parole OVUNQUE nel nome.
-    let scelto = null;
+    const provaMemoria = memoria.prova;
+    let scelto = (V.esercizi || []).find((e) => e.id === provaMemoria.esercizioId) || null;
     const sceltaAttuale = el('div', { class: 'esercizio-prova-scelto' });
+    const testoGuidaCarico = (e) => !e
+      ? 'Il peso è quello segnato sull’attrezzo. Per un manubrio inserisci i kg di un solo manubrio.'
+      : /^ex-back-extension/.test(e.id)
+        ? 'Inserisci SOLO i kg esterni e le ripetizioni, come sempre. La panca romana, il ROM e la posizione del carico cambiano la difficoltà: il Rank è una stima prudente e non richiede altre misure da parte tua.'
+        : e.convenzione === 'corpo_libero'
+          ? 'A corpo libero bastano le ripetizioni e il peso corporeo. Nessun carico esterno.'
+          : e.convenzione === 'zavorri'
+            ? 'Inserisci solo la zavorra aggiunta: 0 kg significa corpo libero. Il tuo corpo viene contato una sola volta.'
+            : e.convenzione === 'per_manubrio' || e.convenzione === 'per_braccio'
+              ? 'Inserisci i kg di UN manubrio o di UN braccio, non la somma dei due.'
+              : e.carrucola === 'carrucola_doppia'
+                ? 'Inserisci i kg letti sul carrello; la doppia carrucola 2:1 viene considerata dal modello.'
+                : 'Inserisci il peso realmente indicato sull’attrezzo.';
     const guidaCarico = el('p', { class: 'nota nota-piccola prova-guida-carico', testo:
-      'Il peso è quello segnato sull’attrezzo. Per un manubrio inserisci i kg di un solo manubrio.' });
+      testoGuidaCarico(scelto) });
     let campoPesoAvvolto = null;
     const aggiornaScelta = () => {
       svuota(sceltaAttuale);
@@ -9488,6 +9522,7 @@ function vistaRank(zona) {
     contenitore.appendChild(sceltaAttuale);
     contenitore.appendChild(costruisciSelettoreEsercizi(V.esercizi || [], (e) => {
       scelto = e;
+      provaMemoria.esercizioId = e.id;
       aggiornaScelta();
       svuota(esito);
       if (campoPesoAvvolto) {
@@ -9495,28 +9530,27 @@ function vistaRank(zona) {
         campoPesoAvvolto.hidden = soloRip;
         if (soloRip) pesoCampo.value = '0';
         else if (pesoCampo.value === '0') pesoCampo.value = '';
+        provaMemoria.peso = pesoCampo.value;
       }
-      guidaCarico.textContent = /^ex-back-extension/.test(e.id)
-        ? 'Inserisci SOLO i kg esterni e le ripetizioni, come sempre. La panca romana, il ROM e la posizione del carico cambiano la difficoltà: il Rank è una stima prudente e non richiede altre misure da parte tua.'
-        : e.convenzione === 'corpo_libero'
-        ? 'A corpo libero bastano le ripetizioni e il peso corporeo. Nessun carico esterno.'
-        : e.convenzione === 'zavorri'
-          ? 'Inserisci solo la zavorra aggiunta: 0 kg significa corpo libero. Il tuo corpo viene contato una sola volta.'
-          : e.convenzione === 'per_manubrio' || e.convenzione === 'per_braccio'
-            ? 'Inserisci i kg di UN manubrio o di UN braccio, non la somma dei due.'
-            : e.carrucola === 'carrucola_doppia'
-              ? 'Inserisci i kg letti sul carrello; la doppia carrucola 2:1 viene considerata dal modello.'
-              : 'Inserisci il peso realmente indicato sull’attrezzo.';
-    }));
+      guidaCarico.textContent = testoGuidaCarico(e);
+    }, provaMemoria));
 
     // I CAMPI: con l'etichetta VISTA (il peso, le ripetizioni, il peso corporeo)
-    const pesoCampo = campoNumero(null, { etichetta: 'PESO', onCambio: () => { } });
-    const repCampo = campoNumero(null, { etichetta: 'REPS', onCambio: () => { } });
-    const corpCampo = campoNumero(pesoCorporeoOra(), { etichetta: 'PESO CORPOREO', onCambio: () => { } });
+    const pesoCampo = campoNumero(provaMemoria.peso ?? null, { etichetta: 'PESO' });
+    const repCampo = campoNumero(provaMemoria.ripetizioni ?? null, { etichetta: 'REPS' });
+    const corpCampo = campoNumero(provaMemoria.pesoCorporeo ?? pesoCorporeoOra(), { etichetta: 'PESO CORPOREO' });
+    pesoCampo.addEventListener('input', () => { provaMemoria.peso = pesoCampo.value; });
+    repCampo.addEventListener('input', () => { provaMemoria.ripetizioni = repCampo.value; });
+    corpCampo.addEventListener('input', () => { provaMemoria.pesoCorporeo = corpCampo.value; });
     const campo = (nodo, etichetta) => el('div', { class: 'campo-prova' }, [
       nodo, el('span', { class: 'etichetta-prova', testo: etichetta }),
     ]);
     campoPesoAvvolto = campo(pesoCampo, 'KG');
+    if (scelto?.convenzione === 'corpo_libero') {
+      campoPesoAvvolto.hidden = true;
+      pesoCampo.value = '0';
+      provaMemoria.peso = '0';
+    }
     contenitore.appendChild(el('div', { class: 'riga-campi-prova' }, [
       campoPesoAvvolto, campo(repCampo, 'REPS'), campo(corpCampo, 'PESO CORPOREO'),
     ]));

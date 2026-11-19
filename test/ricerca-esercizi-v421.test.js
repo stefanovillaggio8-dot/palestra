@@ -46,7 +46,9 @@ test('v421: il catalogo non crea duplicati e mantiene i riferimenti', () => {
 
 test('v421: Prova Rank e modifica della scheda richiamano lo stesso elenco', () => {
   const code = readFileSync(new URL('../src/app.js', import.meta.url), 'utf8');
-  assert.match(code, /function costruisciSelettoreEsercizi\(esercizi, onScelta\)/);
+  // Il terzo parametro opzionale conserva ricerca/filtri nella prova Rank
+  // durante il ridisegno; la modifica della scheda usa ancora i primi due.
+  assert.match(code, /function costruisciSelettoreEsercizi\(esercizi, onScelta(?:, memoria = null)?\)/);
   assert.match(code, /lista\.appendChild\(costruisciSelettoreEsercizi\(liberi,/);
   assert.match(code, /contenitore\.appendChild\(costruisciSelettoreEsercizi\(V\.esercizi \|\| \[\],/);
   assert.match(code, /corrispondeRicercaEsercizi\(v, testoRicerca\)/);
