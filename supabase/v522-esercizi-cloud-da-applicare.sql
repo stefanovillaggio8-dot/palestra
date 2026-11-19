@@ -1,5 +1,6 @@
--- Patch v522 da applicare al progetto Palestra quando Supabase autorizza
--- la migrazione. Non eseguita automaticamente da GitHub Pages.
+-- Patch v522 di riferimento: gia' applicata al progetto Palestra il 19/11/2026
+-- con la migrazione 20261119200059_palestra_v522_esercizi_cloud_rls.
+-- Non rieseguire a mano sulla produzione senza prima verificare lo stato.
 -- La tabella legacy public.versi NON va eliminata: la produzione usa versioni.
 begin;
 
