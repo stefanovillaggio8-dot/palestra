@@ -7371,6 +7371,8 @@ function etichettaLp(record) {
   if (!record || !record.rankId) return '';
   if (record.fuoriScalaProvvisoria)
     return 'FUORI MODELLO · Titan/Olympian non verificati';
+  if (record.fonte === 'modello_hyperextension_non_validato' && record.inTop)
+    return `TOP DEL MODELLO · +${record.lp}% oltre la soglia teorica`;
   if (record.inTop) return `TOP · +${record.lp}% sulla soglia`;
   // Quando il bonus È stato fermato, i LP NON sono la posizione nella fascia: sono
   // il posto dove ti hanno portato dentro. Scrivere "/ 100" accanto a una barra
@@ -7621,6 +7623,8 @@ function cardRank(record, { compatta = false } = {}) {
   const kgPerIlProssimo = r.distanza && r.distanza.kgNecessari;
   const verso = r.fuoriScalaProvvisoria
     ? 'Prestazione oltre i riferimenti disponibili. I 99 LP sono il limite della scala provvisoria, non significano che manchi 1 LP alla promozione. Titan e Olympian richiedono dati affidabili per questa variante; il record resta salvato.'
+    : r.fonte === 'modello_hyperextension_non_validato' && r.inTop
+    ? 'Olympian raggiunto secondo la proiezione matematica: è un titolo di gioco, NON una posizione percentuale misurata tra gli atleti. La serie reale rimane registrata senza trasformazioni.'
     : r.inTop
     ? `Sei nel rank più alto: non cÈ un passo dopo, e ogni LP È un punto di percentuale sopra la soglia dell'OLYMPIAN (+${r.lp}% adesso).`
     : (kgPerIlProssimo
@@ -7639,6 +7643,10 @@ function cardRank(record, { compatta = false } = {}) {
     notaUnitaCaricoRank(r) ? el('span', {
       class: 'card-rank-unita', testo: notaUnitaCaricoRank(r),
     }) : null,
+    r.fonte === 'modello_hyperextension_non_validato'
+      ? el('span', { class: 'card-rank-unita', testo:
+        'RANK MATEMATICO · non percentile misurato · soglie Titan/Olympian estrapolate dalla curva Advanced→Elite' })
+      : null,
     r.serie && Number(r.serie.ripetizioni) > 0 && Number(r.serie.ripetizioni) < 5
       ? el('span', {
         class: 'card-rank-breve',

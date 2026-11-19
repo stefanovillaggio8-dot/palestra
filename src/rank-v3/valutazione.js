@@ -264,10 +264,9 @@ export function valutaPrestazione({ esercizio, serie = [], pesoCorporeo = null, 
       : valutabili.length);
   const nTotali = valutabili.length;
   const conVolume = migliore.score * moltiplicatoreSerie(n);
-  // Il riferimento Hyperextension non contiene dati su p98/p99,5. Non
-  // inventare TITAN/OLYMPIAN da un modello in libbre. Mostra il superamento
-  // del livello Elite MODELLATO e ferma il titolo competitivo a DIAMOND III.
-  // Il punteggio vero e i kg registrati non vengono ridotti.
+  // Un tetto può essere richiesto da riferimenti senza proiezione.
+  // Hyperextension v518 NON lo richiede più: Titan/Olympian sono raggiungibili
+  // con la coda matematica, espressamente etichettata come stima di gioco.
   const massimoSupportato = Number(standard?.massimoRankSupportato);
   const fuoriScalaProvvisoria = Number.isInteger(massimoSupportato)
     && massimoSupportato >= 0 && migliore.score >= soglie[massimoSupportato+1];
@@ -380,9 +379,9 @@ export function descriviAffidabilitaRank(standard, cfg, rank, migliore, pesoCorp
     motivi.push('Riferimento numerico temporaneo: Dumbbell Curl, senza alcun bonus percentuale. Questi NON sono percentili scientifici del CAD Curl');
     motivi.push('Studi sull’influenza della posizione: Oliveira 2009 (PMID 24150552), Attarieh 2025 (PMID 40082069), Kobayashi 2026 (PMID 42829982). Nessuno confronta direttamente il CAD Curl con il curl normale');
   } else if (hyperNonValidato) {
-    motivi.push('Hyperextension: kg ESTERNI e ripetizioni della serie migliore. Benchmark FitnessVolt modellato in libbre, non percentile misurato di atleti. Il dato non prova alcun record o titolo agonistico');
+    motivi.push('Hyperextension: kg ESTERNI e ripetizioni della serie migliore. Benchmark FitnessVolt modellato in libbre, non percentile misurato di atleti. Il titolo è un livello di gioco, non un riconoscimento agonistico');
     motivi.push('Panca, ROM e leva del carico cambiano il momento resistente. Petto e braccia tese verso il pavimento sono varianti distinte senza coefficienti sperimentali di conversione');
-    if (rank?.indice === 4 && Number(migliore?.score) >= 0) motivi.push('Se il risultato eccede la fascia modellata, TITAN e OLYMPIAN non vengono assegnati senza standard validati');
+    motivi.push('Momento esterno ≈ kg × 9,81 × distanza orizzontale del carico dall’anca. Senza misure di angoli e leve non si aggiunge alcun bonus numerico alla variante');
   } else {
     motivi.push('Soglie derivate da un modello di movimento, senza cinque percentili specifici per questa variante');
   }
@@ -390,7 +389,9 @@ export function descriviAffidabilitaRank(standard, cfg, rank, migliore, pesoCorp
   if (s.nota && specifico && s.affidabilitaBase === 'indicativa') motivi.push(s.nota);
   if (estremo) {
     livello = 'bassa';
-    motivi.push('Titan e Olympian sono estrapolazioni matematiche oltre il percentile 95, non risultati misurati');
+    motivi.push(hyperNonValidato
+      ? 'Titan e Olympian sono soglie teoriche ottenute prolungando la curva logaritmica Advanced→Elite con z-score di riferimento: NON corrispondono a percentili realmente misurati'
+      : 'Titan e Olympian sono estrapolazioni matematiche oltre il percentile 95, non risultati misurati');
   }
   if (ripLunghe) {
     livello = 'bassa';

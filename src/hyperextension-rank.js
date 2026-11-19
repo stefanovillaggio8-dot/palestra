@@ -3,6 +3,11 @@
 // sono stime del MODELLO, NON percentili misurati né record agonistici.
 // Unità della fonte: lb di 1RM del solo sovraccarico, qui convertite in kg.
 // Questi dati non valgono per macchine a selettore o ROM e varianti non comparabili.
+// TITAN e OLYMPIAN sono PROIEZIONI di gioco (non percentili osservati):
+// per i cinque livelli iniziali si mantengono le ancore FV; per i due successivi
+// soglieNormalizzate() applica estendiPercentiliAlti() con
+// log(K_t/K_elite) = log(K_elite/K_advanced) * (z_t-z_elite)/(z_elite-z_advanced).
+// La formula fa crescere la difficolta' senza supporre una misura agonistica.
 export const FONTE_HYPER = 'https://www.fitnessvolt.com/strength-standards/back-extension/';
 const LIBBRE_IN_KG = 0.45359237;
 export const ANCORE_HYPER_LB = Object.freeze([
@@ -38,8 +43,8 @@ export function riferimentoHyperextension(esercizio) {
     dataFonte: '2026-03-29',
     tipoAttrezzatura: 'dischi_esterni',
     varianteHyperextension: variante,
-    limite: 'Riferimento stimato e non validato: differenze di panca 45/90°, ROM, carico al petto o a braccia tese in basso e movimento d’anca/colonna. Non esistono percentili agonistici verificati per queste varianti. Nessun bonus di leva assegnato.',
-    nota: 'Il carico inserito indica SOLTANTO kg esterni, senza sommare il peso corporeo. Con carico al petto e con braccia tese che pendono verso il pavimento si usano registrazioni distinte, senza bonus percentuale arbitrario. La distanza orizzontale dall’anca, non la direzione verticale delle braccia, determina il momento del carico.',
-    massimoRankSupportato: 4, // Diamond come ultimo livello modellato p95; Titan/Olympian richiedono dati reali.
+    limite: 'Scala teorica, NON una classifica statistica verificata: Beginner–Elite sono valori del modello FitnessVolt; Titan e Olympian sono estrapolazioni matematiche oltre Elite, non percentili p98/p99,5 misurati. Panca 45/90°, ROM, posizione del carico e tecnica cambiano il confronto.',
+    nota: 'Il carico inserito indica SOLTANTO kg esterni, senza sommare il peso corporeo. Per Titan/Olympian viene prolungata in logaritmi la pendenza Advanced→Elite (z-score di riferimento), senza attribuire un percentile reale. Con carico al petto e con braccia tese che pendono verso il pavimento si usano registrazioni distinte: il momento esterno dipende da kg × g × distanza ORIZZONTALE dall’anca, non dal solo orientamento delle braccia. Nessun bonus di leva senza misura geometrica.',
+    proiezioneAlti: 'lognormale_advanced_elite',
   };
 }

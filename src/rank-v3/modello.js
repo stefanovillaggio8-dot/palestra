@@ -514,13 +514,15 @@ export function interpolaPercentiliPerPeso(righe, pesoCorporeo) {
 }
 
 /**
- * Solo 5 percentili sono MISURATI nella fonte. I successivi 98% e 99,5%
- * non sono pubblicati: vengono STIMATI con una coda log-normale.
+ * Partiamo da CINQUE livelli (alcune fonti li misurano, altre li modellano).
+ * I due livelli successivi vengono STIMATI con una coda log-normale.
  *
  * Interpolando il logaritmo del carico rispetto allo z-score della normale
  * fra p80 (z=.84162) e p95 (z=1.64485), si estrapolano i punti p98
  * (z=2.05375) e p99.5 (z=2.57583). Non e' una misura empirica delle code
- * e non garantisce un percentile esatto.
+ * e non garantisce un percentile esatto. In particolare, per FitnessVolt
+ * Hyperextension nemmeno i primi cinque valori sono quantili osservati:
+ * qui gli z-score definiscono solo la FORMA della proiezione matematica.
  */
 export function estendiPercentiliAlti(ancore) {
   if (!Array.isArray(ancore) || ancore.length !== 5
@@ -1061,9 +1063,9 @@ export function soglieNormalizzate({
   pesoCorporeo = null,
 } = {}) {
   if (!standard) return null;
-  // Per i movimenti con cinque soglie empiriche NON inventiamo una curva dai
-  // soli valori minimo e massimo. Usiamo i cinque percentili pubblicati,
-  // interpolati sul corpo, e una coda alta modellata per gli ultimi due rank.
+  // Per i movimenti con cinque soglie (misurate o modellate secondo la fonte)
+  // NON inventiamo una curva dai soli valori minimo e massimo. Usiamo le
+  // cinque ancore per il corpo e una coda matematica per gli ultimi due rank.
   if (Array.isArray(standard.soglie1RMPerPeso)) {
     const ancore = interpolaPercentiliPerPeso(standard.soglie1RMPerPeso, pesoCorporeo);
     const sette = estendiPercentiliAlti(ancore);

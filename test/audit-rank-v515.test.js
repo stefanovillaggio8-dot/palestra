@@ -54,18 +54,18 @@ test('v516: il carico breve conta ma non vince automaticamente una serie miglior
   assert.equal(cortissimo.ripetizioni,8);
 });
 
-test('v515: Hyperextension fuori dal modello non mente sul volume né regala Titan',()=>{
+test('v518: Hyperextension con carico reale raggiunge Olympian come modello, senza sommare volume',()=>{
   const e=esercizio('ex-back-extension-hanging');
   const r=valuta(e,[[80,7]],72);
   assert.equal(r.valido,true);
-  assert.equal(r.fuoriScalaProvvisoria,true);
-  assert.equal(r.rank.id,'diamond');
-  assert.equal(r.divisione.id,3);
-  assert.equal(r.lp,99);
+  assert.equal(r.fuoriScalaProvvisoria,false);
+  assert.equal(r.rank.id,'olympian');
+  assert.equal(r.divisione,null);
+  assert.ok(r.lp>=0);
   assert.equal(r.distanza,null);
   const card=recordEsercizio([{id:'hyper',esercizio_id:e.id,seduta_id:'audit',peso:80,
     ripetizioni:7,stato:'fatta'}],e,null,72);
-  assert.equal(card.fuoriScalaProvvisoria,true);
+  assert.equal(card.fuoriScalaProvvisoria,false);
   assert.equal(card.spiegaBonus,null,'non dire che il record e lontano da una soglia gia superata');
 });
 
