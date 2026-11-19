@@ -1,5 +1,27 @@
 ﻿# Palestra — memoria del progetto
 
+## 19/11/2026 — v522, correzione esercizi cloud (DATABASE AGGIORNATO)
+
+- Audit v521: gli esercizi globali creati dall'amministratore non venivano pubblicati;
+  i campi biomeccanici degli esercizi personali scomparivano cambiando dispositivo.
+- La v522 introduce `configurazione` JSONB per gli esercizi e una sincronizzazione
+  separata di `esercizi_globali`, con recupero dei vecchi esercizi globali locali.
+  Non aggiunge campi da compilare né cambia i numeri del Rank.
+- Corretto lo schema di installazione (`versioni`, indice `missioni_unica`, policy
+  amministratori). La cronologia distingue giorno della sfida e del riscatto.
+- **MIGRAZIONE APPLICATA E VERIFICATA IL 19/11/2026:**
+  `20261119200059_palestra_v522_esercizi_cloud_rls` risulta nello storico Supabase.
+  Entrambe le tabelle degli esercizi hanno `configurazione` JSONB e le policy
+  RLS dedicate; esiste un solo amministratore attivo, collegato all'account
+  proprietario verificato tramite Supabase Auth. Le 37 righe di `versioni`
+  sono rimaste intatte, così come la tabella legacy `versi`.
+- Test ufficiali v522: 1620/1620 verdi. Entrambi i workflow GitHub della PR #171
+  (`Test suite` e `PWA safety checks`) sono verdi. Lo script storico
+  `tools/allometrico-test.mjs` è una vecchia utility di modifica con percorso
+  Windows fisso: **non eseguirlo come test** e usare `node --test test/*.test.js`.
+- La verifica dal telefono dell'utente e la conferma del catalogo condiviso
+  con sessioni reali su più dispositivi restano da fare dopo la pubblicazione.
+
 Ste: questo file è la memoria del progetto. OpenCode lo legge da solo all'inizio di ogni
 chat aperta in questa cartella, quindi non serve ricordare nulla: io so già dove siamo.
 
