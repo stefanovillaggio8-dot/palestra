@@ -11,6 +11,7 @@ import {
   TABELLE, rigaPerInvio, preservaMetadatiProfiloLocaleSuRemoto, decidiPush, dopoInvioRiuscito, applicaRemote,
   costruisciConflitto, risolviConflitto, preparaRigaDopoSceltaConflitto,
   attesaRiprovo, statoSalvataggio, adesso, nuovoId,
+  espandiEsercizioRemoto, espandiEsercizioGlobale, rigaEsercizioGlobale,
 } from './sincronizzazione.js';
 
 const CHIAVE_ULTIMO_PULL = 'palestra-ultimo-pull';
@@ -108,11 +109,11 @@ export async function stato() {
   if (errori > 0) {
     for (const tabella of TABELLE_SINCRONIZZATE) {
       const righe = await db.tutti(tabella, { includiEliminati: true });
-      // Gli esercizi del catalogo condiviso sono locali: non devono bloccare
-      // la sincronizzazione né continuare a mostrare un errore RLS ormai noto.
+      // Solo il catalogo preinstallato resta locale. Gli esercizi creati
+      // dall'amministratore devono invece essere pubblicati davvero.
       if (tabella === 'esercizi') {
         for (const r of righe) {
-          if ((String(r.id || '').startsWith('ex-') || r.globale === true)
+          if ((String(r.id || '').startsWith('ex-') && r.globale !== true)
               && (r.sync === 'errore' || r.sync === 'da_salvare' || r.sync === 'in_corso')) {
             await db.aggiornaSe(
               'esercizi',
@@ -125,7 +126,7 @@ export async function stato() {
         }
       }
       const ultimo = righe.find((r) => r.sync === 'errore' && r.ultimo_errore
-        && !(tabella === 'esercizi' && (String(r.id || '').startsWith('ex-') || r.globale === true)));
+        && !(tabella === 'esercizi' && String(r.id || '').startsWith('ex-') && r.globale !== true));
       if (ultimo) {
         const testoErrore = String(ultimo.ultimo_errore || '').toLowerCase();
         if (/invalid jwt|token is expired|token.{0,60}expired|expired.{0,60}token|invalid claims|token has invalid claims|unable to parse or verify signature|jwt expired|pgrst301/.test(testoErrore)) {
@@ -148,7 +149,7 @@ export async function riprovaOra() {
     // privata public.esercizi: se un altro account possiede già lo stesso ID,
     // l'UPSERT viene respinto dalla policy RLS. Il catalogo resta locale; si sincronizzano
     // soltanto esercizi personali con ID propri.
-    if (tabella === 'esercizi' && (String(riga.id || '').startsWith('ex-') || riga.globale === true)) {
+    if (tabella === 'esercizi' && String(riga.id || '').startsWith('ex-') && riga.globale !== true) {
       await db.aggiornaSe(
         tabella,
         riga.id,
@@ -230,7 +231,7 @@ async function manda() {
   for (const { tabella, riga } of coda) {
     // Gli esercizi del catalogo condiviso non appartengono alla tabella privata
     // public.esercizi. Non inviarli: la policy RLS rifiuta gli ID condivisi.
-    if (tabella === 'esercizi' && (String(riga.id || '').startsWith('ex-') || riga.globale === true)) {
+    if (tabella === 'esercizi' && String(riga.id || '').startsWith('ex-') && riga.globale !== true) {
       await db.aggiornaSe(
         tabella,
         riga.id,
@@ -261,7 +262,9 @@ async function manda() {
     try {
       // Se la lettura fallisce non si può sapere se il server abbia una versione
       // più nuova: fermarsi qui evita che un successivo upsert la sovrascriva.
-      const remoto = await sb.leggiUno(tabella, riga.id);
+      const globale = tabella === 'esercizi' && riga.globale === true;
+      const tabellaRemota = globale ? 'esercizi_globali' : tabella;
+      const remoto = await sb.leggiUno(tabellaRemota, riga.id);
       const decisione = decidiPush(riga, remoto);
       if (decisione === 'conflitto') {
         const idConflitto = await registraConflitto(tabella, riga, remoto);
@@ -301,10 +304,14 @@ async function manda() {
       // L'UPSERT e' una sostituzione JSON completa del profilo, non un PATCH
       // campo-per-campo. Mantieni accrediti e ripartenze già sul server quando
       // questa PWA locale non li conosce ancora (es. reinstallazione iPhone).
-      const daInviare = tabella === 'profili'
+      const daInviare = globale
+        ? rigaEsercizioGlobale(riga, utenteSupabase)
+        : tabella === 'profili'
         ? preservaMetadatiProfiloLocaleSuRemoto(rigaPerInvio(riga,tabella), remoto)
         : rigaPerInvio(riga,tabella);
-      await sb.scrivi(tabella, { ...daInviare, user_id: utenteSupabase, rev: nuovoRev });
+      await sb.scrivi(tabellaRemota, globale
+        ? { ...daInviare, rev: nuovoRev }
+        : { ...daInviare, user_id: utenteSupabase, rev: nuovoRev });
       // La coda si svuota solo dopo la conferma. Se nel frattempo la riga è
       // cambiata, la modifica più nuova resta in coda con la base aggiornata.
       await confermaInvio(tabella, riga, nuovoRev);
@@ -414,7 +421,7 @@ async function tira() {
     for (const t of TABELLE_SINCRONIZZATE) {
       for (const remoto of modificati[t] || []) {
         const locale = await db.prendi(t, remoto.id);
-        const esito = applicaRemote(locale, remoto);
+        const esito = applicaRemote(locale, t === 'esercizi' ? espandiEsercizioRemoto(remoto) : remoto);
         if (esito.azione === 'applica') {
           const applicata = await db.aggiornaSe(
             t,
@@ -435,6 +442,35 @@ async function tira() {
           if (marcata) conflitti++;
           else await archiviaConflittoSuperato(idConflitto);
         }
+      }
+    }
+    // Il catalogo creato dall'amministratore e' distinto dagli esercizi privati.
+    // Si legge per intero: anche chi installa oggi deve ricevere gli esercizi
+    // pubblicati mesi fa, senza dipendere dal cursore delle tabelle private.
+    const globaliRemoti = (await sb.prendiModificate(['esercizi_globali'], null)).esercizi_globali || [];
+    const globaliId = new Set(globaliRemoti.map((e) => e.id));
+    for (const remoto of globaliRemoti) {
+      const locale = await db.prendi('esercizi', remoto.id);
+      // Non sovrascrivere mai un esercizio privato o del catalogo con stesso ID.
+      if (locale && locale.globale !== true) continue;
+      const espansa = espandiEsercizioGlobale(remoto);
+      const esito = applicaRemote(locale, espansa);
+      if (esito.azione !== 'applica') continue;
+      if (await db.aggiornaSe('esercizi', remoto.id,
+        (attuale) => stessaRigaAttesa(attuale, locale), () => esito.riga)) ricevuti++;
+    }
+    // Recupera anche gli esercizi globali creati con le vecchie versioni:
+    // erano marcati "pulito" localmente SENZA essere mai arrivati sul server.
+    // Solo l'amministratore verificato dal database può ripubblicarli.
+    const daRecuperare = (await db.tutti('esercizi')).filter((r) => r.globale === true
+      && r.amministratore === true && !globaliId.has(r.id) && r.sync === 'pulito');
+    if (daRecuperare.length) {
+      const utente = await sb.utenteCorrente();
+      const amministratori = utente?.email ? await sb.leggi('amministratori', {
+        email: 'eq.' + utente.email,
+      }) : [];
+      if (amministratori.some((a) => a.attivo && a.email.toLowerCase() === utente.email.toLowerCase())) {
+        for (const riga of daRecuperare) await db.salva('esercizi', riga);
       }
     }
     localStorage.setItem(CHIAVE_ULTIMO_PULL, inizioPull);

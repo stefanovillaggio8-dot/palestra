@@ -15,6 +15,7 @@ create table if not exists public.esercizi (
   nome            text not null,
   gruppo          text,
   convenzione     text not null default 'altro',
+  configurazione  jsonb not null default '{}'::jsonb,
   foto            text,
   nota_permanente text default '',
   tipo            text default 'standard',
@@ -41,7 +42,7 @@ create table if not exists public.schede (
 -- Ogni versione e' uno "scatto" immutabile della scheda. Le sedute vecchie
 -- continuano a puntare alla loro versione, quindi modificare la scheda non
 -- cambia mai lo storico.
-create table if not exists public.versi (
+create table if not exists public.versioni (
   id         text primary key,
   user_id    uuid not null references auth.users on delete cascade,
   scheda_id  text not null,
@@ -126,7 +127,7 @@ create index if not exists serie_seduta   on public.serie (user_id, seduta_id);
 create index if not exists serie_esercizio on public.serie (user_id, esercizio_id);
 create index if not exists note_esercizio on public.note (user_id, esercizio_id);
 create index if not exists note_seduta   on public.note (user_id, seduta_id);
-create index if not exists versioni_scheda on public.versi (user_id, scheda_id);
+create index if not exists versioni_scheda on public.versioni (user_id, scheda_id);
 
 -- Una seduta vecchia rimasta aperta non deve bloccare le nuove sedute:
 -- l'unicita' e' per proprietario, scheda e giorno, non globale per utente.
@@ -139,7 +140,7 @@ create unique index if not exists una_seduta_in_corso_per_giorno
 -- sicurezza: via a tutti, accendiamo le regole una per una
 alter table public.esercizi enable row level security;
 alter table public.schede  enable row level security;
-alter table public.versi    enable row level security;
+alter table public.versioni enable row level security;
 alter table public.sedute   enable row level security;
 alter table public.serie    enable row level security;
 alter table public.note     enable row level security;
@@ -152,8 +153,8 @@ drop policy if exists "propri schede" on public.schede;
 create policy "propri schede" on public.schede
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
-drop policy if exists "propri versioni" on public.versi;
-create policy "propri versioni" on public.versi
+drop policy if exists "propri versioni" on public.versioni;
+create policy "propri versioni" on public.versioni
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 drop policy if exists "propri sedute" on public.sedute;
@@ -228,6 +229,7 @@ create table if not exists public.esercizi_globali (
   gruppo        text,
   convenzione   text not null default 'macchina',
   misura        text not null default 'kg_reps',
+  configurazione jsonb not null default '{}'::jsonb,
   foto          text,
   nota_permanente text default '',
   riferimento   numeric(8,2),
@@ -288,7 +290,7 @@ create index if not exists ricompense_account on public.ricompense (account_id, 
 create unique index if not exists ricompense_unica
   on public.ricompense (account_id, tipo, coalesce(fonte, ''));
 create unique index if not exists missioni_unica
-  on public.missioni (account_id, missione_id, categoria, coalesce(data::text, ''), coalesce(settimana, ''));
+  on public.missioni (account_id, missione_id, categoria, coalesce(data, date '1900-01-01'), coalesce(settimana, ''));
 
 alter table public.amministratori enable row level security;
 alter table public.profili         enable row level security;
@@ -296,6 +298,15 @@ alter table public.esercizi_globali enable row level security;
 alter table public.missioni        enable row level security;
 alter table public.ricompense      enable row level security;
 alter table public.pesi            enable row level security;
+
+-- La tabella amministratori non e' pubblicamente leggibile. Ogni utente
+-- autenticato puo' verificare esclusivamente la PROPRIA abilitazione: la
+-- policy sugli esercizi globali potra' cosi' controllarla senza bypass RLS.
+drop policy if exists "amministratori vedono solo se stessi" on public.amministratori;
+create policy "amministratori vedono solo se stessi" on public.amministratori
+  for select to authenticated
+  using (attivo and auth.uid() is not null
+    and lower(email) = lower((select auth.jwt() ->> 'email')));
 
 -- ---------- le regole: cosa puo' fare ciascuno ----------
 
@@ -318,10 +329,12 @@ create policy "leggere gli esercizi globali" on public.esercizi_globali
 
 drop policy if exists "scrivere gli esercizi globali" on public.esercizi_globali;
 create policy "scrivere gli esercizi globali" on public.esercizi_globali
-  for all using (
+  for all to authenticated using (
+    auth.uid() is not null and
     exists (select 1 from public.amministratori a
             where lower(a.email) = lower(auth.jwt() ->> 'email') and a.attivo)
   ) with check (
+    auth.uid() is not null and
     exists (select 1 from public.amministratori a
             where lower(a.email) = lower(auth.jwt() ->> 'email') and a.attivo)
   );

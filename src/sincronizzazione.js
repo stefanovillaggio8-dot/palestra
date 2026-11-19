@@ -7,6 +7,49 @@ export const TABELLE = ['esercizi', 'schede', 'versioni', 'sedute', 'serie', 'no
 /** Campi che non vengono mai scritti sul server (sono solo del dispositivo). */
 export const CAMPI_LOCALI = ['sync', 'base_rev', 'ultimo_errore', 'tentativi', 'in_flight', 'configurazioneCavoPersonalizzata'];
 
+// Campi che descrivono la meccanica, non il record della persona. Li teniamo
+// in un JSONB per conservarli anche su dispositivi senza il catalogo ufficiale.
+// Nessun nuovo campo da compilare: sono le scelte già salvate dall'app.
+export const CAMPI_CONFIGURAZIONE_ESERCIZIO = [
+  'carrucola', 'attrezzatura', 'bracciaIndipendenti', 'usoBraccia',
+  'misura', 'cardio', 'riferimento', 'soglie_rank',
+];
+
+export function configurazioneEsercizio(riga) {
+  const configurazione = riga?.configurazione && typeof riga.configurazione === 'object'
+    && !Array.isArray(riga.configurazione) ? { ...riga.configurazione } : {};
+  for (const campo of CAMPI_CONFIGURAZIONE_ESERCIZIO) {
+    if (riga?.[campo] !== undefined) configurazione[campo] = riga[campo];
+  }
+  return configurazione;
+}
+
+export function espandiEsercizioRemoto(riga) {
+  if (!riga) return riga;
+  const configurazione = riga.configurazione && typeof riga.configurazione === 'object'
+    && !Array.isArray(riga.configurazione) ? riga.configurazione : {};
+  // La colonna e' autorevole per i campi esplicitamente presenti, anche null.
+  // I campi non presenti nel JSONB non cancellano i dati locali più vecchi.
+  return { ...riga, ...configurazione };
+}
+
+export function rigaEsercizioGlobale(riga, utenteId) {
+  const campi = [
+    'id', 'nome', 'gruppo', 'convenzione', 'misura', 'foto', 'nota_permanente',
+    'riferimento', 'soglie_rank', 'rev', 'updated_at', 'device_id',
+  ];
+  const fuori = {};
+  for (const campo of campi) if (riga?.[campo] !== undefined) fuori[campo] = riga[campo];
+  fuori.creato_da = utenteId;
+  fuori.configurazione = configurazioneEsercizio(riga);
+  return fuori;
+}
+
+export function espandiEsercizioGlobale(riga) {
+  return { ...espandiEsercizioRemoto(riga), tipo: 'standard', globale: true,
+    sync: 'pulito', base_rev: Number(riga.rev || 1) };
+}
+
 export function chiave(tabella, id) { return tabella + ':' + id; }
 
 export function nuovoId() {
@@ -63,7 +106,7 @@ export function rigaPerInvio(riga, tabella = '') {
     if (tabella === 'esercizi' && ![
       'id', 'user_id', 'nome', 'gruppo', 'convenzione', 'foto',
       'nota_permanente', 'tipo', 'eliminata', 'eliminata_il',
-      'rev', 'created_at', 'updated_at', 'device_id',
+      'rev', 'created_at', 'updated_at', 'device_id', 'configurazione',
     ].includes(k)) continue;
     // Le ricompense locali storiche usano descrizione/data; Supabase richiede
     // dettaglio/quando (DATE). Inviare i nomi locali causa PGRST204.
@@ -71,6 +114,7 @@ export function rigaPerInvio(riga, tabella = '') {
     if (riga[k] === undefined) continue;
     out[k] = riga[k];
   }
+  if (tabella === 'esercizi') out.configurazione = configurazioneEsercizio(riga);
   if (tabella === 'ricompense') {
     if (out.dettaglio === undefined && riga.descrizione !== undefined) {
       out.dettaglio = riga.descrizione;

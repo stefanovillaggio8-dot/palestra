@@ -1,5 +1,23 @@
 ﻿# Palestra — memoria del progetto
 
+## 19/11/2026 — v522, correzione esercizi cloud (IN PREPARAZIONE)
+
+- Audit v521: gli esercizi globali creati dall'amministratore non venivano pubblicati;
+  i campi biomeccanici degli esercizi personali scomparivano cambiando dispositivo.
+- La v522 introduce `configurazione` JSONB per gli esercizi e una sincronizzazione
+  separata di `esercizi_globali`, con recupero dei vecchi esercizi globali locali.
+  Non aggiunge campi da compilare né cambia i numeri del Rank.
+- Corretto lo schema di installazione (`versioni`, indice `missioni_unica`, policy
+  amministratori). La cronologia distingue giorno della sfida e del riscatto.
+- **BLOCCO DI DEPLOY:** la migrazione sul database remoto non e' stata applicata:
+  il connettore Supabase ha restituito due volte "confirmation expired". Prima
+  di distribuire la v522, applicare `supabase/v522-esercizi-cloud-da-applicare.sql`
+  tramite un flusso autorizzato, verificare RLS e abilitare SOLO il proprietario
+  autenticato in `public.amministratori`. Il database live ha ancora 0 admin;
+  la tabella legacy `versi` e' vuota e `versioni` contiene lo storico da preservare.
+- Non pubblicare la v522 su `main` finché il database non ha entrambe le colonne
+  `configurazione`: un client nuovo le invierebbe e riceverebbe PGRST204.
+
 Ste: questo file è la memoria del progetto. OpenCode lo legge da solo all'inizio di ogni
 chat aperta in questa cartella, quindi non serve ricordare nulla: io so già dove siamo.
 

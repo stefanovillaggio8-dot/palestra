@@ -35,7 +35,7 @@ import { prestazione, mediaPrestazioni, classificaGenerale } from './forza-gener
 import { creaPacchetto, validaPacchetto, unisci, csvSerie, csvSedute, csvEsercizi, soloMiaScheda } from './backup.js';
 import { ESERCIZI, SCHEDA_ID, SCHEDA_NOME, PERSONE, accountId, chiSei, personaDaMemoria, costruisciSnapshot, eserciziMancanti } from './dati-iniziali.js';
 import { creaSchedaVuotaNuovoAmico, aggiungiGiornoVuoto, rimuoviGiornoBozza } from './giorni-scheda.js';
-import { nuovoId, adesso, TABELLE, riallineaEsercizi } from './sincronizzazione.js';
+import { nuovoId, adesso, TABELLE, riallineaEsercizi, rigaEsercizioGlobale } from './sincronizzazione.js';
 // --- il gioco: rank, LP, streak, Aura, missioni, amici ---
 import { statoAccount, ricompenseAllenamento, gruppiDaSerie } from './gioco.js';
 import { percorsoStemma, nomeStemma, tutteLeGraficheRank } from './rank-stemmi.js';
@@ -9230,6 +9230,7 @@ function vistaCasa(zona) {
     && interpretaPremioSfida(r)).map(r=>({
     id:r.id,titolo:r.dettaglio,quando:r.quando,aura:r.aura,
     categoria:interpretaPremioSfida(r).categoria,
+    periodo:interpretaPremioSfida(r).periodo,
     missione:{difficolta:{nome:'AUTO',colore:'#37d18b'}}
   }));
   const finiteSfide=[...storiche,...automatiche].sort((a,b)=>
@@ -9314,11 +9315,16 @@ function rigaCronologiaMissione(voce) {
   const d = voce.missione.difficolta;
   const quando = voce.quando ? String(voce.quando) : '';
   const giorno = quando.slice(0, 10);
+  const periodo = voce.periodo;
+  const dettaglioPeriodo = voce.categoria === 'daily' && /^\d{4}-\d{2}-\d{2}$/.test(periodo || '')
+    ? ` · sfida del ${dataLeggibile(periodo)}`
+    : voce.categoria === 'weekly' && /^\d{4}-W\d{2}$/.test(periodo || '')
+      ? ` · settimana ${periodo}` : '';
   return el('div', { class: 'riga-cronologia' }, [
     el('span', { class: 'tag-difficolta piccolo', style: `--diff:${d.colore}`, testo: d.nome }),
     el('div', { class: 'riga-cronologia-alto' }, [
       el('strong', { testo: voce.titolo }),
-      el('span', { class: 'nota', testo: `${dataLeggibile(giorno)} · ${ETICHETTE_CATEGORIA[voce.categoria] || voce.categoria}` }),
+      el('span', { class: 'nota', testo: `${voce.periodo ? 'Riscattata il ' : ''}${dataLeggibile(giorno)} · ${ETICHETTE_CATEGORIA[voce.categoria] || voce.categoria}${dettaglioPeriodo}` }),
     ]),
     el('span', { class: 'aura-premio piccolo', testo: '+' + formattaNumero(voce.aura) }),
   ]);
@@ -10825,6 +10831,7 @@ function finestraCreaEsercizio() {
     avviso('Questa sezione e\' solo per l\'amministratore.', { tipo: 'errore' });
     return;
   }
+  let pubblicazioneInCorso = false;
   const nome = campoTesto('', { segnaposto: 'Nome' });
   const descrizione = campoTesto('', { segnaposto: 'Descrizione' });
   const tipo = el('select', { class: 'selettore' }, [
@@ -11132,9 +11139,15 @@ const carrucola = el('select', { class: 'selettore' }, [
       bottone('Annulla', { onClick: () => box.remove(), classe: 'fantasma' }),
       bottone('CREA ESERCIZIO', {
         onClick: async () => {
+          if (pubblicazioneInCorso) return;
           const nomeValore = String(nome.value || '').trim();
           if (!nomeValore) { avviso('Scrivi il nome dell\'esercizio.', { tipo: 'errore' }); return; }
-          const id = 'ex-' + nuovoId();
+          if (!sb.collegato() || (typeof navigator !== 'undefined' && navigator.onLine === false)) {
+            avviso('Per pubblicarlo a tutti serve una connessione e un accesso online valido.', { tipo: 'errore', durata: 7000 });
+            return;
+          }
+          pubblicazioneInCorso = true;
+          const id = 'gex-' + nuovoId();
           const misura = tipo.value;
           // Il riferimento si salva solo se Ste lo ha scritto. Se è vuoto non mettiamo
           // nulla: così profiloEsercizio usa il default giusto per il tipo di
@@ -11165,7 +11178,7 @@ const carrucola = el('select', { class: 'selettore' }, [
             },
             (Number.isFinite(scritto) && scritto > 0 && !eCardioNuovo) ? { riferimento: scritto } : {},
           );
-          await db.salva('esercizi', {
+          const nuovoEsercizio = {
             id,
             nome: nomeValore,
             gruppo: nomeValore,
@@ -11193,11 +11206,30 @@ const carrucola = el('select', { class: 'selettore' }, [
             amministratore: true,
             soglie_rank: profilo.soglie,
             riferimento: profilo.riferimento,
-          });
-          box.remove();
-          await ricaricaTutto();
-          avviso(`Esercizio creato: ${nomeValore}. Ora e\' disponibile per tutti.`, { tipo: 'ok', durata: 7000 });
-          disegna();
+          };
+          let pubblicatoSulServer = false;
+          try {
+            const utente = await sb.utenteCorrente();
+            if (!utente?.id) throw new Error('Accedi al tuo account Supabase e riprova.');
+            const pubblicato = rigaEsercizioGlobale(nuovoEsercizio, utente.id);
+            // Prima la conferma del server, poi il salvataggio locale: un 403
+            // non deve mai produrre il falso messaggio "disponibile per tutti".
+            await sb.scrivi('esercizi_globali', pubblicato);
+            pubblicatoSulServer = true;
+            await db.salva('esercizi', { ...nuovoEsercizio, rev: 1,
+              sync: 'pulito', base_rev: 1 }, { segna: false });
+            box.remove();
+            await ricaricaTutto();
+            avviso(`Esercizio pubblicato per tutti: ${nomeValore}.`, { tipo: 'ok', durata: 7000 });
+            disegna();
+          } catch (e) {
+            avviso((pubblicatoSulServer
+              ? 'Pubblicato online, ma non ancora salvato su questo dispositivo: alla prossima sincronizzazione verrà recuperato. '
+              : 'Non pubblicato. ') + (e?.message || String(e)),
+              { tipo: 'errore', durata: 9000 });
+          } finally {
+            pubblicazioneInCorso = false;
+          }
         },
         classe: 'principale',
       }),
