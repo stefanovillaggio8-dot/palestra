@@ -3,12 +3,27 @@
 // sono stime del MODELLO, NON percentili misurati né record agonistici.
 // Unità della fonte: lb di 1RM del solo sovraccarico, qui convertite in kg.
 // Questi dati non valgono per macchine a selettore o ROM e varianti non comparabili.
-// TITAN e OLYMPIAN sono PROIEZIONI di gioco (non percentili osservati):
+// TITAN e OLYMPIAN sono PROIEZIONI (non percentili osservati):
 // per i cinque livelli iniziali si mantengono le ancore FV; per i due successivi
 // soglieNormalizzate() applica estendiPercentiliAlti() con
 // log(K_t/K_elite) = log(K_elite/K_advanced) * (z_t-z_elite)/(z_elite-z_advanced).
-// La formula fa crescere la difficolta' senza supporre una misura agonistica.
+// La proiezione NON basta a certificare il Rank dell'atleta: mancano le
+// leve individuali, l'appoggio della panca e la cinematica della ripetizione.
 export const FONTE_HYPER = 'https://www.fitnessvolt.com/strength-standards/back-extension/';
+export const GRAVITA_STANDARD = 9.80665;
+
+/** Momento QUASI-statico del SOLO sovraccarico sull'anca (N m).
+ * Nessun valore predefinito per la leva: senza misura non si può ricavare
+ * il momento dai kg. Non equivale al momento totale di tronco, testa e braccia.
+ */
+export function momentoCaricoEsternoHyper({ caricoKg, braccioOrizzontaleMetri } = {}) {
+  const m = Number(caricoKg), d = Number(braccioOrizzontaleMetri);
+  if (caricoKg === null || braccioOrizzontaleMetri === null
+      || caricoKg === undefined || braccioOrizzontaleMetri === undefined
+      || String(caricoKg).trim() === '' || String(braccioOrizzontaleMetri).trim() === ''
+      || !Number.isFinite(m) || !Number.isFinite(d) || m < 0 || d < 0) return null;
+  return m * GRAVITA_STANDARD * d;
+}
 const LIBBRE_IN_KG = 0.45359237;
 export const ANCORE_HYPER_LB = Object.freeze([
   // BW lb, beginner, novice, intermediate, advanced, elite (modello FV).
@@ -43,8 +58,10 @@ export function riferimentoHyperextension(esercizio) {
     dataFonte: '2026-03-29',
     tipoAttrezzatura: 'dischi_esterni',
     varianteHyperextension: variante,
-    limite: 'Scala teorica, NON una classifica statistica verificata: Beginner–Elite sono valori del modello FitnessVolt; Titan e Olympian sono estrapolazioni matematiche oltre Elite, non percentili p98/p99,5 misurati. Panca 45/90°, ROM, posizione del carico e tecnica cambiano il confronto.',
-    nota: 'Il carico inserito indica SOLTANTO kg esterni, senza sommare il peso corporeo. Per Titan/Olympian viene prolungata in logaritmi la pendenza Advanced→Elite (z-score di riferimento), senza attribuire un percentile reale. Con carico al petto e con braccia tese che pendono verso il pavimento si usano registrazioni distinte: il momento esterno dipende da kg × g × distanza ORIZZONTALE dall’anca, non dal solo orientamento delle braccia. Nessun bonus di leva senza misura geometrica.',
+    limite: 'Le soglie Titan/Olympian sono proiezioni statistiche e NON possono essere assegnate a questa variante senza misurare geometria, appoggio della panca e ROM. I 5 livelli FitnessVolt sono anch’essi un modello, non percentili misurati.',
+    nota: 'Il carico indica SOLO kg esterni, senza sommare il peso corporeo ai kg scritti. Il momento del carico vale M = kg × 9,80665 × distanza orizzontale dall’anca (metri), ma la leva varia durante il movimento e si somma il momento dei segmenti corporei. Con braccia tese verso il pavimento, senza conoscere panca 45/90°, appoggio del bacino, posizione dei pesi e ROM non è corretto trasformare 80 kg in un percentile di forza. Le varianti restano separate e nessun bonus di leva viene inventato.',
     proiezioneAlti: 'lognormale_advanced_elite',
+    richiedeGeometria: true,
+    massimoRankSupportato: 4, // proiezione conservata per trasparenza, NON titolo competitivo.
   };
 }

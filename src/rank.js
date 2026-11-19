@@ -725,8 +725,8 @@ return {
     // Stessi metadati in scheda, Prova Rank, storico e Rank personale.
     fonte: r.fonte || null,
     calibrazione: r.calibrazione || null,
-    // Un eventuale tetto privo di proiezione resta segnalato; Hyperextension
-    // v518 usa invece la coda matematica e mantiene "attendibilita bassa".
+    // Un tetto privo di geometria verificata rimane segnalato: la proiezione
+    // matematica non basta per assegnare Titan/Olympian in Hyperextension.
     fuoriScalaProvvisoria: !!r.fuoriScalaProvvisoria,
     modelloRipetizioni: r.modelloRipetizioni || null,
     // i pezzi nuovi, per la schermata che li vuole mostrare

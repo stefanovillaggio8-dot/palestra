@@ -264,9 +264,9 @@ export function valutaPrestazione({ esercizio, serie = [], pesoCorporeo = null, 
       : valutabili.length);
   const nTotali = valutabili.length;
   const conVolume = migliore.score * moltiplicatoreSerie(n);
-  // Un tetto può essere richiesto da riferimenti senza proiezione.
-  // Hyperextension v518 NON lo richiede più: Titan/Olympian sono raggiungibili
-  // con la coda matematica, espressamente etichettata come stima di gioco.
+  // La coda matematica non basta a classificare la leva di ogni atleta.
+  // Hyperextension: senza geometria/ROM si conserva il punteggio reale ma
+  // non si assegna un titolo competitivo da una proiezione non verificata.
   const massimoSupportato = Number(standard?.massimoRankSupportato);
   const fuoriScalaProvvisoria = Number.isInteger(massimoSupportato)
     && massimoSupportato >= 0 && migliore.score >= soglie[massimoSupportato+1];
@@ -382,6 +382,7 @@ export function descriviAffidabilitaRank(standard, cfg, rank, migliore, pesoCorp
     motivi.push('Hyperextension: kg ESTERNI e ripetizioni della serie migliore. Benchmark FitnessVolt modellato in libbre, non percentile misurato di atleti. Il titolo è un livello di gioco, non un riconoscimento agonistico');
     motivi.push('Panca, ROM e leva del carico cambiano il momento resistente. Petto e braccia tese verso il pavimento sono varianti distinte senza coefficienti sperimentali di conversione');
     motivi.push('Momento esterno ≈ kg × 9,81 × distanza orizzontale del carico dall’anca. Senza misure di angoli e leve non si aggiunge alcun bonus numerico alla variante');
+    if (s.richiedeGeometria) motivi.push('Soglie Titan/Olympian disponibili solo come ipotesi matematiche: non si assegnano automaticamente senza leva individuale, tipo di panca e ampiezza del movimento');
   } else {
     motivi.push('Soglie derivate da un modello di movimento, senza cinque percentili specifici per questa variante');
   }

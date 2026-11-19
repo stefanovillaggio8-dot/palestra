@@ -19,9 +19,10 @@ test('v442: Hyperextension ha proprio movimento, non le soglie quadricipiti', ()
     assert.equal(movimentoDi(x).movimento,'estensione_posteriore');
     const standard = riferimentoHyperextension(x);
     assert.equal(standard.fonte,'modello_hyperextension_non_validato');
-    assert.equal(standard.massimoRankSupportato,undefined);
+    assert.equal(standard.massimoRankSupportato,4);
+    assert.equal(standard.richiedeGeometria,true);
     assert.equal(standard.proiezioneAlti,'lognormale_advanced_elite');
-    assert.match(standard.limite,/estrapolazioni matematiche/);
+    assert.match(standard.limite,/senza misurare geometria/i);
     assert.match(standard.nota,/VERSO IL PAVIMENTO|verso il pavimento/i);
   }
   assert.equal(varianteHyperextension(e('ex-back-extension')),'non_specificata');
@@ -29,18 +30,18 @@ test('v442: Hyperextension ha proprio movimento, non le soglie quadricipiti', ()
   assert.equal(varianteHyperextension(e('ex-back-extension-hanging')),'braccia_tese_verso_il_basso');
 });
 
-test('v518: 80 kg esterni x 7 @ 67 kg raggiungono Olympian modellato, senza 1RM inventato', () => {
+test('v519: 80 kg x 7 @ 67 kg reali non producono Olympian senza leve verificate', () => {
   const r=valutaPrestazione({esercizio:e('ex-back-extension'),serie:serie('ex-back-extension',80,7),pesoCorporeo:67});
   assert.equal(r.valido,true);
   assert.equal(r.caricoReale,80);
   assert.equal(r.ripetizioni,7);
   assert.equal(r.pesoCorporeo,67);
   assert.equal(r.massimale,null);
-  assert.equal(r.fuoriScalaProvvisoria,false);
-  assert.equal(r.indice,6,'il titolo usa la curva matematica, non un limite arbitrario a Diamond');
+  assert.equal(r.fuoriScalaProvvisoria,true);
+  assert.equal(r.indice,4,'senza misure non è dimostrata la soglia Titan/Olympian');
   assert.equal(r.calibrazione.livello,'bassa');
   assert.match(r.calibrazione.origine,/MODELLATO/);
-  assert.match(r.calibrazione.descrizione,/NON corrispondono a percentili realmente misurati/);
+  assert.match(r.calibrazione.descrizione,/non si assegnano automaticamente/i);
   assert.equal(r.distanza,null);
 });
 
