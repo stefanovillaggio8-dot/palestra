@@ -32,8 +32,9 @@ test('v523: ricerca e filtri persistono senza cambiare la finestra di modifica s
   assert.match(app, /\}, provaMemoria\)\);/);
 });
 
-test('v523: HTML e service worker hanno la stessa versione PWA', () => {
-  assert.match(html, /PALESTRA_VERSIONE = 'palestra-v523'/);
-  assert.match(worker, /const VERSIONE = 'palestra-v523'/);
-  assert.match(html, /src\/app\.js\?v=523/);
+test('PWA: HTML, service worker e modulo principale usano la stessa versione', () => {
+  const versione = html.match(/PALESTRA_VERSIONE = 'palestra-v(\d+)'/)?.[1];
+  assert.ok(versione, 'la pagina dichiara una versione numerica');
+  assert.match(worker, new RegExp("const VERSIONE = 'palestra-v" + versione + "'"));
+  assert.match(html, new RegExp('src/app\\.js\\?v=' + versione));
 });

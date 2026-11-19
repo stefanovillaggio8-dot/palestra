@@ -1,5 +1,15 @@
 ﻿# Palestra — memoria del progetto
 
+## 19/11/2026 — v524, filtri Shop e Recap stabili
+
+- Audit della v523: il filtro di Aura Shop tornava a «Tutti» dopo una sync e il
+  conteggio continuava a mostrare tutti gli oggetti anche filtrando per tipo.
+  Il Recap poteva perdere il periodo selezionato al ridisegno.
+- La v524 conserva filtro Shop e mese/anno/modalita' Recap durante i ridisegni;
+  cambia account = azzera le scelte. Il conteggio Shop segue la categoria.
+- Nessuna modifica ai dati degli allenamenti, ai Rank, al database o agli
+  acquisti. Versione PWA/cache v524; test di interfaccia con DOM simulato.
+
 ## 19/11/2026 — v523, stabilità «Prova un esercizio»
 
 - Dopo la pubblicazione della v522 il controllo sul sito reale ha rilevato che
