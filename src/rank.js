@@ -707,10 +707,9 @@ return {
     bonusSerie: 0,
     bonusBloccato: !!r.volumeBloccato,
     bonusLp: 0,
-    // Per le Hyperextension oltre il modello non c'e' una soglia Titan
-    // validata. Dire che "la serie migliore non e' vicina alla soglia"
-    // sarebbe falso: è già SOPRA il massimo noto del benchmark.
-    spiegaBonus: r.volumeBloccato && !r.fuoriScalaProvvisoria
+    // La spiegazione sul volume vale solo se esiste una soglia successiva:
+    // sopra Olympian non c'e' una promozione che il volume possa comprare.
+    spiegaBonus: r.volumeBloccato && !r.fuoriScalaProvvisoria && r.indice < (r.soglie?.length || 0) - 1
       ? 'Il volume ti spingerebbe su, ma la serie migliore non e\' ancora vicina alla soglia.'
       : null,
     serie: { peso: r.caricoReale, ripetizioni: r.ripetizioni },
@@ -724,10 +723,10 @@ return {
     cfg: r.cfg || null,
     // Origine dei riferimenti, attrezzatura e limiti reali del modello.
     // Stessi metadati in scheda, Prova Rank, storico e Rank personale.
+    fonte: r.fonte || null,
     calibrazione: r.calibrazione || null,
-    // Una fonte non validata termina a Diamond: i 99 LP mostrati NON
-    // rappresentano un requisito noto per Titan. Propaga questo avviso
-    // alla Home, allo storico e alla pagina Rank.
+    // Un eventuale tetto privo di proiezione resta segnalato; Hyperextension
+    // v518 usa invece la coda matematica e mantiene "attendibilita bassa".
     fuoriScalaProvvisoria: !!r.fuoriScalaProvvisoria,
     modelloRipetizioni: r.modelloRipetizioni || null,
     // i pezzi nuovi, per la schermata che li vuole mostrare

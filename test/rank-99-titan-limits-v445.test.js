@@ -10,28 +10,28 @@ const hyper = ESERCIZI.find(e => e.id === 'ex-back-extension');
 const serie = [{id:'hyper80',esercizio_id:hyper.id,seduta_id:'seduta-2026-11-07',
   peso:80,ripetizioni:7.5,stato:'fatta',spotter:false}];
 
-test('v445: 80 kg x 7.5 @ 67 kg supera il riferimento modellato senza Titan inventato',()=>{
+test('v518: 80 kg x 7.5 @ 67 kg supera la soglia Olympian modellata, senza perdere il carico',()=>{
   const r=valutaPrestazione({esercizio:hyper,serie,pesoCorporeo:67});
   assert.equal(r.valido,true);
   assert.equal(r.caricoReale,80);
-  assert.equal(r.fuoriScalaProvvisoria,true);
-  assert.equal(r.indice,4);
-  assert.equal(r.lp,99);
+  assert.equal(r.fuoriScalaProvvisoria,false);
+  assert.equal(r.indice,6);
+  assert.ok(r.lp>0);
   assert.equal(r.distanza,null);
   assert.equal(r.prossimoObiettivo,undefined);
   assert.match(r.calibrazione.origine,/MODELLATO/i);
+  assert.match(r.calibrazione.descrizione,/non un riconoscimento agonistico/i);
 });
 
-test('v445: il limite per Hyperextension arriva alla UI e non si spaccia per 1 LP da Titan',()=>{
+test('v518: la proiezione Hyperextension arriva in UI come modello matematico, non percentile misurato',()=>{
   const rec=recordEsercizio(serie,hyper,null,67);
   assert.equal(rec.valido,true);
-  assert.equal(rec.fuoriScalaProvvisoria,true);
-  assert.equal(rec.rankId,'diamond');
+  assert.equal(rec.fuoriScalaProvvisoria,false);
+  assert.equal(rec.rankId,'olympian');
   assert.equal(rec.distanza,null);
   const app=readFileSync(new URL('../src/app.js',import.meta.url),'utf8');
-  assert.match(app,/99 LP sono il limite della scala provvisoria/);
-  assert.match(app,/99 LP è il massimo della fascia/);
-  assert.match(app,/Titan non è valutabile in questo esercizio/);
+  assert.match(app,/RANK MATEMATICO · non percentile misurato/);
+  assert.match(app,/Olympian raggiunto secondo la proiezione matematica/);
 });
 
 test('v445: Titan è realmente raggiungibile con migliore serie a soglia',()=>{
