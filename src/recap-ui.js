@@ -21,7 +21,7 @@ function testoPeriodico(dati) {
   if (dati.record) return 'Hai continuato ad allenarti e hai superato alcuni tuoi risultati precedenti.';
   return 'Hai portato avanti i tuoi allenamenti. La costanza conta anche senza un nuovo record.';
 }
-export function vistaRecapPalestra({sedute=[],serie=[],esercizi=[],pesi=[],oggi=null}={}) {
+export function vistaRecapPalestra({sedute=[],serie=[],esercizi=[],pesi=[],oggi=null,memoria=null}={}) {
   const oggiLocale=oggi || (()=>{const d=new Date();return d.getFullYear()+'-'+due(d.getMonth()+1)+'-'+due(d.getDate());})();
   const [annoCorrente,meseCorrente] = oggiLocale.slice(0,7).split('-').map(Number);
   const meseIniziale = meseCorrente === 1 ? 12 : meseCorrente - 1;
@@ -30,7 +30,12 @@ export function vistaRecapPalestra({sedute=[],serie=[],esercizi=[],pesi=[],oggi=
     .filter(s=>s && s.stato==='completata' && !s.eliminata && /^\d{4}-\d{2}-\d{2}/.test(String(s.data||'')))
     .map(s=>Number(String(s.data).slice(0,4)))
     .filter(a=>a>=2000 && a<=annoCorrente)])].sort((a,b)=>b-a);
-  let vista='mese', anno=annoIniziale, mese=meseIniziale;
+  // Le scelte della persona restano visibili dopo un ridisegno causato dalla sync.
+  // L'app fornisce una memoria diversa per ogni account: qui non si salva nulla.
+  let vista=memoria?.vista==='anno'?'anno':'mese';
+  let anno=anni.includes(Number(memoria?.anno))?Number(memoria.anno):annoIniziale;
+  let mese=Number.isInteger(Number(memoria?.mese)) && Number(memoria?.mese)>=1 && Number(memoria?.mese)<=12
+    ?Number(memoria.mese):meseIniziale;
   const root=el('section',{class:'recap-pagina'});
   root.appendChild(el('div',{class:'recap-intestazione'},[
     el('span',{class:'recap-eyebrow',testo:'IL TUO ANNO IN PALESTRA'}),
@@ -45,6 +50,7 @@ export function vistaRecapPalestra({sedute=[],serie=[],esercizi=[],pesi=[],oggi=
   root.appendChild(risultato);
 
   function mostra() {
+    if (memoria) Object.assign(memoria,{vista,anno,mese});
     svuota(tabs);
     for (const [id,nome] of [['mese','Mensile'],['anno','Annuale']]) {
       const b=el('button',{type:'button',class:'recap-tab'+(id===vista?' attivo':''),

@@ -2158,6 +2158,9 @@ function apriAnteprimaCoronaRpg(profilo, st) {
   overlay.querySelector('button')?.focus?.();
 }
 
+// La sync può ridisegnare l'intera pagina mentre si sfoglia il catalogo.
+// Ricorda il filtro solo per l'account attivo, senza aggiungere dati salvati.
+let memoriaVistaAuraShop = { account: null, filtro: 'Tutti' };
 function vistaAuraShop(zona, soloInventario = false) {
   const st = statoMio();
   const profilo = profiloAttivo();
@@ -2166,6 +2169,9 @@ function vistaAuraShop(zona, soloInventario = false) {
   // Inventario ricavato dalle spese registrate nel database ricompense:
   // così segue l'account e non resta legato soltanto al browser del telefono.
   const idAccountShop = accountAttivo();
+  if (memoriaVistaAuraShop.account !== idAccountShop) {
+    memoriaVistaAuraShop = { account: idAccountShop, filtro: 'Tutti' };
+  }
   const posseduti = [...new Set((V.ricompense || [])
     .filter(r => r && r.account_id === idAccountShop && r.tipo === 'spesa_aura')
     .map(r => String(r.fonte || '').split(':')[1])
@@ -2320,20 +2326,22 @@ function vistaAuraShop(zona, soloInventario = false) {
   }
   const filtri=el('div',{class:'aura-shop-filters',role:'group','aria-label':'Filtra il catalogo per tipo'});
   const catalogo=el('section',{class:'aura-shop-catalogo'});
+  const conteggioCatalogo=el('span',{class:'aura-shop-count'});
   zona.appendChild(el('div',{class:'aura-shop-section-head',id:'aura-shop-catalogo'},[
     el('div',{},[
       el('span',{class:'aura-shop-kicker',testo:'OGGETTI ACQUISTABILI'}),
       el('h2',{testo:'Scopri la collezione'}),
       el('p',{class:'nota',testo:'Dal Comune al Mitico, in ordine di rarità. Tocca Anteprima per vedere ogni oggetto sul tuo personaggio.'}),
     ]),
-    el('span',{class:'aura-shop-count',testo:OGGETTI_AURA.filter(o=>!o.classe||o.classe===classe).length+' oggetti'}),
+    conteggioCatalogo,
   ]));
   const griglia=el('div',{class:'aura-shop-grid'});
   catalogo.appendChild(griglia);
-  let filtro='Tutti';
+  let filtro=memoriaVistaAuraShop.filtro;
   for(const f of ['Tutti','Armatura','Effetto','Titolo']){
     const tastoFiltro=bottone(f,{classe:'fantasma aura-shop-filter'+(filtro===f?' attivo':''),onClick:()=>{
       filtro=f;
+      memoriaVistaAuraShop.filtro=f;
       for(const b of filtri.querySelectorAll('button')) {
         const selezionato=b.textContent===f;
         b.classList.toggle('attivo',selezionato);
@@ -2366,6 +2374,7 @@ function vistaAuraShop(zona, soloInventario = false) {
     const elenco=ordinaPerRaritaAura(OGGETTI_AURA.filter(
       o=>(filtro==='Tutti'||o.tipo===filtro)&&(!o.classe||o.classe===classe)
     ));
+    conteggioCatalogo.textContent=elenco.length+(elenco.length===1?' oggetto':' oggetti');
     if(!elenco.length) griglia.appendChild(el('p',{class:'nota',testo:'Per vedere le armature di questa classe, selezionala nella sezione personaggio del Profilo.'}));
     for(const o of elenco){
       const owned=posseduti.includes(o.id);
@@ -5691,8 +5700,14 @@ function cardCoachProgressi() {
   return box;
 }
 
+// Non perdere mese/anno scelti quando la sincronizzazione ridisegna il Recap.
+// La selezione è temporanea e viene azzerata al cambio di account.
+let memoriaVistaRecap = { account: null, vista: 'mese', anno: null, mese: null };
 function vistaRecap(zona) {
   const account = accountAttivo();
+  if (memoriaVistaRecap.account !== account) {
+    memoriaVistaRecap = { account, vista: 'mese', anno: null, mese: null };
+  }
   const dati = { sedute: seduteMie(), serie: serieMie(),
     esercizi: V.esercizi, oggi: isoGiorno(new Date()) };
   const contenitore = el('div', { class: 'recap-contenitore' });
@@ -5702,12 +5717,12 @@ function vistaRecap(zona) {
   pesiCronologici(account).then((pesi) => {
     if (!contenitore.isConnected || account !== accountAttivo()) return;
     svuota(contenitore);
-    contenitore.appendChild(vistaRecapPalestra({ ...dati, pesi }));
+    contenitore.appendChild(vistaRecapPalestra({ ...dati, pesi, memoria: memoriaVistaRecap }));
   }).catch((err) => {
     console.warn('Recap: pesate non disponibili', err);
     if (!contenitore.isConnected || account !== accountAttivo()) return;
     svuota(contenitore);
-    contenitore.appendChild(vistaRecapPalestra({ ...dati, pesi: [] }));
+    contenitore.appendChild(vistaRecapPalestra({ ...dati, pesi: [], memoria: memoriaVistaRecap }));
     contenitore.appendChild(el('p', { class: 'nota',
       testo: 'Non riesco a leggere lo storico delle pesate. I risultati degli esercizi restano disponibili.',
     }));
