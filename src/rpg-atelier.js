@@ -179,11 +179,13 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
   // premio separato dei 75 giorni, va aggiunta alla foto finale.
   const livelli=fxSenzaFoto ? (veloNotteV528 && c.divina
       ? livelliFotoRpg(null,{divina:true}):[]) : (veloNotteV528
-    ? livelliFotoRpg(fotoArmata?null:c.effetto,{mitica:false,corona:false,divina:c.divina})
+    ? livelliFotoRpg(c.effetto,{mitica:false,corona:false,divina:c.divina})
     : (fotoDivina||fotoCorona||fotoArmata)
       ? livelliFotoRpg(null,{mitica:false,corona:false,divina:false})
       : livelliFotoRpg(c.effetto,{mitica:false,corona:false,divina:c.divina}));
-  if((!giaFotografica || (c.divina && !fotoDivina))&&livelli.length) {
+  // Anche con pugnali (foto completa) gli effetti del Velo si applicano DOPO
+  // la foto, mai scegliendo un'armatura diversa per Ambra/Ombra/Fulmine.
+  if((!giaFotografica || (c.divina && !fotoDivina) || veloNotteV528)&&livelli.length) {
     const atlas=await attesaImmagine(AURA_FOTO_ATLAS);
     const sw=atlas.naturalWidth/3,sh=atlas.naturalHeight/2;
     const posX={'0%':0,'50%':1,'100%':2},posY={'0%':0,'100%':1};
