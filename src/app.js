@@ -8635,6 +8635,9 @@ function bloccoPersonaggio(profilo, st) {
   montaScenaCosmicaRpg(scena,grafica,{
     classe:classeId,
     effetto:astraleAttiva?'astrale':nebulosaAttiva?'nebulosa':null,
+    // Gli effetti sono OGGETTI Shop, non nuovi paesaggi: la fotografia
+    // selezionata resta identica anche in Atelier, Profilo e anteprime.
+    soloEffetti:true,
     creaElemento:el,
   });
   scena.appendChild(el('div', { class: 'personaggio-dati' }, [
