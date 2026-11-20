@@ -10654,7 +10654,9 @@ async function vistaProfilo(zona) {
     grigliaAvatar.appendChild(bottone('', {
       onClick: () => salvaProfilo({ avatar_id: a.id }),
       classe: 'avatar-scelta' + (profilo.avatar_id === a.id ? ' attiva' : ''),
-    }, [avatarNodo({ avatar_id: a.id, username: profilo.username }, { dimensione: 52 })]));
+      titolo: `Avatar ${a.nome}`,
+      figli: [avatarNodo({ avatar_id: a.id, username: profilo.username }, { dimensione: 52 })],
+    }));
   }
   boxAvatar.appendChild(grigliaAvatar);
   const campoNome = campoTesto(profilo.username, {

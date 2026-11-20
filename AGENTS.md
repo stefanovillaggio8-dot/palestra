@@ -1,5 +1,12 @@
 ﻿# Palestra — memoria del progetto
 
+## 20/11/2026 — v526, avatar colorati di nuovo visibili
+
+- Il selettore degli 8 avatar mostrava pulsanti quasi vuoti perché passava i cerchi
+  come terzo argomento a `bottone`, che li ignorava. Ora usa l'opzione `figli`.
+- Etichetta accessibile per ogni colore. Nessuna modifica a dati, Rank, personaggi
+  RPG o alle foto personali introdotte con la v525.
+
 ## 20/11/2026 — v525, foto profilo personalizzabile
 
 - Nel Profilo si puo' scegliere una foto dalla galleria, oltre agli 8 avatar a colori;
