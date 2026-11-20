@@ -46,7 +46,7 @@ test('Il compositore statico non copre il rendering live, anche con corona e arm
  assert.match(b,/if \(!effettoCosmicoAttivo && !fotoCoronaRpg && !fotoArmaturaArmataRpg/,
    'Il Canvas legacy non deve continuare ad animarsi nascosto dietro Astrale e Nebulosa');
  assert.match(b,/!effettoCosmicoAttivo && \(!effettoVivo \|\| auraDivinaAttiva\) && montaFotoRpg/);
- assert.match(b,/!effettoCosmicoAttivo && !fotoCoronaRpg && !fotoArmaturaArmataRpg && !effettoVivo && !auraDivinaAttiva && montaFotoCombinataRpg/);
+ assert.match(b,/!effettoCosmicoAttivo && !fotoCoronaRpg && !fotoArmaturaArmataRpg && !effettoVivo && !auraDivinaAttiva && !veloNotteV528 && montaFotoCombinataRpg/);
  assert.match(b,/scenaRichiesta && !effettoCosmicoAttivo && !fotoCoronaRpg && !fotoArmaturaArmataRpg && !effettoVivo/);
  assert.match(b,/montaEffettiRpg\(grafica, effettoVivo \? \(astraleAttiva \? null : effettoEquipaggiato\?\.id \|\| null\) : null/);
  assert.match(b,/rpg-render-live/);

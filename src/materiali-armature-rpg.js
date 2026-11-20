@@ -2,7 +2,7 @@
 // Sono disegnati nelle zone della corazza sullo stato Streak originale, senza
 // sostituire il ritratto, il volto o le armi e senza cambiare il salvataggio.
 export const MATERIALI_ARMATURA_RPG = Object.freeze({
-  'armatura-assassino-notte': {classe:'assassino',metallo:'#383d4a',chiaro:'#8b929e',ombra:'#10151d',pelle:'#292d35',accento:'#657991',schema:'lamelle'},
+  'armatura-assassino-notte': {classe:'assassino',metallo:'#233b52',chiaro:'#bccddc',ombra:'#0e1523',pelle:'#1b2a39',accento:'#779cbb',schema:'lamelle'},
   'armatura-assassino-spettro': {classe:'assassino',metallo:'#672838',chiaro:'#b45b66',ombra:'#1b101b',pelle:'#30212b',accento:'#d14962',schema:'spettrale'},
   'armatura-guerriero-braci': {classe:'guerriero',metallo:'#51443b',chiaro:'#cd8258',ombra:'#171b22',pelle:'#392922',accento:'#e99d5b',schema:'braci'},
   'armatura-guerriero-abisso': {classe:'guerriero',metallo:'#302e45',chiaro:'#8c82aa',ombra:'#10121b',pelle:'#282537',accento:'#8e77cd',schema:'abisso'},

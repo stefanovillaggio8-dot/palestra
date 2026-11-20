@@ -1,5 +1,20 @@
 ﻿# Palestra — memoria del progetto
 
+## 20/11/2026 — v528, Velo della Notte e combinazioni RPG
+
+- Rigenerata la fotografia dell'armatura epica **Velo della Notte**
+  (Assassino, 5100 Aura) in blu notte e argento, con lo stesso rapporto 2:3
+  delle altre skin. Include miniatura e sei varianti con pugnali effettivamente
+  sbloccati: base, Ambra, Ombra, Fulmine, Nebulosa e Astrale.
+- La precedente Corona v360 e l'Aura v379 contenevano il Velo vecchio:
+  soltanto per questa armatura si usa sempre la foto v528, Aura indipendente
+  e una Corona dimensionata sul nuovo ritratto; anche l'Atelier esporta il
+  soggetto aggiornato. Gli altri cinque set RPG e il loro rendering rimangono
+  invariati, così come i prezzi, gli acquisti e i premi Streak.
+- Matrice di regressione dell'Atelier: 9.072 combinazioni di tre classi,
+  sei stadi, tre armature/classe, sei effetti, due condizioni Aura e Corona,
+  sette titoli. File WebP leggeri e miniature a 300×450.
+
 ## 20/11/2026 — v527, foto profilo su Safari iPhone
 
 - Safari iOS non garantisce l'esportazione WebP da `canvas.toBlob`: quando restituisce

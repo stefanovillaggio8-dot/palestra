@@ -26,7 +26,8 @@ test('v506: tutte le 54 coppie classe/skin/effetto sono selezionabili, senza arm
           effetto:effetto==='skin-mitica'||effetto==='effetto-nebula'?null:(effetto||null),
           armaSbloccata:true});
         assert.ok(img?.includes('/'+classe+'/'+armatura+'/base.webp') ||
-          (img?.includes('/'+classe+'/'+armatura+'/')&&img?.endsWith('.webp?v=372')));
+          (img?.includes('/'+classe+'/'+armatura+'/')&&
+            img?.endsWith('.webp?v='+ (armatura==='armatura-assassino-notte'?'528':'372'))));
         assert.ok(existsSync(new URL('../'+img.replace(/^\.\//,'').split('?')[0],import.meta.url)),img);
         const corona=percorsoFotoCoronaV360({classe,stato:5,armatura,
           effetto:null,armaSbloccata:true});

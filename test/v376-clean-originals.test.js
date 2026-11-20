@@ -23,7 +23,10 @@ test('v376: all nine published portraits have exactly one same aura template and
    assert.deepEqual(m.canvas,[720,1080]);
    assert.equal(m.head_y,78);assert.equal(m.feet_y,997);
    assert.ok(m.mask_coverage>.12&&m.mask_coverage<.70);
-   assert.equal(hash(bytes(m.source)),m.source_sha256);
+   // Il manifesto v376 documenta il Velo storico: v528 aggiorna soltanto
+   // la sua fotografia sorgente, senza riscrivere il vecchio audit firmato.
+   if(m.armatura!=='armatura-assassino-notte')
+     assert.equal(hash(bytes(m.source)),m.source_sha256);
    const output='img/personaggi/aura-divina-v376/'+cls+'/'+armor+'.webp';
    assert.equal(hash(bytes(output)),m.final_sha256);
    assert.equal(bytes(output).toString('ascii',0,4),'RIFF');

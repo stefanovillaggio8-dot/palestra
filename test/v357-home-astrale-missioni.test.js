@@ -27,7 +27,7 @@ test('v359: Astrale occupa SOLO Effetto, non uno slot extra',()=>{
 
 test('v359: Aura divina visibile e Corona tramite foto WebP non SVG',()=>{
   const app=src('src/app.js'),css=src('stile-rpg.css');
-  assert.match(app,/!auraDivinaAttiva && montaFotoCombinataRpg/);
+  assert.match(app,/!auraDivinaAttiva && !veloNotteV528 && montaFotoCombinataRpg/);
   assert.match(css,/\.aura-foto-divina/);
   assert.match(app,/percorsoFotoCoronaV360/);
   assert.doesNotMatch(app,/src:'\.\/img\/effetti\/corona-infinito-v358\.svg'/);

@@ -11,6 +11,7 @@ import {caricaEnergiaFotograficaRpg,disegnaEnergiaFotograficaRpg} from './rpg-en
 import { percorsoFotoCoronaV360 } from './foto-corona-v360.js';
 import { percorsoFotoAuraDivinaV366 } from './foto-aura-divina-v366.js';
 import { percorsoFotoArmaturaArmataV371 } from './foto-armatura-armata-v371.js';
+import { usaRitrattoVeloNotteV528, CORONA_VELO_NOTTE_V528 } from './velo-notte-v528.js';
 
 export const CLASSI_ATELIER = Object.freeze(['guerriero','assassino','berserker']);
 export const EFFETTI_ATELIER = Object.freeze([
@@ -79,7 +80,13 @@ const fotoPronta = async(el)=>{
 export async function renderFotoAtelier(grafica, opzioni={}) {
   if(typeof document==='undefined')throw new Error('Serve il browser');
   const input=opzioniAtelier(opzioni);
-  const c=input.divina?{...input,stadio:5,effetto:''}:input; // visual preview only: 75-day reward is full armor, one aura
+  const c=input.divina?{
+    ...input,stadio:5,
+    // Il Velo v528 compone i livelli indipendenti senza il vecchio collage:
+    // le altre armature mantengono la regola originale dei premi divini.
+    effetto:usaRitrattoVeloNotteV528(input.classe,input.armatura)?input.effetto:'',
+  }:input;
+  const veloNotteV528=usaRitrattoVeloNotteV528(c.classe,c.armatura);
   const fotoBase=await fotoPronta(grafica?.querySelector?.('.personaggio-ritratto'));
   const ritaglioPresente=grafica?.querySelector?.('.rpg-cosmic-cutout-asset');
   const ritaglioReale=ritaglioPresente?.complete && ritaglioPresente?.naturalWidth
@@ -91,21 +98,21 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
       :'../img/effetti/nebulosa-ambiente-v503.webp',import.meta.url).href).catch(()=>null):null;
   // Il file finale deve usare lo stesso scatto completo visibile in anteprima.
   // Se il collage non e' installato resta il renderer precedente.
-  const fotoCorona=c.corona ? percorsoFotoCoronaV360({
+  const fotoCorona=c.corona && !veloNotteV528 ? percorsoFotoCoronaV360({
     classe:c.classe,stato:c.stadio,armatura:c.armatura||null,
     effetto:fxSenzaFoto?null:(c.effetto||null),divina:c.divina,armaSbloccata:c.stadio>=4,
   }) : null;
   // Aura alone is already baked into all nine full-armored Shop/standard photos.
   // The Atelier never adds a second Shop effect to Divine Aura.
-  const fotoDivina=!c.corona&&c.divina?percorsoFotoAuraDivinaV366({
+  const fotoDivina=!veloNotteV528&&!c.corona&&c.divina?percorsoFotoAuraDivinaV366({
     classe:c.classe,stato:c.stadio,armatura:c.armatura||null,
     divina:true,corona:false,effetto:null,anteprima:true,armaSbloccata:true
   }):null;
-  const fotoArmata=(!c.corona&&!c.divina) ? percorsoFotoArmaturaArmataV371({
+  const fotoArmata=(!c.corona&&!c.divina || veloNotteV528) ? percorsoFotoArmaturaArmataV371({
     classe:c.classe,stato:c.stadio,armatura:c.armatura||null,
     effetto:fxSenzaFoto?null:(c.effetto||null),armaSbloccata:c.stadio>=4,
   }) : null;
-  const scena=fotoDivina||fotoCorona||fotoArmata||((c.divina||fxSenzaFoto)?null:await fotoCinematograficaRpg({...c,corona:false,divina:false}));
+  const scena=fotoDivina||fotoCorona||fotoArmata||((veloNotteV528||c.divina||fxSenzaFoto)?null:await fotoCinematograficaRpg({...c,corona:false,divina:false}));
   // Con Astrale/Nebulosa il ritratto mostrato nell'Atelier e' l'autorita':
   // non caricare una seconda foto con armi diverse da quelle visibili.
   const immagine=fxSenzaFoto ? (ritaglioReale||fotoBase)
@@ -170,9 +177,12 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
   }
   // I nuovi WebP includono già l'effetto acquistato. Solo l'Aura divina,
   // premio separato dei 75 giorni, va aggiunta alla foto finale.
-  const livelli=fxSenzaFoto ? [] : ((fotoDivina||fotoCorona||fotoArmata)
-    ? livelliFotoRpg(null,{mitica:false,corona:false,divina:false})
-    : livelliFotoRpg(c.effetto,{mitica:false,corona:false,divina:c.divina}));
+  const livelli=fxSenzaFoto ? (veloNotteV528 && c.divina
+      ? livelliFotoRpg(null,{divina:true}):[]) : (veloNotteV528
+    ? livelliFotoRpg(fotoArmata?null:c.effetto,{mitica:false,corona:false,divina:c.divina})
+    : (fotoDivina||fotoCorona||fotoArmata)
+      ? livelliFotoRpg(null,{mitica:false,corona:false,divina:false})
+      : livelliFotoRpg(c.effetto,{mitica:false,corona:false,divina:c.divina}));
   if((!giaFotografica || (c.divina && !fotoDivina))&&livelli.length) {
     const atlas=await attesaImmagine(AURA_FOTO_ATLAS);
     const sw=atlas.naturalWidth/3,sh=atlas.naturalHeight/2;
@@ -236,6 +246,15 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
       disegnaAccentiCosmiciRpg(ctx,larghezza,altezza,c.effetto==='skin-mitica'?'astrale':'nebulosa');
       ctx.restore();
     }
+  }
+
+  if(veloNotteV528 && c.corona) {
+    // Anche il PNG scaricato utilizza la Corona allineata al Velo nuovo;
+    // i collage v360 fotografavano invece l'armatura precedente.
+    try {
+      const corona=await attesaImmagine(new URL('../'+CORONA_VELO_NOTTE_V528.replace(/^\.\//,''),import.meta.url).href);
+      ctx.drawImage(corona,0,0,larghezza,altezza);
+    } catch {disegnaCoronaEnergetica(ctx,larghezza,altezza);}
   }
 
   if(c.titolo) {
