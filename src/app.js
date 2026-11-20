@@ -10636,8 +10636,9 @@ async function vistaProfilo(zona) {
         await salvaProfilo({ avatar_id: caricata.avatarId });
         avviso('Foto profilo salvata. Comparirà anche sugli altri dispositivi dopo la sincronizzazione.', { tipo: 'ok' });
       } catch (errore) {
-        statoFoto.textContent = 'Foto non salvata.';
-        avviso(errore?.message || 'Non riesco a salvare la foto.', { tipo: 'errore' });
+        const motivo = errore?.message || 'Non riesco a salvare la foto.';
+        statoFoto.textContent = `Foto non salvata: ${motivo}`;
+        avviso(`Foto non salvata: ${motivo}`, { tipo: 'errore', durata: 8500 });
       } finally {
         inputFoto.disabled = false;
         inputFoto.value = '';

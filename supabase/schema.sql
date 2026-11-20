@@ -184,7 +184,8 @@ create table if not exists public.amministratori (
 
 -- Il profilo di ogni account: username, avatar, privacy, amici.
 -- L'avatar si salva come ID (non come immagine): cosi' si vede uguale su
--- ogni dispositivo. Dalla v525 puo' essere anche foto:<uid>/<uuid>.webp:
+-- ogni dispositivo. Dalla v525 puo' essere foto:<uid>/<uuid>.webp;
+-- dalla v527 anche foto:<uid>/<uuid>.jpg per Safari iOS:
 -- i byte rimangono nello Storage con accesso in scrittura al solo proprietario.
 create table if not exists public.profili (
   id            text primary key,

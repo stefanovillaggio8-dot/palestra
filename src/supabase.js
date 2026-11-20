@@ -330,7 +330,8 @@ export async function esci() {
  * Si usa ogni volta un nome nuovo per evitare vecchie foto nella cache iOS.
  */
 export async function caricaFotoProfilo(blob, proprietarioAtteso) {
-  if (!blob || blob.type !== 'image/webp' || blob.size <= 0 || blob.size > MASSIMO_FOTO_COMPRESSA) {
+  if (!blob || !['image/webp', 'image/jpeg'].includes(blob.type)
+      || blob.size <= 0 || blob.size > MASSIMO_FOTO_COMPRESSA) {
     throw new Error('La foto non è nel formato o nelle dimensioni consentite.');
   }
   const utente = await utenteCorrente();
@@ -340,11 +341,12 @@ export async function caricaFotoProfilo(blob, proprietarioAtteso) {
   if (!/^[0-9a-f-]{36}$/i.test(String(utente.id)) || typeof globalThis.crypto?.randomUUID !== 'function') {
     throw new Error('Impossibile verificare l’identità per caricare la foto.');
   }
-  const percorso = `${utente.id}/${globalThis.crypto.randomUUID()}.webp`;
+  const estensione = blob.type === 'image/jpeg' ? 'jpg' : 'webp';
+  const percorso = `${utente.id}/${globalThis.crypto.randomUUID()}.${estensione}`;
   const cfg = leggiConfig();
   await richiesta(cfg, `/storage/v1/object/${BUCKET_FOTO_PROFILO}/${percorso}`, {
     method: 'POST',
-    headers: intestazioni(cfg, { 'Content-Type': 'image/webp' }),
+    headers: intestazioni(cfg, { 'Content-Type': blob.type }),
     body: blob,
   });
   return { avatarId: `foto:${percorso}`, userId: utente.id };
