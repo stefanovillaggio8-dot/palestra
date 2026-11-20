@@ -18,7 +18,7 @@ test('v371: weapons never appear before day-30 unlocked state',()=>{
      assert.equal(url,null);
    }
 });
-test('v371: 36 unique armed Shop armor+effect variants',()=>{
+test('v529: 31 photographic armed Shop variants, 6 effects keep the same Velo armor',()=>{
  const paths=new Set();
  for(const [classe,armature] of Object.entries(CLASSI))
   for(const armatura of armature)
@@ -26,7 +26,11 @@ test('v371: 36 unique armed Shop armor+effect variants',()=>{
      const args={classe,armatura,stato:5,effetto,armaSbloccata:true};
      const url=percorsoFotoArmaturaArmataV371(args);
      assert.ok(url?.includes('/armatura-con-arma-v371/'),JSON.stringify(args));
-     assert.ok(!paths.has(url),url);paths.add(url);
+     if(classe==='assassino'&&armatura==='armatura-assassino-notte') {
+       assert.match(url,/\/armatura-assassino-notte\/base\.webp\?v=528$/,
+         'Ambra, Ombra, Fulmine e gli altri effetti non devono modificare l’armatura');
+     } else assert.ok(!paths.has(url),url);
+     paths.add(url);
      assert.equal(percorsoFotoArmaturaArmataV371({...args,stato:3}),null);
      assert.equal(percorsoFotoArmaturaArmataV371({...args,stato:4}),url);
      const file=new URL('../'+url.replace('./','').split('?')[0],import.meta.url);
@@ -36,7 +40,7 @@ test('v371: 36 unique armed Shop armor+effect variants',()=>{
      assert.equal(magic.toString('ascii',0,4),'RIFF');
      assert.equal(magic.toString('ascii',8,12),'WEBP');
    }
- assert.equal(paths.size,36);
+ assert.equal(paths.size,31);
 });
 test('v371: wrong-class armor and unknown effects are refused',()=>{
  assert.equal(percorsoFotoArmaturaArmataV371({classe:'assassino',armatura:'armatura-guerriero-abisso',stato:5,armaSbloccata:true}),null);

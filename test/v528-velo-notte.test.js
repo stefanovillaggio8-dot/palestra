@@ -63,7 +63,7 @@ test('v528: 9072 combinazioni Atelier includono 3 personaggi, 6 effetti, Aura e 
       effetto:combo.effetto||null,armaSbloccata:combo.stadio>=4,
     });
     if(identita && combo.stadio>=4) {
-      assert.match(foto,/armatura-assassino-notte\/(base|ambra|ombra|fulmine|nebula|astrale)\.webp\?v=528$/);
+      assert.match(foto,/armatura-assassino-notte\/base\.webp\?v=528$/,'ogni effetto conserva la stessa fotografia');
     }
     if(combo.stadio<4)assert.equal(foto,null);
   }
@@ -83,11 +83,31 @@ test('v528: app e PNG esportato non sovrascrivono Velo con atlanti v360/v379',()
   assert.ok(testo(CORONA_VELO_NOTTE_V528).includes('viewBox="0 0 900 1350"'));
 });
 
-test('v528: versione PWA, asset online e offline allineati',()=>{
-  assert.match(testo('sw.js'),/const VERSIONE = 'palestra-v528'/);
-  assert.match(testo('index.html'),/PALESTRA_VERSIONE = 'palestra-v528'/);
+test('v529: versione PWA, asset online e offline allineati',()=>{
+  assert.match(testo('sw.js'),/const VERSIONE = 'palestra-v529'/);
+  assert.match(testo('index.html'),/PALESTRA_VERSIONE = 'palestra-v529'/);
   for(const path of ['src/velo-notte-v528.js','img/effetti/corona-velo-notte-v528.svg',
-    'img/personaggi/armature/assassino-notte.webp?v=528',
-    'img/personaggi/armature/assassino-notte-mini.webp?v=528'])
+    'img/personaggi/armature/assassino-notte.webp?v=529',
+    'img/personaggi/armature/assassino-notte-mini.webp?v=529'])
     assert.ok(testo('sw.js').includes(path),path);
+});
+
+// Gli effetti fotografici del Velo devono essere gli stessi del resto dello Shop,
+// senza convertire Ambra/Ombra/Fulmine in nuove armature o in altri personaggi.
+test('v529: stesso ritratto e livelli effetto indipendenti anche con i pugnali',()=>{
+  const app=testo('src/app.js');
+  const atelier=testo('src/rpg-atelier.js');
+  const effetti=['effetto-ambra','effetto-ombra','effetto-fulmine','effetto-nebula','skin-mitica'];
+  const percorsi=new Set(effetti.map(effetto=>percorsoFotoArmaturaArmataV371({
+    classe:'assassino',stato:5,armatura:ARMATURA_VELO_NOTTE_V528,
+    effetto,armaSbloccata:true,
+  })));
+  assert.deepEqual([...percorsi],[
+    './img/personaggi/armatura-con-arma-v371/assassino/armatura-assassino-notte/base.webp?v=528'
+  ]);
+  assert.match(app,/\(!fotoArmaturaArmataRpg \|\| veloNotteV528\)/);
+  assert.match(app,/effettoVeloInLivello/);
+  assert.match(atelier,/livelliFotoRpg\(c\.effetto,\{mitica:false,corona:false,divina:c\.divina\}\)/);
+  assert.match(atelier,/\|\| veloNotteV528\)\&\&livelli\.length/);
+  assert.doesNotMatch(testo('src/foto-armatura-armata-v371.js'),/\+fx\+'\.webp/);
 });

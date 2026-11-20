@@ -1,5 +1,18 @@
 ﻿# Palestra — memoria del progetto
 
+## 20/11/2026 — v529, correzione effetti separati dalle armature
+
+- Richiesta esplicita: gli **effetti** devono essere visivamente gli stessi già
+  presenti nello Shop; non rigenerare o cambiare le armature per rappresentarli.
+- Per Velo della Notte con pugnali sbloccati usare SEMPRE la medesima
+  fotografia `base.webp?v=528` per ogni effetto (anche senza effetto). Ambra e
+  Fulmine tramite il Canvas esistente, Ombra tramite l'atlas fotografico
+  trasparente, Astrale e Nebulosa tramite i livelli cosmici separati.
+- Anche `renderFotoAtelier` deve comporre l'effetto sopra l'armatura reale,
+  indipendentemente dai pugnali, dalla Corona e dall'Aura Divina. Per le altre
+  armature la logica è invariata. Non sono state modificate immagini WebP.
+- Cache/PWA v529 e test di regressione specifici; non pubblicare senza CI verde.
+
 ## 20/11/2026 — v528, Velo della Notte e combinazioni RPG
 
 - Rigenerata la fotografia dell'armatura epica **Velo della Notte**

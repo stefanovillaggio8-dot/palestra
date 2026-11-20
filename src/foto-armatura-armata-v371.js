@@ -23,6 +23,10 @@ export function percorsoFotoArmaturaArmataV371({
   if(!fx)return null;
   // Il Velo della Notte v528 ha un nuovo ritratto coerente con i suoi pugnali:
   // aggiorniamo solo le sue sei fotografie, senza invalidare le altre armature.
-  const versione=armatura==='armatura-assassino-notte'?'528':'372';
-  return './img/personaggi/armatura-con-arma-v371/'+classe+'/'+armatura+'/'+fx+'.webp?v='+versione;
+  const veloNotte=armatura==='armatura-assassino-notte';
+  const versione=veloNotte?'528':'372';
+  // Tutti gli effetti sul Velo usano lo STESSO ritratto e le stesse armi.
+  // Le particelle/colori sono livelli indipendenti, mai altre armature WebP.
+  const fotografia=veloNotte?'base':fx;
+  return './img/personaggi/armatura-con-arma-v371/'+classe+'/'+armatura+'/'+fotografia+'.webp?v='+versione;
 }

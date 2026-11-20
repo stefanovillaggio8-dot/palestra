@@ -12,7 +12,7 @@ test('v495: una sola animazione per Astrale e Nebulosa, senza canvas legacy nasc
   const inizioGuardia=codice.lastIndexOf('if (!effettoCosmicoAttivo',posCanvas);
   assert.ok(posCanvas>0 && inizioGuardia>0,'guardia canvas vecchio assente');
   const guardia=codice.slice(inizioGuardia,posCanvas);
-  assert.match(guardia,/!fotoCoronaRpg && !fotoArmaturaArmataRpg/);
+  assert.match(guardia,/!fotoCoronaRpg && \(!fotoArmaturaArmataRpg \|\| veloNotteV528\)/);
   assert.match(guardia,/\(effettoVivo \|\| \(!scenaFotografica && !combinata\)\)/);
   assert.match(codice,/montaScenaCosmicaRpg\(scena,grafica,/);
   assert.match(nuovaScena,/montaEnergiaIncarnataRpg\(palco,grafica,foto,/);

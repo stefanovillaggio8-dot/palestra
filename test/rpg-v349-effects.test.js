@@ -41,9 +41,9 @@ test('Il compositore statico non copre il rendering live, anche con corona e arm
  const end=app.indexOf('// LA FILMSTRIP:',start);
  assert.ok(start>0&&end>start);
  const b=app.slice(start,end);
- assert.match(b,/effettoCosmicoAttivo \|\| \(!fotoCoronaRpg && !fotoArmaturaArmataRpg && !fotoEffettoPremium\)/,
+ assert.match(b,/effettoCosmicoAttivo \|\| \(!fotoCoronaRpg && \(!fotoArmaturaArmataRpg \|\| veloNotteV528\) && !fotoEffettoPremium\)/,
    'La condizione di disponibilita del vecchio renderer resta coerente con la scena');
- assert.match(b,/if \(!effettoCosmicoAttivo && !fotoCoronaRpg && !fotoArmaturaArmataRpg/,
+ assert.match(b,/if \(!effettoCosmicoAttivo && !fotoCoronaRpg && \(!fotoArmaturaArmataRpg \|\| veloNotteV528\)/,
    'Il Canvas legacy non deve continuare ad animarsi nascosto dietro Astrale e Nebulosa');
  assert.match(b,/!effettoCosmicoAttivo && \(!effettoVivo \|\| auraDivinaAttiva\) && montaFotoRpg/);
  assert.match(b,/!effettoCosmicoAttivo && !fotoCoronaRpg && !fotoArmaturaArmataRpg && !effettoVivo && !auraDivinaAttiva && !veloNotteV528 && montaFotoCombinataRpg/);

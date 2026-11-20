@@ -8451,11 +8451,15 @@ function bloccoPersonaggio(profilo, st) {
     // v476: Astrale è un effetto, mai una nuova foto o skin.
     const effettoVivo=!auraDivinaAttiva && usaEffettiViviRpg(astraleAttiva ? null : effettoEquipaggiato?.id || null,{
       mitica:astraleAttiva,
-    }) && (effettoCosmicoAttivo || (!fotoCoronaRpg && !fotoArmaturaArmataRpg && !fotoEffettoPremium));
+    }) && (effettoCosmicoAttivo || (!fotoCoronaRpg && (!fotoArmaturaArmataRpg || veloNotteV528) && !fotoEffettoPremium));
     // Ambra, Fulmine e Astrale usano UN solo renderer Canvas. Prima il
     // compositore fotografico li nascondeva tramite rpg-composite-active.
     if (effettoVivo) grafica.classList.add('rpg-render-live');
-    const scenaFotografica = !effettoCosmicoAttivo && (!effettoVivo || auraDivinaAttiva) && montaFotoRpg(grafica, fotoAuraDivinaRpg || fotoCoronaRpg || fotoArmaturaArmataRpg || effettoVivo || auraDivinaAttiva || astraleAttiva ? null : effettoEquipaggiato?.id || null, {
+    // Per il Velo il WebP con pugnali contiene SOLO la stessa armatura: i
+    // normali effetti Shop passano sopra in livelli indipendenti come senza pugnali.
+    const effettoVeloInLivello=veloNotteV528 && !effettoCosmicoAttivo && !effettoVivo
+      ? effettoEquipaggiato?.id || null : null;
+    const scenaFotografica = !effettoCosmicoAttivo && (!effettoVivo || auraDivinaAttiva) && montaFotoRpg(grafica, effettoVeloInLivello || (fotoAuraDivinaRpg || fotoCoronaRpg || fotoArmaturaArmataRpg || effettoVivo || auraDivinaAttiva || astraleAttiva ? null : effettoEquipaggiato?.id || null), {
       corona: false, // Nuova Corona regale: asset indipendente
       divina: auraDivinaAttiva && !fotoAuraDivinaRpg, // v367 SVG artwork preserves original photo with a single Divine aura; do not duplicate it.
       mitica: false, // Astrale usa i suoi effetti, mai il generico overlay Nebulosa
@@ -8500,7 +8504,7 @@ function bloccoPersonaggio(profilo, st) {
     // montaScenaCosmicaRpg. Il vecchio canvas era invisibile dopo il caricamento,
     // ma il suo requestAnimationFrame continuava a girare inutilmente su iPhone.
     // Conserviamo il vecchio renderer soltanto per gli effetti NON cosmici.
-    if (!effettoCosmicoAttivo && !fotoCoronaRpg && !fotoArmaturaArmataRpg &&
+    if (!effettoCosmicoAttivo && !fotoCoronaRpg && (!fotoArmaturaArmataRpg || veloNotteV528) &&
         (effettoVivo || (!scenaFotografica && !combinata))) {
       montaEffettiRpg(grafica, effettoVivo ? (astraleAttiva ? null : effettoEquipaggiato?.id || null) : null, {
         divina: false, // La fotografia già conserva l'Aura originale
