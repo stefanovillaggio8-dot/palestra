@@ -4,7 +4,6 @@
 import { AURA_FOTO_ATLAS } from './aura-foto-atlas.js';
 import { FOTO_RPG_RIQUADRI, livelliFotoRpg } from './aura-foto-rpg.js';
 import { fasciaSagoma, disegnaCoronaEnergetica } from './anteprima-combinata-rpg.js?v=513';
-import { disegnaAstraleExport,dipingiNebulosaCosmica } from './effetti-rpg-canvas.js';
 import { fotoCinematograficaRpg } from './foto-cinematica-rpg.js';
 import {disegnaAtmosferaCosmicaRpg,disegnaAccentiCosmiciRpg,disegnaSoggettoCosmicoRpg,disegnaSfondoFotograficoCosmicoRpg,disegnaFotografiaFusaRpg} from './rpg-scena-cosmica.js?v=513';
 import {caricaEnergiaFotograficaRpg,disegnaEnergiaFotograficaRpg} from './rpg-energia-incarnata.js';
@@ -88,14 +87,10 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
   }:input;
   const veloNotteV528=usaRitrattoVeloNotteV528(c.classe,c.armatura);
   const fotoBase=await fotoPronta(grafica?.querySelector?.('.personaggio-ritratto'));
-  const ritaglioPresente=grafica?.querySelector?.('.rpg-cosmic-cutout-asset');
-  const ritaglioReale=ritaglioPresente?.complete && ritaglioPresente?.naturalWidth
-    ? ritaglioPresente : null;
+  // Non usare un ritaglio alpha alternativo: l'Atelier esporta proprio la
+  // stessa foto scelta dall'utente, senza inventare un altro fondale.
   const fxSenzaFoto = c.effetto==='skin-mitica' || c.effetto==='effetto-nebula';
   const texturaCosmica=fxSenzaFoto?await caricaEnergiaFotograficaRpg():null;
-  const ambienteCosmico=fxSenzaFoto?await attesaImmagine(new URL(
-    c.effetto==='skin-mitica'?'../img/effetti/astrale-ambiente-v503.webp'
-      :'../img/effetti/nebulosa-ambiente-v503.webp',import.meta.url).href).catch(()=>null):null;
   // Il file finale deve usare lo stesso scatto completo visibile in anteprima.
   // Se il collage non e' installato resta il renderer precedente.
   const fotoCorona=c.corona && !veloNotteV528 ? percorsoFotoCoronaV360({
@@ -115,9 +110,8 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
   const scena=fotoDivina||fotoCorona||fotoArmata||((veloNotteV528||c.divina||fxSenzaFoto)?null:await fotoCinematograficaRpg({...c,corona:false,divina:false}));
   // Con Astrale/Nebulosa il ritratto mostrato nell'Atelier e' l'autorita':
   // non caricare una seconda foto con armi diverse da quelle visibili.
-  const immagine=fxSenzaFoto ? (ritaglioReale||fotoBase)
+  const immagine=fxSenzaFoto ? fotoBase
     : (scena ? await attesaImmagine(scena).catch(()=>fotoBase) : fotoBase);
-  const alphaAutentico=Boolean(fxSenzaFoto && ritaglioReale && immagine===ritaglioReale);
   const giaFotografica=Boolean(scena&&immagine!==fotoBase);
   const larghezza=780,altezza=1170;
   const canvas=document.createElement('canvas');
@@ -129,40 +123,14 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
   const dw=Math.round(immagine.naturalWidth*ratio),dh=Math.round(immagine.naturalHeight*ratio);
   const dx=(larghezza-dw)/2,dy=(altezza-dh)/2;
   if(fxSenzaFoto) {
-    // L'Atelier usa lo stesso ambiente fotografico della card, anche nel PNG
-    // scaricato: le foto opache delle armature non devono far ricomparire il
-    // pavimento rosso né lasciare un blocco blu dietro ai piedi.
-    if(ambienteCosmico){
-      const scale=Math.max(larghezza/ambienteCosmico.naturalWidth,
-        altezza/ambienteCosmico.naturalHeight);
-      const aw=ambienteCosmico.naturalWidth*scale,ah=ambienteCosmico.naturalHeight*scale;
-      ctx.drawImage(ambienteCosmico,(larghezza-aw)/2,0,aw,ah);
-      const vignetta=ctx.createLinearGradient(0,0,0,altezza);
-      vignetta.addColorStop(0,'rgba(7,9,19,.1)');
-      vignetta.addColorStop(.75,'rgba(9,11,22,.28)');
-      vignetta.addColorStop(1,'rgba(12,14,27,.88)');
-      ctx.fillStyle=vignetta;ctx.fillRect(0,0,larghezza,altezza);
-    }else{ctx.fillStyle='#0c0f1b';ctx.fillRect(0,0,larghezza,altezza);}
+    // La foto e il suo ambiente restano IDENTICI per ogni effetto Shop.
+    // Astrale/Nebulosa aggiungono una sola texture alpha sul ritratto originale.
+    ctx.drawImage(immagine,dx,dy,dw,dh);
     ctx.save();ctx.translate(dx,dy);
-    disegnaEnergiaFotograficaRpg(ctx,dw,dh,c.classe,c.effetto==='skin-mitica'?'astrale':'nebulosa',2.8,{fase:'retro',texture:texturaCosmica});
-    if(!alphaAutentico){
-      // Come nel live: tutto il ritratto opaco è DAVANTI alla magia, compresi
-      // gli stivali. Il sigillo cosmico passa sotto le suole, non sopra.
-      disegnaEnergiaFotograficaRpg(ctx,dw,dh,c.classe,
-        c.effetto==='skin-mitica'?'astrale':'nebulosa',2.8,
-        {fase:'fronte',texture:texturaCosmica});
-    }
+    disegnaEnergiaFotograficaRpg(ctx,dw,dh,c.classe,
+      c.effetto==='skin-mitica'?'astrale':'nebulosa',2.8,
+      {fase:'fronte',texture:texturaCosmica});
     ctx.restore();
-    if(alphaAutentico) {
-      // La trasparenza è già nei pixel, vietato ripristinare il pavimento.
-      ctx.drawImage(immagine,dx,dy,dw,dh);
-    } else {
-      // v491: nelle combinazioni con armatura/corona senza un alpha ESATTO,
-      // l'esportazione deve conservare integralmente armi, scudo, testa e piedi.
-      // La vecchia maschera per classe amputava elementi non previsti.
-      if(!disegnaFotografiaFusaRpg(ctx,immagine,dx,dy,dw,dh))
-        ctx.drawImage(immagine,dx,dy,dw,dh);
-    }
   } else ctx.drawImage(immagine,dx,dy,dw,dh);
   // Il rivestimento della skin in CSS e' un canvas separato dalla foto.
   const pelle=grafica.querySelector?.('.rpg-skin-fedele');
@@ -177,7 +145,11 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
   }
   // I nuovi WebP includono già l'effetto acquistato. Solo l'Aura divina,
   // premio separato dei 75 giorni, va aggiunta alla foto finale.
-  const livelli=fxSenzaFoto ? (veloNotteV528 && c.divina
+  const canvasEffetto=grafica.querySelector?.('.rpg-effetti-canvas');
+  const effettoDalCanvas=!fxSenzaFoto && Boolean(c.effetto) &&
+    Boolean(canvasEffetto?.width && canvasEffetto?.height);
+  const livelli=effettoDalCanvas ? livelliFotoRpg(null,{divina:c.divina})
+    : fxSenzaFoto ? (veloNotteV528 && c.divina
       ? livelliFotoRpg(null,{divina:true}):[]) : (veloNotteV528
     ? livelliFotoRpg(c.effetto,{mitica:false,corona:false,divina:c.divina})
     : (fotoDivina||fotoCorona||fotoArmata)
@@ -225,29 +197,14 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
 
   }
 
-  // v494: stesso VFX fotografico ancorato al corpo anche nella foto salvata.
-  // Il WebP alpha impedisce alla luce di invadere lo sfondo della foto.
-  if(fxSenzaFoto){
-    if(!alphaAutentico){
-      ctx.save();ctx.globalAlpha=.09;
-      if(c.effetto==='skin-mitica')disegnaAstraleExport(ctx,{classe:c.classe,x:dx,y:dy,width:dw,height:dh});
-      else {ctx.translate(dx,dy);dipingiNebulosaCosmica(ctx,dw,dh,c.classe,2.8,55);}
-      ctx.restore();
-    }
-    if(alphaAutentico){
-      ctx.save();ctx.translate(dx,dy);
-      disegnaEnergiaFotograficaRpg(ctx,dw,dh,c.classe,
-        c.effetto==='skin-mitica'?'astrale':'nebulosa',2.8,{
-          fase:'fronte',soggetto:ritaglioReale,
-          buffer:document.createElement('canvas'),texture:texturaCosmica,
-        });
-      ctx.restore();
-    }
-    if(!alphaAutentico){
-      ctx.save();ctx.globalAlpha=.11;
-      disegnaAccentiCosmiciRpg(ctx,larghezza,altezza,c.effetto==='skin-mitica'?'astrale':'nebulosa');
-      ctx.restore();
-    }
+  // Non disegnare un secondo VFX: lo strato alpha e' gia' sopra la foto.
+  // Il Canvas live usato in anteprima per Fumo/Scintille/Scarica viene copiato
+  // nel PNG, anziche' sostituito con un altro effetto preso dall'atlante.
+  if(effettoDalCanvas){
+    ctx.save();
+    ctx.globalCompositeOperation=c.effetto==='effetto-ombra'?'source-over':'screen';
+    ctx.drawImage(canvasEffetto,dx,dy,dw,dh);
+    ctx.restore();
   }
 
   if(veloNotteV528 && c.corona) {
