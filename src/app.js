@@ -9,6 +9,7 @@ import { equipaggiamentoRpgUnico, slotPerOggettoRpg, aggiornaEquipaggiamentoRpg 
 import { percorsoFotoCoronaV360 } from './foto-corona-v360.js';
 import { percorsoFotoAuraDivinaV366 } from './foto-aura-divina-v366.js';
 import { percorsoFotoArmaturaArmataV371 } from './foto-armatura-armata-v371.js';
+import { usaRitrattoVeloNotteV528, CORONA_VELO_NOTTE_V528 } from './velo-notte-v528.js';
 import * as db from './db.js';
 import * as sb from './supabase.js';
 import * as sync from './sync.js';
@@ -1818,7 +1819,7 @@ const OGGETTI_AURA = [
   {id:'effetto-nebula',nome:'Nebulosa cosmica',tipo:'Effetto',rarita:'Leggendario',prezzo:4200,icona:'🌌',descrizione:'Una piccola galassia personale.'},
   {id:'armatura-guerriero-braci',immagine:'./img/personaggi/armature/guerriero-braci.webp',miniatura:'./img/personaggi/armature/guerriero-braci-mini.webp',nome:'Custode delle Braci',tipo:'Armatura',rarita:'Epico',prezzo:5000,classe:'guerriero',icona:'🛡️',descrizione:'Piastre roventi e mantello da prima linea.'},
   {id:'armatura-guerriero-abisso',immagine:'./img/personaggi/armature/guerriero-abisso.webp',miniatura:'./img/personaggi/armature/guerriero-abisso-mini.webp',nome:'Re dell’Abisso',tipo:'Armatura',rarita:'Leggendario',prezzo:8000,classe:'guerriero',icona:'👑',descrizione:'Armatura pesante con dettagli abissali.'},
-  {id:'armatura-assassino-notte',immagine:'./img/personaggi/armature/assassino-notte.webp',miniatura:'./img/personaggi/armature/assassino-notte-mini.webp',nome:'Velo della Notte',tipo:'Armatura',rarita:'Epico',prezzo:5100,classe:'assassino',icona:'🥷',descrizione:'Corazza leggera, lame e cappuccio.'},
+  {id:'armatura-assassino-notte',immagine:'./img/personaggi/armature/assassino-notte.webp?v=528',miniatura:'./img/personaggi/armature/assassino-notte-mini.webp?v=528',nome:'Velo della Notte',tipo:'Armatura',rarita:'Epico',prezzo:5100,classe:'assassino',icona:'🥷',descrizione:'Corazza blu notte, argento inciso e mantello furtivo.'},
   {id:'armatura-assassino-spettro',immagine:'./img/personaggi/armature/assassino-spettro.webp',miniatura:'./img/personaggi/armature/assassino-spettro-mini.webp',nome:'Spettro Cremisi',tipo:'Armatura',rarita:'Leggendario',prezzo:8400,classe:'assassino',icona:'🩸',descrizione:'Silhouette furtiva con bagliori rossi.'},
   {id:'armatura-berserker-rabbia',immagine:'./img/personaggi/armature/berserker-rabbia.webp',miniatura:'./img/personaggi/armature/berserker-rabbia-mini.webp',nome:'Rabbia Antica',tipo:'Armatura',rarita:'Epico',prezzo:5300,classe:'berserker',icona:'🪓',descrizione:'Corna, metallo grezzo e furia pura.'},
   {id:'armatura-berserker-apocalisse',immagine:'./img/personaggi/armature/berserker-apocalisse-corna.svg?v=368',miniatura:'./img/personaggi/armature/berserker-apocalisse-corna.svg?v=368',nome:'Ultimo Giorno',tipo:'Armatura',rarita:'Leggendario',prezzo:8800,classe:'berserker',icona:'🔥',descrizione:'Un set enorme che sembra uscito dalla fine del mondo.'},
@@ -8257,11 +8258,12 @@ function bloccoPersonaggio(profilo, st) {
     const recordCorona = Math.max(Number(rpg.recordStreak)||0, Number(st?.streak?.record)||0);
     const coronaAttiva = (!auraDivinaAnteprima || coronaAnteprima) && statoCoronaInfinito(equipaggiamentoRpg, recordCorona, coronaAnteprima).visibile;
     const auraDivinaAttiva=auraDivinaAnteprima || (Boolean(viso.aura) && !effettoEquipaggiato && !astraleAttiva); // Astrale nello slot Effetto ha priorita sulla luce divina automatica
+    const veloNotteV528=usaRitrattoVeloNotteV528(classeId,armaturaEquipaggiata?.id);
     // Restituisce all'Aura divina la fotografia originale dell'atlante,
     // senza aggiungere l'altra Corona. Non tocca il viso o la posa.
     if (auraDivinaAttiva) grafica.classList.add('personaggio-aura-divina');
     // Corona dell'Infinito: foto WebP complete; nessuna corona adesiva o SVG sopra il viso.
-    if(coronaAttiva)grafica.classList.add('rpg-corona-foto-v360');
+    if(coronaAttiva && !veloNotteV528)grafica.classList.add('rpg-corona-foto-v360');
 
     if (auraDivinaAttiva || coronaAttiva) {
       grafica.classList.add('personaggio-aura');
@@ -8385,7 +8387,7 @@ function bloccoPersonaggio(profilo, st) {
       armaSbloccata,
     });
     const fotoArmaturaRpg = fotoArmaturaArmataRpg || armaturaEquipaggiata?.immagine || null;
-    const fotoCoronaRpg = coronaAttiva ? percorsoFotoCoronaV360({
+    const fotoCoronaRpg = coronaAttiva && !veloNotteV528 ? percorsoFotoCoronaV360({
       classe:classeId,stato:statoFotoConsentito,
       armatura:armaturaEquipaggiata?.id || null,
       effetto:effettoCosmicoAttivo ? null : effettoEquipaggiato?.id || null,
@@ -8398,7 +8400,7 @@ function bloccoPersonaggio(profilo, st) {
     const fotoAuraDivinaRpg=percorsoFotoAuraDivinaV366({
       classe:classeId,
       stato:auraDivinaAnteprima ? 5 : statoFotoConsentito,
-      divina:auraDivinaAttiva,
+      divina:auraDivinaAttiva && !veloNotteV528,
       armatura:armaturaEquipaggiata?.id || null,
       corona:coronaAttiva,
       effetto:effettoCosmicoAttivo ? null : effettoEquipaggiato?.id || null,
@@ -8436,7 +8438,7 @@ function bloccoPersonaggio(profilo, st) {
     // Le foto integrate sono prioritarie quando rappresentano esattamente
     // classe, stato arma, armatura, Corona, Aura e skin correnti. Non mostrare
     // un pugnale già sbloccato come inesistente solo per usare una bella foto.
-    const fotoEffettoPremium=fotoArmaturaArmataRpg ? null : percorsoScenaSpecialeRpg({
+    const fotoEffettoPremium=fotoArmaturaArmataRpg || veloNotteV528 ? null : percorsoScenaSpecialeRpg({
       classe:classeId,
       stato:statoFotoConsentito,
       armaSbloccata,
@@ -8463,7 +8465,7 @@ function bloccoPersonaggio(profilo, st) {
     // Per ogni combinazione possibile costruisci una FOTO reale da avatar e
     // texture (stessa faccia, stesso corpo, stesso stato, nessun duplicato).
     // I layer precedenti restano fallback in caso di Safari senza Canvas.
-    const combinata = !effettoCosmicoAttivo && !fotoCoronaRpg && !fotoArmaturaArmataRpg && !effettoVivo && !auraDivinaAttiva && montaFotoCombinataRpg(grafica, fotoRpg, {
+    const combinata = !effettoCosmicoAttivo && !fotoCoronaRpg && !fotoArmaturaArmataRpg && !effettoVivo && !auraDivinaAttiva && !veloNotteV528 && montaFotoCombinataRpg(grafica, fotoRpg, {
       classe: classeId, stato: viso.indice,
       armatura: armaturaEquipaggiata?.id || null,
       skin: astraleAttiva ? 'skin-mitica' : null,
@@ -8482,7 +8484,7 @@ function bloccoPersonaggio(profilo, st) {
       Boolean(armaturaEquipaggiata || effettoEquipaggiato || astraleAttiva || coronaAttiva);
     // Le scene preconfezionate possono già includere una corona: con i nuovi
     // livelli premium usiamo invece sempre la foto originale e sovrapposizioni distinte.
-    if(scenaRichiesta && !effettoCosmicoAttivo && !fotoCoronaRpg && !fotoArmaturaArmataRpg && !effettoVivo && !auraDivinaAttiva && !coronaAttiva) montaScenaCinematograficaRpg(grafica,fotoRpg,{
+    if(scenaRichiesta && !effettoCosmicoAttivo && !fotoCoronaRpg && !fotoArmaturaArmataRpg && !effettoVivo && !auraDivinaAttiva && !coronaAttiva && !veloNotteV528) montaScenaCinematograficaRpg(grafica,fotoRpg,{
       classe:classeId,
       stato:statoFotoConsentito,
       armaSbloccata:armaSbloccata,
@@ -8506,6 +8508,16 @@ function bloccoPersonaggio(profilo, st) {
         mitica: astraleAttiva,
         classe: classeId,
       });
+    }
+    // La Corona e l'Aura sono indipendenti dall'armatura acquistata: con il
+    // Velo v528 non riutilizzare foto v360 che riporterebbero il vecchio abito.
+    // La regalia SVG è dimensionata per lo stesso ritratto 2:3 delle armature.
+    if(coronaAttiva && veloNotteV528) {
+      grafica.classList.add('rpg-corona-premium-attiva');
+      grafica.appendChild(el('img',{
+        class:'rpg-corona-premium',src:CORONA_VELO_NOTTE_V528,
+        alt:'',aria:{hidden:'true'},decoding:'async',
+      }));
     }
 
     // LA FILMSTRIP: sei miniature, una per stato.

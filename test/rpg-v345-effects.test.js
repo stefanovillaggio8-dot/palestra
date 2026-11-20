@@ -25,7 +25,9 @@ test('Corona 80 giorni: una sola fonte grafica premium, su tutte le classi',asyn
   const photo=await read('src/anteprima-combinata-rpg.js');
   const css=await read('stile-rpg.css');
   const asset=await read('tools/render_corona_v359.py');
-  assert.match(app,/if\(coronaAttiva\)grafica\.classList\.add\('rpg-corona-foto-v360'\)/);
+  // La Corona WebP resta per tutte le armature storiche: solo il Velo v528
+  // conserva il nuovo ritratto e usa una regalia propria della stessa scala.
+  assert.match(app,/if\(coronaAttiva && !veloNotteV528\)grafica\.classList\.add\('rpg-corona-foto-v360'\)/);
   assert.match(app,/rpg-corona-foto-v360/);
   assert.match(app,/percorsoFotoCoronaV360/);
   assert.match(photo,/const crown=grafica\.querySelector\('\.rpg-corona-premium'\)/);

@@ -21,5 +21,8 @@ export function percorsoFotoArmaturaArmataV371({
   if(!armaSbloccata || !Number.isInteger(n) || n<4 || n>5)return null;
   const fx=effetto===null?'base':FX[effetto];
   if(!fx)return null;
-  return './img/personaggi/armatura-con-arma-v371/'+classe+'/'+armatura+'/'+fx+'.webp?v=372';
+  // Il Velo della Notte v528 ha un nuovo ritratto coerente con i suoi pugnali:
+  // aggiorniamo solo le sue sei fotografie, senza invalidare le altre armature.
+  const versione=armatura==='armatura-assassino-notte'?'528':'372';
+  return './img/personaggi/armatura-con-arma-v371/'+classe+'/'+armatura+'/'+fx+'.webp?v='+versione;
 }

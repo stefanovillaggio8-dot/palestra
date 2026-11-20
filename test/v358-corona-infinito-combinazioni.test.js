@@ -60,7 +60,7 @@ test('144 fotografie coprono 3 classi, sei stati e due armature ognuna',()=>{
 test('L Aura divina rimane un premio separato, non scompare con una Corona',()=>{
   const app=src('src/app.js'),css=src('stile-rpg.css');
   assert.match(app,/divina: auraDivinaAttiva/);
-  assert.match(app,/!auraDivinaAttiva && montaFotoCombinataRpg/);
+  assert.match(app,/!auraDivinaAttiva && !veloNotteV528 && montaFotoCombinataRpg/);
   assert.match(css,/\.personaggio-aura-divina:not\(\.rpg-composite-active\)>.aura-foto-divina/);
   assert.equal(slotPerOggettoRpg({id:'skin-mitica',tipo:'Effetto'}),'Effetto');
   assert.deepEqual(equipaggiamentoRpgUnico({Astrale:'skin-mitica',Effetto:'effetto-ombra'}),
