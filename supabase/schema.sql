@@ -184,7 +184,8 @@ create table if not exists public.amministratori (
 
 -- Il profilo di ogni account: username, avatar, privacy, amici.
 -- L'avatar si salva come ID (non come immagine): cosi' si vede uguale su
--- ogni dispositivo e si puo' aggiungere un avatar nuovo senza toccare i dati.
+-- ogni dispositivo. Dalla v525 puo' essere anche foto:<uid>/<uuid>.webp:
+-- i byte rimangono nello Storage con accesso in scrittura al solo proprietario.
 create table if not exists public.profili (
   id            text primary key,
   user_id       uuid not null references auth.users on delete cascade,

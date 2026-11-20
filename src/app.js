@@ -83,6 +83,7 @@ import { ARMATURE_ATELIER } from './rpg-atelier.js?v=513';
 import { applicaSkinRpg } from './skin-rpg-fedele.js';
 import { montaScenaCinematograficaRpg, armaSbloccataRpg, percorsoScenaSpecialeRpg } from './foto-cinematica-rpg.js';
 import { elencoAvatar, avatarPerId, gradienteAvatar, iniziali } from './avatar.js';
+import { comprimiFotoProfilo, urlFotoProfilo } from './foto-profilo.js';
 import { amiciDi, confronta, classifichePerEsercizio, privacyDi, campiVisibili, PRIVACY_PREDEFINITE } from './sociale.js';
 import { classificaEsercizio as riconosciEsercizio } from './esercizi-classificatore.js';
 import { parteDiMuscolo, AVVERTIMENTO_PARTI, stessoLavoro, livelloConMuscolo, ordinePerMuscolo }
@@ -7461,9 +7462,15 @@ function avatarNodo(profilo, { grande = false, dimensione = 46 } = {}) {
   const a = avatarPerId(profilo && (profilo.avatar_id || (profilo.avatar)));
   const nome = (profilo && (profilo.username || profilo.nome)) || '??';
   const stile = `background:${gradienteAvatar(a.id)};width:${dimensione}px;height:${dimensione}px;font-size:${Math.round(dimensione / 3.2)}px`;
-  return el('span', { class: 'avatar' + (grande ? ' avatar-grande' : ''), style: stile, titolo: nome }, [
-    iniziali(nome),
-  ]);
+  const contenuto = [iniziali(nome)];
+  const foto = urlFotoProfilo(profilo?.avatar_id, sb.leggiConfig().url);
+  if (foto) {
+    const immagine = el('img', { class: 'avatar-foto', src: foto, alt: '', loading: 'lazy', decoding: 'async',
+      onError: () => immagine.remove(),
+    });
+    contenuto.push(immagine);
+  }
+  return el('span', { class: 'avatar' + (grande ? ' avatar-grande' : ''), style: stile, titolo: nome }, contenuto);
 }
 
 /**
@@ -10602,8 +10609,46 @@ async function vistaProfilo(zona) {
   // cambio avatar e username
   const boxAvatar = el('section', { class: 'blocco' }, [
     el('h2', { testo: 'Il tuo avatar' }),
-    el('p', { class: 'nota', testo: 'Scegli un avatar: viene salvato con l\'account, quindi lo vedi uguale su un altro dispositivo.' }),
+    el('p', { class: 'nota', testo: 'Scegli una foto dalla galleria o uno degli avatar qui sotto. La scelta segue il tuo account su PC e telefono.' }),
   ]);
+  const statoFoto = el('span', { class: 'nota foto-profilo-stato', 'aria-live': 'polite' });
+  const inputFoto = el('input', { type: 'file', accept: 'image/*', class: 'foto-profilo-input',
+    'aria-label': 'Scegli una foto profilo dalla galleria', onChange: async (evento) => {
+      const file = evento.target.files?.[0];
+      if (!file) return;
+      const account = accountAttivo();
+      inputFoto.disabled = true;
+      statoFoto.textContent = 'Preparo e salvo la foto…';
+      try {
+        if (!sb.collegato()) {
+          throw new Error('Accedi e sincronizza l’account online prima di caricare una foto.');
+        }
+        // Conferma sul server: una copia locale vecchia potrebbe riferirsi ad Andrea.
+        const remoto = await sb.leggiUno('profili', account);
+        if (!remoto || !remoto.user_id) {
+          throw new Error('Non trovo questo profilo nel tuo account online. Sincronizza prima di caricare la foto.');
+        }
+        const blob = await comprimiFotoProfilo(file);
+        const caricata = await sb.caricaFotoProfilo(blob, remoto.user_id);
+        if (account !== accountAttivo() || caricata.userId !== remoto.user_id) {
+          throw new Error('Il profilo attivo è cambiato. Riprova dal tuo account.');
+        }
+        await salvaProfilo({ avatar_id: caricata.avatarId });
+        avviso('Foto profilo salvata. Comparirà anche sugli altri dispositivi dopo la sincronizzazione.', { tipo: 'ok' });
+      } catch (errore) {
+        statoFoto.textContent = 'Foto non salvata.';
+        avviso(errore?.message || 'Non riesco a salvare la foto.', { tipo: 'errore' });
+      } finally {
+        inputFoto.disabled = false;
+        inputFoto.value = '';
+      }
+    },
+  });
+  boxAvatar.appendChild(el('label', { class: 'foto-profilo-scelta' }, [
+    el('span', { testo: '📷 Scegli una tua foto' }), inputFoto,
+  ]));
+  boxAvatar.appendChild(el('p', { class: 'nota', testo: 'La foto del profilo può essere vista dagli amici e da chi possiede il suo link.' }));
+  boxAvatar.appendChild(statoFoto);
   const grigliaAvatar = el('div', { class: 'griglia-avatar' });
   for (const a of elencoAvatar()) {
     grigliaAvatar.appendChild(bottone('', {
