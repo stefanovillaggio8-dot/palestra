@@ -48,7 +48,7 @@ export function bordoSagomaRpg(classe,y) {
 export function usaEffettiViviRpg(tipo,{mitica=false}={}) {
   // Su browser legacy e nei test DOM minimali lasciamo il vecchio renderer.
   // Il canvas visibile viene selezionato solo dove l'animazione e' supportata.
-  return Boolean((mitica || tipo==='effetto-ambra' || tipo==='effetto-fulmine' || tipo==='effetto-nebula') &&
+  return Boolean((mitica || tipo==='effetto-ambra' || tipo==='effetto-ombra' || tipo==='effetto-fulmine' || tipo==='effetto-nebula') &&
     typeof document!=='undefined' &&
     typeof requestAnimationFrame==='function' &&
     typeof document.createElement==='function');
@@ -209,7 +209,7 @@ export function montaEffettiRpg(elemento,tipo,{corona=false,divina=false,mitica=
       for(let j=0;j<=11;j++){
         const yy=from+(end-from)*j/11;
         const outside=puntoLaterale(personaggio,yy,ray.lato,
-          .027 + rnd(ray.seed+j*2+Math.floor(pos)*29)*.075);
+          .006 + rnd(ray.seed+j*2+Math.floor(pos)*29)*.023);
         knots.push([w*outside,h*yy]);
       }
       ctx.save();ctx.globalAlpha=flash;ctx.lineCap='round';ctx.lineJoin='round';
@@ -220,7 +220,7 @@ export function montaEffettiRpg(elemento,tipo,{corona=false,divina=false,mitica=
       ctx.stroke();
       // Rami: diretti verso l'esterno, con una piccola ramificazione in punta.
       for(const pivot of [3,7]){
-        const [x,y]=knots[pivot],bend=ray.lato*w*.065;
+        const [x,y]=knots[pivot],bend=ray.lato*w*.028;
         ctx.beginPath();ctx.moveTo(x,y);
         ctx.lineTo(x+bend*.48,y-h*.018);
         ctx.lineTo(x+bend,y-h*.041);
