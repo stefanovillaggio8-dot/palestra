@@ -1,5 +1,19 @@
 ﻿# Palestra — memoria del progetto
 
+## 20/11/2026 — v525, foto profilo personalizzabile
+
+- Nel Profilo si puo' scegliere una foto dalla galleria, oltre agli 8 avatar a colori;
+  anche la barra superiore e gli amici usano la stessa immagine. Nessun cambiamento
+  al personaggio RPG, ai Rank, alle schede o ai carichi.
+- Le foto diventano WebP quadrate 256×256 (max 200 KB). Nel profilo si salva solo
+  `avatar_id = foto:<user_uuid>/<file_uuid>.webp`, cosi' la scelta segue l'account.
+- Storage pubblico `palestra-foto-profilo` (come una foto profilo visibile agli amici):
+  INSERT autorizzato solo nella cartella del proprio Auth UID. Migrazione
+  `20261120001417_foto_profilo_storage_v525` applicata e letta nel database.
+- Prima dell'upload il client confronta il profilo remoto e l'utente Auth;
+  niente foto caricata in un account diverso. Fotografie non precache offline:
+  in assenza di rete restano le iniziali. Test di regressione aggiunti.
+
 ## 19/11/2026 — v524, filtri Shop e Recap stabili
 
 - Audit della v523: il filtro di Aura Shop tornava a «Tutti» dopo una sync e il

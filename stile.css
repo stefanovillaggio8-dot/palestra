@@ -1584,10 +1584,12 @@ body:has(.sfondo-dialogo) .avviso {
 /* --- gli avatar --- */
 .avatar {
   display: inline-flex; align-items: center; justify-content: center;
+  position: relative; overflow: hidden;
   border-radius: 50%; font-weight: 900; color: #fff; flex: 0 0 auto;
   border: 2px solid var(--bordo); text-shadow: 0 1px 3px rgba(0, 0, 0, .6);
   letter-spacing: .02em;
 }
+.avatar-foto { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .avatar-grande {
   border-width: 3px;
   box-shadow: 0 0 34px -10px var(--viola), inset 0 0 22px -12px #fff;
@@ -1599,6 +1601,17 @@ body:has(.sfondo-dialogo) .avviso {
   min-height: 0;
 }
 .avatar-scelta.attiva { border-color: var(--viola); box-shadow: 0 0 18px -6px var(--viola); }
+.foto-profilo-scelta {
+  display: inline-flex; align-items: center; justify-content: center;
+  position: relative; overflow: hidden; cursor: pointer; min-height: 44px;
+  padding: 10px 18px; margin: 12px 0 3px;
+  border: 1px solid var(--viola); border-radius: 13px;
+  background: rgba(124, 92, 255, .13); color: var(--testo); font-weight: 800;
+}
+.foto-profilo-scelta:focus-within { outline: 2px solid var(--viola); outline-offset: 3px; }
+.foto-profilo-input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.foto-profilo-input:disabled { cursor: progress; }
+.foto-profilo-stato { display: block; min-height: 1em; }
 
 /* --- il personaggio che si aggiorna da solo --- */
 /* Ste: "deve aggiornarsi un personaggio che metti dove gli vengono messe cose tipo

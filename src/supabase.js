@@ -8,6 +8,7 @@
 // schema.sql dicono che ogni utente vede solo le proprie righe.
 
 import { preparaRegistrazioneInvitata } from './inviti-registrazione.js';
+import { BUCKET_FOTO_PROFILO, MASSIMO_FOTO_COMPRESSA } from './foto-profilo.js';
 
 const CHIAVE_CONFIG = 'palestra-config';
 
@@ -129,6 +130,7 @@ function erroreJwtScaduto(corpo) {
 
 function richiestaProtetta(percorso) {
   return String(percorso || '').startsWith('/rest/v1/')
+    || String(percorso || '').startsWith('/storage/v1/object/')
     || /\/auth\/v1\/user(?:\?|$)/.test(String(percorso || ''));
 }
 
@@ -322,6 +324,30 @@ export async function esci() {
   const cfg = leggiConfig();
   try { await richiesta(cfg, '/auth/v1/logout', { method: 'POST', headers: intestazioni(cfg) }); } catch { /* pazienza */ }
   salvaSessione(null);
+}
+
+/** Foto profilo pubblica, caricabile soltanto nella cartella dell'utente Auth.
+ * Si usa ogni volta un nome nuovo per evitare vecchie foto nella cache iOS.
+ */
+export async function caricaFotoProfilo(blob, proprietarioAtteso) {
+  if (!blob || blob.type !== 'image/webp' || blob.size <= 0 || blob.size > MASSIMO_FOTO_COMPRESSA) {
+    throw new Error('La foto non è nel formato o nelle dimensioni consentite.');
+  }
+  const utente = await utenteCorrente();
+  if (!proprietarioAtteso || utente.id !== proprietarioAtteso) {
+    throw new Error('L’account online non corrisponde a questo profilo. Non ho caricato la foto.');
+  }
+  if (!/^[0-9a-f-]{36}$/i.test(String(utente.id)) || typeof globalThis.crypto?.randomUUID !== 'function') {
+    throw new Error('Impossibile verificare l’identità per caricare la foto.');
+  }
+  const percorso = `${utente.id}/${globalThis.crypto.randomUUID()}.webp`;
+  const cfg = leggiConfig();
+  await richiesta(cfg, `/storage/v1/object/${BUCKET_FOTO_PROFILO}/${percorso}`, {
+    method: 'POST',
+    headers: intestazioni(cfg, { 'Content-Type': 'image/webp' }),
+    body: blob,
+  });
+  return { avatarId: `foto:${percorso}`, userId: utente.id };
 }
 
 /* ---------------- REST ---------------- */
