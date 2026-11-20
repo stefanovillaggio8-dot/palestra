@@ -54,12 +54,12 @@ test('v509: Spettro Cremisi lascia fuori fumo e ruderi ai lati delle gambe',()=>
 });
 
 test('v513: la sagoma nuova non resta nella cache di Atelier, anteprima e app',()=>{
-  const scena='./rpg-scena-cosmica.js?v=513';
+  const scena='./rpg-scena-cosmica.js?v=530';
   assert.ok(read('src/app.js').includes("from '"+scena+"'"));
   assert.ok(read('src/rpg-atelier.js').includes("from '"+scena+"'"));
   assert.ok(read('src/anteprima-combinata-rpg.js').includes("from '"+scena+"'"));
-  assert.ok(read('anteprima-armature-cosmiche.html').includes("./src/rpg-scena-cosmica.js?v=513"));
-  assert.ok(read('src/rpg-atelier-ui.js').includes("./rpg-atelier.js?v=513"));
+  assert.ok(read('anteprima-armature-cosmiche.html').includes("./src/rpg-scena-cosmica.js?v=530"));
+  assert.ok(read('src/rpg-atelier-ui.js').includes("./rpg-atelier.js?v=530"));
 });
 
 test('v513: due sagome indipendenti raggiungono le suole senza il pavimento infuocato',()=>{
@@ -89,18 +89,15 @@ test('v513: due sagome indipendenti raggiungono le suole senza il pavimento infu
     'le isole degli stivali non ereditano la sfocatura del mantello');
 });
 
-test('v513: Atelier e PNG hanno lo stesso fondale e la foto Shop resta opaca',()=>{
-  const style=read('stile-rpg.css'),atelier=read('src/rpg-atelier.js');
-  assert.match(style,/\.rpg-atelier-avatar \.personaggio-scena\.rpg-scena-astrale[\s\S]*?astrale-ambiente-v503\.webp/);
-  assert.match(style,/\.rpg-atelier-avatar \.personaggio-scena\.rpg-scena-nebulosa[\s\S]*?nebulosa-ambiente-v503\.webp/);
-  assert.match(style,/\.personaggio-ritratto\.rpg-cosmic-armor-subject\s*\{\s*opacity:1!important/);
-  assert.match(style,/\.rpg-cosmic-armor-contoured > \.rpg-energia-fronte\s*\{\s*z-index:1!important/,
-    'le scarpe devono stare sopra il sigillo, non essere coperte dal VFX');
-  assert.match(atelier,/const ambienteCosmico=fxSenzaFoto\?await attesaImmagine/);
-  assert.match(atelier,/if\(!alphaAutentico\)\{[\s\S]*?fase:'fronte',texture:texturaCosmica/,
-    'lo stesso ordine dei livelli vale anche nel PNG');
-  assert.ok(existsSync(new URL('../img/effetti/astrale-ambiente-v503.webp',import.meta.url)));
-  assert.ok(existsSync(new URL('../img/effetti/nebulosa-ambiente-v503.webp',import.meta.url)));
+test('v530: Atelier e PNG preservano lo sfondo originale della foto Shop',()=>{
+ const style=read('stile-rpg.css'),atelier=read('src/rpg-atelier.js');
+ assert.match(style,/\.personaggio-scena\.rpg-effetti-solo-scena/);
+ assert.match(style,/\.rpg-effetti-solo-stage > \.rpg-cosmic-ambiente/);
+ assert.match(style,/\.rpg-effetti-solo-stage > \.rpg-energia-fronte/);
+ assert.match(atelier,/const immagine=fxSenzaFoto \? fotoBase/);
+ assert.match(atelier,/ctx\.drawImage\(immagine,dx,dy,dw,dh\)/);
+ assert.match(atelier,/fase:'fronte',texture:texturaCosmica/);
+ assert.doesNotMatch(atelier,/ambienteCosmico|alphaAutentico/);
 });
 
 test('v507: maschera su foto e PNG preserva i pixel RGB originali',()=>{
@@ -133,10 +130,10 @@ test('v507: Atelier e foto condivisa tolgono il paesaggio delle armature e il pe
   const scene=read('src/rpg-scena-cosmica.js'),style=read('stile-rpg.css');
   const atelier=read('src/rpg-atelier.js'),exporter=read('src/anteprima-combinata-rpg.js');
   assert.match(scene,/rpg-cosmic-armor-contoured/);
-  assert.match(scene,/!contornoArmatura && foto\?\.addEventListener/);
+  assert.match(scene,/!soloEffetti && !contornoArmatura && foto\?\.addEventListener/);
   assert.match(style,/\.rpg-cosmic-stage\.rpg-cosmic-armor-contoured[\s\S]*\.rpg-foto-fondale\s*\{\s*display:none!important/);
   assert.match(style,/\.rpg-cosmic-armor-contoured\.rpg-energia-pronta\s*>\s*\.personaggio-scena-grafica\.personaggio\s*\{\s*animation:none!important/);
-  assert.match(atelier,/disegnaFotografiaFusaRpg\(ctx,immagine,dx,dy,dw,dh\)/);
+  assert.match(atelier,/ctx\.drawImage\(immagine,dx,dy,dw,dh\)/);
   assert.match(exporter,/disegnaFotografiaFusaRpg\(ctx,original,0,0,out.width,out.height\)/);
   assert.ok(existsSync(new URL('../anteprima-armature-cosmiche.html',import.meta.url)));
 });
