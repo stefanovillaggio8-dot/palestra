@@ -1,5 +1,16 @@
 ﻿# Palestra — memoria del progetto
 
+## 20/11/2026 — v527, foto profilo su Safari iPhone
+
+- Safari iOS non garantisce l'esportazione WebP da `canvas.toBlob`: quando restituisce
+  PNG, riprova la compressione JPEG a qualita' decrescente. Entrambi i formati
+  sono entro 80 KB e non entrano mai nel pacchetto/cache offline dell'app.
+- Il bucket delle foto ora permette WebP e JPEG (mai SVG), mantenendo i percorsi
+  vincolati alla cartella di `auth.uid()`. Una foto `foto:<uid>/<uuid>.jpg` e'
+  riconosciuta in profilo, barra superiore e amici.
+- Gli errori del caricamento restano leggibili sotto il pulsante oltre al toast.
+- Non vengono toccati avatar colorati, Rank, streak, schede e personaggi RPG.
+
 ## 20/11/2026 — v526, avatar colorati di nuovo visibili
 
 - Il selettore degli 8 avatar mostrava pulsanti quasi vuoti perché passava i cerchi

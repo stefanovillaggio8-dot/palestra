@@ -4,15 +4,16 @@
 export const BUCKET_FOTO_PROFILO = 'palestra-foto-profilo';
 export const DIMENSIONE_FOTO_PROFILO = 256;
 export const MASSIMO_FOTO_ORIGINALE = 15 * 1024 * 1024;
-export const MASSIMO_FOTO_COMPRESSA = 200 * 1024;
+// La foto rimane in Supabase: massimo 80 KB di rete, zero byte nella PWA offline.
+export const MASSIMO_FOTO_COMPRESSA = 80 * 1024;
 
 const UUID = '[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}';
-const PERCORSO = new RegExp(`^foto:(${UUID})\/(${UUID})\\.webp$`, 'i');
+const PERCORSO = new RegExp(`^foto:(${UUID})\/(${UUID})\\.(webp|jpg)$`, 'i');
 
 /** Non interpretare un ID profilo come URL arbitrario o HTML. */
 export function percorsoFotoProfilo(avatarId) {
   const match = PERCORSO.exec(String(avatarId || ''));
-  return match ? `${match[1].toLowerCase()}/${match[2].toLowerCase()}.webp` : null;
+  return match ? `${match[1].toLowerCase()}/${match[2].toLowerCase()}.${match[3].toLowerCase()}` : null;
 }
 
 export function urlFotoProfilo(avatarId, urlSupabase) {
@@ -68,8 +69,17 @@ export async function comprimiFotoProfilo(file) {
   const lato = Math.min(larghezza, altezza);
   contesto.drawImage(foto, (larghezza - lato) / 2, (altezza - lato) / 2,
     lato, lato, 0, 0, canvas.width, canvas.height);
-  const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/webp', 0.8));
+  // Safari su iPhone può esportare PNG anche quando si chiede WebP.
+  // JPEG è il formato di riserva per non scartare la foto appena scelta.
+  let blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/webp', 0.75));
   if (!blob || blob.type !== 'image/webp' || blob.size <= 0 || blob.size > MASSIMO_FOTO_COMPRESSA) {
+    for (const qualita of [0.74, 0.62, 0.5]) {
+      blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', qualita));
+      if (blob?.type === 'image/jpeg' && blob.size > 0 && blob.size <= MASSIMO_FOTO_COMPRESSA) break;
+    }
+  }
+  if (!blob || !['image/webp', 'image/jpeg'].includes(blob.type)
+      || blob.size <= 0 || blob.size > MASSIMO_FOTO_COMPRESSA) {
     throw new Error('Non riesco a comprimere questa foto. Prova con un’altra immagine.');
   }
   return blob;
