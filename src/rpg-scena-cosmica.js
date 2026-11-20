@@ -486,7 +486,7 @@ export function disegnaSoggettoCosmicoRpg(ctx,foto,dx,dy,w,h,classe='assassino',
   ctx.drawImage(out,dx,dy,w,h);
   return true;
 }
-export function montaScenaCosmicaRpg(scena,grafica,{classe='assassino',effetto=null,creaElemento}={}) {
+export function montaScenaCosmicaRpg(scena,grafica,{classe='assassino',effetto=null,creaElemento,soloEffetti=false}={}) {
   if(!scena || !grafica || typeof scena.appendChild!=='function')return false;
   const layerName=effetto==='astrale'?'rpg-astrale-presenza'
     :effetto==='nebulosa'?'rpg-nebulosa-presenza':null;
@@ -496,11 +496,13 @@ export function montaScenaCosmicaRpg(scena,grafica,{classe='assassino',effetto=n
     return false;
   }
   const classeId=CLASSI.includes(classe)?classe:'assassino';
-  const palco=creaElemento('div',{class:'rpg-cosmic-stage rpg-cosmic-'+effetto+' personaggio-'+classeId});
+  const palco=creaElemento('div',{class:'rpg-cosmic-stage rpg-cosmic-'+effetto+' personaggio-'+classeId+(soloEffetti?' rpg-effetti-solo-stage':'')});
   const ambiente=creaElemento('div',{class:'rpg-cosmic-ambiente',aria:{hidden:'true'}});
   const foto=grafica.querySelector?.(':scope > .personaggio-ritratto');
-  applicaMascheraCosmicaRpg(foto,classeId);
-  const contornoArmatura=idContornoArmaturaCosmicaRpg(foto);
+  // I cosmetici sono effetti: non scontornare né mascherare la foto originale.
+  // Mantieni paesaggio, armatura, arma, volto e zoom assolutamente invariati.
+  if(!soloEffetti)applicaMascheraCosmicaRpg(foto,classeId);
+  const contornoArmatura=soloEffetti?null:idContornoArmaturaCosmicaRpg(foto);
   if(contornoArmatura){
     palco.classList?.add?.('rpg-cosmic-armor-contoured');
     ambiente.classList?.add?.('rpg-cosmic-armor-environment');
@@ -508,7 +510,7 @@ export function montaScenaCosmicaRpg(scena,grafica,{classe='assassino',effetto=n
   // Un raccordo fotografico reale: il fondale cosmico deriva dalla STESSA
   // immagine che viene mascherata, quindi illuminazione e toni coincidono.
   // La foto e l'equipaggiamento restano intatti.
-  if(!contornoArmatura && foto?.addEventListener && ambiente?.style){
+  if(!soloEffetti && !contornoArmatura && foto?.addEventListener && ambiente?.style){
     const aggiornaSfondo=()=>{
       const src=foto.currentSrc||foto.src;
       if(!src)return;
@@ -529,7 +531,8 @@ export function montaScenaCosmicaRpg(scena,grafica,{classe='assassino',effetto=n
   palco.appendChild(grafica);
   palco.appendChild(layer);
   scena.appendChild(palco);
-  montaRitaglioRealeRpg(grafica,foto,palco,ambiente);
+  if(soloEffetti)scena.classList?.add?.('rpg-effetti-solo-scena');
+  else montaRitaglioRealeRpg(grafica,foto,palco,ambiente);
   // Astrale e Nebulosa sono ora una corrente di luce CONNESSA al corpo:
   // l'energia segue la foto, con un piano dietro e uno davanti, e usa
   // il ritaglio alpha reale quando disponibile. Nessuna skin sostitutiva.
