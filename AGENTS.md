@@ -1,5 +1,23 @@
 ﻿# Palestra — memoria del progetto
 
+## 20/11/2026 — v530, effetti Shop identici senza ambienti sostitutivi
+
+- Correzione richiesta dopo video Atelier 20/11: Velo della Notte non
+  deve avere un Fumo d'ombra enorme davanti al viso, Scarica viola lontana
+  dal corpo, Nebulosa o Astrale con foto/panorami diversi.
+- Per Astrale e Nebulosa il rendering prende la **foto completa esistente**
+  dello stadio/armatura/arma con lo stesso sfondo e lo stesso zoom, senza
+  aggiungere ambientazioni, maschere scontornate o cambiare i WebP.
+  Solo l'energia fotografica alpha gia' presente nello Shop viene disegnata
+  sul soggetto, con il volto protetto dai VFX.
+- Fumo d'ombra usa il renderer di vapori intorno alla sagoma, non la vecchia
+  nuvola dell'atlante. Scarica viola avvicina i fulmini alle giunture.
+  Ambra, Aura Divina e Corona restano livelli cosmetici indipendenti.
+- Il PNG dell'Atelier deve mantenere la stessa foto e copiare quando possibile
+  il Canvas dell'effetto live; non ricreare sfondi cosmici in export.
+- Non modificare corpi, outfit, armi, colori e dimensioni dei personaggi
+  e non alterare premi/salvataggi/shop/streak. Cache/import v530.
+
 ## 20/11/2026 — v529, correzione effetti separati dalle armature
 
 - Richiesta esplicita: gli **effetti** devono essere visivamente gli stessi già
