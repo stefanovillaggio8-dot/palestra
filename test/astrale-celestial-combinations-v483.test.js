@@ -62,5 +62,5 @@ test('v483 combinazioni 3 classi x 6 livelli x armature x armi x corona x aura: 
  assert.match(code,/if \(!effettoCosmicoAttivo && !fotoCoronaRpg && \(!fotoArmaturaArmataRpg \|\| veloNotteV528\)/);
  assert.match(code,/if\(scenaRichiesta && !effettoCosmicoAttivo/);
  assert.match(atelier,/fxSenzaFoto = c.effetto==='skin-mitica' \|\| c.effetto==='effetto-nebula'/);
- assert.match(atelier,/disegnaAstraleExport\(ctx/);
+ assert.match(atelier,/disegnaEnergiaFotograficaRpg\(ctx,dw,dh,c\.classe/);
 });
