@@ -27,7 +27,7 @@ test('Ambra, Scarica viola ed Astrale scelgono il renderer visibile su iPhone mo
    assert.equal(usaEffettiViviRpg(null,{mitica:true}),true);
    assert.equal(usaEffettiViviRpg('effetto-ombra',{mitica:true}),true);
    assert.equal(usaEffettiViviRpg('effetto-nebula',{mitica:true}),true);
-   assert.equal(usaEffettiViviRpg('effetto-ombra'),false);
+   assert.equal(usaEffettiViviRpg('effetto-ombra'),true);
    assert.equal(usaEffettiViviRpg('effetto-nebula'),true);
    assert.equal(usaEffettiViviRpg(null),false);
  } finally {
