@@ -87,8 +87,8 @@ test('v529: versione PWA, asset online e offline allineati',()=>{
   assert.match(testo('sw.js'),/const VERSIONE = 'palestra-v532'/);
   assert.match(testo('index.html'),/PALESTRA_VERSIONE = 'palestra-v532'/);
   for(const path of ['src/velo-notte-v528.js','img/effetti/corona-velo-notte-v528.svg',
-    'img/personaggi/armature/assassino-notte.webp?v=531',
-    'img/personaggi/armature/assassino-notte-mini.webp?v=531'])
+    'img/personaggi/armature/assassino-notte.webp?v=532',
+    'img/personaggi/armature/assassino-notte-mini.webp?v=532'])
     assert.ok(testo('sw.js').includes(path),path);
 });
 
