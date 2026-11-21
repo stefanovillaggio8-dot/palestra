@@ -1,3 +1,4 @@
+import { disegnaEffettoApprovatoRpg } from './rpg-effetti-approvati-v531.js?v=531';
 // Effetti cosmici v493: la fonte della luce è il personaggio, non il panorama.
 // Coordinate relative alla STESSA fotografia originale (900 × 1350): nessuna
 // alterazione di corpo, volto, arma, armatura, posa o fattore di zoom.
@@ -430,6 +431,12 @@ export function disegnaEnergiaFotograficaRpg(ctx,w,h,classe='assassino',effetto=
     // la vecchia versione a forza piena era un accumulo di globi al neon.
     ctx.globalAlpha=haSoggettoAlpha?.24:.13;
     disegnaEnergiaIncarnataRpg(ctx,w,h,classe,effetto,t,{fase:'fronte',soggetto,buffer});
+    // L'aura Leggendaria/MItica conserva la texture alpha storica,
+    // arricchita con i nastri, le rune e i sigilli del bozzetto approvato.
+    // Un unico livello frontale: il paesaggio fotografico rimane intatto.
+    ctx.globalAlpha=haSoggettoAlpha?.91:.85;
+    disegnaEffettoApprovatoRpg(ctx,w,h,classe,
+      effetto==='astrale'?'skin-mitica':'effetto-nebula',t);
   }
   ctx.restore();return true;
 }
