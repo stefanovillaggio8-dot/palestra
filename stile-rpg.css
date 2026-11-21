@@ -4241,21 +4241,23 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
 ){display:none!important;}
 .personaggio-scena-grafica.rpg-reference-v532 > .rpg-reference-fx{
   position:absolute!important;
-  inset:0!important;
-  width:100%!important;
-  height:100%!important;
+  inset:-2% auto auto -9%!important;
+  width:118%!important;
+  height:104%!important;
   display:block!important;
   z-index:22!important;
   pointer-events:none!important;
   opacity:1!important;
-  background-image:url('./img/effetti/effetti-reference-v533.webp?v=533')!important;
+  background-image:url('./img/effetti/effetti-reference-v534.webp?v=534')!important;
   background-size:300% 200%!important;
   background-repeat:no-repeat!important;
   background-color:transparent!important;
   filter:none!important;
   transform:none!important;
   animation:none!important; /* nessun pulsare della figura/armatura */
-  mix-blend-mode:screen!important;
+  /* Pixel RGBA estratti dal collage finale: screen mescolava l'arancione
+     con il fondale verde creando la fiammata giallo-verde segnalata. */
+  mix-blend-mode:normal!important;
 }
 .rpg-reference-v532 > .rpg-reference-fx.rpg-reference-ambra{background-position:0% 0%!important;}
 .rpg-reference-v532 > .rpg-reference-fx.rpg-reference-ombra{background-position:50% 0%!important;}

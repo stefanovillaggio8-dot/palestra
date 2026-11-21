@@ -20,20 +20,20 @@ test('v533: atlas HD autentico dall ULTIMA foto approvata, alpha puro',()=>{
   'effetto-ambra','effetto-ombra','effetto-fulmine','effetto-nebula','skin-mitica'
  ]);
 });
-test('v533: la foto non viene sostituita; CSS, Shop e PNG usano lo stesso sprite',()=>{
+test('v534: lo sprite v533 rimane come archivio, il nuovo RGBA è attivo in Shop e PNG',()=>{
  const css=read('stile-rpg.css'),app=read('src/app.js');
  const atelier=read('src/rpg-atelier.js'),sw=read('sw.js');
  const index=read('index.html');
- assert.ok(css.includes("background-image:url('./img/effetti/effetti-reference-v533.webp?v=533')!important"));
- assert.ok(css.includes('mix-blend-mode:screen!important'));
+ assert.ok(css.includes("background-image:url('./img/effetti/effetti-reference-v534.webp?v=534')!important"));
+ assert.ok(css.includes('mix-blend-mode:normal!important'));
  for(const effect of ['ambra','ombra','fulmine','nebula','astrale'])
    assert.ok(css.includes('.rpg-reference-fx.rpg-reference-'+effect+'{background-position:'));
  assert.ok(app.includes('effettoReferenceV532(effettoEquipaggiato?.id)'));
- assert.ok(atelier.includes('effetti-reference-v533.webp?v=533'));
+ assert.ok(atelier.includes('effetti-reference-v534.webp?v=534'));
  assert.ok(sw.includes('effetti-reference-v533.webp?v=533'));
- assert.ok(sw.includes("percorso.includes('effetti-reference-v533.webp')"));
- assert.ok(index.includes("PALESTRA_VERSIONE = 'palestra-v533'"));
- assert.ok(sw.includes("const VERSIONE = 'palestra-v533'"));
+ assert.ok(sw.includes("percorso.includes('effetti-reference-v534.webp')"));
+ assert.ok(index.includes("PALESTRA_VERSIONE = 'palestra-v534'"));
+ assert.ok(sw.includes("const VERSIONE = 'palestra-v534'"));
 });
 test('v533: tutte le classi, gli stadi, le sei armature e i cinque FX usano la stessa foto',()=>{
  const sets={
