@@ -128,6 +128,7 @@ const FILE = [
   './src/rpg-atelier.js',
   './src/rpg-scena-cosmica.js',
   './src/rpg-energia-incarnata.js',
+  './src/rpg-effetti-approvati-v531.js',
   './anteprima-effetti-cosmici.html',
   './anteprima-armature-cosmiche.html', // v507: 6 armature x 2 effetti, con e senza armi
   './src/foto-cinematica-rpg.js',
