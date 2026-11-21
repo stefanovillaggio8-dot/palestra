@@ -4213,7 +4213,7 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
 .personaggio-scena-grafica.rpg-reference-v532{
   position:relative!important;
   isolation:isolate!important;
-  overflow:hidden!important;
+  overflow:visible!important; /* v535: i VFX si estendono oltre la foto e non perdono le code */
   transform:none!important;
 }
 .personaggio-scena-grafica.rpg-reference-v532::before,
@@ -4241,18 +4241,18 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
 ){display:none!important;}
 .personaggio-scena-grafica.rpg-reference-v532 > .rpg-reference-fx{
   position:absolute!important;
-  inset:-2% auto auto -9%!important;
-  width:118%!important;
-  height:104%!important;
+  inset:-3.5% auto auto -19%!important;
+  width:138%!important;
+  height:107%!important;
   display:block!important;
   z-index:22!important;
   pointer-events:none!important;
   opacity:1!important;
-  background-image:url('./img/effetti/effetti-reference-v534.webp?v=534')!important;
+  background-image:url('./img/effetti/effetti-reference-v535.webp?v=535')!important;
   background-size:300% 200%!important;
   background-repeat:no-repeat!important;
   background-color:transparent!important;
-  filter:none!important;
+  filter:saturate(1.1) brightness(1.08)!important;
   transform:none!important;
   animation:none!important; /* nessun pulsare della figura/armatura */
   /* Pixel RGBA estratti dal collage finale: screen mescolava l'arancione
@@ -4267,5 +4267,23 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
 @media(prefers-reduced-motion:reduce){
   .personaggio-scena-grafica.rpg-reference-v532 > .rpg-reference-fx{
     animation:none!important;filter:none!important;
+  }
+}
+
+/* v535: tutti e cinque gli effetti rimangono completi, senza taglio dai margini
+   della foto. Lo stage si estende SENZA ridisegnare il ritratto originale. */
+.aura-preview-avatar-container .personaggio-scena-grafica.rpg-reference-v532,
+.aura-preview-scene .personaggio-scena-grafica.rpg-reference-v532 {
+  overflow:visible!important;
+  isolation:isolate!important;
+}
+.aura-preview-avatar-container:has(.rpg-reference-v532),
+.aura-preview-scene:has(.rpg-reference-v532) {
+  overflow:visible!important;
+}
+@media(max-width:430px) {
+  .aura-preview-avatar-container .rpg-reference-v532 > .rpg-reference-fx {
+    left:-14%!important;
+    width:128%!important;
   }
 }
