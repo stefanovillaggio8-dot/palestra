@@ -6,6 +6,8 @@ export const ATLANTE_REFERENCE_V532='./img/effetti/effetti-reference-v532.webp?v
 // v533: atlas HD da QUEST'ULTIMA immagine approvata, sfondo e personaggio assenti.
 // La struttura dei cinque effetti e le tre classi restano identiche.
 export const ATLANTE_REFERENCE_V533='./img/effetti/effetti-reference-v533.webp?v=533';
+// v534: cinque pannelli alpha della tavola finale; blend normale senza riflessi verdastri.
+export const ATLANTE_REFERENCE_V534='./img/effetti/effetti-reference-v534.webp?v=534';
 export const EFFETTI_REFERENCE_V532=Object.freeze({
   'effetto-ambra':Object.freeze({colonna:0,riga:0,classe:'ambra'}),
   'effetto-ombra':Object.freeze({colonna:1,riga:0,classe:'ombra'}),
