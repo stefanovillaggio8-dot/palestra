@@ -1,3 +1,21 @@
+## 21/11/2026 — v531, resa approvata delle cinque aure fotografiche
+
+- Bozzetto approvato il 21/11: Scintille d'ambra, Fumo d'ombra,
+  Scarica viola, Nebulosa cosmica (Leggendaria) e Astrale (Mitica).
+- Renderer generativo Canvas **solo alpha**:
+  src/rpg-effetti-approvati-v531.js (nastri di energia, fumo, scintille,
+  lampi ramificati, nebulose, rune e sigillo sotto i piedi).
+- Si preservano i pixel originali di tutti i personaggi: volto,
+  corporatura, caschi originali di Guerriero/Berserker, armi, armature
+  e paesaggi esistenti. Niente immagini generate di nuovi personaggi.
+- Ogni armatura Shop armata usa SEMPRE il proprio base.webp per i
+  cinque effetti; l'energia è un layer Canvas sopra la foto.
+- Lo stesso renderer viene usato in Atelier, export PNG, su iPhone e
+  nel fallback offline. Nessun cambiamento a classi, rank, acquisti
+  o premi Streak; la Corona e l'Aura Divina rimangono livelli separati.
+- Migliorie ritoccabili successivamente tramite nuovi parametri Canvas,
+  senza mai ricreare/falsificare i ritratti originali.
+
 ﻿# Palestra — memoria del progetto
 
 ## 20/11/2026 — v530, effetti Shop identici senza ambienti sostitutivi
