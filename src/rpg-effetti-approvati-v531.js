@@ -204,7 +204,9 @@ export const EFFETTI_APPROVATI_RPG=Object.freeze([
  * t in secondi; su Safari iOS la densità segue il renderer host a 20fps.
  */
 export function disegnaEffettoApprovatoRpg(ctx,w,h,classe='assassino',effetto='',t=0){
-  if(!ctx||w<16||h<20||!CLASSI.includes(classe)||!EFFETTI_APPROVATI_RPG.includes(effetto))
+  if(!ctx||w<16||h<20||!CLASSI.includes(classe)||!EFFETTI_APPROVATI_RPG.includes(effetto)
+      ||typeof ctx.ellipse!=='function'||typeof ctx.translate!=='function'
+      ||typeof ctx.setLineDash!=='function'||typeof ctx.createRadialGradient!=='function')
     return false;
   ctx.save();
   if(effetto==='effetto-ombra')ombra(ctx,w,h,classe,t);
