@@ -377,8 +377,13 @@ export function disegnaEnergiaFotograficaRpg(ctx,w,h,classe='assassino',effetto=
   const particolare=texture?.[effetto];
   const altaDefinizione=Boolean(particolare&&(particolare.naturalWidth||particolare.width)>=1024);
   const atlante=texture?.atlas||texture;
-  if(!altaDefinizione&&!(atlante&&(atlante.naturalWidth||atlante.width)>=1024))return disegnaEnergiaIncarnataRpg(
-    ctx,w,h,classe,effetto,t,{fase,soggetto,buffer});
+  if(!altaDefinizione&&!(atlante&&(atlante.naturalWidth||atlante.width)>=1024)){
+    const base=disegnaEnergiaIncarnataRpg(ctx,w,h,classe,effetto,t,{fase,soggetto,buffer});
+    // Anche offline o senza texture HD, la rarità mantiene il VFX approvato.
+    if(fase==='fronte')disegnaEffettoApprovatoRpg(ctx,w,h,classe,
+      effetto==='astrale'?'skin-mitica':'effetto-nebula',t);
+    return base;
+  }
   const sx=(effetto==='astrale'?0:512),sy=classi.indexOf(classe)*512;
   ctx.save();
   // La texture e' realmente trasparente. I filamenti nitidi non devono
