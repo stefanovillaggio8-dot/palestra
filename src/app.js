@@ -77,6 +77,7 @@ import { profiloEsercizio, profiloPerPesoCorporeo, RANK, ETICHETTE_MISURA, descr
 import { formattaAura } from './aura.js';
 import { montaEffettiRpg, smontaEffettiRpg, usaEffettiViviRpg } from './effetti-rpg-canvas.js';
 import { montaScenaCosmicaRpg } from './rpg-scena-cosmica.js?v=531';
+import { effettoReferenceV532,scenaReferenceClassV532 } from './rpg-reference-v532.js?v=532';
 import { montaFotoRpg } from './aura-foto-rpg.js';
 import { montaFotoCombinataRpg, scaricaFotoCombinataRpg } from './anteprima-combinata-rpg.js?v=513';
 import { apriAtelierRpg as mostraAtelierRpg } from './rpg-atelier-ui.js?v=531';
@@ -8152,6 +8153,9 @@ function bloccoPersonaggio(profilo, st) {
   const astraleAttiva = equipaggiamentoRpg.Effetto === 'skin-mitica';
   const nebulosaAttiva = equipaggiamentoRpg.Effetto === 'effetto-nebula';
   const effettoCosmicoAttivo = astraleAttiva || nebulosaAttiva; // stesso zoom e fotografia
+  // v532: questi sono gli effetti REALI del collage approvato, non il
+  // renderer disegnato v531. Lo stesso layer vale per tutte le classi.
+  const effettoRiferimento=effettoReferenceV532(effettoEquipaggiato?.id);
   const skinEquipaggiata = null; // Astrale occupa Effetto, non può sommarsi ad altri effetti.
   const titoloEquipaggiato = OGGETTI_AURA.find((o) => o.id === equipaggiamentoRpg.Titolo && o.tipo === 'Titolo');
 
@@ -8174,8 +8178,8 @@ function bloccoPersonaggio(profilo, st) {
   // sembrerebbe montarsi al contrario.
   const scena = el('div', { class: 'personaggio-scena' });
   // v481: la Nebulosa si diffonde anche NELLA scena esterna alla foto: non più ritagliata.
-  if (nebulosaAttiva) scena.classList.add('rpg-scena-nebulosa');
-  if (astraleAttiva) scena.classList.add('rpg-scena-astrale'); // v482: atmosfera mitica SOLO fuori dal personaggio
+  if (nebulosaAttiva && !effettoRiferimento) scena.classList.add('rpg-scena-nebulosa');
+  if (astraleAttiva && !effettoRiferimento) scena.classList.add('rpg-scena-astrale'); // v482: atmosfera mitica SOLO fuori dal personaggio
   const classeId = rpg.classe ? rpg.classe.id : 'nessuna';
   const indosano = rpg.premi.filter((p) => p.sbloccato);
   const idsIndossati = indosano.map((p) => p.id);
@@ -8235,7 +8239,7 @@ function bloccoPersonaggio(profilo, st) {
     // I cosmetici equipaggiati restano visibili nel Profilo; nello Shop solo premendo Anteprima.
     if (armaturaEquipaggiata) grafica.classList.add('shop-' + armaturaEquipaggiata.id);
     if (effettoEquipaggiato) grafica.classList.add('shop-' + effettoEquipaggiato.id);
-    if (astraleAttiva) {
+    if (astraleAttiva && !effettoRiferimento) {
       grafica.classList.add('shop-skin-mitica');
       // Fallback Astrale indipendente da Canvas/RAF/IntersectionObserver.
       // Su Safari alcune anteprime fotografiche nascondevano il canvas:
@@ -8247,7 +8251,7 @@ function bloccoPersonaggio(profilo, st) {
         el('i',{class:'rpg-astrale-scintilla rpg-astrale-scintilla-c'}),
       ]));
     }
-    if (nebulosaAttiva) {
+    if (nebulosaAttiva && !effettoRiferimento) {
       // Nebulosa: solo FX sopra la foto, senza alcuna immagine sostitutiva.
       grafica.appendChild(el('div',{class:'rpg-nebulosa-presenza',aria:{hidden:'true'}}));
     }
@@ -8428,6 +8432,15 @@ function bloccoPersonaggio(profilo, st) {
       if(!fotoArmaturaRpg)applicaSkinRpg(grafica,fotoRpg,classeId,armaturaEquipaggiata?.id,null);
     },{once:true});
     grafica.appendChild(fotoRpg);
+    // L'atlas v532 contiene esclusivamente le luci estratte dal riferimento:
+    // si sovrappone con screen, nero neutro, foto e scenario NON ritoccati.
+    if(effettoRiferimento){
+      grafica.classList.add('rpg-reference-v532');
+      grafica.appendChild(el('div',{
+        class:'rpg-reference-fx '+scenaReferenceClassV532(effettoEquipaggiato.id),
+        aria:{hidden:'true'},
+      }));
+    }
     if (fotoArmaturaRpg || fotoCoronaRpg || fotoAuraDivinaRpg) grafica.classList.add('rpg-armor-photo-integrale');
     // Il rivestimento geometrico era la causa delle piastre piatte da videogioco:
     // lo conserviamo SOLO come fallback quando manca una foto vera.
@@ -8438,7 +8451,7 @@ function bloccoPersonaggio(profilo, st) {
     // Le foto integrate sono prioritarie quando rappresentano esattamente
     // classe, stato arma, armatura, Corona, Aura e skin correnti. Non mostrare
     // un pugnale già sbloccato come inesistente solo per usare una bella foto.
-    const fotoEffettoPremium=fotoArmaturaArmataRpg || veloNotteV528 ? null : percorsoScenaSpecialeRpg({
+    const fotoEffettoPremium=effettoRiferimento || fotoArmaturaArmataRpg || veloNotteV528 ? null : percorsoScenaSpecialeRpg({
       classe:classeId,
       stato:statoFotoConsentito,
       armaSbloccata,
@@ -8449,7 +8462,7 @@ function bloccoPersonaggio(profilo, st) {
       divina:false,
     });
     // v476: Astrale è un effetto, mai una nuova foto o skin.
-    const effettoVivo=usaEffettiViviRpg(astraleAttiva ? null : effettoEquipaggiato?.id || null,{
+    const effettoVivo=!effettoRiferimento && usaEffettiViviRpg(astraleAttiva ? null : effettoEquipaggiato?.id || null,{
       mitica:astraleAttiva,
     }) && Boolean(effettoEquipaggiato);
     // v531: l'effetto rimane visibile anche sulle fotografie intere con
@@ -8461,7 +8474,7 @@ function bloccoPersonaggio(profilo, st) {
     // normali effetti Shop passano sopra in livelli indipendenti come senza pugnali.
     const effettoVeloInLivello=veloNotteV528 && !effettoCosmicoAttivo && !effettoVivo
       ? effettoEquipaggiato?.id || null : null;
-    const scenaFotografica = !effettoCosmicoAttivo && (!effettoVivo || auraDivinaAttiva) && montaFotoRpg(grafica, effettoVeloInLivello || (fotoAuraDivinaRpg || fotoCoronaRpg || fotoArmaturaArmataRpg || effettoVivo || auraDivinaAttiva || astraleAttiva ? null : effettoEquipaggiato?.id || null), {
+    const scenaFotografica = !effettoRiferimento && !effettoCosmicoAttivo && (!effettoVivo || auraDivinaAttiva) && montaFotoRpg(grafica, effettoVeloInLivello || (fotoAuraDivinaRpg || fotoCoronaRpg || fotoArmaturaArmataRpg || effettoVivo || auraDivinaAttiva || astraleAttiva ? null : effettoEquipaggiato?.id || null), {
       corona: false, // Nuova Corona regale: asset indipendente
       divina: auraDivinaAttiva && !fotoAuraDivinaRpg && !fotoCoronaRpg, // se la Corona già incorpora Aura divina non sovrapporla una seconda volta.
       mitica: false, // Astrale usa i suoi effetti, mai il generico overlay Nebulosa
@@ -8471,7 +8484,7 @@ function bloccoPersonaggio(profilo, st) {
     // Per ogni combinazione possibile costruisci una FOTO reale da avatar e
     // texture (stessa faccia, stesso corpo, stesso stato, nessun duplicato).
     // I layer precedenti restano fallback in caso di Safari senza Canvas.
-    const combinata = !effettoCosmicoAttivo && !fotoCoronaRpg && !fotoArmaturaArmataRpg && !effettoVivo && !auraDivinaAttiva && !veloNotteV528 && montaFotoCombinataRpg(grafica, fotoRpg, {
+    const combinata = !effettoRiferimento && !effettoCosmicoAttivo && !fotoCoronaRpg && !fotoArmaturaArmataRpg && !effettoVivo && !auraDivinaAttiva && !veloNotteV528 && montaFotoCombinataRpg(grafica, fotoRpg, {
       classe: classeId, stato: viso.indice,
       armatura: armaturaEquipaggiata?.id || null,
       skin: astraleAttiva ? 'skin-mitica' : null,
@@ -8490,7 +8503,7 @@ function bloccoPersonaggio(profilo, st) {
       Boolean(armaturaEquipaggiata || effettoEquipaggiato || astraleAttiva || coronaAttiva);
     // Le scene preconfezionate possono già includere una corona: con i nuovi
     // livelli premium usiamo invece sempre la foto originale e sovrapposizioni distinte.
-    if(scenaRichiesta && !effettoCosmicoAttivo && !fotoCoronaRpg && !fotoArmaturaArmataRpg && !effettoVivo && !auraDivinaAttiva && !coronaAttiva && !veloNotteV528) montaScenaCinematograficaRpg(grafica,fotoRpg,{
+    if(scenaRichiesta && !effettoRiferimento && !effettoCosmicoAttivo && !fotoCoronaRpg && !fotoArmaturaArmataRpg && !effettoVivo && !auraDivinaAttiva && !coronaAttiva && !veloNotteV528) montaScenaCinematograficaRpg(grafica,fotoRpg,{
       classe:classeId,
       stato:statoFotoConsentito,
       armaSbloccata:armaSbloccata,
@@ -8506,7 +8519,7 @@ function bloccoPersonaggio(profilo, st) {
     // montaScenaCosmicaRpg. Il vecchio canvas era invisibile dopo il caricamento,
     // ma il suo requestAnimationFrame continuava a girare inutilmente su iPhone.
     // Conserviamo il vecchio renderer soltanto per gli effetti NON cosmici.
-    if (!effettoCosmicoAttivo &&
+    if (!effettoRiferimento && !effettoCosmicoAttivo &&
         (effettoVivo || (!fotoCoronaRpg && (!fotoArmaturaArmataRpg || veloNotteV528) && !scenaFotografica && !combinata))) {
       montaEffettiRpg(grafica, effettoVivo ? (astraleAttiva ? null : effettoEquipaggiato?.id || null) : null, {
         divina: false, // La fotografia già conserva l'Aura originale
@@ -8636,7 +8649,7 @@ function bloccoPersonaggio(profilo, st) {
   // mai il blocco di didascalia e mai una nuova skin.
   montaScenaCosmicaRpg(scena,grafica,{
     classe:classeId,
-    effetto:astraleAttiva?'astrale':nebulosaAttiva?'nebulosa':null,
+    effetto:effettoRiferimento?null:astraleAttiva?'astrale':nebulosaAttiva?'nebulosa':null,
     // Gli effetti sono OGGETTI Shop, non nuovi paesaggi: la fotografia
     // selezionata resta identica anche in Atelier, Profilo e anteprime.
     soloEffetti:true,
