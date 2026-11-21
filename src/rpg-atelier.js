@@ -198,7 +198,7 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
   // Non disegnare un secondo VFX: lo strato alpha è già sopra la foto.
   // Il Canvas live usato in anteprima per Fumo/Scintille/Scarica viene copiato
   // nel PNG, anziche' sostituito con un altro effetto preso dall'atlante.
-  if(effettoApprovato && !fxSenzaFoto){
+  if(effettoApprovato && !fxSenzaFoto && typeof ctx.translate==='function'){
     ctx.save();ctx.translate(dx,dy);
     if(effettoDalCanvas){
       ctx.globalCompositeOperation='screen';
