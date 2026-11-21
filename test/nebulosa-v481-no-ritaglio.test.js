@@ -8,7 +8,7 @@ test('v481 corregge il rettangolo ritagliato della Nebulosa senza toccare Astral
  const app=read('src/app.js');
  const css=read('stile-rpg.css');
  const patch=css.slice(css.lastIndexOf('/* v481 — Nebulosa LEGGENDARIA'),css.indexOf('/* v482 · NEBULOSA COSMICA'));
- assert.match(app,/if \(nebulosaAttiva\) scena\.classList\.add\('rpg-scena-nebulosa'\)/);
+ assert.match(app,/if \(nebulosaAttiva && !effettoRiferimento\) scena\.classList\.add\('rpg-scena-nebulosa'\)/);
  assert.match(patch,/\.personaggio-scena\.rpg-scena-nebulosa::before/);
  assert.match(patch,/\.personaggio-scena\.rpg-scena-nebulosa::after/);
  assert.match(patch,/overflow:visible!important/);

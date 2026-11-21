@@ -37,15 +37,15 @@ test('Ambra, Scarica viola ed Astrale scelgono il renderer visibile su iPhone mo
 });
 test('Il compositore statico non copre il rendering live, anche con corona e armatura',async()=>{
  const app=await read('src/app.js'),css=await read('stile-rpg.css');
- const start=app.indexOf('const effettoVivo=usaEffettiViviRpg(');
+ const start=app.indexOf('const effettoVivo=!effettoRiferimento && usaEffettiViviRpg(');
  const end=app.indexOf('// LA FILMSTRIP:',start);
  assert.ok(start>0&&end>start);
  const b=app.slice(start,end);
  assert.match(b,/mitica:astraleAttiva,\s*\}\) && Boolean\(effettoEquipaggiato\)/,
    'I nuovi effetti Canvas funzionano con tutte le armature Shop, Corona e Aura Divina');
- assert.match(b,/if \(!effettoCosmicoAttivo &&\s*\(effettoVivo \|\|/,
+ assert.match(b,/if \(!effettoRiferimento && !effettoCosmicoAttivo &&\s*\(effettoVivo \|\|/,
    'Il Canvas legacy non deve continuare ad animarsi nascosto dietro Astrale e Nebulosa');
- assert.match(b,/!effettoCosmicoAttivo && \(!effettoVivo \|\| auraDivinaAttiva\) && montaFotoRpg/);
+ assert.match(b,/!effettoRiferimento && !effettoCosmicoAttivo && \(!effettoVivo \|\| auraDivinaAttiva\) && montaFotoRpg/);
  assert.match(b,/!effettoCosmicoAttivo && !fotoCoronaRpg && !fotoArmaturaArmataRpg && !effettoVivo && !auraDivinaAttiva && !veloNotteV528 && montaFotoCombinataRpg/);
  assert.match(b,/scenaRichiesta && !effettoCosmicoAttivo && !fotoCoronaRpg && !fotoArmaturaArmataRpg && !effettoVivo/);
  assert.match(b,/montaEffettiRpg\(grafica, effettoVivo \? \(astraleAttiva \? null : effettoEquipaggiato\?\.id \|\| null\) : null/);
