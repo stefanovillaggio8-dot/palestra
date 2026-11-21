@@ -8,6 +8,8 @@ export const ATLANTE_REFERENCE_V532='./img/effetti/effetti-reference-v532.webp?v
 export const ATLANTE_REFERENCE_V533='./img/effetti/effetti-reference-v533.webp?v=533';
 // v534: cinque pannelli alpha della tavola finale; blend normale senza riflessi verdastri.
 export const ATLANTE_REFERENCE_V534='./img/effetti/effetti-reference-v534.webp?v=534';
+// v535: provenienza identica, estrazione più fedele e ricca anche ai bordi.
+export const ATLANTE_REFERENCE_V535='./img/effetti/effetti-reference-v535.webp?v=535';
 export const EFFETTI_REFERENCE_V532=Object.freeze({
   'effetto-ambra':Object.freeze({colonna:0,riga:0,classe:'ambra'}),
   'effetto-ombra':Object.freeze({colonna:1,riga:0,classe:'ombra'}),
