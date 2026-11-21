@@ -335,14 +335,13 @@ export function montaEffettiRpg(elemento,tipo,{corona=false,divina=false,mitica=
     else if(tipo==='effetto-fulmine')arc(t);
     else if(tipo==='effetto-nebula')nebula(t);
     else if(divina||corona)ambient(t);
-    // Le scintille e gli archi sono già posizionati fuori dal bordo corporeo.
-    // La vecchia grande maschera ovale li eliminava quasi tutti su iPhone!
-    // La cancellazione sfumata rimane SOLO per i vapori più diffusi.
-    if(tipo==='effetto-ombra') cancellaCorpo(); // Nebulosa ha maschere geometriche proprie
     // v531: lo stesso VFX approvato in tutte le combinazioni e nell'export.
     // Disegna SOLO energia trasparente, mai corpo, casco, vestiti o panorama.
     if(TIPI.has(tipo) && tipo!=='effetto-nebula')
       disegnaEffettoApprovatoRpg(ctx,w,h,personaggio,tipo,t);
+    // La cancellazione sfumata del corpo si applica ANCHE ai nuovi vapori:
+    // non deve mai alterare il volto o coprire il casco del personaggio.
+    if(tipo==='effetto-ombra') cancellaCorpo();
     aura(t);
   }
   function paginaNascosta() {
