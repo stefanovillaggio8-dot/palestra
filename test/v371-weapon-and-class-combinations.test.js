@@ -18,7 +18,7 @@ test('v371: weapons never appear before day-30 unlocked state',()=>{
      assert.equal(url,null);
    }
 });
-test('v529: 31 photographic armed Shop variants, 6 effects keep the same Velo armor',()=>{
+test('v531: tutte le 6 armature armate mantengono la stessa foto indipendentemente dall’effetto',()=>{
  const paths=new Set();
  for(const [classe,armature] of Object.entries(CLASSI))
   for(const armatura of armature)
@@ -26,10 +26,8 @@ test('v529: 31 photographic armed Shop variants, 6 effects keep the same Velo ar
      const args={classe,armatura,stato:5,effetto,armaSbloccata:true};
      const url=percorsoFotoArmaturaArmataV371(args);
      assert.ok(url?.includes('/armatura-con-arma-v371/'),JSON.stringify(args));
-     if(classe==='assassino'&&armatura==='armatura-assassino-notte') {
-       assert.match(url,/\/armatura-assassino-notte\/base\.webp\?v=528$/,
-         'Ambra, Ombra, Fulmine e gli altri effetti non devono modificare l’armatura');
-     } else assert.ok(!paths.has(url),url);
+     assert.match(url,/\/base\.webp\?v=(528|372)$/,
+       'Gli effetti devono essere Canvas trasparente e non foto di una nuova armatura');
      paths.add(url);
      assert.equal(percorsoFotoArmaturaArmataV371({...args,stato:3}),null);
      assert.equal(percorsoFotoArmaturaArmataV371({...args,stato:4}),url);
@@ -40,7 +38,7 @@ test('v529: 31 photographic armed Shop variants, 6 effects keep the same Velo ar
      assert.equal(magic.toString('ascii',0,4),'RIFF');
      assert.equal(magic.toString('ascii',8,12),'WEBP');
    }
- assert.equal(paths.size,31);
+ assert.equal(paths.size,6);
 });
 test('v371: wrong-class armor and unknown effects are refused',()=>{
  assert.equal(percorsoFotoArmaturaArmataV371({classe:'assassino',armatura:'armatura-guerriero-abisso',stato:5,armaSbloccata:true}),null);
