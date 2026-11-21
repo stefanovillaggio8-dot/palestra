@@ -65,7 +65,7 @@ test('v531: anteprima, export, Safari offline condividono lo stesso renderer',()
   for(const file of [atelier,canvas,cosmic])assert.match(file,/disegnaEffettoApprovatoRpg/);
   assert.match(app,/const effettoVivo=usaEffettiViviRpg/);
   assert.match(app,/effettoVivo \|\| \(!fotoCoronaRpg/);
-  assert.match(atelier,/if\(effettoApprovato && !fxSenzaFoto\)/);
+  assert.match(atelier,/if\(effettoApprovato && !fxSenzaFoto && typeof ctx\.translate==='function'\)/);
   assert.match(atelier,/c\.effetto,2\.8/);
   assert.match(cosmic,/fase==='fronte'\)disegnaEffettoApprovatoRpg/);
   assert.match(sw,/src\/rpg-effetti-approvati-v531\.js/);
