@@ -4205,7 +4205,7 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
 }
 
 
-/* v532 — COPIA DEGLI EFFETTI DALL'IMMAGINE APPROVATA, NON UN ALTRO
+/* v533 — ULTIMA TAVOLA APPROVATA: texture HD reali da FOTO, non un altro
  * DISEGNO DI CERCHI/FILI. L'atlas WebP contiene SOLO il bagliore isolato
  * dalla reference; i pixel neri sono neutri con screen. Nessuna armatura,
  * casco, volto, corpo, arma o sfondo e' nella texture, e non si modificano
@@ -4248,7 +4248,7 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
   z-index:22!important;
   pointer-events:none!important;
   opacity:1!important;
-  background-image:url('./img/effetti/effetti-reference-v532.webp?v=532')!important;
+  background-image:url('./img/effetti/effetti-reference-v533.webp?v=533')!important;
   background-size:300% 200%!important;
   background-repeat:no-repeat!important;
   background-color:transparent!important;

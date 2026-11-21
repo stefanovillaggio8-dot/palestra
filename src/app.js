@@ -76,12 +76,12 @@ import { confrontoGiorno, confrontiMensili, GIORNI_UN_MESE } from './confronto-m
 import { profiloEsercizio, profiloPerPesoCorporeo, RANK, ETICHETTE_MISURA, descriviPunteggio, descrizioneLivello, livelloEsercizio, impostaLivelliImparati, livelliImparati, rapportoDifficolta, MOLTIPLICATORI_SOGLIA, passoCaricabile } from './rank-config.js';
 import { formattaAura } from './aura.js';
 import { montaEffettiRpg, smontaEffettiRpg, usaEffettiViviRpg } from './effetti-rpg-canvas.js';
-import { montaScenaCosmicaRpg } from './rpg-scena-cosmica.js?v=532';
-import { effettoReferenceV532,scenaReferenceClassV532 } from './rpg-reference-v532.js?v=532';
+import { montaScenaCosmicaRpg } from './rpg-scena-cosmica.js?v=533';
+import { effettoReferenceV532,scenaReferenceClassV532 } from './rpg-reference-v532.js?v=533';
 import { montaFotoRpg } from './aura-foto-rpg.js';
 import { montaFotoCombinataRpg, scaricaFotoCombinataRpg } from './anteprima-combinata-rpg.js?v=513';
-import { apriAtelierRpg as mostraAtelierRpg } from './rpg-atelier-ui.js?v=532';
-import { ARMATURE_ATELIER } from './rpg-atelier.js?v=532';
+import { apriAtelierRpg as mostraAtelierRpg } from './rpg-atelier-ui.js?v=533';
+import { ARMATURE_ATELIER } from './rpg-atelier.js?v=533';
 import { applicaSkinRpg } from './skin-rpg-fedele.js';
 import { montaScenaCinematograficaRpg, armaSbloccataRpg, percorsoScenaSpecialeRpg } from './foto-cinematica-rpg.js';
 import { elencoAvatar, avatarPerId, gradienteAvatar, iniziali } from './avatar.js';
@@ -8433,7 +8433,7 @@ function bloccoPersonaggio(profilo, st) {
       if(!fotoArmaturaRpg)applicaSkinRpg(grafica,fotoRpg,classeId,armaturaEquipaggiata?.id,null);
     },{once:true});
     grafica.appendChild(fotoRpg);
-    // L'atlas v532 contiene esclusivamente le luci estratte dal riferimento:
+    // v533: texture ad alta risoluzione dell'ULTIMA tavola scelta: cinque VFX precisi,
     // si sovrappone con screen, nero neutro, foto e scenario NON ritoccati.
     if(effettoRiferimento){
       grafica.classList.add('rpg-reference-v532');
