@@ -39,7 +39,7 @@ test('v532: Shop e personaggio usano i frame originali, senza renderer v531 dupl
  assert.match(app,/const fotoEffettoPremium=effettoRiferimento \|\|/);
  assert.match(app,/const scenaFotografica = !effettoRiferimento &&/);
 });
-test('v534: livelli RGBA non dipingono personaggio, casco, sfondo o foto',()=>{
+test('v535: livelli RGBA non dipingono personaggio, casco, sfondo o foto',()=>{
  const css=read('stile-rpg.css');
  assert.match(css,/rpg-reference-v532 > \.rpg-reference-fx/);
  assert.match(css,/mix-blend-mode:normal!important/);
@@ -64,13 +64,13 @@ test('v532: 3 classi x 2 armature x ogni effetto usano stessa foto con armi sblo
 });
 test('v532: Atelier export PNG ha esattamente la stessa texture e cache offline',()=>{
  const atelier=read('src/rpg-atelier.js'),sw=read('sw.js');
- assert.match(atelier,/new URL\('\.\.\/img\/effetti\/effetti-reference-v534\.webp\?v=534'/);
+ assert.match(atelier,/new URL\('\.\.\/img\/effetti\/effetti-reference-v535\.webp\?v=535'/);
  assert.match(atelier,/if\(riferimentoV532\)\{/);
  assert.match(atelier,/ctx\.globalCompositeOperation='source-over'/);
  assert.match(atelier,/riferimentoV532\.colonna\*cellW,riferimentoV532\.riga\*cellH/);
  assert.match(sw,/effetti-reference-v532\.webp\?v=532/);
  assert.match(sw,/FOTO_DECORATIVE\.test\(percorso\) \|\| percorso\.includes\('effetti-reference-v532\.webp'\)/);
  assert.match(sw,/src\/rpg-reference-v532\.js/);
- assert.match(sw,/const VERSIONE = 'palestra-v534'/);
- assert.match(read('index.html'),/PALESTRA_VERSIONE = 'palestra-v534'/);
+ assert.match(sw,/const VERSIONE = 'palestra-v535'/);
+ assert.match(read('index.html'),/PALESTRA_VERSIONE = 'palestra-v535'/);
 });
