@@ -1,3 +1,4 @@
+import { disegnaEffettoApprovatoRpg } from './rpg-effetti-approvati-v531.js?v=531';
 // Aura Shop v331 — effetti particellari con occlusione reale davanti all'avatar.
 // Le particelle vengono renderizzate nell'ambiente fotografico e poi cancellate
 // dove si trova la sagoma del personaggio: non attraversano faccia o armatura.
@@ -338,6 +339,10 @@ export function montaEffettiRpg(elemento,tipo,{corona=false,divina=false,mitica=
     // La vecchia grande maschera ovale li eliminava quasi tutti su iPhone!
     // La cancellazione sfumata rimane SOLO per i vapori più diffusi.
     if(tipo==='effetto-ombra') cancellaCorpo(); // Nebulosa ha maschere geometriche proprie
+    // v531: lo stesso VFX approvato in tutte le combinazioni e nell'export.
+    // Disegna SOLO energia trasparente, mai corpo, casco, vestiti o panorama.
+    if(TIPI.has(tipo) && tipo!=='effetto-nebula')
+      disegnaEffettoApprovatoRpg(ctx,w,h,personaggio,tipo,t);
     aura(t);
   }
   function paginaNascosta() {
