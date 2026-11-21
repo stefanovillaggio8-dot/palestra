@@ -8449,9 +8449,11 @@ function bloccoPersonaggio(profilo, st) {
       divina:false,
     });
     // v476: Astrale è un effetto, mai una nuova foto o skin.
-    const effettoVivo=!auraDivinaAttiva && usaEffettiViviRpg(astraleAttiva ? null : effettoEquipaggiato?.id || null,{
+    const effettoVivo=usaEffettiViviRpg(astraleAttiva ? null : effettoEquipaggiato?.id || null,{
       mitica:astraleAttiva,
-    }) && (effettoCosmicoAttivo || (!fotoCoronaRpg && (!fotoArmaturaArmataRpg || veloNotteV528) && !fotoEffettoPremium));
+    }) && Boolean(effettoEquipaggiato);
+    // v531: l'effetto rimane visibile anche sulle fotografie intere con
+    // armi, armature Shop, premi divini o Corona: non cambia il soggetto.
     // Ambra, Fulmine e Astrale usano UN solo renderer Canvas. Prima il
     // compositore fotografico li nascondeva tramite rpg-composite-active.
     if (effettoVivo) grafica.classList.add('rpg-render-live');
@@ -8504,8 +8506,8 @@ function bloccoPersonaggio(profilo, st) {
     // montaScenaCosmicaRpg. Il vecchio canvas era invisibile dopo il caricamento,
     // ma il suo requestAnimationFrame continuava a girare inutilmente su iPhone.
     // Conserviamo il vecchio renderer soltanto per gli effetti NON cosmici.
-    if (!effettoCosmicoAttivo && !fotoCoronaRpg && (!fotoArmaturaArmataRpg || veloNotteV528) &&
-        (effettoVivo || (!scenaFotografica && !combinata))) {
+    if (!effettoCosmicoAttivo &&
+        (effettoVivo || (!fotoCoronaRpg && (!fotoArmaturaArmataRpg || veloNotteV528) && !scenaFotografica && !combinata))) {
       montaEffettiRpg(grafica, effettoVivo ? (astraleAttiva ? null : effettoEquipaggiato?.id || null) : null, {
         divina: false, // La fotografia già conserva l'Aura originale
         corona: false,
