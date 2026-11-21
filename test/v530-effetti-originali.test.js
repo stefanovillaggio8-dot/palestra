@@ -58,5 +58,5 @@ test('v530: Fumo usa vapori dal Canvas, Scarica tocca il corpo',t=>{
   assert.match(canvas,/\.006 \+ rnd\(ray.seed/);
   assert.match(canvas,/\*\.023\)/);
   const atelier=read('src/rpg-atelier.js');
-  assert.match(atelier,/ctx\.drawImage\(canvasEffetto,dx,dy,dw,dh\)/);
+  assert.match(atelier,/ctx\.drawImage\(canvasEffetto,0,0,dw,dh\)/);
 });
