@@ -2,6 +2,7 @@
 // ritratti canonici di img/personaggi/stati. Volto, posa e corporatura invariati.
 // Nessun acquisto/record viene modificato dalle anteprime o dal download.
 import { AURA_FOTO_ATLAS } from './aura-foto-atlas.js';
+import { disegnaEffettoApprovatoRpg, EFFETTI_APPROVATI_RPG } from './rpg-effetti-approvati-v531.js?v=531';
 import { FOTO_RPG_RIQUADRI, livelliFotoRpg } from './aura-foto-rpg.js';
 import { fasciaSagoma, disegnaCoronaEnergetica } from './anteprima-combinata-rpg.js?v=513';
 import { fotoCinematograficaRpg } from './foto-cinematica-rpg.js';
@@ -79,12 +80,8 @@ const fotoPronta = async(el)=>{
 export async function renderFotoAtelier(grafica, opzioni={}) {
   if(typeof document==='undefined')throw new Error('Serve il browser');
   const input=opzioniAtelier(opzioni);
-  const c=input.divina?{
-    ...input,stadio:5,
-    // Il Velo v528 compone i livelli indipendenti senza il vecchio collage:
-    // le altre armature mantengono la regola originale dei premi divini.
-    effetto:usaRitrattoVeloNotteV528(input.classe,input.armatura)?input.effetto:'',
-  }:input;
+  const c=input.divina?{...input,stadio:5}:input;
+  // v531: Aura Divina e Corona non annullano il livello effetti dello Shop.
   const veloNotteV528=usaRitrattoVeloNotteV528(c.classe,c.armatura);
   const fotoBase=await fotoPronta(grafica?.querySelector?.('.personaggio-ritratto'));
   // Non usare un ritaglio alpha alternativo: l'Atelier esporta proprio la
@@ -95,7 +92,7 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
   // Se il collage non e' installato resta il renderer precedente.
   const fotoCorona=c.corona && !veloNotteV528 ? percorsoFotoCoronaV360({
     classe:c.classe,stato:c.stadio,armatura:c.armatura||null,
-    effetto:fxSenzaFoto?null:(c.effetto||null),divina:c.divina,armaSbloccata:c.stadio>=4,
+    effetto:null,divina:c.divina,armaSbloccata:c.stadio>=4,
   }) : null;
   // Aura alone is already baked into all nine full-armored Shop/standard photos.
   // The Atelier never adds a second Shop effect to Divine Aura.
@@ -105,9 +102,9 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
   }):null;
   const fotoArmata=(!c.corona&&!c.divina || veloNotteV528) ? percorsoFotoArmaturaArmataV371({
     classe:c.classe,stato:c.stadio,armatura:c.armatura||null,
-    effetto:fxSenzaFoto?null:(c.effetto||null),armaSbloccata:c.stadio>=4,
+    effetto:null,armaSbloccata:c.stadio>=4,
   }) : null;
-  const scena=fotoDivina||fotoCorona||fotoArmata||((veloNotteV528||c.divina||fxSenzaFoto)?null:await fotoCinematograficaRpg({...c,corona:false,divina:false}));
+  const scena=fotoDivina||fotoCorona||fotoArmata||((veloNotteV528||c.divina||Boolean(c.effetto))?null:await fotoCinematograficaRpg({...c,corona:false,divina:false}));
   // Con Astrale/Nebulosa il ritratto mostrato nell'Atelier e' l'autorita':
   // non caricare una seconda foto con armi diverse da quelle visibili.
   const immagine=fxSenzaFoto ? fotoBase
@@ -148,7 +145,8 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
   const canvasEffetto=grafica.querySelector?.('.rpg-effetti-canvas');
   const effettoDalCanvas=!fxSenzaFoto && Boolean(c.effetto) &&
     Boolean(canvasEffetto?.width && canvasEffetto?.height);
-  const livelli=effettoDalCanvas ? livelliFotoRpg(null,{divina:c.divina})
+  const effettoApprovato=EFFETTI_APPROVATI_RPG.includes(c.effetto);
+  const livelli=effettoApprovato ? (!fotoDivina && c.divina ? livelliFotoRpg(null,{divina:true}):[])
     : fxSenzaFoto ? (veloNotteV528 && c.divina
       ? livelliFotoRpg(null,{divina:true}):[]) : (veloNotteV528
     ? livelliFotoRpg(c.effetto,{mitica:false,corona:false,divina:c.divina})
@@ -200,10 +198,16 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
   // Non disegnare un secondo VFX: lo strato alpha è già sopra la foto.
   // Il Canvas live usato in anteprima per Fumo/Scintille/Scarica viene copiato
   // nel PNG, anziche' sostituito con un altro effetto preso dall'atlante.
-  if(effettoDalCanvas){
-    ctx.save();
-    ctx.globalCompositeOperation=c.effetto==='effetto-ombra'?'source-over':'screen';
-    ctx.drawImage(canvasEffetto,dx,dy,dw,dh);
+  if(effettoApprovato && !fxSenzaFoto){
+    ctx.save();ctx.translate(dx,dy);
+    if(effettoDalCanvas){
+      ctx.globalCompositeOperation='screen';
+      ctx.drawImage(canvasEffetto,0,0,dw,dh);
+    }else{
+      // Prima del primo frame, con movimento ridotto e offline la stessa
+      // geometria approvata è riproducibile in modo deterministico nel PNG.
+      disegnaEffettoApprovatoRpg(ctx,dw,dh,c.classe,c.effetto,2.8);
+    }
     ctx.restore();
   }
 
