@@ -146,7 +146,7 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
   const effettoDalCanvas=!fxSenzaFoto && Boolean(c.effetto) &&
     Boolean(canvasEffetto?.width && canvasEffetto?.height);
   const effettoApprovato=EFFETTI_APPROVATI_RPG.includes(c.effetto);
-  const livelli=effettoApprovato ? (!fotoDivina && c.divina ? livelliFotoRpg(null,{divina:true}):[])
+  const livelli=effettoApprovato ? (!fotoDivina && !fotoCorona && c.divina ? livelliFotoRpg(null,{divina:true}):[])
     : fxSenzaFoto ? (veloNotteV528 && c.divina
       ? livelliFotoRpg(null,{divina:true}):[]) : (veloNotteV528
     ? livelliFotoRpg(c.effetto,{mitica:false,corona:false,divina:c.divina})
