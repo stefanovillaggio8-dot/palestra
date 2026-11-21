@@ -8390,7 +8390,7 @@ function bloccoPersonaggio(profilo, st) {
     const fotoCoronaRpg = coronaAttiva && !veloNotteV528 ? percorsoFotoCoronaV360({
       classe:classeId,stato:statoFotoConsentito,
       armatura:armaturaEquipaggiata?.id || null,
-      effetto:effettoCosmicoAttivo ? null : effettoEquipaggiato?.id || null,
+      effetto:null, // v531: ritratto della Corona uguale per ogni effetto
       divina:auraDivinaAttiva, // Corona + Aura Divina coesistono nella stessa foto fedele, senza duplicati.
       armaSbloccata,
     }) : null;
@@ -8403,7 +8403,7 @@ function bloccoPersonaggio(profilo, st) {
       divina:auraDivinaAttiva && !veloNotteV528,
       armatura:armaturaEquipaggiata?.id || null,
       corona:coronaAttiva,
-      effetto:effettoCosmicoAttivo ? null : effettoEquipaggiato?.id || null,
+      effetto:null, // le luci Shop sono Canvas, mai foto Divina alternative
       anteprima:auraDivinaAnteprima,
       armaSbloccata,
     });
