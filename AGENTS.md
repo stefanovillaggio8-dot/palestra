@@ -1,3 +1,25 @@
+## 21/11/2026 — v533: NON reinterpretare più i cinque effetti approvati
+- **Unico riferimento visivo approvato:** l'ULTIMA tavola ricevuta,
+  con Scintille d'ambra (fiammate arancio), Fumo d'ombra (volute viola),
+  Scarica viola (lampi pieni ramificati), Nebulosa cosmica (galassia
+  blu/viola), Astrale mitico (sigillo runico brillante ai piedi e
+  archi violacei). NIENTE filamenti stilizzati v531 o texture v532 ridotte.
+- L'atlas `img/effetti/effetti-reference-v533.webp` deriva ESATTAMENTE
+  dall'ultima immagine approvata, in alta qualità RGBA 1152×638 (384×319
+  per ogni effetto); contiene solo luce alpha e azzera/attenua la regione
+  del soggetto. Non disegnare mai foto/corpo/volto/copricapo nell'effetto.
+- Per Assassino/Guerriero/Berserker, tutti gli stadi, tutte le sei armature
+  e gli oggetti combinati: mantenere le fotografie ORIGINALI e l'asset
+  degli EFFETTI su un livello `screen`. Guerriero e Berserker devono
+  mantenere il proprio elmo, l'Assassino il proprio volto, armi e anatomia.
+  Stesso zoom e fondale preesistente, senza pannelli di fantasia.
+- Shop, profilo, Atelier ed export PNG usano TUTTI l'atlas v533; PWA cache
+  v533 lo precarica. I premi, Aura divina, Corona, streak e dati salvati
+  rimangono immutati. Non affermare che screenshot reali siano stati
+  verificati su iPhone se non c'è una verifica manuale.
+- Preferire verificare il risultato con foto originali di tutte le classi,
+  non con personaggi rigenerati dalla tavola illustrativa.
+
 ## 21/11/2026 — v532, riferimento grafico reale obbligatorio
 
 - Lo screenshot approvato dall'utente il 21/11/2026 e' la SOURCE OF TRUTH,

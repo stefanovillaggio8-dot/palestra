@@ -3,6 +3,9 @@
 // pixel di faccia, corporatura, corazza, casco, armi o sfondo viene sostituito.
 // Colonne da sinistra: Ambra, Ombra, Fulmine. Seconda riga: Nebulosa, Astrale.
 export const ATLANTE_REFERENCE_V532='./img/effetti/effetti-reference-v532.webp?v=532';
+// v533: atlas HD da QUEST'ULTIMA immagine approvata, sfondo e personaggio assenti.
+// La struttura dei cinque effetti e le tre classi restano identiche.
+export const ATLANTE_REFERENCE_V533='./img/effetti/effetti-reference-v533.webp?v=533';
 export const EFFETTI_REFERENCE_V532=Object.freeze({
   'effetto-ambra':Object.freeze({colonna:0,riga:0,classe:'ambra'}),
   'effetto-ombra':Object.freeze({colonna:1,riga:0,classe:'ombra'}),

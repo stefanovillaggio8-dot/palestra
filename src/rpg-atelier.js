@@ -3,11 +3,11 @@
 // Nessun acquisto/record viene modificato dalle anteprime o dal download.
 import { AURA_FOTO_ATLAS } from './aura-foto-atlas.js';
 import { disegnaEffettoApprovatoRpg, EFFETTI_APPROVATI_RPG } from './rpg-effetti-approvati-v531.js?v=531';
-import { effettoReferenceV532 } from './rpg-reference-v532.js?v=532';
+import { effettoReferenceV532 } from './rpg-reference-v532.js?v=533';
 import { FOTO_RPG_RIQUADRI, livelliFotoRpg } from './aura-foto-rpg.js';
 import { fasciaSagoma, disegnaCoronaEnergetica } from './anteprima-combinata-rpg.js?v=513';
 import { fotoCinematograficaRpg } from './foto-cinematica-rpg.js';
-import {disegnaAtmosferaCosmicaRpg,disegnaAccentiCosmiciRpg,disegnaSoggettoCosmicoRpg,disegnaSfondoFotograficoCosmicoRpg,disegnaFotografiaFusaRpg} from './rpg-scena-cosmica.js?v=532';
+import {disegnaAtmosferaCosmicaRpg,disegnaAccentiCosmiciRpg,disegnaSoggettoCosmicoRpg,disegnaSfondoFotograficoCosmicoRpg,disegnaFotografiaFusaRpg} from './rpg-scena-cosmica.js?v=533';
 import {caricaEnergiaFotograficaRpg,disegnaEnergiaFotograficaRpg} from './rpg-energia-incarnata.js';
 import { percorsoFotoCoronaV360 } from './foto-corona-v360.js';
 import { percorsoFotoAuraDivinaV366 } from './foto-aura-divina-v366.js';
@@ -205,7 +205,7 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
     // La fonte è il VERO ritaglio approvato e precaricato dalla PWA, identico
     // all'anteprima Shop: cinque celle su sfondo nero per compositing screen.
     const atlas=await attesaImmagine(
-      new URL('../img/effetti/effetti-reference-v532.webp?v=532',import.meta.url).href);
+      new URL('../img/effetti/effetti-reference-v533.webp?v=533',import.meta.url).href);
     const cellW=atlas.naturalWidth/3,cellH=atlas.naturalHeight/2;
     ctx.save();ctx.globalCompositeOperation='screen';
     ctx.drawImage(atlas,
