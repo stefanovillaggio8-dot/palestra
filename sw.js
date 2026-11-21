@@ -87,8 +87,8 @@ const FILE = [
   './src/effetti-rpg-canvas.js',
   './src/rpg-reference-v532.js',
   './img/effetti/effetti-reference-v532.webp?v=532', // compatibilità regression v532
-  './img/effetti/effetti-reference-v533.webp?v=533',
-  './img/effetti/effetti-reference-v534.webp?v=534', // cinque VFX RGBA dal riferimento finale // HD 1152x638, APPROVATA dall'utente
+  './img/effetti/effetti-reference-v533.webp?v=533', // archivio storico v533
+  './img/effetti/effetti-reference-v534.webp?v=534', // cinque VFX RGBA dal riferimento finale
   './src/aura-foto-atlas.js',
   './src/aura-foto-rpg.js',
   './img/effetti/astrale-sovrano-v474.svg', // fallback offline senza Canvas
