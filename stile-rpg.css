@@ -4156,8 +4156,8 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
  * rimane interamente visibile: sfondo, volto, mantello, armi e stivali. */
 .personaggio-scena.rpg-effetti-solo-scena:is(.rpg-scena-astrale,.rpg-scena-nebulosa),
 .rpg-atelier-avatar .personaggio-scena.rpg-effetti-solo-scena:is(.rpg-scena-astrale,.rpg-scena-nebulosa) {
-  background:radial-gradient(80% 80% at 50% 0%,rgba(165,140,255,.11),transparent 70%),#141321!important;
-  background-image:radial-gradient(80% 80% at 50% 0%,rgba(165,140,255,.11),transparent 70%)!important;
+  background:radial-gradient(80% 80% at 50% 0%,rgba(165,140,255,.11),transparent 70%),linear-gradient(145deg,#202b26,#141d19)!important;
+  background-image:radial-gradient(80% 80% at 50% 0%,rgba(165,140,255,.11),transparent 70%),linear-gradient(145deg,#202b26,#141d19)!important;
 }
 .personaggio-scena.rpg-effetti-solo-scena::before,
 .personaggio-scena.rpg-effetti-solo-scena::after,
