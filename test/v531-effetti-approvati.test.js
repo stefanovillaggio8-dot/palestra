@@ -57,18 +57,18 @@ test('v531: 3 classi x 2 armature x 6 stati x 5 effetti mai nuovi ritratti',()=>
         if(base)assert.match(base,/\/base\.webp\?v=(528|372)$/);
       }
 });
-test('v531: anteprima, export, Safari offline condividono lo stesso renderer',()=>{
+test('v531: renderer legacy mantenuto come fallback, il riferimento v532 ha la precedenza',()=>{
   const app=read('src/app.js'),atelier=read('src/rpg-atelier.js'),
     canvas=read('src/effetti-rpg-canvas.js'),
     cosmic=read('src/rpg-energia-incarnata.js'),
     sw=read('sw.js'),css=read('stile-rpg.css');
   for(const file of [atelier,canvas,cosmic])assert.match(file,/disegnaEffettoApprovatoRpg/);
-  assert.match(app,/const effettoVivo=usaEffettiViviRpg/);
+  assert.match(app,/const effettoVivo=!effettoRiferimento && usaEffettiViviRpg/);
   assert.match(app,/effettoVivo \|\| \(!fotoCoronaRpg/);
   assert.match(atelier,/if\(effettoApprovato && !fxSenzaFoto && typeof ctx\.translate==='function'\)/);
   assert.match(atelier,/c\.effetto,2\.8/);
   assert.match(cosmic,/fase==='fronte'\)disegnaEffettoApprovatoRpg/);
   assert.match(sw,/src\/rpg-effetti-approvati-v531\.js/);
   assert.match(css,/rpg-effetti-solo-stage/);
-  assert.match(sw,/const VERSIONE = 'palestra-v531'/);
+  assert.match(sw,/const VERSIONE = 'palestra-v532'/);
 });

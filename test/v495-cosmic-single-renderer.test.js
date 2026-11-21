@@ -9,7 +9,7 @@ test('v495: una sola animazione per Astrale e Nebulosa, senza canvas legacy nasc
   // Il vecchio renderer resta per Ambra e Fulmine, ma non e' montato per i
   // due effetti cosmici. La scena v494 ha già un loop condiviso per i 2 piani.
   const posCanvas=codice.indexOf('montaEffettiRpg(grafica, effettoVivo');
-  const inizioGuardia=codice.lastIndexOf('if (!effettoCosmicoAttivo',posCanvas);
+  const inizioGuardia=codice.lastIndexOf('if (!effettoRiferimento && !effettoCosmicoAttivo',posCanvas);
   assert.ok(posCanvas>0 && inizioGuardia>0,'guardia canvas vecchio assente');
   const guardia=codice.slice(inizioGuardia,posCanvas);
   assert.match(guardia,/!fotoCoronaRpg && \(!fotoArmaturaArmataRpg \|\| veloNotteV528\)/);
