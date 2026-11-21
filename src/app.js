@@ -8463,7 +8463,7 @@ function bloccoPersonaggio(profilo, st) {
       ? effettoEquipaggiato?.id || null : null;
     const scenaFotografica = !effettoCosmicoAttivo && (!effettoVivo || auraDivinaAttiva) && montaFotoRpg(grafica, effettoVeloInLivello || (fotoAuraDivinaRpg || fotoCoronaRpg || fotoArmaturaArmataRpg || effettoVivo || auraDivinaAttiva || astraleAttiva ? null : effettoEquipaggiato?.id || null), {
       corona: false, // Nuova Corona regale: asset indipendente
-      divina: auraDivinaAttiva && !fotoAuraDivinaRpg, // v367 SVG artwork preserves original photo with a single Divine aura; do not duplicate it.
+      divina: auraDivinaAttiva && !fotoAuraDivinaRpg && !fotoCoronaRpg, // se la Corona già incorpora Aura divina non sovrapporla una seconda volta.
       mitica: false, // Astrale usa i suoi effetti, mai il generico overlay Nebulosa
       classe: classeId,
     });
