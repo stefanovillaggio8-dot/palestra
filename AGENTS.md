@@ -1,3 +1,24 @@
+## 21/11/2026 — v532, riferimento grafico reale obbligatorio
+
+- Lo screenshot approvato dall'utente il 21/11/2026 e' la SOURCE OF TRUTH,
+  non un generico bozzetto di particelle. Gli effetti v531 erano sbagliati:
+  risultavano fili sottili e portali a colonne, non come la foto approvata.
+- I 5 effetti sono stati ISOLATI dalla foto di riferimento in un atlante WebP,
+  senza personaggio, armi, volto o armature. Il layer e' nero di fondo,
+  sovrapposto con blend mode screen (nero neutro), e non modifica lo sfondo.
+- V532 src/rpg-reference-v532.js mappa Ambra/Ombra/Fulmine/Nebulosa/Astrale.
+  img/effetti/effetti-reference-v532.webp ne contiene l'energia vera.
+- App e Shop mostrano SOLTANTO questa fonte, senza aggiungere le vecchie
+  atmosfere astrali o la scena fotografica alternativa. L'Atelier PNG
+  ritaglia la stessa identica cella. Asset precaricato offline nella PWA.
+- Per tutte le classi, caschi di Guerriero e Berserker, corpi, volti, armi,
+  armature, zoom, e sfondi NON si modificano. Il layer e' additivo e separato.
+- Aura Divina e Corona non sono tra i cinque effetti nello screenshot
+  approvato, dunque restano premi indipendenti senza cambiamenti estetici.
+- Non tornare al renderer v531 per questi cinque oggetti: non corrisponde
+  all'immagine approvata, anche se i test passano. Richiesta verifica VISIVA
+  su iPhone prima di considerare la resa completamente convalidata.
+
 ## 21/11/2026 — v531, resa approvata delle cinque aure fotografiche
 
 - Bozzetto approvato il 21/11: Scintille d'ambra, Fumo d'ombra,

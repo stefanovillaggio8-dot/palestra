@@ -3,10 +3,11 @@
 // Nessun acquisto/record viene modificato dalle anteprime o dal download.
 import { AURA_FOTO_ATLAS } from './aura-foto-atlas.js';
 import { disegnaEffettoApprovatoRpg, EFFETTI_APPROVATI_RPG } from './rpg-effetti-approvati-v531.js?v=531';
+import { effettoReferenceV532 } from './rpg-reference-v532.js?v=532';
 import { FOTO_RPG_RIQUADRI, livelliFotoRpg } from './aura-foto-rpg.js';
 import { fasciaSagoma, disegnaCoronaEnergetica } from './anteprima-combinata-rpg.js?v=513';
 import { fotoCinematograficaRpg } from './foto-cinematica-rpg.js';
-import {disegnaAtmosferaCosmicaRpg,disegnaAccentiCosmiciRpg,disegnaSoggettoCosmicoRpg,disegnaSfondoFotograficoCosmicoRpg,disegnaFotografiaFusaRpg} from './rpg-scena-cosmica.js?v=531';
+import {disegnaAtmosferaCosmicaRpg,disegnaAccentiCosmiciRpg,disegnaSoggettoCosmicoRpg,disegnaSfondoFotograficoCosmicoRpg,disegnaFotografiaFusaRpg} from './rpg-scena-cosmica.js?v=532';
 import {caricaEnergiaFotograficaRpg,disegnaEnergiaFotograficaRpg} from './rpg-energia-incarnata.js';
 import { percorsoFotoCoronaV360 } from './foto-corona-v360.js';
 import { percorsoFotoAuraDivinaV366 } from './foto-aura-divina-v366.js';
@@ -86,7 +87,9 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
   const fotoBase=await fotoPronta(grafica?.querySelector?.('.personaggio-ritratto'));
   // Non usare un ritaglio alpha alternativo: l'Atelier esporta proprio la
   // stessa foto scelta dall'utente, senza inventare un altro fondale.
-  const fxSenzaFoto = c.effetto==='skin-mitica' || c.effetto==='effetto-nebula';
+  const riferimentoV532=effettoReferenceV532(c.effetto);
+  // Nessuna texture cosmetica deve sostituire foto/paesaggio nel PNG.
+  const fxSenzaFoto = !riferimentoV532 && (c.effetto==='skin-mitica' || c.effetto==='effetto-nebula');
   const texturaCosmica=fxSenzaFoto?await caricaEnergiaFotograficaRpg():null;
   // Il file finale deve usare lo stesso scatto completo visibile in anteprima.
   // Se il collage non e' installato resta il renderer precedente.
@@ -198,7 +201,18 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
   // Non disegnare un secondo VFX: lo strato alpha è già sopra la foto.
   // Il Canvas live usato in anteprima per Fumo/Scintille/Scarica viene copiato
   // nel PNG, anziche' sostituito con un altro effetto preso dall'atlante.
-  if(effettoApprovato && !fxSenzaFoto && typeof ctx.translate==='function'){
+  if(riferimentoV532){
+    // La fonte è il VERO ritaglio approvato e precaricato dalla PWA, identico
+    // all'anteprima Shop: cinque celle su sfondo nero per compositing screen.
+    const atlas=await attesaImmagine(
+      new URL('../img/effetti/effetti-reference-v532.webp?v=532',import.meta.url).href);
+    const cellW=atlas.naturalWidth/3,cellH=atlas.naturalHeight/2;
+    ctx.save();ctx.globalCompositeOperation='screen';
+    ctx.drawImage(atlas,
+      riferimentoV532.colonna*cellW,riferimentoV532.riga*cellH,cellW,cellH,
+      dx,dy,dw,dh);
+    ctx.restore();
+  } else if(effettoApprovato && !fxSenzaFoto && typeof ctx.translate==='function'){
     ctx.save();ctx.translate(dx,dy);
     if(effettoDalCanvas){
       ctx.globalCompositeOperation='screen';

@@ -11,7 +11,7 @@ test('v488 Shop usa un solo scenario senza nested cards per entrambi gli effetti
  assert.match(body,/aura-preview-cosmic-scene/);
  assert.match(body,/cosmic-astrale/);
  assert.match(body,/cosmic-nebulosa/);
- assert.match(body,/const scenario = cosmicoAnteprima \? null : scenarioSkin/);
+ assert.match(body,/const scenario = \(cosmicoAnteprima \|\| referenceAnteprima\) \? null/);
  assert.match(body,/cosmicoAnteprima\?' · '\+String\(window\.PALESTRA_VERSIONE/);
 });
 test('v488 le cornici interne spariscono dalla preview, non dalle altre skin',()=>{

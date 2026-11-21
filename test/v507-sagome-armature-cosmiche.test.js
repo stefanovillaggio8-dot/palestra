@@ -54,12 +54,12 @@ test('v509: Spettro Cremisi lascia fuori fumo e ruderi ai lati delle gambe',()=>
 });
 
 test('v513: la sagoma nuova non resta nella cache di Atelier, anteprima e app',()=>{
-  const scena='./rpg-scena-cosmica.js?v=531';
+  const scena='./rpg-scena-cosmica.js?v=532';
   assert.ok(read('src/app.js').includes("from '"+scena+"'"));
   assert.ok(read('src/rpg-atelier.js').includes("from '"+scena+"'"));
   assert.ok(read('src/anteprima-combinata-rpg.js').includes("from '"+scena+"'"));
-  assert.ok(read('anteprima-armature-cosmiche.html').includes("./src/rpg-scena-cosmica.js?v=531"));
-  assert.ok(read('src/rpg-atelier-ui.js').includes("./rpg-atelier.js?v=531"));
+  assert.ok(read('anteprima-armature-cosmiche.html').includes("./src/rpg-scena-cosmica.js?v=532"));
+  assert.ok(read('src/rpg-atelier-ui.js').includes("./rpg-atelier.js?v=532"));
 });
 
 test('v513: due sagome indipendenti raggiungono le suole senza il pavimento infuocato',()=>{

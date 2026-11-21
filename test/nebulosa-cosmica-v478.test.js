@@ -27,13 +27,13 @@ test('v481: identico zoom di Astrale, maschera originale per tre personaggi',()=
  const app=read('src/app.js'),atelier=read('src/rpg-atelier.js');
  const css=read('stile-rpg.css'),sw=read('sw.js');
  assert.match(app,/const effettoCosmicoAttivo = astraleAttiva \|\| nebulosaAttiva/);
- assert.match(app,/const combinata = !effettoCosmicoAttivo/);
- assert.match(app,/if\(scenaRichiesta && !effettoCosmicoAttivo/);
+ assert.match(app,/const combinata = !effettoRiferimento && !effettoCosmicoAttivo/);
+ assert.match(app,/if\(scenaRichiesta && !effettoRiferimento && !effettoCosmicoAttivo/);
  assert.match(app,/if \(effettoEquipaggiato\) grafica\.classList\.add\('shop-' \+ effettoEquipaggiato\.id\)/);
  assert.match(app,/rpg-nebulosa-presenza/);
- assert.match(app,/if \(!effettoCosmicoAttivo &&\s*\(effettoVivo \|\|/);
+ assert.match(app,/if \(!effettoRiferimento && !effettoCosmicoAttivo &&\s*\(effettoVivo \|\|/);
  assert.match(atelier,/disegnaEnergiaFotograficaRpg\(ctx,dw,dh,c\.classe/);
- assert.match(atelier,/fxSenzaFoto = c.effetto==='skin-mitica' \|\| c.effetto==='effetto-nebula'/);
+ assert.match(atelier,/const fxSenzaFoto = !riferimentoV532 &&/);
  const v481=css.slice(css.indexOf('/* v481 — Nebulosa LEGGENDARIA'));
  assert.match(v481,/nebulosa-tempesta-assassino-v481\.svg/);
  assert.match(v481,/nebulosa-tempesta-guerriero-v481\.svg/);

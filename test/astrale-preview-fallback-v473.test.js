@@ -24,7 +24,8 @@ test('v473: il fallback Astrale sopravvive alle scene fotografiche che nascondon
     'le scene fotografiche non devono nascondere la presenza Astrale');
   assert.match(css,/prefers-reduced-motion:reduce/);
   const app=read('src/app.js');
-  assert.match(app,/if \(astraleAttiva\) \{[\s\S]{0,950}rpg-astrale-presenza/);
+  assert.match(app,/const effettoRiferimento=effettoReferenceV532/);
+  assert.match(app,/rpg-reference-fx/);
   assert.match(app,/const auraDivinaAttiva=auraDivinaAnteprima \|\| \(Boolean\(viso\.aura\) && !effettoEquipaggiato && !astraleAttiva\)/);
 });
 test('v473: lo slot Effetto Astrale prevale in preview senza cambiare gli altri slot',()=>{

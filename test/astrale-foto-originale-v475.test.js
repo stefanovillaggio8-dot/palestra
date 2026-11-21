@@ -22,9 +22,9 @@ test('v477 corregge regressione v475: il Mitico NON è una skin nuova',()=>{
 test('v477 conserva foto, progressione, armi e slot Effetto con Corona o Armatura',()=>{
  const app=read('src/app.js'),atelier=read('src/rpg-atelier.js');
  assert.doesNotMatch(app,/astraleConFotoIntegrale/);
- assert.match(app,/const effettoVivo=usaEffettiViviRpg/);
- assert.match(app,/const combinata = !effettoCosmicoAttivo/);
- assert.match(app,/if\(scenaRichiesta && !effettoCosmicoAttivo/);
+ assert.match(app,/const effettoVivo=!effettoRiferimento && usaEffettiViviRpg/);
+ assert.match(app,/const combinata = !effettoRiferimento && !effettoCosmicoAttivo/);
+ assert.match(app,/if\(scenaRichiesta && !effettoRiferimento && !effettoCosmicoAttivo/);
  assert.match(app,/effetto:effettoCosmicoAttivo \? null : effettoEquipaggiato\?\.id/);
  assert.match(atelier,/disegnaEnergiaFotograficaRpg\(ctx,dw,dh,c\.classe/);
  assert.match(atelier,/effetto:null,armaSbloccata/);
