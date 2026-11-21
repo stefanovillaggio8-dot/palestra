@@ -31,8 +31,8 @@ test('v481: identico zoom di Astrale, maschera originale per tre personaggi',()=
  assert.match(app,/if\(scenaRichiesta && !effettoCosmicoAttivo/);
  assert.match(app,/if \(effettoEquipaggiato\) grafica\.classList\.add\('shop-' \+ effettoEquipaggiato\.id\)/);
  assert.match(app,/rpg-nebulosa-presenza/);
- assert.match(app,/if \(!effettoCosmicoAttivo && !fotoCoronaRpg && \(!fotoArmaturaArmataRpg \|\| veloNotteV528\)/);
- assert.match(atelier,/dipingiNebulosaCosmica\(ctx,dw,dh,c.classe/);
+ assert.match(app,/if \(!effettoCosmicoAttivo &&\s*\(effettoVivo \|\|/);
+ assert.match(atelier,/disegnaEnergiaFotograficaRpg\(ctx,dw,dh,c\.classe/);
  assert.match(atelier,/fxSenzaFoto = c.effetto==='skin-mitica' \|\| c.effetto==='effetto-nebula'/);
  const v481=css.slice(css.indexOf('/* v481 — Nebulosa LEGGENDARIA'));
  assert.match(v481,/nebulosa-tempesta-assassino-v481\.svg/);
@@ -60,5 +60,5 @@ test('v481: animazione iPhone, fallback funzionante senza API',t=>{
  assert.equal(usaEffettiViviRpg('effetto-nebula'),false);
  globalThis.document={createElement(){}};globalThis.requestAnimationFrame=()=>1;
  assert.equal(usaEffettiViviRpg('effetto-nebula'),true);
- assert.equal(usaEffettiViviRpg('effetto-ombra'),false);
+ assert.equal(usaEffettiViviRpg('effetto-ombra'),true);
 });

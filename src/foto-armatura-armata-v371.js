@@ -25,8 +25,9 @@ export function percorsoFotoArmaturaArmataV371({
   // aggiorniamo solo le sue sei fotografie, senza invalidare le altre armature.
   const veloNotte=armatura==='armatura-assassino-notte';
   const versione=veloNotte?'528':'372';
-  // Tutti gli effetti sul Velo usano lo STESSO ritratto e le stesse armi.
-  // Le particelle/colori sono livelli indipendenti, mai altre armature WebP.
-  const fotografia=veloNotte?'base':fx;
+  // v531: TUTTE le armature, non solo Velo, mantengono la stessa foto
+  // e l'identica arma per ogni effetto. I nuovi VFX sono solo Canvas alpha.
+  // I WebP vecchi con FX incorporati non vengono più usati.
+  const fotografia='base';
   return './img/personaggi/armatura-con-arma-v371/'+classe+'/'+armatura+'/'+fotografia+'.webp?v='+versione;
 }

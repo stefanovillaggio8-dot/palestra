@@ -47,7 +47,8 @@ test('v506 PNG esportato sfuma il vero ritratto, senza sostituirlo con un cielo 
  const helper=read('src/rpg-scena-cosmica.js'),atelier=read('src/rpg-atelier.js');
  assert.match(helper,/blur\(28px\) brightness\(\.48\) saturate\(1\.35\)/);
  assert.match(helper,/ctx\.globalCompositeOperation='destination-in'/);
- assert.match(atelier,/disegnaFotografiaFusaRpg\(ctx,immagine,dx,dy,dw,dh\)/);
+ assert.match(atelier,/ctx\.drawImage\(immagine,dx,dy,dw,dh\)/);
+ assert.doesNotMatch(atelier,/disegnaFotografiaFusaRpg\(ctx,immagine/);
  assert.doesNotMatch(atelier,/else disegnaAtmosferaCosmicaRpg\(/);
  assert.match(read('sw.js'),/palestra-v\d+/);
  assert.match(read('index.html'),/palestra-v\d+/);

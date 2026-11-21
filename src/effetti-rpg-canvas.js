@@ -1,3 +1,4 @@
+import { disegnaEffettoApprovatoRpg } from './rpg-effetti-approvati-v531.js?v=531';
 // Aura Shop v331 — effetti particellari con occlusione reale davanti all'avatar.
 // Le particelle vengono renderizzate nell'ambiente fotografico e poi cancellate
 // dove si trova la sagoma del personaggio: non attraversano faccia o armatura.
@@ -48,7 +49,7 @@ export function bordoSagomaRpg(classe,y) {
 export function usaEffettiViviRpg(tipo,{mitica=false}={}) {
   // Su browser legacy e nei test DOM minimali lasciamo il vecchio renderer.
   // Il canvas visibile viene selezionato solo dove l'animazione e' supportata.
-  return Boolean((mitica || tipo==='effetto-ambra' || tipo==='effetto-fulmine' || tipo==='effetto-nebula') &&
+  return Boolean((mitica || tipo==='effetto-ambra' || tipo==='effetto-ombra' || tipo==='effetto-fulmine' || tipo==='effetto-nebula') &&
     typeof document!=='undefined' &&
     typeof requestAnimationFrame==='function' &&
     typeof document.createElement==='function');
@@ -209,7 +210,7 @@ export function montaEffettiRpg(elemento,tipo,{corona=false,divina=false,mitica=
       for(let j=0;j<=11;j++){
         const yy=from+(end-from)*j/11;
         const outside=puntoLaterale(personaggio,yy,ray.lato,
-          .027 + rnd(ray.seed+j*2+Math.floor(pos)*29)*.075);
+          .006 + rnd(ray.seed+j*2+Math.floor(pos)*29)*.023);
         knots.push([w*outside,h*yy]);
       }
       ctx.save();ctx.globalAlpha=flash;ctx.lineCap='round';ctx.lineJoin='round';
@@ -220,7 +221,7 @@ export function montaEffettiRpg(elemento,tipo,{corona=false,divina=false,mitica=
       ctx.stroke();
       // Rami: diretti verso l'esterno, con una piccola ramificazione in punta.
       for(const pivot of [3,7]){
-        const [x,y]=knots[pivot],bend=ray.lato*w*.065;
+        const [x,y]=knots[pivot],bend=ray.lato*w*.028;
         ctx.beginPath();ctx.moveTo(x,y);
         ctx.lineTo(x+bend*.48,y-h*.018);
         ctx.lineTo(x+bend,y-h*.041);
@@ -334,10 +335,13 @@ export function montaEffettiRpg(elemento,tipo,{corona=false,divina=false,mitica=
     else if(tipo==='effetto-fulmine')arc(t);
     else if(tipo==='effetto-nebula')nebula(t);
     else if(divina||corona)ambient(t);
-    // Le scintille e gli archi sono già posizionati fuori dal bordo corporeo.
-    // La vecchia grande maschera ovale li eliminava quasi tutti su iPhone!
-    // La cancellazione sfumata rimane SOLO per i vapori più diffusi.
-    if(tipo==='effetto-ombra') cancellaCorpo(); // Nebulosa ha maschere geometriche proprie
+    // v531: lo stesso VFX approvato in tutte le combinazioni e nell'export.
+    // Disegna SOLO energia trasparente, mai corpo, casco, vestiti o panorama.
+    if(TIPI.has(tipo) && tipo!=='effetto-nebula')
+      disegnaEffettoApprovatoRpg(ctx,w,h,personaggio,tipo,t);
+    // La cancellazione sfumata del corpo si applica ANCHE ai nuovi vapori:
+    // non deve mai alterare il volto o coprire il casco del personaggio.
+    if(tipo==='effetto-ombra') cancellaCorpo();
     aura(t);
   }
   function paginaNascosta() {

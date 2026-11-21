@@ -4148,3 +4148,58 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
   outline:2px solid #d8b4fe;
   outline-offset:2px;
 }
+
+
+/* v530 — EFFETTI, NON SCENARI O ARMATURE.
+ * Astrale e Nebulosa usano esclusivamente i VFX fotografici trasparenti
+ * già disponibili. Lo scatto originale, anche con Velo della Notte,
+ * rimane interamente visibile: sfondo, volto, mantello, armi e stivali. */
+.personaggio-scena.rpg-effetti-solo-scena:is(.rpg-scena-astrale,.rpg-scena-nebulosa),
+.rpg-atelier-avatar .personaggio-scena.rpg-effetti-solo-scena:is(.rpg-scena-astrale,.rpg-scena-nebulosa) {
+  background:radial-gradient(80% 80% at 50% 0%,rgba(165,140,255,.11),transparent 70%),linear-gradient(145deg,#202b26,#141d19)!important;
+  background-image:radial-gradient(80% 80% at 50% 0%,rgba(165,140,255,.11),transparent 70%),linear-gradient(145deg,#202b26,#141d19)!important;
+}
+.personaggio-scena.rpg-effetti-solo-scena::before,
+.personaggio-scena.rpg-effetti-solo-scena::after,
+.personaggio-scena > .rpg-cosmic-stage.rpg-effetti-solo-stage::before,
+.personaggio-scena > .rpg-cosmic-stage.rpg-effetti-solo-stage::after,
+.personaggio-scena > .rpg-cosmic-stage.rpg-effetti-solo-stage > .rpg-cosmic-ambiente,
+.personaggio-scena > .rpg-cosmic-stage.rpg-effetti-solo-stage > :is(.rpg-astrale-presenza,.rpg-nebulosa-presenza),
+.personaggio-scena > .rpg-cosmic-stage.rpg-effetti-solo-stage > .rpg-foto-fondale {
+  display:none!important;
+  content:none!important;
+}
+.personaggio-scena > .rpg-cosmic-stage.rpg-effetti-solo-stage {
+  background:transparent!important;
+  background-image:none!important;
+  overflow:visible!important;
+  box-shadow:none!important;
+}
+.personaggio-scena .rpg-cosmic-stage.rpg-effetti-solo-stage > .personaggio-scena-grafica.con-foto > .personaggio-ritratto {
+  display:block!important;
+  opacity:1!important;
+  visibility:visible!important;
+  filter:none!important;
+  mix-blend-mode:normal!important;
+  -webkit-mask-image:none!important;
+  mask-image:none!important;
+  object-fit:contain!important;
+  object-position:center!important;
+}
+.personaggio-scena > .rpg-cosmic-stage.rpg-effetti-solo-stage > .rpg-energia-retro {
+  display:none!important; /* la foto piena e autentica costituisce il fondale */
+}
+.personaggio-scena > .rpg-cosmic-stage.rpg-effetti-solo-stage > .rpg-energia-fronte {
+  display:block!important;
+  z-index:12!important;
+  opacity:.83!important;
+  mix-blend-mode:screen!important;
+  background:transparent!important;
+  pointer-events:none!important;
+}
+/* Escludi il viso dall'illuminazione frontale, senza cancellare nessun pixel
+ * della fotografia. Particelle attorno a mani, armatura e stivali ancora visibili. */
+.personaggio-scena > .rpg-cosmic-stage.rpg-effetti-solo-stage > .rpg-energia-fronte {
+  -webkit-mask-image:radial-gradient(ellipse 15% 13% at 50% 19%,transparent 25%,rgba(0,0,0,.52) 78%,#000 100%);
+  mask-image:radial-gradient(ellipse 15% 13% at 50% 19%,transparent 25%,rgba(0,0,0,.52) 78%,#000 100%);
+}

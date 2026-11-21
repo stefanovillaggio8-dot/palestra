@@ -76,11 +76,11 @@ import { confrontoGiorno, confrontiMensili, GIORNI_UN_MESE } from './confronto-m
 import { profiloEsercizio, profiloPerPesoCorporeo, RANK, ETICHETTE_MISURA, descriviPunteggio, descrizioneLivello, livelloEsercizio, impostaLivelliImparati, livelliImparati, rapportoDifficolta, MOLTIPLICATORI_SOGLIA, passoCaricabile } from './rank-config.js';
 import { formattaAura } from './aura.js';
 import { montaEffettiRpg, smontaEffettiRpg, usaEffettiViviRpg } from './effetti-rpg-canvas.js';
-import { montaScenaCosmicaRpg } from './rpg-scena-cosmica.js?v=513';
+import { montaScenaCosmicaRpg } from './rpg-scena-cosmica.js?v=531';
 import { montaFotoRpg } from './aura-foto-rpg.js';
 import { montaFotoCombinataRpg, scaricaFotoCombinataRpg } from './anteprima-combinata-rpg.js?v=513';
-import { apriAtelierRpg as mostraAtelierRpg } from './rpg-atelier-ui.js?v=513';
-import { ARMATURE_ATELIER } from './rpg-atelier.js?v=513';
+import { apriAtelierRpg as mostraAtelierRpg } from './rpg-atelier-ui.js?v=531';
+import { ARMATURE_ATELIER } from './rpg-atelier.js?v=531';
 import { applicaSkinRpg } from './skin-rpg-fedele.js';
 import { montaScenaCinematograficaRpg, armaSbloccataRpg, percorsoScenaSpecialeRpg } from './foto-cinematica-rpg.js';
 import { elencoAvatar, avatarPerId, gradienteAvatar, iniziali } from './avatar.js';
@@ -8390,7 +8390,7 @@ function bloccoPersonaggio(profilo, st) {
     const fotoCoronaRpg = coronaAttiva && !veloNotteV528 ? percorsoFotoCoronaV360({
       classe:classeId,stato:statoFotoConsentito,
       armatura:armaturaEquipaggiata?.id || null,
-      effetto:effettoCosmicoAttivo ? null : effettoEquipaggiato?.id || null,
+      effetto:null, // v531: ritratto della Corona uguale per ogni effetto
       divina:auraDivinaAttiva, // Corona + Aura Divina coesistono nella stessa foto fedele, senza duplicati.
       armaSbloccata,
     }) : null;
@@ -8403,7 +8403,7 @@ function bloccoPersonaggio(profilo, st) {
       divina:auraDivinaAttiva && !veloNotteV528,
       armatura:armaturaEquipaggiata?.id || null,
       corona:coronaAttiva,
-      effetto:effettoCosmicoAttivo ? null : effettoEquipaggiato?.id || null,
+      effetto:null, // le luci Shop sono Canvas, mai foto Divina alternative
       anteprima:auraDivinaAnteprima,
       armaSbloccata,
     });
@@ -8449,9 +8449,11 @@ function bloccoPersonaggio(profilo, st) {
       divina:false,
     });
     // v476: Astrale è un effetto, mai una nuova foto o skin.
-    const effettoVivo=!auraDivinaAttiva && usaEffettiViviRpg(astraleAttiva ? null : effettoEquipaggiato?.id || null,{
+    const effettoVivo=usaEffettiViviRpg(astraleAttiva ? null : effettoEquipaggiato?.id || null,{
       mitica:astraleAttiva,
-    }) && (effettoCosmicoAttivo || (!fotoCoronaRpg && (!fotoArmaturaArmataRpg || veloNotteV528) && !fotoEffettoPremium));
+    }) && Boolean(effettoEquipaggiato);
+    // v531: l'effetto rimane visibile anche sulle fotografie intere con
+    // armi, armature Shop, premi divini o Corona: non cambia il soggetto.
     // Ambra, Fulmine e Astrale usano UN solo renderer Canvas. Prima il
     // compositore fotografico li nascondeva tramite rpg-composite-active.
     if (effettoVivo) grafica.classList.add('rpg-render-live');
@@ -8461,7 +8463,7 @@ function bloccoPersonaggio(profilo, st) {
       ? effettoEquipaggiato?.id || null : null;
     const scenaFotografica = !effettoCosmicoAttivo && (!effettoVivo || auraDivinaAttiva) && montaFotoRpg(grafica, effettoVeloInLivello || (fotoAuraDivinaRpg || fotoCoronaRpg || fotoArmaturaArmataRpg || effettoVivo || auraDivinaAttiva || astraleAttiva ? null : effettoEquipaggiato?.id || null), {
       corona: false, // Nuova Corona regale: asset indipendente
-      divina: auraDivinaAttiva && !fotoAuraDivinaRpg, // v367 SVG artwork preserves original photo with a single Divine aura; do not duplicate it.
+      divina: auraDivinaAttiva && !fotoAuraDivinaRpg && !fotoCoronaRpg, // se la Corona già incorpora Aura divina non sovrapporla una seconda volta.
       mitica: false, // Astrale usa i suoi effetti, mai il generico overlay Nebulosa
       classe: classeId,
     });
@@ -8504,8 +8506,8 @@ function bloccoPersonaggio(profilo, st) {
     // montaScenaCosmicaRpg. Il vecchio canvas era invisibile dopo il caricamento,
     // ma il suo requestAnimationFrame continuava a girare inutilmente su iPhone.
     // Conserviamo il vecchio renderer soltanto per gli effetti NON cosmici.
-    if (!effettoCosmicoAttivo && !fotoCoronaRpg && (!fotoArmaturaArmataRpg || veloNotteV528) &&
-        (effettoVivo || (!scenaFotografica && !combinata))) {
+    if (!effettoCosmicoAttivo &&
+        (effettoVivo || (!fotoCoronaRpg && (!fotoArmaturaArmataRpg || veloNotteV528) && !scenaFotografica && !combinata))) {
       montaEffettiRpg(grafica, effettoVivo ? (astraleAttiva ? null : effettoEquipaggiato?.id || null) : null, {
         divina: false, // La fotografia già conserva l'Aura originale
         corona: false,
@@ -8635,6 +8637,9 @@ function bloccoPersonaggio(profilo, st) {
   montaScenaCosmicaRpg(scena,grafica,{
     classe:classeId,
     effetto:astraleAttiva?'astrale':nebulosaAttiva?'nebulosa':null,
+    // Gli effetti sono OGGETTI Shop, non nuovi paesaggi: la fotografia
+    // selezionata resta identica anche in Atelier, Profilo e anteprime.
+    soloEffetti:true,
     creaElemento:el,
   });
   scena.appendChild(el('div', { class: 'personaggio-dati' }, [

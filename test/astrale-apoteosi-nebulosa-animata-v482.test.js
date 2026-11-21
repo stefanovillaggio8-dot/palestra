@@ -69,6 +69,6 @@ test('v482 non cambia skin, scala o rarità: tre asset astrali ben separati da N
  assert.match(css,/rpg-scena-nebulosa/);
  assert.match(sw,/palestra-v\d+/);
  assert.match(read('index.html'),/palestra-v\d+/);
- assert.match(read('src/rpg-atelier.js'),/disegnaAstraleExport/);
- assert.match(read('src/rpg-atelier.js'),/dipingiNebulosaCosmica/);
+ assert.match(read('src/rpg-atelier.js'),/disegnaEnergiaFotograficaRpg/);
+ assert.match(read('src/rpg-atelier.js'),/fase:'fronte',texture:texturaCosmica/);
 });

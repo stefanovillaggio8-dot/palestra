@@ -1,3 +1,4 @@
+import { disegnaEffettoApprovatoRpg } from './rpg-effetti-approvati-v531.js?v=531';
 // Effetti cosmici v493: la fonte della luce è il personaggio, non il panorama.
 // Coordinate relative alla STESSA fotografia originale (900 × 1350): nessuna
 // alterazione di corpo, volto, arma, armatura, posa o fattore di zoom.
@@ -376,8 +377,13 @@ export function disegnaEnergiaFotograficaRpg(ctx,w,h,classe='assassino',effetto=
   const particolare=texture?.[effetto];
   const altaDefinizione=Boolean(particolare&&(particolare.naturalWidth||particolare.width)>=1024);
   const atlante=texture?.atlas||texture;
-  if(!altaDefinizione&&!(atlante&&(atlante.naturalWidth||atlante.width)>=1024))return disegnaEnergiaIncarnataRpg(
-    ctx,w,h,classe,effetto,t,{fase,soggetto,buffer});
+  if(!altaDefinizione&&!(atlante&&(atlante.naturalWidth||atlante.width)>=1024)){
+    const base=disegnaEnergiaIncarnataRpg(ctx,w,h,classe,effetto,t,{fase,soggetto,buffer});
+    // Anche offline o senza texture HD, la rarità mantiene il VFX approvato.
+    if(fase==='fronte')disegnaEffettoApprovatoRpg(ctx,w,h,classe,
+      effetto==='astrale'?'skin-mitica':'effetto-nebula',t);
+    return base;
+  }
   const sx=(effetto==='astrale'?0:512),sy=classi.indexOf(classe)*512;
   ctx.save();
   // La texture e' realmente trasparente. I filamenti nitidi non devono
@@ -430,6 +436,12 @@ export function disegnaEnergiaFotograficaRpg(ctx,w,h,classe='assassino',effetto=
     // la vecchia versione a forza piena era un accumulo di globi al neon.
     ctx.globalAlpha=haSoggettoAlpha?.24:.13;
     disegnaEnergiaIncarnataRpg(ctx,w,h,classe,effetto,t,{fase:'fronte',soggetto,buffer});
+    // L'aura Leggendaria/MItica conserva la texture alpha storica,
+    // arricchita con i nastri, le rune e i sigilli del bozzetto approvato.
+    // Un unico livello frontale: il paesaggio fotografico rimane intatto.
+    ctx.globalAlpha=haSoggettoAlpha?.91:.85;
+    disegnaEffettoApprovatoRpg(ctx,w,h,classe,
+      effetto==='astrale'?'skin-mitica':'effetto-nebula',t);
   }
   ctx.restore();return true;
 }

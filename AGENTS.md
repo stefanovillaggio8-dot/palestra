@@ -1,4 +1,40 @@
+## 21/11/2026 — v531, resa approvata delle cinque aure fotografiche
+
+- Bozzetto approvato il 21/11: Scintille d'ambra, Fumo d'ombra,
+  Scarica viola, Nebulosa cosmica (Leggendaria) e Astrale (Mitica).
+- Renderer generativo Canvas **solo alpha**:
+  src/rpg-effetti-approvati-v531.js (nastri di energia, fumo, scintille,
+  lampi ramificati, nebulose, rune e sigillo sotto i piedi).
+- Si preservano i pixel originali di tutti i personaggi: volto,
+  corporatura, caschi originali di Guerriero/Berserker, armi, armature
+  e paesaggi esistenti. Niente immagini generate di nuovi personaggi.
+- Ogni armatura Shop armata usa SEMPRE il proprio base.webp per i
+  cinque effetti; l'energia è un layer Canvas sopra la foto.
+- Lo stesso renderer viene usato in Atelier, export PNG, su iPhone e
+  nel fallback offline. Nessun cambiamento a classi, rank, acquisti
+  o premi Streak; la Corona e l'Aura Divina rimangono livelli separati.
+- Migliorie ritoccabili successivamente tramite nuovi parametri Canvas,
+  senza mai ricreare/falsificare i ritratti originali.
+
 ﻿# Palestra — memoria del progetto
+
+## 20/11/2026 — v530, effetti Shop identici senza ambienti sostitutivi
+
+- Correzione richiesta dopo video Atelier 20/11: Velo della Notte non
+  deve avere un Fumo d'ombra enorme davanti al viso, Scarica viola lontana
+  dal corpo, Nebulosa o Astrale con foto/panorami diversi.
+- Per Astrale e Nebulosa il rendering prende la **foto completa esistente**
+  dello stadio/armatura/arma con lo stesso sfondo e lo stesso zoom, senza
+  aggiungere ambientazioni, maschere scontornate o cambiare i WebP.
+  Solo l'energia fotografica alpha gia' presente nello Shop viene disegnata
+  sul soggetto, con il volto protetto dai VFX.
+- Fumo d'ombra usa il renderer di vapori intorno alla sagoma, non la vecchia
+  nuvola dell'atlante. Scarica viola avvicina i fulmini alle giunture.
+  Ambra, Aura Divina e Corona restano livelli cosmetici indipendenti.
+- Il PNG dell'Atelier deve mantenere la stessa foto e copiare quando possibile
+  il Canvas dell'effetto live; non ricreare sfondi cosmici in export.
+- Non modificare corpi, outfit, armi, colori e dimensioni dei personaggi
+  e non alterare premi/salvataggi/shop/streak. Cache/import v530.
 
 ## 20/11/2026 — v529, correzione effetti separati dalle armature
 

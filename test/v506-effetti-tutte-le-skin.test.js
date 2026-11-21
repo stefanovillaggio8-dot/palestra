@@ -74,8 +74,8 @@ test('v506: ogni effetto può scegliere le armature Shop e salvare la stessa fot
   assert.match(css,/\.aura-preview-armor-select/);
   assert.match(css,/\.rpg-cosmic-stage:not\(\.rpg-cosmic-cutout-ready\)/);
   assert.match(ui,/renderPersonaggio\(profile,st\)/);
-  assert.match(atelier,/const immagine=fxSenzaFoto \? \(ritaglioReale\|\|fotoBase\)/);
-  assert.match(atelier,/disegnaFotografiaFusaRpg\(ctx,immagine,dx,dy,dw,dh\)/);
+  assert.match(atelier,/const immagine=fxSenzaFoto \? fotoBase/);
+  assert.match(atelier,/ctx\.drawImage\(immagine,dx,dy,dw,dh\)/);
   assert.match(exporter,/disegnaFotografiaFusaRpg\(ctx,original,0,0,out.width,out.height\)/);
   assert.doesNotMatch(app,/if\(oggetto\.tipo==='Effetto'\)\s*db\./);
 });

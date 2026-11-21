@@ -89,9 +89,9 @@ test('v490 asset WEBP validi e separazione di chiaro/scuro senza foto originale'
 
 test('v490 esportazioni della stessa figura trasparente',()=>{
  const a=read('src/rpg-atelier.js'),e=read('src/anteprima-combinata-rpg.js');
- assert.match(a,/alphaAutentico/);
- assert.match(a,/ritaglioReale/);
- assert.match(a,/if\(alphaAutentico\)/);
+ assert.doesNotMatch(a,/const alphaAutentico|const ritaglioReale/);
+ assert.match(a,/const immagine=fxSenzaFoto \? fotoBase/);
+ assert.match(a,/ctx\.drawImage\(immagine,dx,dy,dw,dh\)/);
  assert.match(e,/alphaPronto/);
  assert.match(e,/disegnaAtmosferaCosmicaRpg/);
  assert.match(e,/ctx\.drawImage\(cutout,0,0,out\.width,out\.height\)/);
