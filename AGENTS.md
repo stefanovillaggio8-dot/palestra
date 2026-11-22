@@ -1,3 +1,19 @@
+## 22/11/2026 — v548: approvate cinque immagini reali, non approssimazioni
+- Dalle 5 anteprime generate ed esplicitamente approvate in chat sono
+  stati ricavati i cinque pannelli originali 626x710 e impacchettati
+  in approved-showcase-v548.webp (1878x1420).
+- Per la preview Assassino predefinito senza armatura Shop si usa la
+  foto APPROVATA esatta: il personaggio e l'effetto sono gia' insieme,
+  percio' non sovrapporre un secondo avatar in questa specifica vista.
+- Per altre combinazioni lo stesso stile e' in approved-environments-v548
+  con il vecchio personaggio del mockup rimosso, sotto il VERO volto,
+  armatura e progressione della classe/stato selezionati.
+- I due atlanti originali sono ora in repository, non dipendono da
+  servizi esterni e sono precaricati dalla PWA v548. Il vecchio asset
+  v547 resta fallback in caso di problemi offline.
+- Anteprima e salvataggio foto usano stessa celIa e proporzioni del
+  nuovo asset, senza cambiare salvataggi, acquisti o dati.
+
 ## 22/11/2026 — v547, rifinitura scie e cerchi senza ritagli
 - L'immagine 3x2 v547 deriva dal WebP v546, senza nuovi personaggi.
 - Ripara le scie nei tratti cancellati dalla vecchia armatura con filamenti

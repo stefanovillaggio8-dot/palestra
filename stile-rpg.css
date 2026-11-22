@@ -4650,3 +4650,59 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
 .personaggio-scena:has(.rpg-reference-stage-v547) {
   overflow:visible!important;
 }
+
+/* v548 — the five approved IMAGE-GEN PREVIEWS, rather than synthesized
+   gold outline fragments. The exact approved source is 626x710 per cell.
+   Both the static approval and dynamic background share the same positions.
+   The protagonist stays the genuine current class/armor on dynamic scenes.
+   A static approved screenshot may ONLY replace the default unarmored
+   Assassin within a preview modal/Atelier. Never use a baked-in avatar in
+   regular gameplay, so all class, armor and streak changes remain real. */
+.personaggio-scena-grafica.rpg-reference-v532.rpg-reference-integrated-v539.rpg-reference-stage-v548
+  > .rpg-reference-environment-v541 {
+  display:block!important;
+  position:absolute!important;
+  inset:auto!important;
+  top:-3%!important;
+  left:-6%!important;
+  width:112%!important;
+  height:auto!important;
+  aspect-ratio:626 / 710!important;
+  z-index:1!important;
+  background-image:url('./img/effetti/approved-environments-v548.webp?v=548')!important;
+  background-size:300% 200%!important;
+  background-repeat:no-repeat!important;
+  background-color:transparent!important;
+  filter:none!important;
+  opacity:1!important;
+  mix-blend-mode:normal!important;
+  box-shadow:none!important;
+  border:0!important;
+  border-radius:0!important;
+  clip-path:none!important;
+  -webkit-clip-path:none!important;
+  mask-image:none!important;
+  -webkit-mask-image:none!important;
+  pointer-events:none!important;
+}
+.personaggio-scena-grafica.rpg-reference-stage-v548 > .rpg-reference-complete-v539{
+  display:none!important;
+}
+.personaggio-scena-grafica.rpg-reference-stage-v548 > .rpg-reference-subject-v539{
+  display:block!important;
+  z-index:3!important;
+}
+:is(.aura-preview-panel,.rpg-atelier-panel)
+  .personaggio-scena-grafica.rpg-reference-v532.rpg-reference-integrated-v539.rpg-reference-stage-v548.rpg-reference-stage-v548-static
+  > .rpg-reference-environment-v541 {
+  background-image:url('./img/effetti/approved-showcase-v548.webp?v=548')!important;
+}
+:is(.aura-preview-panel,.rpg-atelier-panel)
+  .personaggio-scena-grafica.rpg-reference-stage-v548.rpg-reference-stage-v548-static
+  > .rpg-reference-subject-v539 {
+  display:none!important;
+}
+:is(.aura-preview-scene,.aura-preview-avatar-container,.personaggio-scena,.rpg-atelier-avatar)
+  :has(.rpg-reference-stage-v548){
+  overflow:visible!important;
+}

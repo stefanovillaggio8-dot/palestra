@@ -128,6 +128,38 @@ export function montaReferenceScontornataV539(grafica,ritratto,classe,reference,
       fotoV547Pronta=fotografiaSenzaTagli.naturalWidth===1383&&
         fotografiaSenzaTagli.naturalHeight===880;
   }
+  // v548: the exact five approved previews are real assets, never AI
+  // regenerated at runtime. The default Assassin preview can reproduce
+  // its approved screenshot; other classes keep the real progression body.
+  let approvatoSfondoPronto=false;
+  let approvatoShowcasePronto=false;
+  const avatarMockupConsentito=classe==='assassino'&&
+    !grafica.dataset?.referenceArmatura&&
+    Number(grafica.dataset?.referenceStadio||0)===0&&
+    grafica.dataset?.referenceDivina!=='true'&&
+    grafica.dataset?.referenceCorona!=='true'&&!corona&&!arma;
+  const attivaV548=()=>{
+    if(!inserito||grafica.isConnected===false)return;
+    if(approvatoSfondoPronto)
+      grafica.classList?.add?.('rpg-reference-stage-v548');
+    if(approvatoSfondoPronto&&approvatoShowcasePronto&&avatarMockupConsentito)
+      grafica.classList?.add?.('rpg-reference-stage-v548-static');
+  };
+  if(typeof globalThis.Image==='function'){
+    const preload=(filename,callback)=>{
+      const test=new globalThis.Image();
+      test.onload=()=>{
+        callback(test.naturalWidth===1878&&test.naturalHeight===1420);
+        attivaV548();
+      };
+      test.onerror=()=>callback(false);
+      test.src=new URL('../img/effetti/'+filename+'?v=548',import.meta.url).href;
+      if(test.complete&&test.naturalWidth)
+        callback(test.naturalWidth===1878&&test.naturalHeight===1420);
+    };
+    preload('approved-environments-v548.webp',v=>{approvatoSfondoPronto=v;});
+    preload('approved-showcase-v548.webp',v=>{approvatoShowcasePronto=v;});
+  }
   const attiva=()=>{
     if(inserito)return;
     if(!soggetto.naturalWidth||!soggetto.naturalHeight||
@@ -145,6 +177,7 @@ export function montaReferenceScontornataV539(grafica,ritratto,classe,reference,
     attivaV545();
     attivaV546();
     attivaV547();
+    attivaV548();
   };
   soggetto.addEventListener?.('load',attiva,{once:true});
   soggetto.src=alpha||url;
