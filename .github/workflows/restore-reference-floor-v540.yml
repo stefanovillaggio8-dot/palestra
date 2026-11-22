@@ -43,7 +43,7 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add img/effetti/effetti-reference-v540.webp
+          git add img/effetti/effetti-reference-v540.webp img/effetti/reference-v540-base-manifest.json
           git commit -m 'assets(v540): ripara pavimento e basi senza ritagliare gli effetti' || exit 0
           git pull --rebase origin fix/v540-restaura-basi-complete
           git push origin HEAD:fix/v540-restaura-basi-complete
