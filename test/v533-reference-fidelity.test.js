@@ -32,8 +32,8 @@ test('v534: lo sprite v533 rimane come archivio, il nuovo RGBA è attivo in Shop
  assert.ok(atelier.includes('effetti-reference-v540.webp?v=540'));
  assert.ok(sw.includes('effetti-reference-v533.webp?v=533'));
  assert.ok(sw.includes("percorso.includes('effetti-reference-v534.webp')"));
- assert.ok(index.includes("PALESTRA_VERSIONE = 'palestra-v540'"));
- assert.ok(sw.includes("const VERSIONE = 'palestra-v540'"));
+ assert.ok(index.includes("PALESTRA_VERSIONE = 'palestra-v541'"));
+ assert.ok(sw.includes("const VERSIONE = 'palestra-v541'"));
 });
 test('v533: tutte le classi, gli stadi, le sei armature e i cinque FX usano la stessa foto',()=>{
  const sets={
