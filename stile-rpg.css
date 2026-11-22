@@ -4461,7 +4461,9 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
   background-image:url('./img/effetti/reference-ambienti-v542.webp?v=542')!important;
   background-repeat:no-repeat!important;
   background-size:300% 200%!important;
-  background-position:center center!important;
+  /* v544: ogni effetto seleziona la SUA cella; il vecchio centro !important
+     sovrascriveva Ambra/Ombra/Fulmine/Nebulosa/Astrale e mescolava i fondali. */
+  background-position:0% 0%;
   background-color:transparent!important;
   border:0!important;
   box-shadow:none!important;

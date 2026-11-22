@@ -47,6 +47,6 @@ test('v541: foto approvata e cinque VFX originali restano immutati in cache',()=
  assert.match(css,/effetti-reference-v539\.webp\?v=539/);
  assert.match(sw,/reference-ambiente-v541\.webp\?v=541/);
  assert.match(sw,/percorso\.includes\('reference-ambiente-v541\.webp'\)/);
- assert.match(sw,/const VERSIONE = 'palestra-v543'/);
- assert.match(idx,/PALESTRA_VERSIONE = 'palestra-v543'/);
+ assert.match(sw,/const VERSIONE = 'palestra-v544'/);
+ assert.match(idx,/PALESTRA_VERSIONE = 'palestra-v544'/);
 });

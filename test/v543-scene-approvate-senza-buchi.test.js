@@ -57,8 +57,8 @@ test('v543: Shop ed esportazione PNG usano la stessa cella della scena',()=>{
 });
 test('v543: aggiornamento offline preciso e fallback della v542',()=>{
  const sw=read('sw.js'),idx=read('index.html'),app=read('src/app.js');
- assert.match(sw,/const VERSIONE = 'palestra-v543'/);
- assert.match(idx,/PALESTRA_VERSIONE = 'palestra-v543'/);
+ assert.match(sw,/const VERSIONE = 'palestra-v544'/);
+ assert.match(idx,/PALESTRA_VERSIONE = 'palestra-v544'/);
  assert.ok(sw.includes("'./img/effetti/reference-scene-v543.webp?v=543'"));
  assert.ok(sw.includes("percorso.includes('reference-scene-v543.webp')"));
  assert.ok(sw.includes("'./img/effetti/reference-ambienti-v542.webp?v=542'"));
