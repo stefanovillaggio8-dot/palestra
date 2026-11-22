@@ -16,11 +16,11 @@ test('v536: atlante alpha autentico, cinque texture senza personaggi',()=>{
 });
 test('v536: nuova reference in Shop, PWA, Atelier con margini senza crop',()=>{
  const css=read('stile-rpg.css'),a=read('src/rpg-atelier.js'),sw=read('sw.js');
- assert.match(css,/effetti-reference-v540\.webp\?v=540/);
+ assert.match(css,/effetti-reference-v539\.webp\?v=539/);
  assert.match(css,/width:164%!important/);
  assert.match(css,/overflow:visible!important/);
  assert.match(css,/mask-image:none!important/);
- assert.match(a,/effetti-reference-v540\.webp\?v=540/);
+ assert.match(a,/effetti-reference-v539\.webp\?v=539/);
  assert.match(a,/larghezza=riferimentoV532\?1120:780/);
  assert.match(a,/dx-dw\*\.32,dy-dh\*\.04,dw\*1\.64,dh\*1\.08/);
  assert.match(sw,/effetti-reference-v536\.webp\?v=536/);
