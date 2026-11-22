@@ -24,16 +24,16 @@ test('v534: lo sprite v533 rimane come archivio, il nuovo RGBA è attivo in Shop
  const css=read('stile-rpg.css'),app=read('src/app.js');
  const atelier=read('src/rpg-atelier.js'),sw=read('sw.js');
  const index=read('index.html');
- assert.ok(css.includes("background-image:url('./img/effetti/effetti-reference-v537.webp?v=537')!important"));
+ assert.ok(css.includes("background-image:url('./img/effetti/effetti-reference-v539.webp?v=539')!important"));
  assert.ok(css.includes('mix-blend-mode:normal!important'));
  for(const effect of ['ambra','ombra','fulmine','nebula','astrale'])
    assert.ok(css.includes('.rpg-reference-fx.rpg-reference-'+effect+'{background-position:'));
  assert.ok(app.includes('effettoReferenceV532(effettoEquipaggiato?.id)'));
- assert.ok(atelier.includes('effetti-reference-v537.webp?v=537'));
+ assert.ok(atelier.includes('effetti-reference-v539.webp?v=539'));
  assert.ok(sw.includes('effetti-reference-v533.webp?v=533'));
  assert.ok(sw.includes("percorso.includes('effetti-reference-v534.webp')"));
- assert.ok(index.includes("PALESTRA_VERSIONE = 'palestra-v538'"));
- assert.ok(sw.includes("const VERSIONE = 'palestra-v538'"));
+ assert.ok(index.includes("PALESTRA_VERSIONE = 'palestra-v539'"));
+ assert.ok(sw.includes("const VERSIONE = 'palestra-v539'"));
 });
 test('v533: tutte le classi, gli stadi, le sei armature e i cinque FX usano la stessa foto',()=>{
  const sets={
