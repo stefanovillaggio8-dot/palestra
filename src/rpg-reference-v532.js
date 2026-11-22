@@ -39,3 +39,7 @@ export const ATLANTE_REFERENCE_V539='./img/effetti/effetti-reference-v539.webp?v
 
 // v540: platforme restaurate senza perdere i cinque effetti originali.
 export const ATLANTE_REFERENCE_V540='./img/effetti/effetti-reference-v540.webp?v=540';
+
+// v543: cinque scene fotografiche COMPLETE dalla tavola di riferimento approvata.
+// Fondale, energia, anello e pavimento sono uno stesso pannello, senza buchi.
+export const ATLANTE_SCENE_REFERENCE_V543='./img/effetti/reference-scene-v543.webp?v=543';
