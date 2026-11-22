@@ -231,6 +231,18 @@ export function montaFotoCombinataRpg(grafica,foto,options={}) {
 // Esporta una vera fotografia della combinazione corrente: avatar originale
 // e skin fotografica + effetti. Non altera DB, progressione o equipaggiamento.
 export async function scaricaFotoCombinataRpg(grafica,classe='rpg') {
+  // v538: la foto scaricata dallo Shop deve essere identica a quella in
+  // Atelier: stesso personaggio, stesso atlas, nessuna copia senza effetti.
+  if(grafica?.classList?.contains('rpg-reference-v532')){
+    const {salvaFotoAtelier}=await import('./rpg-atelier.js?v=538');
+    return salvaFotoAtelier(grafica,{
+      classe,stadio:Number(grafica.dataset.referenceStadio||0),
+      armatura:grafica.dataset.referenceArmatura||'',
+      effetto:grafica.dataset.referenceEffetto||'',
+      divina:grafica.dataset.referenceDivina==='true',
+      corona:grafica.dataset.referenceCorona==='true',
+    });
+  }
   const original=grafica?.querySelector?.('.personaggio-ritratto');
   if(!original)return false;
   if(!original.complete||!original.naturalWidth) {
