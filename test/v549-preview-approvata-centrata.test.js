@@ -59,15 +59,15 @@ test('v549: PNG export of approved Shop composition does not duplicate the subje
 
 test('v549: PWA reloads the latest code while retaining the approved original WebP',()=>{
  const idx=read('index.html'),sw=read('sw.js'),app=read('src/app.js'),ui=read('src/rpg-atelier-ui.js'),combined=read('src/anteprima-combinata-rpg.js');
- assert.ok(idx.includes("PALESTRA_VERSIONE = 'palestra-v549'"));
- assert.ok(sw.includes("const VERSIONE = 'palestra-v549'"));
+ assert.ok(idx.includes("PALESTRA_VERSIONE = 'palestra-v550'"));
+ assert.ok(sw.includes("const VERSIONE = 'palestra-v550'"));
  for(const file of ['stile.css','stile-rpg.css','stile-premium.css']){
-  assert.ok(idx.includes('./'+file+'?v=549'),file);
-  assert.ok(sw.includes("'./"+file+"?v=549'"),file);
+  assert.ok(idx.includes('./'+file+'?v=550'),file);
+  assert.ok(sw.includes("'./"+file+"?v=550'"),file);
  }
- assert.ok(sw.includes("'./img/effetti/approved-showcase-v548.webp?v=548'"));
- assert.ok(app.includes('./rpg-reference-compositing-v539.js?v=549'));
- assert.ok(app.includes('./rpg-atelier-ui.js?v=549'));
- assert.ok(ui.includes('./rpg-atelier.js?v=549'));
- assert.ok(combined.includes('./rpg-atelier.js?v=549'));
+ assert.ok(sw.includes("'./img/effetti/approved-showcase-v550.webp?v=550'"));
+ assert.ok(app.includes('./rpg-reference-compositing-v539.js?v=550'));
+ assert.ok(app.includes('./rpg-atelier-ui.js?v=550'));
+ assert.ok(ui.includes('./rpg-atelier.js?v=550'));
+ assert.ok(combined.includes('./rpg-atelier.js?v=550'));
 });

@@ -24,6 +24,6 @@ test('v536: nuova reference in Shop, PWA, Atelier con margini senza crop',()=>{
  assert.match(a,/larghezza=riferimentoV532\?1500:780/);
  assert.match(a,/dx-dw\*\.32,dy-dh\*\.04,dw\*1\.64,dh\*1\.08/);
  assert.match(sw,/effetti-reference-v536\.webp\?v=536/);
- assert.match(sw,/const VERSIONE = 'palestra-v549'/);
- assert.match(read('index.html'),/PALESTRA_VERSIONE = 'palestra-v549'/);
+ assert.match(sw,/const VERSIONE = 'palestra-v550'/);
+ assert.match(read('index.html'),/PALESTRA_VERSIONE = 'palestra-v550'/);
 });

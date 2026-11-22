@@ -54,25 +54,25 @@ test('v548: dynamic photos keep genuine class and original armor',()=>{
 test('v548: preview and PNG export share exactly approved crop and scale',()=>{
  const js=read('src/rpg-atelier.js');
  const shop=read('src/anteprima-combinata-rpg.js');
- assert.match(js,/const palcoApprovatoV548=riferimentoV532/);
+ assert.match(js,/const palcoApprovatoV550=riferimentoV532/);
  assert.match(js,/const palcoAmbienteV548=riferimentoV532/);
  assert.match(js,/const palcoEsattoV548=Boolean\(riferimentoV532&&/);
  assert.match(js,/const palcoDinamicoV548=Boolean\(ritaglioEsportabile&&/);
  assert.match(js,/const fxW=dw\*1\.12,fxH=fxW\*\(710\/626\)/);
  assert.match(js,/else if\(!palcoEsattoV548\) ctx\.drawImage/);
- assert.match(shop,/rpg-atelier\.js\?v=549/);
+ assert.match(shop,/rpg-atelier\.js\?v=550/);
 });
 test('v548: versioned PWA precaches approved binaries, still has offline fallback',()=>{
  const index=read('index.html'),sw=read('sw.js'),app=read('src/app.js');
- assert.ok(index.includes("PALESTRA_VERSIONE = 'palestra-v549'"));
- assert.ok(sw.includes("const VERSIONE = 'palestra-v549'"));
+ assert.ok(index.includes("PALESTRA_VERSIONE = 'palestra-v550'"));
+ assert.ok(sw.includes("const VERSIONE = 'palestra-v550'"));
  for(const path of ['stile.css','stile-rpg.css','stile-premium.css']){
-   assert.ok(index.includes('./'+path+'?v=549'),path);
-   assert.ok(sw.includes("'./"+path+"?v=549'"),path);
+   assert.ok(index.includes('./'+path+'?v=550'),path);
+   assert.ok(sw.includes("'./"+path+"?v=550'"),path);
  }
- assert.ok(sw.includes("'./img/effetti/approved-showcase-v548.webp?v=548'"));
+ assert.ok(sw.includes("'./img/effetti/approved-showcase-v550.webp?v=550'"));
  assert.ok(sw.includes("'./img/effetti/approved-environments-v548.webp?v=548'"));
  assert.ok(sw.includes("'./img/effetti/reference-scene-v547.webp?v=547'"));
- assert.ok(app.includes('./rpg-reference-compositing-v539.js?v=549'));
- assert.ok(app.includes('./rpg-atelier-ui.js?v=549'));
+ assert.ok(app.includes('./rpg-reference-compositing-v539.js?v=550'));
+ assert.ok(app.includes('./rpg-atelier-ui.js?v=550'));
 });

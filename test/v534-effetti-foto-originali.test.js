@@ -44,8 +44,8 @@ test('v534: schermata Shop, personaggio e Atelier usano stessi cinque layer senz
  assert.match(app,/grafica\.appendChild\(el\('div',\{[\s\S]*?rpg-reference-fx/);
  assert.match(sw,/effetti-reference-v534\.webp\?v=534/);
  assert.match(sw,/percorso\.includes\('effetti-reference-v534\.webp'\)/);
- assert.match(sw,/const VERSIONE = 'palestra-v549'/);
- assert.match(idx,/PALESTRA_VERSIONE = 'palestra-v549'/);
+ assert.match(sw,/const VERSIONE = 'palestra-v550'/);
+ assert.match(idx,/PALESTRA_VERSIONE = 'palestra-v550'/);
 });
 test('v534: classi, caschi, armature e armi mantengono esattamente i loro ritratti',()=>{
  const classi={

@@ -157,12 +157,13 @@ export function montaReferenceScontornataV539(grafica,ritratto,classe,reference,
         attivaV548();
       };
       test.onerror=()=>callback(false);
-      test.src=new URL('../img/effetti/'+filename+'?v=548',import.meta.url).href;
+      test.src=new URL('../img/effetti/'+filename+
+        '?v='+(filename.includes('-v550.')?'550':'548'),import.meta.url).href;
       if(test.complete&&test.naturalWidth)
         callback(test.naturalWidth===1878&&test.naturalHeight===1420);
     };
     preload('approved-environments-v548.webp',v=>{approvatoSfondoPronto=v;});
-    preload('approved-showcase-v548.webp',v=>{approvatoShowcasePronto=v;});
+    preload('approved-showcase-v550.webp',v=>{approvatoShowcasePronto=v;});
   }
   const attiva=()=>{
     if(inserito)return;
