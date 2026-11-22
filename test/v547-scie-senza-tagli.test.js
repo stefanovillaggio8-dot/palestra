@@ -55,8 +55,8 @@ test('v547: PWA fresh cache includes new photo and historical fallback',()=>{
  assert.ok(idx.includes("PALESTRA_VERSIONE = 'palestra-v548'"));
  assert.ok(sw.includes("const VERSIONE = 'palestra-v548'"));
  for(const css of ['stile.css','stile-rpg.css','stile-premium.css']){
-  assert.ok(idx.includes('./'+css+'?v=547'),css);
-  assert.ok(sw.includes("'./"+css+"?v=547'"),css);
+  assert.ok(idx.includes('./'+css+'?v=548'),css);
+  assert.ok(sw.includes("'./"+css+"?v=548'"),css);
  }
  assert.ok(sw.includes("'./img/effetti/reference-scene-v547.webp?v=547'"));
  assert.ok(sw.includes("'./img/effetti/reference-scene-v546.webp?v=546'"));
