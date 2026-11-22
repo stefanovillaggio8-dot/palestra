@@ -25,18 +25,18 @@ test('v541: piano fotografico, poi effetto e SOLO infine il vero personaggio',()
  const positions=['grafica.appendChild(ambiente)','grafica.appendChild(luce)','grafica.appendChild(soggetto)'].map(s=>js.indexOf(s));
  assert.ok(positions.every(i=>i>0) && positions[0]<positions[1] && positions[1]<positions[2]);
  assert.match(css,/> \.rpg-reference-environment-v541\s*\{[\s\S]*?z-index:0!important/);
- assert.match(css,/background-image:url\('\.\/img\/effetti\/reference-ambiente-v541\.webp\?v=541'\)!important/);
+ assert.match(css,/background-image:url\('\.\/img\/effetti\/reference-ambienti-v542\.webp\?v=542'\)!important/);
  assert.match(css,/> \.rpg-reference-complete-v539\s*\{[\s\S]*?z-index:2!important/);
  assert.match(css,/> \.rpg-reference-subject-v539\s*\{[\s\S]*?z-index:3!important/);
 });
 test('v541: il PNG Shop/Atelier conserva esattamente il fondale sotto agli effetti',()=>{
  const at=read('src/rpg-atelier.js');
  const shop=read('src/anteprima-combinata-rpg.js');
- const loading=at.indexOf('reference-ambiente-v541.webp?v=541');
- const laying=at.indexOf('ctx.drawImage(ambienteV541,dx,dy,dw,dh)');
+ const loading=at.indexOf('reference-ambienti-v542.webp?v=542');
+ const laying=at.indexOf('ctx.drawImage(ambienteV541,');
  const effect=at.indexOf('ctx.drawImage(atlanteV539,');
  assert.ok(loading>0 && laying>loading && effect>laying);
- assert.match(shop,/rpg-atelier\.js\?v=541/);
+ assert.match(shop,/rpg-atelier\.js\?v=542/);
 });
 test('v541: foto approvata e cinque VFX originali restano immutati in cache',()=>{
  const sw=read('sw.js');
@@ -47,6 +47,6 @@ test('v541: foto approvata e cinque VFX originali restano immutati in cache',()=
  assert.match(css,/effetti-reference-v539\.webp\?v=539/);
  assert.match(sw,/reference-ambiente-v541\.webp\?v=541/);
  assert.match(sw,/percorso\.includes\('reference-ambiente-v541\.webp'\)/);
- assert.match(sw,/const VERSIONE = 'palestra-v541'/);
- assert.match(idx,/PALESTRA_VERSIONE = 'palestra-v541'/);
+ assert.match(sw,/const VERSIONE = 'palestra-v542'/);
+ assert.match(idx,/PALESTRA_VERSIONE = 'palestra-v542'/);
 });

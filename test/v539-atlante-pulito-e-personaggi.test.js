@@ -45,12 +45,12 @@ test('v539: tutti i 18 ritagli classici hanno alpha validato dal manifesto',()=>
 test('v539: anteprima, foto PNG, Shop, cache PWA stessa source RGB',()=>{
  const sw=read('sw.js'),index=read('index.html'),atelier=read('src/rpg-atelier.js');
  const shopExport=read('src/anteprima-combinata-rpg.js');
- assert.match(sw,/const VERSIONE = 'palestra-v541'/);
- assert.match(index,/PALESTRA_VERSIONE = 'palestra-v541'/);
+ assert.match(sw,/const VERSIONE = 'palestra-v542'/);
+ assert.match(index,/PALESTRA_VERSIONE = 'palestra-v542'/);
  assert.match(sw,/img\/effetti\/effetti-reference-v539\.webp\?v=539/);
- assert.match(sw,/src\/rpg-reference-compositing-v539\.js\?v=541/);
+ assert.match(sw,/src\/rpg-reference-compositing-v539\.js\?v=542/);
  assert.match(atelier,/effetti-reference-v539\.webp\?v=539/);
  assert.match(atelier,/const riferimentoCompleto=Boolean\(atlanteV539&&ritaglioEsportabile\)/);
  assert.match(atelier,/ctx\.drawImage\(atlanteV539,/);
- assert.match(shopExport,/rpg-atelier\.js\?v=541/);
+ assert.match(shopExport,/rpg-atelier\.js\?v=542/);
 });

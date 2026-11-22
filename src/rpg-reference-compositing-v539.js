@@ -5,7 +5,7 @@
 import {
   percorsoRitaglioCosmicoRpg, verificaIntegritaRitaglioRpg,
   idContornoArmaturaCosmicaRpg, mascheraArmaturaCosmicaRpg,
-} from './rpg-scena-cosmica.js?v=541';
+} from './rpg-scena-cosmica.js?v=542';
 
 export function montaReferenceScontornataV539(grafica,ritratto,classe,reference,{
   corona=false,arma=false,documento=globalThis.document,
@@ -40,8 +40,8 @@ export function montaReferenceScontornataV539(grafica,ritratto,classe,reference,
       soggetto.style.maskImage=maschera;
     }
   }
-  // v541: questo e' il VERO fondale con il pavimento della reference
-  // approvata, scontornato dall'eroe precedente. Non e' un cerchio artificiale.
+  // v542: atmosfera fotografica sfumata davvero sui quattro bordi e
+  // pavimento originale; ogni effetto ha una cella coerente nel WebP 3x2.
   const ambiente=documento.createElement('div');
   ambiente.className='rpg-reference-environment-v541 rpg-reference-'+reference.classe;
   ambiente.setAttribute?.('aria-hidden','true');
