@@ -1,3 +1,16 @@
+## 22/11/2026 — v536, effetti autonomi SENZA sagoma/personaggio incluso
+
+- Cinque effetti da immagini RGBA senza personaggi: Ambra, Ombra, Fulmine,
+  Nebulosa, Astrale. Atlas WebP 3x2 da 1440x1200, alpha reale, centratura
+  morbida e non silhouette ritagliata. Il personaggio originalissimo rimane
+  esattamente quello del suo WebP, comprese faccia, caschi, armi, corporatura.
+- Effetti molto piu' larghi del ritratto, con overflow visibile, nessun cambio
+  di zoom o sfondo. PNG Atelier con margini estesi solo per effetti acquistabili:
+  non troncare spirali, fulmini, fumo o sigilli laterali.
+- Tutte e tre le classi, sei armature, tutte le progressioni, Shop, Profilo,
+  Atelier, PNG e offline. NON incorporare personaggi negli effetti o sostituire
+  mai le foto delle armature. Non intaccare prezzi, account, streak o inventario.
+
 ## 21/11/2026 — v533: NON reinterpretare più i cinque effetti approvati
 - **Unico riferimento visivo approvato:** l'ULTIMA tavola ricevuta,
   con Scintille d'ambra (fiammate arancio), Fumo d'ombra (volute viola),

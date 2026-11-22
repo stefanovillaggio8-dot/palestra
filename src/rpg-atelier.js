@@ -3,11 +3,11 @@
 // Nessun acquisto/record viene modificato dalle anteprime o dal download.
 import { AURA_FOTO_ATLAS } from './aura-foto-atlas.js';
 import { disegnaEffettoApprovatoRpg, EFFETTI_APPROVATI_RPG } from './rpg-effetti-approvati-v531.js?v=531';
-import { effettoReferenceV532 } from './rpg-reference-v532.js?v=535';
+import { effettoReferenceV532 } from './rpg-reference-v532.js?v=536';
 import { FOTO_RPG_RIQUADRI, livelliFotoRpg } from './aura-foto-rpg.js';
 import { fasciaSagoma, disegnaCoronaEnergetica } from './anteprima-combinata-rpg.js?v=513';
 import { fotoCinematograficaRpg } from './foto-cinematica-rpg.js';
-import {disegnaAtmosferaCosmicaRpg,disegnaAccentiCosmiciRpg,disegnaSoggettoCosmicoRpg,disegnaSfondoFotograficoCosmicoRpg,disegnaFotografiaFusaRpg} from './rpg-scena-cosmica.js?v=535';
+import {disegnaAtmosferaCosmicaRpg,disegnaAccentiCosmiciRpg,disegnaSoggettoCosmicoRpg,disegnaSfondoFotograficoCosmicoRpg,disegnaFotografiaFusaRpg} from './rpg-scena-cosmica.js?v=536';
 import {caricaEnergiaFotograficaRpg,disegnaEnergiaFotograficaRpg} from './rpg-energia-incarnata.js';
 import { percorsoFotoCoronaV360 } from './foto-corona-v360.js';
 import { percorsoFotoAuraDivinaV366 } from './foto-aura-divina-v366.js';
@@ -113,13 +113,16 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
   const immagine=fxSenzaFoto ? fotoBase
     : (scena ? await attesaImmagine(scena).catch(()=>fotoBase) : fotoBase);
   const giaFotografica=Boolean(scena&&immagine!==fotoBase);
-  const larghezza=780,altezza=1170;
+  // Gli effetti possono estendersi a lato della fotografia: nel PNG con
+  // un cosmetico lasciamo margine extra mantenendo lo stesso zoom del soggetto.
+  const larghezza=riferimentoV532?1120:780,altezza=riferimentoV532?1320:1170;
   const canvas=document.createElement('canvas');
   canvas.width=larghezza;canvas.height=altezza;
   const ctx=canvas.getContext('2d');
   if(!ctx)throw new Error('Canvas non disponibile');
   ctx.fillStyle='#090c12';ctx.fillRect(0,0,larghezza,altezza);
-  const ratio=Math.min(larghezza/immagine.naturalWidth,altezza/immagine.naturalHeight);
+  const ratio=Math.min((riferimentoV532?780:larghezza)/immagine.naturalWidth,
+    (riferimentoV532?1170:altezza)/immagine.naturalHeight);
   const dw=Math.round(immagine.naturalWidth*ratio),dh=Math.round(immagine.naturalHeight*ratio);
   const dx=(larghezza-dw)/2,dy=(altezza-dh)/2;
   if(fxSenzaFoto) {
@@ -205,7 +208,7 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
     // La fonte è il VERO ritaglio approvato e precaricato dalla PWA, identico
     // all'anteprima Shop: cinque celle su sfondo nero per compositing screen.
     const atlas=await attesaImmagine(
-      new URL('../img/effetti/effetti-reference-v535.webp?v=535',import.meta.url).href);
+      new URL('../img/effetti/effetti-reference-v536.webp?v=536',import.meta.url).href);
     const cellW=atlas.naturalWidth/3,cellH=atlas.naturalHeight/2;
     ctx.save();ctx.globalCompositeOperation='source-over';
     ctx.drawImage(atlas,
@@ -213,7 +216,7 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
       // v535: più spazio a fumo, scariche, nebulosa e sigilli, senza
       // ritagliare i bordi nella foto esportata. Il Canvas limita da sé
       // le parti esterne alla pagina, senza cambiare il soggetto.
-      dx-dw*.16,dy-dh*.035,dw*1.32,dh*1.07);
+      dx-dw*.21,dy-dh*.066,dw*1.42,dh*1.13);
     ctx.restore();
   } else if(effettoApprovato && !fxSenzaFoto && typeof ctx.translate==='function'){
     ctx.save();ctx.translate(dx,dy);
