@@ -4444,3 +4444,33 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
   background:transparent!important;
   box-shadow:none!important;
 }
+
+/* v541: il terreno e il fondale fotografici NON sono contenuti nell'atlante
+   energia v540. Ripristinati dalla PRIMA foto della reference approvata v537:
+   atmosfera, luce e vera pavimentazione. Niente riquadri o buchi neri.
+   Disegnare sotto all'effetto e sotto il soggetto, senza clip/mask. */
+.personaggio-scena-grafica.rpg-reference-v532.rpg-reference-integrated-v539
+  > .rpg-reference-environment-v541 {
+  position:absolute!important;
+  display:block!important;
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
+  z-index:0!important;
+  pointer-events:none!important;
+  background-image:url('./img/effetti/reference-ambiente-v541.webp?v=541')!important;
+  background-repeat:no-repeat!important;
+  background-size:100% 100%!important;
+  background-position:center center!important;
+  background-color:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+  opacity:1!important;
+  filter:none!important;
+  mix-blend-mode:normal!important;
+  clip-path:none!important;
+  -webkit-clip-path:none!important;
+  mask-image:none!important;
+  -webkit-mask-image:none!important;
+  transform:none!important;
+}
