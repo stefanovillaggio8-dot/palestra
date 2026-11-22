@@ -38,7 +38,7 @@ test('v548: static approved figure only for default assassin and only in preview
  assert.match(js,/rpg-reference-stage-v548-static/);
  assert.match(css,/:is\(\.aura-preview-panel,\.rpg-atelier-panel\)/);
  assert.match(css,/\.rpg-reference-stage-v548\.rpg-reference-stage-v548-static[\s\S]*?> \.rpg-reference-subject-v539 \{\s*display:none!important/);
- assert.match(css,/approved-showcase-v548\.webp\?v=548/);
+ assert.match(css,/approved-showcase-v550\.webp\?v=550/);
  assert.match(css,/approved-environments-v548\.webp\?v=548/);
 });
 test('v548: dynamic photos keep genuine class and original armor',()=>{
