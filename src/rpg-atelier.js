@@ -177,6 +177,14 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
   // v546: composited alpha, preserving source magic and original floor
   // without the previously photographed caped knight or squared backdrop.
   // v547: the soft-edged 3x2 photographic stage, full runes and trails.
+  // v548: the five EXACT approved screenshots from this chat;
+  // second atlas hides the mockup body for real class/armor combinations.
+  const palcoApprovatoV548=riferimentoV532 ? await attesaImmagine(
+    new URL('../img/effetti/approved-showcase-v548.webp?v=548',import.meta.url).href
+  ).catch(()=>null) : null;
+  const palcoAmbienteV548=riferimentoV532 ? await attesaImmagine(
+    new URL('../img/effetti/approved-environments-v548.webp?v=548',import.meta.url).href
+  ).catch(()=>null) : null;
   const palcoV547=riferimentoV532 ? await attesaImmagine(
     new URL('../img/effetti/reference-scene-v547.webp?v=547',import.meta.url).href
   ).catch(()=>null) : null;
@@ -214,6 +222,14 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
       }else ritaglioEsportabile=null;
     }else ritaglioEsportabile=null;
   }
+  const palcoEsattoV548=Boolean(ritaglioEsportabile&&
+    c.classe==='assassino'&&!c.armatura&&c.stadio===0&&!c.divina&&!c.corona&&
+    grafica?.classList?.contains?.('rpg-reference-stage-v548-static')&&
+    palcoApprovatoV548?.naturalWidth===1878&&
+    palcoApprovatoV548?.naturalHeight===1420);
+  const palcoDinamicoV548=Boolean(ritaglioEsportabile&&
+    palcoAmbienteV548?.naturalWidth===1878&&
+    palcoAmbienteV548?.naturalHeight===1420);
   const palcoFotoV547=Boolean(ritaglioEsportabile&&
     palcoV547?.naturalWidth===1383&&palcoV547?.naturalHeight===880);
   const palcoFotoV546=Boolean(ritaglioEsportabile&&
@@ -222,8 +238,17 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
     palcoV545?.naturalWidth===1383&&palcoV545?.naturalHeight===880);
   const palcoCompleto=Boolean(ritaglioEsportabile&&
     palcoV543?.naturalWidth===1383&&palcoV543?.naturalHeight===880);
-  const riferimentoCompleto=Boolean(ritaglioEsportabile&&(palcoFotoV547||palcoFotoV546||palcoFotoV545||palcoCompleto||atlanteV539));
-  if(palcoFotoV547){
+  const riferimentoCompleto=Boolean(ritaglioEsportabile&&(palcoEsattoV548||palcoDinamicoV548||palcoFotoV547||palcoFotoV546||palcoFotoV545||palcoCompleto||atlanteV539));
+  if(palcoEsattoV548||palcoDinamicoV548){
+    // Same 3x2 cell and spatial placement as the preview CSS. Full sprite
+    // includes the hero ONLY for the explicitly approved default scene.
+    const foto=palcoEsattoV548?palcoApprovatoV548:palcoAmbienteV548;
+    const cellW=foto.naturalWidth/3,cellH=foto.naturalHeight/2;
+    const fxW=dw*1.20,fxH=fxW*(710/626);
+    ctx.drawImage(foto,
+      riferimentoV532.colonna*cellW,riferimentoV532.riga*cellH,cellW,cellH,
+      dx-(fxW-dw)/2,dy-dh*.03,fxW,fxH);
+  }else if(palcoFotoV547){
     // Exactly the same aspect ratio, 3x2 cell and zoom as the live Shop.
     const cellW=palcoV547.naturalWidth/3,cellH=palcoV547.naturalHeight/2;
     const fxW=dw*1.60,fxH=fxW*(440/461);
@@ -278,7 +303,7 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
       c.effetto==='skin-mitica'?'astrale':'nebulosa',2.8,
       {fase:'fronte',texture:texturaCosmica});
     ctx.restore();
-  } else ctx.drawImage(riferimentoCompleto?ritaglioEsportabile:immagine,dx,dy,dw,dh);
+  } else if(!palcoEsattoV548) ctx.drawImage(riferimentoCompleto?ritaglioEsportabile:immagine,dx,dy,dw,dh);
   // Il rivestimento della skin in CSS e' un canvas separato dalla foto.
   const pelle=grafica.querySelector?.('.rpg-skin-fedele');
   if(!riferimentoCompleto&&!giaFotografica&&pelle?.width&&pelle?.height) {
