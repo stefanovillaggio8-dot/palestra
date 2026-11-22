@@ -13,24 +13,40 @@ root=Path(__file__).resolve().parents[1]
 ref=Image.open(root/'img/effetti/reference-approvata-v537.png').convert('RGB')
 assert ref.size==(1447,1087),ref.size
 # Prima cella, senza elementi della UI delle targhe: sfondo e pavimento reali.
-panel=ref.crop((10,10,471,470))
+panel=ref.crop((10,10,471,450))
 w,h=panel.size
 # Copriamo il SOLO personaggio precedente fino alle suole, compresi mantello
 # e armatura; lasciamo intatti i pixel delle pareti e il pavimento circostante.
-points=[(.49,.09),(.445,.10),(.408,.15),(.383,.23),(.342,.29),
- (.315,.47),(.293,.72),(.330,.81),(.392,.84),(.387,.94),
- (.466,.95),(.51,.91),(.575,.949),(.642,.945),(.656,.86),
- (.715,.73),(.699,.43),(.671,.26),(.622,.17),(.569,.11)]
+# La vecchia figura e' piu' grande del ritaglio attuale: anche la testa
+# e il mantello devono sparire, non solo il busto. Altrimenti compaiono
+# fantasmi di casco e scarpe in mezzo al nuovo personaggio.
+points=[(.41,.045),(.35,.07),(.31,.13),(.275,.25),(.25,.47),
+ (.225,.77),(.25,.86),(.29,.985),(.72,.985),(.765,.86),
+ (.79,.69),(.775,.40),(.744,.21),(.68,.10),(.62,.046)]
 m=Image.new('L',(w,h));d=ImageDraw.Draw(m)
 d.polygon([(round(a*w),round(b*h)) for a,b in points],fill=255)
-m=m.filter(ImageFilter.MaxFilter(7))
-bgr=cv2.cvtColor(np.array(panel),cv2.COLOR_RGB2BGR)
-hole=np.array(m,dtype=np.uint8)
-restored=cv2.inpaint(bgr,hole,5,cv2.INPAINT_TELEA)
-env=Image.fromarray(cv2.cvtColor(restored,cv2.COLOR_BGR2RGB))
-# I pixel attorno al contorno rimangono originali; soltanto il soggetto
-# vecchio viene sostituito dall'atmosfera reale della stessa fotografia.
-soft=m.filter(ImageFilter.GaussianBlur(5))
+m=m.filter(ImageFilter.MaxFilter(9))
+# L'inpainting Telea di un corpo intero lasciava una colonna di capelli
+# e scarpe. Ricostruiamo invece il SOLO tratto nascosto interpolando
+# i pixel del vero fondale a sinistra e destra di questo scatto.
+arr=np.asarray(panel,dtype=np.float32)
+blur=cv2.GaussianBlur(arr,(0,0),sigmaX=6,sigmaY=3)
+recon=np.copy(arr)
+lo=int(w*.19);hi=int(w*.82)
+for y in range(h):
+ left=blur[y,lo];right=blur[y,hi]
+ for x in range(max(0,int(w*.19)),min(w,int(w*.83))):
+  t=max(0,min(1,(x-lo)/(hi-lo)))
+  t=t*t*(3-2*t)
+  pixel=left*(1-t)+right*t
+  # Trama reale copiata dai margini dello stesso fotogramma,
+  # non una nuova texture appiccicata o un secondo pavimento.
+  lx=max(8,int(w*.08)+(x%27))
+  rx=min(w-8,int(w*.90)-(x%23))
+  noise=(arr[y,lx]-blur[y,lx])*(1-t)+(arr[y,rx]-blur[y,rx])*t
+  recon[y,x]=np.clip(pixel+noise*.25,0,255)
+env=Image.fromarray(np.uint8(recon))
+soft=m.filter(ImageFilter.GaussianBlur(9))
 env=Image.composite(env,panel,soft)
 # Bordo morbido sullo sfondo, senza trasformare la base in un riquadro opaco.
 rgba=env.convert('RGBA')
