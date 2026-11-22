@@ -1,3 +1,16 @@
+## 22/11/2026 — v545, collage fotografico senza taglio dei cinque effetti
+- Fotografia guida: img/effetti/reference-approvata-v537.png: la scena
+  reale non si rigenera né si attenua per rimuovere il cavaliere fittizio.
+- Il nuovo asset già generato img/effetti/reference-scene-v545.webp contiene
+  scene 461×440 senza filtri che cancellano le spirali e con pavimento intero.
+  Lo sprite resta a 3×2, nelle posizioni Ambra/Ombra/Fulmine/Nebulosa/Astrale.
+- La fotografia si allarga in preview a 136% della larghezza del ritratto,
+  con aspect ratio 461/440 e nessuno stretching della scena originale.
+  Il protagonista originale (faccia, armi, armature, streak) resta sopra.
+- Il PNG Atelier usa identico asset, con canvas 1500×1500 e scena estesa,
+  non tagliata ai bordi. Per offline esiste fallback v543; PWA cache v545.
+- Resta necessaria prova manuale visiva iPhone per certificare la somiglianza.
+
 ## 22/11/2026 — v544: correzione priorità CSS dei cinque effetti
 - Causa: background-position:center center!important del fondale comune
   prevaleva sui selettori per ciascuna cella atlas 3x2. Ambra mostrava

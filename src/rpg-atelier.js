@@ -154,7 +154,7 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
   const giaFotografica=Boolean(scena&&immagine!==fotoBase);
   // Gli effetti possono estendersi a lato della fotografia: nel PNG con
   // un cosmetico lasciamo margine extra mantenendo lo stesso zoom del soggetto.
-  const larghezza=riferimentoV532?1120:780,altezza=riferimentoV532?1320:1170;
+  const larghezza=riferimentoV532?1500:780,altezza=riferimentoV532?1500:1170;
   const canvas=document.createElement('canvas');
   canvas.width=larghezza;canvas.height=altezza;
   const ctx=canvas.getContext('2d');
@@ -172,6 +172,11 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
   // v543: la nuova reference contiene nello STESSO pannello il fondale,
   // la base, gli anelli e le scie. Niente più foro a forma di vecchio eroe.
   // Se non è disponibile (offline Safari), usa il vecchio compositore v542.
+  // v545: usa PRIMA l'atlante fotografico completo con le spirali e basi
+  // della tavola approvata, non il livello v543 attenuato.
+  const palcoV545=riferimentoV532 ? await attesaImmagine(
+    new URL('../img/effetti/reference-scene-v545.webp?v=545',import.meta.url).href
+  ).catch(()=>null) : null;
   const palcoV543=riferimentoV532 ? await attesaImmagine(
     new URL('../img/effetti/reference-scene-v543.webp?v=543',import.meta.url).href
   ).catch(()=>null) : null;
@@ -200,10 +205,20 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
       }else ritaglioEsportabile=null;
     }else ritaglioEsportabile=null;
   }
+  const palcoFotoV545=Boolean(ritaglioEsportabile&&
+    palcoV545?.naturalWidth===1383&&palcoV545?.naturalHeight===880);
   const palcoCompleto=Boolean(ritaglioEsportabile&&
     palcoV543?.naturalWidth===1383&&palcoV543?.naturalHeight===880);
-  const riferimentoCompleto=Boolean(ritaglioEsportabile&&(palcoCompleto||atlanteV539));
-  if(palcoCompleto){
+  const riferimentoCompleto=Boolean(ritaglioEsportabile&&(palcoFotoV545||palcoCompleto||atlanteV539));
+  if(palcoFotoV545){
+    // Stessa tavola fotografica della preview, scena piu' larga del soggetto:
+    // nessuna scia, sigillo o pietra puo' essere ritagliata ai bordi del PNG.
+    const cellW=palcoV545.naturalWidth/3,cellH=palcoV545.naturalHeight/2;
+    const fxW=dw*1.60,fxH=fxW*(440/461);
+    ctx.drawImage(palcoV545,
+      riferimentoV532.colonna*cellW,riferimentoV532.riga*cellH,cellW,cellH,
+      dx-(fxW-dw)/2,dy-dh*.03,fxW,fxH);
+  }else if(palcoCompleto){
     // Identica cella e identico zoom della preview: fotografia approvata
     // COMPLETA, senza doppio sprite, davanti soltanto il ritaglio vero.
     const cellW=palcoV543.naturalWidth/3,cellH=palcoV543.naturalHeight/2;

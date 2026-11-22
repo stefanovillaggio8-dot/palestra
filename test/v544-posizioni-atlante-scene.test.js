@@ -48,8 +48,8 @@ test('v544: il PNG usa la stessa cella della preview senza duplicare l’effetto
 });
 test('v544: nuova cache PWA, immagini approvate v543 invariate',()=>{
   const idx=read('index.html'),sw=read('sw.js');
-  assert.ok(idx.includes("PALESTRA_VERSIONE = 'palestra-v544'"));
-  assert.ok(sw.includes("const VERSIONE = 'palestra-v544'"));
+  assert.ok(idx.includes("PALESTRA_VERSIONE = 'palestra-v545'"));
+  assert.ok(sw.includes("const VERSIONE = 'palestra-v545'"));
   for(const sheet of ['stile.css','stile-rpg.css','stile-premium.css']){
     assert.ok(idx.includes('./'+sheet+'?v=544'),sheet);
     assert.ok(sw.includes("'./"+sheet+"?v=544'"),sheet);

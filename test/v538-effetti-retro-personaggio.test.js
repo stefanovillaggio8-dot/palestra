@@ -33,7 +33,7 @@ test('v538: il tasto salvataggio Shop include cinque effetti',()=>{
 
 test('v538: nessuna regressione PWA e texture reference storica preservata',()=>{
   const sw=read('sw.js'),index=read('index.html');
-  assert.match(sw,/const VERSIONE = 'palestra-v544'/);
-  assert.match(index,/PALESTRA_VERSIONE = 'palestra-v544'/);
+  assert.match(sw,/const VERSIONE = 'palestra-v545'/);
+  assert.match(index,/PALESTRA_VERSIONE = 'palestra-v545'/);
   assert.match(sw,/effetti-reference-v537\.webp\?v=537/);
 });
