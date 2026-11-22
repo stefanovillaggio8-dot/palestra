@@ -43,11 +43,11 @@ for label,col,row in cells:
             r=sqrt(dx*dx+dy*dy)
             if r>1.23:continue
             # Bagliore tenue sul piano, sotto il vero personaggio.
-            inner=exp(-((r/.80)**4))*0.10
-            outer=exp(-((r-1)/.100)**2)*.21
-            ring=exp(-((r-1.00)/.027)**2)*.54
-            ring2=exp(-((r-.84)/.021)**2)*.33
-            ring3=exp(-((r-.63)/.017)**2)*.12
+            inner=exp(-((r/.85)**4))*0.26
+            outer=exp(-((r-1)/.100)**2)*.30
+            ring=exp(-((r-1.00)/.027)**2)*.60
+            ring2=exp(-((r-.84)/.021)**2)*.42
+            ring3=exp(-((r-.63)/.017)**2)*.22
             a=clip(255*(inner+outer+ring+ring2+ring3))
             if not a:continue
             mix=.24 if r<.65 else .55
