@@ -3,11 +3,11 @@
 // Nessun acquisto/record viene modificato dalle anteprime o dal download.
 import { AURA_FOTO_ATLAS } from './aura-foto-atlas.js';
 import { disegnaEffettoApprovatoRpg, EFFETTI_APPROVATI_RPG } from './rpg-effetti-approvati-v531.js?v=531';
-import { effettoReferenceV532 } from './rpg-reference-v532.js?v=538';
+import { effettoReferenceV532 } from './rpg-reference-v532.js?v=539';
 import { FOTO_RPG_RIQUADRI, livelliFotoRpg } from './aura-foto-rpg.js';
 import { fasciaSagoma, disegnaCoronaEnergetica } from './anteprima-combinata-rpg.js?v=513';
 import { fotoCinematograficaRpg } from './foto-cinematica-rpg.js';
-import {disegnaAtmosferaCosmicaRpg,disegnaAccentiCosmiciRpg,disegnaSoggettoCosmicoRpg,disegnaSfondoFotograficoCosmicoRpg,disegnaFotografiaFusaRpg} from './rpg-scena-cosmica.js?v=538';
+import {disegnaAtmosferaCosmicaRpg,disegnaAccentiCosmiciRpg,disegnaSoggettoCosmicoRpg,disegnaSfondoFotograficoCosmicoRpg,disegnaFotografiaFusaRpg} from './rpg-scena-cosmica.js?v=539';
 import {caricaEnergiaFotograficaRpg,disegnaEnergiaFotograficaRpg} from './rpg-energia-incarnata.js';
 import { percorsoFotoCoronaV360 } from './foto-corona-v360.js';
 import { percorsoFotoAuraDivinaV366 } from './foto-aura-divina-v366.js';
@@ -164,9 +164,41 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
     (riferimentoV532?1170:altezza)/immagine.naturalHeight);
   const dw=Math.round(immagine.naturalWidth*ratio),dh=Math.round(immagine.naturalHeight*ratio);
   const dx=(larghezza-dw)/2,dy=(altezza-dh)/2;
-  const atlanteV538=riferimentoV532 ? await attesaImmagine(
-    new URL('../img/effetti/effetti-reference-v537.webp?v=537',import.meta.url).href) : null;
-  if(atlanteV538)disegnaReferenceV538(ctx,atlanteV538,riferimentoV532,dx,dy,dw,dh,'retro');
+  const atlanteV539=riferimentoV532 ? await attesaImmagine(
+    new URL('../img/effetti/effetti-reference-v539.webp?v=539',import.meta.url).href) : null;
+  const elementoRitaglio=grafica?.querySelector?.('.rpg-reference-subject-v539');
+  const scenaRitagliata=Boolean(riferimentoV532&&
+    grafica?.classList?.contains?.('rpg-reference-integrated-v539')&&
+    elementoRitaglio?.complete&&elementoRitaglio?.naturalWidth);
+  // Per un'armatura, il ritaglio HTML e' la STESSA foto con maschera alpha
+  // del costume. drawImage da solo non esporta la maschera CSS; ricopiala.
+  let ritaglioEsportabile=scenaRitagliata ? elementoRitaglio : null;
+  if(ritaglioEsportabile?._rpgReferenceMask){
+    const data=ritaglioEsportabile._rpgReferenceMask.match(/data:image\/png;base64,[A-Za-z0-9+/=]+/)?.[0];
+    const mask=data?await attesaImmagine(data).catch(()=>null):null;
+    const ritaglioCanvas=mask?document.createElement('canvas'):null;
+    if(ritaglioCanvas){
+      ritaglioCanvas.width=dw;ritaglioCanvas.height=dh;
+      const t=ritaglioCanvas.getContext?.('2d',{alpha:true});
+      if(t?.drawImage){
+        t.drawImage(immagine,0,0,dw,dh);
+        t.globalCompositeOperation='destination-in';
+        t.drawImage(mask,0,0,dw,dh);
+        t.globalCompositeOperation='source-over';
+        ritaglioEsportabile=ritaglioCanvas;
+      }else ritaglioEsportabile=null;
+    }else ritaglioEsportabile=null;
+  }
+  const riferimentoCompleto=Boolean(atlanteV539&&ritaglioEsportabile);
+  if(riferimentoCompleto){
+    // Stessi pixel RGB della reference ripulita, sotto il ritaglio vero.
+    const cellW=atlanteV539.naturalWidth/3,cellH=atlanteV539.naturalHeight/2;
+    ctx.drawImage(atlanteV539,
+      riferimentoV532.colonna*cellW,riferimentoV532.riga*cellH,cellW,cellH,
+      dx-dw*.32,dy-dh*.04,dw*1.64,dh*1.08);
+  }else if(atlanteV539) {
+    disegnaReferenceV538(ctx,atlanteV539,riferimentoV532,dx,dy,dw,dh,'retro');
+  }
   if(fxSenzaFoto) {
     // La foto e il suo ambiente restano IDENTICI per ogni effetto Shop.
     // Astrale/Nebulosa aggiungono una sola texture alpha sul ritratto originale.
@@ -176,10 +208,10 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
       c.effetto==='skin-mitica'?'astrale':'nebulosa',2.8,
       {fase:'fronte',texture:texturaCosmica});
     ctx.restore();
-  } else ctx.drawImage(immagine,dx,dy,dw,dh);
+  } else ctx.drawImage(riferimentoCompleto?ritaglioEsportabile:immagine,dx,dy,dw,dh);
   // Il rivestimento della skin in CSS e' un canvas separato dalla foto.
   const pelle=grafica.querySelector?.('.rpg-skin-fedele');
-  if(!giaFotografica&&pelle?.width&&pelle?.height) {
+  if(!riferimentoCompleto&&!giaFotografica&&pelle?.width&&pelle?.height) {
     try {
       ctx.save();ctx.globalCompositeOperation='source-over';
       if(!fxSenzaFoto || !disegnaSoggettoCosmicoRpg(ctx,pelle,dx,dy,dw,dh,c.classe))
@@ -248,7 +280,8 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
   // nel PNG, anziche' sostituito con un altro effetto preso dall'atlante.
   if(riferimentoV532){
     // La parte anteriore e' SOLO all'esterno del soggetto; non si attraversa.
-    if(atlanteV538)disegnaReferenceV538(ctx,atlanteV538,riferimentoV532,dx,dy,dw,dh,'fronte');
+    if(!riferimentoCompleto&&atlanteV539)
+      disegnaReferenceV538(ctx,atlanteV539,riferimentoV532,dx,dy,dw,dh,'fronte');
   } else if(effettoApprovato && !fxSenzaFoto && typeof ctx.translate==='function'){
     ctx.save();ctx.translate(dx,dy);
     if(effettoDalCanvas){

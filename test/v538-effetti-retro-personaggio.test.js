@@ -12,13 +12,13 @@ test('v538: nessun effetto integrale sopra il volto e la corporatura',()=>{
   assert.match(css,/\.personaggio-ritratto\{[\s\S]*?z-index:2!important/);
   assert.match(css,/mask-image:radial-gradient\(ellipse 31% 45% at 50% 43%/);
   assert.match(app,/\['rpg-reference-fx-back','rpg-reference-fx-front'\]/);
-  assert.match(css,/background-image:url\('\.\/img\/effetti\/effetti-reference-v537\.webp\?v=537'\)!important/);
+  assert.match(css,/background-image:url\('\.\/img\/effetti\/effetti-reference-v539\.webp\?v=539'\)!important/);
 });
 
 test('v538: anche il PNG ha lo stesso retro, sfumatura e immagine reale',()=>{
   const atelier=read('src/rpg-atelier.js');
-  assert.match(atelier,/disegnaReferenceV538\(ctx,atlanteV538,riferimentoV532,dx,dy,dw,dh,'retro'\)/);
-  assert.match(atelier,/disegnaReferenceV538\(ctx,atlanteV538,riferimentoV532,dx,dy,dw,dh,'fronte'\)/);
+  assert.match(atelier,/disegnaReferenceV538\(ctx,atlanteV539,riferimentoV532,dx,dy,dw,dh,'retro'\)/);
+  assert.match(atelier,/disegnaReferenceV538\(ctx,atlanteV539,riferimentoV532,dx,dy,dw,dh,'fronte'\)/);
   assert.match(atelier,/riferimentoV532 \? fotoBase/);
   assert.match(atelier,/globalCompositeOperation='destination-out'/);
   assert.match(atelier,/dx-dw\*\.32,dy-dh\*\.04,dw\*1\.64,dh\*1\.08/);
@@ -27,13 +27,13 @@ test('v538: anche il PNG ha lo stesso retro, sfumatura e immagine reale',()=>{
 test('v538: il tasto salvataggio Shop include cinque effetti',()=>{
   const app=read('src/app.js'),exporter=read('src/anteprima-combinata-rpg.js');
   assert.match(app,/grafica\.dataset\.referenceEffetto=effettoEquipaggiato\.id/);
-  assert.match(exporter,/const \{salvaFotoAtelier\}=await import\('\.\/rpg-atelier\.js\?v=538'\)/);
+  assert.match(exporter,/const \{salvaFotoAtelier\}=await import\('\.\/rpg-atelier\.js\?v=539'\)/);
   assert.match(exporter,/effetto:grafica\.dataset\.referenceEffetto\|\|''/);
 });
 
 test('v538: nessuna regressione PWA e texture reference storica preservata',()=>{
   const sw=read('sw.js'),index=read('index.html');
-  assert.match(sw,/const VERSIONE = 'palestra-v538'/);
-  assert.match(index,/PALESTRA_VERSIONE = 'palestra-v538'/);
+  assert.match(sw,/const VERSIONE = 'palestra-v539'/);
+  assert.match(index,/PALESTRA_VERSIONE = 'palestra-v539'/);
   assert.match(sw,/effetti-reference-v537\.webp\?v=537/);
 });
