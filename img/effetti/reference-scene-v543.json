@@ -29,7 +29,7 @@
     "edges_alpha": [
       0,
       0,
-      183,
+      177,
       245
     ],
     "source_panel": [
@@ -41,8 +41,8 @@
   },
   "fulmine": {
     "middle_floor_alpha": [
-      245,
-      245,
+      200,
+      240,
       240,
       240
     ],
@@ -61,7 +61,7 @@
   },
   "nebula": {
     "middle_floor_alpha": [
-      245,
+      200,
       240,
       245,
       240
@@ -81,8 +81,8 @@
   },
   "astrale": {
     "middle_floor_alpha": [
-      245,
-      245,
+      200,
+      240,
       245,
       240
     ],
