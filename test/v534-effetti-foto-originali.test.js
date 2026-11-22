@@ -25,13 +25,13 @@ test('v534: niente fusione screen che produceva verde sulle scintille dorate',()
  const css=read('stile-rpg.css'),atelier=read('src/rpg-atelier.js');
  const block=css.slice(css.indexOf('.personaggio-scena-grafica.rpg-reference-v532 > .rpg-reference-fx{'),
                      css.indexOf('.rpg-reference-v532 > .rpg-reference-fx.rpg-reference-ambra'));
- assert.match(block,/effetti-reference-v540\.webp\?v=540/);
+ assert.match(block,/effetti-reference-v539\.webp\?v=539/);
  assert.match(block,/mix-blend-mode:normal!important/);
  assert.doesNotMatch(block,/mix-blend-mode:screen!important/);
  assert.match(block,/width:164%!important/);
  assert.match(block,/height:108%!important/);
  assert.match(css,/\.rpg-reference-v532 > \.personaggio-ritratto\{[\s\S]*?opacity:1!important/);
- assert.match(atelier,/effetti-reference-v540\.webp\?v=540/);
+ assert.match(atelier,/effetti-reference-v539\.webp\?v=539/);
  assert.match(atelier,/riferimentoV532\.colonna\*cellW,riferimentoV532\.riga\*cellH/);
  assert.match(atelier,/ctx\.globalCompositeOperation='source-over'/);
 });
