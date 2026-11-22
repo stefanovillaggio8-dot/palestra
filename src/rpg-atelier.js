@@ -164,6 +164,12 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
     (riferimentoV532?1170:altezza)/immagine.naturalHeight);
   const dw=Math.round(immagine.naturalWidth*ratio),dh=Math.round(immagine.naturalHeight*ratio);
   const dx=(larghezza-dw)/2,dy=(altezza-dh)/2;
+  // v541: nel PNG esportato deve esserci lo stesso SFONDO con PAVIMENTO
+  // fotografico che si vede in anteprima, prima dell'effetto e del soggetto.
+  const ambienteV541=riferimentoV532 ? await attesaImmagine(
+    new URL('../img/effetti/reference-ambiente-v541.webp?v=541',import.meta.url).href
+  ).catch(()=>null) : null;
+  if(ambienteV541)ctx.drawImage(ambienteV541,dx,dy,dw,dh);
   const atlanteV539=riferimentoV532 ? await attesaImmagine(
     new URL('../img/effetti/effetti-reference-v540.webp?v=540',import.meta.url).href) : null;
   const elementoRitaglio=grafica?.querySelector?.('.rpg-reference-subject-v539');
