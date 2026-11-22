@@ -51,16 +51,16 @@ test('v551: legacy approved picture is immutable but never replaces original fac
 test('v550: PWA version and cache request the newly uploaded asset',()=>{
  const index=read('index.html'),sw=read('sw.js'),app=read('src/app.js');
  const ui=read('src/rpg-atelier-ui.js'),mix=read('src/anteprima-combinata-rpg.js');
- assert.ok(index.includes("PALESTRA_VERSIONE = 'palestra-v551'"));
- assert.ok(sw.includes("const VERSIONE = 'palestra-v551'"));
+ assert.ok(index.includes("PALESTRA_VERSIONE = 'palestra-v552'"));
+ assert.ok(sw.includes("const VERSIONE = 'palestra-v552'"));
  for(const file of ['stile.css','stile-rpg.css','stile-premium.css']){
-  assert.ok(index.includes('./'+file+'?v=551'),file);
-  assert.ok(sw.includes("'./"+file+"?v=551'"),file);
+  assert.ok(index.includes('./'+file+'?v=552'),file);
+  assert.ok(sw.includes("'./"+file+"?v=552'"),file);
  }
  assert.ok(!sw.includes("'./img/effetti/approved-showcase-v550.webp?v=550'"));
  assert.ok(!sw.includes("percorso.includes('approved-showcase-v550.webp')"));
- assert.ok(app.includes('./rpg-reference-compositing-v539.js?v=551'));
- assert.ok(app.includes('./rpg-atelier-ui.js?v=551'));
- assert.ok(ui.includes('./rpg-atelier.js?v=551'));
- assert.ok(mix.includes('./rpg-atelier.js?v=551'));
+ assert.ok(app.includes('./rpg-reference-compositing-v539.js?v=552'));
+ assert.ok(app.includes('./rpg-atelier-ui.js?v=552'));
+ assert.ok(ui.includes('./rpg-atelier.js?v=552'));
+ assert.ok(mix.includes('./rpg-atelier.js?v=552'));
 });
