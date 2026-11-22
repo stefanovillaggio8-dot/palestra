@@ -64,13 +64,13 @@ test('v532: 3 classi x 2 armature x ogni effetto usano stessa foto con armi sblo
 });
 test('v532: Atelier export PNG ha esattamente la stessa texture e cache offline',()=>{
  const atelier=read('src/rpg-atelier.js'),sw=read('sw.js');
- assert.match(atelier,/new URL\('\.\.\/img\/effetti\/effetti-reference-v536\.webp\?v=536'/);
+ assert.match(atelier,/new URL\('\.\.\/img\/effetti\/effetti-reference-v537\.webp\?v=537'/);
  assert.match(atelier,/if\(riferimentoV532\)\{/);
  assert.match(atelier,/ctx\.globalCompositeOperation='source-over'/);
  assert.match(atelier,/riferimentoV532\.colonna\*cellW,riferimentoV532\.riga\*cellH/);
  assert.match(sw,/effetti-reference-v532\.webp\?v=532/);
  assert.match(sw,/FOTO_DECORATIVE\.test\(percorso\) \|\| percorso\.includes\('effetti-reference-v532\.webp'\)/);
  assert.match(sw,/src\/rpg-reference-v532\.js/);
- assert.match(sw,/const VERSIONE = 'palestra-v536'/);
- assert.match(read('index.html'),/PALESTRA_VERSIONE = 'palestra-v536'/);
+ assert.match(sw,/const VERSIONE = 'palestra-v537'/);
+ assert.match(read('index.html'),/PALESTRA_VERSIONE = 'palestra-v537'/);
 });

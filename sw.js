@@ -9,7 +9,7 @@
 // e il test I3 che sia quello dell'ultimo commit, altrimenti si alza la cache e si
 // lascia scritto il numero vecchio. E' successo due volte: nella v54 avevo alzato
 // solo questo file, e dopo la v55 avevo smesso di alzarlo del tutto.
-const VERSIONE = 'palestra-v536';
+const VERSIONE = 'palestra-v537';
 
 // LE 18 FOTO DEI PERSONAGGI, CON LA VERSIONE DENTRO.
 //
@@ -90,7 +90,8 @@ const FILE = [
   './img/effetti/effetti-reference-v533.webp?v=533', // archivio storico v533
   './img/effetti/effetti-reference-v534.webp?v=534', // archivio effetti precedenti
   './img/effetti/effetti-reference-v535.webp?v=535', // archivio storico v535
-  './img/effetti/effetti-reference-v536.webp?v=536', // cinque VFX alpha generati SENZA figura
+  './img/effetti/effetti-reference-v536.webp?v=536', // archivio precedente
+  './img/effetti/effetti-reference-v537.webp?v=537', // effetti esatti da ultimo collage, alpha e stessa base
   './src/aura-foto-atlas.js',
   './src/aura-foto-rpg.js',
   './img/effetti/astrale-sovrano-v474.svg', // fallback offline senza Canvas
@@ -438,7 +439,7 @@ const FOTO = [
 // su iPhone saturavano rete e memoria del service worker ad ogni release.
 const FOTO_DECORATIVE = /\/img\/personaggi\/(?:galleria-v352|corona-v360|aura-divina-v365|aura-divina-v379|scene|effetti|armature|catalogo)\/|\/img\/scenari\/|\/img\/effetti\//;
 const RISORSE_OFFLINE = [...new Set([...FILE, ...FOTO])]
-  .filter((percorso) => !FOTO_DECORATIVE.test(percorso) || percorso.includes('effetti-reference-v532.webp') || percorso.includes('effetti-reference-v533.webp') || percorso.includes('effetti-reference-v534.webp') || percorso.includes('effetti-reference-v535.webp') || percorso.includes('effetti-reference-v536.webp')); // reference essenziale offline
+  .filter((percorso) => !FOTO_DECORATIVE.test(percorso) || percorso.includes('effetti-reference-v532.webp') || percorso.includes('effetti-reference-v533.webp') || percorso.includes('effetti-reference-v534.webp') || percorso.includes('effetti-reference-v535.webp') || percorso.includes('effetti-reference-v536.webp') || percorso.includes('effetti-reference-v537.webp')); // reference essenziale offline
 const DIMENSIONE_BLOCCO = 16;
 const CACHE_FOTO_VISITATE = 'palestra-foto-visitate-v1';
 const MAX_FOTO_VISITATE = 48;

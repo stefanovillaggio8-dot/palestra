@@ -16,14 +16,14 @@ test('v536: atlante alpha autentico, cinque texture senza personaggi',()=>{
 });
 test('v536: nuova reference in Shop, PWA, Atelier con margini senza crop',()=>{
  const css=read('stile-rpg.css'),a=read('src/rpg-atelier.js'),sw=read('sw.js');
- assert.match(css,/effetti-reference-v536\.webp\?v=536/);
- assert.match(css,/width:146%!important/);
+ assert.match(css,/effetti-reference-v537\.webp\?v=537/);
+ assert.match(css,/width:164%!important/);
  assert.match(css,/overflow:visible!important/);
  assert.match(css,/mask-image:none!important/);
- assert.match(a,/effetti-reference-v536\.webp\?v=536/);
+ assert.match(a,/effetti-reference-v537\.webp\?v=537/);
  assert.match(a,/larghezza=riferimentoV532\?1120:780/);
- assert.match(a,/dx-dw\*\.21,dy-dh\*\.066,dw\*1\.42,dh\*1\.13/);
+ assert.match(a,/dx-dw\*\.32,dy-dh\*\.04,dw\*1\.64,dh\*1\.08/);
  assert.match(sw,/effetti-reference-v536\.webp\?v=536/);
- assert.match(sw,/const VERSIONE = 'palestra-v536'/);
- assert.match(read('index.html'),/PALESTRA_VERSIONE = 'palestra-v536'/);
+ assert.match(sw,/const VERSIONE = 'palestra-v537'/);
+ assert.match(read('index.html'),/PALESTRA_VERSIONE = 'palestra-v537'/);
 });

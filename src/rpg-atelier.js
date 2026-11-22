@@ -205,10 +205,11 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
   // Il Canvas live usato in anteprima per Fumo/Scintille/Scarica viene copiato
   // nel PNG, anziche' sostituito con un altro effetto preso dall'atlante.
   if(riferimentoV532){
-    // La fonte è il VERO ritaglio approvato e precaricato dalla PWA, identico
-    // all'anteprima Shop: cinque celle su sfondo nero per compositing screen.
+    // v537: usa i pixel della tavola finale approvata, con alpha che
+    // esclude solo l'eroe generato; la fotografia originale resta sotto,
+    // completa e non viene sostituita. Cinque celle WebP lossless.
     const atlas=await attesaImmagine(
-      new URL('../img/effetti/effetti-reference-v536.webp?v=536',import.meta.url).href);
+      new URL('../img/effetti/effetti-reference-v537.webp?v=537',import.meta.url).href);
     const cellW=atlas.naturalWidth/3,cellH=atlas.naturalHeight/2;
     ctx.save();ctx.globalCompositeOperation='source-over';
     ctx.drawImage(atlas,
@@ -216,7 +217,7 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
       // v535: più spazio a fumo, scariche, nebulosa e sigilli, senza
       // ritagliare i bordi nella foto esportata. Il Canvas limita da sé
       // le parti esterne alla pagina, senza cambiare il soggetto.
-      dx-dw*.21,dy-dh*.066,dw*1.42,dh*1.13);
+      dx-dw*.32,dy-dh*.04,dw*1.64,dh*1.08);
     ctx.restore();
   } else if(effettoApprovato && !fxSenzaFoto && typeof ctx.translate==='function'){
     ctx.save();ctx.translate(dx,dy);
