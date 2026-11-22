@@ -77,5 +77,5 @@ test('v527: bucket e policy consentono i JPEG preservando l’isolamento per acc
   assert.match(migration, /storage\.foldername\(name\)\)\[1\] = \(select auth\.uid\(\)\)::text/);
   assert.match(migration, /storage\.extension\(name\) in \('webp', 'jpg'\)/);
   // Il flusso foto Safari v527 rimane supportato anche dopo il cambio di skin v528.
-  assert.match(readFileSync(new URL('../index.html', import.meta.url), 'utf8'), /palestra-v554/);
+  assert.match(readFileSync(new URL('../index.html', import.meta.url), 'utf8'), /palestra-v555/);
 });

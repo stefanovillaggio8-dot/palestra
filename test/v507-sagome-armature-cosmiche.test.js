@@ -62,7 +62,7 @@ test('v513: la sagoma nuova non resta nella cache di Atelier, anteprima e app',(
   const precedente='./rpg-scena-cosmica.js?v=532';
   assert.ok(read('src/anteprima-combinata-rpg.js').includes("from '"+precedente+"'"));
   assert.ok(read('anteprima-armature-cosmiche.html').includes("./src/rpg-scena-cosmica.js?v=532"));
-  assert.ok(read('src/rpg-atelier-ui.js').includes("./rpg-atelier.js?v=554"));
+  assert.ok(read('src/rpg-atelier-ui.js').includes("./rpg-atelier.js?v=555"));
 });
 
 test('v513: due sagome indipendenti raggiungono le suole senza il pavimento infuocato',()=>{

@@ -45,13 +45,13 @@ test('v539: tutti i 18 ritagli classici hanno alpha validato dal manifesto',()=>
 test('v539: anteprima, foto PNG, Shop, cache PWA stessa source RGB',()=>{
  const sw=read('sw.js'),index=read('index.html'),atelier=read('src/rpg-atelier.js');
  const shopExport=read('src/anteprima-combinata-rpg.js');
- assert.match(sw,/const VERSIONE = 'palestra-v554'/);
- assert.match(index,/PALESTRA_VERSIONE = 'palestra-v554'/);
+ assert.match(sw,/const VERSIONE = 'palestra-v555'/);
+ assert.match(index,/PALESTRA_VERSIONE = 'palestra-v555'/);
  assert.match(sw,/img\/effetti\/effetti-reference-v539\.webp\?v=539/);
- assert.match(sw,/src\/rpg-reference-compositing-v539\.js\?v=554/);
+ assert.match(sw,/src\/rpg-reference-compositing-v539\.js\?v=555/);
  assert.match(atelier,/effetti-reference-v539\.webp\?v=539/);
  assert.ok(atelier.includes('const riferimentoCompleto=Boolean(ritaglioEsportabile&&'));
  assert.ok(atelier.includes('(palcoDinamicoV548||palcoFotoV547||palcoFotoV546||palcoFotoV545||palcoCompleto||atlanteV539)'));
  assert.match(atelier,/ctx\.drawImage\(atlanteV539,/);
- assert.match(shopExport,/rpg-atelier\.js\?v=554/);
+ assert.match(shopExport,/rpg-atelier\.js\?v=555/);
 });
