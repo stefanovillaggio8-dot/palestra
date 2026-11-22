@@ -1,0 +1,42 @@
+name: Generate seamless photographic RPG effects v547
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'tools/build-reference-scene-v547.py'
+permissions:
+  contents: write
+  pages: write
+jobs:
+  build-scenes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install imaging packages
+        run: python -m pip install Pillow numpy opencv-python-headless
+      - name: Generate five photo effects and verify softness of the edges
+        run: python tools/build-reference-scene-v547.py
+      - name: Publish atlas and verification data on main
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add img/effetti/reference-scene-v547.webp img/effetti/reference-scene-v547.json
+          git diff --cached --quiet && exit 0
+          git commit -m 'assets(v547): uncut magic trails and complete photographic rune bases'
+          for i in 1 2 3 4 5; do
+            git pull --rebase origin main && git push origin HEAD:main && break
+            if [ "$i" = 5 ]; then exit 1; fi
+            sleep 2
+          done
+      - name: Deploy latest static files
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api --method POST "repos/${GITHUB_REPOSITORY}/pages/builds"
