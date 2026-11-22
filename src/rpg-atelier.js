@@ -169,8 +169,8 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
   const ambienteV541=riferimentoV532 ? await attesaImmagine(
     new URL('../img/effetti/reference-ambienti-v542.webp?v=542',import.meta.url).href
   ).catch(()=>null) : null;
-  // La v542 e' un atlante 3x2: usa la stessa cella della preview.
-  // L'alpha del fondale e' gia' sfumato, e la base fotografica si salva intera.
+  // La v542 è un atlante 3x2: usa la stessa cella della preview.
+  // L'alpha del fondale è già sfumato, e la base fotografica si salva intera.
   if(ambienteV541){
     const envW=ambienteV541.naturalWidth/3,envH=ambienteV541.naturalHeight/2;
     ctx.drawImage(ambienteV541,
