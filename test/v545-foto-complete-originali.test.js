@@ -38,13 +38,13 @@ test('v545: PNG Atelier conserva la base intera e il vero personaggio',()=>{
 });
 test('v545: versione online, file statici e offline coincidono',()=>{
   const idx=read('index.html'),sw=read('sw.js'),app=read('src/app.js');
-  assert.ok(idx.includes("PALESTRA_VERSIONE = 'palestra-v554'"));
-  assert.ok(sw.includes("const VERSIONE = 'palestra-v554'"));
+  assert.ok(idx.includes("PALESTRA_VERSIONE = 'palestra-v555'"));
+  assert.ok(sw.includes("const VERSIONE = 'palestra-v555'"));
   for(const sheet of ['stile.css','stile-rpg.css','stile-premium.css']){
-    assert.ok(idx.includes('./'+sheet+'?v=554'),sheet);
-    assert.ok(sw.includes("'./"+sheet+"?v=554'"),sheet);
+    assert.ok(idx.includes('./'+sheet+'?v=555'),sheet);
+    assert.ok(sw.includes("'./"+sheet+"?v=555'"),sheet);
   }
   assert.ok(sw.includes("'./img/effetti/reference-scene-v545.webp?v=545'"));
   assert.ok(sw.includes("percorso.includes('reference-scene-v545.webp')"));
-  assert.ok(app.includes("./rpg-reference-compositing-v539.js?v=554"));
+  assert.ok(app.includes("./rpg-reference-compositing-v539.js?v=555"));
 });

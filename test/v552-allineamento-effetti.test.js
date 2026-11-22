@@ -34,6 +34,6 @@ test('v552: Shop and PNG export use identical size and keep real character asset
   assert.match(app,/src: fotoAuraDivinaRpg \|\| fotoCoronaRpg \|\| fotoArmaturaRpg \|\| fotoProgressioneRpg/);
   assert.doesNotMatch(css,/approved-showcase-v550\.webp/);
   assert.equal(Object.keys(EFFETTI_REFERENCE_V532).length,5);
-  assert.match(sw,/const VERSIONE = 'palestra-v554'/);
-  assert.match(index,/PALESTRA_VERSIONE = 'palestra-v554'/);
+  assert.match(sw,/const VERSIONE = 'palestra-v555'/);
+  assert.match(index,/PALESTRA_VERSIONE = 'palestra-v555'/);
 });

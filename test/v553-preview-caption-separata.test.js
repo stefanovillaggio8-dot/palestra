@@ -24,7 +24,7 @@ test('v554: approved effects are not cropped and original character still select
   assert.ok(app.includes("if(referenceAnteprima)scena.classList.add('aura-preview-reference-scene')"));
   assert.ok(app.includes("personaggio.classList.add('aura-preview-character')"));
   assert.ok(app.includes("const nota = personaggio.querySelector('.personaggio-dati .nota')"));
-  assert.ok(sw.includes("const VERSIONE = 'palestra-v554'"));
-  assert.ok(index.includes("PALESTRA_VERSIONE = 'palestra-v554'"));
-  assert.ok(index.includes('stile-rpg.css?v=554'));
+  assert.ok(sw.includes("const VERSIONE = 'palestra-v555'"));
+  assert.ok(index.includes("PALESTRA_VERSIONE = 'palestra-v555'"));
+  assert.ok(index.includes('stile-rpg.css?v=555'));
 });

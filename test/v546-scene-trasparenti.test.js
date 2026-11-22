@@ -47,19 +47,19 @@ test('v546: export PNG uses same cell/zoom and never renders second old knight',
  assert.match(at,/const palcoFotoV546=Boolean\(ritaglioEsportabile&&/);
  assert.match(at,/palcoV546\.naturalWidth\/3,cellH=palcoV546\.naturalHeight\/2/);
  assert.match(at,/const fxW=dw\*1\.60,fxH=fxW\*\(440\/461\)/);
- assert.match(shop,/rpg-atelier\.js\?v=554/);
+ assert.match(shop,/rpg-atelier\.js\?v=555/);
 });
 test('v546: app, precache, alternate photos and CSS all use fresh version',()=>{
  const index=read('index.html'),sw=read('sw.js'),app=read('src/app.js');
- assert.ok(index.includes("PALESTRA_VERSIONE = 'palestra-v554'"));
- assert.ok(sw.includes("const VERSIONE = 'palestra-v554'"));
+ assert.ok(index.includes("PALESTRA_VERSIONE = 'palestra-v555'"));
+ assert.ok(sw.includes("const VERSIONE = 'palestra-v555'"));
  for(const sheet of ['stile.css','stile-rpg.css','stile-premium.css']){
-   assert.ok(index.includes('./'+sheet+'?v=554'),sheet);
-   assert.ok(sw.includes("'./"+sheet+"?v=554'"),sheet);
+   assert.ok(index.includes('./'+sheet+'?v=555'),sheet);
+   assert.ok(sw.includes("'./"+sheet+"?v=555'"),sheet);
  }
  assert.ok(sw.includes("'./img/effetti/reference-scene-v546.webp?v=546'"));
  assert.ok(sw.includes("percorso.includes('reference-scene-v546.webp')"));
  assert.ok(sw.includes("'./img/effetti/reference-scene-v545.webp?v=545'"));
- assert.ok(app.includes('./rpg-reference-compositing-v539.js?v=554'));
- assert.ok(app.includes('./rpg-atelier-ui.js?v=554'));
+ assert.ok(app.includes('./rpg-reference-compositing-v539.js?v=555'));
+ assert.ok(app.includes('./rpg-atelier-ui.js?v=555'));
 });

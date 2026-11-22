@@ -4819,3 +4819,23 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
   text-align:center;
   background:transparent!important;
 }
+
+
+/* v555: sfuma SOLO il perimetro dei cinque fondali fotografici v548.
+ * Il centro, le rune, le scie, il pavimento e il ritaglio autentico non
+ * sono ricreati o ridimensionati. Due maschere alpha si INTERSECANO:
+ * senza compositing, due gradients sono un'unione e lasciano il rettangolo.
+ * WebKit/Safari usa source-in, CSS standard usa intersect. */
+.personaggio-scena-grafica.rpg-reference-v532.rpg-reference-integrated-v539.rpg-reference-stage-v548
+  > .rpg-reference-environment-v541 {
+  -webkit-mask-image:
+    linear-gradient(to right,transparent 0%,#000 6.5%,#000 93.5%,transparent 100%),
+    linear-gradient(to bottom,transparent 0%,#000 5.5%,#000 98%,transparent 100%)!important;
+  mask-image:
+    linear-gradient(to right,transparent 0%,#000 6.5%,#000 93.5%,transparent 100%),
+    linear-gradient(to bottom,transparent 0%,#000 5.5%,#000 98%,transparent 100%)!important;
+  -webkit-mask-composite:source-in!important;
+  mask-composite:intersect!important;
+}
+/* Il soggetto originale non va MAI sfumato: la maschera appartiene
+ * esclusivamente al livello environment; la sagoma resta nitida. */

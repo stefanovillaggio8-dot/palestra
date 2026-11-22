@@ -9,7 +9,7 @@
 // e il test I3 che sia quello dell'ultimo commit, altrimenti si alza la cache e si
 // lascia scritto il numero vecchio. E' successo due volte: nella v54 avevo alzato
 // solo questo file, e dopo la v55 avevo smesso di alzarlo del tutto.
-const VERSIONE = 'palestra-v554';
+const VERSIONE = 'palestra-v555';
 
 // LE 18 FOTO DEI PERSONAGGI, CON LA VERSIONE DENTRO.
 //
@@ -86,7 +86,7 @@ const FILE = [
   './src/aura-skin.js',
   './src/effetti-rpg-canvas.js',
   './src/rpg-reference-v532.js',
-  './src/rpg-reference-compositing-v539.js?v=554', // ritaglio alpha vero per i 5 VFX
+  './src/rpg-reference-compositing-v539.js?v=555', // ritaglio alpha vero per i 5 VFX
   './src/rpg-scena-cosmica.js?v=543', // modulo condiviso con il ritaglio
   './img/effetti/effetti-reference-v532.webp?v=532', // compatibilità regression v532
   './img/effetti/effetti-reference-v533.webp?v=533', // archivio storico v533
@@ -229,8 +229,8 @@ const FILE = [
   './img/personaggi/galleria-v352/berserker-07.webp?v=536',
   './img/personaggi/galleria-v352/berserker-08.webp?v=536',
   './img/personaggi/galleria-v352/berserker-09.webp?v=536',
-  './stile-galleria-rpg.css?v=554',
-  './src/galleria-foto-rpg.js?v=554',
+  './stile-galleria-rpg.css?v=555',
+  './src/galleria-foto-rpg.js?v=555',
   './rassegna-missioni.html',
   // IL FOGLIO DI STILE HA LA VERSIONE, come il collegamento in index.html.
   //
@@ -242,9 +242,9 @@ const FILE = [
   // Il numero deve essere uguale a quello di `stile.css?v=` in index.html e a
   // `window.PALESTRA_VERSIONE`: se i tre non coincidono, l'app carica un foglio di
   // stile e dice un altro numero.
-  './stile.css?v=554',
-  './stile-rpg.css?v=554',
-  './stile-premium.css?v=554',
+  './stile.css?v=555',
+  './stile-rpg.css?v=555',
+  './stile-premium.css?v=555',
 './manifest.webmanifest',
   './manifest-p1.webmanifest',
   './manifest-p2.webmanifest',
@@ -252,7 +252,7 @@ const FILE = [
   // installata di un amico prenderebbe quello di Ste, con lo stesso id e con
   // start_url che punta a ?p=1
   './manifest-nuovo.webmanifest',
-  './src/app.js?v=554',
+  './src/app.js?v=555',
   './src/numeri.js',
   './src/confronto.js',
   './src/confronto-mensile.js',

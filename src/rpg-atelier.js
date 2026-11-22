@@ -241,9 +241,42 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
     const cellW=foto.naturalWidth/3,cellH=foto.naturalHeight/2;
     // v552: stesso 148% centrato dello Shop: cerchio ai piedi, non a meta' gamba.
     const fxW=dw*1.48,fxH=fxW*(710/626);
-    ctx.drawImage(foto,
-      riferimentoV532.colonna*cellW,riferimentoV532.riga*cellH,cellW,cellH,
-      dx-(fxW-dw)/2,dy-dh*.03,fxW,fxH);
+    // v555: stessa sfumatura perimetrale di Safari CSS nel PNG.
+    // Applichiamo l'alpha SOLO allo sfondo; il vero eroe viene disegnato
+    // DOPO e rimane completamente nitido. Centro e base restano opachi.
+    const fxX=dx-(fxW-dw)/2,fxY=dy-dh*.03;
+    const sfuma=document.createElement('canvas');
+    sfuma.width=Math.max(1,Math.round(fxW));
+    sfuma.height=Math.max(1,Math.round(fxH));
+    const fxCtx=sfuma.getContext?.('2d',{alpha:true});
+    if(fxCtx?.createLinearGradient&&fxCtx?.drawImage){
+      const w=sfuma.width,h=sfuma.height;
+      fxCtx.drawImage(foto,
+        riferimentoV532.colonna*cellW,riferimentoV532.riga*cellH,cellW,cellH,
+        0,0,w,h);
+      fxCtx.globalCompositeOperation='destination-in';
+      const bordoX=fxCtx.createLinearGradient(0,0,w,0);
+      bordoX.addColorStop(0,'rgba(0,0,0,0)');
+      bordoX.addColorStop(.065,'rgba(0,0,0,1)');
+      bordoX.addColorStop(.935,'rgba(0,0,0,1)');
+      bordoX.addColorStop(1,'rgba(0,0,0,0)');
+      fxCtx.fillStyle=bordoX;
+      fxCtx.fillRect(0,0,w,h);
+      const bordoY=fxCtx.createLinearGradient(0,0,0,h);
+      bordoY.addColorStop(0,'rgba(0,0,0,0)');
+      bordoY.addColorStop(.055,'rgba(0,0,0,1)');
+      bordoY.addColorStop(.98,'rgba(0,0,0,1)');
+      bordoY.addColorStop(1,'rgba(0,0,0,0)');
+      fxCtx.fillStyle=bordoY;
+      fxCtx.fillRect(0,0,w,h);
+      fxCtx.globalCompositeOperation='source-over';
+      ctx.drawImage(sfuma,fxX,fxY,fxW,fxH);
+    }else{
+      // Fallback Canvas minimale: mai lasciare una foto vuota.
+      ctx.drawImage(foto,
+        riferimentoV532.colonna*cellW,riferimentoV532.riga*cellH,cellW,cellH,
+        fxX,fxY,fxW,fxH);
+    }
   }else if(palcoFotoV547){
     // Exactly the same aspect ratio, 3x2 cell and zoom as the live Shop.
     const cellW=palcoV547.naturalWidth/3,cellH=palcoV547.naturalHeight/2;
