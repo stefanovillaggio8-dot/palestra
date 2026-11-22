@@ -1,3 +1,23 @@
+## 22/11/2026 — v551: preserva le facce ORIGINALI nell'anteprima degli effetti
+- Problema: il poster promozionale v550 includeva un Assassino con una
+  faccia, un corpo e un cappuccio rigenerati, discordanti dai 18 ritratti
+  realmente usati dall'app. Il caso senza armatura sostituiva il personaggio
+  soltanto nell'anteprima e nel PNG di export.
+- Rimossa la modalità `rpg-reference-stage-v548-static` dalla preview e
+  tolta la foto promozionale dall'esportazione. L'asset approvato resta
+  conservato nel repository ma **non usato per il volto**.
+- Le cinque scene dietro il personaggio restano
+  `approved-environments-v548.webp`, con lo stesso colore/magie/basi.
+  Sopra appare esclusivamente il ritaglio della fotografia originale di
+  classe, stadio e armatura realmente selezionati.
+- Corretto `object-fit:contain` per non deformare il corpo; l'anteprima
+  arriva a 350px come le skin senza effetto, senza tagliare i piedi.
+- La maschera facciale NON viene aggiunta: avrebbe modificato le foto
+  originali invece di preservarle. Nessuna modifica a profili/streak/prezzi.
+- Export PNG usa la medesima composizione dinamica; cache CSS/PWA v551.
+- La suite automatica verifica assenza di facce promozionali, ma la resa
+  visiva finale sul dispositivo va ancora controllata.
+
 ## 22/11/2026 — v550, file originale v550 caricato identico
 - Asset img/effetti/approved-showcase-v550.webp: 1878x1420 pixel, 3x2 celle da 626x710.
   SHA1 blob Git 5bf1a6dc4cc59112d6c2caa9fcd246ad3355be0a;

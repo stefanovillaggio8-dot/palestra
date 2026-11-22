@@ -28,19 +28,15 @@ test('v548: exactly the five approved image sources and intact signed-off atlas'
    assert.ok(bin.length>200000,file);
  }
 });
-test('v548: static approved figure only for default assassin and only in preview',()=>{
+test('v551: original hero is never substituted by generated showcase',()=>{
  const js=read('src/rpg-reference-compositing-v539.js');
  const css=read('stile-rpg.css');
- assert.match(js,/avatarMockupConsentito=\(\)=>classe==='assassino'&&/);
- assert.match(js,/grafica\.closest\?\.\('\.aura-preview-panel'\)/);
- assert.match(js,/!grafica\.dataset\?\.referenceArmatura/);
- assert.match(js,/grafica\.dataset\?\.referenceDivina!=='true'/);
- assert.match(js,/rpg-reference-stage-v548-static/);
- assert.match(css,/:is\(\.aura-preview-panel,\.rpg-atelier-panel\)/);
- assert.match(css,/\.rpg-reference-stage-v548\.rpg-reference-stage-v548-static[\s\S]*?> \.rpg-reference-subject-v539 \{\s*display:none!important/);
- assert.match(css,/approved-showcase-v550\.webp\?v=550/);
- assert.match(css,/approved-environments-v548\.webp\?v=548/);
+ assert.match(js,/grafica\.classList\?\.remove\?\.\('rpg-reference-stage-v548-static'\)/);
+ assert.doesNotMatch(js,/avatarMockupConsentito|approved-showcase-v550\.webp/);
+ assert.doesNotMatch(css,/approved-showcase-v550\.webp/);
+ assert.match(js,/soggetto\.src=alpha\|\|url/);
 });
+
 test('v548: dynamic photos keep genuine class and original armor',()=>{
  const js=read('src/rpg-reference-compositing-v539.js');
  const css=read('stile-rpg.css');
@@ -51,28 +47,28 @@ test('v548: dynamic photos keep genuine class and original armor',()=>{
  assert.match(css,/width:112%!important/);
  assert.match(css,/\.rpg-reference-stage-v548 > \.rpg-reference-complete-v539\{\s*display:none!important/);
 });
-test('v548: preview and PNG export share exactly approved crop and scale',()=>{
+test('v551: preview and PNG export share the approved scenery and authentic face',()=>{
  const js=read('src/rpg-atelier.js');
  const shop=read('src/anteprima-combinata-rpg.js');
- assert.match(js,/const palcoApprovatoV550=riferimentoV532/);
  assert.match(js,/const palcoAmbienteV548=riferimentoV532/);
- assert.match(js,/const palcoEsattoV548=Boolean\(riferimentoV532&&/);
  assert.match(js,/const palcoDinamicoV548=Boolean\(ritaglioEsportabile&&/);
  assert.match(js,/const fxW=dw\*1\.12,fxH=fxW\*\(710\/626\)/);
- assert.match(js,/else if\(!palcoEsattoV548\) ctx\.drawImage/);
- assert.match(shop,/rpg-atelier\.js\?v=550/);
+ assert.doesNotMatch(js,/palcoEsattoV548|palcoApprovatoV550/);
+ assert.match(js,/ctx\.drawImage\(riferimentoCompleto\?ritaglioEsportabile:immagine/);
+ assert.match(shop,/rpg-atelier\.js\?v=551/);
 });
+
 test('v548: versioned PWA precaches approved binaries, still has offline fallback',()=>{
  const index=read('index.html'),sw=read('sw.js'),app=read('src/app.js');
- assert.ok(index.includes("PALESTRA_VERSIONE = 'palestra-v550'"));
- assert.ok(sw.includes("const VERSIONE = 'palestra-v550'"));
+ assert.ok(index.includes("PALESTRA_VERSIONE = 'palestra-v551'"));
+ assert.ok(sw.includes("const VERSIONE = 'palestra-v551'"));
  for(const path of ['stile.css','stile-rpg.css','stile-premium.css']){
-   assert.ok(index.includes('./'+path+'?v=550'),path);
-   assert.ok(sw.includes("'./"+path+"?v=550'"),path);
+   assert.ok(index.includes('./'+path+'?v=551'),path);
+   assert.ok(sw.includes("'./"+path+"?v=551'"),path);
  }
- assert.ok(sw.includes("'./img/effetti/approved-showcase-v550.webp?v=550'"));
+ assert.ok(!sw.includes("'./img/effetti/approved-showcase-v550.webp?v=550'"));
  assert.ok(sw.includes("'./img/effetti/approved-environments-v548.webp?v=548'"));
  assert.ok(sw.includes("'./img/effetti/reference-scene-v547.webp?v=547'"));
- assert.ok(app.includes('./rpg-reference-compositing-v539.js?v=550'));
- assert.ok(app.includes('./rpg-atelier-ui.js?v=550'));
+ assert.ok(app.includes('./rpg-reference-compositing-v539.js?v=551'));
+ assert.ok(app.includes('./rpg-atelier-ui.js?v=551'));
 });

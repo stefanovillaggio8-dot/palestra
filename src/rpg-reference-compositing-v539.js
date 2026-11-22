@@ -128,26 +128,17 @@ export function montaReferenceScontornataV539(grafica,ritratto,classe,reference,
       fotoV547Pronta=fotografiaSenzaTagli.naturalWidth===1383&&
         fotografiaSenzaTagli.naturalHeight===880;
   }
-  // v548: the exact five approved previews are real assets, never AI
-  // regenerated at runtime. The default Assassin preview can reproduce
-  // its approved screenshot; other classes keep the real progression body.
+  // v551: I CINQUE sfondi approvati restano quelli di v548.
+  // Le immagini promozionali v550 contengono una faccia rigenerata:
+  // NON inserirle mai sopra le 18 fotografie originali dell'app.
+  // Il soggetto vero, ritagliato dalla foto della classe/stadio/armatura
+  // corrente, resta davanti all'ambiente per TUTTE le anteprime.
   let approvatoSfondoPronto=false;
-  let approvatoShowcasePronto=false;
-  // v549: in Shop la promo approvata non dipende dal livello Streak reale.
-  // Il livello resta vero altrove: questa è SOLTANTO la preview senza
-  // armatura/Corona/arma, e la verifica avviene DOPO il mount nel dialogo.
-  // Fare il check quando grafica è ancora detached farebbe sempre false.
-  const avatarMockupConsentito=()=>classe==='assassino'&&
-    Boolean(grafica.closest?.('.aura-preview-panel'))&&
-    !grafica.dataset?.referenceArmatura&&
-    grafica.dataset?.referenceDivina!=='true'&&
-    grafica.dataset?.referenceCorona!=='true'&&!corona&&!arma;
   const attivaV548=()=>{
     if(!inserito||grafica.isConnected===false)return;
+    grafica.classList?.remove?.('rpg-reference-stage-v548-static');
     if(approvatoSfondoPronto)
       grafica.classList?.add?.('rpg-reference-stage-v548');
-    if(approvatoSfondoPronto&&approvatoShowcasePronto&&avatarMockupConsentito())
-      grafica.classList?.add?.('rpg-reference-stage-v548-static');
   };
   if(typeof globalThis.Image==='function'){
     const preload=(filename,callback)=>{
@@ -157,13 +148,11 @@ export function montaReferenceScontornataV539(grafica,ritratto,classe,reference,
         attivaV548();
       };
       test.onerror=()=>callback(false);
-      test.src=new URL('../img/effetti/'+filename+
-        '?v='+(filename.includes('-v550.')?'550':'548'),import.meta.url).href;
+      test.src=new URL('../img/effetti/'+filename+'?v=548',import.meta.url).href;
       if(test.complete&&test.naturalWidth)
         callback(test.naturalWidth===1878&&test.naturalHeight===1420);
     };
     preload('approved-environments-v548.webp',v=>{approvatoSfondoPronto=v;});
-    preload('approved-showcase-v550.webp',v=>{approvatoShowcasePronto=v;});
   }
   const attiva=()=>{
     if(inserito)return;
