@@ -108,6 +108,26 @@ export function montaReferenceScontornataV539(grafica,ritratto,classe,reference,
     if(effettiPuliti.complete&&effettiPuliti.naturalWidth)
       fotoV546Pronta=effettiPuliti.naturalWidth===1383&&effettiPuliti.naturalHeight===880;
   }
+  // v547: repaired full rune bases and continuous approved-color trails.
+  // Load before activating: old alpha v546 remains the offline fallback.
+  let fotoV547Pronta=false;
+  const attivaV547=()=>{
+    if(fotoV547Pronta&&inserito&&grafica.isConnected!==false)
+      grafica.classList?.add?.('rpg-reference-stage-v547');
+  };
+  if(typeof globalThis.Image==='function'){
+    const fotografiaSenzaTagli=new globalThis.Image();
+    fotografiaSenzaTagli.onload=()=>{
+      fotoV547Pronta=fotografiaSenzaTagli.naturalWidth===1383&&
+        fotografiaSenzaTagli.naturalHeight===880;
+      attivaV547();
+    };
+    fotografiaSenzaTagli.onerror=()=>{fotoV547Pronta=false;};
+    fotografiaSenzaTagli.src=new URL('../img/effetti/reference-scene-v547.webp?v=547',import.meta.url).href;
+    if(fotografiaSenzaTagli.complete&&fotografiaSenzaTagli.naturalWidth)
+      fotoV547Pronta=fotografiaSenzaTagli.naturalWidth===1383&&
+        fotografiaSenzaTagli.naturalHeight===880;
+  }
   const attiva=()=>{
     if(inserito)return;
     if(!soggetto.naturalWidth||!soggetto.naturalHeight||
@@ -124,6 +144,7 @@ export function montaReferenceScontornataV539(grafica,ritratto,classe,reference,
     attivaPalco();
     attivaV545();
     attivaV546();
+    attivaV547();
   };
   soggetto.addEventListener?.('load',attiva,{once:true});
   soggetto.src=alpha||url;

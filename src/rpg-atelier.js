@@ -176,6 +176,10 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
   // della tavola approvata, non il livello v543 attenuato.
   // v546: composited alpha, preserving source magic and original floor
   // without the previously photographed caped knight or squared backdrop.
+  // v547: the soft-edged 3x2 photographic stage, full runes and trails.
+  const palcoV547=riferimentoV532 ? await attesaImmagine(
+    new URL('../img/effetti/reference-scene-v547.webp?v=547',import.meta.url).href
+  ).catch(()=>null) : null;
   const palcoV546=riferimentoV532 ? await attesaImmagine(
     new URL('../img/effetti/reference-scene-v546.webp?v=546',import.meta.url).href
   ).catch(()=>null) : null;
@@ -210,14 +214,23 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
       }else ritaglioEsportabile=null;
     }else ritaglioEsportabile=null;
   }
+  const palcoFotoV547=Boolean(ritaglioEsportabile&&
+    palcoV547?.naturalWidth===1383&&palcoV547?.naturalHeight===880);
   const palcoFotoV546=Boolean(ritaglioEsportabile&&
     palcoV546?.naturalWidth===1383&&palcoV546?.naturalHeight===880);
   const palcoFotoV545=Boolean(ritaglioEsportabile&&
     palcoV545?.naturalWidth===1383&&palcoV545?.naturalHeight===880);
   const palcoCompleto=Boolean(ritaglioEsportabile&&
     palcoV543?.naturalWidth===1383&&palcoV543?.naturalHeight===880);
-  const riferimentoCompleto=Boolean(ritaglioEsportabile&&(palcoFotoV546||palcoFotoV545||palcoCompleto||atlanteV539));
-  if(palcoFotoV546){
+  const riferimentoCompleto=Boolean(ritaglioEsportabile&&(palcoFotoV547||palcoFotoV546||palcoFotoV545||palcoCompleto||atlanteV539));
+  if(palcoFotoV547){
+    // Exactly the same aspect ratio, 3x2 cell and zoom as the live Shop.
+    const cellW=palcoV547.naturalWidth/3,cellH=palcoV547.naturalHeight/2;
+    const fxW=dw*1.60,fxH=fxW*(440/461);
+    ctx.drawImage(palcoV547,
+      riferimentoV532.colonna*cellW,riferimentoV532.riga*cellH,cellW,cellH,
+      dx-(fxW-dw)/2,dy-dh*.03,fxW,fxH);
+  }else if(palcoFotoV546){
     // Exactly the same 3x2 panel and scale as the Shop CSS. Base centered.
     const cellW=palcoV546.naturalWidth/3,cellH=palcoV546.naturalHeight/2;
     const fxW=dw*1.60,fxH=fxW*(440/461);
