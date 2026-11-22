@@ -56,8 +56,8 @@ test('v542: export PNG seleziona la cella corretta per classe e mantiene il suol
 });
 test('v542: PWA offline ha effetti e fondali nuovi, versione coerente',()=>{
  const sw=read('sw.js'),idx=read('index.html');
- assert.match(sw,/const VERSIONE = 'palestra-v543'/);
- assert.match(idx,/PALESTRA_VERSIONE = 'palestra-v543'/);
+ assert.match(sw,/const VERSIONE = 'palestra-v544'/);
+ assert.match(idx,/PALESTRA_VERSIONE = 'palestra-v544'/);
  assert.ok(sw.includes("'./img/effetti/reference-ambienti-v542.webp?v=542'"));
  assert.ok(sw.includes("percorso.includes('reference-ambienti-v542.webp')"));
  assert.ok(sw.includes("'./img/effetti/effetti-reference-v539.webp?v=539'"));

@@ -1,3 +1,13 @@
+## 22/11/2026 — v544: correzione priorità CSS dei cinque effetti
+- Causa: background-position:center center!important del fondale comune
+  prevaleva sui selettori per ciascuna cella atlas 3x2. Ambra mostrava
+  elementi viola di altri effetti, con pavimento e sfondo incoerenti.
+- Rimossa la priorità errata nel solo CSS; ora si applicano le posizioni
+  esistenti per Ambra, Ombra, Fulmine, Nebulosa, Astrale. Reference v543,
+  foto originali, volti/armature, geometrie e PNG non alterati.
+- PWA/CSS cache v544 e nuovo test anti-regressione. La prova visiva su iPhone
+  resta necessaria per certificare la resa reale.
+
 ## v537 — Riferimento grafico definitivo approvato il 22/11/2026
 
 - FONTE IMMUTATA: `img/effetti/reference-approvata-v537.png` è la
