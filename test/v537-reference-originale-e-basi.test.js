@@ -31,7 +31,7 @@ test('v537: i cinque VFX alpha sono preservati dal riferimento, stessa tavola, n
 test('v537: tutti i punti di rendering usano la stessa nuova texture',()=>{
  const css=read('stile-rpg.css'),at=read('src/rpg-atelier.js'),sw=read('sw.js'),app=read('src/app.js');
  for(const source of [css,at,sw])
-   assert.match(source,/effetti-reference-v537/);
+   assert.match(source,/effetti-reference-v539/);
  assert.match(css,/width:164%!important/);
  assert.match(css,/height:108%!important/);
  assert.match(css,/overflow:visible!important/);
@@ -39,9 +39,9 @@ test('v537: tutti i punti di rendering usano la stessa nuova texture',()=>{
  assert.match(css,/mix-blend-mode:normal!important/);
  assert.ok(at.includes('dx-dw*.32,dy-dh*.04,dw*1.64,dh*1.08'));
  assert.match(app,/rpg-reference-fx/);
- assert.ok(sw.includes("percorso.includes('effetti-reference-v537.webp')"));
- assert.match(sw,/const VERSIONE = 'palestra-v538'/);
- assert.match(read('index.html'),/PALESTRA_VERSIONE = 'palestra-v538'/);
+ assert.ok(sw.includes("percorso.includes('effetti-reference-v539.webp')"));
+ assert.match(sw,/const VERSIONE = 'palestra-v539'/);
+ assert.match(read('index.html'),/PALESTRA_VERSIONE = 'palestra-v539'/);
 });
 test('v537: nessun cambio figura/armatura/casco nelle 3 classi e tutte le combinazioni',()=>{
  const armature={
