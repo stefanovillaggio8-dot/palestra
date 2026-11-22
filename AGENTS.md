@@ -1,3 +1,22 @@
+## v537 — Riferimento grafico definitivo approvato il 22/11/2026
+
+- FONTE IMMUTATA: `img/effetti/reference-approvata-v537.png` è la
+  tavola approvata dall'utente; non sostituire o rigenerare la fonte.
+- Lo sprite `img/effetti/effetti-reference-v537.webp` è un estratto
+  pixel-conservativo dei 5 effetti della stessa tavola: Ambra, Fumo
+  d'ombra, Fulmine, Nebulosa, Astrale; le base rispettano i colori distinti.
+  L'alpha elimina il modello fittizio del collage, per non sovrapporlo
+  ai veri personaggi dell'app.
+- Sono vietati nuovi volti/corpi/armi/caschi/sfondi; stesso ritratto
+  originale per tutti gli effetti, classi, stadi e armature.
+- Il livello deve sembrare dietro al soggetto; il ritratto resta
+  integralmente visibile. Il ritaglio centrale è nel solo ALPHA
+  degli effetti, non nella foto e non altera i loro pixel colorati.
+- Negli export Atelier usare gli stessi cinque frame e la stessa
+  geometria della preview; nessuna base per 'Nessun effetto'.
+- Non chiamare "identico al pixel" un effetto abbinato a un avatar
+  differente da quello del collage: va controllato visivamente.
+
 ## 22/11/2026 — v536, effetti autonomi SENZA sagoma/personaggio incluso
 
 - Cinque effetti da immagini RGBA senza personaggi: Ambra, Ombra, Fulmine,

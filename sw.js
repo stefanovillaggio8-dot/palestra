@@ -9,7 +9,7 @@
 // e il test I3 che sia quello dell'ultimo commit, altrimenti si alza la cache e si
 // lascia scritto il numero vecchio. E' successo due volte: nella v54 avevo alzato
 // solo questo file, e dopo la v55 avevo smesso di alzarlo del tutto.
-const VERSIONE = 'palestra-v536';
+const VERSIONE = 'palestra-v537';
 
 // LE 18 FOTO DEI PERSONAGGI, CON LA VERSIONE DENTRO.
 //
@@ -90,7 +90,8 @@ const FILE = [
   './img/effetti/effetti-reference-v533.webp?v=533', // archivio storico v533
   './img/effetti/effetti-reference-v534.webp?v=534', // archivio effetti precedenti
   './img/effetti/effetti-reference-v535.webp?v=535', // archivio storico v535
-  './img/effetti/effetti-reference-v536.webp?v=536', // cinque VFX alpha generati SENZA figura
+  './img/effetti/effetti-reference-v536.webp?v=536', // archivio precedente
+  './img/effetti/effetti-reference-v537.webp?v=537', // effetti esatti da ultimo collage, alpha e stessa base
   './src/aura-foto-atlas.js',
   './src/aura-foto-rpg.js',
   './img/effetti/astrale-sovrano-v474.svg', // fallback offline senza Canvas
@@ -216,8 +217,8 @@ const FILE = [
   './img/personaggi/galleria-v352/berserker-07.webp?v=536',
   './img/personaggi/galleria-v352/berserker-08.webp?v=536',
   './img/personaggi/galleria-v352/berserker-09.webp?v=536',
-  './stile-galleria-rpg.css?v=536',
-  './src/galleria-foto-rpg.js?v=536',
+  './stile-galleria-rpg.css?v=537',
+  './src/galleria-foto-rpg.js?v=537',
   './rassegna-missioni.html',
   // IL FOGLIO DI STILE HA LA VERSIONE, come il collegamento in index.html.
   //
@@ -229,9 +230,9 @@ const FILE = [
   // Il numero deve essere uguale a quello di `stile.css?v=` in index.html e a
   // `window.PALESTRA_VERSIONE`: se i tre non coincidono, l'app carica un foglio di
   // stile e dice un altro numero.
-  './stile.css?v=536',
-  './stile-rpg.css?v=536',
-  './stile-premium.css?v=536',
+  './stile.css?v=537',
+  './stile-rpg.css?v=537',
+  './stile-premium.css?v=537',
 './manifest.webmanifest',
   './manifest-p1.webmanifest',
   './manifest-p2.webmanifest',
@@ -239,7 +240,7 @@ const FILE = [
   // installata di un amico prenderebbe quello di Ste, con lo stesso id e con
   // start_url che punta a ?p=1
   './manifest-nuovo.webmanifest',
-  './src/app.js?v=536',
+  './src/app.js?v=537',
   './src/numeri.js',
   './src/confronto.js',
   './src/confronto-mensile.js',
@@ -438,7 +439,7 @@ const FOTO = [
 // su iPhone saturavano rete e memoria del service worker ad ogni release.
 const FOTO_DECORATIVE = /\/img\/personaggi\/(?:galleria-v352|corona-v360|aura-divina-v365|aura-divina-v379|scene|effetti|armature|catalogo)\/|\/img\/scenari\/|\/img\/effetti\//;
 const RISORSE_OFFLINE = [...new Set([...FILE, ...FOTO])]
-  .filter((percorso) => !FOTO_DECORATIVE.test(percorso) || percorso.includes('effetti-reference-v532.webp') || percorso.includes('effetti-reference-v533.webp') || percorso.includes('effetti-reference-v534.webp') || percorso.includes('effetti-reference-v535.webp') || percorso.includes('effetti-reference-v536.webp')); // reference essenziale offline
+  .filter((percorso) => !FOTO_DECORATIVE.test(percorso) || percorso.includes('effetti-reference-v532.webp') || percorso.includes('effetti-reference-v533.webp') || percorso.includes('effetti-reference-v534.webp') || percorso.includes('effetti-reference-v535.webp') || percorso.includes('effetti-reference-v536.webp') || percorso.includes('effetti-reference-v537.webp')); // reference essenziale offline
 const DIMENSIONE_BLOCCO = 16;
 const CACHE_FOTO_VISITATE = 'palestra-foto-visitate-v1';
 const MAX_FOTO_VISITATE = 48;

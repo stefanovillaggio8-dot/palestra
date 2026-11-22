@@ -84,8 +84,8 @@ test('v528: app e PNG esportato non sovrascrivono Velo con atlanti v360/v379',()
 });
 
 test('v529: versione PWA, asset online e offline allineati',()=>{
-  assert.match(testo('sw.js'),/const VERSIONE = 'palestra-v536'/);
-  assert.match(testo('index.html'),/PALESTRA_VERSIONE = 'palestra-v536'/);
+  assert.match(testo('sw.js'),/const VERSIONE = 'palestra-v537'/);
+  assert.match(testo('index.html'),/PALESTRA_VERSIONE = 'palestra-v537'/);
   for(const path of ['src/velo-notte-v528.js','img/effetti/corona-velo-notte-v528.svg',
     'img/personaggi/armature/assassino-notte.webp?v=536',
     'img/personaggi/armature/assassino-notte-mini.webp?v=536'])
