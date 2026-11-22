@@ -5,7 +5,7 @@ import {createHash} from 'node:crypto';
 import {ATLANTE_REFERENCE_V537,EFFETTI_REFERENCE_V532} from '../src/rpg-reference-v532.js';
 import {percorsoFotoArmaturaArmataV371} from '../src/foto-armatura-armata-v371.js';
 const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
-const gitBlobSha=buf=>createHash('sha1').update('blob '+buf.length+'\\0'.replace('\\0','\0')).update(buf).digest('hex');
+const gitBlobSha=buf=>createHash('sha1').update('blob '+buf.length+String.fromCharCode(0)).update(buf).digest('hex');
 
 test('v537: sorgente originale approvata conservata senza alterazioni',()=>{
   const reference=readFileSync(new URL('../img/effetti/reference-approvata-v537.png',import.meta.url));
@@ -20,7 +20,7 @@ test('v537: i cinque VFX alpha sono preservati dal riferimento, stessa tavola, n
   assert.equal(sprite.toString('ascii',12,16),'VP8X');
   assert.equal(sprite[20]&16,16,'richiesta alpha trasparente');
   assert.deepEqual([sprite.readUIntLE(24,3)+1,sprite.readUIntLE(27,3)+1],[1380,884]);
-  assert.match(ATLANTE_REFERENCE_V537,/effetti-reference-v537\\.webp\\?v=537/);
+  assert.ok(ATLANTE_REFERENCE_V537.includes('effetti-reference-v537.webp?v=537'));
   assert.equal(Object.keys(EFFETTI_REFERENCE_V532).length,5);
 });
 test('v537: tutti i punti di rendering usano la stessa nuova texture',()=>{
@@ -32,9 +32,9 @@ test('v537: tutti i punti di rendering usano la stessa nuova texture',()=>{
  assert.match(css,/overflow:visible!important/);
  assert.match(css,/filter:none!important/);
  assert.match(css,/mix-blend-mode:normal!important/);
- assert.match(at,/dx-dw\\*\\.32,dy-dh\\*\\.04,dw\\*1\\.64,dh\\*1\\.08/);
+ assert.ok(at.includes('dx-dw*.32,dy-dh*.04,dw*1.64,dh*1.08'));
  assert.match(app,/rpg-reference-fx/);
- assert.match(sw,/percorso.includes\\('effetti-reference-v537.webp'\\)/);
+ assert.ok(sw.includes("percorso.includes('effetti-reference-v537.webp')"));
  assert.match(sw,/const VERSIONE = 'palestra-v537'/);
  assert.match(read('index.html'),/PALESTRA_VERSIONE = 'palestra-v537'/);
 });
