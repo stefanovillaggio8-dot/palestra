@@ -3,11 +3,11 @@
 // Nessun acquisto/record viene modificato dalle anteprime o dal download.
 import { AURA_FOTO_ATLAS } from './aura-foto-atlas.js';
 import { disegnaEffettoApprovatoRpg, EFFETTI_APPROVATI_RPG } from './rpg-effetti-approvati-v531.js?v=531';
-import { effettoReferenceV532 } from './rpg-reference-v532.js?v=542';
+import { effettoReferenceV532 } from './rpg-reference-v532.js?v=543';
 import { FOTO_RPG_RIQUADRI, livelliFotoRpg } from './aura-foto-rpg.js';
 import { fasciaSagoma, disegnaCoronaEnergetica } from './anteprima-combinata-rpg.js?v=513';
 import { fotoCinematograficaRpg } from './foto-cinematica-rpg.js';
-import {disegnaAtmosferaCosmicaRpg,disegnaAccentiCosmiciRpg,disegnaSoggettoCosmicoRpg,disegnaSfondoFotograficoCosmicoRpg,disegnaFotografiaFusaRpg} from './rpg-scena-cosmica.js?v=542';
+import {disegnaAtmosferaCosmicaRpg,disegnaAccentiCosmiciRpg,disegnaSoggettoCosmicoRpg,disegnaSfondoFotograficoCosmicoRpg,disegnaFotografiaFusaRpg} from './rpg-scena-cosmica.js?v=543';
 import {caricaEnergiaFotograficaRpg,disegnaEnergiaFotograficaRpg} from './rpg-energia-incarnata.js';
 import { percorsoFotoCoronaV360 } from './foto-corona-v360.js';
 import { percorsoFotoAuraDivinaV366 } from './foto-aura-divina-v366.js';
@@ -169,14 +169,12 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
   const ambienteV541=riferimentoV532 ? await attesaImmagine(
     new URL('../img/effetti/reference-ambienti-v542.webp?v=542',import.meta.url).href
   ).catch(()=>null) : null;
-  // La v542 è un atlante 3x2: usa la stessa cella della preview.
-  // L'alpha del fondale è già sfumato, e la base fotografica si salva intera.
-  if(ambienteV541){
-    const envW=ambienteV541.naturalWidth/3,envH=ambienteV541.naturalHeight/2;
-    ctx.drawImage(ambienteV541,
-      riferimentoV532.colonna*envW,riferimentoV532.riga*envH,envW,envH,
-      dx,dy,dw,dh);
-  }
+  // v543: la nuova reference contiene nello STESSO pannello il fondale,
+  // la base, gli anelli e le scie. Niente più foro a forma di vecchio eroe.
+  // Se non è disponibile (offline Safari), usa il vecchio compositore v542.
+  const palcoV543=riferimentoV532 ? await attesaImmagine(
+    new URL('../img/effetti/reference-scene-v543.webp?v=543',import.meta.url).href
+  ).catch(()=>null) : null;
   const atlanteV539=riferimentoV532 ? await attesaImmagine(
     new URL('../img/effetti/effetti-reference-v539.webp?v=539',import.meta.url).href) : null;
   const elementoRitaglio=grafica?.querySelector?.('.rpg-reference-subject-v539');
@@ -202,15 +200,32 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
       }else ritaglioEsportabile=null;
     }else ritaglioEsportabile=null;
   }
-  const riferimentoCompleto=Boolean(atlanteV539&&ritaglioEsportabile);
-  if(riferimentoCompleto){
-    // Stessi pixel RGB della reference ripulita, sotto il ritaglio vero.
-    const cellW=atlanteV539.naturalWidth/3,cellH=atlanteV539.naturalHeight/2;
-    ctx.drawImage(atlanteV539,
+  const palcoCompleto=Boolean(ritaglioEsportabile&&
+    palcoV543?.naturalWidth===1383&&palcoV543?.naturalHeight===880);
+  const riferimentoCompleto=Boolean(ritaglioEsportabile&&(palcoCompleto||atlanteV539));
+  if(palcoCompleto){
+    // Identica cella e identico zoom della preview: fotografia approvata
+    // COMPLETA, senza doppio sprite, davanti soltanto il ritaglio vero.
+    const cellW=palcoV543.naturalWidth/3,cellH=palcoV543.naturalHeight/2;
+    ctx.drawImage(palcoV543,
       riferimentoV532.colonna*cellW,riferimentoV532.riga*cellH,cellW,cellH,
-      dx-dw*.32,dy-dh*.04,dw*1.64,dh*1.08);
-  }else if(atlanteV539) {
-    disegnaReferenceV538(ctx,atlanteV539,riferimentoV532,dx,dy,dw,dh,'retro');
+      dx,dy,dw,dh);
+  } else {
+    // Fallback v542: conserva il pavimento anche con asset incompleti.
+    if(ambienteV541){
+      const envW=ambienteV541.naturalWidth/3,envH=ambienteV541.naturalHeight/2;
+      ctx.drawImage(ambienteV541,
+        riferimentoV532.colonna*envW,riferimentoV532.riga*envH,envW,envH,
+        dx,dy,dw,dh);
+    }
+    if(riferimentoCompleto){
+      const cellW=atlanteV539.naturalWidth/3,cellH=atlanteV539.naturalHeight/2;
+      ctx.drawImage(atlanteV539,
+        riferimentoV532.colonna*cellW,riferimentoV532.riga*cellH,cellW,cellH,
+        dx-dw*.32,dy-dh*.04,dw*1.64,dh*1.08);
+    }else if(atlanteV539) {
+      disegnaReferenceV538(ctx,atlanteV539,riferimentoV532,dx,dy,dw,dh,'retro');
+    }
   }
   if(fxSenzaFoto) {
     // La foto e il suo ambiente restano IDENTICI per ogni effetto Shop.
