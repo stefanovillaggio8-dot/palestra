@@ -1,0 +1,48 @@
+{
+  "size": [
+    1380,
+    884
+  ],
+  "base_alpha": {
+    "ambra": {
+      "center_alpha": [
+        183,
+        60,
+        66,
+        61
+      ]
+    },
+    "ombra": {
+      "center_alpha": [
+        183,
+        60,
+        66,
+        61
+      ]
+    },
+    "fulmine": {
+      "center_alpha": [
+        183,
+        60,
+        66,
+        61
+      ]
+    },
+    "nebula": {
+      "center_alpha": [
+        183,
+        60,
+        66,
+        61
+      ]
+    },
+    "astrale": {
+      "center_alpha": [
+        183,
+        60,
+        66,
+        61
+      ]
+    }
+  }
+}
