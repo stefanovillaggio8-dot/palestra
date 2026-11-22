@@ -4736,3 +4736,28 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
  * Con un ritratto di larghezza W, il fondale misura 1.48W e si estende
  * 0.24W a ogni lato. Il sigillo si allinea ai piedi senza ridimensionare
  * il vero eroe, e non viene mai ritagliato dal contenitore. */
+
+/* v553: lo sfondo 626:710 esce volutamente dalla fotografia 2:3.
+ * La sua altezza NON partecipa al layout perché il layer è assoluto:
+ * nella v552 il sigillo arrivava fin sopra nome, descrizione e titolo.
+ * Riserviamo lo spazio nel flusso tra illustrazione e didascalia.
+ * Non nascondere l'overflow, altrimenti le cinque rune vengono tagliate.
+ * Per gli effetti della Shop preview e dell'Atelier, non per il profilo. */
+.aura-preview-panel .aura-preview-scene:has(.rpg-reference-v532),
+.rpg-atelier-stage:has(.rpg-reference-v532) {
+  overflow:visible!important;
+}
+.aura-preview-panel .aura-preview-scene .personaggio-scena-grafica.rpg-reference-v532,
+.rpg-atelier-stage .personaggio-scena-grafica.rpg-reference-v532 {
+  margin-block-end:clamp(54px,17%,76px)!important;
+}
+.aura-preview-panel .aura-preview-scene .personaggio-scena:has(.rpg-reference-v532) > .personaggio-dati,
+.rpg-atelier-stage .personaggio-scena:has(.rpg-reference-v532) > .personaggio-dati {
+  position:relative;
+  z-index:5;
+  flex:0 0 100%;
+  width:100%;
+  align-items:center;
+  text-align:center;
+  padding-top:6px;
+}
