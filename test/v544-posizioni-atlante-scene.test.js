@@ -51,8 +51,8 @@ test('v544: nuova cache PWA, immagini approvate v543 invariate',()=>{
   assert.ok(idx.includes("PALESTRA_VERSIONE = 'palestra-v548'"));
   assert.ok(sw.includes("const VERSIONE = 'palestra-v548'"));
   for(const sheet of ['stile.css','stile-rpg.css','stile-premium.css']){
-    assert.ok(idx.includes('./'+sheet+'?v=547'),sheet);
-    assert.ok(sw.includes("'./"+sheet+"?v=547'"),sheet);
+    assert.ok(idx.includes('./'+sheet+'?v=548'),sheet);
+    assert.ok(sw.includes("'./"+sheet+"?v=548'"),sheet);
   }
   assert.ok(sw.includes("'./img/effetti/reference-scene-v543.webp?v=543'"));
 });
