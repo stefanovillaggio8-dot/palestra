@@ -1,14 +1,11 @@
 import {test} from 'node:test';
-import {spawnSync,execFileSync} from 'node:child_process';
-test('audit v539: verifica visiva reale immagini reference',()=>{
- const tools=spawnSync('bash',['-lc','command -v ffmpeg || true; command -v convert || true; command -v magick || true; python3 -c "import PIL; print(PIL.__version__)" 2>&1 || true'],{encoding:'utf8'});
- console.log('DIAGNOSTIC_TOOLS',tools.stdout,tools.stderr);
- for(const p of ['img/effetti/effetti-reference-v537.webp','img/effetti/reference-approvata-v537.png']){
-   const width=p.includes('.webp')?690:720;
-   const run=spawnSync('ffmpeg',['-hide_banner','-loglevel','error','-i',p,'-vf','scale='+width+':-2','-frames:v','1','-q:v','9','-f','image2pipe','-vcodec','mjpeg','pipe:1'],{maxBuffer:15000000,timeout:18000});
-   if(run.status!==0){console.log('IMAGE_ERR:'+p+':'+String(run.error?.message||run.stderr).slice(0,800));continue;}
-   const base=run.stdout.toString('base64');
-   console.log('IMAGE_DIAGNOSTIC:'+p+':'+base);
-   console.log('IMAGE_SIZE:'+p+':'+run.stdout.length);
- }
+import {readFileSync} from 'node:fs';
+test('audit v539: visualizza asset WebP v537 nei log di sola verifica',()=>{
+ const file=readFileSync(new URL('../img/effetti/effetti-reference-v537.webp',import.meta.url));
+ const b64=file.toString('base64');
+ const len=20000;
+ console.log('AUDIT_WEBP_META:'+file.length+':'+b64.length);
+ for(let i=0;i<b64.length;i+=len)
+  console.log('AUDIT_WEBP_PART:'+String(i/len).padStart(4,'0')+':'+b64.slice(i,i+len));
+ console.log('AUDIT_WEBP_END');
 });
