@@ -4493,3 +4493,35 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
 .rpg-reference-integrated-v539 > .rpg-reference-environment-v541.rpg-reference-astrale{
   background-position:50% 100%!important;
 }
+
+/* v543 — Le foto approvate sono la FONTE, non un atlante di soli bordi.
+   Il pavimento reale è dentro ogni pannello intero; il nuovo personaggio
+   trasparente resta davanti. Nessun foro centrale, disco ricostruito,
+   rettangolo marrone, doppio anello o secondo effetto sul corpo.
+   Attivare soltanto DOPO il caricamento dell'asset completo: Safari offline
+   può così mantenere il fallback v542 senza lasciare preview vuote. */
+.personaggio-scena-grafica.rpg-reference-v532.rpg-reference-integrated-v539.rpg-reference-stage-v543
+  > .rpg-reference-environment-v541 {
+  display:block!important;
+  z-index:1!important;
+  background-image:url('./img/effetti/reference-scene-v543.webp?v=543')!important;
+  background-size:300% 200%!important;
+  background-repeat:no-repeat!important;
+  background-color:transparent!important;
+  opacity:1!important;
+  mix-blend-mode:normal!important;
+  filter:none!important;
+  -webkit-mask-image:none!important;
+  mask-image:none!important;
+  -webkit-clip-path:none!important;
+  clip-path:none!important;
+}
+.personaggio-scena-grafica.rpg-reference-v532.rpg-reference-integrated-v539.rpg-reference-stage-v543
+  > .rpg-reference-complete-v539 {
+  display:none!important; /* la scena ha GIÀ gli anelli approvati */
+}
+.personaggio-scena-grafica.rpg-reference-v532.rpg-reference-integrated-v539.rpg-reference-stage-v543
+  > .rpg-reference-subject-v539 {
+  z-index:3!important;
+  opacity:1!important;
+}

@@ -5,7 +5,7 @@
 import {
   percorsoRitaglioCosmicoRpg, verificaIntegritaRitaglioRpg,
   idContornoArmaturaCosmicaRpg, mascheraArmaturaCosmicaRpg,
-} from './rpg-scena-cosmica.js?v=542';
+} from './rpg-scena-cosmica.js?v=543';
 
 export function montaReferenceScontornataV539(grafica,ritratto,classe,reference,{
   corona=false,arma=false,documento=globalThis.document,
@@ -49,7 +49,28 @@ export function montaReferenceScontornataV539(grafica,ritratto,classe,reference,
   luce.className='rpg-reference-complete-v539 rpg-reference-'+reference.classe;
   luce.setAttribute?.('aria-hidden','true');
 
+  // v543: carica la scena COMPLETA dalla reference originale.
+  // Lo sprite v539 resta come fallback solo se il nuovo asset non si carica.
+  // Non duplicare mai la magia sul palco fotografico (anelli e suolo sono
+  // già pixel originali della tavola approvata).
+  let palcoPronto=false;
   let inserito=false;
+  const attivaPalco=()=>{
+    if(palcoPronto&&inserito&&grafica.isConnected!==false)
+      grafica.classList?.add?.('rpg-reference-stage-v543');
+  };
+  if(typeof globalThis.Image==='function'){
+    const palcoImg=new globalThis.Image();
+    palcoImg.onload=()=>{
+      palcoPronto=palcoImg.naturalWidth===1383&&palcoImg.naturalHeight===880;
+      attivaPalco();
+    };
+    palcoImg.onerror=()=>{palcoPronto=false;};
+    palcoImg.src=new URL('../img/effetti/reference-scene-v543.webp?v=543',import.meta.url).href;
+    if(palcoImg.complete&&palcoImg.naturalWidth){
+      palcoPronto=palcoImg.naturalWidth===1383&&palcoImg.naturalHeight===880;
+    }
+  }
   const attiva=()=>{
     if(inserito)return;
     if(!soggetto.naturalWidth||!soggetto.naturalHeight||
@@ -63,6 +84,7 @@ export function montaReferenceScontornataV539(grafica,ritratto,classe,reference,
     grafica.appendChild(luce);
     grafica.appendChild(soggetto);
     grafica.classList?.add?.('rpg-reference-integrated-v539','rpg-reference-original-env-v541');
+    attivaPalco();
   };
   soggetto.addEventListener?.('load',attiva,{once:true});
   soggetto.src=alpha||url;

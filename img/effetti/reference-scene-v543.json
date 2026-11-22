@@ -1,0 +1,102 @@
+{
+  "ambra": {
+    "middle_floor_alpha": [
+      200,
+      240,
+      240,
+      240
+    ],
+    "edges_alpha": [
+      0,
+      7,
+      245,
+      245
+    ],
+    "source_panel": [
+      492,
+      10,
+      953,
+      450
+    ]
+  },
+  "ombra": {
+    "middle_floor_alpha": [
+      200,
+      240,
+      245,
+      240
+    ],
+    "edges_alpha": [
+      0,
+      0,
+      177,
+      245
+    ],
+    "source_panel": [
+      974,
+      10,
+      1435,
+      450
+    ]
+  },
+  "fulmine": {
+    "middle_floor_alpha": [
+      200,
+      240,
+      240,
+      240
+    ],
+    "edges_alpha": [
+      245,
+      0,
+      245,
+      245
+    ],
+    "source_panel": [
+      10,
+      553,
+      471,
+      993
+    ]
+  },
+  "nebula": {
+    "middle_floor_alpha": [
+      200,
+      240,
+      245,
+      240
+    ],
+    "edges_alpha": [
+      6,
+      245,
+      245,
+      245
+    ],
+    "source_panel": [
+      492,
+      553,
+      953,
+      993
+    ]
+  },
+  "astrale": {
+    "middle_floor_alpha": [
+      200,
+      240,
+      245,
+      240
+    ],
+    "edges_alpha": [
+      0,
+      0,
+      245,
+      245
+    ],
+    "source_panel": [
+      974,
+      553,
+      1435,
+      993
+    ]
+  }
+}
