@@ -1,3 +1,10 @@
+## 22/11/2026 — v554: un solo palco fotografico nei cinque effetti
+- Screenshot v553: sfondo e base erano completi, ma persisteva una cornice rettangolare vuota attorno alla figura e il badge finiva sotto la piega della finestra.
+- Causa concreta: bloccoPersonaggio() rende section.blocco > .personaggio-scena > .personaggio-scena-grafica, con due cornici/padding aggiuntivi dentro .aura-preview-scene. v553 aggiungeva solo un margine, non rimuoveva i box.
+- v554: classe .aura-preview-reference-scene soltanto per i cinque VFX. In Shop e Atelier, rimuove cornici/padding/sfondi secondari, usa colonna singola, ridimensiona il ritratto al 67.5% del contenitore (massimo 275px), mantenendo lo sfondo al 148%: intera cella magica visibile entro un'unica cornice esterna. Usa un margine proporzionale misurato per posizionare nome/titolo sotto il sigillo.
+- Personaggio originale, armature, volti, zoom intrinseco e WebP approvati intatti; PNG continua a mostrare la stessa composizione degli asset e non cambia inventario, streak, profili, premi o prezzi.
+- Da verificare resa reale dopo aggiornamento PWA Safari, non confondere test CSS statici con confronto visuale al dispositivo.
+
 ## 22/11/2026 — v553: preview Shop/Atelier senza didascalia sopra la magia
 - Bug verificato nello screenshot Scintille d'ambra (Assassino): la texture v552 a 148% è assoluta e supera il ritratto; il layout flex non riservava l'altezza extra, quindi la base copriva nome, descrizione e badge.
 - Correzione mirata CSS: margine inferiore proporzionale (clamp 54–76px) SOLO per gli effetti v532 nelle anteprime Shop e Atelier. Caption centrata, impilata sotto e z-index definito. Nessun overflow hidden sulla scena, altrimenti si troncano le rune.

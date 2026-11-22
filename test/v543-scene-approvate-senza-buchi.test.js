@@ -53,14 +53,14 @@ test('v543: Shop ed esportazione PNG usano la stessa cella della scena',()=>{
  assert.match(atelier,/palcoV543\.naturalWidth\/3,cellH=palcoV543\.naturalHeight\/2/);
  assert.match(atelier,/ctx\.drawImage\(palcoV543,[\s\S]*?riferimentoV532\.colonna\*cellW,riferimentoV532\.riga\*cellH/);
  assert.match(atelier,/if\(palcoCompleto\)[\s\S]*?else \{/);
- assert.match(shop,/rpg-atelier\.js\?v=553/);
+ assert.match(shop,/rpg-atelier\.js\?v=554/);
 });
 test('v543: aggiornamento offline preciso e fallback della v542',()=>{
  const sw=read('sw.js'),idx=read('index.html'),app=read('src/app.js');
- assert.match(sw,/const VERSIONE = 'palestra-v553'/);
- assert.match(idx,/PALESTRA_VERSIONE = 'palestra-v553'/);
+ assert.match(sw,/const VERSIONE = 'palestra-v554'/);
+ assert.match(idx,/PALESTRA_VERSIONE = 'palestra-v554'/);
  assert.ok(sw.includes("'./img/effetti/reference-scene-v543.webp?v=543'"));
  assert.ok(sw.includes("percorso.includes('reference-scene-v543.webp')"));
  assert.ok(sw.includes("'./img/effetti/reference-ambienti-v542.webp?v=542'"));
- assert.ok(app.includes("./rpg-reference-compositing-v539.js?v=553"));
+ assert.ok(app.includes("./rpg-reference-compositing-v539.js?v=554"));
 });
