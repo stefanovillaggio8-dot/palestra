@@ -44,11 +44,14 @@ export function montaReferenceScontornataV539(grafica,ritratto,classe,reference,
   luce.className='rpg-reference-complete-v539 rpg-reference-'+reference.classe;
   luce.setAttribute?.('aria-hidden','true');
 
+  let inserito=false;
   const attiva=()=>{
+    if(inserito)return;
     if(!soggetto.naturalWidth||!soggetto.naturalHeight||
        grafica.isConnected===false)return;
     if(alpha&&!verificaIntegritaRitaglioRpg(soggetto,documento))return;
     // Fino al caricamento resta la v538: nessuna schermata vuota su Safari.
+    inserito=true;
     grafica.appendChild(luce);
     grafica.appendChild(soggetto);
     grafica.classList?.add?.('rpg-reference-integrated-v539');
