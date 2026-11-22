@@ -176,7 +176,7 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
     new URL('../img/effetti/reference-scene-v543.webp?v=543',import.meta.url).href
   ).catch(()=>null) : null;
   const atlanteV539=riferimentoV532 ? await attesaImmagine(
-    new URL('../img/effetti/effetti-reference-v539.webp?v=539',import.meta.url).href) : null;
+    new URL('../img/effetti/effetti-reference-v539.webp?v=539',import.meta.url).href).catch(()=>null) : null;
   const elementoRitaglio=grafica?.querySelector?.('.rpg-reference-subject-v539');
   const scenaRitagliata=Boolean(riferimentoV532&&
     grafica?.classList?.contains?.('rpg-reference-integrated-v539')&&
