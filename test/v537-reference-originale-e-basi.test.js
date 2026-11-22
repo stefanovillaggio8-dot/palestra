@@ -19,7 +19,12 @@ test('v537: i cinque VFX alpha sono preservati dal riferimento, stessa tavola, n
   assert.equal(sprite.toString('ascii',8,12),'WEBP');
   assert.ok(['VP8L','VP8X'].includes(sprite.toString('ascii',12,16)), 'lossless RGBA WebP support');
   if(sprite.toString('ascii',12,16)==='VP8X') assert.equal(sprite[20]&16,16,'richiesta alpha trasparente');
-  assert.deepEqual([sprite.readUIntLE(24,3)+1,sprite.readUIntLE(27,3)+1],[1380,884]);
+  if(sprite.toString('ascii',12,16)==='VP8X')
+    assert.deepEqual([sprite.readUIntLE(24,3)+1,sprite.readUIntLE(27,3)+1],[1380,884]);
+  else {
+    const b=sprite.readUInt32LE(21);
+    assert.deepEqual([(b&16383)+1,((b>>>14)&16383)+1],[1380,884]);
+  }
   assert.ok(ATLANTE_REFERENCE_V537.includes('effetti-reference-v537.webp?v=537'));
   assert.equal(Object.keys(EFFETTI_REFERENCE_V532).length,5);
 });

@@ -218,7 +218,7 @@ const FILE = [
   './img/personaggi/galleria-v352/berserker-08.webp?v=536',
   './img/personaggi/galleria-v352/berserker-09.webp?v=536',
   './stile-galleria-rpg.css?v=537',
-  './src/galleria-foto-rpg.js?v=536',
+  './src/galleria-foto-rpg.js?v=537',
   './rassegna-missioni.html',
   // IL FOGLIO DI STILE HA LA VERSIONE, come il collegamento in index.html.
   //
@@ -240,7 +240,7 @@ const FILE = [
   // installata di un amico prenderebbe quello di Ste, con lo stesso id e con
   // start_url che punta a ?p=1
   './manifest-nuovo.webmanifest',
-  './src/app.js?v=536',
+  './src/app.js?v=537',
   './src/numeri.js',
   './src/confronto.js',
   './src/confronto-mensile.js',
