@@ -90,6 +90,24 @@ export function montaReferenceScontornataV539(grafica,ritratto,classe,reference,
       fotoV545Pronta=fotografia.naturalWidth===1383&&fotografia.naturalHeight===880;
     }
   }
+  // v546: picture-perfect original streaks with no old knight in the sprite.
+  // This asset is ALPHA: no squared dark photo or ghost cape can survive.
+  let fotoV546Pronta=false;
+  const attivaV546=()=>{
+    if(fotoV546Pronta&&inserito&&grafica.isConnected!==false)
+      grafica.classList?.add?.('rpg-reference-stage-v546');
+  };
+  if(typeof globalThis.Image==='function'){
+    const effettiPuliti=new globalThis.Image();
+    effettiPuliti.onload=()=>{
+      fotoV546Pronta=effettiPuliti.naturalWidth===1383&&effettiPuliti.naturalHeight===880;
+      attivaV546();
+    };
+    effettiPuliti.onerror=()=>{fotoV546Pronta=false;};
+    effettiPuliti.src=new URL('../img/effetti/reference-scene-v546.webp?v=546',import.meta.url).href;
+    if(effettiPuliti.complete&&effettiPuliti.naturalWidth)
+      fotoV546Pronta=effettiPuliti.naturalWidth===1383&&effettiPuliti.naturalHeight===880;
+  }
   const attiva=()=>{
     if(inserito)return;
     if(!soggetto.naturalWidth||!soggetto.naturalHeight||
@@ -105,6 +123,7 @@ export function montaReferenceScontornataV539(grafica,ritratto,classe,reference,
     grafica.classList?.add?.('rpg-reference-integrated-v539','rpg-reference-original-env-v541');
     attivaPalco();
     attivaV545();
+    attivaV546();
   };
   soggetto.addEventListener?.('load',attiva,{once:true});
   soggetto.src=alpha||url;

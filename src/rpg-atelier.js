@@ -174,6 +174,11 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
   // Se non è disponibile (offline Safari), usa il vecchio compositore v542.
   // v545: usa PRIMA l'atlante fotografico completo con le spirali e basi
   // della tavola approvata, non il livello v543 attenuato.
+  // v546: composited alpha, preserving source magic and original floor
+  // without the previously photographed caped knight or squared backdrop.
+  const palcoV546=riferimentoV532 ? await attesaImmagine(
+    new URL('../img/effetti/reference-scene-v546.webp?v=546',import.meta.url).href
+  ).catch(()=>null) : null;
   const palcoV545=riferimentoV532 ? await attesaImmagine(
     new URL('../img/effetti/reference-scene-v545.webp?v=545',import.meta.url).href
   ).catch(()=>null) : null;
@@ -205,12 +210,21 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
       }else ritaglioEsportabile=null;
     }else ritaglioEsportabile=null;
   }
+  const palcoFotoV546=Boolean(ritaglioEsportabile&&
+    palcoV546?.naturalWidth===1383&&palcoV546?.naturalHeight===880);
   const palcoFotoV545=Boolean(ritaglioEsportabile&&
     palcoV545?.naturalWidth===1383&&palcoV545?.naturalHeight===880);
   const palcoCompleto=Boolean(ritaglioEsportabile&&
     palcoV543?.naturalWidth===1383&&palcoV543?.naturalHeight===880);
-  const riferimentoCompleto=Boolean(ritaglioEsportabile&&(palcoFotoV545||palcoCompleto||atlanteV539));
-  if(palcoFotoV545){
+  const riferimentoCompleto=Boolean(ritaglioEsportabile&&(palcoFotoV546||palcoFotoV545||palcoCompleto||atlanteV539));
+  if(palcoFotoV546){
+    // Exactly the same 3x2 panel and scale as the Shop CSS. Base centered.
+    const cellW=palcoV546.naturalWidth/3,cellH=palcoV546.naturalHeight/2;
+    const fxW=dw*1.60,fxH=fxW*(440/461);
+    ctx.drawImage(palcoV546,
+      riferimentoV532.colonna*cellW,riferimentoV532.riga*cellH,cellW,cellH,
+      dx-(fxW-dw)/2,dy-dh*.03,fxW,fxH);
+  }else if(palcoFotoV545){
     // Stessa tavola fotografica della preview, scena più larga del soggetto:
     // nessuna scia, sigillo o pietra può essere ritagliata ai bordi del PNG.
     const cellW=palcoV545.naturalWidth/3,cellH=palcoV545.naturalHeight/2;
