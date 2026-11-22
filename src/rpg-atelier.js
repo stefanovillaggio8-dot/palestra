@@ -81,7 +81,12 @@ function disegnaReferenceV538(ctx,atlas,riferimentoV532,dx,dy,dw,dh,piano='retro
   const cellW=atlas.naturalWidth/3,cellH=atlas.naturalHeight/2;
   const fxX=dx-dw*.32,fxY=dy-dh*.04,fxW=dw*1.64,fxH=dh*1.08;
   if(piano==='retro'){
-    ctx.save();ctx.beginPath();ctx.rect(dx,dy,dw,dh);ctx.clip();
+    ctx.save();
+    // Mock Canvas e browser vecchi possono non esporre la clip: il ritratto
+    // resta comunque sopra, mai usare una funzione mancante per bloccare PNG.
+    if(typeof ctx.rect==='function' && typeof ctx.clip==='function'){
+      ctx.beginPath();ctx.rect(dx,dy,dw,dh);ctx.clip();
+    }
     ctx.globalCompositeOperation='source-over';
     ctx.drawImage(atlas,riferimentoV532.colonna*cellW,riferimentoV532.riga*cellH,
       cellW,cellH,dx-dw*.32,dy-dh*.04,dw*1.64,dh*1.08);
@@ -91,7 +96,8 @@ function disegnaReferenceV538(ctx,atlas,riferimentoV532,dx,dy,dw,dh,piano='retro
   buffer.width=Math.max(2,Math.round(fxW));
   buffer.height=Math.max(2,Math.round(fxH));
   const fx=buffer.getContext('2d',{alpha:true});
-  if(!fx)return;
+  if(!fx?.drawImage||typeof fx.createRadialGradient!=='function'||
+     typeof fx.translate!=='function'||typeof fx.scale!=='function')return;
   fx.drawImage(atlas,riferimentoV532.colonna*cellW,riferimentoV532.riga*cellH,
     cellW,cellH,0,0,buffer.width,buffer.height);
   fx.save();fx.globalCompositeOperation='destination-out';
