@@ -86,6 +86,8 @@ const FILE = [
   './src/aura-skin.js',
   './src/effetti-rpg-canvas.js',
   './src/rpg-reference-v532.js',
+  './src/rpg-reference-compositing-v539.js?v=539', // ritaglio alpha vero per i 5 VFX
+  './src/rpg-scena-cosmica.js?v=539', // modulo condiviso con il ritaglio
   './img/effetti/effetti-reference-v532.webp?v=532', // compatibilità regression v532
   './img/effetti/effetti-reference-v533.webp?v=533', // archivio storico v533
   './img/effetti/effetti-reference-v534.webp?v=534', // archivio effetti precedenti
