@@ -48,7 +48,7 @@ test('v548: dynamic photos keep genuine class and original armor',()=>{
  assert.ok(js.includes("idContornoArmaturaCosmicaRpg(url)"));
  assert.match(css,/\.rpg-reference-stage-v548 > \.rpg-reference-subject-v539\{\s*display:block!important/);
  assert.match(css,/aspect-ratio:626 \/ 710!important/);
- assert.match(css,/width:120%!important/);
+ assert.match(css,/width:112%!important/);
  assert.match(css,/\.rpg-reference-stage-v548 > \.rpg-reference-complete-v539\{\s*display:none!important/);
 });
 test('v548: preview and PNG export share exactly approved crop and scale',()=>{
@@ -58,7 +58,7 @@ test('v548: preview and PNG export share exactly approved crop and scale',()=>{
  assert.match(js,/const palcoAmbienteV548=riferimentoV532/);
  assert.match(js,/const palcoEsattoV548=Boolean\(ritaglioEsportabile&&/);
  assert.match(js,/const palcoDinamicoV548=Boolean\(ritaglioEsportabile&&/);
- assert.match(js,/const fxW=dw\*1\.20,fxH=fxW\*\(710\/626\)/);
+ assert.match(js,/const fxW=dw\*1\.12,fxH=fxW\*\(710\/626\)/);
  assert.match(js,/else if\(!palcoEsattoV548\) ctx\.drawImage/);
  assert.match(shop,/rpg-atelier\.js\?v=548/);
 });
