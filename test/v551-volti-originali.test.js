@@ -56,16 +56,16 @@ test('v551: PNG exports genuine cutout with no pre-rendered AI face',()=>{
 test('v551: PWA refreshes modules while original full-scene assets remain archived',()=>{
  const index=read('index.html'),sw=read('sw.js');
  const ui=read('src/rpg-atelier-ui.js'),combined=read('src/anteprima-combinata-rpg.js');
- assert.ok(index.includes("PALESTRA_VERSIONE = 'palestra-v554'"));
- assert.ok(sw.includes("const VERSIONE = 'palestra-v554'"));
+ assert.ok(index.includes("PALESTRA_VERSIONE = 'palestra-v555'"));
+ assert.ok(sw.includes("const VERSIONE = 'palestra-v555'"));
  for(const path of ['stile.css','stile-rpg.css','stile-premium.css']){
-  assert.ok(index.includes('./'+path+'?v=554'),path);
-  assert.ok(sw.includes("'./"+path+"?v=554'"),path);
+  assert.ok(index.includes('./'+path+'?v=555'),path);
+  assert.ok(sw.includes("'./"+path+"?v=555'"),path);
  }
- assert.match(renderer,/rpg-reference-compositing-v539\.js\?v=554/);
- assert.match(renderer,/rpg-atelier-ui\.js\?v=554/);
- assert.match(ui,/rpg-atelier\.js\?v=554/);
- assert.match(combined,/rpg-atelier\.js\?v=554/);
+ assert.match(renderer,/rpg-reference-compositing-v539\.js\?v=555/);
+ assert.match(renderer,/rpg-atelier-ui\.js\?v=555/);
+ assert.match(ui,/rpg-atelier\.js\?v=555/);
+ assert.match(combined,/rpg-atelier\.js\?v=555/);
  assert.ok(!sw.includes("'./img/effetti/approved-showcase-v550.webp?v=550'"));
  assert.ok(sw.includes("'./img/effetti/approved-environments-v548.webp?v=548'"));
 });

@@ -33,15 +33,15 @@ test('v551: export uses real cutout and same approved background',()=>{
 });
 test('v551: PWA versions align and real character assets remain',()=>{
  const idx=read('index.html'),sw=read('sw.js'),app=read('src/app.js'),ui=read('src/rpg-atelier-ui.js'),combined=read('src/anteprima-combinata-rpg.js');
- assert.ok(idx.includes("PALESTRA_VERSIONE = 'palestra-v554'"));
- assert.ok(sw.includes("const VERSIONE = 'palestra-v554'"));
+ assert.ok(idx.includes("PALESTRA_VERSIONE = 'palestra-v555'"));
+ assert.ok(sw.includes("const VERSIONE = 'palestra-v555'"));
  for(const sheet of ['stile.css','stile-rpg.css','stile-premium.css']){
-  assert.ok(idx.includes('./'+sheet+'?v=554'),sheet);
-  assert.ok(sw.includes("'./"+sheet+"?v=554'"),sheet);
+  assert.ok(idx.includes('./'+sheet+'?v=555'),sheet);
+  assert.ok(sw.includes("'./"+sheet+"?v=555'"),sheet);
  }
  assert.ok(sw.includes("'./img/effetti/approved-environments-v548.webp?v=548'"));
- assert.ok(app.includes('./rpg-reference-compositing-v539.js?v=554'));
- assert.ok(app.includes('./rpg-atelier-ui.js?v=554'));
- assert.ok(ui.includes('./rpg-atelier.js?v=554'));
- assert.ok(combined.includes('./rpg-atelier.js?v=554'));
+ assert.ok(app.includes('./rpg-reference-compositing-v539.js?v=555'));
+ assert.ok(app.includes('./rpg-atelier-ui.js?v=555'));
+ assert.ok(ui.includes('./rpg-atelier.js?v=555'));
+ assert.ok(combined.includes('./rpg-atelier.js?v=555'));
 });
