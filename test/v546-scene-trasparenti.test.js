@@ -33,7 +33,7 @@ test('v546: body pixels excluded, magic comes directly from original collage',()
 });
 test('v546: shop shows transparency, not v545 square, avatar always foremost',()=>{
  const css=read('stile-rpg.css'),js=read('src/rpg-reference-compositing-v539.js');
- assert.match(css,/\.rpg-reference-stage-v546\s*> \.rpg-reference-environment-v541\s*\{[\s\S]*?reference-scene-v546\.webp\?v=547/);
+ assert.match(css,/\.rpg-reference-stage-v546\s*> \.rpg-reference-environment-v541\s*\{[\s\S]*?reference-scene-v546\.webp\?v=546/);
  assert.match(css,/\.rpg-reference-stage-v546\s*> \.rpg-reference-environment-v541\s*\{[\s\S]*?width:160%!important/);
  assert.match(css,/\.rpg-reference-stage-v546\s*> \.rpg-reference-environment-v541\s*\{[\s\S]*?aspect-ratio:461 \/ 440!important/);
  assert.match(js,/fotoV546Pronta=effettiPuliti\.naturalWidth===1383&&effettiPuliti\.naturalHeight===880/);
