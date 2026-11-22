@@ -4319,3 +4319,40 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
   -webkit-mask-image:none!important;
   mask-image:none!important;
 }
+
+/* v538: NON sovrapporre l'effetto integrale all'eroe. L'atlante v537 resta
+   IDENTICO. Il piano retro non esce dalla foto; il piano davanti mostra solo
+   fumo, scie e base che stanno esterni alla sagoma. */
+.personaggio-scena-grafica.rpg-reference-v532 > .personaggio-ritratto{
+  z-index:2!important;
+  opacity:1!important;
+  mix-blend-mode:normal!important;
+  filter:none!important;
+}
+.personaggio-scena-grafica.rpg-reference-v532 > .rpg-reference-fx.rpg-reference-fx-back{
+  z-index:1!important;
+  clip-path:inset(3.7037% 19.5122% 3.7037% 19.5122%)!important;
+  -webkit-clip-path:inset(3.7037% 19.5122% 3.7037% 19.5122%)!important;
+}
+.personaggio-scena-grafica.rpg-reference-v532 > .rpg-reference-fx.rpg-reference-fx-front{
+  z-index:3!important;
+  -webkit-mask-image:radial-gradient(ellipse 31% 45% at 50% 43%,transparent 0 75%,rgba(0,0,0,.18) 84%,#000 99%)!important;
+  mask-image:radial-gradient(ellipse 31% 45% at 50% 43%,transparent 0 75%,rgba(0,0,0,.18) 84%,#000 99%)!important;
+  -webkit-mask-size:100% 100%!important;
+  mask-size:100% 100%!important;
+  -webkit-mask-repeat:no-repeat!important;
+  mask-repeat:no-repeat!important;
+  pointer-events:none!important;
+}
+.aura-preview-scene .personaggio-scena:has(.rpg-reference-v532),
+.rpg-atelier-avatar .personaggio-scena:has(.rpg-reference-v532){
+  background:transparent!important;
+  box-shadow:none!important;
+  border-color:transparent!important;
+}
+.aura-preview-scene .personaggio-scena-grafica.rpg-reference-v532,
+.rpg-atelier-avatar .personaggio-scena-grafica.rpg-reference-v532{
+  background:transparent!important;
+  box-shadow:none!important;
+  border-color:transparent!important;
+}
