@@ -211,8 +211,8 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
     palcoV543?.naturalWidth===1383&&palcoV543?.naturalHeight===880);
   const riferimentoCompleto=Boolean(ritaglioEsportabile&&(palcoFotoV545||palcoCompleto||atlanteV539));
   if(palcoFotoV545){
-    // Stessa tavola fotografica della preview, scena piu' larga del soggetto:
-    // nessuna scia, sigillo o pietra puo' essere ritagliata ai bordi del PNG.
+    // Stessa tavola fotografica della preview, scena più larga del soggetto:
+    // nessuna scia, sigillo o pietra può essere ritagliata ai bordi del PNG.
     const cellW=palcoV545.naturalWidth/3,cellH=palcoV545.naturalHeight/2;
     const fxW=dw*1.60,fxH=fxW*(440/461);
     ctx.drawImage(palcoV545,

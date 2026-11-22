@@ -48,9 +48,9 @@ test('v539: anteprima, foto PNG, Shop, cache PWA stessa source RGB',()=>{
  assert.match(sw,/const VERSIONE = 'palestra-v545'/);
  assert.match(index,/PALESTRA_VERSIONE = 'palestra-v545'/);
  assert.match(sw,/img\/effetti\/effetti-reference-v539\.webp\?v=539/);
- assert.match(sw,/src\/rpg-reference-compositing-v539\.js\?v=543/);
+ assert.match(sw,/src\/rpg-reference-compositing-v539\.js\?v=545/);
  assert.match(atelier,/effetti-reference-v539\.webp\?v=539/);
- assert.match(atelier,/const riferimentoCompleto=Boolean\(ritaglioEsportabile&&\(palcoCompleto\|\|atlanteV539\)\)/);
+ assert.ok(atelier.includes('const riferimentoCompleto=Boolean(ritaglioEsportabile&&(palcoFotoV545||palcoCompleto||atlanteV539))'));
  assert.match(atelier,/ctx\.drawImage\(atlanteV539,/);
- assert.match(shopExport,/rpg-atelier\.js\?v=543/);
+ assert.match(shopExport,/rpg-atelier\.js\?v=545/);
 });

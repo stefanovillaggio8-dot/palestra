@@ -30,7 +30,7 @@ test('v540: stesso pavimento in Shop, Atelier, PNG e cache PWA',()=>{
  const css=read('stile-rpg.css'),at=read('src/rpg-atelier.js');
  const out=read('src/anteprima-combinata-rpg.js'),sw=read('sw.js'),idx=read('index.html');
  for(const file of [css,at,sw])assert.match(file,/effetti-reference-v539\.webp\?v=539/);
- assert.match(out,/rpg-atelier\.js\?v=543/);
+ assert.match(out,/rpg-atelier\.js\?v=545/);
  assert.match(sw,/const VERSIONE = 'palestra-v545'/);
  assert.match(idx,/PALESTRA_VERSIONE = 'palestra-v545'/);
  assert.match(sw,/percorso\.includes\('effetti-reference-v540\.webp'\)/);

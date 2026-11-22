@@ -53,7 +53,7 @@ test('v543: Shop ed esportazione PNG usano la stessa cella della scena',()=>{
  assert.match(atelier,/palcoV543\.naturalWidth\/3,cellH=palcoV543\.naturalHeight\/2/);
  assert.match(atelier,/ctx\.drawImage\(palcoV543,[\s\S]*?riferimentoV532\.colonna\*cellW,riferimentoV532\.riga\*cellH/);
  assert.match(atelier,/if\(palcoCompleto\)[\s\S]*?else \{/);
- assert.match(shop,/rpg-atelier\.js\?v=543/);
+ assert.match(shop,/rpg-atelier\.js\?v=545/);
 });
 test('v543: aggiornamento offline preciso e fallback della v542',()=>{
  const sw=read('sw.js'),idx=read('index.html'),app=read('src/app.js');

@@ -36,7 +36,7 @@ test('v541: il PNG Shop/Atelier conserva esattamente il fondale sotto agli effet
  const laying=at.indexOf('ctx.drawImage(ambienteV541,');
  const effect=at.indexOf('ctx.drawImage(atlanteV539,');
  assert.ok(loading>0 && laying>loading && effect>laying);
- assert.match(shop,/rpg-atelier\.js\?v=543/);
+ assert.match(shop,/rpg-atelier\.js\?v=545/);
 });
 test('v541: foto approvata e cinque VFX originali restano immutati in cache',()=>{
  const sw=read('sw.js');
