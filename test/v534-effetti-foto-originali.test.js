@@ -25,13 +25,13 @@ test('v534: niente fusione screen che produceva verde sulle scintille dorate',()
  const css=read('stile-rpg.css'),atelier=read('src/rpg-atelier.js');
  const block=css.slice(css.indexOf('.personaggio-scena-grafica.rpg-reference-v532 > .rpg-reference-fx{'),
                      css.indexOf('.rpg-reference-v532 > .rpg-reference-fx.rpg-reference-ambra'));
- assert.match(block,/effetti-reference-v535\.webp\?v=535/);
+ assert.match(block,/effetti-reference-v536\.webp\?v=536/);
  assert.match(block,/mix-blend-mode:normal!important/);
  assert.doesNotMatch(block,/mix-blend-mode:screen!important/);
- assert.match(block,/width:138%!important/);
- assert.match(block,/height:107%!important/);
+ assert.match(block,/width:146%!important/);
+ assert.match(block,/height:115%!important/);
  assert.match(css,/\.rpg-reference-v532 > \.personaggio-ritratto\{[\s\S]*?opacity:1!important/);
- assert.match(atelier,/effetti-reference-v535\.webp\?v=535/);
+ assert.match(atelier,/effetti-reference-v536\.webp\?v=536/);
  assert.match(atelier,/riferimentoV532\.colonna\*cellW,riferimentoV532\.riga\*cellH/);
  assert.match(atelier,/ctx\.globalCompositeOperation='source-over'/);
 });
@@ -44,8 +44,8 @@ test('v534: schermata Shop, personaggio e Atelier usano stessi cinque layer senz
  assert.match(app,/grafica\.appendChild\(el\('div',\{[\s\S]*?rpg-reference-fx/);
  assert.match(sw,/effetti-reference-v534\.webp\?v=534/);
  assert.match(sw,/percorso\.includes\('effetti-reference-v534\.webp'\)/);
- assert.match(sw,/const VERSIONE = 'palestra-v535'/);
- assert.match(idx,/PALESTRA_VERSIONE = 'palestra-v535'/);
+ assert.match(sw,/const VERSIONE = 'palestra-v536'/);
+ assert.match(idx,/PALESTRA_VERSIONE = 'palestra-v536'/);
 });
 test('v534: classi, caschi, armature e armi mantengono esattamente i loro ritratti',()=>{
  const classi={
