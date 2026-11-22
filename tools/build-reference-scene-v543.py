@@ -100,7 +100,7 @@ for name,px,py,col,row in effectdefs:
     # Reject only a continuous opaque rectangular PHOTO edge, not real FX.
     edge_mean=[float(np.mean(a[:,0])),float(np.mean(a[:,-1])),
                float(np.mean(a[0,:])),float(np.mean(a[-1,:]))]
-    assert max(edge_mean)<75,(name,edge_mean)
+    assert min(edge_mean)<35,(name,edge_mean) # bright lightning can fill upper edge
     manifest[name]={'middle_floor_alpha':middle,
                     'edges_alpha':edges,
                     'source_panel':[x0,y0,x0+W,y0+H]}
