@@ -1,3 +1,9 @@
+## 22/11/2026 — v552: scena allineata ai piedi senza cambiare volto, corpo o armatura
+- Difetto v551: gli ambienti 626×710 venivano mostrati larghi solo il 112% del ritratto 2:3; la piattaforma risultava troppo in alto e il personaggio sembrava sospeso.
+- v552: CSS background 148% centrato (left -24%, top -3%); PNG Atelier e Shop usano la stessa scala 1.48 e il rapporto 710/626. Nessun re-render dei 5 atlanti approvati.
+- Soggetto originale sempre al 100%, object-fit:contain anche fuori dal pannello Shop; nessuna sostituzione di facce, corpo, skin o altri oggetti.
+- Aggiornate le cache PWA per Safari e l'anteprima. Verificare comunque su dispositivo l'assenza di tagli ai bordi su schermi stretti.
+
 ## 22/11/2026 — v551: preserva le facce ORIGINALI nell'anteprima degli effetti
 - Problema: il poster promozionale v550 includeva un Assassino con una
   faccia, un corpo e un cappuccio rigenerati, discordanti dai 18 ritratti

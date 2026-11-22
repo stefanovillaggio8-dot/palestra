@@ -239,7 +239,8 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
     // VFX originale e vero ritaglio davanti, senza figura duplicata.
     const foto=palcoAmbienteV548;
     const cellW=foto.naturalWidth/3,cellH=foto.naturalHeight/2;
-    const fxW=dw*1.12,fxH=fxW*(710/626);
+    // v552: stesso 148% centrato dello Shop: cerchio ai piedi, non a meta' gamba.
+    const fxW=dw*1.48,fxH=fxW*(710/626);
     ctx.drawImage(foto,
       riferimentoV532.colonna*cellW,riferimentoV532.riga*cellH,cellW,cellH,
       dx-(fxW-dw)/2,dy-dh*.03,fxW,fxH);
