@@ -1,6 +1,6 @@
 // v539: il ritratto approvato e' una fotografia OPACA: non si possono
 // vedere VFX dietro il personaggio disegnandoli sotto tutta la foto.
-// I 18 ritagli alpha REALI esistono gia' nel repository. Per le 6 armature
+// I 18 ritagli alpha REALI esistono già nel repository. Per le 6 armature
 // acquistabili riutilizziamo le sagome fotografate esistenti, mai immagini AI.
 import {
   percorsoRitaglioCosmicoRpg, verificaIntegritaRitaglioRpg,
@@ -58,7 +58,7 @@ export function montaReferenceScontornataV539(grafica,ritratto,classe,reference,
   };
   soggetto.addEventListener?.('load',attiva,{once:true});
   soggetto.src=alpha||url;
-  // Alcuni browser hanno gia' l'immagine pronta dalla cache PWA.
+  // Alcuni browser hanno già l'immagine pronta dalla cache PWA.
   if(soggetto.complete&&soggetto.naturalWidth)attiva();
   return true;
 }
