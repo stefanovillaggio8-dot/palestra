@@ -20,9 +20,9 @@ ref=Image.open(root/'img/effetti/reference-approvata-v537.png').convert('RGB')
 donor=np.asarray(Image.open(root/'img/effetti/reference-ambiente-v541.webp').convert('RGB'),dtype=np.float32)
 W,H=461,440
 assert ref.size==(1447,1087) and donor.shape==(H,W,3)
-shape=[(.49,.050),(.425,.062),(.365,.115),(.331,.184),(.290,.266),
+shape=[(.49,-.060),(.425,-.020),(.365,.115),(.331,.184),(.290,.266),
 (.270,.427),(.232,.624),(.233,.823),(.277,.942),(.31,.975),(.708,.975),
-(.739,.933),(.777,.824),(.777,.548),(.736,.289),(.684,.165),(.626,.085),(.56,.050)]
+(.739,.933),(.777,.824),(.777,.548),(.736,.289),(.684,.165),(.626,.085),(.56,-.050)]
 mask=Image.new('L',(W,H),0)
 d=ImageDraw.Draw(mask)
 d.polygon([(round(x*W),round(y*H)) for x,y in shape],fill=255)
@@ -62,10 +62,15 @@ for name,(px,py,col,row) in scenes.items():
     else:
         hue=np.maximum(smooth(4,65,b-g),smooth(6,70,r-g))
         energy=hue*smooth(20,140,v)*smooth(.09,.42,sat)
+        warm=(r-g>50)&(g-b>20)&(b<r*.65)
+        energy=np.where(warm,0,energy)
     # The original armor, cape and boots do not exist in the extracted energy.
     energy*= (1-sil)**1.35
     glare=cv2.GaussianBlur(energy,(0,0),sigmaX=4)
     effectA=np.clip(.97*energy+.32*glare,0,.99)
+    # The reference's caption begins below the platform. Never display it
+    # as a floating gold/purple banner inside the app's character preview.
+    effectA*=1-smooth(.945,.971,y)
     environment=donor.copy()
     if name!='ambra':
         tint={'ombra':(.53,.50,1.11),'fulmine':(.65,.56,1.22),
