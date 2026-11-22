@@ -1,3 +1,17 @@
+## 22/11/2026 — v546: elimina il vecchio cavaliere e la foto rettangolare
+- Bug fotografico accertato: il PNG v545 aveva un fondale opaco e l'ombra
+  della figura precedente. Il nuovo atlas originale v546 distingue la magia
+  (scie/fumo/fulmini/rune) dal corpo originale del collage; SOLO il ritaglio
+  fotografico del personaggio reale è sul livello anteriore.
+- Il fondale deriva dalla foto no-effetto approvata, con bordi RGBA sfumati,
+  nessun rettangolo nero/marrone. Conserva pavimento e centro delle basi
+  restaurato nel medesimo stile v540.
+- Tutte le cinque posizioni 3×2 hanno rapporto 461×440, CSS stage al 160%
+  e avatar invariato. Anteprima e PNG esportato usano lo stesso sprite.
+- Fallback v545 e v543 per browser offline, cache PWA aggiornata a v546.
+- Ricontrollare visivamente su Safari; test statici non certificano
+  corrispondenza percettiva perfetta al collage approvato.
+
 ## 22/11/2026 — v545, collage fotografico senza taglio dei cinque effetti
 - Fotografia guida: img/effetti/reference-approvata-v537.png: la scena
   reale non si rigenera né si attenua per rimuovere il cavaliere fittizio.

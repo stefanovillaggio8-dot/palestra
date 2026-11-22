@@ -4567,3 +4567,41 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
 .personaggio-scena-grafica.rpg-reference-stage-v545 > .rpg-reference-complete-v539{
   display:none!important;
 }
+
+/* v546: the stage is a genuine RGBA cutout of the approved bright effects.
+   Transparent outer edges MERGE with the app's background. There must not
+   be a photographed square, a former cape, or a duplicated magic layer.
+   The original current class/streak/armor portrait stays ABOVE the floor. */
+.personaggio-scena-grafica.rpg-reference-v532.rpg-reference-integrated-v539.rpg-reference-stage-v546
+  > .rpg-reference-environment-v541 {
+  position:absolute!important;
+  inset:auto!important;
+  top:-3%!important;
+  left:-30%!important;
+  width:160%!important;
+  height:auto!important;
+  aspect-ratio:461 / 440!important;
+  z-index:1!important;
+  background-image:url('./img/effetti/reference-scene-v546.webp?v=546')!important;
+  background-repeat:no-repeat!important;
+  background-size:300% 200%!important;
+  background-color:transparent!important;
+  opacity:1!important;
+  filter:none!important;
+  mix-blend-mode:normal!important;
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  -webkit-mask-image:none!important;
+  mask-image:none!important;
+  -webkit-clip-path:none!important;
+  clip-path:none!important;
+  pointer-events:none!important;
+}
+.personaggio-scena-grafica.rpg-reference-stage-v546 > .rpg-reference-subject-v539 {
+  z-index:3!important;
+  opacity:1!important;
+}
+.personaggio-scena-grafica.rpg-reference-stage-v546 > .rpg-reference-complete-v539 {
+  display:none!important;
+}
