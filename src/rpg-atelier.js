@@ -3,11 +3,11 @@
 // Nessun acquisto/record viene modificato dalle anteprime o dal download.
 import { AURA_FOTO_ATLAS } from './aura-foto-atlas.js';
 import { disegnaEffettoApprovatoRpg, EFFETTI_APPROVATI_RPG } from './rpg-effetti-approvati-v531.js?v=531';
-import { effettoReferenceV532 } from './rpg-reference-v532.js?v=536';
+import { effettoReferenceV532 } from './rpg-reference-v532.js?v=538';
 import { FOTO_RPG_RIQUADRI, livelliFotoRpg } from './aura-foto-rpg.js';
 import { fasciaSagoma, disegnaCoronaEnergetica } from './anteprima-combinata-rpg.js?v=513';
 import { fotoCinematograficaRpg } from './foto-cinematica-rpg.js';
-import {disegnaAtmosferaCosmicaRpg,disegnaAccentiCosmiciRpg,disegnaSoggettoCosmicoRpg,disegnaSfondoFotograficoCosmicoRpg,disegnaFotografiaFusaRpg} from './rpg-scena-cosmica.js?v=537';
+import {disegnaAtmosferaCosmicaRpg,disegnaAccentiCosmiciRpg,disegnaSoggettoCosmicoRpg,disegnaSfondoFotograficoCosmicoRpg,disegnaFotografiaFusaRpg} from './rpg-scena-cosmica.js?v=538';
 import {caricaEnergiaFotograficaRpg,disegnaEnergiaFotograficaRpg} from './rpg-energia-incarnata.js';
 import { percorsoFotoCoronaV360 } from './foto-corona-v360.js';
 import { percorsoFotoAuraDivinaV366 } from './foto-aura-divina-v366.js';
@@ -75,6 +75,38 @@ const fotoPronta = async(el)=>{
   if(!el.naturalWidth)throw new Error('Foto del personaggio non disponibile');
   return el;
 };
+// v538: stessi due piani della schermata Shop. Nessun pixel viene tolto
+// dall'atlante approvato, e la maschera riguarda soltanto il PIANO davanti.
+function disegnaReferenceV538(ctx,atlas,riferimentoV532,dx,dy,dw,dh,piano='retro'){
+  const cellW=atlas.naturalWidth/3,cellH=atlas.naturalHeight/2;
+  const fxX=dx-dw*.32,fxY=dy-dh*.04,fxW=dw*1.64,fxH=dh*1.08;
+  if(piano==='retro'){
+    ctx.save();ctx.beginPath();ctx.rect(dx,dy,dw,dh);ctx.clip();
+    ctx.globalCompositeOperation='source-over';
+    ctx.drawImage(atlas,riferimentoV532.colonna*cellW,riferimentoV532.riga*cellH,
+      cellW,cellH,dx-dw*.32,dy-dh*.04,dw*1.64,dh*1.08);
+    ctx.restore();return;
+  }
+  const buffer=document.createElement('canvas');
+  buffer.width=Math.max(2,Math.round(fxW));
+  buffer.height=Math.max(2,Math.round(fxH));
+  const fx=buffer.getContext('2d',{alpha:true});
+  if(!fx)return;
+  fx.drawImage(atlas,riferimentoV532.colonna*cellW,riferimentoV532.riga*cellH,
+    cellW,cellH,0,0,buffer.width,buffer.height);
+  fx.save();fx.globalCompositeOperation='destination-out';
+  fx.translate(buffer.width*.5,buffer.height*.43);
+  fx.scale(buffer.width*.31,buffer.height*.45);
+  const mask=fx.createRadialGradient(0,0,0,0,0,1);
+  mask.addColorStop(0,'rgba(0,0,0,1)');
+  mask.addColorStop(.75,'rgba(0,0,0,1)');
+  mask.addColorStop(.84,'rgba(0,0,0,.82)');
+  mask.addColorStop(.99,'rgba(0,0,0,0)');
+  mask.addColorStop(1,'rgba(0,0,0,0)');
+  fx.fillStyle=mask;fx.fillRect(-2,-2,4,4);fx.restore();
+  ctx.save();ctx.globalCompositeOperation='source-over';
+  ctx.drawImage(buffer,fxX,fxY,fxW,fxH);ctx.restore();
+}
 /** Crea l'immagine della combinazione selezionata senza toccare la foto di origine.
     Funziona anche offline: usa lo sprite fotografico già in cache nel modulo.
     I cambi colore/armature sono solo cosmetici, mai premi Streak anticipati. */
@@ -111,6 +143,7 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
   // Con Astrale/Nebulosa il ritratto mostrato nell'Atelier e' l'autorita':
   // non caricare una seconda foto con armi diverse da quelle visibili.
   const immagine=fxSenzaFoto ? fotoBase
+    : riferimentoV532 ? fotoBase // esattamente lo stesso ritratto selezionato in Shop
     : (scena ? await attesaImmagine(scena).catch(()=>fotoBase) : fotoBase);
   const giaFotografica=Boolean(scena&&immagine!==fotoBase);
   // Gli effetti possono estendersi a lato della fotografia: nel PNG con
@@ -125,6 +158,9 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
     (riferimentoV532?1170:altezza)/immagine.naturalHeight);
   const dw=Math.round(immagine.naturalWidth*ratio),dh=Math.round(immagine.naturalHeight*ratio);
   const dx=(larghezza-dw)/2,dy=(altezza-dh)/2;
+  const atlanteV538=riferimentoV532 ? await attesaImmagine(
+    new URL('../img/effetti/effetti-reference-v537.webp?v=537',import.meta.url).href) : null;
+  if(atlanteV538)disegnaReferenceV538(ctx,atlanteV538,riferimentoV532,dx,dy,dw,dh,'retro');
   if(fxSenzaFoto) {
     // La foto e il suo ambiente restano IDENTICI per ogni effetto Shop.
     // Astrale/Nebulosa aggiungono una sola texture alpha sul ritratto originale.
@@ -205,20 +241,8 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
   // Il Canvas live usato in anteprima per Fumo/Scintille/Scarica viene copiato
   // nel PNG, anziche' sostituito con un altro effetto preso dall'atlante.
   if(riferimentoV532){
-    // v537: usa i pixel della tavola finale approvata, con alpha che
-    // esclude solo l'eroe generato; la fotografia originale resta sotto,
-    // completa e non viene sostituita. Cinque celle WebP lossless.
-    const atlas=await attesaImmagine(
-      new URL('../img/effetti/effetti-reference-v537.webp?v=537',import.meta.url).href);
-    const cellW=atlas.naturalWidth/3,cellH=atlas.naturalHeight/2;
-    ctx.save();ctx.globalCompositeOperation='source-over';
-    ctx.drawImage(atlas,
-      riferimentoV532.colonna*cellW,riferimentoV532.riga*cellH,cellW,cellH,
-      // v535: più spazio a fumo, scariche, nebulosa e sigilli, senza
-      // ritagliare i bordi nella foto esportata. Il Canvas limita da sé
-      // le parti esterne alla pagina, senza cambiare il soggetto.
-      dx-dw*.32,dy-dh*.04,dw*1.64,dh*1.08);
-    ctx.restore();
+    // La parte anteriore e' SOLO all'esterno del soggetto; non si attraversa.
+    if(atlanteV538)disegnaReferenceV538(ctx,atlanteV538,riferimentoV532,dx,dy,dw,dh,'fronte');
   } else if(effettoApprovato && !fxSenzaFoto && typeof ctx.translate==='function'){
     ctx.save();ctx.translate(dx,dy);
     if(effettoDalCanvas){
