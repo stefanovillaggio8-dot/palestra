@@ -3,11 +3,11 @@
 // Nessun acquisto/record viene modificato dalle anteprime o dal download.
 import { AURA_FOTO_ATLAS } from './aura-foto-atlas.js';
 import { disegnaEffettoApprovatoRpg, EFFETTI_APPROVATI_RPG } from './rpg-effetti-approvati-v531.js?v=531';
-import { effettoReferenceV532 } from './rpg-reference-v532.js?v=541';
+import { effettoReferenceV532 } from './rpg-reference-v532.js?v=542';
 import { FOTO_RPG_RIQUADRI, livelliFotoRpg } from './aura-foto-rpg.js';
 import { fasciaSagoma, disegnaCoronaEnergetica } from './anteprima-combinata-rpg.js?v=513';
 import { fotoCinematograficaRpg } from './foto-cinematica-rpg.js';
-import {disegnaAtmosferaCosmicaRpg,disegnaAccentiCosmiciRpg,disegnaSoggettoCosmicoRpg,disegnaSfondoFotograficoCosmicoRpg,disegnaFotografiaFusaRpg} from './rpg-scena-cosmica.js?v=541';
+import {disegnaAtmosferaCosmicaRpg,disegnaAccentiCosmiciRpg,disegnaSoggettoCosmicoRpg,disegnaSfondoFotograficoCosmicoRpg,disegnaFotografiaFusaRpg} from './rpg-scena-cosmica.js?v=542';
 import {caricaEnergiaFotograficaRpg,disegnaEnergiaFotograficaRpg} from './rpg-energia-incarnata.js';
 import { percorsoFotoCoronaV360 } from './foto-corona-v360.js';
 import { percorsoFotoAuraDivinaV366 } from './foto-aura-divina-v366.js';
@@ -167,9 +167,16 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
   // v541: nel PNG esportato deve esserci lo stesso SFONDO con PAVIMENTO
   // fotografico che si vede in anteprima, prima dell'effetto e del soggetto.
   const ambienteV541=riferimentoV532 ? await attesaImmagine(
-    new URL('../img/effetti/reference-ambiente-v541.webp?v=541',import.meta.url).href
+    new URL('../img/effetti/reference-ambienti-v542.webp?v=542',import.meta.url).href
   ).catch(()=>null) : null;
-  if(ambienteV541)ctx.drawImage(ambienteV541,dx,dy,dw,dh);
+  // La v542 e' un atlante 3x2: usa la stessa cella della preview.
+  // L'alpha del fondale e' gia' sfumato, e la base fotografica si salva intera.
+  if(ambienteV541){
+    const envW=ambienteV541.naturalWidth/3,envH=ambienteV541.naturalHeight/2;
+    ctx.drawImage(ambienteV541,
+      riferimentoV532.colonna*envW,riferimentoV532.riga*envH,envW,envH,
+      dx,dy,dw,dh);
+  }
   const atlanteV539=riferimentoV532 ? await attesaImmagine(
     new URL('../img/effetti/effetti-reference-v539.webp?v=539',import.meta.url).href) : null;
   const elementoRitaglio=grafica?.querySelector?.('.rpg-reference-subject-v539');
