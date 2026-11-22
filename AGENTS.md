@@ -1,3 +1,18 @@
+## 2026-11-22 — v549 corregge il ridimensionamento in anteprima degli asset approvati
+- Il v548 applicava la foto promozionale 626x710 a un ritratto 300px,
+  mischiandola con il ritaglio del personaggio. Foto troppo piccola,
+  due basi o piedi fuori dalla base.
+- Solo per Shop preview con Assassino senza armatura, Corona, Divina e
+  arma, indipendentemente dallo stadio Streak, il CSS rende in una
+  figura intera 626:710 le cinque immagini approvate. Dietro non è
+  visibile nessuna seconda figura né strato magico.
+- Nome e didascalia del profilo continuano ad apparire sotto.
+- Altre classi/armature rimangono dinamiche; se il WebP non carica
+  viene usato il personaggio vero senza schermate vuote.
+- Foto PNG dell'anteprima usa la stessa composizione promozionale.
+- Aggiornati app, CSS e service worker PWA alla v549.
+- Verifica in browser ancora necessaria per fedeltà pixel-perfect.
+
 ## 22/11/2026 — v548: approvate cinque immagini reali, non approssimazioni
 - Dalle 5 anteprime generate ed esplicitamente approvate in chat sono
   stati ricavati i cinque pannelli originali 626x710 e impacchettati

@@ -1233,7 +1233,7 @@ button:focus-visible,.aura-shop-filter:focus-visible,.voce-menu:focus-visible {
 }
 .aura-preview-panel .aura-preview-character {
   width:100%;
-  max-width:min(100%,420px);
+  max-width:min(100%,360px);
   margin:auto;
 }
 .aura-preview-panel .personaggio-scena {
@@ -4704,5 +4704,91 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
 }
 :is(.aura-preview-scene,.aura-preview-avatar-container,.personaggio-scena,.rpg-atelier-avatar)
   :has(.rpg-reference-stage-v548){
+  overflow:visible!important;
+}
+
+/* v549 — Galleria Shop fedelissima alle 5 anteprime approvate.
+   BUG v548: l'atlante fotografico era un background sul ritratto 300px,
+   perciò veniva ristretto, e il cutout del personaggio copriva la scena.
+   Ora la foto composita è una figura autonoma a tutta larghezza, non un
+   rettangolo dietro alla foto. Solo Shop + Assassino SENZA altri cosmetici.
+   Le altre classi / armature / progressi restano assolutamente dinamiche.
+   In caso di asset assente non compare la classe *-static: fallback reale. */
+.aura-preview-panel .aura-preview-avatar-container:has(.rpg-reference-stage-v548-static) {
+  display:flex!important;
+  flex-direction:column!important;
+  justify-content:flex-start!important;
+  align-items:center!important;
+  width:100%!important;
+  overflow:visible!important;
+}
+.aura-preview-panel .aura-preview-avatar-container:has(.rpg-reference-stage-v548-static)::before {
+  content:"";
+  display:block;
+  flex:0 0 auto;
+  box-sizing:border-box;
+  width:min(100%,420px);
+  height:auto;
+  aspect-ratio:626 / 710;
+  margin:0 auto;
+  background-image:url('./img/effetti/approved-showcase-v548.webp?v=548');
+  background-size:300% 200%;
+  background-position:0% 0%;
+  background-repeat:no-repeat;
+  background-color:transparent;
+  border:0;
+  box-shadow:none;
+  border-radius:0;
+  filter:none;
+  pointer-events:none;
+}
+.aura-preview-panel .aura-preview-avatar-container:has(.rpg-reference-stage-v548-static > .rpg-reference-environment-v541.rpg-reference-ombra)::before {
+  background-position:50% 0%;
+}
+.aura-preview-panel .aura-preview-avatar-container:has(.rpg-reference-stage-v548-static > .rpg-reference-environment-v541.rpg-reference-fulmine)::before {
+  background-position:100% 0%;
+}
+.aura-preview-panel .aura-preview-avatar-container:has(.rpg-reference-stage-v548-static > .rpg-reference-environment-v541.rpg-reference-nebula)::before {
+  background-position:0% 100%;
+}
+.aura-preview-panel .aura-preview-avatar-container:has(.rpg-reference-stage-v548-static > .rpg-reference-environment-v541.rpg-reference-astrale)::before {
+  background-position:50% 100%;
+}
+/* Il poster contiene già il personaggio: mai mostrare una seconda figura,
+   un mantello o una base sotto il poster. NON nascondere i dati nome/titolo. */
+.aura-preview-panel .aura-preview-avatar-container:has(.rpg-reference-stage-v548-static)
+  .personaggio-scena-grafica {
+  display:none!important;
+}
+.aura-preview-panel .aura-preview-avatar-container:has(.rpg-reference-stage-v548-static)
+  .aura-preview-character {
+  width:100%!important;
+  max-width:min(100%,420px)!important;
+  margin:0 auto!important;
+}
+.aura-preview-panel .aura-preview-avatar-container:has(.rpg-reference-stage-v548-static)
+  .personaggio-scena {
+  width:100%!important;
+  max-width:100%!important;
+  height:auto!important;
+  min-height:0!important;
+  padding:0 8px 12px!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  border:0!important;
+}
+.aura-preview-panel .aura-preview-avatar-container:has(.rpg-reference-stage-v548-static)
+  .personaggio-dati {
+  position:relative!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:flex-start!important;
+  text-align:left!important;
+  width:100%!important;
+  padding:8px 6px 14px!important;
+  background:transparent!important;
+}
+/* La scena è intera, il sigillo è sotto ai piedi e non ci sono clip. */
+.aura-preview-panel .aura-preview-scene:has(.rpg-reference-stage-v548-static) {
   overflow:visible!important;
 }
