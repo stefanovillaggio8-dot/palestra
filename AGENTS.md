@@ -1,3 +1,9 @@
+## 23/11/2026 — v555: fusione dei bordi del fondale in tutte le scene approvate
+- Lo screenshot v554 ha confermato card e personaggio corretti, ma il fondale v548 mantiene quattro bordi rettangolari scuri.
+- Applica due gradients alpha INTERSECANTI soltanto al livello environment dei cinque effetti: lato 6.5%, alto 5.5%, sotto 2%; centro, rune, anelli, spirali e figura restano intatti. Proprietà standard mask-composite:intersect e Safari -webkit-mask-composite:source-in.
+- Export PNG: genera un canvas temporaneo della sola cella v548, applica gli stessi gradienti con destination-in su X e Y, poi compone la foto originale davanti. Rimane un fallback senza maschera per Canvas ridotti.
+- Dimensioni, foto originali, inventario, streak, colori dei WebP approvati e zoom della v554 invariati. Richiesto confronto visivo finale sul dispositivo.
+
 ## 22/11/2026 — v554: un solo palco fotografico nei cinque effetti
 - Screenshot v553: sfondo e base erano completi, ma persisteva una cornice rettangolare vuota attorno alla figura e il badge finiva sotto la piega della finestra.
 - Causa concreta: bloccoPersonaggio() rende section.blocco > .personaggio-scena > .personaggio-scena-grafica, con due cornici/padding aggiuntivi dentro .aura-preview-scene. v553 aggiungeva solo un margine, non rimuoveva i box.
