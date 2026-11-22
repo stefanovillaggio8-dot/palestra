@@ -113,7 +113,9 @@ test('v473: l\'anteprima Astrale non mostra mai solo la foto normale su Safari s
     const avatar=perClasse(overlay,'personaggio-scena-grafica')[0];
     assert.ok(avatar,'immagine della classe '+classe);
     assert.ok(avatar.classList.contains('shop-skin-mitica'),'Astrale equipaggiato in sola anteprima per '+classe);
-    assert.equal(perClasse(avatar,'rpg-reference-fx').length,1,'fallback visibile indipendentemente da Canvas su '+classe);
+    assert.equal(perClasse(avatar,'rpg-reference-fx').length,2,'piani separati anche senza Canvas su '+classe);
+    assert.equal(perClasse(avatar,'rpg-reference-fx-back').length,1,'un solo piano retro per '+classe);
+    assert.equal(perClasse(avatar,'rpg-reference-fx-front').length,1,'un solo piano esterno per '+classe);
     assert.equal(perClasse(avatar,'rpg-astrale-scintilla').length,0,'niente vecchi effetti Astrali sovrapposti al riferimento per '+classe);
     assert.equal(perClasse(avatar,'personaggio-ritratto').length,1,'foto originale conservata per '+classe);
   }
