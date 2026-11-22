@@ -1233,7 +1233,7 @@ button:focus-visible,.aura-shop-filter:focus-visible,.voce-menu:focus-visible {
 }
 .aura-preview-panel .aura-preview-character {
   width:100%;
-  max-width:min(100%,360px);
+  max-width:min(100%,420px);
   margin:auto;
 }
 .aura-preview-panel .personaggio-scena {
@@ -4727,7 +4727,7 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
   display:block;
   flex:0 0 auto;
   box-sizing:border-box;
-  width:min(100%,420px);
+  width:min(100%,360px);
   height:auto;
   aspect-ratio:626 / 710;
   margin:0 auto;
