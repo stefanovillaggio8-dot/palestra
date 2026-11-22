@@ -32,7 +32,7 @@ test('v535: nessun ritaglio di fumo, saette, nebulosa, scie o sigillo nella prev
  assert.match(fx,/inset:-4% auto auto -32%!important/);
  assert.match(fx,/width:164%!important/);
  assert.match(fx,/height:108%!important/);
- assert.match(fx,/background-image:url\('\.\/img\/effetti\/effetti-reference-v540\.webp\?v=540'\)!important/);
+ assert.match(fx,/background-image:url\('\.\/img\/effetti\/effetti-reference-v539\.webp\?v=539'\)!important/);
  assert.match(fx,/mix-blend-mode:normal!important/);
  assert.match(css,/\.aura-preview-avatar-container:has\(\.rpg-reference-v532\)/);
  assert.match(css,/@media\(max-width:430px\)/);
@@ -45,10 +45,10 @@ test('v535: nessun ritaglio di fumo, saette, nebulosa, scie o sigillo nella prev
 
 test('v535: PNG Atelier conserva tutte le luci anche oltre i bordi della foto',()=>{
  const at=read('src/rpg-atelier.js'),sw=read('sw.js'),idx=read('index.html');
- assert.match(at,/effetti-reference-v540\.webp\?v=540/);
+ assert.match(at,/effetti-reference-v539\.webp\?v=539/);
  assert.match(at,/riferimentoV532\.colonna\*cellW,riferimentoV532\.riga\*cellH/);
  assert.match(at,/dx-dw\*\.32,dy-dh\*\.04,dw\*1\.64,dh\*1\.08/);
- assert.match(sw,/effetti-reference-v540\.webp\?v=540/);
+ assert.match(sw,/effetti-reference-v539\.webp\?v=539/);
  assert.match(sw,/percorso\.includes\('effetti-reference-v536\.webp'\)/);
  assert.match(sw,/palestra-v541/);
  assert.match(idx,/PALESTRA_VERSIONE = 'palestra-v541'/);
