@@ -5,7 +5,7 @@
 import {
   percorsoRitaglioCosmicoRpg, verificaIntegritaRitaglioRpg,
   idContornoArmaturaCosmicaRpg, mascheraArmaturaCosmicaRpg,
-} from './rpg-scena-cosmica.js?v=540';
+} from './rpg-scena-cosmica.js?v=541';
 
 export function montaReferenceScontornataV539(grafica,ritratto,classe,reference,{
   corona=false,arma=false,documento=globalThis.document,
