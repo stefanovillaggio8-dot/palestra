@@ -33,3 +33,6 @@ export function scenaReferenceClassV532(id){
 // v537: pixel originali della tavola approvata conservati senza ridisegno;
 // alpha soltanto sul personaggio estraneo, non sulle scie/magia/fondali originali.
 export const ATLANTE_REFERENCE_V537='./img/effetti/effetti-reference-v537.webp?v=537';
+
+// v539: stessa reference con alpha ripulito da avatar e rettangoli estranei.
+export const ATLANTE_REFERENCE_V539='./img/effetti/effetti-reference-v539.webp?v=539';
