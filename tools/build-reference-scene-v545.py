@@ -33,8 +33,8 @@ mask=Image.new('L',(W,H),0)
 d=ImageDraw.Draw(mask)
 for p in shapes:
     d.polygon([(round(x*W),round(y*H)) for x,y in p],fill=255)
-mask=mask.filter(ImageFilter.MaxFilter(15))
-inside=np.asarray(mask.filter(ImageFilter.GaussianBlur(8)),dtype=np.float32)[:,:,None]/255
+mask=mask.filter(ImageFilter.MaxFilter(21))
+inside=np.asarray(mask.filter(ImageFilter.GaussianBlur(11)),dtype=np.float32)[:,:,None]/255
 Y,X=np.mgrid[0:H,0:W].astype(np.float32)
 fade=np.minimum.reduce([np.ones((H,W),dtype=np.float32),
     X/8,(W-1-X)/8,Y/7,(H-1-Y)/7])
@@ -47,12 +47,18 @@ for name,sx,sy,col,row in mapping:
     raw=np.asarray(approved.crop((l,t,l+W,t+H)),dtype=np.float32)
     # Erase only the previous knight's pixels. The naturally smoky dark
     # background is softly reconstructed; never draw a rectangular patch.
-    fog=cv2.GaussianBlur(raw,(0,0),sigmaX=36,sigmaY=36)*.53
-    fog+=np.array([4.5,2.6,4.0],dtype=np.float32)
-    ground=np.clip(donor*.73,0,255)
-    blend=np.clip((Y/H-.78)/.14,0,1)
-    blend=blend*blend*(3-2*blend)
-    fill=fog*(1-blend[:,:,None])+ground*blend[:,:,None]
+    # v545b: NO giant amber/purple human-shaped smear. The old approach
+    # blurred the glowing old armor into a solid colored silhouette. Use
+    # the actual rebuilt dark photographic background instead, muted to
+    # match the black theatrical scenery; keep 100% original pixels outside.
+    floor_strength=np.clip((Y/H-.68)/.26,0,1)
+    fill=donor*(.33+.15*floor_strength[:,:,None])
+    tint={
+      'ambra':(1.,1.,1.), 'ombra':(.48,.34,.80),
+      'fulmine':(.58,.44,.93), 'nebula':(.37,.57,.86),
+      'astrale':(.65,.34,.95),
+    }[name]
+    fill=np.clip(fill*np.array(tint,dtype=np.float32),0,255)
     scene=np.uint8(np.clip(raw*(1-inside)+fill*inside,0,255))
     atlas.alpha_composite(Image.fromarray(np.dstack((scene,alpha)),'RGBA'),(col*W,row*H))
     original_outside=inside[:,:,0]<.0001
