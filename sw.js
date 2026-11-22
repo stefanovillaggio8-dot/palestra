@@ -224,8 +224,8 @@ const FILE = [
   './img/personaggi/galleria-v352/berserker-07.webp?v=536',
   './img/personaggi/galleria-v352/berserker-08.webp?v=536',
   './img/personaggi/galleria-v352/berserker-09.webp?v=536',
-  './stile-galleria-rpg.css?v=543',
-  './src/galleria-foto-rpg.js?v=543',
+  './stile-galleria-rpg.css?v=544',
+  './src/galleria-foto-rpg.js?v=544',
   './rassegna-missioni.html',
   // IL FOGLIO DI STILE HA LA VERSIONE, come il collegamento in index.html.
   //
