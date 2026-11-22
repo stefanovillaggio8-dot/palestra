@@ -34,10 +34,24 @@ for name,srcX,srcY,dx,dy,brightness in effects:
   panel=source.crop((ix,iy,ix+W,iy+H))
   # Only the interior formerly occupied by the stranger is reconstructed.
   # It comes from the authentic photograph of the same environment.
-  bg=ImageEnhance.Brightness(clean.convert('RGB')).enhance(brightness)
-  if name!='ambra':bg=ImageEnhance.Color(bg).enhance(.52)
-  # All magic, smoke, sky and outer stone pavement come from the original
-  # corresponding effect panel: never recreate a generic neon disk.
+  # In the reference, the effect panels have near-BLACK skies. Filling
+  # the former avatar with warm fog made an obvious brown silhouette.
+  # Keep the exact coloured surroundings outside it and match their
+  # darkness inside. Only the bottom strip reveals the photographed stone
+  # ground from the original "senza effetto" image.
+  dark=(10,7,8) if name=='ambra' else (8,5,17)
+  bg=Image.new('RGB',(W,H),dark)
+  bp=bg.load();stone=clean.load()
+  for yy in range(round(H*.73),H):
+    ramp=max(0,min(1,(yy/H-.73)/.22))
+    for xx in range(W):
+      rr,gg,bb,_=stone[xx,yy]
+      power=ramp*(.45 if name=='ambra' else .30)
+      bp[xx,yy]=(round(dark[0]*(1-power)+rr*power),
+                 round(dark[1]*(1-power)+gg*power),
+                 round(dark[2]*(1-power)+bb*power))
+  # Sky, effects, smoke and platform OUTSIDE the former body come pixel by
+  # pixel from the user's actual reference, not from an invented neon ring.
   combined=Image.composite(bg,panel,mask).convert('RGBA')
   edge=Image.new('L',(W,H),255);ep=edge.load()
   for y in range(H):
