@@ -1,3 +1,13 @@
+## 22/11/2026 — v547, rifinitura scie e cerchi senza ritagli
+- L'immagine 3x2 v547 deriva dal WebP v546, senza nuovi personaggi.
+- Ripara le scie nei tratti cancellati dalla vecchia armatura con filamenti
+  luminosi fotografici, riduce l'ovale piatto e aggiunge rune concentriche.
+- Ogni bordo della cella RGBA termina a trasparenza, senza linee verticali.
+- Shop e PNG esportato selezionano esattamente la medesima cella 461x440
+  e lo zoom 160%; l'avatar originale è davanti, sempre invariato.
+- Fallback v546/v545/v543 online e in cache, release PWA v547.
+- Test automatici non equivalgono a un controllo visivo dal telefono.
+
 ## 22/11/2026 — v546: elimina il vecchio cavaliere e la foto rettangolare
 - Bug fotografico accertato: il PNG v545 aveva un fondale opaco e l'ombra
   della figura precedente. Il nuovo atlas originale v546 distingue la magia

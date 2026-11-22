@@ -40,8 +40,8 @@ test('v537: tutti i punti di rendering usano la stessa nuova texture',()=>{
  assert.ok(at.includes('dx-dw*.32,dy-dh*.04,dw*1.64,dh*1.08'));
  assert.match(app,/rpg-reference-fx/);
  assert.ok(sw.includes("percorso.includes('effetti-reference-v539.webp')"));
- assert.match(sw,/const VERSIONE = 'palestra-v546'/);
- assert.match(read('index.html'),/PALESTRA_VERSIONE = 'palestra-v546'/);
+ assert.match(sw,/const VERSIONE = 'palestra-v547'/);
+ assert.match(read('index.html'),/PALESTRA_VERSIONE = 'palestra-v547'/);
 });
 test('v537: nessun cambio figura/armatura/casco nelle 3 classi e tutte le combinazioni',()=>{
  const armature={

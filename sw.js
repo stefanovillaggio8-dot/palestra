@@ -9,7 +9,7 @@
 // e il test I3 che sia quello dell'ultimo commit, altrimenti si alza la cache e si
 // lascia scritto il numero vecchio. E' successo due volte: nella v54 avevo alzato
 // solo questo file, e dopo la v55 avevo smesso di alzarlo del tutto.
-const VERSIONE = 'palestra-v546';
+const VERSIONE = 'palestra-v547';
 
 // LE 18 FOTO DEI PERSONAGGI, CON LA VERSIONE DENTRO.
 //
@@ -86,7 +86,7 @@ const FILE = [
   './src/aura-skin.js',
   './src/effetti-rpg-canvas.js',
   './src/rpg-reference-v532.js',
-  './src/rpg-reference-compositing-v539.js?v=546', // ritaglio alpha vero per i 5 VFX
+  './src/rpg-reference-compositing-v539.js?v=547', // ritaglio alpha vero per i 5 VFX
   './src/rpg-scena-cosmica.js?v=543', // modulo condiviso con il ritaglio
   './img/effetti/effetti-reference-v532.webp?v=532', // compatibilità regression v532
   './img/effetti/effetti-reference-v533.webp?v=533', // archivio storico v533
@@ -95,7 +95,8 @@ const FILE = [
   './img/effetti/effetti-reference-v536.webp?v=536', // archivio precedente
   './img/effetti/reference-scene-v543.webp?v=543',
   './img/effetti/reference-scene-v545.webp?v=545',
-  './img/effetti/reference-scene-v546.webp?v=546', // Trasparenza vera: senza mantello fantasma/riquadro // colori e pavimento originali completi // complete original photography, floors and effects in 5 cells
+  './img/effetti/reference-scene-v546.webp?v=546',
+  './img/effetti/reference-scene-v547.webp?v=547', // cinque foto con spirali continue e rune // Trasparenza vera: senza mantello fantasma/riquadro // colori e pavimento originali completi // complete original photography, floors and effects in 5 cells
   './img/effetti/reference-ambienti-v542.webp?v=542', // cinque foto atmosferiche senza bordo, pavimento fotografico completo
   './img/effetti/reference-ambiente-v541.webp?v=541', // v541: sfondo e pavimento fotografici dalla reference originale
   './img/effetti/effetti-reference-v540.webp?v=540', // v540: base reale continua su ogni effetto
@@ -226,8 +227,8 @@ const FILE = [
   './img/personaggi/galleria-v352/berserker-07.webp?v=536',
   './img/personaggi/galleria-v352/berserker-08.webp?v=536',
   './img/personaggi/galleria-v352/berserker-09.webp?v=536',
-  './stile-galleria-rpg.css?v=546',
-  './src/galleria-foto-rpg.js?v=546',
+  './stile-galleria-rpg.css?v=547',
+  './src/galleria-foto-rpg.js?v=547',
   './rassegna-missioni.html',
   // IL FOGLIO DI STILE HA LA VERSIONE, come il collegamento in index.html.
   //
@@ -239,9 +240,9 @@ const FILE = [
   // Il numero deve essere uguale a quello di `stile.css?v=` in index.html e a
   // `window.PALESTRA_VERSIONE`: se i tre non coincidono, l'app carica un foglio di
   // stile e dice un altro numero.
-  './stile.css?v=546',
-  './stile-rpg.css?v=546',
-  './stile-premium.css?v=546',
+  './stile.css?v=547',
+  './stile-rpg.css?v=547',
+  './stile-premium.css?v=547',
 './manifest.webmanifest',
   './manifest-p1.webmanifest',
   './manifest-p2.webmanifest',
@@ -249,7 +250,7 @@ const FILE = [
   // installata di un amico prenderebbe quello di Ste, con lo stesso id e con
   // start_url che punta a ?p=1
   './manifest-nuovo.webmanifest',
-  './src/app.js?v=546',
+  './src/app.js?v=547',
   './src/numeri.js',
   './src/confronto.js',
   './src/confronto-mensile.js',
@@ -448,7 +449,7 @@ const FOTO = [
 // su iPhone saturavano rete e memoria del service worker ad ogni release.
 const FOTO_DECORATIVE = /\/img\/personaggi\/(?:galleria-v352|corona-v360|aura-divina-v365|aura-divina-v379|scene|effetti|armature|catalogo)\/|\/img\/scenari\/|\/img\/effetti\//;
 const RISORSE_OFFLINE = [...new Set([...FILE, ...FOTO])]
-  .filter((percorso) => !FOTO_DECORATIVE.test(percorso) || percorso.includes('effetti-reference-v532.webp') || percorso.includes('effetti-reference-v533.webp') || percorso.includes('effetti-reference-v534.webp') || percorso.includes('effetti-reference-v535.webp') || percorso.includes('effetti-reference-v536.webp') || percorso.includes('effetti-reference-v537.webp') || percorso.includes('effetti-reference-v539.webp') || percorso.includes('effetti-reference-v540.webp') || percorso.includes('reference-ambiente-v541.webp') || percorso.includes('reference-ambienti-v542.webp') || percorso.includes('reference-scene-v543.webp') || percorso.includes('reference-scene-v545.webp') || percorso.includes('reference-scene-v546.webp')); // reference essenziale offline
+  .filter((percorso) => !FOTO_DECORATIVE.test(percorso) || percorso.includes('effetti-reference-v532.webp') || percorso.includes('effetti-reference-v533.webp') || percorso.includes('effetti-reference-v534.webp') || percorso.includes('effetti-reference-v535.webp') || percorso.includes('effetti-reference-v536.webp') || percorso.includes('effetti-reference-v537.webp') || percorso.includes('effetti-reference-v539.webp') || percorso.includes('effetti-reference-v540.webp') || percorso.includes('reference-ambiente-v541.webp') || percorso.includes('reference-ambienti-v542.webp') || percorso.includes('reference-scene-v543.webp') || percorso.includes('reference-scene-v545.webp') || percorso.includes('reference-scene-v546.webp') || percorso.includes('reference-scene-v547.webp')); // reference essenziale offline
 const DIMENSIONE_BLOCCO = 16;
 const CACHE_FOTO_VISITATE = 'palestra-foto-visitate-v1';
 const MAX_FOTO_VISITATE = 48;
