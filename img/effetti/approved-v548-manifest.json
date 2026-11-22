@@ -1,0 +1,92 @@
+{
+  "ambra": {
+    "cell": [
+      0,
+      0
+    ],
+    "crop": [
+      140,
+      660,
+      766,
+      1370
+    ],
+    "source_sha256": "17aa844444d1840d1f7f5f604ffb82829ac4e1531f54a429fa6cc294e3e19ec3",
+    "original_size": [
+      941,
+      1672
+    ],
+    "static_pixels_preserved": 444460
+  },
+  "ombra": {
+    "cell": [
+      1,
+      0
+    ],
+    "crop": [
+      140,
+      660,
+      766,
+      1370
+    ],
+    "source_sha256": "5ad38afa68b32f9fa8271cae77897ab86c3b8945cd32c5be5bcf93a702bfda21",
+    "original_size": [
+      941,
+      1672
+    ],
+    "static_pixels_preserved": 444460
+  },
+  "fulmine": {
+    "cell": [
+      2,
+      0
+    ],
+    "crop": [
+      140,
+      660,
+      766,
+      1370
+    ],
+    "source_sha256": "047a51c7fd54626d79d2fd21f966b0e71c9af4e6a1c5ec990e9a9da72495ad86",
+    "original_size": [
+      941,
+      1672
+    ],
+    "static_pixels_preserved": 444460
+  },
+  "nebula": {
+    "cell": [
+      0,
+      1
+    ],
+    "crop": [
+      140,
+      660,
+      766,
+      1370
+    ],
+    "source_sha256": "c30337f317ddc58d91c76931fa9e6927e62c02b65087a686c7d53a1476b2b12e",
+    "original_size": [
+      941,
+      1672
+    ],
+    "static_pixels_preserved": 444460
+  },
+  "astrale": {
+    "cell": [
+      1,
+      1
+    ],
+    "crop": [
+      140,
+      660,
+      766,
+      1370
+    ],
+    "source_sha256": "b1b39b1e044c47bfebcde3e5146b8fecfdde6596aa25e168e907fa8ce4caba5a",
+    "original_size": [
+      941,
+      1672
+    ],
+    "static_pixels_preserved": 444460
+  }
+}
