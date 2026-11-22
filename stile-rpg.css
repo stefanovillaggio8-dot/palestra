@@ -4737,27 +4737,85 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
  * 0.24W a ogni lato. Il sigillo si allinea ai piedi senza ridimensionare
  * il vero eroe, e non viene mai ritagliato dal contenitore. */
 
-/* v553: lo sfondo 626:710 esce volutamente dalla fotografia 2:3.
- * La sua altezza NON partecipa al layout perché il layer è assoluto:
- * nella v552 il sigillo arrivava fin sopra nome, descrizione e titolo.
- * Riserviamo lo spazio nel flusso tra illustrazione e didascalia.
- * Non nascondere l'overflow, altrimenti le cinque rune vengono tagliate.
- * Per gli effetti della Shop preview e dell'Atelier, non per il profilo. */
-.aura-preview-panel .aura-preview-scene:has(.rpg-reference-v532),
+/* v554 — Un palco, una didascalia. Il problema NON era l'immagine:
+ * bloccoPersonaggio() aggiunge una card .blocco e una seconda card
+ * .personaggio-scena; nell'anteprima dei 5 VFX le cornici andavano sotto
+ * l'atlante 148% e rubavano spazio al piedistallo. Manteniamo SOLO la
+ * cornice esterna .aura-preview-scene. Non cambiamo i pixel approvati. */
+.aura-preview-panel .aura-preview-reference-scene,
 .rpg-atelier-stage:has(.rpg-reference-v532) {
+  overflow:visible!important; /* rune e spirali devono restare complete */
+}
+.aura-preview-panel .aura-preview-reference-scene .aura-preview-avatar-container {
+  display:flex;
+  width:100%;
+  min-width:0;
+  justify-content:center;
   overflow:visible!important;
 }
-.aura-preview-panel .aura-preview-scene .personaggio-scena-grafica.rpg-reference-v532,
-.rpg-atelier-stage .personaggio-scena-grafica.rpg-reference-v532 {
-  margin-block-end:clamp(54px,17%,76px)!important;
+.aura-preview-panel .aura-preview-reference-scene .aura-preview-character,
+.rpg-atelier-stage:has(.rpg-reference-v532) .rpg-atelier-avatar {
+  box-sizing:border-box;
+  display:block;
+  width:100%!important;
+  max-width:100%!important;
+  margin:0!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  overflow:visible!important;
 }
-.aura-preview-panel .aura-preview-scene .personaggio-scena:has(.rpg-reference-v532) > .personaggio-dati,
-.rpg-atelier-stage .personaggio-scena:has(.rpg-reference-v532) > .personaggio-dati {
+.aura-preview-panel .aura-preview-reference-scene .personaggio-scena,
+.rpg-atelier-stage:has(.rpg-reference-v532) .personaggio-scena {
+  display:flex!important;
+  flex-direction:column!important;
+  flex-wrap:nowrap!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  width:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+  margin:0!important;
+  padding:0!important;
+  gap:0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  overflow:visible!important;
+}
+/* Il palco 626×710 ha larghezza 148% del ritratto 2:3:
+ * 67.5% × 148% = 99.9% del contenitore. Nessuna scia viene tagliata,
+ * il volto originale è solo dimensionato, non stirato o rigenerato. */
+.aura-preview-panel .aura-preview-reference-scene .personaggio-scena-grafica.rpg-reference-v532.rpg-reference-integrated-v539.rpg-reference-stage-v548,
+.aura-preview-panel .aura-preview-reference-scene .personaggio-scena-grafica.rpg-reference-v532,
+.rpg-atelier-stage .rpg-atelier-avatar .personaggio-scena-grafica.rpg-reference-v532 {
+  box-sizing:border-box;
+  flex:0 0 auto!important;
+  width:min(67.5%,275px)!important;
+  max-width:275px!important;
+  margin:0 auto clamp(28px,10.5%,48px)!important;
+  border:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  overflow:visible!important;
+}
+/* Altezza extra dell'atmosfera: 1.48×710/626 - 1.5 = 0.179W;
+ * top=-3% dell'altezza foto => sporgenza inferiore 0.134W.
+ * Il margine di 10.5% del contenitore = 0.155W: testo oltre la base. */
+.aura-preview-panel .aura-preview-reference-scene .personaggio-scena > .personaggio-dati,
+.rpg-atelier-stage:has(.rpg-reference-v532) .personaggio-scena > .personaggio-dati {
   position:relative;
   z-index:5;
-  flex:0 0 100%;
-  width:100%;
+  display:flex;
+  flex:0 0 auto!important;
   align-items:center;
+  width:100%!important;
+  box-sizing:border-box;
+  margin:0!important;
+  padding:6px 8px 8px!important;
   text-align:center;
-  padding-top:6px;
+  background:transparent!important;
 }

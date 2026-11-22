@@ -78,10 +78,10 @@ import { formattaAura } from './aura.js';
 import { montaEffettiRpg, smontaEffettiRpg, usaEffettiViviRpg } from './effetti-rpg-canvas.js';
 import { montaScenaCosmicaRpg } from './rpg-scena-cosmica.js?v=543';
 import { effettoReferenceV532,scenaReferenceClassV532 } from './rpg-reference-v532.js?v=543';
-import { montaReferenceScontornataV539 } from './rpg-reference-compositing-v539.js?v=553';
+import { montaReferenceScontornataV539 } from './rpg-reference-compositing-v539.js?v=554';
 import { montaFotoRpg } from './aura-foto-rpg.js';
-import { montaFotoCombinataRpg, scaricaFotoCombinataRpg } from './anteprima-combinata-rpg.js?v=553';
-import { apriAtelierRpg as mostraAtelierRpg } from './rpg-atelier-ui.js?v=553';
+import { montaFotoCombinataRpg, scaricaFotoCombinataRpg } from './anteprima-combinata-rpg.js?v=554';
+import { apriAtelierRpg as mostraAtelierRpg } from './rpg-atelier-ui.js?v=554';
 import { ARMATURE_ATELIER } from './rpg-atelier.js?v=543';
 import { applicaSkinRpg } from './skin-rpg-fedele.js';
 import { montaScenaCinematograficaRpg, armaSbloccataRpg, percorsoScenaSpecialeRpg } from './foto-cinematica-rpg.js';
@@ -1977,8 +1977,8 @@ function apriAnteprimaAura(oggetto, profilo, st) {
   const armaturaCorrente=equipaggiamentoRpgUnico(profilo.equipaggiamento_aura).Armatura||'';
   let armaturaAnteprima=ARMATURE_ATELIER[classeAnteprima]?.includes(armaturaCorrente)
     ? armaturaCorrente : '';
-  const scena = el('div', { class: 'aura-preview-scene' + (cosmicoAnteprima&&!referenceAnteprima?' aura-preview-cosmic-scene '+(oggetto.id==='skin-mitica'?'cosmic-astrale':'cosmic-nebulosa'):'') });
-  // L'illustrazione promozionale scenarioSkin disegnava cerchi e rettangoli
+  // v554: palco unico per i cinque effetti, senza card annidate.\n  const scena = el('div', { class: 'aura-preview-scene' + (cosmicoAnteprima&&!referenceAnteprima?' aura-preview-cosmic-scene '+(oggetto.id==='skin-mitica'?'cosmic-astrale':'cosmic-nebulosa'):'') });
+  if(referenceAnteprima)scena.classList.add('aura-preview-reference-scene');\n  // L'illustrazione promozionale scenarioSkin disegnava cerchi e rettangoli
   // dietro la foto. Qui la scena vive tutta in CSS con l'avatar ritagliato.
   const scenario = (cosmicoAnteprima || referenceAnteprima) ? null : scenarioSkin(oggetto.id);
   if (scenario) scena.appendChild(el('img', {
