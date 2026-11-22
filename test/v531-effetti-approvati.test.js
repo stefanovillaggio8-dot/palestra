@@ -70,5 +70,5 @@ test('v531: renderer legacy mantenuto come fallback, il riferimento v532 ha la p
   assert.match(cosmic,/fase==='fronte'\)disegnaEffettoApprovatoRpg/);
   assert.match(sw,/src\/rpg-effetti-approvati-v531\.js/);
   assert.match(css,/rpg-effetti-solo-stage/);
-  assert.match(sw,/const VERSIONE = 'palestra-v544'/);
+  assert.match(sw,/const VERSIONE = 'palestra-v545'/);
 });

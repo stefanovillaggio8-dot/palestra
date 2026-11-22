@@ -27,13 +27,13 @@ test('v538: anche il PNG ha lo stesso retro, sfumatura e immagine reale',()=>{
 test('v538: il tasto salvataggio Shop include cinque effetti',()=>{
   const app=read('src/app.js'),exporter=read('src/anteprima-combinata-rpg.js');
   assert.match(app,/grafica\.dataset\.referenceEffetto=effettoEquipaggiato\.id/);
-  assert.match(exporter,/const \{salvaFotoAtelier\}=await import\('\.\/rpg-atelier\.js\?v=543'\)/);
+  assert.match(exporter,/const \{salvaFotoAtelier\}=await import\('\.\/rpg-atelier\.js\?v=545'\)/);
   assert.match(exporter,/effetto:grafica\.dataset\.referenceEffetto\|\|''/);
 });
 
 test('v538: nessuna regressione PWA e texture reference storica preservata',()=>{
   const sw=read('sw.js'),index=read('index.html');
-  assert.match(sw,/const VERSIONE = 'palestra-v544'/);
-  assert.match(index,/PALESTRA_VERSIONE = 'palestra-v544'/);
+  assert.match(sw,/const VERSIONE = 'palestra-v545'/);
+  assert.match(index,/PALESTRA_VERSIONE = 'palestra-v545'/);
   assert.match(sw,/effetti-reference-v537\.webp\?v=537/);
 });

@@ -71,6 +71,25 @@ export function montaReferenceScontornataV539(grafica,ritratto,classe,reference,
       palcoPronto=palcoImg.naturalWidth===1383&&palcoImg.naturalHeight===880;
     }
   }
+  // v545: l'atlante conserva i colori PIENI e i veri pixel delle 5 foto.
+  // Attiva soltanto con dimensioni corrette: se manca, resta v543 offline.
+  let fotoV545Pronta=false;
+  const attivaV545=()=>{
+    if(fotoV545Pronta&&inserito&&grafica.isConnected!==false)
+      grafica.classList?.add?.('rpg-reference-stage-v545');
+  };
+  if(typeof globalThis.Image==='function'){
+    const fotografia=new globalThis.Image();
+    fotografia.onload=()=>{
+      fotoV545Pronta=fotografia.naturalWidth===1383&&fotografia.naturalHeight===880;
+      attivaV545();
+    };
+    fotografia.onerror=()=>{fotoV545Pronta=false;};
+    fotografia.src=new URL('../img/effetti/reference-scene-v545.webp?v=545',import.meta.url).href;
+    if(fotografia.complete&&fotografia.naturalWidth){
+      fotoV545Pronta=fotografia.naturalWidth===1383&&fotografia.naturalHeight===880;
+    }
+  }
   const attiva=()=>{
     if(inserito)return;
     if(!soggetto.naturalWidth||!soggetto.naturalHeight||
@@ -85,6 +104,7 @@ export function montaReferenceScontornataV539(grafica,ritratto,classe,reference,
     grafica.appendChild(soggetto);
     grafica.classList?.add?.('rpg-reference-integrated-v539','rpg-reference-original-env-v541');
     attivaPalco();
+    attivaV545();
   };
   soggetto.addEventListener?.('load',attiva,{once:true});
   soggetto.src=alpha||url;

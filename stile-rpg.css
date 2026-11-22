@@ -4527,3 +4527,43 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
   z-index:3!important;
   opacity:1!important;
 }
+
+/* v545 — Le cinque fotografie sono scene COMPLETE, non luce estratta.
+   Le dimensioni della cella rispettano 461:440 della tavola approvata;
+   la scena si ALLARGA intorno al personaggio senza modificarne lo zoom.
+   Il vecchio filtro alpha v543 resta fallback offline se il nuovo WebP
+   non carica. Nessun effetto viene disegnato due volte. */
+.personaggio-scena-grafica.rpg-reference-v532.rpg-reference-integrated-v539.rpg-reference-stage-v545
+  > .rpg-reference-environment-v541 {
+  position:absolute!important;
+  inset:auto!important;
+  top:-3%!important;
+  left:-30%!important;
+  width:160%!important;
+  height:auto!important;
+  aspect-ratio:461 / 440!important;
+  z-index:1!important;
+  display:block!important;
+  background-image:url('./img/effetti/reference-scene-v545.webp?v=545')!important;
+  background-size:300% 200%!important;
+  background-repeat:no-repeat!important;
+  background-color:transparent!important;
+  filter:none!important;
+  opacity:1!important;
+  mix-blend-mode:normal!important;
+  box-shadow:none!important;
+  border:0!important;
+  -webkit-mask-image:none!important;
+  mask-image:none!important;
+  -webkit-clip-path:none!important;
+  clip-path:none!important;
+  pointer-events:none!important;
+}
+/* L'eroe vero rimane completamente davanti; pavimento e fumo dietro. */
+.personaggio-scena-grafica.rpg-reference-stage-v545 > .rpg-reference-subject-v539{
+  z-index:3!important;
+  opacity:1!important;
+}
+.personaggio-scena-grafica.rpg-reference-stage-v545 > .rpg-reference-complete-v539{
+  display:none!important;
+}

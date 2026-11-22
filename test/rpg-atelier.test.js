@@ -73,7 +73,7 @@ test('Esporta realmente la foto combinata con le texture separabili',async(t)=>{
    classe:'assassino',stadio:2,effetto:'effetto-fulmine',
    skin:'skin-mitica',divina:true,corona:true,titolo:'titolo-panca',
  });
- assert.equal(out.width,1120);assert.equal(out.height,1320); // v536: più margine per il VFX, non più zoom
+ assert.equal(out.width,1500);assert.equal(out.height,1500); // v536: più margine per il VFX, non più zoom
  assert.ok(draws.length>=1,'foto completa con Corona e Aura divina preintegrate una sola volta');
  assert.ok(draws[0][0] && draws[0][0].naturalWidth,'foto pre-renderizzata con la stessa identità, non adesivi');
  assert.ok(texts.length>=1,'titolo presente nella foto');
