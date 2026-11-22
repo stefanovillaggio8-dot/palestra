@@ -4458,9 +4458,9 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
   height:100%!important;
   z-index:0!important;
   pointer-events:none!important;
-  background-image:url('./img/effetti/reference-ambiente-v541.webp?v=541')!important;
+  background-image:url('./img/effetti/reference-ambienti-v542.webp?v=542')!important;
   background-repeat:no-repeat!important;
-  background-size:100% 100%!important;
+  background-size:300% 200%!important;
   background-position:center center!important;
   background-color:transparent!important;
   border:0!important;
@@ -4473,4 +4473,23 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
   mask-image:none!important;
   -webkit-mask-image:none!important;
   transform:none!important;
+}
+
+/* v542: cinque fondali autonomi e senza bordo rettangolare, pre-sfumati
+   nell'alpha della foto originale. Nessuna seconda maschera in CSS:
+   avrebbe tagliato di nuovo pavimento, fulmini e particelle. */
+.rpg-reference-integrated-v539 > .rpg-reference-environment-v541.rpg-reference-ambra{
+  background-position:0% 0%!important;
+}
+.rpg-reference-integrated-v539 > .rpg-reference-environment-v541.rpg-reference-ombra{
+  background-position:50% 0%!important;
+}
+.rpg-reference-integrated-v539 > .rpg-reference-environment-v541.rpg-reference-fulmine{
+  background-position:100% 0%!important;
+}
+.rpg-reference-integrated-v539 > .rpg-reference-environment-v541.rpg-reference-nebula{
+  background-position:0% 100%!important;
+}
+.rpg-reference-integrated-v539 > .rpg-reference-environment-v541.rpg-reference-astrale{
+  background-position:50% 100%!important;
 }
