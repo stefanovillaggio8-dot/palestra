@@ -133,16 +133,20 @@ export function montaReferenceScontornataV539(grafica,ritratto,classe,reference,
   // its approved screenshot; other classes keep the real progression body.
   let approvatoSfondoPronto=false;
   let approvatoShowcasePronto=false;
-  const avatarMockupConsentito=classe==='assassino'&&
+  // v549: in Shop la promo approvata non dipende dal livello Streak reale.
+  // Il livello resta vero altrove: questa è SOLTANTO la preview senza
+  // armatura/Corona/arma, e la verifica avviene DOPO il mount nel dialogo.
+  // Fare il check quando grafica è ancora detached farebbe sempre false.
+  const avatarMockupConsentito=()=>classe==='assassino'&&
+    Boolean(grafica.closest?.('.aura-preview-panel'))&&
     !grafica.dataset?.referenceArmatura&&
-    Number(grafica.dataset?.referenceStadio||0)===0&&
     grafica.dataset?.referenceDivina!=='true'&&
     grafica.dataset?.referenceCorona!=='true'&&!corona&&!arma;
   const attivaV548=()=>{
     if(!inserito||grafica.isConnected===false)return;
     if(approvatoSfondoPronto)
       grafica.classList?.add?.('rpg-reference-stage-v548');
-    if(approvatoSfondoPronto&&approvatoShowcasePronto&&avatarMockupConsentito)
+    if(approvatoSfondoPronto&&approvatoShowcasePronto&&avatarMockupConsentito())
       grafica.classList?.add?.('rpg-reference-stage-v548-static');
   };
   if(typeof globalThis.Image==='function'){
@@ -183,5 +187,8 @@ export function montaReferenceScontornataV539(grafica,ritratto,classe,reference,
   soggetto.src=alpha||url;
   // Alcuni browser hanno già l'immagine pronta dalla cache PWA.
   if(soggetto.complete&&soggetto.naturalWidth)attiva();
+  // Il ritratto può essere già in cache PRIMA che il dialogo venga
+  // collegato al DOM. Ripeti un solo controllo dopo l'append del dialogo.
+  globalThis.queueMicrotask?.(()=>{attiva();attivaV548();});
   return true;
 }

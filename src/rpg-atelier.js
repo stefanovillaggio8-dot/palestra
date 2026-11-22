@@ -222,8 +222,11 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
       }else ritaglioEsportabile=null;
     }else ritaglioEsportabile=null;
   }
-  const palcoEsattoV548=Boolean(ritaglioEsportabile&&
-    c.classe==='assassino'&&!c.armatura&&c.stadio===0&&!c.divina&&!c.corona&&
+  // v549: lo Shop mostra il poster completo anche se la Streak reale
+  // non è 0. Salva la STESSA foto che vedi, solo nella preview approvata.
+  const palcoEsattoV548=Boolean(riferimentoV532&&
+    c.classe==='assassino'&&!c.armatura&&
+    grafica?.closest?.('.aura-preview-panel')&&
     grafica?.classList?.contains?.('rpg-reference-stage-v548-static')&&
     palcoApprovatoV548?.naturalWidth===1878&&
     palcoApprovatoV548?.naturalHeight===1420);
@@ -238,7 +241,8 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
     palcoV545?.naturalWidth===1383&&palcoV545?.naturalHeight===880);
   const palcoCompleto=Boolean(ritaglioEsportabile&&
     palcoV543?.naturalWidth===1383&&palcoV543?.naturalHeight===880);
-  const riferimentoCompleto=Boolean(ritaglioEsportabile&&(palcoEsattoV548||palcoDinamicoV548||palcoFotoV547||palcoFotoV546||palcoFotoV545||palcoCompleto||atlanteV539));
+  const riferimentoCompleto=Boolean(palcoEsattoV548||
+    (ritaglioEsportabile&&(palcoDinamicoV548||palcoFotoV547||palcoFotoV546||palcoFotoV545||palcoCompleto||atlanteV539)));
   if(palcoEsattoV548||palcoDinamicoV548){
     // Same 3x2 cell and spatial placement as the preview CSS. Full sprite
     // includes the hero ONLY for the explicitly approved default scene.
