@@ -76,12 +76,13 @@ import { confrontoGiorno, confrontiMensili, GIORNI_UN_MESE } from './confronto-m
 import { profiloEsercizio, profiloPerPesoCorporeo, RANK, ETICHETTE_MISURA, descriviPunteggio, descrizioneLivello, livelloEsercizio, impostaLivelliImparati, livelliImparati, rapportoDifficolta, MOLTIPLICATORI_SOGLIA, passoCaricabile } from './rank-config.js';
 import { formattaAura } from './aura.js';
 import { montaEffettiRpg, smontaEffettiRpg, usaEffettiViviRpg } from './effetti-rpg-canvas.js';
-import { montaScenaCosmicaRpg } from './rpg-scena-cosmica.js?v=538';
-import { effettoReferenceV532,scenaReferenceClassV532 } from './rpg-reference-v532.js?v=538';
+import { montaScenaCosmicaRpg } from './rpg-scena-cosmica.js?v=539';
+import { effettoReferenceV532,scenaReferenceClassV532 } from './rpg-reference-v532.js?v=539';
+import { montaReferenceScontornataV539 } from './rpg-reference-compositing-v539.js?v=539';
 import { montaFotoRpg } from './aura-foto-rpg.js';
 import { montaFotoCombinataRpg, scaricaFotoCombinataRpg } from './anteprima-combinata-rpg.js?v=513';
-import { apriAtelierRpg as mostraAtelierRpg } from './rpg-atelier-ui.js?v=538';
-import { ARMATURE_ATELIER } from './rpg-atelier.js?v=538';
+import { apriAtelierRpg as mostraAtelierRpg } from './rpg-atelier-ui.js?v=539';
+import { ARMATURE_ATELIER } from './rpg-atelier.js?v=539';
 import { applicaSkinRpg } from './skin-rpg-fedele.js';
 import { montaScenaCinematograficaRpg, armaSbloccataRpg, percorsoScenaSpecialeRpg } from './foto-cinematica-rpg.js';
 import { elencoAvatar, avatarPerId, gradienteAvatar, iniziali } from './avatar.js';
@@ -8450,6 +8451,13 @@ function bloccoPersonaggio(profilo, st) {
           aria:{hidden:'true'},
         }));
       }
+      // v539: l'immagine fotografica e' OPACA. Quando esiste il ritaglio
+      // verificato della stessa foto, il VFX integrale passa dietro il soggetto.
+      // Per armature comprabili si usa la maschera del loro vero costume.
+      // Il vecchio renderer rimane visibile solo durante caricamento/fallback.
+      montaReferenceScontornataV539(grafica,fotoRpg,classeId,effettoRiferimento,{
+        corona:coronaAttiva,arma:armaSbloccata,
+      });
     }
     if (fotoArmaturaRpg || fotoCoronaRpg || fotoAuraDivinaRpg) grafica.classList.add('rpg-armor-photo-integrale');
     // Il rivestimento geometrico era la causa delle piastre piatte da videogioco:
