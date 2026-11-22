@@ -4241,14 +4241,14 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
 ){display:none!important;}
 .personaggio-scena-grafica.rpg-reference-v532 > .rpg-reference-fx{
   position:absolute!important;
-  inset:-3.5% auto auto -19%!important;
-  width:138%!important;
-  height:107%!important;
+  inset:-8% auto auto -23%!important;
+  width:146%!important;
+  height:115%!important;
   display:block!important;
   z-index:22!important;
   pointer-events:none!important;
   opacity:1!important;
-  background-image:url('./img/effetti/effetti-reference-v535.webp?v=535')!important;
+  background-image:url('./img/effetti/effetti-reference-v536.webp?v=536')!important;
   background-size:300% 200%!important;
   background-repeat:no-repeat!important;
   background-color:transparent!important;
@@ -4283,7 +4283,22 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
 }
 @media(max-width:430px) {
   .aura-preview-avatar-container .rpg-reference-v532 > .rpg-reference-fx {
-    left:-14%!important;
-    width:128%!important;
+    left:-20%!important;
+    width:140%!important;
   }
+}
+
+/* v536 — nuove texture ALPHA senza figura pretagliata. La foto non e' 
+ * ridisegnata: le forme intere sono esterne al riquadro e non subiscono crop.
+ * Espandi lo stage reale ma non il personaggio/zoom o le armature originali. */
+.aura-preview-avatar-container:has(.rpg-reference-v532),
+.aura-preview-scene:has(.rpg-reference-v532),
+.personaggio-scena:has(.rpg-reference-v532) {overflow:visible!important;}
+.personaggio-scena-grafica.rpg-reference-v532 .rpg-reference-fx {
+  border:0!important;
+  background-color:transparent!important;
+  -webkit-mask-image:none!important;
+  mask-image:none!important;
+  /* Il colore e' gia' alpha nell'asset: niente screen che alteri le tinte. */
+  mix-blend-mode:normal!important;
 }

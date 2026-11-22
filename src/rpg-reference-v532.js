@@ -10,6 +10,9 @@ export const ATLANTE_REFERENCE_V533='./img/effetti/effetti-reference-v533.webp?v
 export const ATLANTE_REFERENCE_V534='./img/effetti/effetti-reference-v534.webp?v=534';
 // v535: provenienza identica, estrazione più fedele e ricca anche ai bordi.
 export const ATLANTE_REFERENCE_V535='./img/effetti/effetti-reference-v535.webp?v=535';
+// v536: cinque texture indipendenti generate SENZA personaggio o ritagli
+// di silhouette, codificate nello stesso atlante 3x2 a risoluzione 1440x1200.
+export const ATLANTE_REFERENCE_V536='./img/effetti/effetti-reference-v536.webp?v=536';
 export const EFFETTI_REFERENCE_V532=Object.freeze({
   'effetto-ambra':Object.freeze({colonna:0,riga:0,classe:'ambra'}),
   'effetto-ombra':Object.freeze({colonna:1,riga:0,classe:'ombra'}),

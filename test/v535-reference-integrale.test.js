@@ -29,14 +29,14 @@ test('v535: nessun ritaglio di fumo, saette, nebulosa, scie o sigillo nella prev
  assert.ok(start>0 && end>start);
  assert.match(fx,/overflow:visible!important/);
  assert.doesNotMatch(fx,/overflow:hidden!important/);
- assert.match(fx,/inset:-3\.5% auto auto -19%!important/);
- assert.match(fx,/width:138%!important/);
- assert.match(fx,/height:107%!important/);
- assert.match(fx,/background-image:url\('\.\/img\/effetti\/effetti-reference-v535\.webp\?v=535'\)!important/);
+ assert.match(fx,/inset:-8% auto auto -23%!important/);
+ assert.match(fx,/width:146%!important/);
+ assert.match(fx,/height:115%!important/);
+ assert.match(fx,/background-image:url\('\.\/img\/effetti\/effetti-reference-v536\.webp\?v=536'\)!important/);
  assert.match(fx,/mix-blend-mode:normal!important/);
  assert.match(css,/\.aura-preview-avatar-container:has\(\.rpg-reference-v532\)/);
  assert.match(css,/@media\(max-width:430px\)/);
- assert.match(css,/width:128%!important/);
+ assert.match(css,/width:140%!important/);
  assert.match(css,/rpg-reference-ombra\{background-position:50% 0%/);
  assert.match(css,/rpg-reference-fulmine\{background-position:100% 0%/);
  assert.match(css,/rpg-reference-nebula\{background-position:0% 100%/);
@@ -45,13 +45,13 @@ test('v535: nessun ritaglio di fumo, saette, nebulosa, scie o sigillo nella prev
 
 test('v535: PNG Atelier conserva tutte le luci anche oltre i bordi della foto',()=>{
  const at=read('src/rpg-atelier.js'),sw=read('sw.js'),idx=read('index.html');
- assert.match(at,/effetti-reference-v535\.webp\?v=535/);
+ assert.match(at,/effetti-reference-v536\.webp\?v=536/);
  assert.match(at,/riferimentoV532\.colonna\*cellW,riferimentoV532\.riga\*cellH/);
- assert.match(at,/dx-dw\*\.16,dy-dh\*\.035,dw\*1\.32,dh\*1\.07/);
- assert.match(sw,/effetti-reference-v535\.webp\?v=535/);
- assert.match(sw,/percorso\.includes\('effetti-reference-v535\.webp'\)/);
- assert.match(sw,/palestra-v535/);
- assert.match(idx,/PALESTRA_VERSIONE = 'palestra-v535'/);
+ assert.match(at,/dx-dw\*\.21,dy-dh\*\.066,dw\*1\.42,dh\*1\.13/);
+ assert.match(sw,/effetti-reference-v536\.webp\?v=536/);
+ assert.match(sw,/percorso\.includes\('effetti-reference-v536\.webp'\)/);
+ assert.match(sw,/palestra-v536/);
+ assert.match(idx,/PALESTRA_VERSIONE = 'palestra-v536'/);
 });
 
 test('v535: 3 classi x 2 armature x 6 stadi x 5 VFX: stesse foto/caschi/armi',()=>{
