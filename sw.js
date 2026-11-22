@@ -96,7 +96,6 @@ const FILE = [
   './img/effetti/reference-scene-v543.webp?v=543',
   './img/effetti/reference-scene-v545.webp?v=545',
   './img/effetti/reference-scene-v546.webp?v=546',
-  './img/effetti/approved-showcase-v550.webp?v=550', // file originale approvato, hash verificato
   './img/effetti/approved-showcase-v548.webp?v=548', // 5 approvate complete: persona e magia
   './img/effetti/approved-environments-v548.webp?v=548', // per classe e armatura dinamiche
   './img/effetti/reference-scene-v547.webp?v=547', // cinque foto con spirali continue e rune // Trasparenza vera: senza mantello fantasma/riquadro // colori e pavimento originali completi // complete original photography, floors and effects in 5 cells
@@ -452,7 +451,7 @@ const FOTO = [
 // su iPhone saturavano rete e memoria del service worker ad ogni release.
 const FOTO_DECORATIVE = /\/img\/personaggi\/(?:galleria-v352|corona-v360|aura-divina-v365|aura-divina-v379|scene|effetti|armature|catalogo)\/|\/img\/scenari\/|\/img\/effetti\//;
 const RISORSE_OFFLINE = [...new Set([...FILE, ...FOTO])]
-  .filter((percorso) => !FOTO_DECORATIVE.test(percorso) || percorso.includes('effetti-reference-v532.webp') || percorso.includes('effetti-reference-v533.webp') || percorso.includes('effetti-reference-v534.webp') || percorso.includes('effetti-reference-v535.webp') || percorso.includes('effetti-reference-v536.webp') || percorso.includes('effetti-reference-v537.webp') || percorso.includes('effetti-reference-v539.webp') || percorso.includes('effetti-reference-v540.webp') || percorso.includes('reference-ambiente-v541.webp') || percorso.includes('reference-ambienti-v542.webp') || percorso.includes('reference-scene-v543.webp') || percorso.includes('reference-scene-v545.webp') || percorso.includes('reference-scene-v546.webp') || percorso.includes('reference-scene-v547.webp') || percorso.includes('approved-showcase-v550.webp') || percorso.includes('approved-showcase-v548.webp') || percorso.includes('approved-environments-v548.webp')); // reference essenziale offline
+  .filter((percorso) => !FOTO_DECORATIVE.test(percorso) || percorso.includes('effetti-reference-v532.webp') || percorso.includes('effetti-reference-v533.webp') || percorso.includes('effetti-reference-v534.webp') || percorso.includes('effetti-reference-v535.webp') || percorso.includes('effetti-reference-v536.webp') || percorso.includes('effetti-reference-v537.webp') || percorso.includes('effetti-reference-v539.webp') || percorso.includes('effetti-reference-v540.webp') || percorso.includes('reference-ambiente-v541.webp') || percorso.includes('reference-ambienti-v542.webp') || percorso.includes('reference-scene-v543.webp') || percorso.includes('reference-scene-v545.webp') || percorso.includes('reference-scene-v546.webp') || percorso.includes('reference-scene-v547.webp') || percorso.includes('approved-showcase-v548.webp') || percorso.includes('approved-environments-v548.webp')); // reference essenziale offline
 const DIMENSIONE_BLOCCO = 16;
 const CACHE_FOTO_VISITATE = 'palestra-foto-visitate-v1';
 const MAX_FOTO_VISITATE = 48;

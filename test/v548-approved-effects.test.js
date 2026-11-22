@@ -66,7 +66,7 @@ test('v548: versioned PWA precaches approved binaries, still has offline fallbac
    assert.ok(index.includes('./'+path+'?v=551'),path);
    assert.ok(sw.includes("'./"+path+"?v=551'"),path);
  }
- assert.ok(sw.includes("'./img/effetti/approved-showcase-v550.webp?v=550'"));
+ assert.ok(!sw.includes("'./img/effetti/approved-showcase-v550.webp?v=550'"));
  assert.ok(sw.includes("'./img/effetti/approved-environments-v548.webp?v=548'"));
  assert.ok(sw.includes("'./img/effetti/reference-scene-v547.webp?v=547'"));
  assert.ok(app.includes('./rpg-reference-compositing-v539.js?v=551'));

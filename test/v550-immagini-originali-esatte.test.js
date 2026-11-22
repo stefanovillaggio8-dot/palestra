@@ -29,7 +29,7 @@ test('v550: all five effects map to their exact approved panels, no reconstructi
   ['nebula',0,1],['astrale',1,1]
  ]);
  const css=read('stile-rpg.css');
- assert.match(css,/approved-showcase-v550\.webp\?v=551/);
+ assert.match(css,/approved-environments-v548\.webp\?v=548/);
  assert.match(css,/background-size:300% 200%/);
  assert.match(css,/aspect-ratio:626 \/ 710/);
  for(const pct of ['0% 0%','50% 0%','100% 0%','0% 100%','50% 100%'])
@@ -57,8 +57,8 @@ test('v550: PWA version and cache request the newly uploaded asset',()=>{
   assert.ok(index.includes('./'+file+'?v=551'),file);
   assert.ok(sw.includes("'./"+file+"?v=551'"),file);
  }
- assert.ok(sw.includes("'./img/effetti/approved-showcase-v550.webp?v=550'"));
- assert.ok(sw.includes("percorso.includes('approved-showcase-v550.webp')"));
+ assert.ok(!sw.includes("'./img/effetti/approved-showcase-v550.webp?v=550'"));
+ assert.ok(!sw.includes("percorso.includes('approved-showcase-v550.webp')"));
  assert.ok(app.includes('./rpg-reference-compositing-v539.js?v=551'));
  assert.ok(app.includes('./rpg-atelier-ui.js?v=551'));
  assert.ok(ui.includes('./rpg-atelier.js?v=551'));

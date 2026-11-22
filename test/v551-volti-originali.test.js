@@ -66,6 +66,6 @@ test('v551: PWA refreshes modules while original full-scene assets remain archiv
  assert.match(renderer,/rpg-atelier-ui\.js\?v=551/);
  assert.match(ui,/rpg-atelier\.js\?v=551/);
  assert.match(combined,/rpg-atelier\.js\?v=551/);
- assert.ok(sw.includes("'./img/effetti/approved-showcase-v550.webp?v=550'"));
+ assert.ok(!sw.includes("'./img/effetti/approved-showcase-v550.webp?v=550'"));
  assert.ok(sw.includes("'./img/effetti/approved-environments-v548.webp?v=548'"));
 });
