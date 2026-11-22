@@ -244,7 +244,7 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
     // includes the hero ONLY for the explicitly approved default scene.
     const foto=palcoEsattoV548?palcoApprovatoV548:palcoAmbienteV548;
     const cellW=foto.naturalWidth/3,cellH=foto.naturalHeight/2;
-    const fxW=dw*1.20,fxH=fxW*(710/626);
+    const fxW=dw*1.12,fxH=fxW*(710/626);
     ctx.drawImage(foto,
       riferimentoV532.colonna*cellW,riferimentoV532.riga*cellH,cellW,cellH,
       dx-(fxW-dw)/2,dy-dh*.03,fxW,fxH);
