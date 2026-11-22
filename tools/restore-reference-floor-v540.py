@@ -8,6 +8,7 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFilter
 from math import cos,sin,pi,sqrt,exp
 import random
+import json
 
 ROOT=Path(__file__).resolve().parents[1]
 SOURCE=ROOT/"img/effetti/effetti-reference-v539.webp"
@@ -16,6 +17,7 @@ old=Image.open(SOURCE).convert("RGBA")
 assert old.size==(1380,884)
 W,H=460,442
 atlas=Image.new("RGBA",old.size,(0,0,0,0))
+report={}
 cells=[("ambra",0,0),("ombra",1,0),("fulmine",2,0),("nebula",0,1),("astrale",1,1)]
 palette={
  "ambra":((255,109,17),(255,183,73)),
@@ -81,10 +83,13 @@ for label,col,row in cells:
     # Verifica 4 punti sulla mezzeria a livello della base: la v539
     # li aveva resi trasparenti cancellando fino a 97% del pannello.
     middle=[repaired.getpixel((W//2,y))[3] for y in (int(.80*H),int(.84*H),int(.89*H),int(.93*H))]
-    assert max(middle)>=65,(label,middle)
+    assert min(middle)>=45,(label,middle)
+    report[label]={"center_alpha":middle}
     print("BASE_V540",label,"center_alpha",middle,flush=True)
 # L'ultima cella rimane trasparente: niente barre viola estranee.
 assert atlas.getpixel((1320,850))[3]==0
 atlas.save(TARGET,format="WEBP",lossless=True,method=5,exact=True)
 assert TARGET.stat().st_size>300000
+MANIFEST=ROOT/"img/effetti/reference-v540-base-manifest.json"
+MANIFEST.write_text(json.dumps({"size":list(atlas.size),"base_alpha":report},indent=2)+"\n",encoding="utf-8")
 print("CREATED",TARGET,TARGET.stat().st_size,flush=True)
