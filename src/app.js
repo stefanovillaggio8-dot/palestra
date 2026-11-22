@@ -1977,7 +1977,8 @@ function apriAnteprimaAura(oggetto, profilo, st) {
   const armaturaCorrente=equipaggiamentoRpgUnico(profilo.equipaggiamento_aura).Armatura||'';
   let armaturaAnteprima=ARMATURE_ATELIER[classeAnteprima]?.includes(armaturaCorrente)
     ? armaturaCorrente : '';
-  // v554: palco unico per i cinque effetti, senza card annidate.\n  const scena = el('div', { class: 'aura-preview-scene' + (cosmicoAnteprima&&!referenceAnteprima?' aura-preview-cosmic-scene '+(oggetto.id==='skin-mitica'?'cosmic-astrale':'cosmic-nebulosa'):'') });
+  // v554: palco unico per i cinque effetti, senza card annidate.
+  const scena = el('div', { class: 'aura-preview-scene' + (cosmicoAnteprima&&!referenceAnteprima?' aura-preview-cosmic-scene '+(oggetto.id==='skin-mitica'?'cosmic-astrale':'cosmic-nebulosa'):'') });
   if(referenceAnteprima)scena.classList.add('aura-preview-reference-scene');
   // L'illustrazione promozionale scenarioSkin disegnava cerchi e rettangoli
   // dietro la foto. Qui la scena vive tutta in CSS con l'avatar ritagliato.
