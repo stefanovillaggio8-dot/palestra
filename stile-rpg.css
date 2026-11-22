@@ -3898,7 +3898,7 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
   max-height:none!important;
   width:auto;
   height:auto;
-  object-fit:fill!important;
+  object-fit:contain!important; /* v552: proporzioni originali anche fuori dallo Shop */
   border:0!important;
   border-radius:0!important;
   filter:brightness(.74) saturate(.89)!important;
@@ -4664,8 +4664,8 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
   position:absolute!important;
   inset:auto!important;
   top:-3%!important;
-  left:-6%!important;
-  width:112%!important;
+  left:-24%!important;
+  width:148%!important;
   height:auto!important;
   aspect-ratio:626 / 710!important;
   z-index:1!important;
@@ -4731,3 +4731,8 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
   .personaggio-scena-grafica {
   display:block!important;
 }
+
+/* v552: la scena 626:710 e' centrata sul ritratto originale 2:3.
+ * Con un ritratto di larghezza W, il fondale misura 1.48W e si estende
+ * 0.24W a ogni lato. Il sigillo si allinea ai piedi senza ridimensionare
+ * il vero eroe, e non viene mai ritagliato dal contenitore. */
