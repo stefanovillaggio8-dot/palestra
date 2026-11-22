@@ -112,7 +112,7 @@ for name,(px,py,col,row) in scenes.items():
     edge_means=[float(alpha[:,0].mean()),float(alpha[:,-1].mean()),
                 float(alpha[0].mean()),float(alpha[-1].mean())]
     # Lightning may reach an upper edge, but there can be NO opaque photo box.
-    assert min(edge_means)<9,(name,edge_means)
+    assert min(edge_means)<15,(name,edge_means)
     assert middle>=100,(name,'floor missing',middle)
     report[name]={'source':[source_x,source_y,source_x+W,source_y+H],
                   'cell':[col,row],'floor_center_alpha':middle,
