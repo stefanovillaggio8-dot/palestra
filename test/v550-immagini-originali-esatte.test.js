@@ -29,42 +29,38 @@ test('v550: all five effects map to their exact approved panels, no reconstructi
   ['nebula',0,1],['astrale',1,1]
  ]);
  const css=read('stile-rpg.css');
- assert.match(css,/approved-showcase-v550\.webp\?v=550/);
+ assert.match(css,/approved-showcase-v550\.webp\?v=551/);
  assert.match(css,/background-size:300% 200%/);
  assert.match(css,/aspect-ratio:626 \/ 710/);
  for(const pct of ['0% 0%','50% 0%','100% 0%','0% 100%','50% 100%'])
-  assert.ok(css.includes('background-position:'+pct+';'),pct);
+  assert.ok(css.includes('background-position:'+pct+'!important;'),pct);
 });
 
-test('v550: Shop preview and PNG exporter use the SAME original, without extra character',()=>{
+test('v551: legacy approved picture is immutable but never replaces original faces',()=>{
  const comp=read('src/rpg-reference-compositing-v539.js');
  const exp=read('src/rpg-atelier.js');
  const css=read('stile-rpg.css');
- assert.match(comp,/preload\('approved-showcase-v550\.webp'/);
- assert.match(exp,/approved-showcase-v550\.webp\?v=550/);
- assert.match(exp,/palcoApprovatoV550\?\.naturalWidth===1878/);
- assert.match(exp,/const foto=palcoEsattoV548\?palcoApprovatoV550:palcoAmbienteV548/);
- assert.match(exp,/else if\(!palcoEsattoV548\) ctx\.drawImage/);
- assert.match(css,/\.personaggio-scena-grafica \{\s*display:none!important/);
- assert.match(comp,/grafica\.closest\?\.\('\.aura-preview-panel'\)/);
- assert.match(comp,/!grafica\.dataset\?\.referenceArmatura/);
- assert.match(comp,/!corona&&!arma/);
+ assert.doesNotMatch(comp,/approved-showcase-v550\.webp|avatarMockupConsentito/);
+ assert.doesNotMatch(exp,/approved-showcase-v550\.webp|palcoEsattoV548/);
+ assert.doesNotMatch(css,/approved-showcase-v550\.webp/);
+ assert.match(comp,/preload\('approved-environments-v548\.webp'/);
+ assert.match(exp,/const foto=palcoAmbienteV548/);
  assert.match(css,/approved-environments-v548\.webp\?v=548/);
 });
 
 test('v550: PWA version and cache request the newly uploaded asset',()=>{
  const index=read('index.html'),sw=read('sw.js'),app=read('src/app.js');
  const ui=read('src/rpg-atelier-ui.js'),mix=read('src/anteprima-combinata-rpg.js');
- assert.ok(index.includes("PALESTRA_VERSIONE = 'palestra-v550'"));
- assert.ok(sw.includes("const VERSIONE = 'palestra-v550'"));
+ assert.ok(index.includes("PALESTRA_VERSIONE = 'palestra-v551'"));
+ assert.ok(sw.includes("const VERSIONE = 'palestra-v551'"));
  for(const file of ['stile.css','stile-rpg.css','stile-premium.css']){
-  assert.ok(index.includes('./'+file+'?v=550'),file);
-  assert.ok(sw.includes("'./"+file+"?v=550'"),file);
+  assert.ok(index.includes('./'+file+'?v=551'),file);
+  assert.ok(sw.includes("'./"+file+"?v=551'"),file);
  }
  assert.ok(sw.includes("'./img/effetti/approved-showcase-v550.webp?v=550'"));
  assert.ok(sw.includes("percorso.includes('approved-showcase-v550.webp')"));
- assert.ok(app.includes('./rpg-reference-compositing-v539.js?v=550'));
- assert.ok(app.includes('./rpg-atelier-ui.js?v=550'));
- assert.ok(ui.includes('./rpg-atelier.js?v=550'));
- assert.ok(mix.includes('./rpg-atelier.js?v=550'));
+ assert.ok(app.includes('./rpg-reference-compositing-v539.js?v=551'));
+ assert.ok(app.includes('./rpg-atelier-ui.js?v=551'));
+ assert.ok(ui.includes('./rpg-atelier.js?v=551'));
+ assert.ok(mix.includes('./rpg-atelier.js?v=551'));
 });

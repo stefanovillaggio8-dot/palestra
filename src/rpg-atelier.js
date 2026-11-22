@@ -179,9 +179,6 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
   // v547: the soft-edged 3x2 photographic stage, full runes and trails.
   // v548: the five EXACT approved screenshots from this chat;
   // second atlas hides the mockup body for real class/armor combinations.
-  const palcoApprovatoV550=riferimentoV532 ? await attesaImmagine(
-    new URL('../img/effetti/approved-showcase-v550.webp?v=550',import.meta.url).href
-  ).catch(()=>null) : null;
   const palcoAmbienteV548=riferimentoV532 ? await attesaImmagine(
     new URL('../img/effetti/approved-environments-v548.webp?v=548',import.meta.url).href
   ).catch(()=>null) : null;
@@ -222,14 +219,9 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
       }else ritaglioEsportabile=null;
     }else ritaglioEsportabile=null;
   }
-  // v549: lo Shop mostra il poster completo anche se la Streak reale
-  // non è 0. Salva la STESSA foto che vedi, solo nella preview approvata.
-  const palcoEsattoV548=Boolean(riferimentoV532&&
-    c.classe==='assassino'&&!c.armatura&&
-    grafica?.closest?.('.aura-preview-panel')&&
-    grafica?.classList?.contains?.('rpg-reference-stage-v548-static')&&
-    palcoApprovatoV550?.naturalWidth===1878&&
-    palcoApprovatoV550?.naturalHeight===1420);
+  // v551: nessuna foto finale con un volto generato nell'export.
+  // Anche l'Assassino usa il proprio ritaglio originale, con lo sfondo
+  // approvato v548 condiviso tra tutte le classi e armature.
   const palcoDinamicoV548=Boolean(ritaglioEsportabile&&
     palcoAmbienteV548?.naturalWidth===1878&&
     palcoAmbienteV548?.naturalHeight===1420);
@@ -241,12 +233,11 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
     palcoV545?.naturalWidth===1383&&palcoV545?.naturalHeight===880);
   const palcoCompleto=Boolean(ritaglioEsportabile&&
     palcoV543?.naturalWidth===1383&&palcoV543?.naturalHeight===880);
-  const riferimentoCompleto=Boolean(palcoEsattoV548||
-    (ritaglioEsportabile&&(palcoDinamicoV548||palcoFotoV547||palcoFotoV546||palcoFotoV545||palcoCompleto||atlanteV539)));
-  if(palcoEsattoV548||palcoDinamicoV548){
-    // Same 3x2 cell and spatial placement as the preview CSS. Full sprite
-    // includes the hero ONLY for the explicitly approved default scene.
-    const foto=palcoEsattoV548?palcoApprovatoV550:palcoAmbienteV548;
+  const riferimentoCompleto=Boolean(ritaglioEsportabile&&
+    (palcoDinamicoV548||palcoFotoV547||palcoFotoV546||palcoFotoV545||palcoCompleto||atlanteV539));
+  if(palcoDinamicoV548){
+    // VFX originale e vero ritaglio davanti, senza figura duplicata.
+    const foto=palcoAmbienteV548;
     const cellW=foto.naturalWidth/3,cellH=foto.naturalHeight/2;
     const fxW=dw*1.12,fxH=fxW*(710/626);
     ctx.drawImage(foto,
@@ -307,7 +298,7 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
       c.effetto==='skin-mitica'?'astrale':'nebulosa',2.8,
       {fase:'fronte',texture:texturaCosmica});
     ctx.restore();
-  } else if(!palcoEsattoV548) ctx.drawImage(riferimentoCompleto?ritaglioEsportabile:immagine,dx,dy,dw,dh);
+  } else ctx.drawImage(riferimentoCompleto?ritaglioEsportabile:immagine,dx,dy,dw,dh);
   // Il rivestimento della skin in CSS e' un canvas separato dalla foto.
   const pelle=grafica.querySelector?.('.rpg-skin-fedele');
   if(!riferimentoCompleto&&!giaFotografica&&pelle?.width&&pelle?.height) {
