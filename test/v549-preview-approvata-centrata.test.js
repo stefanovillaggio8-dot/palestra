@@ -27,7 +27,7 @@ test('v549: exact 5 photo cells are full-width, never a cropped image behind ano
  const end=css.indexOf('}',start),block=css.slice(start,end);
  assert.match(block,/width:min\(100%,360px\)/);
  assert.match(block,/aspect-ratio:626 \/ 710/);
- assert.match(block,/approved-showcase-v548\.webp\?v=548/);
+ assert.match(block,/approved-showcase-v550\.webp\?v=550/);
  assert.match(block,/background-size:300% 200%/);
  assert.match(css,/\.aura-preview-avatar-container:has\(\.rpg-reference-stage-v548-static\)[\s\S]*?\.personaggio-scena-grafica \{\s*display:none!important/);
  const expected={
