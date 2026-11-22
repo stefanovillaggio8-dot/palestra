@@ -36,6 +36,9 @@ drawer=ImageDraw.Draw(mask)
 drawer.polygon([(round(x*W),round(y*H)) for x,y in shape],fill=255)
 mask=mask.filter(ImageFilter.MaxFilter(13))
 mask_pixels=np.array(mask,dtype=np.uint8)
+# Gradual silhouette confidence: suppress artificial intensity left by the
+# Poisson reconstruction inside the former person, not the authentic magic.
+silhouette=np.clip(cv2.GaussianBlur(mask_pixels,(0,0),sigmaX=13).astype(np.float32)/255,0,1)
 
 Y,X=np.mgrid[0:H,0:W].astype(np.float32)
 x=(X+.5)/W
@@ -72,6 +75,11 @@ def alpha_for_scene(name, rgb):
     floor_y=smooth(.66,.835,y)*(1-smooth(.952,.998,y))
     floor=.94*floor_x*floor_y
     illumination=effect_strength(name,rgb)
+    # Reconstructed pixels in the large former-human area can inherit a
+    # uniform violet/orange color. That is not magical light: do not turn
+    # it into a luminous human-shaped block. Full base rings y>.82 survive.
+    head_and_torso=1-smooth(.70,.86,y)
+    illumination*=1-.93*silhouette*head_and_torso
     # Magic survives the atmospheric fade at the whole border; the rings
     # and particles never acquire another ellipse-shaped punch-out.
     alpha=np.maximum(np.maximum(fog,floor),illumination*.96)
