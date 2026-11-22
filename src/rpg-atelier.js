@@ -3,11 +3,11 @@
 // Nessun acquisto/record viene modificato dalle anteprime o dal download.
 import { AURA_FOTO_ATLAS } from './aura-foto-atlas.js';
 import { disegnaEffettoApprovatoRpg, EFFETTI_APPROVATI_RPG } from './rpg-effetti-approvati-v531.js?v=531';
-import { effettoReferenceV532 } from './rpg-reference-v532.js?v=540';
+import { effettoReferenceV532 } from './rpg-reference-v532.js?v=541';
 import { FOTO_RPG_RIQUADRI, livelliFotoRpg } from './aura-foto-rpg.js';
 import { fasciaSagoma, disegnaCoronaEnergetica } from './anteprima-combinata-rpg.js?v=513';
 import { fotoCinematograficaRpg } from './foto-cinematica-rpg.js';
-import {disegnaAtmosferaCosmicaRpg,disegnaAccentiCosmiciRpg,disegnaSoggettoCosmicoRpg,disegnaSfondoFotograficoCosmicoRpg,disegnaFotografiaFusaRpg} from './rpg-scena-cosmica.js?v=540';
+import {disegnaAtmosferaCosmicaRpg,disegnaAccentiCosmiciRpg,disegnaSoggettoCosmicoRpg,disegnaSfondoFotograficoCosmicoRpg,disegnaFotografiaFusaRpg} from './rpg-scena-cosmica.js?v=541';
 import {caricaEnergiaFotograficaRpg,disegnaEnergiaFotograficaRpg} from './rpg-energia-incarnata.js';
 import { percorsoFotoCoronaV360 } from './foto-corona-v360.js';
 import { percorsoFotoAuraDivinaV366 } from './foto-aura-divina-v366.js';
@@ -164,8 +164,14 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
     (riferimentoV532?1170:altezza)/immagine.naturalHeight);
   const dw=Math.round(immagine.naturalWidth*ratio),dh=Math.round(immagine.naturalHeight*ratio);
   const dx=(larghezza-dw)/2,dy=(altezza-dh)/2;
+  // v541: nel PNG esportato deve esserci lo stesso SFONDO con PAVIMENTO
+  // fotografico che si vede in anteprima, prima dell'effetto e del soggetto.
+  const ambienteV541=riferimentoV532 ? await attesaImmagine(
+    new URL('../img/effetti/reference-ambiente-v541.webp?v=541',import.meta.url).href
+  ).catch(()=>null) : null;
+  if(ambienteV541)ctx.drawImage(ambienteV541,dx,dy,dw,dh);
   const atlanteV539=riferimentoV532 ? await attesaImmagine(
-    new URL('../img/effetti/effetti-reference-v540.webp?v=540',import.meta.url).href) : null;
+    new URL('../img/effetti/effetti-reference-v539.webp?v=539',import.meta.url).href) : null;
   const elementoRitaglio=grafica?.querySelector?.('.rpg-reference-subject-v539');
   const scenaRitagliata=Boolean(riferimentoV532&&
     grafica?.classList?.contains?.('rpg-reference-integrated-v539')&&

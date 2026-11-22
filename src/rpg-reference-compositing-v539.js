@@ -5,7 +5,7 @@
 import {
   percorsoRitaglioCosmicoRpg, verificaIntegritaRitaglioRpg,
   idContornoArmaturaCosmicaRpg, mascheraArmaturaCosmicaRpg,
-} from './rpg-scena-cosmica.js?v=540';
+} from './rpg-scena-cosmica.js?v=541';
 
 export function montaReferenceScontornataV539(grafica,ritratto,classe,reference,{
   corona=false,arma=false,documento=globalThis.document,
@@ -40,6 +40,11 @@ export function montaReferenceScontornataV539(grafica,ritratto,classe,reference,
       soggetto.style.maskImage=maschera;
     }
   }
+  // v541: questo e' il VERO fondale con il pavimento della reference
+  // approvata, scontornato dall'eroe precedente. Non e' un cerchio artificiale.
+  const ambiente=documento.createElement('div');
+  ambiente.className='rpg-reference-environment-v541 rpg-reference-'+reference.classe;
+  ambiente.setAttribute?.('aria-hidden','true');
   const luce=documento.createElement('div');
   luce.className='rpg-reference-complete-v539 rpg-reference-'+reference.classe;
   luce.setAttribute?.('aria-hidden','true');
@@ -52,9 +57,12 @@ export function montaReferenceScontornataV539(grafica,ritratto,classe,reference,
     if(alpha&&!verificaIntegritaRitaglioRpg(soggetto,documento))return;
     // Fino al caricamento resta la v538: nessuna schermata vuota su Safari.
     inserito=true;
+    // Ordine di disegno: fondale fotografico + pavimento -> cinque VFX
+    // originali -> avatar vero, senza ritaglio delle scie o del terreno.
+    grafica.appendChild(ambiente);
     grafica.appendChild(luce);
     grafica.appendChild(soggetto);
-    grafica.classList?.add?.('rpg-reference-integrated-v539');
+    grafica.classList?.add?.('rpg-reference-integrated-v539','rpg-reference-original-env-v541');
   };
   soggetto.addEventListener?.('load',attiva,{once:true});
   soggetto.src=alpha||url;

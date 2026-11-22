@@ -19,7 +19,7 @@ test('v540: nessun cambiamento a viso, armature, foto o vecchio atlante',()=>{
  const css=read('stile-rpg.css'),app=read('src/app.js'),script=read('tools/restore-reference-floor-v540.py');
  assert.match(css,/rpg-reference-integrated-v539/);
  assert.match(css,/rpg-reference-subject-v539/);
- assert.match(css,/effetti-reference-v540\.webp\?v=540/);
+ assert.match(css,/effetti-reference-v539\.webp\?v=539/);
  assert.match(app,/montaReferenceScontornataV539/);
  assert.match(script,/Image\.alpha_composite\(base,src\)/);
  assert.match(script,/range\(int\(\.763\*H\),H\)/);
@@ -29,9 +29,9 @@ test('v540: nessun cambiamento a viso, armature, foto o vecchio atlante',()=>{
 test('v540: stesso pavimento in Shop, Atelier, PNG e cache PWA',()=>{
  const css=read('stile-rpg.css'),at=read('src/rpg-atelier.js');
  const out=read('src/anteprima-combinata-rpg.js'),sw=read('sw.js'),idx=read('index.html');
- for(const file of [css,at,sw])assert.match(file,/effetti-reference-v540\.webp\?v=540/);
- assert.match(out,/rpg-atelier\.js\?v=540/);
- assert.match(sw,/const VERSIONE = 'palestra-v540'/);
- assert.match(idx,/PALESTRA_VERSIONE = 'palestra-v540'/);
+ for(const file of [css,at,sw])assert.match(file,/effetti-reference-v539\.webp\?v=539/);
+ assert.match(out,/rpg-atelier\.js\?v=541/);
+ assert.match(sw,/const VERSIONE = 'palestra-v541'/);
+ assert.match(idx,/PALESTRA_VERSIONE = 'palestra-v541'/);
  assert.match(sw,/percorso\.includes\('effetti-reference-v540\.webp'\)/);
 });
