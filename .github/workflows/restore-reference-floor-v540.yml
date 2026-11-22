@@ -1,0 +1,49 @@
+name: Genera base continua v540 su ramo di correzione
+on:
+  push:
+    branches: [fix/v540-restaura-basi-complete]
+    paths:
+      - 'tools/restore-reference-floor-v540.py'
+      - '.github/workflows/restore-reference-floor-v540.yml'
+permissions:
+  contents: write
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/v540-restaura-basi-complete
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --disable-pip-version-check Pillow
+      - name: Ripara le cinque basi senza cambiare i personaggi
+        run: python tools/restore-reference-floor-v540.py
+      - name: Anteprima dell'atlante per il confronto visivo
+        run: |
+          python - <<'PY'
+          from PIL import Image
+          import base64,io
+          a=Image.open('img/effetti/effetti-reference-v540.webp').convert('RGBA')
+          plate=Image.new('RGB',a.size,(10,10,23))
+          plate.paste(a,mask=a.getchannel('A'))
+          plate.thumbnail((690,442),Image.Resampling.LANCZOS)
+          f=io.BytesIO()
+          plate.save(f,'JPEG',quality=72,optimize=True)
+          b=base64.b64encode(f.getvalue()).decode()
+          print('FLOOR540_META:'+str(len(b)))
+          for i in range(0,len(b),3100):
+              print('FLOOR540_PART:'+str(i//3100).zfill(4)+':'+b[i:i+3100])
+          print('FLOOR540_END')
+          PY
+      - name: Commit solo l'asset su questo ramo
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add img/effetti/effetti-reference-v540.webp
+          git commit -m 'assets(v540): ripara pavimento e basi senza ritagliare gli effetti' || exit 0
+          git pull --rebase origin fix/v540-restaura-basi-complete
+          git push origin HEAD:fix/v540-restaura-basi-complete
