@@ -76,12 +76,12 @@ import { confrontoGiorno, confrontiMensili, GIORNI_UN_MESE } from './confronto-m
 import { profiloEsercizio, profiloPerPesoCorporeo, RANK, ETICHETTE_MISURA, descriviPunteggio, descrizioneLivello, livelloEsercizio, impostaLivelliImparati, livelliImparati, rapportoDifficolta, MOLTIPLICATORI_SOGLIA, passoCaricabile } from './rank-config.js';
 import { formattaAura } from './aura.js';
 import { montaEffettiRpg, smontaEffettiRpg, usaEffettiViviRpg } from './effetti-rpg-canvas.js';
-import { montaScenaCosmicaRpg } from './rpg-scena-cosmica.js?v=537';
-import { effettoReferenceV532,scenaReferenceClassV532 } from './rpg-reference-v532.js?v=537';
+import { montaScenaCosmicaRpg } from './rpg-scena-cosmica.js?v=538';
+import { effettoReferenceV532,scenaReferenceClassV532 } from './rpg-reference-v532.js?v=538';
 import { montaFotoRpg } from './aura-foto-rpg.js';
 import { montaFotoCombinataRpg, scaricaFotoCombinataRpg } from './anteprima-combinata-rpg.js?v=513';
-import { apriAtelierRpg as mostraAtelierRpg } from './rpg-atelier-ui.js?v=537';
-import { ARMATURE_ATELIER } from './rpg-atelier.js?v=537';
+import { apriAtelierRpg as mostraAtelierRpg } from './rpg-atelier-ui.js?v=538';
+import { ARMATURE_ATELIER } from './rpg-atelier.js?v=538';
 import { applicaSkinRpg } from './skin-rpg-fedele.js';
 import { montaScenaCinematograficaRpg, armaSbloccataRpg, percorsoScenaSpecialeRpg } from './foto-cinematica-rpg.js';
 import { elencoAvatar, avatarPerId, gradienteAvatar, iniziali } from './avatar.js';
@@ -8437,10 +8437,19 @@ function bloccoPersonaggio(profilo, st) {
     // si sovrappone con screen, nero neutro, foto e scenario NON ritoccati.
     if(effettoRiferimento){
       grafica.classList.add('rpg-reference-v532');
-      grafica.appendChild(el('div',{
-        class:'rpg-reference-fx '+scenaReferenceClassV532(effettoEquipaggiato.id),
-        aria:{hidden:'true'},
-      }));
+      grafica.dataset.referenceEffetto=effettoEquipaggiato.id;
+      grafica.dataset.referenceStadio=String(statoFotoConsentito);
+      grafica.dataset.referenceArmatura=armaturaEquipaggiata?.id||'';
+      grafica.dataset.referenceDivina=String(auraDivinaAttiva);
+      grafica.dataset.referenceCorona=String(coronaAttiva);
+      const referenceClass=scenaReferenceClassV532(effettoEquipaggiato.id);
+      // Foto originale SOPRA il VFX integrale; scie esterne in piano separato.
+      for(const piano of ['rpg-reference-fx-back','rpg-reference-fx-front']){
+        grafica.appendChild(el('div',{
+          class:'rpg-reference-fx '+piano+' '+referenceClass,
+          aria:{hidden:'true'},
+        }));
+      }
     }
     if (fotoArmaturaRpg || fotoCoronaRpg || fotoAuraDivinaRpg) grafica.classList.add('rpg-armor-photo-integrale');
     // Il rivestimento geometrico era la causa delle piastre piatte da videogioco:
