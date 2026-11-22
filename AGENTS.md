@@ -1,3 +1,9 @@
+## 22/11/2026 — v553: preview Shop/Atelier senza didascalia sopra la magia
+- Bug verificato nello screenshot Scintille d'ambra (Assassino): la texture v552 a 148% è assoluta e supera il ritratto; il layout flex non riservava l'altezza extra, quindi la base copriva nome, descrizione e badge.
+- Correzione mirata CSS: margine inferiore proporzionale (clamp 54–76px) SOLO per gli effetti v532 nelle anteprime Shop e Atelier. Caption centrata, impilata sotto e z-index definito. Nessun overflow hidden sulla scena, altrimenti si troncano le rune.
+- Immutati cinque atlanti WebP approvati, corpi e volti originali, zoom della foto, esportazione PNG, armature, streak, dati, prezzi.
+- Cache PWA v553; nuova regressione che impedisce overlap e clipping nel CSS. Il controllo visivo finale su Safari/iPhone resta necessario.
+
 ## 22/11/2026 — v552: scena allineata ai piedi senza cambiare volto, corpo o armatura
 - Difetto v551: gli ambienti 626×710 venivano mostrati larghi solo il 112% del ritratto 2:3; la piattaforma risultava troppo in alto e il personaggio sembrava sospeso.
 - v552: CSS background 148% centrato (left -24%, top -3%); PNG Atelier e Shop usano la stessa scala 1.48 e il rapporto 710/626. Nessun re-render dei 5 atlanti approvati.
