@@ -55,7 +55,7 @@ test('v509: Spettro Cremisi lascia fuori fumo e ruderi ai lati delle gambe',()=>
 
 test('v513: la sagoma nuova non resta nella cache di Atelier, anteprima e app',()=>{
   // Live app + Atelier v533: la cache nuova deve caricare i moduli corretti.
-  const nuova='./rpg-scena-cosmica.js?v=536';
+  const nuova='./rpg-scena-cosmica.js?v=537';
   assert.ok(read('src/app.js').includes("from '"+nuova+"'"));
   assert.ok(read('src/rpg-atelier.js').includes("from '"+nuova+"'"));
   // Anteprime standalone storiche non devono cambiare il personaggio.

@@ -217,7 +217,7 @@ const FILE = [
   './img/personaggi/galleria-v352/berserker-07.webp?v=536',
   './img/personaggi/galleria-v352/berserker-08.webp?v=536',
   './img/personaggi/galleria-v352/berserker-09.webp?v=536',
-  './stile-galleria-rpg.css?v=536',
+  './stile-galleria-rpg.css?v=537',
   './src/galleria-foto-rpg.js?v=536',
   './rassegna-missioni.html',
   // IL FOGLIO DI STILE HA LA VERSIONE, come il collegamento in index.html.
@@ -230,9 +230,9 @@ const FILE = [
   // Il numero deve essere uguale a quello di `stile.css?v=` in index.html e a
   // `window.PALESTRA_VERSIONE`: se i tre non coincidono, l'app carica un foglio di
   // stile e dice un altro numero.
-  './stile.css?v=536',
-  './stile-rpg.css?v=536',
-  './stile-premium.css?v=536',
+  './stile.css?v=537',
+  './stile-rpg.css?v=537',
+  './stile-premium.css?v=537',
 './manifest.webmanifest',
   './manifest-p1.webmanifest',
   './manifest-p2.webmanifest',
