@@ -71,6 +71,6 @@ test('v532: Atelier export PNG ha esattamente la stessa texture e cache offline'
  assert.match(sw,/effetti-reference-v532\.webp\?v=532/);
  assert.match(sw,/FOTO_DECORATIVE\.test\(percorso\) \|\| percorso\.includes\('effetti-reference-v532\.webp'\)/);
  assert.match(sw,/src\/rpg-reference-v532\.js/);
- assert.match(sw,/const VERSIONE = 'palestra-v537'/);
- assert.match(read('index.html'),/PALESTRA_VERSIONE = 'palestra-v537'/);
+ assert.match(sw,/const VERSIONE = 'palestra-v538'/);
+ assert.match(read('index.html'),/PALESTRA_VERSIONE = 'palestra-v538'/);
 });
