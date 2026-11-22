@@ -96,7 +96,11 @@ for name,px,py,col,row in effectdefs:
     edges=[int(np.max(a[:,0])),int(np.max(a[:,-1])),
            int(np.max(a[0,:])),int(np.max(a[-1,:]))]
     assert max(middle)>=130,(name,middle)
-    assert max(edges)<=5,(name,edges)
+    # Bright magical bolts and circular arcs MAY reach the outer border.
+    # Reject only a continuous opaque rectangular PHOTO edge, not real FX.
+    edge_mean=[float(np.mean(a[:,0])),float(np.mean(a[:,-1])),
+               float(np.mean(a[0,:])),float(np.mean(a[-1,:]))]
+    assert max(edge_mean)<75,(name,edge_mean)
     manifest[name]={'middle_floor_alpha':middle,
                     'edges_alpha':edges,
                     'source_panel':[x0,y0,x0+W,y0+H]}
