@@ -1,3 +1,15 @@
+## 22/11/2026 — v550, file originale v550 caricato identico
+- Asset img/effetti/approved-showcase-v550.webp: 1878x1420 pixel, 3x2 celle da 626x710.
+  SHA1 blob Git 5bf1a6dc4cc59112d6c2caa9fcd246ad3355be0a;
+  SHA256 file abcd3add101dea066cd4ace77068a32bdf2a8ee3e4a0fe2f4e44f25d306b14f9.
+  NON ricodificare, ricreare o riscalare il file sorgente.
+- CSS anteprima Shop usa il nuovo URL, stesse dimensioni della composizione
+  approvata v549. Export PNG usa esattamente la stessa cella del nuovo atlas.
+- Le 5 celle si mappano Ambra/Ombra/Scarica/Nebulosa/Astrale. L'avatar
+  statico è permesso SOLO nell'anteprima Assassino senza altri cosmetici;
+  altre classi, armature, Streak reale restano dinamiche.
+- Query cache v550 per JS/CSS/asset; vecchio sfondo dinamico v548 resta fallback.
+
 ## 2026-11-22 — v549 corregge il ridimensionamento in anteprima degli asset approvati
 - Il v548 applicava la foto promozionale 626x710 a un ritratto 300px,
   mischiandola con il ritaglio del personaggio. Foto troppo piccola,

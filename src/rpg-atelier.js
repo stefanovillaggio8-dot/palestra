@@ -179,8 +179,8 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
   // v547: the soft-edged 3x2 photographic stage, full runes and trails.
   // v548: the five EXACT approved screenshots from this chat;
   // second atlas hides the mockup body for real class/armor combinations.
-  const palcoApprovatoV548=riferimentoV532 ? await attesaImmagine(
-    new URL('../img/effetti/approved-showcase-v548.webp?v=548',import.meta.url).href
+  const palcoApprovatoV550=riferimentoV532 ? await attesaImmagine(
+    new URL('../img/effetti/approved-showcase-v550.webp?v=550',import.meta.url).href
   ).catch(()=>null) : null;
   const palcoAmbienteV548=riferimentoV532 ? await attesaImmagine(
     new URL('../img/effetti/approved-environments-v548.webp?v=548',import.meta.url).href
@@ -228,8 +228,8 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
     c.classe==='assassino'&&!c.armatura&&
     grafica?.closest?.('.aura-preview-panel')&&
     grafica?.classList?.contains?.('rpg-reference-stage-v548-static')&&
-    palcoApprovatoV548?.naturalWidth===1878&&
-    palcoApprovatoV548?.naturalHeight===1420);
+    palcoApprovatoV550?.naturalWidth===1878&&
+    palcoApprovatoV550?.naturalHeight===1420);
   const palcoDinamicoV548=Boolean(ritaglioEsportabile&&
     palcoAmbienteV548?.naturalWidth===1878&&
     palcoAmbienteV548?.naturalHeight===1420);
@@ -246,7 +246,7 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
   if(palcoEsattoV548||palcoDinamicoV548){
     // Same 3x2 cell and spatial placement as the preview CSS. Full sprite
     // includes the hero ONLY for the explicitly approved default scene.
-    const foto=palcoEsattoV548?palcoApprovatoV548:palcoAmbienteV548;
+    const foto=palcoEsattoV548?palcoApprovatoV550:palcoAmbienteV548;
     const cellW=foto.naturalWidth/3,cellH=foto.naturalHeight/2;
     const fxW=dw*1.12,fxH=fxW*(710/626);
     ctx.drawImage(foto,

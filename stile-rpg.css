@@ -4695,7 +4695,7 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
 :is(.aura-preview-panel,.rpg-atelier-panel)
   .personaggio-scena-grafica.rpg-reference-v532.rpg-reference-integrated-v539.rpg-reference-stage-v548.rpg-reference-stage-v548-static
   > .rpg-reference-environment-v541 {
-  background-image:url('./img/effetti/approved-showcase-v548.webp?v=548')!important;
+  background-image:url('./img/effetti/approved-showcase-v550.webp?v=550')!important;
 }
 :is(.aura-preview-panel,.rpg-atelier-panel)
   .personaggio-scena-grafica.rpg-reference-stage-v548.rpg-reference-stage-v548-static
@@ -4731,7 +4731,7 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
   height:auto;
   aspect-ratio:626 / 710;
   margin:0 auto;
-  background-image:url('./img/effetti/approved-showcase-v548.webp?v=548');
+  background-image:url('./img/effetti/approved-showcase-v550.webp?v=550');
   background-size:300% 200%;
   background-position:0% 0%;
   background-repeat:no-repeat;
