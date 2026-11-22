@@ -63,7 +63,7 @@ assert out.stat().st_size>100000
 print('ENV_V541:'+str(w)+'x'+str(h)+':'+str(out.stat().st_size),flush=True)
 # Preview del fondale ripristinato, confrontato con fotografia originale.
 frames=[('ORIGINALE SENZA EFFETTO',panel),('FONDALE E PAVIMENTO RECUPERATI',rgba)]
-fx=Image.open(root/'img/effetti/effetti-reference-v540.webp').convert('RGBA')
+fx=Image.open(root/'img/effetti/effetti-reference-v539.webp').convert('RGBA')
 avatar=Image.open(root/'img/personaggi/cutout/stati/assassino-0.webp').convert('RGBA')
 # Un esempio composito mostra se il pavimento e il background esistono
 # davvero e se la figura sta sopra (non un'asserzione CSS).
