@@ -12,7 +12,7 @@ test('v538: nessun effetto integrale sopra il volto e la corporatura',()=>{
   assert.match(css,/\.personaggio-ritratto\{[\s\S]*?z-index:2!important/);
   assert.match(css,/mask-image:radial-gradient\(ellipse 31% 45% at 50% 43%/);
   assert.match(app,/\['rpg-reference-fx-back','rpg-reference-fx-front'\]/);
-  assert.match(css,/background-image:url\('\.\/img\/effetti\/effetti-reference-v537\.webp\?v=537'\)!important/);
+  assert.match(css,/background-image:url\('\.\/img\/effetti\/effetti-reference-v539\.webp\?v=539'\)!important/);
 });
 
 test('v538: anche il PNG ha lo stesso retro, sfumatura e immagine reale',()=>{
