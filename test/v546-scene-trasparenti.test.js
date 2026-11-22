@@ -54,8 +54,8 @@ test('v546: app, precache, alternate photos and CSS all use fresh version',()=>{
  assert.ok(index.includes("PALESTRA_VERSIONE = 'palestra-v548'"));
  assert.ok(sw.includes("const VERSIONE = 'palestra-v548'"));
  for(const sheet of ['stile.css','stile-rpg.css','stile-premium.css']){
-   assert.ok(index.includes('./'+sheet+'?v=547'),sheet);
-   assert.ok(sw.includes("'./"+sheet+"?v=547'"),sheet);
+   assert.ok(index.includes('./'+sheet+'?v=548'),sheet);
+   assert.ok(sw.includes("'./"+sheet+"?v=548'"),sheet);
  }
  assert.ok(sw.includes("'./img/effetti/reference-scene-v546.webp?v=546'"));
  assert.ok(sw.includes("percorso.includes('reference-scene-v546.webp')"));
