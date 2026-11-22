@@ -36,3 +36,6 @@ export const ATLANTE_REFERENCE_V537='./img/effetti/effetti-reference-v537.webp?v
 
 // v539: stessa reference con alpha ripulito da avatar e rettangoli estranei.
 export const ATLANTE_REFERENCE_V539='./img/effetti/effetti-reference-v539.webp?v=539';
+
+// v540: platforme restaurate senza perdere i cinque effetti originali.
+export const ATLANTE_REFERENCE_V540='./img/effetti/effetti-reference-v540.webp?v=540';
