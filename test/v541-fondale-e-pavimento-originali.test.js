@@ -36,7 +36,7 @@ test('v541: il PNG Shop/Atelier conserva esattamente il fondale sotto agli effet
  const laying=at.indexOf('ctx.drawImage(ambienteV541,');
  const effect=at.indexOf('ctx.drawImage(atlanteV539,');
  assert.ok(loading>0 && laying>loading && effect>laying);
- assert.match(shop,/rpg-atelier\.js\?v=556/);
+ assert.match(shop,/rpg-atelier\.js\?v=557/);
 });
 test('v541: foto approvata e cinque VFX originali restano immutati in cache',()=>{
  const sw=read('sw.js');
@@ -47,6 +47,6 @@ test('v541: foto approvata e cinque VFX originali restano immutati in cache',()=
  assert.match(css,/effetti-reference-v539\.webp\?v=539/);
  assert.match(sw,/reference-ambiente-v541\.webp\?v=541/);
  assert.match(sw,/percorso\.includes\('reference-ambiente-v541\.webp'\)/);
- assert.match(sw,/const VERSIONE = 'palestra-v556'/);
- assert.match(idx,/PALESTRA_VERSIONE = 'palestra-v556'/);
+ assert.match(sw,/const VERSIONE = 'palestra-v557'/);
+ assert.match(idx,/PALESTRA_VERSIONE = 'palestra-v557'/);
 });
