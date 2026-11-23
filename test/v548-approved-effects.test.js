@@ -55,20 +55,20 @@ test('v551: preview and PNG export share the approved scenery and authentic face
  assert.match(js,/const fxW=dw\*1\.48,fxH=fxW\*\(710\/626\)/);
  assert.doesNotMatch(js,/palcoEsattoV548|palcoApprovatoV550/);
  assert.match(js,/ctx\.drawImage\(riferimentoCompleto\?ritaglioEsportabile:immagine/);
- assert.match(shop,/rpg-atelier\.js\?v=557/);
+ assert.match(shop,/rpg-atelier\.js\?v=558/);
 });
 
 test('v548: versioned PWA precaches approved binaries, still has offline fallback',()=>{
  const index=read('index.html'),sw=read('sw.js'),app=read('src/app.js');
- assert.ok(index.includes("PALESTRA_VERSIONE = 'palestra-v557'"));
- assert.ok(sw.includes("const VERSIONE = 'palestra-v557'"));
+ assert.ok(index.includes("PALESTRA_VERSIONE = 'palestra-v558'"));
+ assert.ok(sw.includes("const VERSIONE = 'palestra-v558'"));
  for(const path of ['stile.css','stile-rpg.css','stile-premium.css']){
-   assert.ok(index.includes('./'+path+'?v=557'),path);
-   assert.ok(sw.includes("'./"+path+"?v=557'"),path);
+   assert.ok(index.includes('./'+path+'?v=558'),path);
+   assert.ok(sw.includes("'./"+path+"?v=558'"),path);
  }
  assert.ok(!sw.includes("'./img/effetti/approved-showcase-v550.webp?v=550'"));
  assert.ok(sw.includes("'./img/effetti/approved-environments-v548.webp?v=548'"));
  assert.ok(sw.includes("'./img/effetti/reference-scene-v547.webp?v=547'"));
- assert.ok(app.includes('./rpg-reference-compositing-v539.js?v=557'));
- assert.ok(app.includes('./rpg-atelier-ui.js?v=557'));
+ assert.ok(app.includes('./rpg-reference-compositing-v539.js?v=558'));
+ assert.ok(app.includes('./rpg-atelier-ui.js?v=558'));
 });
