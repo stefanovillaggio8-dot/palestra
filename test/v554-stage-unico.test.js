@@ -39,9 +39,9 @@ test('v554: no clipping or overlap for all five original effect scenes at phone 
 
 test('v554: PWA and CSS versions are updated without changing original atlas',()=>{
   const index=read('index.html'),sw=read('sw.js'),app=read('src/app.js');
-  assert.ok(index.includes("PALESTRA_VERSIONE = 'palestra-v555'"));
-  assert.ok(sw.includes("const VERSIONE = 'palestra-v555'"));
-  assert.ok(index.includes('./stile-rpg.css?v=555'));
-  assert.ok(app.includes("./rpg-reference-compositing-v539.js?v=555"));
+  assert.ok(index.includes("PALESTRA_VERSIONE = 'palestra-v556'"));
+  assert.ok(sw.includes("const VERSIONE = 'palestra-v556'"));
+  assert.ok(index.includes('./stile-rpg.css?v=556'));
+  assert.ok(app.includes("./rpg-reference-compositing-v539.js?v=556"));
   assert.ok(sw.includes("'./img/effetti/approved-environments-v548.webp?v=548'"));
 });

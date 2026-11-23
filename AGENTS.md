@@ -1,3 +1,9 @@
+## 23/11/2026 — v556: fondale visibile con bordo minimo
+- Screenshot v555: il fondale dietro al personaggio sembra sparire, benché il cerchio e le spirali siano visibili. Non correggere ridisegnando il soggetto o tagliando la base.
+- Ristretto l'alpha feather su ambiente v548 a 2,5% lateralmente, 2% sopra e 0,5% sotto. Anche PNG Atelier usa gli stessi quattro stop su un canvas temporaneo, prima del soggetto originale.
+- Atmosfera morbida per tutti i cinque effetti nella card e nell'Atelier, con bagliore ellittico molto leggero per colore e senza bordi rettangolari. Nessun asset WebP originale, volto, corazza, classe, titolo, Streak, prezzo o posizione modificato.
+- CI e sicurezza prima della pubblicazione. Controllo visivo con screenshot dopo il rilascio rimane necessario.
+
 ## 23/11/2026 — v555: fusione dei bordi del fondale in tutte le scene approvate
 - Lo screenshot v554 ha confermato card e personaggio corretti, ma il fondale v548 mantiene quattro bordi rettangolari scuri.
 - Applica due gradients alpha INTERSECANTI soltanto al livello environment dei cinque effetti: lato 6.5%, alto 5.5%, sotto 2%; centro, rune, anelli, spirali e figura restano intatti. Proprietà standard mask-composite:intersect e Safari -webkit-mask-composite:source-in.
