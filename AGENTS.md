@@ -1,3 +1,10 @@
+## 23/11/2026 — v557: recupero del vero fondale fotografico
+- Screenshot v556 quasi identico a v555: analizzato direttamente il WebP v548, che ha un centro piatto/scuro con spirali e rune luminosissime ma non contiene dettagli di scena dietro al personaggio. Le sfumature e le luci CSS precedenti non potevano ripristinare il paesaggio assente.
+- V557 riusa il WebP fotografico originale reference-ambienti-v542.webp con fumo, luce e terreno, come seconda texture della STESSA cella 3×2 del palco v548 (background-blend-mode: screen, normal). Le cinque combinazioni mantengono le rispettive coordinate delle sprite. La maschera perimetrale v556 resta unicamente sui bordi.
+- Export PNG equivalente: disegna il terreno v542, composita in screen l'approvato v548, poi applica il feather e infine disegna il personaggio alpha della vera foto di classe/skin/stadio.
+- No nuove immagini AI; nessun cambiamento a silhouette originale, zoom, card, spirali, ring, acquisti, streak, record o database. Nuovi test di compositing + cache PWA v557.
+- Non considerare certificato il risultato estetico senza confronto visivo su telefono; i test assicurano la struttura.
+
 ## 23/11/2026 — v556: fondale visibile con bordo minimo
 - Screenshot v555: il fondale dietro al personaggio sembra sparire, benché il cerchio e le spirali siano visibili. Non correggere ridisegnando il soggetto o tagliando la base.
 - Ristretto l'alpha feather su ambiente v548 a 2,5% lateralmente, 2% sopra e 0,5% sotto. Anche PNG Atelier usa gli stessi quattro stop su un canvas temporaneo, prima del soggetto originale.

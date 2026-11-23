@@ -4859,3 +4859,30 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
       transparent 96%),
     #101321!important;
 }
+
+
+/* v557 — RIPRISTINO SCENARIO REALE (non una nuova sfumatura).
+ * Il WebP v548 contiene spirali e sigilli brillanti ma nel centro il
+ * paesaggio era stato oscurato in origine. Un filtro sul SOLO v548 non
+ * puo' recuperare i dettagli che mancano.
+ * Sovrapponiamo per ogni cella il fondale originale fotografico v542
+ * (fumo, luce ambientale e terreno) alle stesse rune v548, con SCREEN.
+ * Dove la foto v548 e' quasi nera passa il paesaggio v542, dove e' gia'
+ * luminosa i 5 VFX e il cerchio mantengono i loro contorni originali.
+ * Il ritaglio vero del personaggio non e' mai incluso nel blend. */
+.personaggio-scena-grafica.rpg-reference-v532.rpg-reference-integrated-v539.rpg-reference-stage-v548
+  > .rpg-reference-environment-v541 {
+  background-image:
+    url('./img/effetti/approved-environments-v548.webp?v=548'),
+    url('./img/effetti/reference-ambienti-v542.webp?v=542')!important;
+  background-size:300% 200%,300% 200%!important;
+  background-repeat:no-repeat,no-repeat!important;
+  background-blend-mode:screen,normal!important;
+  /* Le classi ambra/ombra/fulmine/nebula/astrale impostano già la
+   * posizione corretta 0/50/100: un unico valore si applica a entrambi
+   * gli atlanti 3x2 senza mescolare gli effetti tra loro. */
+  background-color:transparent!important;
+}
+/* v557 non deve introdurre un secondo fondale rettangolare o
+ * un ulteriore floor overlay: il feather minimo v556 vale per
+ * l'insieme dei due atlanti, senza perdere i piedi o la base. */
