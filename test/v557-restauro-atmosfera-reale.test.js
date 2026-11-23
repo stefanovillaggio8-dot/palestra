@@ -6,7 +6,8 @@ const read=(p)=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 
 test('v557: use real smoky photographic backgrounds rather than just adjusting a vignette',()=>{
  const css=read('stile-rpg.css');
- const newRule=css.slice(css.lastIndexOf('/* v557 — RIPRISTINO SCENARIO REALE'));
+ const begin=css.lastIndexOf('/* v557 — RIPRISTINO SCENARIO REALE');
+ const newRule=css.slice(begin,css.indexOf('/* v558:',begin));
  assert.ok(newRule.includes('> .rpg-reference-environment-v541 {'));
  assert.ok(newRule.includes("approved-environments-v548.webp?v=548"));
  assert.ok(newRule.includes("reference-ambienti-v542.webp?v=542"));
