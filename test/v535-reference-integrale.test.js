@@ -50,8 +50,8 @@ test('v535: PNG Atelier conserva tutte le luci anche oltre i bordi della foto',(
  assert.match(at,/dx-dw\*\.32,dy-dh\*\.04,dw\*1\.64,dh\*1\.08/);
  assert.match(sw,/effetti-reference-v539\.webp\?v=539/);
  assert.match(sw,/percorso\.includes\('effetti-reference-v536\.webp'\)/);
- assert.match(sw,/palestra-v556/);
- assert.match(idx,/PALESTRA_VERSIONE = 'palestra-v556'/);
+ assert.match(sw,/palestra-v557/);
+ assert.match(idx,/PALESTRA_VERSIONE = 'palestra-v557'/);
 });
 
 test('v535: 3 classi x 2 armature x 6 stadi x 5 VFX: stesse foto/caschi/armi',()=>{

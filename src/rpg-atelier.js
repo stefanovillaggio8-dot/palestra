@@ -251,6 +251,18 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
     const fxCtx=sfuma.getContext?.('2d',{alpha:true});
     if(fxCtx?.createLinearGradient&&fxCtx?.drawImage){
       const w=sfuma.width,h=sfuma.height;
+      // v557: fondale fotografico v542 SOTTO al palco approvato v548.
+      // Il centro del v548 era già quasi nero nell'asset: il blending
+      // screen restituisce fumo, luce e pavimento senza modificare l'eroe.
+      const atmosferaReale=ambienteV541?.naturalWidth===1383&&
+        ambienteV541?.naturalHeight===880;
+      if(atmosferaReale){
+        const bgW=ambienteV541.naturalWidth/3,bgH=ambienteV541.naturalHeight/2;
+        fxCtx.drawImage(ambienteV541,
+          riferimentoV532.colonna*bgW,riferimentoV532.riga*bgH,bgW,bgH,
+          0,0,w,h);
+        fxCtx.globalCompositeOperation='screen';
+      }
       fxCtx.drawImage(foto,
         riferimentoV532.colonna*cellW,riferimentoV532.riga*cellH,cellW,cellH,
         0,0,w,h);
