@@ -8,7 +8,7 @@ test('v555: all five original scene cells use one identical alpha feather withou
   const css=read('stile-rpg.css');
   const begin=css.lastIndexOf('/* v555:');
   assert.ok(begin>0);
-  const tail=css.slice(begin);
+  const tail=css.slice(begin,css.indexOf('/* v556:',begin));
   assert.ok(tail.includes('> .rpg-reference-environment-v541 {'));
   assert.ok(tail.includes('rpg-reference-stage-v548'));
   assert.ok(!tail.includes('> .rpg-reference-subject-v539 {'));
