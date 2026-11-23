@@ -251,16 +251,32 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
     const fxCtx=sfuma.getContext?.('2d',{alpha:true});
     if(fxCtx?.createLinearGradient&&fxCtx?.drawImage){
       const w=sfuma.width,h=sfuma.height;
-      // v557: fondale fotografico v542 SOTTO al palco approvato v548.
-      // Il centro del v548 era già quasi nero nell'asset: il blending
-      // screen restituisce fumo, luce e pavimento senza modificare l'eroe.
+      // v558: tre piani distinti (atmosfera v542 / rune in screen /
+      // vero eroe in primo piano), come nel DOM. Nero v548 non è un velo.
       const atmosferaReale=ambienteV541?.naturalWidth===1383&&
         ambienteV541?.naturalHeight===880;
       if(atmosferaReale){
         const bgW=ambienteV541.naturalWidth/3,bgH=ambienteV541.naturalHeight/2;
+        fxCtx.save();
+        if('filter' in fxCtx)fxCtx.filter='brightness(1.65) saturate(1.14)';
         fxCtx.drawImage(ambienteV541,
           riferimentoV532.colonna*bgW,riferimentoV532.riga*bgH,bgW,bgH,
           0,0,w,h);
+        fxCtx.restore();
+        if(typeof fxCtx.createRadialGradient==='function'){
+          const colori={ambra:'226,103,44',ombra:'137,72,183',
+            fulmine:'139,77,205',nebula:'90,91,221',astrale:'158,79,209'};
+          const rgb=colori[riferimentoV532.classe]||colori.ambra;
+          const luce=fxCtx.createRadialGradient(w*.5,h*.42,w*.06,w*.5,h*.42,w*.48);
+          luce.addColorStop(0,'rgba('+rgb+',.34)');
+          luce.addColorStop(.56,'rgba('+rgb+',.12)');
+          luce.addColorStop(1,'rgba('+rgb+',0)');
+          fxCtx.save();
+          fxCtx.globalCompositeOperation='screen';
+          fxCtx.fillStyle=luce;
+          fxCtx.fillRect(0,0,w,h);
+          fxCtx.restore();
+        }
         fxCtx.globalCompositeOperation='screen';
       }
       fxCtx.drawImage(foto,

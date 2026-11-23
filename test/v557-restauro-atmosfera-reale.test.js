@@ -6,7 +6,8 @@ const read=(p)=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 
 test('v557: use real smoky photographic backgrounds rather than just adjusting a vignette',()=>{
  const css=read('stile-rpg.css');
- const newRule=css.slice(css.lastIndexOf('/* v557 — RIPRISTINO SCENARIO REALE'));
+ const begin=css.lastIndexOf('/* v557 — RIPRISTINO SCENARIO REALE');
+ const newRule=css.slice(begin,css.indexOf('/* v558:',begin));
  assert.ok(newRule.includes('> .rpg-reference-environment-v541 {'));
  assert.ok(newRule.includes("approved-environments-v548.webp?v=548"));
  assert.ok(newRule.includes("reference-ambienti-v542.webp?v=542"));
@@ -48,9 +49,9 @@ test('v557: PNG export composites v542 atmosphere and v548 light on the same cel
 
 test('v557: PWA service worker and import cache are synchronized',()=>{
  const sw=read('sw.js'),idx=read('index.html'),app=read('src/app.js'),ui=read('src/rpg-atelier-ui.js');
- assert.ok(sw.includes("const VERSIONE = 'palestra-v557'"));
- assert.ok(idx.includes("PALESTRA_VERSIONE = 'palestra-v557'"));
- assert.ok(idx.includes('stile-rpg.css?v=557'));
- assert.ok(app.includes('./rpg-reference-compositing-v539.js?v=557'));
- assert.ok(ui.includes('./rpg-atelier.js?v=557'));
+ assert.ok(sw.includes("const VERSIONE = 'palestra-v558'"));
+ assert.ok(idx.includes("PALESTRA_VERSIONE = 'palestra-v558'"));
+ assert.ok(idx.includes('stile-rpg.css?v=558'));
+ assert.ok(app.includes('./rpg-reference-compositing-v539.js?v=558'));
+ assert.ok(ui.includes('./rpg-atelier.js?v=558'));
 });

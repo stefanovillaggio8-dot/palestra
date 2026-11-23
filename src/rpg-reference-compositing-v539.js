@@ -42,6 +42,11 @@ export function montaReferenceScontornataV539(grafica,ritratto,classe,reference,
   }
   // v542: atmosfera fotografica sfumata davvero sui quattro bordi e
   // pavimento originale; ogni effetto ha una cella coerente nel WebP 3x2.
+  // v558: vero fondale fotografico SEPARATO dal WebP delle rune.
+  // Non sovrascrivere più il terreno con i pixel neri dell'energia.
+  const fondale=documento.createElement('div');
+  fondale.className='rpg-reference-backdrop-v558 rpg-reference-'+reference.classe;
+  fondale.setAttribute?.('aria-hidden','true');
   const ambiente=documento.createElement('div');
   ambiente.className='rpg-reference-environment-v541 rpg-reference-'+reference.classe;
   ambiente.setAttribute?.('aria-hidden','true');
@@ -163,6 +168,7 @@ export function montaReferenceScontornataV539(grafica,ritratto,classe,reference,
     inserito=true;
     // Ordine di disegno: fondale fotografico + pavimento -> cinque VFX
     // originali -> avatar vero, senza ritaglio delle scie o del terreno.
+    grafica.appendChild(fondale);
     grafica.appendChild(ambiente);
     grafica.appendChild(luce);
     grafica.appendChild(soggetto);
