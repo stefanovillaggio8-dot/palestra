@@ -252,7 +252,7 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
     if(fxCtx?.createLinearGradient&&fxCtx?.drawImage){
       const w=sfuma.width,h=sfuma.height;
       // v557: fondale fotografico v542 SOTTO al palco approvato v548.
-      // Il centro del v548 era gia' quasi nero nell'asset: il blending
+      // Il centro del v548 era già quasi nero nell'asset: il blending
       // screen restituisce fumo, luce e pavimento senza modificare l'eroe.
       const atmosferaReale=ambienteV541?.naturalWidth===1383&&
         ambienteV541?.naturalHeight===880;
