@@ -1,3 +1,10 @@
+## 23/11/2026 — v559: ricostruisce le spirali dietro il personaggio
+- Segnalazione: ancora un blocco invisibile che interrompe i cinque effetti dietro la figura nonostante il layering v558. Verificati gli atlanti originali: il v539 e il v548 lasciano un'ampia fascia centrale senza scie per la precedente sagoma. Il v536 conserva invece un effetto continuo attraverso la zona centrale.
+- Nuovo livello DOM rpg-reference-center-repair-v559 fra backdrop v542 e VFX v548. Riutilizza soltanto il centro dell'atlante v536 originale, con alpha radiale ellittico e blend screen. Conserva i pixel v548 alle estremita' e al pavimento, senza ripetere le parti gia' approvate.
+- Soggetto originale con z-index superiore, invariato. Tutte le 5 posizioni in atlas 3x2; immagini, asset e data user non modificati.
+- PNG Atelier usa lo stesso riempimento centrale dal v536 prima di disegnare il v548 e il vero ritaglio fotografico, con fallback se manca l'immagine offline.
+- Aggiornata cache PWA v559; test delle classi, del livello e dell'export. I test statici non sono una certificazione visiva su Safari.
+
 ## 23/11/2026 — v558: niente velo nero sulle spirali
 - Il compositing v557 aveva ancora un UNICO layer fotografico opaco; i pixel neri del v548 smorzavano l'atmosfera e gli effetti dietro, come segnalato anche dopo la pubblicazione.
 - v558 crea nel DOM tre layer REALI, anziché cambiare solo CSS: fondale v542 luminoso nella sua cella originale, effetti v548 sopra con mix-blend-mode:screen per neutralizzare il nero, ritaglio reale del personaggio davanti.

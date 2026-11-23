@@ -182,6 +182,10 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
   const palcoAmbienteV548=riferimentoV532 ? await attesaImmagine(
     new URL('../img/effetti/approved-environments-v548.webp?v=548',import.meta.url).href
   ).catch(()=>null) : null;
+  // v559: tavola degli effetti non forata dal vecchio avatar.
+  const energiaCentraleV536=riferimentoV532 ? await attesaImmagine(
+    new URL('../img/effetti/effetti-reference-v536.webp?v=536',import.meta.url).href
+  ).catch(()=>null) : null;
   const palcoV547=riferimentoV532 ? await attesaImmagine(
     new URL('../img/effetti/reference-scene-v547.webp?v=547',import.meta.url).href
   ).catch(()=>null) : null;
@@ -278,6 +282,38 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
           fxCtx.restore();
         }
         fxCtx.globalCompositeOperation='screen';
+      }
+      // v559: ricuce le spirali dietro al personaggio dal v536 senza
+      // sostituire le scie e il sigillo originali del v548.
+      if(energiaCentraleV536?.naturalWidth===1440&&
+         energiaCentraleV536?.naturalHeight===1200){
+        const riempie=document.createElement('canvas');
+        riempie.width=w;riempie.height=h;
+        const rc=riempie.getContext?.('2d',{alpha:true});
+        if(rc?.drawImage&&rc?.createRadialGradient&&rc?.translate&&rc?.scale){
+          const rw=energiaCentraleV536.naturalWidth/3;
+          const rh=energiaCentraleV536.naturalHeight/2;
+          rc.drawImage(energiaCentraleV536,
+            riferimentoV532.colonna*rw,riferimentoV532.riga*rh,rw,rh,
+            0,0,w,h);
+          rc.save();
+          rc.globalCompositeOperation='destination-in';
+          rc.translate(w*.5,h*.44);
+          rc.scale(w*.35,h*.45);
+          const sfumaCentro=rc.createRadialGradient(0,0,0,0,0,1);
+          sfumaCentro.addColorStop(0,'rgba(0,0,0,1)');
+          sfumaCentro.addColorStop(.40,'rgba(0,0,0,1)');
+          sfumaCentro.addColorStop(.63,'rgba(0,0,0,.9)');
+          sfumaCentro.addColorStop(1,'rgba(0,0,0,0)');
+          rc.fillStyle=sfumaCentro;
+          rc.fillRect(-1,-1,2,2);
+          rc.restore();
+          fxCtx.save();
+          fxCtx.globalCompositeOperation='screen';
+          fxCtx.globalAlpha=.94;
+          fxCtx.drawImage(riempie,0,0,w,h);
+          fxCtx.restore();
+        }
       }
       fxCtx.drawImage(foto,
         riferimentoV532.colonna*cellW,riferimentoV532.riga*cellH,cellW,cellH,

@@ -234,7 +234,7 @@ export async function scaricaFotoCombinataRpg(grafica,classe='rpg') {
   // v538: la foto scaricata dallo Shop deve essere identica a quella in
   // Atelier: stesso personaggio, stesso atlas, nessuna copia senza effetti.
   if(grafica?.classList?.contains('rpg-reference-v532')){
-    const {salvaFotoAtelier}=await import('./rpg-atelier.js?v=558');
+    const {salvaFotoAtelier}=await import('./rpg-atelier.js?v=559');
     return salvaFotoAtelier(grafica,{
       classe,stadio:Number(grafica.dataset.referenceStadio||0),
       armatura:grafica.dataset.referenceArmatura||'',
