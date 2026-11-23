@@ -41,9 +41,9 @@ test('v555: no double frame and compatible PWA cache refresh',()=>{
   const app=read('src/app.js'),ui=read('src/rpg-atelier-ui.js');
   assert.ok(css.includes('.aura-preview-reference-scene .personaggio-scena'));
   assert.ok(css.includes('width:min(67.5%,275px)!important'));
-  assert.ok(idx.includes("PALESTRA_VERSIONE = 'palestra-v556'"));
-  assert.ok(sw.includes("const VERSIONE = 'palestra-v556'"));
-  assert.ok(idx.includes('stile-rpg.css?v=556'));
-  assert.ok(app.includes('./rpg-reference-compositing-v539.js?v=556'));
-  assert.ok(ui.includes('./rpg-atelier.js?v=556'));
+  assert.ok(idx.includes("PALESTRA_VERSIONE = 'palestra-v557'"));
+  assert.ok(sw.includes("const VERSIONE = 'palestra-v557'"));
+  assert.ok(idx.includes('stile-rpg.css?v=557'));
+  assert.ok(app.includes('./rpg-reference-compositing-v539.js?v=557'));
+  assert.ok(ui.includes('./rpg-atelier.js?v=557'));
 });
