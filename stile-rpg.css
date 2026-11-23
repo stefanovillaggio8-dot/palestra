@@ -4886,3 +4886,77 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
 /* v557 non deve introdurre un secondo fondale rettangolare o
  * un ulteriore floor overlay: il feather minimo v556 vale per
  * l'insieme dei due atlanti, senza perdere i piedi o la base. */
+
+
+/* v558: le 2 fotografie NON devono piu' essere un unico fondale.
+ * Il v548 ha un'ampia macchia scura nel centro: se usato normalmente
+ * si comporta come un velo davanti al paesaggio. Stesso palco, 3 piani:
+ * - backdrop v542: fumo e terreno con luce visibile;
+ * - environment v548: solo spirali/rune in SCREEN (nero = neutro);
+ * - subject v539: ritaglio originale nitido, sopra entrambi.
+ * Non applichiamo opacity o mix-blend-mode al contenitore/eroe. */
+.personaggio-scena-grafica.rpg-reference-v532.rpg-reference-integrated-v539
+  > .rpg-reference-backdrop-v558 {
+  display:none!important;
+  position:absolute!important;
+  top:-3%!important;
+  left:-24%!important;
+  width:148%!important;
+  height:auto!important;
+  aspect-ratio:626 / 710!important;
+  z-index:1!important;
+  pointer-events:none!important;
+  background-image:
+    radial-gradient(ellipse 66% 56% at 50% 42%,
+      rgba(var(--rpg-backdrop-rgb,226,103,44),.34) 0%,
+      rgba(var(--rpg-backdrop-rgb,226,103,44),.12) 56%,
+      transparent 89%),
+    url('./img/effetti/reference-ambienti-v542.webp?v=542')!important;
+  background-size:100% 100%,300% 200%!important;
+  background-repeat:no-repeat,no-repeat!important;
+  background-blend-mode:screen,normal!important;
+  background-color:transparent!important;
+  opacity:1!important;
+  filter:brightness(1.65) saturate(1.14)!important;
+  mix-blend-mode:normal!important;
+  box-shadow:none!important;
+  border:0!important;
+  -webkit-mask-image:
+    linear-gradient(to right,transparent 0%,#000 2.5%,#000 97.5%,transparent 100%),
+    linear-gradient(to bottom,transparent 0%,#000 2%,#000 99.5%,transparent 100%)!important;
+  mask-image:
+    linear-gradient(to right,transparent 0%,#000 2.5%,#000 97.5%,transparent 100%),
+    linear-gradient(to bottom,transparent 0%,#000 2%,#000 99.5%,transparent 100%)!important;
+  -webkit-mask-composite:source-in!important;
+  mask-composite:intersect!important;
+}
+.personaggio-scena-grafica.rpg-reference-stage-v548 > .rpg-reference-backdrop-v558 {
+  display:block!important;
+}
+/* Rispetta le cinque celle originali dell'atlante 3x2. */
+.rpg-reference-stage-v548 > .rpg-reference-backdrop-v558.rpg-reference-ambra {background-position:0% 0%!important;--rpg-backdrop-rgb:226,103,44;}
+.rpg-reference-stage-v548 > .rpg-reference-backdrop-v558.rpg-reference-ombra {background-position:50% 0%!important;--rpg-backdrop-rgb:137,72,183;}
+.rpg-reference-stage-v548 > .rpg-reference-backdrop-v558.rpg-reference-fulmine {background-position:100% 0%!important;--rpg-backdrop-rgb:139,77,205;}
+.rpg-reference-stage-v548 > .rpg-reference-backdrop-v558.rpg-reference-nebula {background-position:0% 100%!important;--rpg-backdrop-rgb:90,91,221;}
+.rpg-reference-stage-v548 > .rpg-reference-backdrop-v558.rpg-reference-astrale {background-position:50% 100%!important;--rpg-backdrop-rgb:158,79,209;}
+/* Il piano con la magia usa screen verso il backdrop, cosi' i pixel
+ * neri del vecchio WebP non oscurano mai il fumo e il pavimento. */
+.personaggio-scena-grafica.rpg-reference-v532.rpg-reference-integrated-v539.rpg-reference-stage-v548
+  > .rpg-reference-environment-v541 {
+  background-image:url('./img/effetti/approved-environments-v548.webp?v=548')!important;
+  background-size:300% 200%!important;
+  background-repeat:no-repeat!important;
+  background-blend-mode:normal!important;
+  background-color:transparent!important;
+  mix-blend-mode:screen!important;
+  z-index:2!important;
+  opacity:1!important;
+  filter:none!important;
+}
+/* Sopra soltanto la sagoma autentica; mai una maschera globale. */
+.personaggio-scena-grafica.rpg-reference-v532.rpg-reference-integrated-v539.rpg-reference-stage-v548
+  > .rpg-reference-subject-v539 {
+  z-index:3!important;
+  mix-blend-mode:normal!important;
+  opacity:1!important;
+}

@@ -1,3 +1,10 @@
+## 23/11/2026 — v558: niente velo nero sulle spirali
+- Il compositing v557 aveva ancora un UNICO layer fotografico opaco; i pixel neri del v548 smorzavano l'atmosfera e gli effetti dietro, come segnalato anche dopo la pubblicazione.
+- v558 crea nel DOM tre layer REALI, anziché cambiare solo CSS: fondale v542 luminoso nella sua cella originale, effetti v548 sopra con mix-blend-mode:screen per neutralizzare il nero, ritaglio reale del personaggio davanti.
+- La maschera perimetrale è applicata ai soli due livelli di scenario, non all'eroe. Il fondo mantiene la scala 148%, stessa base, stesse cinque celle 3×2, stesso zoom della v554.
+- PNG Atelier ricompone nello stesso ordine con brightening del v542, glow fotografico e screen delle rune prima della sagoma originale.
+- Non cambiare armature, skin, volti, acquisiti, streak, reward o database. Verifica visiva dopo il deploy, oltre ai test automatici.
+
 ## 23/11/2026 — v557: recupero del vero fondale fotografico
 - Screenshot v556 quasi identico a v555: analizzato direttamente il WebP v548, che ha un centro piatto/scuro con spirali e rune luminosissime ma non contiene dettagli di scena dietro al personaggio. Le sfumature e le luci CSS precedenti non potevano ripristinare il paesaggio assente.
 - V557 riusa il WebP fotografico originale reference-ambienti-v542.webp con fumo, luce e terreno, come seconda texture della STESSA cella 3×2 del palco v548 (background-blend-mode: screen, normal). Le cinque combinazioni mantengono le rispettive coordinate delle sprite. La maschera perimetrale v556 resta unicamente sui bordi.
