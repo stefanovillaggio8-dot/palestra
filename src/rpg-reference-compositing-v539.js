@@ -47,6 +47,11 @@ export function montaReferenceScontornataV539(grafica,ritratto,classe,reference,
   const fondale=documento.createElement('div');
   fondale.className='rpg-reference-backdrop-v558 rpg-reference-'+reference.classe;
   fondale.setAttribute?.('aria-hidden','true');
+  // v559: il vuoto in mezzo alle spirali era già nei pixel del v548.
+  // L'energia v536 senza sagoma riempie SOLO il centro in secondo piano.
+  const ripristino=documento.createElement('div');
+  ripristino.className='rpg-reference-center-repair-v559 rpg-reference-'+reference.classe;
+  ripristino.setAttribute?.('aria-hidden','true');
   const ambiente=documento.createElement('div');
   ambiente.className='rpg-reference-environment-v541 rpg-reference-'+reference.classe;
   ambiente.setAttribute?.('aria-hidden','true');
@@ -169,6 +174,7 @@ export function montaReferenceScontornataV539(grafica,ritratto,classe,reference,
     // Ordine di disegno: fondale fotografico + pavimento -> cinque VFX
     // originali -> avatar vero, senza ritaglio delle scie o del terreno.
     grafica.appendChild(fondale);
+    grafica.appendChild(ripristino);
     grafica.appendChild(ambiente);
     grafica.appendChild(luce);
     grafica.appendChild(soggetto);

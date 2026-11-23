@@ -4960,3 +4960,44 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
   mix-blend-mode:normal!important;
   opacity:1!important;
 }
+
+/* v559: ripara il VUOTO fotografico lasciato dalla vecchia sagoma.
+ * La tavola v548 ha rune ai lati e una fascia centrale senza energia.
+ * Il WebP v536 contiene la stessa famiglia dei 5 effetti COMPLETA,
+ * senza buchi per un precedente personaggio. Riutilizziamo solo la
+ * sua zona centrale dietro il soggetto autentico; dissolviamo i lati
+ * per non duplicare/scurire le spirali e la base gia' approvate.
+ * Il v548 approvato continua a disegnare TUTTI i pixel esterni. */
+.personaggio-scena-grafica.rpg-reference-integrated-v539
+  > .rpg-reference-center-repair-v559 {
+  display:none!important;
+  position:absolute!important;
+  top:-3%!important;
+  left:-24%!important;
+  width:148%!important;
+  height:auto!important;
+  aspect-ratio:626 / 710!important;
+  pointer-events:none!important;
+  z-index:1!important;
+  border:0!important;
+  background-color:transparent!important;
+  background-image:url('./img/effetti/effetti-reference-v536.webp?v=536')!important;
+  background-size:300% 200%!important;
+  background-repeat:no-repeat!important;
+  opacity:.94!important;
+  mix-blend-mode:screen!important;
+  filter:none!important;
+  -webkit-mask-image:radial-gradient(ellipse 35% 45% at 50% 44%,
+    #000 0%,#000 40%,rgba(0,0,0,.9) 63%,transparent 100%)!important;
+  mask-image:radial-gradient(ellipse 35% 45% at 50% 44%,
+    #000 0%,#000 40%,rgba(0,0,0,.9) 63%,transparent 100%)!important;
+}
+.personaggio-scena-grafica.rpg-reference-stage-v548
+  > .rpg-reference-center-repair-v559 {display:block!important;}
+.rpg-reference-stage-v548 > .rpg-reference-center-repair-v559.rpg-reference-ambra {background-position:0% 0%!important;}
+.rpg-reference-stage-v548 > .rpg-reference-center-repair-v559.rpg-reference-ombra {background-position:50% 0%!important;}
+.rpg-reference-stage-v548 > .rpg-reference-center-repair-v559.rpg-reference-fulmine {background-position:100% 0%!important;}
+.rpg-reference-stage-v548 > .rpg-reference-center-repair-v559.rpg-reference-nebula {background-position:0% 100%!important;}
+.rpg-reference-stage-v548 > .rpg-reference-center-repair-v559.rpg-reference-astrale {background-position:50% 100%!important;}
+/* La sagoma originale resta piu' in alto della magia, senza alcuna maschera
+ * rettangolare aggiuntiva. In caso di asset v536 offline, resta il v558. */
