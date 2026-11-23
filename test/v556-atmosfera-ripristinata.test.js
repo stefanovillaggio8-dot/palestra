@@ -37,9 +37,9 @@ test('v556: PNG uses same stops and still renders original character after backg
 });
 test('v556: iPhone/PWA assets use the new release revision',()=>{
   const index=read('index.html'),sw=read('sw.js'),ui=read('src/rpg-atelier-ui.js'),app=read('src/app.js');
-  assert.ok(index.includes("PALESTRA_VERSIONE = 'palestra-v558'"));
-  assert.ok(index.includes('stile-rpg.css?v=558'));
-  assert.ok(sw.includes("const VERSIONE = 'palestra-v558'"));
-  assert.ok(ui.includes('./rpg-atelier.js?v=558'));
-  assert.ok(app.includes('./rpg-reference-compositing-v539.js?v=558'));
+  assert.ok(index.includes("PALESTRA_VERSIONE = 'palestra-v559'"));
+  assert.ok(index.includes('stile-rpg.css?v=559'));
+  assert.ok(sw.includes("const VERSIONE = 'palestra-v559'"));
+  assert.ok(ui.includes('./rpg-atelier.js?v=559'));
+  assert.ok(app.includes('./rpg-reference-compositing-v539.js?v=559'));
 });

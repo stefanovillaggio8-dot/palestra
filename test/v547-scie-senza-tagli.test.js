@@ -48,19 +48,19 @@ test('v547: PNG export maps exactly the live 3x2 cell and zoom',()=>{
  assert.match(exp,/const palcoFotoV547=Boolean\(ritaglioEsportabile&&/);
  assert.match(exp,/palcoV547\.naturalWidth\/3,cellH=palcoV547\.naturalHeight\/2/);
  assert.match(exp,/const fxW=dw\*1\.60,fxH=fxW\*\(440\/461\)/);
- assert.match(shop,/rpg-atelier\.js\?v=558/);
+ assert.match(shop,/rpg-atelier\.js\?v=559/);
 });
 test('v547: PWA fresh cache includes new photo and historical fallback',()=>{
  const idx=read('index.html'),sw=read('sw.js'),app=read('src/app.js');
- assert.ok(idx.includes("PALESTRA_VERSIONE = 'palestra-v558'"));
- assert.ok(sw.includes("const VERSIONE = 'palestra-v558'"));
+ assert.ok(idx.includes("PALESTRA_VERSIONE = 'palestra-v559'"));
+ assert.ok(sw.includes("const VERSIONE = 'palestra-v559'"));
  for(const css of ['stile.css','stile-rpg.css','stile-premium.css']){
-  assert.ok(idx.includes('./'+css+'?v=558'),css);
-  assert.ok(sw.includes("'./"+css+"?v=558'"),css);
+  assert.ok(idx.includes('./'+css+'?v=559'),css);
+  assert.ok(sw.includes("'./"+css+"?v=559'"),css);
  }
  assert.ok(sw.includes("'./img/effetti/reference-scene-v547.webp?v=547'"));
  assert.ok(sw.includes("'./img/effetti/reference-scene-v546.webp?v=546'"));
  assert.ok(sw.includes("percorso.includes('reference-scene-v547.webp')"));
- assert.ok(app.includes('./rpg-reference-compositing-v539.js?v=558'));
- assert.ok(app.includes('./rpg-atelier-ui.js?v=558'));
+ assert.ok(app.includes('./rpg-reference-compositing-v539.js?v=559'));
+ assert.ok(app.includes('./rpg-atelier-ui.js?v=559'));
 });
