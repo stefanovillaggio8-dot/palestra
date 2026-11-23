@@ -241,7 +241,7 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
     const cellW=foto.naturalWidth/3,cellH=foto.naturalHeight/2;
     // v552: stesso 148% centrato dello Shop: cerchio ai piedi, non a meta' gamba.
     const fxW=dw*1.48,fxH=fxW*(710/626);
-    // v555: stessa sfumatura perimetrale di Safari CSS nel PNG.
+    // v556: feather minimo CSS/PNG, centro, sfondo, rune e base conservati.
     // Applichiamo l'alpha SOLO allo sfondo; il vero eroe viene disegnato
     // DOPO e rimane completamente nitido. Centro e base restano opachi.
     const fxX=dx-(fxW-dw)/2,fxY=dy-dh*.03;
@@ -257,15 +257,15 @@ export async function renderFotoAtelier(grafica, opzioni={}) {
       fxCtx.globalCompositeOperation='destination-in';
       const bordoX=fxCtx.createLinearGradient(0,0,w,0);
       bordoX.addColorStop(0,'rgba(0,0,0,0)');
-      bordoX.addColorStop(.065,'rgba(0,0,0,1)');
-      bordoX.addColorStop(.935,'rgba(0,0,0,1)');
+      bordoX.addColorStop(.025,'rgba(0,0,0,1)');
+      bordoX.addColorStop(.975,'rgba(0,0,0,1)');
       bordoX.addColorStop(1,'rgba(0,0,0,0)');
       fxCtx.fillStyle=bordoX;
       fxCtx.fillRect(0,0,w,h);
       const bordoY=fxCtx.createLinearGradient(0,0,0,h);
       bordoY.addColorStop(0,'rgba(0,0,0,0)');
-      bordoY.addColorStop(.055,'rgba(0,0,0,1)');
-      bordoY.addColorStop(.98,'rgba(0,0,0,1)');
+      bordoY.addColorStop(.02,'rgba(0,0,0,1)');
+      bordoY.addColorStop(.995,'rgba(0,0,0,1)');
       bordoY.addColorStop(1,'rgba(0,0,0,0)');
       fxCtx.fillStyle=bordoY;
       fxCtx.fillRect(0,0,w,h);

@@ -4829,13 +4829,33 @@ html.animazioni-mai .personaggio-scena-grafica .rpg-corona-premium {animation:no
 .personaggio-scena-grafica.rpg-reference-v532.rpg-reference-integrated-v539.rpg-reference-stage-v548
   > .rpg-reference-environment-v541 {
   -webkit-mask-image:
-    linear-gradient(to right,transparent 0%,#000 6.5%,#000 93.5%,transparent 100%),
-    linear-gradient(to bottom,transparent 0%,#000 5.5%,#000 98%,transparent 100%)!important;
+    linear-gradient(to right,transparent 0%,#000 2.5%,#000 97.5%,transparent 100%),
+    linear-gradient(to bottom,transparent 0%,#000 2%,#000 99.5%,transparent 100%)!important;
   mask-image:
-    linear-gradient(to right,transparent 0%,#000 6.5%,#000 93.5%,transparent 100%),
-    linear-gradient(to bottom,transparent 0%,#000 5.5%,#000 98%,transparent 100%)!important;
+    linear-gradient(to right,transparent 0%,#000 2.5%,#000 97.5%,transparent 100%),
+    linear-gradient(to bottom,transparent 0%,#000 2%,#000 99.5%,transparent 100%)!important;
   -webkit-mask-composite:source-in!important;
   mask-composite:intersect!important;
 }
 /* Il soggetto originale non va MAI sfumato: la maschera appartiene
  * esclusivamente al livello environment; la sagoma resta nitida. */
+
+
+/* v556: il fondale deve restare PRESENTE, non dissolversi.
+ * Le maschere qui sopra agiscono soltanto sul bordo estremo del singolo
+ * ambiente; una luce ellittica morbida prosegue l'atmosfera nella card,
+ * senza riquadri e senza toccare il ritratto originale o la base. */
+:is(.aura-preview-reference-scene,.rpg-atelier-stage):has(.rpg-reference-ambra) {--rpg-scene-halo:236,100,32;}
+:is(.aura-preview-reference-scene,.rpg-atelier-stage):has(.rpg-reference-ombra) {--rpg-scene-halo:125,77,166;}
+:is(.aura-preview-reference-scene,.rpg-atelier-stage):has(.rpg-reference-fulmine) {--rpg-scene-halo:101,113,232;}
+:is(.aura-preview-reference-scene,.rpg-atelier-stage):has(.rpg-reference-nebula) {--rpg-scene-halo:110,79,209;}
+:is(.aura-preview-reference-scene,.rpg-atelier-stage):has(.rpg-reference-astrale) {--rpg-scene-halo:166,116,231;}
+.aura-preview-panel .aura-preview-reference-scene,
+.rpg-atelier-stage:has(.rpg-reference-stage-v548) {
+  background:
+    radial-gradient(ellipse 68% 57% at 50% 42%,
+      rgba(var(--rpg-scene-halo,236,100,32),.19) 0%,
+      rgba(var(--rpg-scene-halo,236,100,32),.085) 57%,
+      transparent 96%),
+    #101321!important;
+}
